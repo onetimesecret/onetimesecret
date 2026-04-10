@@ -32,11 +32,11 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Jeg læser hver eneste feedback der kommer ind her. Det er sådan jeg finder ud af, hvad jeg skal bruge tid på.",
+    "text": "Jeg læser al feedback, der kommer herigennem. Det er sådan, jeg finder ud af, hvad jeg skal bruge tid på.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Hvis noget er galt, eller du har idéer til hvordan det burde fungere, er dette det rette sted.",
+    "text": "Hvis noget ikke fungerer, eller du har idéer til, hvordan det bør virke, er dette det rette sted.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Det ser ud til, at du rapporterer en uautoriseret ændring af e-mail på din konto. Beskriv venligst hvad der skete, så undersøger vi det med det samme.",
+    "text": "Det ser ud til, at du rapporterer en uautoriseret e-mailændring på din konto. Beskriv venligst, hvad der skete, så undersøger vi det med det samme.",
     "source_hash": "00e56551"
   }
 }

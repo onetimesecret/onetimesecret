@@ -1,6 +1,6 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Datasuverænitet og regional isolation",
+    "text": "Datasuverænitet og regional isolering",
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
@@ -8,7 +8,7 @@
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Hver region fungerer som et fuldstændigt uafhængigt miljø med sin egen infrastruktur, krypteringsnøgler og datalagring",
+    "text": "Hver region fungerer som et fuldstændig uafhængigt miljø med sin egen infrastruktur, krypteringsnøgler og datalagring",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
@@ -36,7 +36,7 @@
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
-    "text": "Hvorfor datasuverænitet betyder noget",
+    "text": "Hvorfor datasuverænitet er vigtigt",
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Ved præcis hvor dine data befinder sig, og hvilke love der styrer deres beskyttelse.",
+    "text": "Vid præcis, hvor dine data befinder sig, og hvilke love der styrer deres beskyttelse.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,11 +52,11 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Sikr at dine personlige oplysninger håndteres i henhold til dit lands privatlivslove og regler, hvilket forhindrer uautoriseret adgang eller misbrug.",
+    "text": "Sørg for, at dine personlige oplysninger håndteres i overensstemmelse med dit lands privatlivslove og regler, og forhindre uautoriseret adgang eller misbrug.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
-    "text": "Regulatorisk overholdelse",
+    "text": "Lovgivningsmæssig overholdelse",
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Data lagret tættere på dig betyder lavere latenstid og bedre ydeevne.",
+    "text": "Data lagret tættere på dig betyder lavere forsinkelse og bedre ydeevne.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,7 +76,7 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "kontakt vores compliance-team",
+    "text": "kontakt vores complianceteam",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
@@ -144,19 +144,22 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Vores politik er aldrig at overføre data mellem regioner. Hver region fungerer som et fuldstændigt uafhængigt miljø.",
+    "text": "Vores politik er aldrig at overføre data mellem regioner. Hver region fungerer som et fuldstændig uafhængigt miljø.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "For at bruge en anden region, opret en ny konto der med den samme e-mailadresse, der er tilknyttet din fakturerings-e-mail.",
+    "text": "For at bruge en anden region skal du oprette en ny konto der med den samme e-mailadresse, der er knyttet til din fakturerings-e-mail.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Hvis din fakturerings-e-mail er forskellig fra din Onetime Secret konto-e-mail, brug fakturerings-e-mailen til den nye regionskonto for at bevare dine abonnementsfordele.",
+    "text": "Hvis din fakturerings-e-mail adskiller sig fra din Onetime Secret-konto-e-mail, skal du bruge fakturerings-e-mailen til den nye regionskonto for at beholde dine abonnementsfordele.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Dine abonnementsfordele gælder automatisk for enhver konto oprettet med din fakturerings-e-mailadresse.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Ingen regioninformation er i øjeblikket tilgængelig for din konto."
   }
 }

@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Hvorfor er denne besked utilgængelig?",
+    "text": "Hvorfor er denne hemmelighed utilgængelig?",
     "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
@@ -28,11 +28,11 @@
     "source_hash": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Side ikke fundet",
+    "text": "404 - Siden blev ikke fundet",
     "source_hash": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Side ikke fundet",
+    "text": "404 - Siden blev ikke fundet",
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
@@ -60,7 +60,7 @@
     "source_hash": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Del en besked!",
+    "text": "Del en hemmelighed!",
     "source_hash": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {

@@ -20,11 +20,11 @@
     "source_hash": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Administrer abonnement",
+    "text": "Administrér abonnement",
     "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Kundeoplysninger",
+    "text": "Kundeinformation",
     "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
@@ -48,7 +48,7 @@
     "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "slutter på",
+    "text": "der ender på",
     "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
@@ -60,7 +60,7 @@
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Næste fakturadato:",
+    "text": "Næste faktureringsdato:",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -80,7 +80,7 @@
     "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Opdater adgangskode",
+    "text": "Opdatér adgangskode",
     "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
@@ -120,7 +120,7 @@
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Supportoplysninger",
+    "text": "Supportdetaljer",
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Bekræft sletning af konto",
+    "text": "Bekræft kontosletning",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -172,15 +172,15 @@
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "slet dem permanent, før du fortsætter",
+    "text": "brænd dem, før du fortsætter",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Eventuelle beskeder, du ønsker at fjerne,",
+    "text": "Eventuelle hemmeligheder, du ønsker at fjerne,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "Beskeder forbliver aktive, indtil de udløber.",
+    "text": "Hemmeligheder forbliver aktive, indtil de udløber.",
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
@@ -192,15 +192,15 @@
     "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "Deaktiver",
+    "text": "Deaktivér",
     "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "Er du sikker på, at du vil deaktivere din konto? Alle dine data vil blive fjernet permanent fra vores servere for altid. Denne handling kan ikke fortrydes.",
+    "text": "Er du sikker på, at du vil deaktivere din konto? Alle dine data vil blive permanent fjernet fra vores servere for altid. Denne handling kan ikke fortrydes.",
     "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Deaktiver konto",
+    "text": "Deaktivér konto",
     "source_hash": "5e31b73d"
   },
   "web.settings.title": {
@@ -208,11 +208,11 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Administrer dine kontoindstillinger og præferencer",
+    "text": "Administrér dine kontoindstillinger og præferencer",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "Administrer dine kontoindstillinger og præferencer",
+    "text": "Administrér dine kontoindstillinger og præferencer",
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
@@ -268,11 +268,11 @@
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Administrer godkendelse og kontosikkerhed",
+    "text": "Administrér godkendelse og kontosikkerhed",
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Administrer dine kontooplysninger",
+    "text": "Administrér dine kontooplysninger",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -300,19 +300,19 @@
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Din adgangskode er påkrævet af sikkerhedsmæssige årsager",
+    "text": "Din adgangskode er påkrævet af sikkerhedshensyn",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "En bekræftelsesmail vil blive sendt til den nye adresse",
+    "text": "En bekræftelses-e-mail vil blive sendt til den nye adresse",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Opdater e-mail",
+    "text": "Opdatér e-mail",
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Opdater e-mailadressen tilknyttet din konto",
+    "text": "Opdatér e-mailadressen, der er knyttet til din konto",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -324,11 +324,11 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Ny e-mail skal være forskellig fra nuværende e-mail",
+    "text": "Ny e-mail skal være anderledes end den nuværende e-mail",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail opdateret. Tjek venligst din indbakke for at bekræfte din nye e-mailadresse.",
+    "text": "Bekræftelses-e-mail sendt. Tjek venligst din nye indbakke og klik på bekræftelseslinket for at fuldføre ændringen.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
@@ -340,11 +340,11 @@
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Administrer dine aktive sessioner",
+    "text": "Administrér dine aktive sessioner",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Administrer dine aktive sessioner",
+    "text": "Administrér dine aktive sessioner",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,11 +352,11 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Opdater din kontoadgangskode",
+    "text": "Opdatér din kontoadgangskode",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Opdater din kontoadgangskode",
+    "text": "Opdatér din kontoadgangskode",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
@@ -364,11 +364,11 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Slet din konto og alle data permanent",
+    "text": "Slet permanent din konto og alle data",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Slet din konto og alle data permanent",
+    "text": "Slet permanent din konto og alle data",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -376,7 +376,7 @@
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Din overordnede kontosikkerhed",
+    "text": "Din overordnede kontosikkerhedsstatus",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -396,15 +396,15 @@
     "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Forbedre din sikkerhed",
+    "text": "Forbedr din sikkerhed",
     "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Aktiver to-faktor-godkendelse for stærkere beskyttelse",
+    "text": "Aktivér tofaktorgodkendelse for stærkere beskyttelse",
     "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
-    "text": "Generer gendannelseskoder som backup",
+    "text": "Generér gendannelseskoder som backup",
     "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
@@ -416,11 +416,11 @@
     "source_hash": "c0bf75bd"
   },
   "web.settings.security.manage": {
-    "text": "Administrer",
+    "text": "Administrér",
     "source_hash": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "Aktiver",
+    "text": "Aktivér",
     "source_hash": "5342e09f"
   },
   "web.settings.security.codes_available": {
@@ -436,7 +436,7 @@
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Bedste sikkerhedspraksis",
+    "text": "Sikkerhedsmæssige bedste praksisser",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
@@ -444,7 +444,7 @@
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Aktiver to-faktor-godkendelse for ekstra beskyttelse",
+    "text": "Aktivér tofaktorgodkendelse for ekstra beskyttelse",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
@@ -452,11 +452,11 @@
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Gennemgå og tilbagekald ubrugte sessioner regelmæssigt",
+    "text": "Gennemgå og fjern ubrugte sessioner regelmæssigt",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Se detaljer",
+    "text": "Vis detaljer",
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
@@ -464,11 +464,11 @@
     "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "Administrer API-nøgler og integrationer",
+    "text": "Administrér API-nøgler og integrationer",
     "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Administrer API-nøgler og integrationer",
+    "text": "Administrér API-nøgler og integrationer",
     "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Lær hvordan du integrerer Onetime Secret i dine applikationer",
+    "text": "Lær, hvordan du integrerer Onetime Secret i dine applikationer",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -496,7 +496,7 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Bedste sikkerhedspraksis",
+    "text": "Sikkerhedsmæssige bedste praksisser",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
@@ -508,15 +508,15 @@
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Roter API-nøgler regelmæssigt for sikkerhed",
+    "text": "Roter API-nøgler regelmæssigt af sikkerhedshensyn",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Brug altid HTTPS ved API-forespørgsler",
+    "text": "Brug altid HTTPS, når du foretager API-forespørgsler",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Overvåg dit API-forbrug og opsæt advarsler",
+    "text": "Overvåg dit API-forbrug og opsæt alarmer",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Gendannelse af din API-nøgle vil ugyldiggøre den nuværende nøgle. Opdater alle applikationer, der bruger den gamle nøgle.",
+    "text": "Gengenerering af din API-nøgle vil ugyldiggøre den nuværende nøgle. Opdatér alle applikationer, der bruger den gamle nøgle.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Administrer dine privatlivspræferencer",
+    "text": "Administrér dine privatlivspræferencer",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -548,11 +548,11 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Ingen analyser. Ingen sporing. Punktum.",
+    "text": "Ingen analyse. Ingen sporing. Punktum.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Dette er ikke en indstilling, fordi der ikke er noget at slå til eller fra. Dit privatliv er indbygget i måden, vi driver virksomhed på.",
+    "text": "Dette er ikke en indstilling, fordi der ikke er noget at slå til eller fra. Dit privatliv er indbygget i måden, vi opererer på.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,7 +560,7 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Administrer hvordan du modtager notifikationer",
+    "text": "Administrér, hvordan du modtager notifikationer",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
@@ -568,23 +568,23 @@
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Notifikationer ved visning af besked",
+    "text": "Notifikationer ved afsløring af hemmelighed",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Modtag en e-mail, når nogen ser din besked",
+    "text": "Modtag en e-mail, når nogen ser din hemmelighed",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Du får besked hver gang en modtager ser en af dine beskeder",
+    "text": "Du vil blive underrettet, hver gang en modtager afslører en af dine hemmeligheder",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Notifikationsmails indeholder kun tidsstempel og besked-ID. Oplysninger om læser er aldrig inkluderet.",
+    "text": "Notifikations-e-mails inkluderer kun tidsstemplet og hemmelighedens ID. Information om, hvem der ser den, inkluderes aldrig.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Zone til omhyggelig overvejelse",
+    "text": "Zone for omhyggelig overvejelse",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -596,7 +596,7 @@
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Eksporter dine kontodata",
+    "text": "Eksportér dine kontodata",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
@@ -608,7 +608,7 @@
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Eksportbehandlingstid",
+    "text": "Behandlingstid for eksport",
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
@@ -620,11 +620,11 @@
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Slette alle dine beskeder permanent",
+    "text": "Permanent slette alle dine hemmeligheder",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Fjerne alle beskedmetadata og historik",
+    "text": "Fjerne alle hemmelighedsmetadata og historik",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -648,7 +648,7 @@
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Ændring af e-mail mislykkedes",
+    "text": "E-mailændring mislykkedes",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {

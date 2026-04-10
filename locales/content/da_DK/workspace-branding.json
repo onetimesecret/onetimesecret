@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Skrifttype",
+    "text": "Skriftfamilie",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -24,7 +24,7 @@
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Forhåndsvisning af modtagerens visning, når han får adgang til dit sikre link",
+    "text": "Forhåndsvisning af modtagerens visning, når de tilgår dit sikre link",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
@@ -40,11 +40,11 @@
     "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Maksimer vindue",
+    "text": "Maksimér vindue",
     "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Minimer vindue",
+    "text": "Minimér vindue",
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
@@ -64,19 +64,19 @@
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Disse instruktioner vil blive vist til modtagerne, før de afslører det hemmelige indhold",
+    "text": "Disse instruktioner vises til modtagere, før de afslører det hemmelige indhold",
     "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Disse instruktioner vil blive vist til modtagerne, efter at de har afsløret hemmeligheden",
+    "text": "Disse instruktioner vises til modtagere, efter de har afsløret hemmeligheden",
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruktioner før visning",
+    "text": "Instruktioner før afsløring",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruktioner efter visning",
+    "text": "Instruktioner efter afsløring",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -84,7 +84,7 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Logo-kontroller",
+    "text": "Logokontroller",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -100,11 +100,11 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Se et eksempel på, hvordan modtagerne vil se dine hemmeligheder ved at teste knappen \"Vis hemmelighed\"",
+    "text": "Forhåndsvis, hvordan modtagere vil se dine hemmeligheder, ved at teste knappen \"Vis hemmelighed\"",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Øje-ikon",
+    "text": "Øjeikon",
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
@@ -112,7 +112,7 @@
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Billed-ikon",
+    "text": "Billedikon",
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
@@ -120,11 +120,11 @@
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Tilpasnings-ikon",
+    "text": "Tilpasningsikon",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Du har ændringer, der ikke er gemt. Er du sikker?",
+    "text": "Du har ikke-gemte ændringer. Er du sikker?",
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
@@ -132,15 +132,15 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dette er en interaktiv forhåndsvisning af, hvordan modtagere vil se dine sikre beskeder. Du kan: - Tilpasse farver og skrifttyper med kontrollerne ovenfor - Uploade et logo (minimum 128x128 pixels anbefales, maks. 1MB) - Teste forhåndsvisningen med 'Se besked'-knappen",
+    "text": "Dette er en interaktiv forhåndsvisning af, hvordan modtagere vil se dine sikre beskeder. Du kan: - Tilpasse farver og skrifttyper med kontrollerne ovenfor - Uploade et logo (minimum 128x128 pixels anbefalet, maks 1 MB) - Teste forhåndsvisningen med knappen \"Vis hemmelighed\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Dette er en interaktiv forhåndsvisning af, hvordan modtagerne vil se dine sikre beskeder. Det kan du gøre: - Tilpasse farver og skrifttyper ved hjælp af kontrollerne ovenfor - Uploade et logo (minimum 128x128 pixels anbefales, maks. 1 MB) - Teste forhåndsvisningen ved hjælp af knappen \"View Secret\"",
+    "text": "Dette er en interaktiv forhåndsvisning af, hvordan modtagere vil se dine sikre beskeder. Du kan: - Tilpasse farver og skrifttyper med kontrollerne ovenfor - Uploade et logo (minimum 128x128 pixels anbefalet, maks 1 MB) - Teste forhåndsvisningen med knappen \"Vis hemmelighed\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japansk kanji '秘' (himitsu) som betyder 'hemmelighed' eller 'fortroligt'",
+    "text": "Japansk kanji '秘' (himitsu) der betyder 'hemmelighed' eller 'fortroligt'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -170,5 +170,8 @@
   "web.branding.upgrade_to_customize": {
     "text": "Opgrader din plan for at tilpasse branding for dette domæne.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Brandindstillinger gemt"
   }
 }

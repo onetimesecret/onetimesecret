@@ -74,11 +74,11 @@
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Session udløbet. Log venligst ind igen.",
+    "text": "Sessionen er udløbet. Log venligst ind igen.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Gendannelseskode ikke fundet. Bekræft venligst at du har indtastet den korrekt.",
+    "text": "Gendannelseskode ikke fundet. Bekræft venligst, at du har indtastet den korrekt.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
@@ -86,7 +86,7 @@
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Netværksfejl. Tjek venligst din forbindelse og prøv igen.",
+    "text": "Netværksfejl. Kontrollér din forbindelse og prøv igen.",
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
@@ -98,7 +98,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "E-mail-link",
+    "text": "E-maillink",
     "context": "Passwordless authentication via email link",
     "source_hash": "1b6ffed2"
   },
@@ -139,7 +139,7 @@
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Ingen adgangskode nødvendig - klik bare på linket i din e-mail",
+    "text": "Ingen adgangskode nødvendig - klik blot på linket i din e-mail",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -155,7 +155,7 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Din session er udløbet. Opdater venligst siden og prøv igen.",
+    "text": "Din session er udløbet. Opdatér venligst siden og prøv igen.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
@@ -167,7 +167,7 @@
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Vent venligst mens vi bekræfter dit link",
+    "text": "Vent venligst, mens vi bekræfter dit link",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -175,7 +175,7 @@
     "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Tilbage til log ind",
+    "text": "Tilbage til login",
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
@@ -191,7 +191,7 @@
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Brug venligst en moderne browser der understøtter WebAuthn (Chrome, Safari, Firefox eller Edge)",
+    "text": "Brug venligst en moderne browser, der understøtter WebAuthn (Chrome, Safari, Firefox eller Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -237,7 +237,7 @@
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Adgangsnøgler giver dig mulighed for at logge ind sikkert uden adgangskode",
+    "text": "Adgangsnøgler lader dig logge ind sikkert uden adgangskode",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -257,7 +257,7 @@
     "source_hash": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Registrer adgangsnøgle",
+    "text": "Registrér adgangsnøgle",
     "context": "Button to register a new passkey",
     "source_hash": "26db6968"
   },
@@ -292,7 +292,7 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Navn på adgangsnøgle",
+    "text": "Adgangsnøglenavn",
     "context": "Label for passkey name field",
     "source_hash": "22eefa67"
   },
@@ -317,12 +317,12 @@
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Hurtigt og nemt - brug blot dit fingeraftryk, ansigt eller sikkerhedsnøgle",
+    "text": "Hurtigt og nemt - brug bare dit fingeraftryk, ansigt eller sikkerhedsnøgle",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Synkroniseret på tværs af dine enheder ved brug af platform-autentificering",
+    "text": "Synkroniseret på tværs af dine enheder, når du bruger platformautentifikatorer",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -344,7 +344,7 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Kontakt support hvis du har brug for øjeblikkelig adgang",
+    "text": "Kontakt support, hvis du har brug for øjeblikkelig adgang",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
@@ -372,7 +372,7 @@
     "source_hash": "6ba0bdec"
   },
   "web.auth.sessions.location": {
-    "text": "Lokation",
+    "text": "Placering",
     "source_hash": "15b61974"
   },
   "web.auth.sessions.ip_address": {
@@ -396,7 +396,7 @@
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "Er du sikker på at du vil fjerne denne session?",
+    "text": "Er du sikker på, at du vil fjerne denne session?",
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
@@ -408,7 +408,7 @@
     "source_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "Session fjernet succesfuldt",
+    "text": "Session fjernet",
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
@@ -420,31 +420,31 @@
     "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "To-faktor-godkendelse",
+    "text": "Tofaktorgodkendelse",
     "source_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "To-faktor-godkendelse er aktiveret",
+    "text": "Tofaktorgodkendelse er aktiveret",
     "source_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "To-faktor-godkendelse er deaktiveret",
+    "text": "Tofaktorgodkendelse er deaktiveret",
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "Aktivér to-faktor-godkendelse",
+    "text": "Aktivér tofaktorgodkendelse",
     "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "Deaktivér to-faktor-godkendelse",
+    "text": "Deaktivér tofaktorgodkendelse",
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Opsæt to-faktor-godkendelse",
+    "text": "Opsæt tofaktorgodkendelse",
     "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Tilføj et ekstra lag sikkerhed til din konto",
+    "text": "Tilføj et ekstra lag af sikkerhed til din konto",
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
@@ -456,7 +456,7 @@
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Scan denne QR-kode med din authenticator-app",
+    "text": "Scan denne QR-kode med din autentificeringsapp",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
@@ -484,15 +484,15 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Ugyldig kode. Koder udløber hver 30. sekund. Prøv den seneste kode fra din authenticator-app.",
+    "text": "Ugyldig kode. Koder udløber hvert 30. sekund. Prøv den seneste kode fra din autentificeringsapp.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "To-faktor-godkendelse er blevet aktiveret",
+    "text": "Tofaktorgodkendelse er blevet aktiveret",
     "source_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "To-faktor-godkendelse er blevet deaktiveret",
+    "text": "Tofaktorgodkendelse er blevet deaktiveret",
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Bekræft din identitet for at ændre indstillinger for to-faktor-godkendelse",
+    "text": "Bekræft din identitet for at ændre tofaktorgodkendelsesindstillinger",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -528,11 +528,11 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Annuller og vend tilbage til login",
+    "text": "Annullér og vend tilbage til login",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
-    "text": "Annuller login",
+    "text": "Annullér login",
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
@@ -540,19 +540,19 @@
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Din konto er beskyttet med to-faktor-godkendelse",
+    "text": "Din konto er beskyttet med tofaktorgodkendelse",
     "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Beskyt din konto med et ekstra lag sikkerhed",
+    "text": "Beskyt din konto med et ekstra lag af sikkerhed",
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Forhindrer uautoriseret adgang selv hvis din adgangskode er kompromitteret",
+    "text": "Forebyg uautoriseret adgang, selv hvis din adgangskode er kompromitteret",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Virker med Google Authenticator, Authy og andre TOTP-apps",
+    "text": "Fungerer med Google Authenticator, Authy og andre TOTP-apps",
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
@@ -584,7 +584,7 @@
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Indtast den 6-cifrede kode fra din authenticator-app",
+    "text": "Indtast den 6-cifrede kode fra din autentificeringsapp",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -636,7 +636,7 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Gem disse koder et sikkert sted. Hver kan bruges én gang, hvis du mister adgang til din authenticator.",
+    "text": "Gem disse koder et sikkert sted. Hver kan bruges én gang, hvis du mister adgang til din autentificeringsapp.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -644,15 +644,15 @@
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Du skal downloade eller kopiere dine gendannelseskoder før du fuldfører opsætningen.",
+    "text": "Du skal downloade eller kopiere dine gendannelseskoder, før du fuldfører opsætningen.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "Generer nye koder",
+    "text": "Generér nye koder",
     "source_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Generer koder igen",
+    "text": "Gengenerér koder",
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
@@ -672,7 +672,7 @@
     "source_hash": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Kopier alle koder",
+    "text": "Kopiér alle koder",
     "source_hash": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
@@ -696,7 +696,7 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Hver kode kan kun bruges én gang. Generer nye koder hvis du løber tør.",
+    "text": "Hver kode kan kun bruges én gang. Gengenerér koder, hvis du er ved at løbe tør.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -710,5 +710,20 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Gendannelseskoder",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternative godkendelsesmuligheder"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "session"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessioner"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }

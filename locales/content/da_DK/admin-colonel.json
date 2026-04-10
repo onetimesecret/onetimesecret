@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(aktiv inden for de seneste 5 minutter)",
+    "text": "(aktive inden for de sidste 5 minutter)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -32,11 +32,11 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Rediger systemkonfigurationsindstillinger. Ændringer træder i kraft umiddelbart efter gemning.",
+    "text": "Redigér systemkonfigurationsindstillinger. Ændringer træder i kraft umiddelbart efter lagring.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "Ugyldig JSON i {section}-sektionen",
+    "text": "Ugyldig JSON i {section}-sektion",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
@@ -48,11 +48,11 @@
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Fejl ved gemning af konfiguration",
+    "text": "Fejl ved lagring af konfiguration",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "Konfiguration gemt succesfuldt",
+    "text": "Konfiguration gemt",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
@@ -68,7 +68,7 @@
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} gemt succesfuldt",
+    "text": "{section} gemt",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -92,11 +92,11 @@
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section}-sektionen har ingen konfigurerede værdier",
+    "text": "{section}-sektion har ingen konfigurerede værdier",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
-    "text": "Oversigt",
+    "text": "Kontrolpanel",
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
@@ -116,7 +116,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "Administrer brugerkonti og tilladelser",
+    "text": "Administrér brugerkonti og tilladelser",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -152,11 +152,11 @@
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Aktivitetsdata vil blive vist her",
+    "text": "Aktivitetsdata vises her",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Beskeder i alt",
+    "text": "Hemmeligheder i alt",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -164,15 +164,15 @@
     "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Beskeder i dag",
+    "text": "Hemmeligheder i dag",
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Oprettede beskeder",
+    "text": "Hemmeligheder oprettet",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Delte beskeder",
+    "text": "Hemmeligheder delt",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
@@ -200,7 +200,7 @@
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "Administrer konti",
+    "text": "Administrér konti",
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
@@ -208,7 +208,7 @@
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Konfigurer domæner",
+    "text": "Konfigurér domæner",
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
@@ -224,7 +224,7 @@
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Baggrundsjobs",
+    "text": "Baggrundsjob",
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
@@ -236,7 +236,7 @@
     "source_hash": "3b2fe03e"
   },
   "web.colonel.pendingMessages": {
-    "text": "Afventer",
+    "text": "Ventende",
     "source_hash": "331551b0"
   },
   "web.colonel.consumers": {
@@ -244,7 +244,7 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Sats/sek",
+    "text": "Rate/sek",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
@@ -252,11 +252,11 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Worker-tilstand",
+    "text": "Arbejdersundhed",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "aktive workers",
+    "text": "aktive arbejdere",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Test-abonnementstilstand",
+    "text": "Testplantilstand",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -280,19 +280,19 @@
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Vælg et abonnement at teste",
+    "text": "Vælg en plan at teste",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Nulstil til faktisk abonnement",
+    "text": "Nulstil til faktisk plan",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Nuværende abonnement",
+    "text": "Nuværende plan",
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "Tilgængelige abonnementer",
+    "text": "Tilgængelige planer",
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Test din applikation med forskellige abonnementsrettigheder. Ændringer er midlertidige og påvirker kun din session.",
+    "text": "Test din applikation med forskellige planrettigheder. Ændringer er midlertidige og påvirker kun din session.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Du tester med {planName}-rettigheder (midlertidig sessionsoverskrivning).",
+    "text": "Du tester med {planName}-rettigheder (midlertidig sessionsændring).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Overvåg organisations-faktureringssync-sundhed",
+    "text": "Overvåg faktureringssynkroniseringsstatus for organisationer",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Faktureringssundhedsovervågning",
+    "text": "Faktureringssundhedsmonitor",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -408,7 +408,7 @@
     "source_hash": "4b1b8aa3"
   },
   "web.colonel.organizations.columns.plan": {
-    "text": "Abonnement",
+    "text": "Plan",
     "source_hash": "fa8ed0bd"
   },
   "web.colonel.organizations.columns.members": {
@@ -424,7 +424,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "Standard arbejdsområde",
+    "text": "Standardarbejdsområde",
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
@@ -432,11 +432,11 @@
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Organisationsfaktureringsadmin",
+    "text": "Faktureringsadministration for organisationer",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Administrer organisationer og overvåg faktureringssync-sundhed ({total} total)",
+    "text": "Administrér organisationer og overvåg faktureringssynkroniseringsstatus ({total} i alt)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -464,7 +464,7 @@
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "Tjekker...",
+    "text": "Kontrollerer...",
     "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.expanded.customer": {
@@ -512,7 +512,7 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Løst abonnement",
+    "text": "Beregnet plan",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
@@ -536,11 +536,11 @@
     "source_hash": "cf548c8c"
   },
   "web.colonel.secrets.title": {
-    "text": "Beskeder",
+    "text": "Hemmeligheder",
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Se og administrer alle beskeder",
+    "text": "Vis og administrér alle hemmeligheder",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
@@ -548,7 +548,7 @@
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Administrer IP-blokeringsliste",
+    "text": "Administrér IP-blokeringsliste",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -556,7 +556,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "Eksporter forbrugsdata og statistik",
+    "text": "Eksportér forbrugsdata og statistikker",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -572,7 +572,7 @@
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "Administrer brugerdefinerede domæner og branding",
+    "text": "Administrér brugerdefinerede domæner og branding",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
@@ -592,7 +592,7 @@
     "source_hash": "fe45f3a1"
   },
   "web.colonel.titles.secrets": {
-    "text": "Beskedadministration",
+    "text": "Hemmelighedsadministration",
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
@@ -608,7 +608,7 @@
     "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
-    "text": "Auth-database",
+    "text": "Godkendelsesdatabase",
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Når du sender feedback, kan vi se:",
+    "text": "Når du indsender feedback, kan vi se:",
     "source_hash": "fe77172e"
   }
 }

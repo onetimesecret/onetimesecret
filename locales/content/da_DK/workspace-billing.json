@@ -12,7 +12,7 @@
     "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Se abonnementer",
+    "text": "Se planer",
     "source_hash": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
@@ -28,11 +28,11 @@
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Revisionslogfiler kræver Multi-Team-abonnement eller højere",
+    "text": "Revisionslogfiler kræver Multi-Team-plan eller højere",
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Administrer dit abonnement, organisationer og faktureringsindstillinger",
+    "text": "Administrér dit abonnement, organisationer og faktureringsindstillinger",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
@@ -40,7 +40,7 @@
     "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Se og administrer dit abonnement og betalingsoplysninger",
+    "text": "Se og administrér dit abonnement og betalingsdetaljer",
     "source_hash": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
@@ -48,11 +48,11 @@
     "source_hash": "21806992"
   },
   "web.billing.overview.current_plan": {
-    "text": "Nuværende abonnement",
+    "text": "Nuværende plan",
     "source_hash": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Abonnementsfunktioner",
+    "text": "Planfunktioner",
     "source_hash": "fbab9086"
   },
   "web.billing.overview.payment_method": {
@@ -60,7 +60,7 @@
     "source_hash": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Næste fakturadato",
+    "text": "Næste faktureringsdato",
     "source_hash": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
@@ -68,7 +68,7 @@
     "source_hash": "2cc2b6f7"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Administrer fakturering",
+    "text": "Administrér fakturering",
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
@@ -76,27 +76,27 @@
     "source_hash": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Opgrader abonnement",
+    "text": "Opgrader plan",
     "source_hash": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Skift abonnement",
+    "text": "Skift plan",
     "source_hash": "2d0b195b"
   },
   "web.billing.overview.manage_subscription": {
-    "text": "Administrer abonnement",
+    "text": "Administrér abonnement",
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Du er på en ældre plan med særlige priser.",
+    "text": "Du er på en ældre plan med særlig prissætning.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
-    "text": "Identity Plus (Early Supporter)",
+    "text": "Identity Plus (Tidlig supporter)",
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Skift af plan vil miste din ældre pris. Dette kan ikke fortrydes.",
+    "text": "Skift af plan vil betyde, at du mister din ældre pris. Dette kan ikke fortrydes.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -116,7 +116,7 @@
     "source_hash": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Se abonnementer",
+    "text": "Se planer",
     "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
@@ -128,15 +128,15 @@
     "source_hash": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Download historik",
+    "text": "Downloadhistorik",
     "source_hash": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Administrer fakturering",
+    "text": "Administrér fakturering",
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Opdater betalingsoplysninger",
+    "text": "Opdatér betalingsoplysninger",
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
@@ -152,11 +152,11 @@
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Dit abonnement er blevet opgraderet",
+    "text": "Din plan er blevet opgraderet",
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Dit nye abonnement er nu aktivt. Tak for dit køb.",
+    "text": "Din nye plan er nu aktiv. Tak for dit køb.",
     "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -164,7 +164,7 @@
     "source_hash": "8f782ad8"
   },
   "web.billing.overview.entitlements.create_secrets": {
-    "text": "Opret beskeder",
+    "text": "Opret hemmeligheder",
     "source_hash": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
@@ -196,23 +196,23 @@
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Hjemmesidebeskeder",
+    "text": "Hemmeligheder på forsiden",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Indgående beskeder",
+    "text": "Indgående hemmeligheder",
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Administrer organisationer",
+    "text": "Administrér organisationer",
     "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {
-    "text": "Administrer teams",
+    "text": "Administrér teams",
     "source_hash": "2a52d5b4"
   },
   "web.billing.overview.entitlements.manage_members": {
-    "text": "Administrer medlemmer",
+    "text": "Administrér medlemmer",
     "source_hash": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
@@ -220,7 +220,7 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Enkelt login",
+    "text": "Single Sign-On",
     "source_hash": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
@@ -240,7 +240,7 @@
     "source_hash": "03d195e8"
   },
   "web.billing.features.create_secrets": {
-    "text": "Opret og del beskeder",
+    "text": "Opret og del hemmeligheder",
     "source_hash": "303f9386"
   },
   "web.billing.features.api_access": {
@@ -264,7 +264,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Hjemmesidebeskeder",
+    "text": "Hemmeligheder på forsiden",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
@@ -280,7 +280,7 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "Enkelt login (SSO)",
+    "text": "Single Sign-On (SSO)",
     "source_hash": "5db5c812"
   },
   "web.billing.features.priority_support": {
@@ -304,23 +304,23 @@
     "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Overleveringsarbejdsgange",
+    "text": "Overdragelsesarbejdsgange",
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
-    "text": "Vælg et abonnement",
+    "text": "Vælg en plan",
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Vælg det abonnement, der passer til dine behov",
+    "text": "Vælg den plan, der passer til dine behov",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Vælg det perfekte abonnement til din organisation",
+    "text": "Vælg den perfekte plan til din organisation",
     "source_hash": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Nuværende abonnement",
+    "text": "Nuværende plan",
     "source_hash": "5d856320"
   },
   "web.billing.plans.current_badge": {
@@ -336,7 +336,7 @@
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
-    "text": "Annuller for at skifte",
+    "text": "Annullér for at skifte",
     "source_hash": "1c4cda89"
   },
   "web.billing.plans.monthly": {
@@ -360,11 +360,11 @@
     "source_hash": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Enkelt team",
+    "text": "Single Team",
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi-team",
+    "text": "Multi Team",
     "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -384,7 +384,7 @@
     "source_hash": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
-    "text": "Ubegrænsede beskeder",
+    "text": "Ubegrænsede hemmeligheder",
     "source_hash": "0f077568"
   },
   "web.billing.plans.api_access": {
@@ -396,7 +396,7 @@
     "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Vælg abonnement",
+    "text": "Vælg plan",
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
@@ -404,7 +404,7 @@
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Har du spørgsmål eller brug for noget tilpasset?",
+    "text": "Har du spørgsmål eller brug for noget skræddersyet?",
     "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
@@ -428,11 +428,11 @@
     "source_hash": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Mest populær",
+    "text": "Mest populære",
     "source_hash": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Anbefalet",
+    "text": "Foreslået",
     "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
@@ -440,7 +440,7 @@
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Ingen {interval} abonnementer tilgængelige på nuværende tidspunkt.",
+    "text": "Ingen {interval}-planer tilgængelige på nuværende tidspunkt.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
@@ -448,15 +448,15 @@
     "source_hash": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Dit abonnement ændres med det samme.",
+    "text": "Din plan ændres med det samme.",
     "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Nuværende abonnement:",
+    "text": "Nuværende plan:",
     "source_hash": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Nyt abonnement:",
+    "text": "Ny plan:",
     "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
@@ -464,7 +464,7 @@
     "source_hash": "001e4901"
   },
   "web.billing.plans.due_today": {
-    "text": "Forfald i dag:",
+    "text": "Forfaldent i dag:",
     "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
@@ -476,11 +476,11 @@
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Dine funktionsbegrænsninger opdateres med det samme efter abonnementsændringen.",
+    "text": "Dine funktionsgrænser opdateres med det samme efter planskiftet.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Abonnementsændring mislykkedes. Prøv venligst igen.",
+    "text": "Planskift mislykkedes. Prøv venligst igen.",
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
@@ -520,7 +520,7 @@
     "source_hash": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "Anvendes på fremtidige fakturaer",
+    "text": "Anvendt på fremtidige fakturaer",
     "source_hash": "5007add6"
   },
   "web.billing.invoices.title": {
@@ -544,7 +544,7 @@
     "source_hash": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
-    "text": "Hent",
+    "text": "Download",
     "source_hash": "d6eafe82"
   },
   "web.billing.invoices.invoice_number": {
@@ -556,7 +556,7 @@
     "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "Dine fakturaer vil blive vist her, når du opgraderer til en betalt plan",
+    "text": "Dine fakturaer vises her, når du opgraderer til en betalt plan",
     "source_hash": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
@@ -588,7 +588,7 @@
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
-    "text": "Ugyldig",
+    "text": "Annulleret",
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
@@ -600,7 +600,7 @@
     "source_hash": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Se organisationens fakturering",
+    "text": "Se organisationsfakturering",
     "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
@@ -628,7 +628,7 @@
     "source_hash": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "Forfaldent",
+    "text": "Forfalden",
     "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
@@ -636,7 +636,7 @@
     "source_hash": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "Abonnement",
+    "text": "Plan",
     "source_hash": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
@@ -652,7 +652,7 @@
     "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Administrer dit abonnement, betalingsmetoder og faktureringshistorik",
+    "text": "Administrér dit abonnement, betalingsmetoder og faktureringshistorik",
     "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
@@ -680,7 +680,7 @@
     "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Privatliv-først design",
+    "text": "Privatlivsfokuseret design",
     "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
@@ -720,7 +720,7 @@
     "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Opgrader til secrets.yourdomain.com",
+    "text": "Opgrader til secrets.ditdomæne.dk",
     "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
@@ -728,7 +728,7 @@
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Alle abonnementer inkluderer valg af dataplacering: {0} regioner",
+    "text": "Alle planer inkluderer valg af datalokalitet: {0} regioner",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -760,12 +760,12 @@
     "source_hash": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Annuller abonnement",
+    "text": "Annullér abonnement",
     "context": "Link text shown below the plan selector for paid users",
     "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Annuller abonnement",
+    "text": "Annullér abonnement",
     "context": "Modal dialog heading/title",
     "source_hash": "882e0c83"
   },
@@ -790,7 +790,7 @@
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Din konto vil blive nedgraderet til det gratis abonnement",
+    "text": "Din konto vil vende tilbage til den gratis plan",
     "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
@@ -799,7 +799,7 @@
     "source_hash": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Annuller abonnement",
+    "text": "Annullér abonnement",
     "context": "Primary action button in modal - confirms the cancellation",
     "source_hash": "882e0c83"
   },
@@ -822,7 +822,7 @@
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Ombestemt dig? Du kan genaktivere dit abonnement når som helst før annulleringsdatoen.",
+    "text": "Har du skiftet mening? Du kan genaktivere dit abonnement når som helst før annulleringsdatoen.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -835,15 +835,15 @@
     "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Arbejdsområdebranding",
+    "text": "Arbejdsområde-branding",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
-    "text": "30-dages beskedopbevaring",
+    "text": "30 dages hemmelighedsopbevaring",
     "source_hash": "21d6d514"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Indgående beskeder",
+    "text": "Indgående hemmeligheder",
     "source_hash": "883dbca9"
   },
   "web.billing.features.team_members_5": {
@@ -863,7 +863,7 @@
     "source_hash": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Ubegrænsede teammedlemmer",
+    "text": "Ubegrænset antal teammedlemmer",
     "source_hash": "b7491ee9"
   },
   "web.billing.features.notifications": {
@@ -875,7 +875,7 @@
     "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Arbejdsområdebranding",
+    "text": "Arbejdsområde-branding",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
@@ -916,7 +916,7 @@
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Din nuværende plan forbliver aktiv indtil {date}. Herefter gennemfører du betalingen for din nye plan.",
+    "text": "Din nuværende plan forbliver aktiv indtil {date}. Derefter fuldfører du betaling for din nye plan.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Din nuværende plan annulleres nu. Du modtager en refusion for ubrugt tid og gennemfører betalingen for den nye plan.",
+    "text": "Din nuværende plan annulleres nu. Du modtager en refusion for din ubrugte tid og fuldfører betaling for den nye plan.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -940,7 +940,7 @@
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Din nuværende plan forbliver aktiv indtil slutningen af faktureringsperioden. Du vil derefter blive bedt om at gennemføre betalingen for din nye plan.",
+    "text": "Din nuværende plan forbliver aktiv indtil slutningen af faktureringsperioden. Du vil blive bedt om at fuldføre betaling for din nye plan derefter.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -948,7 +948,7 @@
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Du har ventende fakturaposter, der skal afklares inden migrering.",
+    "text": "Du har afventende fakturaposter, der skal løses før migrering.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
@@ -961,11 +961,11 @@
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Din nuværende plan slutter den {date}. Gennemfør dit skift til {plan} ({currency}).",
+    "text": "Din nuværende plan slutter den {date}. Fuldfør dit skift til {plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Gennemfør migrering",
+    "text": "Fuldfør migrering",
     "context": "Button to start checkout for the new currency plan",
     "source_hash": "fa794e0c"
   },
@@ -988,5 +988,26 @@
     "text": "Kun tilgængelig i din oprindelige abonnementsregion",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Du abonnerer allerede på denne plan."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Genaktivér abonnement"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Dit abonnement er blevet genaktiveret. Du vil fortsat blive faktureret som normalt."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Kunne ikke genaktivere abonnement. Prøv venligst igen eller kontakt support."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Fleksibelt e-mailafsenderdomæne"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Genaktivér"
   }
 }

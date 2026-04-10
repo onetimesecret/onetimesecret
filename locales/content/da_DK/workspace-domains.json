@@ -16,7 +16,7 @@
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domæne overtaget og tilføjet til din organisation",
+    "text": "Domæne tilknyttet og tilføjet til din organisation",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
@@ -24,7 +24,7 @@
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Indstil standardprivatlivsindstillinger for beskeder oprettet under dette domæne. Disse indstillinger udfyldes på forhånd ved oprettelse af nye beskeder.",
+    "text": "Angiv standard privatlivsindstillinger for hemmeligheder oprettet under dette domæne. Disse indstillinger udfyldes på forhånd, når der oprettes nye hemmeligheder.",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
@@ -32,7 +32,7 @@
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Privatlivsstandarder-ikon",
+    "text": "Ikon for privatlivsstandarder",
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
@@ -40,23 +40,23 @@
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Hvor længe beskeder skal forblive tilgængelige som standard",
+    "text": "Hvor længe hemmeligheder som standard skal forblive tilgængelige",
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Kræv adgangssætning",
+    "text": "Kræv adgangsfrase",
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Gør adgangssætning obligatorisk for alle beskeder på dette domæne",
+    "text": "Gør adgangsfrase obligatorisk for alle hemmeligheder på dette domæne",
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
-    "text": "Aktiver notifikationer",
+    "text": "Aktivér notifikationer",
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Aktiver e-mailnotifikationer som standard, når beskeder bliver set",
+    "text": "Aktivér e-mailnotifikationer som standard, når hemmeligheder ses",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
@@ -72,11 +72,11 @@
     "source_hash": "4850b174"
   },
   "web.domains.optional": {
-    "text": "Valgfrit",
+    "text": "Valgfri",
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Aktiveret",
+    "text": "Aktivér",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -88,7 +88,7 @@
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Rediger standarder",
+    "text": "Redigér standarder",
     "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
@@ -96,7 +96,7 @@
     "source_hash": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "Adgangssætning",
+    "text": "Adgangsfrase",
     "source_hash": "e7611f05"
   },
   "web.domains.notify_short": {
@@ -132,7 +132,7 @@
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Indtast venligst et {0} domænenavn",
+    "text": "Indtast venligst et {0}-domænenavn",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -140,11 +140,11 @@
     "source_hash": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Kontroller, om brugerne kan oprette hemmelige links fra dit domænes hjemmeside",
+    "text": "Kontrollér, om brugere kan oprette hemmelige links fra dit domænes forside",
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Hjemmesideadgang",
+    "text": "Forsideadgang",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
@@ -156,7 +156,7 @@
     "source_hash": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Administrer og konfigurer dine bekræftede brugerdefinerede domæner",
+    "text": "Administrér og konfigurér dine bekræftede brugerdefinerede domæner",
     "source_hash": "4e7f8311"
   },
   "web.domains.domains": {
@@ -204,7 +204,7 @@
     "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Tilbage til domæneliste",
+    "text": "Vend tilbage til domæneliste",
     "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
@@ -212,7 +212,7 @@
     "source_hash": "b416f537"
   },
   "web.domains.manage_brand": {
-    "text": "Administrer brand",
+    "text": "Administrér brand",
     "source_hash": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
@@ -232,7 +232,7 @@
     "source_hash": "574264df"
   },
   "web.domains.loading_domain_information": {
-    "text": "Indlæser domæneoplysninger...",
+    "text": "Indlæser domæneinformation...",
     "source_hash": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
@@ -252,7 +252,7 @@
     "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", skal du gennemføre disse trin.",
+    "text": ", skal du fuldføre disse trin.",
     "source_hash": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
@@ -272,7 +272,7 @@
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Tilpas dit domænebrand",
+    "text": "Tilpas dit domænes branding",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -340,11 +340,11 @@
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Domænebekræftelsestrin",
+    "text": "Trin til domænebekræftelse",
     "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "Domænebekræftelse påbegyndt.",
+    "text": "Domænebekræftelse startet.",
     "source_hash": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
@@ -372,7 +372,7 @@
     "source_hash": "b0ed2633"
   },
   "web.domains.manage_domains": {
-    "text": "Administrer domæner",
+    "text": "Administrér domæner",
     "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
@@ -380,23 +380,443 @@
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "Rediger levetidsindstilling",
+    "text": "Redigér levetidsindstilling",
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "Rediger adgangssætningskrav",
+    "text": "Redigér adgangsfrasekrav",
     "source_hash": "0b5555b5"
   },
   "web.domains.edit_notify": {
-    "text": "Rediger notifikationsindstilling",
+    "text": "Redigér notifikationsindstilling",
     "source_hash": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "Konfigurer DNS-poster",
+    "text": "Konfigurér DNS-poster",
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Brug værktøjet nedenfor til automatisk at registrere din DNS-udbyder og få trinvise instruktioner til konfiguration af dit domæne.",
+    "text": "Brug værktøjet herunder til automatisk at registrere din DNS-udbyder og få trin-for-trin-instruktioner til at konfigurere dit domæne.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "Offentlig forside"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domæne bekræftet og aktivt"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS ikke konfigureret - klik for at rette"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domæne ikke bekræftet - klik for at bekræfte"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klik for at bekræfte"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Kunne ikke indlæse DNS-widget"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-widget ikke tilgængelig"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Kunne ikke initialisere DNS-widget"
+  },
+  "web.domains.verified": {
+    "text": "Bekræftet"
+  },
+  "web.domains.pending_verification": {
+    "text": "Afventer bekræftelse"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Du har ikke-gemte ændringer. Er du sikker på, at du vil forlade siden?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Administrér"
+  },
+  "web.domains.detail.features": {
+    "text": "Funktioner"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Hemmeligheder på forsiden"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Tillad offentlig adgang til at oprette hemmeligheder på dit domænes forside"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, farver og brugerdefineret branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Single sign-on-udbyderindstillinger"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Brugerdefineret konfiguration af e-mailafsender"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Indstillinger for modtagere af indgående hemmeligheder"
+  },
+  "web.domains.email.title": {
+    "text": "E-mailafsendelse"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-mailkonfiguration"
+  },
+  "web.domains.email.config_description": {
+    "text": "Konfigurér e-mailafsendelse for dette domæne"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-mailudbyder"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Vælg en e-mailudbyder"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Afsendernavn"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "f.eks. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Afsenderadresse"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "f.eks. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Svar til-adresse"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "f.eks. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Gem ændringer"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Kassér ændringer"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Brug kontostandarder"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Kræver domænebekræftelse via DKIM- og SPF-poster"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Kræver opsætning af domænegodkendelse"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Kræver domænebekræftelse"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Bruger din kontos standard e-mailafsendelseskonfiguration"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-poster"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Tilføj følgende DNS-poster for at bekræfte dit domæne til e-mailafsendelse."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Type"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Navn"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Værdi"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Udbyder"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopiér"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopieret"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Bekræftet"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Afventer"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Mislykket"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Genvalider"
+  },
+  "web.domains.email.validating": {
+    "text": "Validerer..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domæne bekræftet"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validering mislykkedes"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Sidst valideret"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere e-mailafsendelse for dette domæne."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Konfigurér e-mail"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere e-mailindstillinger for dette domæne. Kontakt din organisationsadministrator."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-mailkonfiguration gemt"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-mailkonfiguration fjernet"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-mails for dette domæne sendes i øjeblikket fra den globale afsender. Fuldfør e-mailkonfigurationen for at bruge din egen afsenderidentitet."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Brugerdefineret e-mailafsendelse er i øjeblikket deaktiveret. E-mails sendes fra den globale afsender. Aktivér funktionen herunder for at bruge din brugerdefinerede afsenderidentitet."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Test e-maillevering"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Send en test-e-mail til dig selv med den gemte konfiguration. Fungerer, selv når funktionen endnu ikke er aktiveret."
+  },
+  "web.domains.email.send_test": {
+    "text": "Send test"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-e-mail sendt"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Kunne ikke sende test-e-mail"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Sendt til {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Leveret via {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Ikke konfigureret"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Bruger standardafsender"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Bekræftet"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Afventer bekræftelse"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Deaktiveret"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Ingen e-mailafsender konfigureret - e-mails bruger platformens standardafsender"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-mailafsenderkonfiguration afventer bekræftelse - e-mails bruger platformens standardafsender"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-mailafsender er deaktiveret - e-mails bruger platformens standardafsender"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-mailafsender bekræftet - e-mails sendes fra dette domæne"
+  },
+  "web.domains.incoming.title": {
+    "text": "Indgående hemmeligheder"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguration af indgående hemmeligheder"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Tillad eksterne brugere at sende hemmeligheder direkte til udpegede modtagere på dette domæne"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere indstillinger for indgående hemmeligheder for dette domæne. Kontakt din organisationsadministrator."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere indgående hemmeligheder for dette domæne."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Konfigurér indgående hemmeligheder"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Indgående hemmeligheder er ikke konfigureret for dette domæne. Tilføj modtagere for at tillade eksterne brugere at sende hemmeligheder til dit team."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Indgående hemmeligheder er i øjeblikket deaktiveret. Eksterne brugere kan ikke sende hemmeligheder til modtagere på dette domæne. Aktivér funktionen herunder for at tillade indgående hemmeligheder."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Modtagere"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Definér, hvem der kan modtage indgående hemmeligheder på dette domæne. Modtagere modtager e-mailnotifikationer, når en hemmelighed sendes til dem."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Tilføj modtager"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Fjern"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-mailadresse"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "modtager{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Visningsnavn"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "f.eks. Sikkerhedsteam"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Ingen modtagere konfigureret"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Tilføj modtagere for at tillade eksterne brugere at sende hemmeligheder til dit team."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ugyldig e-mailadresse"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Denne e-mailadresse er allerede tilføjet"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maksimalt {max} modtagere tilladt"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Visningsnavn er påkrævet"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-mailadresse er påkrævet"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Gem ændringer"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Kassér ændringer"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguration af indgående hemmeligheder gemt"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguration af indgående hemmeligheder fjernet"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} modtager | {count} modtagere"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Ikke konfigureret"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfigureret"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Deaktiveret"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Indgående hemmeligheder ikke konfigureret - eksterne brugere kan ikke sende hemmeligheder til dette domæne"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Indgående hemmeligheder aktiveret med {count} modtager(e)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funktionen for indgående hemmeligheder er deaktiveret for dette domæne"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Aktivér indgående hemmeligheder"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Tillad eksterne brugere at sende hemmeligheder til modtagere på dette domæne"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Offentlig URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Del denne URL med eksterne brugere for at lade dem sende hemmeligheder"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Kopiér URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL kopieret til udklipsholder"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Er du sikker på, at du vil fjerne alle modtagere? Eksterne brugere vil ikke længere kunne sende hemmeligheder til dette domæne."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maksimalt antal modtagere nået"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Denne e-mailadresse er allerede blevet tilføjet"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Lagring vil erstatte alle eksisterende modtagere med dine ventende ændringer. Er du sikker?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Slet alle modtagere"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-konfiguration"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Konfigurér single sign-on-godkendelse for dette domæne"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Adgang nægtet"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Du har ikke tilladelse til at administrere SSO-indstillinger for dette domæne. Kontakt din organisationsadministrator."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Opgrader din plan for at konfigurere single sign-on for dette domæne."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-konfiguration oprettet"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-konfiguration opdateret"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-konfiguration fjernet"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Forbindelsestest lykkedes - udbyder svarede korrekt"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Forbindelsestest mislykkedes"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Konfigurér SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO er endnu ikke konfigureret for dette domæne. Aktivér single sign-on for at tillade teammedlemmer at godkende sig ved hjælp af din organisations identitetsudbyder."
   }
 }

@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Administrer dine organisationer",
+    "text": "Administrér dine organisationer",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -20,7 +20,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Administrer organisationer",
+    "text": "Administrér organisationer",
     "source_hash": "be0fe4c3"
   },
   "web.organizations.new_organization": {
@@ -80,7 +80,7 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Hvad bruges denne organisation til?",
+    "text": "Hvad er denne organisation til?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
@@ -116,7 +116,7 @@
     "source_hash": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Organisationsoplysninger",
+    "text": "Organisationsinformation",
     "source_hash": "85274cee"
   },
   "web.organizations.created": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Opdater dit organisationsnavn og beskrivelse",
+    "text": "Opdatér dit organisationsnavn og din beskrivelse",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -160,7 +160,7 @@
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Fakturerings-e-mail kan ændres på faktureringsoversigt-siden",
+    "text": "Fakturerings-e-mail kan ændres på siden Faktureringsoversigt",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Samlet fakturering og abonnementshåndtering vil være tilgængelig i en fremtidig version.",
+    "text": "Samlet fakturering og abonnementsadministration vil være tilgængelig i en fremtidig udgivelse.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -180,11 +180,11 @@
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Administrer din organisation",
+    "text": "Administrér din organisation",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Opdater dit firmanavn og organisationsoplysninger her. Disse oplysninger hjælper med at personliggøre din konto og kan bruges til brandingfunktioner i fremtiden.",
+    "text": "Opdatér dit virksomhedsnavn og organisationsdetaljer her. Denne information hjælper med at personliggøre din konto og kan bruges til brandingfunktioner i fremtiden.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Opret din første organisation for at administrere dine virksomhedsoplysninger og forberede fremtidige brandingfunktioner.",
+    "text": "Opret din første organisation for at administrere din virksomhedsinformation og forberede dig på fremtidige brandingfunktioner.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Administrer dine organisationer og teammedlemmer",
+    "text": "Administrér dine organisationer og teammedlemmer",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
+    "text": "Medlemmer",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Administrer organisationsmedlemmer og deres roller",
+    "text": "Administrér organisationsmedlemmer og deres roller",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Ingen medlemmer endnu. Inviter teammedlemmer for at komme i gang.",
+    "text": "Ingen medlemmer endnu. Invitér teammedlemmer for at komme i gang.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -344,7 +344,7 @@
     "source_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Administrator",
+    "text": "Admin",
     "source_hash": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
@@ -368,19 +368,19 @@
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Inviter medlem",
+    "text": "Invitér medlem",
     "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Inviter nyt medlem",
+    "text": "Invitér nyt medlem",
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Afventende invitationer",
+    "text": "Ventende invitationer",
     "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Ingen afventende invitationer",
+    "text": "Ingen ventende invitationer",
     "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
@@ -408,7 +408,7 @@
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Send igen",
+    "text": "Gensend",
     "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
@@ -416,11 +416,11 @@
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Invitation sendt igen",
+    "text": "Invitation gensendt",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Kunne ikke sende invitation igen",
+    "text": "Kunne ikke gensende invitation",
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
@@ -444,11 +444,11 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Sendt igen {count} gang",
+    "text": "Gensendt {count} gang",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Sendt igen {count} gange",
+    "text": "Gensendt {count} gange",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
@@ -468,15 +468,15 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Medlem",
+    "text": "Teammedlem",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Administrator",
+    "text": "Admin",
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Accepter invitation",
+    "text": "Acceptér invitation",
     "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Opgrader dit abonnement for at invitere teammedlemmer",
+    "text": "Opgrader din plan for at invitere teammedlemmer",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teammedlemsinvitationer kræver et abonnement med teamadministration. Opgrader for at tilføje samarbejdspartnere til din organisation.",
+    "text": "Teammedlemsinvitationer kræver en plan med teamadministration. Opgrader for at tilføje samarbejdspartnere til din organisation.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,7 +556,7 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Logget ind med en anden konto",
+    "text": "Anden konto er logget ind",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
@@ -578,5 +578,191 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Udløber snart",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Se og konfigurér dine arbejdsområder"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "af {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "som {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Tilbage til forsiden"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Denne invitation blev sendt til denne e-mailadresse"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Fortsæt"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Log ind og acceptér invitation"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Gå til organisationer"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Du er allerede medlem af denne organisation"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Deltag i {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Log ind for at deltage i {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Afvis"
+  },
+  "web.organizations.sso.title": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Konfigurér SSO for at tillade medlemmer at logge ind med din organisations identitetsudbyder"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Udbydertype"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Vælg din organisations identitetsudbyder"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Visningsnavn"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Et venligt navn vist til brugere ved login"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "f.eks. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Klient-ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Dit OAuth-klient-ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Klienthemmelighed"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Din OAuth-klienthemmelighed"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Lad feltet være tomt for at beholde den eksisterende hemmelighed"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Lejer-ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Din Azure AD / Entra ID-lejeridentifikator"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "f.eks. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Udsteder-URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "OIDC-opdagelses-URL'en for din identitetsudbyder"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "f.eks. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Tilladte e-maildomæner"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Kun brugere med e-mailadresser fra disse domæner kan logge ind. Lad feltet være tomt for at tillade alle domæner."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "f.eks. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Indtast venligst et gyldigt domæne (f.eks. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Dette domæne er allerede på listen"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Fjern {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Aktivér SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Når aktiveret kan organisationsmedlemmer logge ind med denne SSO-udbyder"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Gem SSO-konfiguration"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Slet konfiguration"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Er du sikker? Dette vil deaktivere SSO for din organisation."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Kunne ikke indlæse SSO-konfiguration"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Kunne ikke gemme SSO-konfiguration"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO-konfiguration oprettet"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO-konfiguration opdateret"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO-konfiguration slettet"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Kunne ikke slette SSO-konfiguration"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Test forbindelse"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Bekræft, at identitetsudbyderen kan nås (validerer ikke legitimationsoplysninger)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Test forbindelse"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Tester..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Kunne ikke teste forbindelse"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Godkendelsesendpoint"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Manglende felter"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Aktiveret"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Konfigureret"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domæne-SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Konfigurér SSO for hvert bekræftet domæne"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "For at ændre udbyder skal du først slette denne konfiguration"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Ikke konfigureret"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }
