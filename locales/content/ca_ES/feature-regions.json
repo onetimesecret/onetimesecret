@@ -8,7 +8,7 @@
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Cada regió opera com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades",
+    "text": "Cada regió funciona com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
@@ -16,7 +16,7 @@
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Important: Canviar a una regió diferent crea un compte nou. Les teves dades es mantenen a la teva regió original.",
+    "text": "Important: Canviar a una regió diferent crea un nou compte. Les teves dades es queden a la teva regió original.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -36,7 +36,7 @@
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
-    "text": "Per què la sobirania de dades és important",
+    "text": "Per què importa la sobirania de dades",
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Assegura que la teva informació personal es gestioni d'acord amb les lleis i regulacions de privadesa del teu país, evitant l'accés no autoritzat o el mal ús.",
+    "text": "Assegura que la teva informació personal es gestiona d'acord amb les lleis i regulacions de privadesa del teu país, prevenint l'accés no autoritzat o l'ús indegut.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Compleix els requisits de GDPR, HIPAA, CCPA i altres regulacions regionals de protecció de dades",
+    "text": "Compleix amb GDPR, HIPAA, CCPA i altres requisits regionals de protecció de dades",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Les dades emmagatzemades més a prop teu signifiquen menor latència i millor rendiment.",
+    "text": "Les dades emmagatzemades a prop teu signifiquen menys latència i millor rendiment.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -140,23 +140,26 @@
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Canvi de regió",
+    "text": "Canvi de regions",
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "La nostra política és no transferir mai dades entre regions. Cada regió opera com un entorn completament independent.",
+    "text": "La nostra política és no transferir mai dades entre regions. Cada regió funciona com un entorn completament independent.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Per utilitzar una regió diferent, crea un nou compte allà amb la mateixa adreça de correu electrònic associada al teu correu de contacte de facturació.",
+    "text": "Per utilitzar una regió diferent, crea un nou compte allà utilitzant la mateixa adreça de correu associada al teu correu de contacte de facturació.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si el teu correu de contacte de facturació és diferent del correu del teu compte d'Onetime Secret, utilitza el correu de contacte de facturació per al compte de la nova regió per mantenir els avantatges de la subscripció.",
+    "text": "Si el teu correu de contacte de facturació és diferent del teu correu del compte d'Onetime Secret, utilitza el correu de contacte de facturació per al nou compte de la regió per mantenir els beneficis de la teva subscripció.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Els avantatges de la teva subscripció s'aplicaran automàticament a qualsevol compte creat amb la teva adreça de correu de facturació.",
+    "text": "Els beneficis de la teva subscripció s'aplicaran automàticament a qualsevol compte creat amb la teva adreça de correu de facturació.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "No hi ha informació de regió disponible actualment per al teu compte."
   }
 }

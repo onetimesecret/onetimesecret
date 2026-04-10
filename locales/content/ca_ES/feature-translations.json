@@ -4,7 +4,7 @@
     "source_hash": "87abcdeb"
   },
   "web.translations.our_github_project": {
-    "text": "el nostre projecte a GitHub",
+    "text": "el nostre projecte de GitHub",
     "source_hash": "dabd28e2"
   },
   "web.translations.if_youre_interested_in_translation": {
@@ -32,7 +32,7 @@
     "source_hash": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
-    "text": "Contacta amb nosaltres",
+    "text": "Contacta'ns",
     "source_hash": "fee7dd79"
   },
   "web.translations.have_questions": {
@@ -88,7 +88,7 @@
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Ajuda a que la comunicació segura sigui global",
+    "text": "Ajuda la comunicació segura a arribar a tot el món",
     "source_hash": "e94bdc8e"
   }
 }

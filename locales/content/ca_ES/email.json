@@ -1,10 +1,10 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Tiquet: %s]",
+    "text": "[Ticket: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Un client ha enviat la següent informació",
+    "text": "Un client ha enviat la informació següent",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
@@ -20,7 +20,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Aquest enllaç només funcionarà una vegada. Després de veure'l, el secret s'eliminarà permanentment.",
+    "text": "Aquest enllaç només funcionarà un cop. Després de veure'l, el secret serà eliminat permanentment.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -28,7 +28,7 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Benvingut a %{product_name} - Si us plau verifica el teu correu electrònic",
+    "text": "Benvingut a %{product_name} - Si us plau, verifica el teu correu electrònic",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
@@ -36,7 +36,7 @@
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Si us plau, verifica la teva adreça de correu electrònic fent clic a l'enllaç a continuació:",
+    "text": "Si us plau, verifica la teva adreça de correu electrònic fent clic a l'enllaç de sota:",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
@@ -52,15 +52,15 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}. Si no has creat un compte, pots ignorar aquest missatge amb seguretat.",
+    "text": "P.D. Aquest correu s'ha enviat a %{email_address}. Si no has creat un compte, pots ignorar aquest missatge amb seguretat.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Restablir la teva contrasenya (%{display_domain})",
+    "text": "Restableix la teva contrasenya (%{display_domain})",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Restablir la teva contrasenya",
+    "text": "Restableix la teva contrasenya",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
@@ -76,7 +76,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Si no has sol·licitat restablir la contrasenya, pots ignorar aquest correu electrònic amb seguretat.",
+    "text": "Si no has sol·licitat un restabliment de contrasenya, pots ignorar aquest correu amb seguretat.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -84,11 +84,11 @@
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}.",
+    "text": "P.D. Aquest correu s'ha enviat a %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Iniciar sessió a %{display_domain}",
+    "text": "Inicia sessió a %{display_domain}",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
@@ -112,7 +112,7 @@
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Si no has sol·licitat aquest enllaç, pots ignorar aquest correu electrònic amb seguretat.",
+    "text": "Si no has sol·licitat aquest enllaç, pots ignorar aquest correu amb seguretat.",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -120,7 +120,7 @@
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}.",
+    "text": "P.D. Aquest correu s'ha enviat a %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
@@ -140,7 +140,7 @@
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Per veure aquest secret, fes clic a l'enllaç a continuació:",
+    "text": "Per veure aquest secret, fes clic a l'enllaç de sota:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -148,11 +148,11 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Aquest enllaç només funcionarà una vegada. Després de veure'l, el secret s'eliminarà permanentment.",
+    "text": "Aquest enllaç només funcionarà un cop. Després de veure'l, el secret serà eliminat permanentment.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Aquest secret està protegit amb una frase de contrasenya. El remitent te l'ha de proporcionar per separat.",
+    "text": "Aquest secret està protegit amb una frase de contrasenya. El remitent te la proporcionarà per separat.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -164,15 +164,15 @@
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "El teu secret s'ha visualitzat",
+    "text": "El teu secret ha estat vist",
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "El teu secret s'ha visualitzat",
+    "text": "El teu secret ha estat vist",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "El teu secret s'ha visualitzat el %{date}.",
+    "text": "El teu secret ha estat vist el %{date}.",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
@@ -180,7 +180,7 @@
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Aquesta és una notificació automàtica. No es requereix cap acció.",
+    "text": "Aquesta és una notificació automàtica. No cal cap acció.",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -212,7 +212,7 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Després de la caducitat, el secret s'eliminarà permanentment i no es podrà recuperar.",
+    "text": "Després de la caducitat, el secret serà eliminat permanentment i no es podrà recuperar.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -220,15 +220,15 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Mira'l abans que desaparegui:",
+    "text": "Veu-lo abans que desaparegui:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Després de la caducitat, el secret s'eliminarà permanentment.",
+    "text": "Després de la caducitat, el secret serà eliminat permanentment.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Comentaris el %{date} via %{display_domain} (%{strategy})",
+    "text": "Comentaris del %{date} via %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
@@ -280,7 +280,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Si no vols unir-te, pots simplement ignorar aquest correu electrònic o rebutjar la invitació.",
+    "text": "Si no vols unir-te, simplement pots ignorar aquest correu o rebutjar la invitació.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{invited_email}. Si no esperaves aquesta invitació, pots ignorar aquest missatge amb seguretat.",
+    "text": "P.D. Aquest correu s'ha enviat a %{invited_email}. Si no esperaves aquesta invitació, pots ignorar aquest missatge amb seguretat.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -300,19 +300,19 @@
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "La teva contrasenya s'ha canviat (%{display_domain})",
+    "text": "La teva contrasenya ha estat canviada (%{display_domain})",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "La teva contrasenya s'ha canviat",
+    "text": "La teva contrasenya ha estat canviada",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "La teva contrasenya de %{product_name} s'ha canviat el %{date} a les %{time}.",
+    "text": "La teva contrasenya de %{product_name} ha estat canviada el %{date} a les %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Si no has fet aquest canvi, si us plau protegeix el teu compte immediatament restablint la teva contrasenya i contactant amb el suport.",
+    "text": "Si no has fet aquest canvi, si us plau assegura el teu compte immediatament restablint la teva contrasenya i contactant amb el suport.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -320,35 +320,35 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "La teva adreça de correu electrònic s'ha canviat (%{display_domain})",
+    "text": "La teva adreça de correu electrònic ha estat canviada (%{display_domain})",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "La teva adreça de correu electrònic s'ha canviat",
+    "text": "La teva adreça de correu electrònic ha estat canviada",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat a %{new_email_masked}.",
+    "text": "L'adreça de correu electrònic del teu compte de %{product_name} ha estat canviada a %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Si no has fet aquest canvi, si us plau contacta amb el suport immediatament ja que el teu compte pot estar compromès.",
+    "text": "Si no has fet aquest canvi, si us plau contacta amb el suport immediatament ja que el teu compte podria estar compromès.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "L'adreça de correu electrònic del teu compte de %{product_name} s'ha canviat.",
+    "text": "L'adreça de correu electrònic del teu compte de %{product_name} ha estat canviada.",
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "Nou correu electrònic:",
+    "text": "Nou correu:",
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Canviat a:",
+    "text": "Canviat el:",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Si has fet aquest canvi, no cal cap altra acció.",
+    "text": "Si has fet aquest canvi, no cal cap acció addicional.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
@@ -364,15 +364,15 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address} per notificar-te d'un canvi d'adreça de correu electrònic.",
+    "text": "P.D. Aquest correu s'ha enviat a %{email_address} per notificar-te d'un canvi d'adreça de correu electrònic.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Sol·licitud de canvi de correu electrònic (%{display_domain})",
+    "text": "Canvi de correu electrònic sol·licitat (%{display_domain})",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Sol·licitud de canvi de correu electrònic",
+    "text": "Canvi de correu electrònic sol·licitat",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
@@ -380,19 +380,19 @@
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Nou correu electrònic sol·licitat:",
+    "text": "Nou correu sol·licitat:",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Sol·licitat a:",
+    "text": "Sol·licitat el:",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Si has fet aquesta sol·licitud, comprova el teu nou correu electrònic per trobar un enllaç de confirmació. Encara no s'ha fet cap canvi.",
+    "text": "Si has fet aquesta sol·licitud, comprova el teu nou correu per trobar un enllaç de confirmació. Encara no s'ha fet cap canvi.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Si no has fet aquesta sol·licitud, pots ignorar aquest correu electrònic amb tranquil·litat. El teu compte no s'ha modificat.",
+    "text": "Si no has fet aquesta sol·licitud, pots ignorar aquest correu amb seguretat. El teu compte no ha estat modificat.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address} perquè s'ha sol·licitat un canvi de correu electrònic per al teu compte.",
+    "text": "P.D. Aquest correu s'ha enviat a %{email_address} perquè s'ha sol·licitat un canvi de correu electrònic per al teu compte.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "S'ha sol·licitat un canvi d'adreça de correu electrònic del teu compte de %{product_name} a %{new_email}.",
+    "text": "S'ha sol·licitat un canvi d'adreça de correu electrònic al teu compte de %{product_name} a %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirmar el canvi de correu electrònic",
+    "text": "Confirmar canvi de correu electrònic",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Si no has sol·licitat aquest canvi, pots ignorar aquest correu electrònic amb tranquil·litat. La teva adreça de correu electrònic no es canviarà.",
+    "text": "Si no has sol·licitat aquest canvi, pots ignorar aquest correu amb seguretat. La teva adreça de correu electrònic no es canviarà.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address} per confirmar un canvi d'adreça de correu electrònic.",
+    "text": "P.D. Aquest correu s'ha enviat a %{email_address} per confirmar un canvi d'adreça de correu electrònic.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -460,11 +460,11 @@
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "L'autenticació de dos factors s'ha activat per al teu compte de %{product_name} el %{date}.",
+    "text": "L'autenticació de dos factors ha estat activada per al teu compte de %{product_name} el %{date}.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "El teu compte ara és més segur. Hauràs d'introduir un codi de verificació de la teva aplicació d'autenticació quan iniciïs sessió.",
+    "text": "El teu compte és ara més segur. Hauràs d'introduir un codi de verificació de la teva aplicació d'autenticació quan iniciïs sessió.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -480,11 +480,11 @@
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "L'autenticació de dos factors s'ha desactivat per al teu compte de %{product_name} el %{date}.",
+    "text": "L'autenticació de dos factors ha estat desactivada per al teu compte de %{product_name} el %{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "El teu compte ara és menys segur. Si no has fet aquest canvi, si us plau protegeix el teu compte immediatament.",
+    "text": "El teu compte és ara menys segur. Si no has fet aquest canvi, si us plau assegura el teu compte immediatament.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -516,11 +516,11 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Si no has estat tu, el teu compte pot estar compromès.",
+    "text": "Si no has estat tu, el teu compte podria estar compromès.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Protegir el teu compte",
+    "text": "Assegurar el teu compte",
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
@@ -544,15 +544,15 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "El teu rol s'ha canviat a %{organization_name}",
+    "text": "El teu rol ha estat canviat a %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "El teu rol s'ha canviat",
+    "text": "El teu rol ha estat canviat",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "El teu rol a \"%{organization_name}\" s'ha canviat de %{old_role} a %{new_role}.",
+    "text": "El teu rol a \"%{organization_name}\" ha estat canviat de %{old_role} a %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -560,7 +560,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "L'organització \"%{organization_name}\" s'ha eliminat",
+    "text": "L'organització \"%{organization_name}\" ha estat eliminada",
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
@@ -568,7 +568,7 @@
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "L'organització \"%{organization_name}\" s'ha eliminat de %{product_name}. Totes les dades associades s'han eliminat.",
+    "text": "L'organització \"%{organization_name}\" ha estat eliminada de %{product_name}. Totes les dades associades han estat eliminades.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -608,11 +608,11 @@
     "source_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Pagament fallit per a %{product_name}",
+    "text": "El pagament ha fallat per a %{product_name}",
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Pagament fallit",
+    "text": "El pagament ha fallat",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
@@ -636,7 +636,7 @@
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "La teva prova gratuïta de %{product_name} caducarà en %{days_remaining} dies. Actualitza ara per mantenir l'accés a totes les funcions.",
+    "text": "La teva prova gratuïta de %{product_name} caducarà en %{days_remaining} dies. Actualitza ara per mantenir l'accés a totes les funcionalitats.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -648,7 +648,7 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "La teva subscripció de %{product_name} s'ha canviat",
+    "text": "La teva subscripció de %{product_name} ha estat canviada",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
@@ -656,11 +656,11 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "La teva subscripció de %{product_name} s'ha canviat de %{old_plan} a %{new_plan}.",
+    "text": "La teva subscripció de %{product_name} ha estat canviada de %{old_plan} a %{new_plan}.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Aquest canvi és efectiu el %{date}.",
+    "text": "Aquest canvi és efectiu a partir del %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
@@ -676,7 +676,7 @@
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Donar-se de baixa",
+    "text": "Cancel·lar subscripció",
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {

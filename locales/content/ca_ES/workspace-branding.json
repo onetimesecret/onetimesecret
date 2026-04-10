@@ -12,11 +12,11 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Família de tipus de lletra",
+    "text": "Família tipogràfica",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Estil de les cantonades",
+    "text": "Estil de cantonades",
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contacta amb onboarding{'@'}example.com si tens preguntes",
+    "text": "Contacta onboarding{'@'}example.com per a qualsevol pregunta",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruccions abans de mostrar",
+    "text": "Instruccions prèvies a la revelació",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruccions després de mostrar",
+    "text": "Instruccions posteriors a la revelació",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -148,7 +148,7 @@
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "Logotip de {0}",
+    "text": "Logotip {0}",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -170,5 +170,8 @@
   "web.branding.upgrade_to_customize": {
     "text": "Actualitza el teu pla per personalitzar la marca d'aquest domini.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Configuració de marca desada correctament"
   }
 }

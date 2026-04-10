@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Gestiona les teves organitzacions",
+    "text": "Gestionar les teves organitzacions",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -32,11 +32,11 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Les organitzacions proporcionen facturació i administració unificades. Comença creant la teva primera organització.",
+    "text": "Les organitzacions proporcionen facturació unificada i administració. Comença creant la teva primera organització.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Cap descripció proporcionada",
+    "text": "No s'ha proporcionat cap descripció",
     "source_hash": "41183d01"
   },
   "web.organizations.default": {
@@ -80,7 +80,7 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Per a què serveix aquesta organització?",
+    "text": "Per a què és aquesta organització?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
@@ -88,7 +88,7 @@
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Contacte principal per a notificacions de facturació i administratives",
+    "text": "Contacte principal per a notificacions de facturació i administració",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Actualitza el nom i la descripció de la teva organització",
+    "text": "Actualitzar el nom i la descripció de la teva organització",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -164,11 +164,11 @@
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Integració de facturació pròximament",
+    "text": "Integració de facturació properament",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "La gestió unificada de facturació i subscripcions estarà disponible en una futura versió.",
+    "text": "La gestió unificada de facturació i subscripcions estarà disponible en una versió futura.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,15 +176,15 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Les organitzacions proporcionen facturació i administració unificades per a una gestió centralitzada.",
+    "text": "Les organitzacions proporcionen facturació unificada i administració per a una gestió centralitzada.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Gestiona la teva organització",
+    "text": "Gestionar la teva organització",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Actualitza el nom de la teva empresa i els detalls de l'organització aquí. Aquesta informació ajuda a personalitzar el teu compte i es pot utilitzar per a funcions de marca en el futur.",
+    "text": "Actualitza el nom de la teva empresa i els detalls de l'organització aquí. Aquesta informació ajuda a personalitzar el teu compte i es pot utilitzar per a funcionalitats de marca en el futur.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Crea la teva primera organització per gestionar la informació de la teva empresa i preparar-te per a futures funcions de marca.",
+    "text": "Crea la teva primera organització per gestionar la informació de la teva empresa i preparar-te per a futures funcionalitats de marca.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Gestiona les teves organitzacions i membres de l'equip",
+    "text": "Gestionar les teves organitzacions i membres d'equip",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Equip",
+    "text": "Membres",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -220,7 +220,7 @@
     "source_hash": "4999c6c6"
   },
   "web.organizations.danger_zone": {
-    "text": "Zona perillosa",
+    "text": "Zona de perill",
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Gestiona els membres de l'organització i els seus rols",
+    "text": "Gestionar els membres de l'organització i els seus rols",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -284,7 +284,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Unit",
+    "text": "S'ha unit",
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Encara no hi ha membres. Convida membres de l'equip per començar.",
+    "text": "Encara no hi ha membres. Convida membres d'equip per començar.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -328,7 +328,7 @@
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "No pots eliminar-te de l'organització",
+    "text": "No pots eliminar-te a tu mateix de l'organització",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
@@ -352,11 +352,11 @@
     "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Accés complet a totes les configuracions i membres de l'organització",
+    "text": "Accés complet a tota la configuració i membres de l'organització",
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Pot gestionar membres i la majoria de configuracions de l'organització",
+    "text": "Pot gestionar membres i la majoria de la configuració de l'organització",
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
@@ -364,7 +364,7 @@
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Invitacions d'organització",
+    "text": "Invitacions de l'organització",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
@@ -380,7 +380,7 @@
     "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "Cap invitació pendent",
+    "text": "No hi ha invitacions pendents",
     "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "membre{'@'}exemple.com",
+    "text": "member{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -444,11 +444,11 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Reenviat {count} vegada",
+    "text": "Reenviat {count} cop",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Reenviat {count} vegades",
+    "text": "Reenviat {count} cops",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membre",
+    "text": "Membre d'equip",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Millora el teu pla per convidar membres de l'equip",
+    "text": "Actualitza el teu pla per convidar membres d'equip",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Les invitacions de membres de l'equip requereixen un pla amb gestió d'equips. Millora per afegir col·laboradors a la teva organització.",
+    "text": "Les invitacions de membres d'equip requereixen un pla amb gestió d'equips. Actualitza per afegir col·laboradors a la teva organització.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -540,7 +540,7 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "Col·laborador inicial",
+    "text": "Suport primerenc",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
@@ -556,15 +556,15 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Has iniciat sessió amb un altre compte",
+    "text": "Sessió iniciada amb un compte diferent",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Aquesta invitació és per a {invitedEmail}. Actualment has iniciat sessió com a {currentEmail}.",
+    "text": "Aquesta invitació és per a {invitedEmail}. Actualment tens la sessió iniciada com a {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
-    "text": "Continua com a {email}",
+    "text": "Continuar com a {email}",
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
@@ -578,5 +578,191 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Caduca aviat",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Veure i configurar els teus espais de treball"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "per {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "com a {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Tornar a l'inici"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Aquesta invitació ha estat enviada a aquesta adreça de correu electrònic"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Continuar"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Iniciar sessió i acceptar invitació"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Anar a organitzacions"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Ja ets membre d'aquesta organització"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Unir-se a {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Inicia sessió per unir-te a {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Rebutjar"
+  },
+  "web.organizations.sso.title": {
+    "text": "Inici de sessió únic (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configura l'SSO per permetre als membres iniciar sessió amb el proveïdor d'identitat de la teva organització"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Tipus de proveïdor"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Selecciona el proveïdor d'identitat de la teva organització"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nom visible"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Un nom amigable mostrat als usuaris quan inicien sessió"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "p. ex. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID de client"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "El teu ID de client OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Secret de client"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "El teu secret de client OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Deixa en blanc per mantenir el secret existent"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID d'inquilí"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "El teu identificador d'inquilí d'Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "p. ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL de l'emissor"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "La URL de descoberta OIDC del teu proveïdor d'identitat"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "p. ex. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Dominis de correu permesos"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Només els usuaris amb adreces de correu electrònic d'aquests dominis poden iniciar sessió. Deixa buit per permetre tots els dominis."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "p. ex. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Introdueix un domini vàlid (p. ex. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Aquest domini ja és a la llista"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Eliminar {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Activar SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Quan està activat, els membres de l'organització poden iniciar sessió utilitzant aquest proveïdor SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Desar configuració SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Eliminar configuració"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "N'estàs segur? Això desactivarà l'SSO per a la teva organització."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "No s'ha pogut carregar la configuració SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "No s'ha pogut desar la configuració SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Configuració SSO creada correctament"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Configuració SSO actualitzada correctament"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Configuració SSO eliminada correctament"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "No s'ha pogut eliminar la configuració SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Provar connexió"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifica que el proveïdor d'identitat és accessible (no valida credencials)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Provar connexió"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Provant..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "No s'ha pogut provar la connexió"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Endpoint d'autorització"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Camps obligatoris"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Activat"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configurat"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO del domini"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configurar SSO per a cada domini verificat"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Per canviar de proveïdor, elimina primer aquesta configuració"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "No configurat"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Equip"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

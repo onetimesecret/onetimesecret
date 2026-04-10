@@ -4,7 +4,7 @@
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Contingut generat per IA per a demostració. No és d'una persona o empresa real.",
+    "text": "Contingut generat per IA per demostració. No prové d'una persona o empresa real.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -24,7 +24,7 @@
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Què diuen les principals IA sobre nosaltres",
+    "text": "Què diu la IA líder sobre nosaltres",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
@@ -32,7 +32,7 @@
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Aquesta cita va ser generada per",
+    "text": "Aquesta cita ha estat generada per",
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {

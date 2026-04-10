@@ -12,7 +12,7 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Aquest domini ja està registrat a una altra organització. Contacta amb el suport si creus que és un error.",
+    "text": "Aquest domini ja està registrat a una altra organització. Contacta amb el suport si creus que es tracta d'un error.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
@@ -20,19 +20,19 @@
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Valors predeterminats de privadesa",
+    "text": "Predeterminats de privadesa",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Estableix les opcions de privadesa predeterminades per als secrets creats sota aquest domini. Aquestes configuracions s'ompliran prèviament en crear nous secrets.",
+    "text": "Estableix les opcions de privadesa predeterminades per als secrets creats sota aquest domini. Aquests paràmetres s'ompliran prèviament en crear nous secrets.",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "Valors predeterminats de privadesa",
+    "text": "Predeterminats de privadesa",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Icona de valors predeterminats de privadesa",
+    "text": "Icona de predeterminats de privadesa",
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
@@ -40,7 +40,7 @@
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Quant de temps han d'estar accessibles els secrets per defecte",
+    "text": "Quant de temps haurien de romandre accessibles els secrets per defecte",
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
@@ -56,11 +56,11 @@
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Activar les notificacions per correu electrònic per defecte quan es visualitzen els secrets",
+    "text": "Activar notificacions per correu electrònic per defecte quan es veuen els secrets",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "Utilitzar valor predeterminat global",
+    "text": "Utilitzar predeterminat global",
     "source_hash": "a83c91e4"
   },
   "web.domains.global_default": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Activat",
+    "text": "Activar",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -88,7 +88,7 @@
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Editar valors predeterminats",
+    "text": "Editar predeterminats",
     "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
@@ -104,7 +104,7 @@
     "source_hash": "78801183"
   },
   "web.domains.scope_switch_label": {
-    "text": "Canviar l'àmbit del domini",
+    "text": "Canviar àmbit del domini",
     "source_hash": "c776f846"
   },
   "web.domains.switcher_locked": {
@@ -164,7 +164,7 @@
     "source_hash": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "Última supervisió",
+    "text": "Última monitorització",
     "source_hash": "8d39d1d0"
   },
   "web.domains.ssl_status": {
@@ -188,7 +188,7 @@
     "source_hash": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
-    "text": "Recompte de dominis personalitzats",
+    "text": "Comptador de dominis personalitzats",
     "source_hash": "a9929be0"
   },
   "web.domains.custom_domain": {
@@ -200,7 +200,7 @@
     "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "Tornar als dominis",
+    "text": "Tornar a dominis",
     "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
@@ -260,7 +260,7 @@
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Tingues en compte que per als dominis arrel (p. ex.,",
+    "text": "Tingues en compte que per a dominis arrel (p. ex.,",
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
@@ -268,11 +268,11 @@
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.exemple.com",
+    "text": "secrets.example.com",
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Personalitza la marca del teu domini",
+    "text": "Personalitzar la marca del teu domini",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -296,7 +296,7 @@
     "source_hash": "8e37953d"
   },
   "web.domains.host_1": {
-    "text": "Host",
+    "text": "Amfitrió",
     "source_hash": "4a823118"
   },
   "web.domains.type_2": {
@@ -316,7 +316,7 @@
     "source_hash": "8e37953d"
   },
   "web.domains.host_0": {
-    "text": "Host",
+    "text": "Amfitrió",
     "source_hash": "4a823118"
   },
   "web.domains.type_0": {
@@ -376,7 +376,7 @@
     "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "Valors predeterminats globals",
+    "text": "Predeterminats globals",
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
@@ -396,7 +396,427 @@
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Utilitza l'eina de sota per detectar automàticament el teu proveïdor de DNS i obtenir instruccions pas a pas per configurar el teu domini.",
+    "text": "Utilitza l'eina de sota per detectar automàticament el teu proveïdor DNS i obtenir instruccions pas a pas per configurar el teu domini.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "Pàgina d'inici pública"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domini verificat i actiu"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS no configurat — fes clic per solucionar-ho"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domini no verificat — fes clic per verificar"
+  },
+  "web.domains.click_to_verify": {
+    "text": "fes clic per verificar"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "No s'ha pogut carregar el widget DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Widget DNS no disponible"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "No s'ha pogut inicialitzar el widget DNS"
+  },
+  "web.domains.verified": {
+    "text": "Verificat"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verificació pendent"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Tens canvis sense desar. Estàs segur que vols sortir?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Gestionar"
+  },
+  "web.domains.detail.features": {
+    "text": "Funcionalitats"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Secrets de la pàgina d'inici"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Permetre l'accés públic per crear secrets a la pàgina d'inici del teu domini"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logotip, colors i marca personalitzada"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Configuració del proveïdor d'inici de sessió únic"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configuració personalitzada de l'enviament de correus"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Configuració de destinataris de secrets d'entrada"
+  },
+  "web.domains.email.title": {
+    "text": "Enviament de correu"
+  },
+  "web.domains.email.config_title": {
+    "text": "Configuració de correu"
+  },
+  "web.domains.email.config_description": {
+    "text": "Configurar l'enviament de correu per a aquest domini"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Proveïdor de correu"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Selecciona un proveïdor de correu"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Nom del remitent"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "p. ex. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Adreça del remitent"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "p. ex. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Adreça de resposta"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "p. ex. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Desar canvis"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Descartar canvis"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Utilitzar predeterminats del compte"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Requereix verificació del domini via registres DKIM i SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Requereix configuració d'autenticació del domini"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Requereix verificació del domini"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Utilitza la configuració predeterminada d'enviament de correu del teu compte"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Registres DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Afegeix els següents registres DNS per verificar el teu domini per a l'enviament de correu."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tipus"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Nom"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Valor"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Proveïdor"
+  },
+  "web.domains.email.copy": {
+    "text": "Copiar"
+  },
+  "web.domains.email.copied": {
+    "text": "Copiat"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verificat"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Pendent"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Fallat"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Revalidar"
+  },
+  "web.domains.email.validating": {
+    "text": "Validant..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domini verificat"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "La validació ha fallat"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Última validació"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Actualitza el teu pla per configurar l'enviament de correu per a aquest domini."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Configurar correu"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Accés denegat"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "No tens permís per gestionar la configuració de correu d'aquest domini. Contacta amb l'administrador de la teva organització."
+  },
+  "web.domains.email.update_success": {
+    "text": "Configuració de correu desada correctament"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Configuració de correu eliminada correctament"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Els correus per a aquest domini s'envien actualment des del remitent global. Completa la configuració de correu per utilitzar la teva pròpia identitat de remitent."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "L'enviament de correu personalitzat està desactivat actualment. Els correus s'enviaran des del remitent global. Activa la funcionalitat a sota per utilitzar la teva identitat de remitent personalitzada."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Provar el lliurament de correu"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Envia't un correu de prova utilitzant la configuració desada. Funciona fins i tot quan la funcionalitat encara no està activada."
+  },
+  "web.domains.email.send_test": {
+    "text": "Enviar prova"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Correu de prova enviat correctament"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "No s'ha pogut enviar el correu de prova"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Enviat a {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Lliurat via {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "No configurat"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Utilitzant remitent predeterminat"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verificat"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verificació pendent"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Desactivat"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Cap remitent de correu configurat — els correus utilitzen el remitent predeterminat de la plataforma"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "La configuració del remitent de correu està pendent de verificació — els correus utilitzen el remitent predeterminat de la plataforma"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Remitent de correu desactivat — els correus utilitzen el remitent predeterminat de la plataforma"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Remitent de correu verificat — els correus s'envien des d'aquest domini"
+  },
+  "web.domains.incoming.title": {
+    "text": "Secrets d'entrada"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Configuració de secrets d'entrada"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Permetre als usuaris externs enviar secrets directament als destinataris designats d'aquest domini"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Accés denegat"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "No tens permís per gestionar la configuració de secrets d'entrada d'aquest domini. Contacta amb l'administrador de la teva organització."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Actualitza el teu pla per configurar els secrets d'entrada per a aquest domini."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Configurar secrets d'entrada"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Els secrets d'entrada no estan configurats per a aquest domini. Afegeix destinataris per permetre als usuaris externs enviar secrets al teu equip."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Els secrets d'entrada estan desactivats actualment. Els usuaris externs no poden enviar secrets als destinataris d'aquest domini. Activa la funcionalitat a sota per permetre els secrets d'entrada."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Destinataris"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Defineix qui pot rebre secrets d'entrada en aquest domini. Els destinataris rebran notificacions per correu electrònic quan els enviïn un secret."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Afegir destinatari"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Eliminar"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Adreça de correu electrònic"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Nom visible"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "p. ex. Equip de seguretat"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "No hi ha destinataris configurats"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Afegeix destinataris per permetre als usuaris externs enviar secrets al teu equip."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Adreça de correu electrònic no vàlida"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Aquesta adreça de correu electrònic ja ha estat afegida"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Màxim {max} destinataris permesos"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "El nom visible és obligatori"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "L'adreça de correu electrònic és obligatòria"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Desar canvis"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Descartar canvis"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Configuració de secrets d'entrada desada correctament"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Configuració de secrets d'entrada eliminada correctament"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} destinatari | {count} destinataris"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "No configurat"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Configurat"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Desactivat"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Secrets d'entrada no configurats - els usuaris externs no poden enviar secrets a aquest domini"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Secrets d'entrada activats amb {count} destinatari(s)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "La funcionalitat de secrets d'entrada està desactivada per a aquest domini"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Activar secrets d'entrada"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Permetre als usuaris externs enviar secrets als destinataris d'aquest domini"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "URL pública"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Comparteix aquesta URL amb usuaris externs per permetre'ls enviar secrets"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Copiar URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL copiada al porta-retalls"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Estàs segur que vols eliminar tots els destinataris? Els usuaris externs ja no podran enviar secrets a aquest domini."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "S'ha assolit el nombre màxim de destinataris"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Aquesta adreça de correu electrònic ja ha estat afegida"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Desar reemplaçarà tots els destinataris existents amb els teus canvis pendents. N'estàs segur?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Eliminar tots els destinataris"
+  },
+  "web.domains.sso.title": {
+    "text": "Inici de sessió únic"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Configuració SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Configurar l'autenticació d'inici de sessió únic per a aquest domini"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Accés denegat"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "No tens permís per gestionar la configuració SSO d'aquest domini. Contacta amb l'administrador de la teva organització."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Actualitza el teu pla per configurar l'inici de sessió únic per a aquest domini."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Configuració SSO creada correctament"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Configuració SSO actualitzada correctament"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Configuració SSO eliminada correctament"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Prova de connexió exitosa — el proveïdor ha respost correctament"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "La prova de connexió ha fallat"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Configurar SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "L'SSO encara no està configurat per a aquest domini. Activa l'inici de sessió únic per permetre als membres de l'equip autenticar-se utilitzant el proveïdor d'identitat de la teva organització."
   }
 }

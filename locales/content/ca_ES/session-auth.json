@@ -40,7 +40,7 @@
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Utilitza l'inici de sessió sense contrasenya",
+    "text": "Utilitzar inici de sessió sense contrasenya",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
@@ -72,11 +72,11 @@
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
-    "text": "Inicia sessió amb SSO",
+    "text": "Iniciar sessió amb SSO",
     "source_hash": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
-    "text": "Inicia sessió amb {provider}",
+    "text": "Iniciar sessió amb {provider}",
     "source_hash": "b8794f11"
   },
   "web.auth.sso.signing_in": {
@@ -84,27 +84,27 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "Error en iniciar sessió amb SSO. Si us plau, torna-ho a provar.",
+    "text": "L'inici de sessió SSO ha fallat. Torna-ho a provar.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "L'autenticació SSO ha fallat. Si us plau, torna-ho a provar o utilitza l'inici de sessió amb contrasenya.",
+    "text": "L'autenticació SSO ha fallat. Torna-ho a provar o utilitza l'inici de sessió amb contrasenya.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "L'enllaç d'autenticació és incomplet. Si us plau, sol·licita un nou enllaç d'inici de sessió.",
+    "text": "L'enllaç d'autenticació està incomplet. Sol·licita un nou enllaç d'inici de sessió.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Aquest enllaç d'inici de sessió ha caducat. Si us plau, sol·licita'n un de nou.",
+    "text": "Aquest enllaç d'inici de sessió ha caducat. Sol·licita'n un de nou.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Aquest enllaç d'inici de sessió no és vàlid. Si us plau, sol·licita'n un de nou.",
+    "text": "Aquest enllaç d'inici de sessió no és vàlid. Sol·licita'n un de nou.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Crea el teu compte",
+    "text": "Crear el teu compte",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
@@ -131,11 +131,11 @@
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Verificar el teu compte",
+    "text": "Verifica el teu compte",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "El teu compte s'ha verificat correctament",
+    "text": "El teu compte ha estat verificat correctament",
     "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
@@ -143,11 +143,11 @@
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Aquest enllaç de verificació ha caducat. Si us plau, sol·licita'n un de nou.",
+    "text": "Aquest enllaç de verificació ha caducat. Demana'n un de nou.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Aquest compte ja ha estat verificat. Ara pots iniciar sessió.",
+    "text": "Aquest compte ja ha estat verificat. Pots iniciar sessió ara.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
@@ -155,11 +155,11 @@
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Comprova el teu correu electrònic per trobar l'enllaç de verificació",
+    "text": "Revisa el teu correu electrònic per trobar un enllaç de verificació",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "La verificació del compte ha fallat. Comprova l'enllaç de verificació o sol·licita'n un de nou.",
+    "text": "La verificació del compte ha fallat. Comprova el teu enllaç de verificació o sol·licita'n un de nou.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -171,11 +171,11 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Comprova el teu correu electrònic per trobar l'enllaç de verificació més recent",
+    "text": "Revisa el teu correu per trobar l'enllaç de verificació més recent",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Comprova la carpeta de correu brossa si no pots trobar el correu",
+    "text": "Revisa la carpeta de correu brossa si no trobes el correu",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
@@ -183,19 +183,19 @@
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Es requereix l'enllaç de verificació",
+    "text": "Es requereix un enllaç de verificació",
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Si us plau, utilitza l'enllaç de verificació enviat a la teva adreça de correu electrònic per verificar el teu compte.",
+    "text": "Utilitza l'enllaç de verificació enviat a la teva adreça de correu electrònic per verificar el teu compte.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "Crear un compte nou",
+    "text": "Crear un nou compte",
     "source_hash": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "Canviar la contrasenya",
+    "text": "Canviar contrasenya",
     "source_hash": "a949f462"
   },
   "web.auth.change_password.current_password": {
@@ -203,27 +203,27 @@
     "source_hash": "8ac76099"
   },
   "web.auth.change_password.new_password": {
-    "text": "Contrasenya nova",
+    "text": "Nova contrasenya",
     "source_hash": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Confirmar la contrasenya nova",
+    "text": "Confirmar nova contrasenya",
     "source_hash": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "La teva contrasenya s'ha canviat correctament",
+    "text": "La teva contrasenya ha estat canviada correctament",
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "No s'ha pogut canviar la contrasenya. Verifica la teva contrasenya actual i torna-ho a provar.",
+    "text": "El canvi de contrasenya ha fallat. Verifica la teva contrasenya actual i torna-ho a provar.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
-    "text": "Tancar el compte",
+    "text": "Tancar compte",
     "source_hash": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "Aquesta acció no es pot desfer. Tots els teus secrets s'eliminaran permanentment.",
+    "text": "Aquesta acció no es pot desfer. Tots els teus secrets seran eliminats permanentment.",
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
@@ -235,7 +235,7 @@
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Tancar el compte permanentment",
+    "text": "Tancar compte permanentment",
     "source_hash": "0713c012"
   },
   "web.auth.close_account.cancel": {
@@ -247,20 +247,20 @@
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Introdueix la teva adreça de correu electrònic a continuació i t'enviarem un enllaç per restablir la teva contrasenya",
+    "text": "Introdueix la teva adreça de correu electrònic a sota i t'enviarem un enllaç per restablir la teva contrasenya",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Enviar l'enllaç de restabliment",
+    "text": "Enviar enllaç de restabliment",
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "Tria una contrasenya nova",
+    "text": "Tria una nova contrasenya",
     "context": "Password reset request flow - user requests a reset link",
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Introdueix la teva contrasenya nova a continuació. Assegura't que sigui forta i única per protegir el teu compte.",
+    "text": "Introdueix la teva nova contrasenya a sota. Assegura't que sigui forta i única per protegir el teu compte.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
@@ -285,7 +285,7 @@
     "source_hash": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "Correu electrònic verificat",
+    "text": "Correu verificat",
     "source_hash": "bc512ab0"
   },
   "web.auth.account.region": {
@@ -293,7 +293,7 @@
     "source_hash": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "Correu electrònic no verificat",
+    "text": "Correu no verificat",
     "source_hash": "53955e0e"
   },
   "web.auth.account.verify_email": {
@@ -325,7 +325,7 @@
     "source_hash": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Gestionar autenticació de dos factors",
+    "text": "Gestionar l'autenticació de dos factors",
     "source_hash": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
@@ -349,11 +349,11 @@
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "No arriba l'enllaç màgic?",
+    "text": "L'enllaç màgic no arriba?",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Comprova la carpeta de correu brossa",
+    "text": "Revisa la teva carpeta de correu brossa",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
@@ -361,7 +361,7 @@
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Espera uns minuts - els correus electrònics de vegades es retarden",
+    "text": "Espera uns minuts - de vegades els correus es retarden",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Utilitza l'opció d'enllaç màgic per iniciar sessió sense contrasenya. Un cop hagis iniciat sessió, pots canviar la contrasenya a la configuració del compte.",
+    "text": "Utilitza l'opció d'enllaç màgic per iniciar sessió sense contrasenya. Un cop hagis iniciat sessió, pots canviar la teva contrasenya a la configuració del compte.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,7 +381,7 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Després de diversos intents d'inici de sessió fallits, els comptes es bloquegen temporalment per seguretat. Espera 15 minuts i torna-ho a provar, o utilitza l'enllaç màgic per iniciar sessió.",
+    "text": "Després de múltiples intents d'inici de sessió fallits, els comptes es bloquegen temporalment per seguretat. Espera 15 minuts i torna-ho a provar, o utilitza l'enllaç màgic per iniciar sessió.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -395,5 +395,17 @@
   "web.help.contact_support": {
     "text": "Contactar amb el suport",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Compte SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Flux de verificació de correu electrònic després del registre"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "L'inici de sessió únic està disponible per a aquest domini"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'administrador de l'organització pot activar SSO per permetre als membres de l'equip iniciar sessió aquí. Contacta amb l'administrador per obtenir accés."
   }
 }

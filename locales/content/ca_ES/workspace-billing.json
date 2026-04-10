@@ -4,11 +4,11 @@
     "source_hash": "3086ef43"
   },
   "web.billing.subscription_synced_description": {
-    "text": "Els avantatges de la teva subscripció s'han sincronitzat des d'una altra regió.",
+    "text": "Els beneficis de la teva subscripció s'han sincronitzat des d'una altra regió.",
     "source_hash": "a99b7a98"
   },
   "web.billing.upgrade.required": {
-    "text": "Es requereix millora",
+    "text": "Actualització requerida",
     "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
@@ -32,7 +32,7 @@
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Gestiona la teva subscripció, organitzacions i configuració de facturació",
+    "text": "Gestionar la teva subscripció, organitzacions i configuració de facturació",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
@@ -52,7 +52,7 @@
     "source_hash": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Característiques del pla",
+    "text": "Funcionalitats del pla",
     "source_hash": "fbab9086"
   },
   "web.billing.overview.payment_method": {
@@ -60,7 +60,7 @@
     "source_hash": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "Pròxima data de facturació",
+    "text": "Propera data de facturació",
     "source_hash": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
@@ -76,7 +76,7 @@
     "source_hash": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Millorar pla",
+    "text": "Actualitzar pla",
     "source_hash": "17787ab7"
   },
   "web.billing.overview.change_plan": {
@@ -84,23 +84,23 @@
     "source_hash": "2d0b195b"
   },
   "web.billing.overview.manage_subscription": {
-    "text": "Gestionar la subscripció",
+    "text": "Gestionar subscripció",
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Tens un pla antic amb un preu especial.",
+    "text": "Estàs en un pla amb preus especials per a clients antics.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
-    "text": "Identity Plus (Col·laborador inicial)",
+    "text": "Identity Plus (Suport primerenc)",
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Canviar de pla farà perdre la teva tarifa antiga. Aquesta acció no es pot desfer.",
+    "text": "Canviar de pla farà perdre la teva tarifa especial. Això no es pot desfer.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "Cap mètode de pagament registrat",
+    "text": "No hi ha mètode de pagament registrat",
     "source_hash": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
@@ -120,7 +120,7 @@
     "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "Comparar i millorar",
+    "text": "Comparar i actualitzar",
     "source_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
@@ -152,7 +152,7 @@
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "El teu pla s'ha millorat correctament",
+    "text": "El teu pla s'ha actualitzat correctament",
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
@@ -180,15 +180,15 @@
     "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Valors predeterminats de privadesa personalitzats",
+    "text": "Configuració de privadesa personalitzada",
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Expiració predeterminada ampliada",
+    "text": "Caducitat predeterminada ampliada",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "Valors predeterminats de correu personalitzat",
+    "text": "Configuració de correu personalitzada",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
@@ -196,11 +196,11 @@
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Secrets a la pàgina d'inici",
+    "text": "Secrets de la pàgina d'inici",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
-    "text": "Secrets entrants",
+    "text": "Secrets d'entrada",
     "source_hash": "883dbca9"
   },
   "web.billing.overview.entitlements.manage_orgs": {
@@ -232,11 +232,11 @@
     "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "No s'han pogut carregar els detalls de les funcions",
+    "text": "No s'han pogut carregar els detalls de funcionalitats",
     "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
-    "text": "Cap funció disponible",
+    "text": "No hi ha funcionalitats disponibles",
     "source_hash": "03d195e8"
   },
   "web.billing.features.create_secrets": {
@@ -264,7 +264,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Secrets a la pàgina d'inici",
+    "text": "Secrets de la pàgina d'inici",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
@@ -296,7 +296,7 @@
     "source_hash": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Traça d'auditoria",
+    "text": "Pista d'auditoria",
     "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
@@ -308,7 +308,7 @@
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
-    "text": "Selecciona un pla",
+    "text": "Seleccionar un pla",
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
@@ -328,11 +328,11 @@
     "source_hash": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "Millorar",
+    "text": "Actualitzar",
     "source_hash": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Rebaixar",
+    "text": "Baixar de pla",
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
@@ -360,11 +360,11 @@
     "source_hash": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Equip únic",
+    "text": "Equip individual",
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Múltiples equips",
+    "text": "Multi equip",
     "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -380,7 +380,7 @@
     "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
-    "text": "Característiques",
+    "text": "Funcionalitats",
     "source_hash": "5697d03d"
   },
   "web.billing.plans.unlimited_secrets": {
@@ -400,7 +400,7 @@
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Contactar vendes",
+    "text": "Contactar amb vendes",
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
@@ -436,7 +436,7 @@
     "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
-    "text": "Inclou tot de {plan}",
+    "text": "Inclou tot el de {plan}",
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
@@ -460,7 +460,7 @@
     "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Crèdit pel temps no utilitzat:",
+    "text": "Crèdit per temps no utilitzat:",
     "source_hash": "001e4901"
   },
   "web.billing.plans.due_today": {
@@ -468,15 +468,15 @@
     "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "Pròxima facturació ({date}):",
+    "text": "Propera facturació ({date}):",
     "source_hash": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
-    "text": "Pròxima factura",
+    "text": "Propera factura",
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Els límits de les teves funcions s'actualitzaran immediatament després del canvi de pla.",
+    "text": "Els límits de funcionalitats s'actualitzaran immediatament després del canvi de pla.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
@@ -484,19 +484,19 @@
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Confirmar millora",
+    "text": "Confirmar actualització",
     "source_hash": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Confirmar rebaixament",
+    "text": "Confirmar baixada de pla",
     "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
-    "text": "Millorar a {plan}?",
+    "text": "Actualitzar a {plan}?",
     "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Rebaixar a {plan}?",
+    "text": "Baixar a {plan}?",
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
@@ -504,7 +504,7 @@
     "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "Import de la pròxima factura:",
+    "text": "Import de la propera factura:",
     "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
@@ -512,7 +512,7 @@
     "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "Import a pagar a la pròxima facturació:",
+    "text": "Import a pagar a la propera facturació:",
     "source_hash": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
@@ -528,7 +528,7 @@
     "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Consulta el teu historial de facturació i descarrega les factures",
+    "text": "Consulta el teu historial de facturació i descarrega factures",
     "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
@@ -548,7 +548,7 @@
     "source_hash": "d6eafe82"
   },
   "web.billing.invoices.invoice_number": {
-    "text": "Factura núm.",
+    "text": "Factura #",
     "source_hash": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
@@ -580,15 +580,15 @@
     "source_hash": "d2e16e61"
   },
   "web.billing.invoices.open": {
-    "text": "Oberta",
+    "text": "Obert",
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "Incobrable",
+    "text": "No cobrable",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
-    "text": "Anul·lada",
+    "text": "Nul",
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
@@ -600,15 +600,15 @@
     "source_hash": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
-    "text": "Veure la facturació de l'organització",
+    "text": "Veure facturació de l'organització",
     "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "Has arribat al límit de membres per a aquest equip",
+    "text": "Has assolit el límit de membres per a aquest equip",
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Millora per afegir més membres",
+    "text": "Actualitza per afegir més membres",
     "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
@@ -640,7 +640,7 @@
     "source_hash": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
-    "text": "Ús de l'equip",
+    "text": "Ús d'equips",
     "source_hash": "f9989642"
   },
   "web.billing.subscription.teams_used": {
@@ -652,11 +652,11 @@
     "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Gestiona la teva subscripció, mètodes de pagament i historial de facturació",
+    "text": "Gestionar la teva subscripció, mètodes de pagament i historial de facturació",
     "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "Obrir el portal de facturació",
+    "text": "Obrir portal de facturació",
     "source_hash": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
@@ -696,15 +696,15 @@
     "source_hash": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "Millorar el compte",
+    "text": "Actualitzar compte",
     "source_hash": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
-    "text": "Millorar a Identity Plus",
+    "text": "Actualitzar a Identity Plus",
     "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Millorar per a equips",
+    "text": "Actualitzar per a equips",
     "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
@@ -716,11 +716,11 @@
     "source_hash": "f13e5f3e"
   },
   "web.billing.upgrade_to": {
-    "text": "Millorar a",
+    "text": "Actualitzar a",
     "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Millorar per a secrets.elteudomini.com",
+    "text": "Actualitzar per a secrets.yourdomain.com",
     "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
@@ -728,7 +728,7 @@
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Tots els plans inclouen l'elecció de localització de dades: {0} regions",
+    "text": "Tots els plans inclouen elecció de localitat de dades: {0} regions",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -760,12 +760,12 @@
     "source_hash": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Cancel·lar la subscripció",
+    "text": "Cancel·lar subscripció",
     "context": "Link text shown below the plan selector for paid users",
     "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Cancel·lar la subscripció",
+    "text": "Cancel·lar subscripció",
     "context": "Modal dialog heading/title",
     "source_hash": "882e0c83"
   },
@@ -778,11 +778,11 @@
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Mantindràs l'accés a totes les funcions fins a {date}",
+    "text": "Mantindràs l'accés a totes les funcionalitats fins al {date}",
     "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Mantindràs l'accés fins que finalitzi el teu període de facturació actual",
+    "text": "Mantindràs l'accés fins que acabi el teu període de facturació actual",
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
@@ -794,17 +794,17 @@
     "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
-    "text": "Mantenir la subscripció",
+    "text": "Mantenir subscripció",
     "context": "Secondary button in modal - keeps subscription active",
     "source_hash": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Cancel·lar la subscripció",
+    "text": "Cancel·lar subscripció",
     "context": "Primary action button in modal - confirms the cancellation",
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "La teva subscripció s'ha cancel·lat. Mantindràs l'accés fins al final del teu període de facturació.",
+    "text": "La teva subscripció ha estat cancel·lada. Mantindràs l'accés fins al final del teu període de facturació.",
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
@@ -817,7 +817,7 @@
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "La teva subscripció romandrà activa fins a {date}. Continuaràs tenint accés complet a totes les funcions fins aleshores.",
+    "text": "La teva subscripció romandrà activa fins al {date}. Continuaràs tenint accés complet a totes les funcionalitats fins aleshores.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
@@ -843,27 +843,27 @@
     "source_hash": "21d6d514"
   },
   "web.billing.features.incoming_secrets": {
-    "text": "Secrets entrants",
+    "text": "Secrets d'entrada",
     "source_hash": "883dbca9"
   },
   "web.billing.features.team_members_5": {
-    "text": "Fins a 5 membres de l'equip",
+    "text": "Fins a 5 membres d'equip",
     "source_hash": "e7518d07"
   },
   "web.billing.features.team_members_10": {
-    "text": "Fins a 10 membres de l'equip",
+    "text": "Fins a 10 membres d'equip",
     "source_hash": "0c64c064"
   },
   "web.billing.features.team_members_25": {
-    "text": "Fins a 25 membres de l'equip",
+    "text": "Fins a 25 membres d'equip",
     "source_hash": "bf3b84c8"
   },
   "web.billing.features.team_members_50": {
-    "text": "Fins a 50 membres de l'equip",
+    "text": "Fins a 50 membres d'equip",
     "source_hash": "3c2d9a14"
   },
   "web.billing.features.unlimited_members": {
-    "text": "Membres de l'equip il·limitats",
+    "text": "Membres d'equip il·limitats",
     "source_hash": "b7491ee9"
   },
   "web.billing.features.notifications": {
@@ -887,7 +887,7 @@
     "source_hash": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Cal un canvi de moneda",
+    "text": "Canvi de moneda requerit",
     "context": "Modal title when plan requires different currency than current subscription",
     "source_hash": "2cd800c5"
   },
@@ -900,11 +900,11 @@
     "source_hash": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "Nou pla:",
+    "text": "Pla nou:",
     "source_hash": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "El període actual finalitza:",
+    "text": "El període actual acaba:",
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
@@ -916,7 +916,7 @@
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "El teu pla actual es mantindrà actiu fins al {date}. Després, completaràs el pagament del teu nou pla.",
+    "text": "El teu pla actual es manté actiu fins al {date}. Després, completaràs el pagament per al teu nou pla.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,15 +924,15 @@
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "El teu pla actual es cancel·la ara. Rebràs un reemborsament pel temps no utilitzat i completaràs el pagament del nou pla.",
+    "text": "El teu pla actual es cancel·la ara. Rebràs un reemborsament pel temps no utilitzat i completaràs el pagament per al nou pla.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "Confirmar el canvi de moneda",
+    "text": "Confirmar canvi de moneda",
     "source_hash": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "La migració de moneda ha fallat. Si us plau, torna-ho a provar.",
+    "text": "La migració de moneda ha fallat. Torna-ho a provar.",
     "source_hash": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
@@ -940,11 +940,11 @@
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "El teu pla actual es mantindrà actiu fins al final del període de facturació. Després se't demanarà que completis el pagament del teu nou pla.",
+    "text": "El teu pla actual romandrà actiu fins al final del període de facturació. Se't demanarà que completis el pagament per al teu nou pla després.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "Tens un saldo a favor en {currency} que no es pot transferir a la nova moneda.",
+    "text": "Tens un saldo de crèdit en {currency} que no es pot transferir a la nova moneda.",
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
@@ -952,7 +952,7 @@
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "Els cupons actius del teu compte podrien no ser compatibles amb la nova moneda.",
+    "text": "Els cupons actius al teu compte poden no ser compatibles amb la nova moneda.",
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
@@ -961,11 +961,11 @@
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "El teu pla actual finalitza el {date}. Completa el canvi a {plan} ({currency}).",
+    "text": "El teu pla actual acaba el {date}. Completa el canvi a {plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "Completar la migració",
+    "text": "Completar migració",
     "context": "Button to start checkout for the new currency plan",
     "source_hash": "fa794e0c"
   },
@@ -980,7 +980,7 @@
     "source_hash": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
-    "text": "S'ha canviat correctament a {plan}",
+    "text": "Canvi exitós al pla {plan}",
     "context": "Success message after plan change",
     "source_hash": "ab7c715c"
   },
@@ -988,5 +988,26 @@
     "text": "Disponible només a la teva regió de subscripció original",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Ja estàs subscrit a aquest pla."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Reactivar subscripció"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "La teva subscripció ha estat reactivada. Se't continuarà cobrant amb normalitat."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "No s'ha pogut reactivar la subscripció. Torna-ho a provar o contacta amb el suport."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Domini d'enviament de correu flexible"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Inici de sessió únic (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Reactivar"
   }
 }

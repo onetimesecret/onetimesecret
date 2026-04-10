@@ -4,15 +4,15 @@
     "source_hash": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Canviar la contrasenya",
+    "text": "Canviar contrasenya",
     "source_hash": "a949f462"
   },
   "web.account.close_account": {
-    "text": "Tancar el compte",
+    "text": "Tancar compte",
     "source_hash": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Verificar el compte",
+    "text": "Verificar compte",
     "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
@@ -20,7 +20,7 @@
     "source_hash": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Gestionar la subscripció",
+    "text": "Gestionar subscripció",
     "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
@@ -60,7 +60,7 @@
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Pròxima data de facturació:",
+    "text": "Propera data de facturació:",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -72,7 +72,7 @@
     "source_hash": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
-    "text": "Contrasenya nova",
+    "text": "Nova contrasenya",
     "source_hash": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
@@ -80,7 +80,7 @@
     "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Actualitzar la contrasenya",
+    "text": "Actualitzar contrasenya",
     "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
@@ -88,11 +88,11 @@
     "source_hash": "0a4e0b71"
   },
   "web.account.timezone": {
-    "text": "Fus horari",
+    "text": "Zona horària",
     "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "ID del client",
+    "text": "ID de client",
     "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
@@ -104,7 +104,7 @@
     "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Eliminar el compte",
+    "text": "Eliminar compte",
     "source_hash": "c031bf99"
   },
   "web.account.api_key": {
@@ -120,7 +120,7 @@
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Detalls del suport",
+    "text": "Detalls de suport",
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
@@ -128,7 +128,7 @@
     "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "ID del client: {0}",
+    "text": "ID de client: {0}",
     "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Confirmar l'eliminació del compte",
+    "text": "Confirmar eliminació del compte",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -160,7 +160,7 @@
     "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
-    "text": "Eliminar el compte permanentment",
+    "text": "Eliminar compte permanentment",
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
@@ -168,7 +168,7 @@
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "L'eliminació del teu compte és",
+    "text": "Eliminar el teu compte és",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
@@ -184,11 +184,11 @@
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Tingues en compte:",
+    "text": "Si us plau, tingues en compte:",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "El compte s'ha eliminat correctament.",
+    "text": "Compte eliminat correctament.",
     "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
@@ -200,7 +200,7 @@
     "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Desactivar el compte",
+    "text": "Desactivar compte",
     "source_hash": "5e31b73d"
   },
   "web.settings.title": {
@@ -208,7 +208,7 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Gestiona la configuració i les preferències del teu compte",
+    "text": "Gestionar la configuració i les preferències del teu compte",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
@@ -268,11 +268,11 @@
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Gestiona l'autenticació i la seguretat del compte",
+    "text": "Gestionar l'autenticació i la seguretat del compte",
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Gestiona la informació del teu compte",
+    "text": "Gestionar la informació del teu compte",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,7 +280,7 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Canviar el correu electrònic",
+    "text": "Canviar correu electrònic",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
@@ -292,7 +292,7 @@
     "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Correu electrònic nou",
+    "text": "Nou correu electrònic",
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
@@ -300,7 +300,7 @@
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Es requereix la teva contrasenya per motius de seguretat",
+    "text": "La teva contrasenya és necessària per raons de seguretat",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
@@ -308,7 +308,7 @@
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Actualitzar el correu electrònic",
+    "text": "Actualitzar correu electrònic",
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
@@ -324,15 +324,15 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "El correu electrònic nou ha de ser diferent del correu electrònic actual",
+    "text": "El nou correu ha de ser diferent del correu actual",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "El correu electrònic s'ha actualitzat correctament. Comprova la teva bústia d'entrada per verificar la teva nova adreça de correu electrònic.",
+    "text": "Correu de verificació enviat. Revisa la teva nova bústia i fes clic a l'enllaç de confirmació per completar el canvi.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "No s'ha pogut actualitzar el correu electrònic. Torna-ho a provar.",
+    "text": "No s'ha pogut actualitzar el correu. Torna-ho a provar.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -340,11 +340,11 @@
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Gestiona les teves sessions actives",
+    "text": "Gestionar les teves sessions actives",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Gestiona les teves sessions actives",
+    "text": "Gestionar les teves sessions actives",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,23 +352,23 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Actualitza la contrasenya del teu compte",
+    "text": "Actualitzar la contrasenya del teu compte",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Actualitza la contrasenya del teu compte",
+    "text": "Actualitzar la contrasenya del teu compte",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "Eliminar el compte",
+    "text": "Eliminar compte",
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Elimina permanentment el teu compte i totes les dades",
+    "text": "Eliminar permanentment el teu compte i totes les dades",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Elimina permanentment el teu compte i totes les dades",
+    "text": "Eliminar permanentment el teu compte i totes les dades",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -388,7 +388,7 @@
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Acceptable",
+    "text": "Regular",
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
@@ -428,7 +428,7 @@
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Cap codi generat",
+    "text": "No s'han generat codis",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
@@ -444,11 +444,11 @@
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Activa l'autenticació de dos factors per a una protecció addicional",
+    "text": "Activa l'autenticació de dos factors per a protecció addicional",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Guarda els codis de recuperació en un lloc segur",
+    "text": "Desa els teus codis de recuperació en un lloc segur",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
@@ -464,11 +464,11 @@
     "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "Gestiona les claus API i les integracions",
+    "text": "Gestionar claus API i integracions",
     "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "Gestiona les claus API i les integracions",
+    "text": "Gestionar claus API i integracions",
     "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
@@ -484,7 +484,7 @@
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Documentació completa de l'API i els endpoints",
+    "text": "Documentació completa de l'API i endpoints",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
@@ -500,11 +500,11 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "No facis mai commit de les claus API al control de versions",
+    "text": "Mai afegeixis claus API al control de versions",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Utilitza variables d'entorn per emmagatzemar les claus API",
+    "text": "Utilitza variables d'entorn per emmagatzemar claus API",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
@@ -512,11 +512,11 @@
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Utilitza sempre HTTPS quan facis peticions a l'API",
+    "text": "Utilitza sempre HTTPS quan facis sol·licituds a l'API",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Supervisa l'ús de l'API i configura alertes",
+    "text": "Monitoritza l'ús de l'API i configura alertes",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Regenerar la teva clau API invalidarà la clau actual. Actualitza totes les aplicacions que utilitzen la clau antiga.",
+    "text": "Regenerar la teva clau API invalidarà la clau actual. Actualitza totes les aplicacions que utilitzen l'antiga clau.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Gestiona les teves preferències de privadesa",
+    "text": "Gestionar les teves preferències de privadesa",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -540,7 +540,7 @@
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Innegociable",
+    "text": "No negociable",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -548,11 +548,11 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Sense analítiques. Sense rastreig. Punt.",
+    "text": "Sense analítiques. Sense seguiment. Punt.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Això no és una configuració perquè no hi ha res a activar o desactivar. La teva privadesa està integrada en la manera com operem.",
+    "text": "Això no és una configuració perquè no hi ha res per activar o desactivar. La teva privadesa està integrada en la nostra manera de funcionar.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,7 +560,7 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Gestiona com reps les notificacions",
+    "text": "Gestionar com reps les notificacions",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
@@ -568,23 +568,23 @@
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Notificacions de visualització de secrets",
+    "text": "Notificacions de revelació de secrets",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Rep un correu electrònic quan algú visualitza el teu secret",
+    "text": "Rep un correu quan algú vegi el teu secret",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Se't notificarà cada vegada que un destinatari visualitzi un dels teus secrets",
+    "text": "Rebràs una notificació cada cop que un destinatari reveli un dels teus secrets",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Els correus de notificació només inclouen la marca de temps i l'ID del secret. La informació del visualitzador no s'inclou mai.",
+    "text": "Els correus de notificació inclouen només la marca de temps i l'ID del secret. La informació del visualitzador mai s'inclou.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Zona de consideració acurada",
+    "text": "Zona de consideració",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -596,11 +596,11 @@
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exporta les dades del teu compte",
+    "text": "Exportar les dades del teu compte",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Sol·licita una còpia completa de les dades del teu compte en format llegible per màquina",
+    "text": "Sol·licita una còpia completa de les dades del teu compte en format llegible per màquines",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -616,7 +616,7 @@
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Eliminar el teu compte farà:",
+    "text": "Eliminar el teu compte comportarà:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
@@ -636,11 +636,11 @@
     "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Adreça de correu electrònic actualitzada",
+    "text": "Adreça de correu actualitzada",
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "El teu correu electrònic s'ha actualitzat correctament. Si us plau, inicia sessió amb la teva nova adreça de correu electrònic.",
+    "text": "El teu correu electrònic s'ha actualitzat correctament. Inicia sessió amb la teva nova adreça de correu electrònic.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
@@ -648,7 +648,7 @@
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "El canvi de correu electrònic ha fallat",
+    "text": "El canvi de correu ha fallat",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
@@ -660,15 +660,15 @@
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Redirigint a l'inici de sessió...",
+    "text": "Redirigint a iniciar sessió...",
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Reenviar el correu de confirmació",
+    "text": "Reenviar correu de confirmació",
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "El correu de confirmació s'ha reenviat correctament.",
+    "text": "Correu de confirmació reenviat correctament.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
@@ -676,11 +676,11 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "S'ha enviat un correu de verificació. Comprova la teva safata d'entrada i fes clic a l'enllaç de confirmació.",
+    "text": "S'ha enviat un correu de verificació. Revisa la teva bústia de correu i fes clic a l'enllaç de confirmació.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "No has rebut el correu electrònic?",
+    "text": "No has rebut el correu?",
     "source_hash": "fe3ac3ad"
   }
 }

@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Comparteix informació sensible de manera segura amb el nostre equip de suport",
+    "text": "Comparteix informació sensible de forma segura amb el nostre equip de suport",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -12,15 +12,15 @@
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Error en carregar la configuració",
+    "text": "No s'ha pogut carregar la configuració",
     "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Funció no disponible",
+    "text": "Funcionalitat no disponible",
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Aquesta funció està desactivada actualment. Si us plau, contacta amb el suport per obtenir assistència.",
+    "text": "Aquesta funcionalitat està desactivada actualment. Contacta amb el suport per obtenir assistència.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Descripció breu (p. ex., Sol·licitud de restabliment de contrasenya)",
+    "text": "Breu descripció (p. ex. Sol·licitud de restabliment de contrasenya)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -64,7 +64,7 @@
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Aquesta informació serà xifrada i només es podrà veure una vegada",
+    "text": "Aquesta informació serà xifrada i només visible un cop",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -96,7 +96,7 @@
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "El teu missatge segur s'ha lliurat.",
+    "text": "El teu missatge segur ha estat lliurat.",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -108,7 +108,7 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "El destinatari podrà veure aquest secret només una vegada. Després de veure'l, el secret s'eliminarà permanentment.",
+    "text": "El destinatari podrà veure aquest secret només un cop. Després de veure'l, el secret serà eliminat permanentment.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -116,11 +116,11 @@
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Comparteix informació sensible de manera segura",
+    "text": "Comparteix informació sensible de forma segura",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Mantén les contrasenyes i les dades privades fora del correu electrònic i els registres de xat",
+    "text": "Mantén contrasenyes i dades privades fora del correu electrònic i els registres de xat",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "rebut",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Cal actualitzar"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Aquesta funcionalitat requereix una actualització de pla. Contacta amb el propietari del compte per activar els secrets d'entrada."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "La nota ha de tenir {max} caràcters o menys"
+  },
+  "incoming.validation_secret_required": {
+    "text": "El contingut secret és obligatori"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Si us plau, selecciona un destinatari"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "La funcionalitat de secrets d'entrada no està activada"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Si us plau, revisa el formulari per errors"
   }
 }

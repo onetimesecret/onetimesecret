@@ -8,7 +8,7 @@
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Cap secret recent",
+    "text": "No hi ha secrets recents",
     "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
@@ -20,7 +20,7 @@
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Hi ha hagut un problema en carregar les teves dades. Torna-ho a provar.",
+    "text": "Hi ha hagut un problema carregant les teves dades. Torna-ho a provar.",
     "source_hash": "ff0d904e"
   }
 }

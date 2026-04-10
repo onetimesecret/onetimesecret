@@ -66,31 +66,31 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Autenticació fallida. Si us plau, verifica les teves credencials i torna-ho a provar.",
+    "text": "L'autenticació ha fallat. Verifica les teves credencials i torna-ho a provar.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Massa intents. Si us plau, torna-ho a provar més tard.",
+    "text": "Massa intents. Torna-ho a provar més tard.",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Sessió caducada. Si us plau, inicia sessió de nou.",
+    "text": "La sessió ha caducat. Inicia sessió de nou.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Codi de recuperació no trobat. Si us plau, verifica que l'has introduït correctament.",
+    "text": "Codi de recuperació no trobat. Verifica que l'has introduït correctament.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Aquest codi de recuperació ja s'ha utilitzat. Cada codi només es pot utilitzar una vegada.",
+    "text": "Aquest codi de recuperació ja ha estat utilitzat. Cada codi només es pot utilitzar un cop.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Error de xarxa. Si us plau, comprova la teva connexió i torna-ho a provar.",
+    "text": "Error de xarxa. Comprova la teva connexió i torna-ho a provar.",
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "S'ha produït un error. Si us plau, torna-ho a provar.",
+    "text": "S'ha produït un error. Torna-ho a provar.",
     "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
@@ -98,7 +98,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "Enllaç de correu electrònic",
+    "text": "Enllaç de correu",
     "context": "Passwordless authentication via email link",
     "source_hash": "1b6ffed2"
   },
@@ -115,7 +115,7 @@
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Introdueix el teu correu electrònic",
+    "text": "Introdueix el teu correu",
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
@@ -123,7 +123,7 @@
     "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "Comprova el teu correu electrònic",
+    "text": "Revisa el teu correu",
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
@@ -135,31 +135,31 @@
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Provar un correu electrònic diferent",
+    "text": "Provar amb un correu diferent",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "No es necessita contrasenya — només fes clic a l'enllaç del teu correu electrònic",
+    "text": "No cal contrasenya - només fes clic a l'enllaç del teu correu",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Error de xarxa. Si us plau, torna-ho a provar.",
+    "text": "Error de xarxa. Torna-ho a provar.",
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Error en enviar l'enllaç d'inici de sessió. Si us plau, torna-ho a provar.",
+    "text": "No s'ha pogut enviar l'enllaç d'inici de sessió. Torna-ho a provar.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Enllaç d'inici de sessió no vàlid o absent",
+    "text": "Enllaç d'inici de sessió no vàlid o no trobat",
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "La teva sessió ha caducat. Si us plau, actualitza la pàgina i torna-ho a provar.",
+    "text": "La teva sessió ha caducat. Actualitza la pàgina i torna-ho a provar.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Inici de sessió fallit. Si us plau, torna-ho a provar.",
+    "text": "L'inici de sessió ha fallat. Torna-ho a provar.",
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
@@ -167,7 +167,7 @@
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Si us plau, espera mentre verifiquem el teu enllaç",
+    "text": "Espera mentre verifiquem el teu enllaç",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -175,7 +175,7 @@
     "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Tornar a l'inici de sessió",
+    "text": "Tornar a iniciar sessió",
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
@@ -191,27 +191,27 @@
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Si us plau, utilitza un navegador modern que suporti WebAuthn (Chrome, Safari, Firefox o Edge)",
+    "text": "Si us plau, utilitza un navegador modern que sigui compatible amb WebAuthn (Chrome, Safari, Firefox o Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "L'inici de sessió biomètric s'ha activat",
+    "text": "L'inici de sessió biomètric ha estat activat",
     "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Error en configurar l'inici de sessió biomètric",
+    "text": "No s'ha pogut configurar l'inici de sessió biomètric",
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "Cal la contrasenya per configurar una clau d'accés",
+    "text": "La contrasenya és necessària per configurar una clau d'accés",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Autenticació biomètrica fallida. Si us plau, torna-ho a provar.",
+    "text": "L'autenticació biomètrica ha fallat. Torna-ho a provar.",
     "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "L'autenticació s'ha cancel·lat",
+    "text": "L'autenticació ha estat cancel·lada",
     "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
@@ -237,7 +237,7 @@
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Les claus d'accés et permeten iniciar sessió de manera segura sense contrasenya",
+    "text": "Les claus d'accés et permeten iniciar sessió de forma segura sense contrasenya",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -287,7 +287,7 @@
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Afegeix una clau d'accés per iniciar sessió de manera més segura sense introduir una contrasenya",
+    "text": "Afegeix una clau d'accés per iniciar sessió de forma més segura sense introduir una contrasenya",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
@@ -297,7 +297,7 @@
     "source_hash": "22eefa67"
   },
   "web.auth.passkeys.created": {
-    "text": "Creada",
+    "text": "Creat",
     "context": "Label for creation date",
     "source_hash": "d70b9e24"
   },
@@ -307,22 +307,22 @@
     "source_hash": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "Mai utilitzada",
+    "text": "Mai utilitzat",
     "context": "Status when passkey has not been used",
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Més segura que les contrasenyes: resistent a atacs de phishing",
+    "text": "Més segur que les contrasenyes - resistent a atacs de phishing",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Ràpida i fàcil: només cal la teva empremta digital, cara o clau de seguretat",
+    "text": "Ràpid i fàcil - només utilitza la teva empremta digital, cara o clau de seguretat",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Sincronitzada entre els teus dispositius quan utilitzes autenticadors de plataforma",
+    "text": "Sincronitzat entre els teus dispositius quan utilitzes autenticadors de plataforma",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -332,7 +332,7 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Advertència: {count} intent(s) d'inici de sessió restants",
+    "text": "Advertència: {count} intent(s) d'inici de sessió restant(s)",
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
@@ -348,7 +348,7 @@
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Pots restablir la teva contrasenya en lloc d'això",
+    "text": "Pots restablir la teva contrasenya en el seu lloc",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Això tancarà la sessió de tots els altres dispositius. N'estàs segur?",
+    "text": "Això tancarà la sessió a tots els altres dispositius. N'estàs segur?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -412,7 +412,7 @@
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "S'ha tancat la sessió de tots els altres dispositius",
+    "text": "Totes les altres sessions han estat tancades",
     "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
@@ -432,19 +432,19 @@
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "Activar autenticació de dos factors",
+    "text": "Activar l'autenticació de dos factors",
     "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "Desactivar autenticació de dos factors",
+    "text": "Desactivar l'autenticació de dos factors",
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Configurar autenticació de dos factors",
+    "text": "Configurar l'autenticació de dos factors",
     "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Afegeix una capa extra de seguretat al teu compte",
+    "text": "Afegeix una capa addicional de seguretat al teu compte",
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
@@ -480,7 +480,7 @@
     "source_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
-    "text": "Es requereix el codi d'autenticació",
+    "text": "El codi d'autenticació és obligatori",
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
@@ -488,11 +488,11 @@
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "L'autenticació de dos factors s'ha activat",
+    "text": "L'autenticació de dos factors ha estat activada",
     "source_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "L'autenticació de dos factors s'ha desactivat",
+    "text": "L'autenticació de dos factors ha estat desactivada",
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
@@ -516,7 +516,7 @@
     "source_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Utilitzar un codi de recuperació en lloc d'això",
+    "text": "Utilitzar un codi de recuperació en el seu lloc",
     "source_hash": "23d3441a"
   },
   "web.auth.mfa.use_recovery_code_short": {
@@ -528,7 +528,7 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Cancel·lar i tornar a l'inici de sessió",
+    "text": "Cancel·lar i tornar a iniciar sessió",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
@@ -536,7 +536,7 @@
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Carregant estat de MFA...",
+    "text": "Carregant estat MFA...",
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
@@ -552,11 +552,11 @@
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Funciona amb Google Authenticator, Authy, i altres aplicacions TOTP",
+    "text": "Funciona amb Google Authenticator, Authy i altres aplicacions TOTP",
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Codis de recuperació de seguretat per accés d'emergència",
+    "text": "Codis de recuperació de seguretat per a accés d'emergència",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -576,7 +576,7 @@
     "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Utilitza Google Authenticator, Authy, o qualsevol aplicació TOTP",
+    "text": "Utilitza Google Authenticator, Authy o qualsevol aplicació TOTP",
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
@@ -624,7 +624,7 @@
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Si us plau, introdueix tots els 6 dígits per continuar",
+    "text": "Introdueix els 6 dígits per continuar",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -636,11 +636,11 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Desa aquests codis en un lloc segur. Cadascun es pot utilitzar una vegada si perds l'accés a la teva aplicació d'autenticació.",
+    "text": "Desa aquests codis en un lloc segur. Cada un es pot utilitzar un cop si perds l'accés al teu autenticador.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Aquests codis només es mostraran una vegada",
+    "text": "Aquests codis només es mostraran un cop",
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
@@ -680,7 +680,7 @@
     "source_hash": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Error en copiar els codis al porta-retalls",
+    "text": "No s'han pogut copiar els codis al porta-retalls",
     "source_hash": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
@@ -696,7 +696,7 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Cada codi només es pot utilitzar una vegada. Regenera els codis si et queden pocs.",
+    "text": "Cada codi només es pot utilitzar un cop. Regenera els codis si en queden pocs.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -710,5 +710,20 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Codis de recuperació",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Opcions d'autenticació alternatives"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ CRÍTIC PER A LA SEGURETAT: Els missatges prevenen la divulgació d'informació. Consulta src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sessió"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessions"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Pàgina de gestió de dispositius/navegadors amb sessió iniciada de l'usuari"
   }
 }

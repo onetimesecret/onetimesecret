@@ -4,7 +4,7 @@
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Tots els comentaris són benvinguts!",
+    "text": "Tot comentari és benvingut!",
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
@@ -32,11 +32,11 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Llegeixo cada comentari que arriba aquí. És com determino en què dedicar temps.",
+    "text": "Llegeixo cada comentari que arriba aquí. És com decideixo en què dedicar el temps.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Si alguna cosa no va bé, o tens idees sobre com hauria de funcionar, aquest és el lloc adequat.",
+    "text": "Si alguna cosa no funciona bé, o tens idees sobre com hauria de funcionar, aquest és el lloc adequat.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Sembla que estàs informant d'un canvi de correu electrònic no autoritzat al teu compte. Si us plau, descriu què ha passat i ho investigarem de seguida.",
+    "text": "Sembla que estàs informant d'un canvi de correu electrònic no autoritzat al teu compte. Descriu què ha passat i ho investigarem immediatament.",
     "source_hash": "00e56551"
   }
 }

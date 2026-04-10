@@ -80,7 +80,7 @@
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Canvis no desats",
+    "text": "Canvis sense desar",
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
@@ -132,7 +132,7 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "Benvingut a Colonel",
+    "text": "Benvingut al Colonel",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
@@ -156,7 +156,7 @@
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Secrets totals",
+    "text": "Total de secrets",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -176,7 +176,7 @@
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Usuaris totals",
+    "text": "Total d'usuaris",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
@@ -196,7 +196,7 @@
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Supervisar l'activitat i l'ús del sistema",
+    "text": "Monitoritzar l'activitat i l'ús del sistema",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Restablir al pla actual",
+    "text": "Restablir al pla real",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Prova la teva aplicació amb diferents drets de pla. Els canvis són temporals i afecten només la teva sessió.",
+    "text": "Prova la teva aplicació amb diferents permisos de pla. Els canvis són temporals i afecten només la teva sessió.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Estàs provant amb els drets de {planName} (substitució temporal de sessió).",
+    "text": "Estàs provant amb els permisos de {planName} (substitució temporal de sessió).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,7 +316,7 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Supervisar la salut de sincronització de facturació d'organitzacions",
+    "text": "Monitoritzar la salut de sincronització de facturació d'organitzacions",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
@@ -328,11 +328,11 @@
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count} requereixen atenció",
+    "text": "{count} necessiten atenció",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
-    "text": "{count} desconegudes",
+    "text": "{count} desconeguts",
     "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
@@ -348,7 +348,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.filters.all": {
-    "text": "Tot",
+    "text": "Tots",
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Gestionar organitzacions i supervisar la salut de sincronització de facturació ({total} total)",
+    "text": "Gestionar organitzacions i monitoritzar la salut de sincronització de facturació ({total} total)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -480,7 +480,7 @@
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Investigació fallida",
+    "text": "La investigació ha fallat",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
@@ -544,11 +544,11 @@
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "IPs prohibides",
+    "text": "IPs bloquejades",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Gestionar llista de prohibició d'IP",
+    "text": "Gestionar la llista de bloqueig d'IP",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -612,7 +612,7 @@
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
-    "text": "IPs prohibides",
+    "text": "IPs bloquejades",
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Quan enviïs comentaris, veurem:",
+    "text": "Quan enviïs els teus comentaris, veurem:",
     "source_hash": "fe77172e"
   }
 }
