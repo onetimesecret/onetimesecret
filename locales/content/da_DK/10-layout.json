@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Brandinggguide",
+    "text": "Brandingguide",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,7 +20,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Lær om vores sikkerhedsforanstaltninger",
+    "text": "Lær mere om vores sikkerhedsforanstaltninger",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
@@ -48,7 +48,7 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Når du sender feedback, kan vi se:",
+    "text": "Når du indsender feedback, kan vi se:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
@@ -56,7 +56,7 @@
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Tjek vores servicestatus",
+    "text": "Tjek vores tjenestestatus",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
@@ -68,7 +68,7 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Få adgang til vores dokumentation",
+    "text": "Tilgå vores dokumentation",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
@@ -92,7 +92,7 @@
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Lær om vores virksomhed",
+    "text": "Lær mere om vores virksomhed",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -120,7 +120,7 @@
     "source_hash": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Webstedsversion",
+    "text": "Websiteversion",
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Vi har for nylig tilføjet oversættelser. Fundet en fejl? {send-feedback}",
+    "text": "Vi har for nylig tilføjet oversættelser. Har du fundet en fejl? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -144,11 +144,11 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Hvad ser jeg på?",
+    "text": "Hvad er det jeg ser på?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser en sikker besked der blev delt med dig gennem Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere.",
+    "text": "Du ser en sikker besked der blev delt med dig via Onetime Secret. Dette indhold vises kun én gang og slettes derefter permanent fra vores servere.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -156,27 +156,27 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nej. Af sikkerhedsmæssige årsager kan denne besked kun ses én gang. Efter du lukker denne side, vil indholdet blive permanent slettet og kan ikke gendannes af nogen, inklusive os.",
+    "text": "Nej. Af sikkerhedshensyn kan denne besked kun ses én gang. Når du lukker denne side, vil indholdet blive permanent slettet og kan ikke gendannes af nogen, heller ikke af os.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Hvordan gemmer jeg disse oplysninger?",
+    "text": "Hvordan gemmer jeg denne information?",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Brug knappen 'Kopier til udklipsholder' for at kopiere hele beskeden. Ved længere beskeder skal du sikre dig, at du har kopieret hele indholdet, før du forlader denne side.",
+    "text": "Brug knappen 'Kopier til udklipsholder' for at kopiere hele beskeden. For længere beskeder, sørg for at bekræfte at du har kopieret det fulde indhold inden du forlader denne side.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Spores min visning af denne besked?",
+    "text": "Bliver min visning af denne besked sporet?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Afsenderen vil få besked om at deres besked er blevet set, men vi sporer ikke hvem der så den eller fra hvilken lokation. Dit privatliv er beskyttet.",
+    "text": "Afsenderen vil blive underrettet om at deres besked blev vist, men vi sporer ikke hvem der så den eller fra hvilken placering. Dit privatliv er beskyttet.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Når du forlader eller opdaterer denne side, vil beskeden blive permanent slettet og kan ikke gendannes af nogen.",
+    "text": "Når du forlader eller opdaterer denne side, vil denne besked blive permanent slettet og kan ikke gendannes af nogen.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -200,7 +200,7 @@
     "source_hash": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Brand-logo",
+    "text": "Brandlogo",
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
@@ -244,15 +244,15 @@
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Gå til forsiden",
+    "text": "Tilbage til forsiden",
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Gå tilbage til forsiden",
+    "text": "Tilbage til forsiden",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Gå til forsiden",
+    "text": "Tilbage til forsiden",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Besøg Onetime Secret-forsiden",
+    "text": "Besøg Onetime Secret-hjemmesiden",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -308,7 +308,7 @@
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Webstedsversion: v{0}",
+    "text": "Websiteversion: v{0}",
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Arbejdsområdekontekst",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Arbejdsområde"
   }
 }
