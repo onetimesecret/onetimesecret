@@ -16,7 +16,7 @@
 import {
   customDomainEmailConfigCanonical,
   emailProviderTypeSchema,
-  emailValidationStatusSchema,
+  emailVerificationStatusSchema,
 } from '@/schemas/contracts/email-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -58,7 +58,7 @@ const timestampOverrides = {
  *   from_address: null,         // -> '' after transform
  *   from_name: null,            // -> '' after transform
  *   reply_to: null,             // -> null (form converts to undefined)
- *   validation_status: 'pending',
+ *   verification_status: 'pending',
  *   dns_records: [],
  *   last_validated_at: null,    // -> null
  *   provider_domain_id: null,   // -> null
@@ -114,7 +114,7 @@ export const customDomainEmailConfigSummarySchema = z.object({
   domain_id: z.string(),
   provider: emailProviderTypeSchema,
   from_address: z.string(),
-  validation_status: emailValidationStatusSchema,
+  verification_status: emailVerificationStatusSchema,
   created_at: transforms.fromNumber.toDate,
   updated_at: transforms.fromNumber.toDate,
 });

@@ -89,7 +89,7 @@ const mockEmailConfigData: CustomDomainEmailConfig = {
   from_address: 'noreply@example.com',
   from_name: 'Acme Corp',
   reply_to: 'support@example.com',
-  validation_status: 'verified',
+  verification_status: 'verified',
   dns_records: [
     { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'verified' },
     { type: 'CNAME', name: 'em._domainkey.example.com', value: 'dkim.example.com', status: 'pending' },
@@ -104,7 +104,7 @@ const mockEmailConfigData: CustomDomainEmailConfig = {
 
 const mockPendingConfig: CustomDomainEmailConfig = {
   ...mockEmailConfigData,
-  validation_status: 'pending',
+  verification_status: 'pending',
   enabled: false,
   dns_check_completed_at: null,
   provider_check_completed_at: null,
@@ -671,7 +671,7 @@ describe('useEmailConfig', () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   describe('computed properties', () => {
-    it('isVerified returns true when validation_status is verified', async () => {
+    it('isVerified returns true when verification_status is verified', async () => {
       mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
@@ -679,7 +679,7 @@ describe('useEmailConfig', () => {
       expect(composable.isVerified.value).toBe(true);
     });
 
-    it('isVerified returns false when validation_status is pending', async () => {
+    it('isVerified returns false when verification_status is pending', async () => {
       mockGetEmailConfig.mockResolvedValue(mockPendingConfig);
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
@@ -765,7 +765,7 @@ describe('useEmailConfig', () => {
     it('updates emailConfig and formState from validation response', async () => {
       const updatedConfig: CustomDomainEmailConfig = {
         ...mockEmailConfigData,
-        validation_status: 'verified',
+        verification_status: 'verified',
       };
       mockValidateEmailConfig.mockResolvedValue({ record: updatedConfig });
       mockGetEmailConfig.mockResolvedValue(updatedConfig);
@@ -777,7 +777,7 @@ describe('useEmailConfig', () => {
       await drainPolling();
       await promise;
 
-      expect(composable.emailConfig.value?.validation_status).toBe('verified');
+      expect(composable.emailConfig.value?.verification_status).toBe('verified');
     });
 
     it('shows error notification when validation fails', async () => {
@@ -876,7 +876,7 @@ describe('useEmailConfig', () => {
       await vi.advanceTimersByTimeAsync(3000);
       await promise;
 
-      expect(composable.emailConfig.value?.validation_status).toBe('verified');
+      expect(composable.emailConfig.value?.verification_status).toBe('verified');
       // 1 (init) + 2 (polls)
       expect(mockGetEmailConfig).toHaveBeenCalledTimes(3);
     });
@@ -884,7 +884,7 @@ describe('useEmailConfig', () => {
     it('stops polling when status transitions from pending to failed', async () => {
       const failedConfig: CustomDomainEmailConfig = {
         ...mockEmailConfigData,
-        validation_status: 'failed',
+        verification_status: 'failed',
         dns_check_completed_at: new Date('2025-01-15T10:00:00Z'),
         provider_check_completed_at: new Date('2025-01-15T10:00:00Z'),
       };
@@ -900,7 +900,7 @@ describe('useEmailConfig', () => {
       await vi.advanceTimersByTimeAsync(3000);
       await promise;
 
-      expect(composable.emailConfig.value?.validation_status).toBe('failed');
+      expect(composable.emailConfig.value?.verification_status).toBe('failed');
     });
 
     it('stops after maxAttempts if status stays pending', async () => {
@@ -921,7 +921,7 @@ describe('useEmailConfig', () => {
 
       // 1 (init) + 10 (polls)
       expect(mockGetEmailConfig).toHaveBeenCalledTimes(11);
-      expect(composable.emailConfig.value?.validation_status).toBe('pending');
+      expect(composable.emailConfig.value?.verification_status).toBe('pending');
     });
 
     it('keeps isValidating true during polling and sets false after', async () => {
@@ -962,7 +962,7 @@ describe('useEmailConfig', () => {
       await vi.advanceTimersByTimeAsync(3000);
       await promise;
 
-      expect(composable.emailConfig.value?.validation_status).toBe('verified');
+      expect(composable.emailConfig.value?.verification_status).toBe('verified');
     });
   });
 

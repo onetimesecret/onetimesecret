@@ -65,9 +65,14 @@ export type EmailProviderType = z.infer<typeof emailProviderTypeSchema>;
  *
  * @category Contracts
  */
-export const emailValidationStatusSchema = z.enum(['pending', 'verified', 'failed']);
+export const emailVerificationStatusSchema = z.enum(['pending', 'verified', 'failed']);
 
-export type EmailValidationStatus = z.infer<typeof emailValidationStatusSchema>;
+export type EmailVerificationStatus = z.infer<typeof emailVerificationStatusSchema>;
+
+/** @deprecated Use emailVerificationStatusSchema — renamed to match backend field name */
+export const emailValidationStatusSchema = emailVerificationStatusSchema;
+/** @deprecated Use EmailVerificationStatus */
+export type EmailValidationStatus = EmailVerificationStatus;
 
 // ---------------------------------------------------------------------------
 // DNS record schema
@@ -147,8 +152,8 @@ export const customDomainEmailConfigCanonical = z.object({
   /** Reply-to address. Null if not configured (falls back to from_address). */
   reply_to: z.string().nullable(),
 
-  /** Current validation status of the email configuration. */
-  validation_status: emailValidationStatusSchema,
+  /** Current verification status of the email configuration. */
+  verification_status: emailVerificationStatusSchema,
 
   /** DNS records required for email authentication. */
   dns_records: z.array(emailDnsRecordSchema),

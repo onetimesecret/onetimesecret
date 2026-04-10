@@ -132,7 +132,7 @@ export function useEmailConfig(domainExtId: string) {
   const isConfigured = computed(() => emailConfig.value !== null);
 
   /** Whether the config is verified (DNS records confirmed). */
-  const isVerified = computed(() => emailConfig.value?.validation_status === 'verified');
+  const isVerified = computed(() => emailConfig.value?.verification_status === 'verified');
 
   /** Whether emails are using the fallback global sender. */
   const usesFallbackSender = computed(
@@ -143,7 +143,7 @@ export function useEmailConfig(domainExtId: string) {
   const dnsRecords = computed(() => emailConfig.value?.dns_records ?? []);
 
   /** Validation status from the current config. */
-  const validationStatus = computed(() => emailConfig.value?.validation_status ?? 'pending');
+  const validationStatus = computed(() => emailConfig.value?.verification_status ?? 'pending');
 
   /** Last validated timestamp. */
   const lastValidatedAt = computed(() => emailConfig.value?.last_validated_at ?? null);
@@ -300,7 +300,7 @@ export function useEmailConfig(domainExtId: string) {
   /**
    * Check if validation has completed (not pending).
    */
-  const isValidationComplete = (config: CustomDomainEmailConfig): boolean => config.validation_status !== 'pending'
+  const isValidationComplete = (config: CustomDomainEmailConfig): boolean => config.verification_status !== 'pending'
       && config.dns_check_completed_at != null
       && config.provider_check_completed_at != null;
 

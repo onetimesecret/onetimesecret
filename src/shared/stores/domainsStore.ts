@@ -381,7 +381,7 @@ export const useDomainsStore = defineStore('domains', () => {
    *
    * Triggers DNS record verification and sender identity validation
    * for the domain's current email configuration. Returns the updated
-   * config with refreshed validation_status and dns_records.
+   * config with refreshed verification_status and dns_records.
    */
   async function validateEmailConfig(extid: string): Promise<ValidateEmailConfigResponse> {
     const response = await $api.post(`/api/domains/${extid}/email-config/validate`);

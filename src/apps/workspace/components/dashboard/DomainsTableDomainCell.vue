@@ -36,7 +36,7 @@ const { t } = useI18n();
    *
    * Four states:
    *  1. "not_configured" — no email config exists (null/undefined). Default sender in use.
-   *  2. "pending"        — config exists but validation_status != 'verified'. Default sender.
+   *  2. "pending"        — config exists but verification_status != 'verified'. Default sender.
    *  3. "verified"       — config exists, verified, and enabled. Custom sender active.
    *  4. "disabled"       — config exists but enabled === false. Default sender.
    */
@@ -48,7 +48,7 @@ const { t } = useI18n();
     const config = emailConfig.value;
     if (!config) return 'not_configured';
     if (config.enabled === false) return 'disabled';
-    if (config.validation_status === 'verified') return 'verified';
+    if (config.verification_status === 'verified') return 'verified';
     return 'pending';
   });
 
