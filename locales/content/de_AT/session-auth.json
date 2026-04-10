@@ -1,6 +1,6 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Noch kein Konto?",
+    "text": "Brauchst du ein Konto?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
@@ -16,7 +16,7 @@
     "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Geben Sie Ihre Anmeldedaten ein",
+    "text": "Gib deine Anmeldedaten ein",
     "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
@@ -28,7 +28,7 @@
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Ein sicherer Link wird an Ihr E-Mail-Postfach gesendet.",
+    "text": "Ein sicherer Link wird an dein E-Mail-Postfach gesendet.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -64,11 +64,11 @@
     "source_hash": "904c9aa9"
   },
   "web.login.need_help": {
-    "text": "Brauchen Sie Hilfe?",
+    "text": "Brauchst du Hilfe?",
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
-    "text": "Oder fortfahren mit",
+    "text": "Oder weiter mit",
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
@@ -76,7 +76,7 @@
     "source_hash": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
-    "text": "Anmelden mit {provider}",
+    "text": "Mit {provider} anmelden",
     "source_hash": "b8794f11"
   },
   "web.auth.sso.signing_in": {
@@ -84,31 +84,31 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "SSO-Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "text": "SSO-Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "SSO-Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut oder verwenden Sie die Passwort-Anmeldung.",
+    "text": "SSO-Authentifizierung fehlgeschlagen. Bitte versuche es erneut oder verwende die Passwort-Anmeldung.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "Der Authentifizierungslink ist unvollständig. Bitte fordern Sie einen neuen Anmeldelink an.",
+    "text": "Der Authentifizierungslink ist unvollständig. Bitte fordere einen neuen Anmeldelink an.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Dieser Anmeldelink ist abgelaufen. Bitte fordern Sie einen neuen an.",
+    "text": "Dieser Anmeldelink ist abgelaufen. Bitte fordere einen neuen an.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Dieser Anmeldelink ist ungültig. Bitte fordern Sie einen neuen an.",
+    "text": "Dieser Anmeldelink ist ungültig. Bitte fordere einen neuen an.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Erstellen Sie Ihr Konto",
+    "text": "Erstelle dein Konto",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Bereits ein Konto?",
+    "text": "Hast du bereits ein Konto?",
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
@@ -135,7 +135,7 @@
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "Ihr Konto wurde erfolgreich verifiziert",
+    "text": "Dein Konto wurde erfolgreich verifiziert",
     "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
@@ -143,23 +143,23 @@
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Dieser Verifizierungslink ist abgelaufen. Bitte fordern Sie einen neuen an.",
+    "text": "Dieser Verifizierungslink ist abgelaufen. Bitte fordere einen neuen an.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Dieses Konto wurde bereits verifiziert. Sie können sich jetzt anmelden.",
+    "text": "Dieses Konto wurde bereits verifiziert. Du kannst dich jetzt anmelden.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Konto konnte nicht verifiziert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+    "text": "Konto konnte nicht verifiziert werden. Bitte versuche es erneut oder kontaktiere den Support.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Bitte überprüfen Sie Ihre E-Mail auf einen Verifizierungslink",
+    "text": "Bitte überprüfe deine E-Mails auf einen Verifizierungslink",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Kontoverifizierung fehlgeschlagen. Bitte überprüfen Sie Ihren Verifizierungslink oder fordern Sie einen neuen an.",
+    "text": "Kontoverifizierung fehlgeschlagen. Bitte überprüfe deinen Verifizierungslink oder fordere einen neuen an.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -171,15 +171,15 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Überprüfen Sie Ihre E-Mail auf den aktuellsten Verifizierungslink",
+    "text": "Überprüfe deine E-Mails auf den neuesten Verifizierungslink",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Überprüfen Sie Ihren Spam-/Junk-Ordner, wenn Sie die E-Mail nicht finden können",
+    "text": "Überprüfe deinen Spam-/Junk-Ordner, wenn du die E-Mail nicht findest",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Kontaktieren Sie den Support, wenn Sie weiterhin Probleme haben",
+    "text": "Kontaktiere den Support, wenn weiterhin Probleme auftreten",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Bitte verwenden Sie den Verifizierungslink, der an Ihre E-Mail-Adresse gesendet wurde, um Ihr Konto zu verifizieren.",
+    "text": "Bitte verwende den Verifizierungslink, der an deine E-Mail-Adresse gesendet wurde, um dein Konto zu verifizieren.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
@@ -211,11 +211,11 @@
     "source_hash": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "Ihr Passwort wurde erfolgreich geändert",
+    "text": "Dein Passwort wurde erfolgreich geändert",
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Passwortänderung fehlgeschlagen. Bitte überprüfen Sie Ihr aktuelles Passwort und versuchen Sie es erneut.",
+    "text": "Passwortänderung fehlgeschlagen. Bitte überprüfe dein aktuelles Passwort und versuche es erneut.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -223,7 +223,7 @@
     "source_hash": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Geheimnisse werden dauerhaft gelöscht.",
+    "text": "Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Nachrichten werden dauerhaft gelöscht.",
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
@@ -231,7 +231,7 @@
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Geben Sie Ihr Passwort zur Bestätigung ein",
+    "text": "Gib dein Passwort zur Bestätigung ein",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
@@ -243,15 +243,15 @@
     "source_hash": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Passwortzurücksetzung anfordern",
+    "text": "Passwort zurücksetzen anfordern",
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Geben Sie unten Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts",
+    "text": "Gib unten deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Zurücksetzungslink senden",
+    "text": "Link zum Zurücksetzen senden",
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
@@ -260,11 +260,11 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Bitte geben Sie unten Ihr neues Passwort ein. Stellen Sie sicher, dass es stark und einzigartig ist, um Ihr Konto zu schützen.",
+    "text": "Bitte gib unten dein neues Passwort ein. Achte darauf, dass es stark und einzigartig ist, um dein Konto zu schützen.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Eine E-Mail mit einem Link zum Zurücksetzen des Passworts für Ihr Konto wurde an Sie gesendet",
+    "text": "Es wurde eine E-Mail mit einem Link zum Zurücksetzen deines Passworts an dich gesendet",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -345,7 +345,7 @@
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Anmeldung -- Fehlerbehebung",
+    "text": "Anmeldung - Fehlerbehebung",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
@@ -353,19 +353,19 @@
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Überprüfen Sie Ihren Spam- oder Junk-Ordner",
+    "text": "Überprüfe deinen Spam- oder Junk-Ordner",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Stellen Sie sicher, dass Sie Ihre E-Mail-Adresse richtig eingegeben haben",
+    "text": "Überprüfe, ob du deine E-Mail-Adresse korrekt eingegeben hast",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Warten Sie ein paar Minuten -- E-Mails können manchmal verzögert sein",
+    "text": "Warte ein paar Minuten - E-Mails können manchmal verzögert ankommen",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Fordern Sie einen neuen Link an, wenn mehr als 10 Minuten vergangen sind",
+    "text": "Fordere einen neuen Link an, wenn mehr als 10 Minuten vergangen sind",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Verwenden Sie die Magic Link-Option, um sich ohne Passwort anzumelden. Nach der Anmeldung können Sie Ihr Passwort in den Kontoeinstellungen ändern.",
+    "text": "Verwende die Magic-Link-Option, um dich ohne Passwort anzumelden. Nach der Anmeldung kannst du dein Passwort in den Kontoeinstellungen ändern.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,19 +381,31 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Nach mehreren fehlgeschlagenen Anmeldeversuchen wird das Konto aus Sicherheitsgründen vorübergehend gesperrt. Warten Sie 15 Minuten und versuchen Sie es erneut, oder melden Sie sich mit Magic Link an.",
+    "text": "Nach mehreren fehlgeschlagenen Anmeldeversuchen werden Konten aus Sicherheitsgründen vorübergehend gesperrt. Warte 15 Minuten und versuche es erneut, oder verwende Magic Link zur Anmeldung.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Brauchen Sie noch Hilfe?",
+    "text": "Brauchst du noch Hilfe?",
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Wenn Sie immer noch Probleme haben, sind wir für Sie da. Schreiben Sie uns eine Nachricht und wir melden uns so schnell wie möglich bei Ihnen.",
+    "text": "Wenn du weiterhin Probleme hast, sind wir hier, um zu helfen. Sende uns eine Nachricht und wir melden uns so schnell wie möglich.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
     "text": "Support kontaktieren",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO-Konto"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "E-Mail-Verifizierungsablauf nach der Registrierung"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Single Sign-On ist für diese Domain verfügbar"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Der Organisationsadministrator kann SSO aktivieren, damit sich Teammitglieder hier anmelden können. Kontaktiere den Administrator für den Zugang."
   }
 }

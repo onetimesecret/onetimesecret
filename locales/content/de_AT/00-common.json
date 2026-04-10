@@ -1058,7 +1058,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} verbleibend",
+    "text": "Noch {count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Wählen Sie den Plan, der Ihren Bedürfnissen entspricht. Alle Pläne beinhalten unbegrenztes Teilen von Geheimnissen und datenschutzorientiertes Design.",
+    "text": "Wähle den Plan, der zu deinen Bedürfnissen passt. Alle Pläne beinhalten unbegrenztes Teilen von Nachrichten und datenschutzorientiertes Design.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1323,7 +1323,7 @@
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Sie haben bereits ein Konto?",
+    "text": "Hast du bereits ein Konto?",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Für Sie empfohlen",
+    "text": "Empfohlen für dich",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1355,7 +1355,7 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Erstellen und teilen Sie Geheimnisse mit Basisfunktionen. Keine Kreditkarte erforderlich.",
+    "text": "Erstelle und teile Nachrichten mit den Grundfunktionen. Keine Kreditkarte erforderlich.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {

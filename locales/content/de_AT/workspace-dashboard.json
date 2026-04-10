@@ -8,11 +8,11 @@
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Keine aktuellen Geheimnisse",
+    "text": "Keine aktuellen Nachrichten",
     "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
-    "text": "Erstellen Sie Ihr erstes Geheimnis, um loszulegen.",
+    "text": "Erstelle deine erste Nachricht, um loszulegen.",
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
@@ -20,7 +20,7 @@
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Beim Laden Ihrer Daten ist ein Problem aufgetreten. Bitte versuchen Sie es erneut.",
+    "text": "Beim Laden deiner Daten ist ein Problem aufgetreten. Bitte versuche es erneut.",
     "source_hash": "ff0d904e"
   }
 }

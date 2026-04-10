@@ -4,19 +4,19 @@
     "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Domain-Verifizierungsstatus anzeigen",
+    "text": "Domain-Verifizierungsstatus ansehen",
     "source_hash": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
-    "text": "Diese Domain ist bereits in Ihrer Organisation registriert",
+    "text": "Diese Domain ist bereits in deiner Organisation registriert",
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktieren Sie den Support, wenn Sie glauben, dass dies ein Fehler ist.",
+    "text": "Diese Domain ist bereits bei einer anderen Organisation registriert. Bitte kontaktiere den Support, wenn du glaubst, dass dies ein Fehler ist.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Domain erfolgreich beansprucht und zu Ihrer Organisation hinzugefügt",
+    "text": "Domain erfolgreich beansprucht und zu deiner Organisation hinzugefügt",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
@@ -24,7 +24,7 @@
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Setzen Sie Standard-Datenschutzoptionen für Geheimnisse, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Geheimnisse vorausgefüllt.",
+    "text": "Lege Standard-Datenschutzoptionen für Nachrichten fest, die unter dieser Domain erstellt werden. Diese Einstellungen werden beim Erstellen neuer Nachrichten vorausgefüllt.",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
@@ -32,23 +32,23 @@
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Datenschutz-Standardwerte-Symbol",
+    "text": "Datenschutz-Standardwerte Symbol",
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Standard-Gültigkeitsdauer",
+    "text": "Standard-Lebensdauer",
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Wie lange Geheimnisse standardmäßig zugänglich bleiben sollen",
+    "text": "Wie lange Nachrichten standardmäßig zugänglich sein sollen",
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Passphrase erforderlich",
+    "text": "Passphrase erforderlich machen",
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Passphrase für alle Geheimnisse in dieser Domain obligatorisch machen",
+    "text": "Passphrase für alle Nachrichten in dieser Domain verpflichtend machen",
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
@@ -56,7 +56,7 @@
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Geheimnisse angesehen werden",
+    "text": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Nachrichten angesehen werden",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Aktiviert",
+    "text": "Aktivieren",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -96,7 +96,7 @@
     "source_hash": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "Sicherheitsphrase",
+    "text": "Passphrase",
     "source_hash": "e7611f05"
   },
   "web.domains.notify_short": {
@@ -116,7 +116,7 @@
     "source_hash": "026552b3"
   },
   "web.domains.scope_header": {
-    "text": "Domänen",
+    "text": "Domains",
     "source_hash": "ced67718"
   },
   "web.domains.add_domain": {
@@ -132,7 +132,7 @@
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Bitte gib einen {0} Domainnamen ein",
+    "text": "Bitte gib einen {0}-Domainnamen ein",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -140,27 +140,27 @@
     "source_hash": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Bereich erstellen können",
+    "text": "Steuere, ob Benutzer geheime Links von der Startseite deiner Domain erstellen können",
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Startseiten-Zugang",
+    "text": "Startseitenzugriff",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "& Status",
+    "text": "und Status",
     "source_hash": "fe871d2c"
   },
   "web.domains.domain": {
-    "text": "Domäne",
+    "text": "Domain",
     "source_hash": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "Verwalten und konfigurieren Sie Ihre verifizierten eigenen Domains",
+    "text": "Verwalte und konfiguriere deine verifizierten eigenen Domains",
     "source_hash": "4e7f8311"
   },
   "web.domains.domains": {
-    "text": "Domänen",
+    "text": "Domains",
     "source_hash": "ced67718"
   },
   "web.domains.last_monitored": {
@@ -212,7 +212,7 @@
     "source_hash": "b416f537"
   },
   "web.domains.manage_brand": {
-    "text": "Marke verwalten",
+    "text": "Branding verwalten",
     "source_hash": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
@@ -220,11 +220,11 @@
     "source_hash": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
-    "text": "Ihre Domain hinzufügen",
+    "text": "Deine Domain hinzufügen",
     "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "Fügen Sie eine eigene Domain hinzu, um loszulegen.",
+    "text": "Beginne, indem du eine eigene Domain hinzufügst.",
     "source_hash": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
@@ -236,23 +236,23 @@
     "source_hash": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "Um Ihre Bereich zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem Namensserver-Datensatz, der auf",
+    "text": "Um deine Domain zu verbinden, musst du einen CNAME-Eintrag in deinem DNS erstellen, der auf folgende Adresse verweist:",
     "source_hash": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf",
+    "text": "Wenn du bereits einen CNAME-Eintrag für diese Adresse hast, ändere ihn bitte so, dass er auf folgende Adresse verweist:",
     "source_hash": "6f23e6db"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "text": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite.",
+    "text": "), ist ein CNAME-Eintrag nicht erlaubt. Stattdessen musst du einen A-Eintrag erstellen. Details dazu findest du weiter unten auf der Seite.",
     "source_hash": "76d5ab5f"
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
-    "text": "und entfernen Sie alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse.",
+    "text": "und entferne alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse.",
     "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", müssen Sie diese Schritte abschließen.",
+    "text": ", musst du diese Schritte abschließen.",
     "source_hash": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
@@ -260,11 +260,11 @@
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Bitte beachte, dass für Apex-Domains (z.B.",
+    "text": "Bitte beachte, dass für Apex-Domains (z. B.",
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "Ihre Domain verifizieren",
+    "text": "Deine Domain verifizieren",
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
@@ -272,19 +272,19 @@
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Passen Sie Ihr Domain-Branding an",
+    "text": "Passe dein Domain-Branding an",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "text": "Es kann ein paar Minuten dauern, bis Ihr TLS-Sicherheitszertifikat wirksam wird.",
+    "text": "Es kann einige Minuten dauern, bis dein SSL-Zertifikat wirksam wird.",
     "source_hash": "2e4f3179"
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
-    "text": "Namensserver-Änderungen können innerhalb von 60 Sekunden - oder bis zu 24 Stunden - wirksam werden.",
+    "text": "DNS-Änderungen können nur 60 Sekunden dauern -- oder bis zu 24 Stunden -- um wirksam zu werden.",
     "source_hash": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Auf Propagierung warten",
+    "text": "3. Auf Verbreitung warten",
     "source_hash": "3e6cf4e1"
   },
   "web.domains.value_2": {
@@ -308,7 +308,7 @@
     "source_hash": "baaddf70"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. CNAME-Eintrag erstellen",
+    "text": "2. Den CNAME-Eintrag erstellen",
     "source_hash": "781e438b"
   },
   "web.domains.value_0": {
@@ -324,23 +324,23 @@
     "source_hash": "baaddf70"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. A-Eintrag erstellen",
+    "text": "2. Den A-Eintrag erstellen",
     "source_hash": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "Fügen Sie diesen Hostnamen zu Ihrer DNS-Konfiguration hinzu:",
+    "text": "Füge diesen Hostnamen zu deiner DNS-Konfiguration hinzu:",
     "source_hash": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
-    "text": "1. TXT-Eintrag erstellen",
+    "text": "1. Einen TXT-Eintrag erstellen",
     "source_hash": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
+    "text": "Befolge diese Schritte, um den Domainbesitz zu verifizieren und deine Online-Präsenz zu verbessern:",
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Domain-Verifizierungsschritte",
+    "text": "Schritte zur Domain-Verifizierung",
     "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
@@ -348,7 +348,7 @@
     "source_hash": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "Sind Sie sicher, dass Sie diese Domäne entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "text": "Bist du sicher, dass du diese Domain entfernen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
     "source_hash": "403c6d3b"
   },
   "web.domains.remove_domain": {
@@ -380,7 +380,7 @@
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "Gültigkeitsdauer-Einstellung bearbeiten",
+    "text": "Lebensdauer-Einstellung bearbeiten",
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
@@ -396,7 +396,427 @@
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Verwenden Sie das Tool unten, um Ihren DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anleitungen zur Konfiguration Ihrer Domain zu erhalten.",
+    "text": "Verwende das Tool unten, um deinen DNS-Anbieter automatisch zu erkennen und Schritt-für-Schritt-Anweisungen zur Konfiguration deiner Domain zu erhalten.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "Öffentliche Startseite"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domain verifiziert und aktiv"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS nicht konfiguriert – zum Beheben klicken"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domain nicht verifiziert – zum Verifizieren klicken"
+  },
+  "web.domains.click_to_verify": {
+    "text": "Zum Verifizieren klicken"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS-Widget konnte nicht geladen werden"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-Widget nicht verfügbar"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS-Widget konnte nicht initialisiert werden"
+  },
+  "web.domains.verified": {
+    "text": "Verifiziert"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verifizierung ausstehend"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Du hast ungespeicherte Änderungen. Bist du sicher, dass du die Seite verlassen möchtest?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Verwalten"
+  },
+  "web.domains.detail.features": {
+    "text": "Funktionen"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Startseiten-Nachrichten"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Öffentlichen Zugang zum Erstellen von Nachrichten auf der Startseite deiner Domain erlauben"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, Farben und benutzerdefiniertes Branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Single-Sign-On-Anbietereinstellungen"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Benutzerdefinierte E-Mail-Absenderkonfiguration"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Einstellungen für eingehende Nachrichtenempfänger"
+  },
+  "web.domains.email.title": {
+    "text": "E-Mail-Versand"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-Mail-Konfiguration"
+  },
+  "web.domains.email.config_description": {
+    "text": "E-Mail-Versand für diese Domain konfigurieren"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-Mail-Anbieter"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "E-Mail-Anbieter auswählen"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Absendername"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "z. B. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Absenderadresse"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "z. B. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Antwort-an-Adresse"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "z. B. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Änderungen speichern"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Änderungen verwerfen"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Konto-Standardwerte verwenden"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Erfordert Domain-Verifizierung über DKIM- und SPF-Einträge"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Erfordert Domain-Authentifizierungseinrichtung"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Erfordert Domain-Verifizierung"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Verwendet die Standard-E-Mail-Versandkonfiguration deines Kontos"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS-Einträge"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Füge die folgenden DNS-Einträge hinzu, um deine Domain für den E-Mail-Versand zu verifizieren."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Typ"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Name"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Wert"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Anbieter"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopieren"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopiert"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verifiziert"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Ausstehend"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Fehlgeschlagen"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Erneut validieren"
+  },
+  "web.domains.email.validating": {
+    "text": "Wird validiert..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Domain verifiziert"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validierung fehlgeschlagen"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Zuletzt validiert"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Upgrade deinen Plan, um den E-Mail-Versand für diese Domain zu konfigurieren."
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-Mail konfigurieren"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Du hast keine Berechtigung, E-Mail-Einstellungen für diese Domain zu verwalten. Kontaktiere deinen Organisationsadministrator."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-Mail-Konfiguration erfolgreich gespeichert"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-Mail-Konfiguration erfolgreich entfernt"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "E-Mails für diese Domain werden derzeit vom globalen Absender gesendet. Schließe die E-Mail-Konfiguration ab, um deine eigene Absenderidentität zu verwenden."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Benutzerdefinierter E-Mail-Versand ist derzeit deaktiviert. E-Mails werden vom globalen Absender gesendet. Aktiviere die Funktion unten, um deine benutzerdefinierte Absenderidentität zu verwenden."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-Mail-Zustellung testen"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Sende eine Test-E-Mail an dich selbst mit der gespeicherten Konfiguration. Funktioniert auch, wenn die Funktion noch nicht aktiviert ist."
+  },
+  "web.domains.email.send_test": {
+    "text": "Test senden"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-E-Mail erfolgreich gesendet"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test-E-Mail konnte nicht gesendet werden"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Gesendet an {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Zugestellt über {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Nicht konfiguriert"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Verwendet Standard-Absender"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verifiziert"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verifizierung ausstehend"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Deaktiviert"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Kein E-Mail-Absender konfiguriert – E-Mails verwenden den Standard-Absender der Plattform"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-Mail-Absenderkonfiguration wartet auf Verifizierung – E-Mails verwenden den Standard-Absender der Plattform"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-Mail-Absender ist deaktiviert – E-Mails verwenden den Standard-Absender der Plattform"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-Mail-Absender verifiziert – E-Mails werden von dieser Domain gesendet"
+  },
+  "web.domains.incoming.title": {
+    "text": "Eingehende Nachrichten"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Konfiguration für eingehende Nachrichten"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Externen Benutzern erlauben, Nachrichten direkt an bestimmte Empfänger auf dieser Domain zu senden"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Du hast keine Berechtigung, Einstellungen für eingehende Nachrichten auf dieser Domain zu verwalten. Kontaktiere deinen Organisationsadministrator."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Upgrade deinen Plan, um eingehende Nachrichten für diese Domain zu konfigurieren."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Eingehende Nachrichten konfigurieren"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Eingehende Nachrichten sind für diese Domain nicht konfiguriert. Füge Empfänger hinzu, um externen Benutzern zu ermöglichen, Nachrichten an dein Team zu senden."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Eingehende Nachrichten sind derzeit deaktiviert. Externe Benutzer können keine Nachrichten an Empfänger auf dieser Domain senden. Aktiviere die Funktion unten, um eingehende Nachrichten zu erlauben."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Empfänger"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Lege fest, wer eingehende Nachrichten auf dieser Domain empfangen kann. Empfänger erhalten E-Mail-Benachrichtigungen, wenn eine Nachricht an sie gesendet wird."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Empfänger hinzufügen"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Entfernen"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-Mail-Adresse"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "empfaenger{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Anzeigename"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "z. B. Sicherheitsteam"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Keine Empfänger konfiguriert"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Füge Empfänger hinzu, um externen Benutzern zu ermöglichen, Nachrichten an dein Team zu senden."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Ungültige E-Mail-Adresse"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Maximal {max} Empfänger erlaubt"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Anzeigename ist erforderlich"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-Mail-Adresse ist erforderlich"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Änderungen speichern"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Änderungen verwerfen"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich gespeichert"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Konfiguration für eingehende Nachrichten erfolgreich entfernt"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} Empfänger | {count} Empfänger"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Nicht konfiguriert"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Konfiguriert"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Deaktiviert"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Eingehende Nachrichten nicht konfiguriert – externe Benutzer können keine Nachrichten an diese Domain senden"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Eingehende Nachrichten aktiviert mit {count} Empfänger(n)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Funktion für eingehende Nachrichten ist für diese Domain deaktiviert"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Eingehende Nachrichten aktivieren"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Externen Benutzern erlauben, Nachrichten an Empfänger auf dieser Domain zu senden"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Öffentliche URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Teile diese URL mit externen Benutzern, damit sie Nachrichten senden können"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL kopieren"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL in die Zwischenablage kopiert"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Bist du sicher, dass du alle Empfänger entfernen möchtest? Externe Benutzer können dann keine Nachrichten mehr an diese Domain senden."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maximale Anzahl an Empfängern erreicht"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Diese E-Mail-Adresse wurde bereits hinzugefügt"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Beim Speichern werden alle bestehenden Empfänger durch deine ausstehenden Änderungen ersetzt. Bist du sicher?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Alle Empfänger löschen"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO-Konfiguration"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Single-Sign-On-Authentifizierung für diese Domain konfigurieren"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Zugriff verweigert"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Du hast keine Berechtigung, SSO-Einstellungen für diese Domain zu verwalten. Kontaktiere deinen Organisationsadministrator."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Upgrade deinen Plan, um Single Sign-On für diese Domain zu konfigurieren."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO-Konfiguration erfolgreich erstellt"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO-Konfiguration erfolgreich aktualisiert"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO-Konfiguration erfolgreich entfernt"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Verbindungstest erfolgreich – Anbieter hat korrekt geantwortet"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Verbindungstest fehlgeschlagen"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO konfigurieren"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO ist für diese Domain noch nicht konfiguriert. Aktiviere Single Sign-On, damit sich Teammitglieder über den Identitätsanbieter deiner Organisation authentifizieren können."
   }
 }

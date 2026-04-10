@@ -1,22 +1,22 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Ihre Rückmeldung",
+    "text": "Dein Feedback",
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Jede Rückmeldung ist willkommen!",
+    "text": "Jedes Feedback ist willkommen!",
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Helfen Sie uns, besser zu werden",
+    "text": "Hilf uns, besser zu werden",
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Rückmeldungsdialog schließen",
+    "text": "Feedback-Dialog schließen",
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Teilen Sie Ihre Rückmeldung",
+    "text": "Teile dein Feedback",
     "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
@@ -28,27 +28,27 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Hilfeinhalt kommt hierher.",
+    "text": "Hilfe-Inhalt kommt hierhin.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Ich lese jede Rückmeldung, die hier eingeht. So finde ich heraus, worauf ich meine Zeit verwenden sollte.",
+    "text": "Ich lese jedes Feedback, das hier eingeht. So finde ich heraus, wofür ich meine Zeit einsetzen soll.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Wenn etwas nicht stimmt oder Sie Ideen haben, wie es funktionieren sollte, ist dies der richtige Ort.",
+    "text": "Wenn etwas nicht passt oder du Ideen hast, wie es funktionieren sollte, bist du hier genau richtig.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Rückmeldungsformular öffnen",
+    "text": "Feedback-Formular öffnen",
     "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Geben Sie Ihre Rückmeldung ein",
+    "text": "Gib dein Feedback ein",
     "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Rückmeldung senden",
+    "text": "Feedback senden",
     "source_hash": "8235980b"
   },
   "web.feedback.sending_ellipses": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Es sieht so aus, als würden Sie eine nicht autorisierte E-Mail-Änderung an Ihrem Konto melden. Bitte beschreiben Sie, was passiert ist, und wir werden dies umgehend untersuchen.",
+    "text": "Es sieht so aus, als würdest du eine unautorisierte E-Mail-Änderung an deinem Konto melden. Bitte beschreibe, was passiert ist, und wir werden das sofort untersuchen.",
     "source_hash": "00e56551"
   }
 }

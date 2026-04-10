@@ -1,30 +1,30 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Datensouveränität & regionale Isolierung",
+    "text": "Datensouveränität und regionale Isolation",
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Ihre Daten befinden sich ausschließlich in Ihrer gewählten Region und werden niemals zwischen Regionen übertragen",
+    "text": "Deine Daten befinden sich ausschließlich in deiner gewählten Region und werden niemals zwischen Regionen übertragen",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Jede Region arbeitet als vollständig unabhängige Umgebung mit eigener Infrastruktur, Verschlüsselungsschlüsseln und Datenspeicherung",
+    "text": "Jede Region arbeitet als vollständig unabhängige Umgebung mit eigener Infrastruktur, eigenen Verschlüsselungsschlüsseln und eigenem Datenspeicher",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Wir halten eine strenge Richtlinie ein: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen",
+    "text": "Wir verfolgen eine strenge Richtlinie: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Wichtig: Der Wechsel zu einer anderen Region erstellt ein neues Konto. Ihre Daten bleiben in Ihrer ursprünglichen Region.",
+    "text": "Wichtig: Der Wechsel zu einer anderen Region erstellt ein neues Konto. Deine Daten bleiben in deiner ursprünglichen Region.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "Ihre Region",
+    "text": "Deine Region",
     "source_hash": "cafa720f"
   },
   "web.regions.your_current_region": {
-    "text": "Ihre aktuelle Region",
+    "text": "Deine aktuelle Region",
     "source_hash": "45e2a9d6"
   },
   "web.regions.active": {
@@ -40,11 +40,11 @@
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
-    "text": "Transparenz & Kontrolle",
+    "text": "Transparenz und Kontrolle",
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Wissen Sie genau, wo Ihre Daten gespeichert sind und welche Gesetze deren Schutz regeln.",
+    "text": "Wisse genau, wo deine Daten gespeichert sind und welche Gesetze ihren Schutz regeln.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,15 +52,15 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Stellen Sie sicher, dass Ihre persönlichen Daten gemäß den Datenschutzgesetzen und -vorschriften Ihres Landes behandelt werden, um unbefugten Zugriff oder Missbrauch zu verhindern.",
+    "text": "Stelle sicher, dass deine persönlichen Informationen gemäß den Datenschutzgesetzen und -vorschriften deines Landes behandelt werden, um unbefugten Zugriff oder Missbrauch zu verhindern.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
-    "text": "Regulatorische Compliance",
+    "text": "Regulatorische Konformität",
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Erfüllen Sie DSGVO, HIPAA, CCPA und andere regionale Datenschutzanforderungen",
+    "text": "Erfülle DSGVO-, HIPAA-, CCPA- und andere regionale Datenschutzanforderungen",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Daten, die näher bei Ihnen gespeichert werden, bedeuten geringere Latenz und bessere Leistung.",
+    "text": "Daten, die näher bei dir gespeichert sind, bedeuten geringere Latenz und bessere Leistung.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -80,23 +80,23 @@
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "unsere Dokumentation ansehen",
+    "text": "unsere Dokumentation einsehen",
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
-    "text": "Ihr Konto und Ihre Daten sind durch die Gesetze und Vorschriften folgender Länder geschützt",
+    "text": "Dein Konto und deine Daten sind geschützt unter den Gesetzen von",
     "source_hash": "5f5ef5b6"
   },
   "web.regions.this_regulatory_framework_is_determined_by_your_": {
-    "text": "Dieser Rechtsrahmen wird durch Ihren Zugangsbereich bestimmt:",
+    "text": "Dein regulatorischer Rahmen wird durch deine Zugriffsdomain bestimmt:",
     "source_hash": "7fdbc59c"
   },
   "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
-    "text": "Jede Rechtsordnung unterliegt einer separaten Rechtsbefolgung und Datenverwaltung. Sie können zwar Konten in mehreren Ländern einrichten, diese bleiben jedoch rechtlich getrennt und es findet kein Datenaustausch zwischen den einzelnen Rechtsgebieten statt.",
+    "text": "Jede Region ist vollständig unabhängig mit eigener Infrastruktur und, wenn möglich, eigenem lokalen Hosting-Anbieter. Du kannst Konten in mehreren Regionen erstellen, aber es werden keine Daten zwischen ihnen ausgetauscht.",
     "source_hash": "5c0b350e"
   },
   "web.regions.to_understand_the_specific_regulations_and_prote": {
-    "text": "Um die spezifischen Bestimmungen und Schutzmaßnahmen zu verstehen, die für Ihr Konto gelten, lesen Sie bitte",
+    "text": "Für Details zu den Vorschriften und Schutzmaßnahmen, die für dein Konto gelten,",
     "source_hash": "e8acc835"
   },
   "web.regions.current": {
@@ -112,11 +112,11 @@
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "Rechtsraum",
+    "text": "Gerichtsbarkeit",
     "source_hash": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
-    "text": "Standort des Rechenzentrums: {0}",
+    "text": "Rechenzentrumsstandort: {0}",
     "source_hash": "f1699c90"
   },
   "web.regions.data_region": {
@@ -124,11 +124,11 @@
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Unbekannter Rechtsraum",
+    "text": "Unbekannte Gerichtsbarkeit",
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Wir bedienen Sie aus",
+    "text": "Bereitgestellt aus",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -136,7 +136,7 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Aktueller Rechtsraum:",
+    "text": "Aktuelle Gerichtsbarkeit:",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -144,19 +144,22 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Unsere Richtlinie sieht vor, dass Daten niemals zwischen Regionen übertragen werden. Jede Region arbeitet als vollständig unabhängige Umgebung.",
+    "text": "Unsere Richtlinie sieht vor, niemals Daten zwischen Regionen zu übertragen. Jede Region arbeitet als vollständig unabhängige Umgebung.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Um eine andere Region zu verwenden, erstellen Sie dort ein neues Konto mit derselben E-Mail-Adresse, die mit Ihrer Rechnungskontakt-E-Mail verknüpft ist.",
+    "text": "Um eine andere Region zu nutzen, erstelle dort ein neues Konto mit derselben E-Mail-Adresse, die mit deiner Rechnungskontakt-E-Mail verknüpft ist.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Wenn Ihre Rechnungskontakt-E-Mail von Ihrer Onetime Secret-Konto-E-Mail abweicht, verwenden Sie die Rechnungskontakt-E-Mail für das neue Regionskonto, um Ihre Abonnementvorteile beizubehalten.",
+    "text": "Wenn sich deine Rechnungskontakt-E-Mail von deiner Onetime Secret Konto-E-Mail unterscheidet, verwende die Rechnungskontakt-E-Mail für das neue Regionskonto, um deine Abonnementvorteile beizubehalten.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Ihre Abonnementvorteile werden automatisch auf jedes Konto angewendet, das mit Ihrer Rechnungs-E-Mail-Adresse erstellt wurde.",
+    "text": "Deine Abonnementvorteile werden automatisch auf jedes Konto angewendet, das mit deiner Rechnungs-E-Mail-Adresse erstellt wird.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Für dein Konto sind derzeit keine Regionsinformationen verfügbar."
   }
 }

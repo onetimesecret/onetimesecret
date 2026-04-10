@@ -20,15 +20,15 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Erfahren Sie mehr über unsere Sicherheitsmaßnahmen",
+    "text": "Mehr über unsere Sicherheitsmaßnahmen erfahren",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Sehen Sie unsere Nutzungsbedingungen",
+    "text": "Unsere Allgemeinen Geschäftsbedingungen ansehen",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
-    "text": "Nutzungsbedingungen",
+    "text": "AGB",
     "source_hash": "ede54899"
   },
   "web.footer.privacy": {
@@ -48,19 +48,19 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Wenn Sie Rückmeldung senden, sehen wir:",
+    "text": "Wenn du Feedback sendest, sehen wir:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Lesen Sie unsere Datenschutzrichtlinie",
+    "text": "Unsere Datenschutzrichtlinie lesen",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Überprüfen Sie unseren Dienststatus",
+    "text": "Unseren Dienststatus prüfen",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Erkunden Sie unsere API-Dokumentation",
+    "text": "Unsere API-Dokumentation erkunden",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -68,11 +68,11 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Zugriff auf unsere Dokumentation",
+    "text": "Unsere Dokumentation aufrufen",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Sehen Sie unseren Quellcode auf GitHub",
+    "text": "Unseren Quellcode auf GitHub ansehen",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -84,15 +84,15 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Lesen Sie unsere neuesten Blogbeiträge",
+    "text": "Unsere neuesten Blogbeiträge lesen",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Sehen Sie unsere Abonnementpreise",
+    "text": "Unsere Abo-Preise ansehen",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Erfahren Sie mehr über unser Unternehmen",
+    "text": "Mehr über unser Unternehmen erfahren",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -124,7 +124,7 @@
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Wir stellen {onetime-secret} in mehreren Sprachen zur Verfügung. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Ihr Feedback hilft uns bei der Verbesserung – wenn Sie Probleme entdecken, bitte {send-feedback}",
+    "text": "Wir machen {onetime-secret} in mehreren Sprachen verfügbar. Da dies eine neue Funktion ist, können Übersetzungsfehler oder umständliche Formulierungen auftreten. Dein Feedback hilft uns bei der Verbesserung - wenn du Probleme entdeckst, bitte {send-feedback}",
     "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
@@ -132,11 +132,11 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Wir haben kürzlich Übersetzungen hinzugefügt. Fehler entdeckt? {send-feedback}",
+    "text": "Wir haben kürzlich Übersetzungen hinzugefügt. Einen Fehler entdeckt? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Benutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, können Übersetzungsfehler oder unklare Anweisungen auftreten. Um die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn Sie Probleme entdecken",
+    "text": "Datenschutz und Sicherheit sollten für jeden zugänglich sein, unabhängig von der Sprache. Wir fügen Übersetzungen hinzu, um sowohl unseren Nutzern als auch den Empfängern ihrer Nachrichten zu helfen, besser zu verstehen, wie sie sichere Nachrichten und Links sicher verwenden und darauf zugreifen können. Da dies eine neue Funktion ist, könntest du auf Übersetzungsfehler oder unklare Anweisungen stoßen. Um uns zu helfen, die Klarheit und Genauigkeit unserer Übersetzungen zu verbessern, insbesondere bei kritischen sicherheitsrelevanten Inhalten, bitte {send-feedback}, wenn du Probleme entdeckst",
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
@@ -148,35 +148,35 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Sie sehen eine sichere Nachricht, die über Onetime Secret mit Ihnen geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und dann dauerhaft von unseren Servern gelöscht.",
+    "text": "Du siehst eine sichere Nachricht, die über Onetime Secret mit dir geteilt wurde. Dieser Inhalt wird nur einmal angezeigt und danach dauerhaft von unseren Servern gelöscht.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Kann ich dieses Geheimnis später noch einmal ansehen?",
+    "text": "Kann ich diese Nachricht später nochmal ansehen?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nein. Aus Sicherheitsgründen kann dieses Geheimnis nur einmal angesehen werden. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem wiederhergestellt werden, auch nicht von uns.",
+    "text": "Nein. Aus Sicherheitsgründen ist diese Nachricht nur einmal abrufbar. Nach dem Schließen dieser Seite wird der Inhalt dauerhaft gelöscht und kann von niemandem wiederhergestellt werden, auch nicht von uns.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Wie kann ich diese Informationen speichern?",
+    "text": "Wie kann ich diese Information speichern?",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Verwenden Sie die Schaltfläche 'In die Zwischenablage kopieren', um das gesamte Geheimnis zu kopieren. Bei längeren Geheimnissen stellen Sie sicher, dass Sie den vollständigen Inhalt kopiert haben, bevor Sie diese Seite verlassen.",
+    "text": "Verwende die Schaltfläche 'In die Zwischenablage kopieren', um die gesamte Nachricht zu kopieren. Bei längeren Nachrichten stelle sicher, dass du den vollständigen Inhalt kopiert hast, bevor du diese Seite verlässt.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Wird das Ansehen dieses Geheimnisses verfolgt?",
+    "text": "Wird das Ansehen dieser Nachricht nachverfolgt?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Der Absender wird benachrichtigt, dass sein Geheimnis angesehen wurde, aber wir verfolgen nicht, wer es angesehen hat oder von welchem Standort aus. Ihre Privatsphäre ist geschützt.",
+    "text": "Der Absender wird benachrichtigt, dass seine Nachricht angesehen wurde, aber wir verfolgen nicht, wer sie angesehen hat oder von welchem Standort aus. Deine Privatsphäre ist geschützt.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Sobald Sie diese Seite verlassen oder aktualisieren, wird dieses Geheimnis dauerhaft gelöscht und kann von niemandem wiederhergestellt werden.",
+    "text": "Sobald du diese Seite verlässt oder neu lädst, wird diese Nachricht dauerhaft gelöscht und kann von niemandem wiederhergestellt werden.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -184,7 +184,7 @@
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Website-Fußzeile",
+    "text": "Seitenfuß",
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
@@ -192,7 +192,7 @@
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Rückmeldung geben",
+    "text": "Feedback geben",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -224,7 +224,7 @@
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Einstellungsinhalt wird geladen...",
+    "text": "Einstellungen werden geladen...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
@@ -240,7 +240,7 @@
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Anpassen Ihrer App-Präferenzen und Einstellungen",
+    "text": "Passe deine App-Einstellungen und Präferenzen an",
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
@@ -264,11 +264,11 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secret-Startseite besuchen",
+    "text": "Onetime Secret Startseite besuchen",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Fußzeilen-Navigation",
+    "text": "Fußzeilennavigation",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
@@ -280,7 +280,7 @@
     "source_hash": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "Icon-Bibliothek",
+    "text": "Symbol-Bibliothek",
     "source_hash": "a73f4c07"
   },
   "web.layout.google_material": {
@@ -320,11 +320,11 @@
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
-    "text": "Zurücksetzen auf {0}",
+    "text": "Auf {0} zurücksetzen",
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Zu {0}-Modus wechseln",
+    "text": "Zum {0}-Modus wechseln",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
@@ -336,7 +336,10 @@
     "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Arbeitsbereich-Kontext",
+    "text": "Arbeitsbereichskontext",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Arbeitsbereich"
   }
 }
