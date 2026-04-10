@@ -20,7 +20,7 @@ import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical } from '@/schemas/contracts/custom-domain';
+import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -427,6 +427,7 @@ export const bootstrapSchema = z.object({
   display_domain: z.string().default(''),
   domain_branding: brandSettingsCanonical.nullable().default(null),
   domain_context: z.string().nullish().default(null),
+  homepage_config: homepageConfigCanonical.nullable().default(null),
   domain_id: z.string().default(''),
   domain_locale: z.string().nullable().default(null),
   domain_logo: z.string().nullable().default(null),

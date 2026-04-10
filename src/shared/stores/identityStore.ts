@@ -66,6 +66,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     domain_id,
     domain_branding,
     domain_logo,
+    homepage_config,
   } = storeToRefs(bootstrapStore);
 
   /**
@@ -79,7 +80,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
     const primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
     const buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    const allowPublicHomepage = brand?.allow_public_homepage ?? false;
+    const allowPublicHomepage = homepage_config.value?.enabled ?? false;
 
     return {
       domainStrategy: domain_strategy.value,
@@ -106,7 +107,11 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
     state.primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
     state.buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-    state.allowPublicHomepage = brand?.allow_public_homepage ?? false;
+  });
+
+  // Watch homepage_config for toggle state (authoritative source, separate from brand)
+  watch(homepage_config, (newConfig) => {
+    state.allowPublicHomepage = newConfig?.enabled ?? false;
   });
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)

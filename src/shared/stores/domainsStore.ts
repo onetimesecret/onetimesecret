@@ -332,7 +332,9 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Create or update homepage configuration for a domain.
    *
-   * Updates the store's records array to reflect the new homepage_config state.
+   * Updates both the domainsStore records array and the bootstrapStore's
+   * homepage_config to keep all consumers (workspace views and identity store)
+   * reactive without requiring a page reload.
    */
   async function putHomepageConfig(extid: string, enabled: boolean): Promise<HomepageConfigResponse> {
     const response = await $api.put(`/api/domains/${extid}/homepage-config`, { enabled });
@@ -341,7 +343,7 @@ export const useDomainsStore = defineStore('domains', () => {
       throw new Error('Unable to update homepage configuration. Please try again.');
     }
 
-    // Update the domain record in the store to keep UI reactive
+    // Update the domain record in the domainsStore to keep workspace views reactive
     if (records.value && result.data.record) {
       const domainIndex = records.value.findIndex((d) => d.extid === extid);
       if (domainIndex !== -1) {
@@ -350,6 +352,14 @@ export const useDomainsStore = defineStore('domains', () => {
           homepage_config: result.data.record,
         };
       }
+    }
+
+    // Update bootstrapStore so identityStore (branded header/homepage) stays in sync
+    // on custom domains without requiring a full page reload
+    if (result.data.record) {
+      const { useBootstrapStore } = await import('./bootstrapStore');
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ homepage_config: result.data.record });
     }
 
     return result.data;

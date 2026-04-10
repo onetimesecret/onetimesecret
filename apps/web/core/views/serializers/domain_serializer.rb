@@ -49,6 +49,26 @@ module Core
           end
           output['domain_branding'] = branding_hash
 
+          # Load homepage config from dedicated model (authoritative source)
+          if custom_domain
+            homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(custom_domain.identifier)
+            output['homepage_config'] = if homepage_config
+                                          {
+                                            'domain_id' => homepage_config.domain_id,
+                                            'enabled' => homepage_config.enabled?,
+                                            'created_at' => homepage_config.created&.to_i,
+                                            'updated_at' => homepage_config.updated&.to_i,
+                                          }
+                                        end
+
+            app_logger.debug '[DomainSerializer] homepage_config loaded',
+              {
+                domain: custom_domain.display_domain,
+                homepage_config_exists: !homepage_config.nil?,
+                enabled: homepage_config&.enabled?,
+              }
+          end
+
           domain_locale           = output['domain_branding'].fetch('locale', nil)
           output['domain_locale'] = domain_locale
 
@@ -108,8 +128,7 @@ module Core
             'domain_logo' => nil,
             'domain_context' => nil,
             'domain_strategy' => nil,
-            # Were in original implementation, now removed:
-            # display_locale: nil,
+            'homepage_config' => nil,
           }
         end
       end
