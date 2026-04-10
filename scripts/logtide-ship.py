@@ -47,7 +47,7 @@ _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 def _build_entry(line: str, service: str) -> dict:
     line = _ANSI_RE.sub("", line)
     return {
-        "time": datetime.now(timezone.utc).isoformat(),
+        "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
         "service": service,
         "level": detect_level(line),
         "message": line,
@@ -56,12 +56,15 @@ def _build_entry(line: str, service: str) -> dict:
 
 def _send_batch(client: httpx.Client, batch: list[dict]) -> None:
     try:
-        client.post(
+        resp = client.post(
             LOGTIDE_URL,
             json={"logs": batch},
             headers={"X-API-Key": API_KEY},
             timeout=10,
-        ).raise_for_status()
+        )
+        if resp.status_code != 200:
+            print(f"[logtide-ship] {resp.status_code}: {resp.text} (batch_size={len(batch)}, first={batch[0] if batch else 'empty'})", file=sys.stderr)
+        resp.raise_for_status()
     except httpx.HTTPError as e:
         print(f"[logtide-ship] send failed: {e}", file=sys.stderr)
 
@@ -113,6 +116,8 @@ def stream(service: str, *, opts: Global = Global()):
             if opts.verbose:
                 sys.stdout.write(line + "\n")
                 sys.stdout.flush()
+            if not line:
+                continue
             queue.put(line)
     except KeyboardInterrupt:
         pass
@@ -137,7 +142,7 @@ def ingest(service: str, *, opts: Global = Global()):
             sys.stdout.write(line + "\n")
         sys.stdout.flush()
 
-    batch = [_build_entry(line, service) for line in lines]
+    batch = [_build_entry(line, service) for line in lines if line]
 
     if not batch:
         return
