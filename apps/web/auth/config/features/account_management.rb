@@ -38,18 +38,51 @@ module Auth::Config::Features
             super()
           else
             invitation = Onetime::OrganizationMembership.find_by_token(invite_token)
-            super() unless invitation &&
+            valid_invite = invitation &&
                            invitation.pending? &&
                            !invitation.expired? &&
                            OT::Utils.normalize_email(invitation.invited_email) ==
                            OT::Utils.normalize_email(param(login_param))
+
+            if valid_invite
+              Auth::Logging.log_auth_event(
+                :verify_email_suppressed,
+                level: :info,
+                email: OT::Utils.obscure_email(param(login_param)),
+                reason: 'valid_invite_token',
+                invite_token_prefix: invite_token[0..7],
+                organization_id: invitation.organization_objid,
+              )
+            else
+              reason = if invitation.nil? then 'token_not_found'
+                       elsif !invitation.pending? then 'not_pending'
+                       elsif invitation.expired? then 'expired'
+                       else 'email_mismatch'
+                       end
+              Auth::Logging.log_auth_event(
+                :verify_email_sent_despite_token,
+                level: :warn,
+                email: OT::Utils.obscure_email(param(login_param)),
+                reason: reason,
+                invite_token_prefix: invite_token[0..7].gsub(/[^a-zA-Z0-9\-_]/, '?'),
+              )
+              super()
+            end
           end
         end
       end
 
       # Auto-login after invite signup (flag set in after_create_account hook)
       auth.create_account_autologin? do
-        @invite_accepted == true
+        should_autologin = @invite_accepted == true
+        Auth::Logging.log_auth_event(
+          :create_account_autologin_decision,
+          level: :debug,
+          email: OT::Utils.obscure_email(param(login_param)),
+          autologin: should_autologin,
+          invite_accepted: @invite_accepted == true,
+        )
+        should_autologin
       end
 
       # Have successful login redirect back to originally requested page
