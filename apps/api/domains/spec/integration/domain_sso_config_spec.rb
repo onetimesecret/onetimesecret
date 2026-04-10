@@ -757,10 +757,11 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
   describe 'POST /api/domains/:extid/sso/test' do
     before do
       enable_sso_feature_flag
-      login_as(test_owner)
     end
 
     context 'with valid Entra ID config' do
+      before { login_as(test_owner) }
+
       let(:entra_test_params) do
         {
           provider_type: 'entra_id',
@@ -787,6 +788,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     context 'with valid Google config' do
+      before { login_as(test_owner) }
+
       let(:google_test_params) do
         {
           provider_type: 'google',
@@ -807,6 +810,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     context 'with valid GitHub config' do
+      before { login_as(test_owner) }
+
       let(:github_test_params) do
         {
           provider_type: 'github',
@@ -827,6 +832,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     context 'validation errors' do
+      before { login_as(test_owner) }
+
       it 'returns 422 for missing provider_type' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           client_id: 'some-client-id',
@@ -927,7 +934,10 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           tenant_id: '12345678-1234-1234-1234-123456789abc',
         }
 
+        # Non-owner check uses verify_one_of_roles! -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
+        body = json_body
+        expect(body['message']).to include('owner')
       end
     end
   end
