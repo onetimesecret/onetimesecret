@@ -188,6 +188,8 @@ RSpec.describe Core::Views::DomainSerializer do
           Onetime::CustomDomain,
           domainid: 'domain123',
           extid: 'ext456',
+          identifier: 'domain123',
+          display_domain: custom_display_domain,
           brand: brand_double,
           logo: logo_double
         )
@@ -208,6 +210,9 @@ RSpec.describe Core::Views::DomainSerializer do
         allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .with(custom_display_domain)
           .and_return(custom_domain)
+        allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
+          .with('domain123')
+          .and_return(nil)
       end
 
       describe 'domain_branding boolean field types' do

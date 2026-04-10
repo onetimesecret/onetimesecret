@@ -11,8 +11,15 @@ import { CUSTOM_DOMAIN_SAFE_DUMP_FIELDS } from './custom-domain-safe-dump-fields
 // Fields intentionally excluded from customDomainSchema.
 // Each entry MUST have a comment explaining why it is excluded.
 const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
-  // No intentional exclusions for V3 custom domain schema.
-  // All backend fields are consumed by the frontend.
+  // identifier duplicates domainid (both are the internal UUID primary key).
+  // The frontend uses domainid; identifier is included in safe_dump for
+  // Ruby-side consumers that expect the Familia convention.
+  identifier: 'Duplicates domainid; frontend uses domainid exclusively.',
+
+  // Mail config status is consumed via the dedicated email-config API endpoints,
+  // not from the domain record. The frontend uses domainsStore.getEmailConfig().
+  mail_configured: 'Consumed via email-config API, not domain record fields.',
+  mail_enabled: 'Consumed via email-config API, not domain record fields.',
 };
 
 describe('CustomDomain schema contract (safe_dump_fields)', () => {
@@ -98,6 +105,12 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
       updated: 1609459200,
       sso_configured: true,
       sso_enabled: false,
+      homepage_config: {
+        domain_id: '01234567-89ab-cdef-0123-456789abcdef',
+        enabled: true,
+        created_at: 1609372800,
+        updated_at: 1609459200,
+      },
     };
 
     it('parses a full backend payload without errors (passthrough mode)', () => {
