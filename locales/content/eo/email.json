@@ -1,6 +1,6 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Bileto: %s]",
+    "text": "[Ticket: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
@@ -20,7 +20,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Ĉi tiu ligilo funkcios nur unufoje. Post rigardo, la sekreto estos porĉiam forigita.",
+    "text": "Ĉi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos porĉiame forigita.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -36,11 +36,11 @@
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Bonvolu konfirmi vian retpoŝtan adreson per klako sur la suba ligilo:",
+    "text": "Bonvolu konfirmi vian retpoŝtadreson alklakante la suban ligilon:",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Konfirmi Retpoŝtan Adreson",
+    "text": "Konfirmi retpoŝtadreson",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
@@ -56,11 +56,11 @@
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Restarigi vian pasvorton (%{display_domain})",
+    "text": "Restarigu vian pasvorton (%{display_domain})",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Restarigi Vian Pasvorton",
+    "text": "Restarigu vian pasvorton",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
@@ -68,7 +68,7 @@
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Restarigi Pasvorton",
+    "text": "Restarigi pasvorton",
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
@@ -76,7 +76,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Se vi ne petis restarigi pasvorton, vi povas sekure ignori ĉi tiun retpoŝton.",
+    "text": "Se vi ne petis pasvortrestarigon, vi povas sekure ignori ĉi tiun retpoŝton.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -92,11 +92,11 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Ensaluti per Magia Ligilo",
+    "text": "Ensaluti per magia ligilo",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Vi petis ensalutan ligilon por via %{product_name}-konto.",
+    "text": "Vi petis ensalutan ligilon por via %{product_name} konto.",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
@@ -132,7 +132,7 @@
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Noto:",
+    "text": "Memorando:",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -140,7 +140,7 @@
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Por vidi ĉi tiun sekreton, klaku la suban ligilon:",
+    "text": "Por vidi ĉi tiun sekreton, alklaku la suban ligilon:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -148,7 +148,7 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Ĉi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos definitive forigita.",
+    "text": "Ĉi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos porĉiame forigita.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
@@ -164,15 +164,15 @@
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Via sekreto estis rigardita",
+    "text": "Via sekreto estis vidita",
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Via Sekreto Estis Rigardita",
+    "text": "Via sekreto estis vidita",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Via sekreto estis rigardita je %{date}.",
+    "text": "Via sekreto estis vidita je %{date}.",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
@@ -180,7 +180,7 @@
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Ĉi tio estas aŭtomata sciigo. Neniu ago bezonatas.",
+    "text": "Ĉi tio estas aŭtomata sciigo. Neniu ago estas bezonata.",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -188,11 +188,11 @@
     "source_hash": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Administri sciigajn preferojn",
+    "text": "Administri sciigpreferojn",
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Por administri viajn sciigajn preferojn:",
+    "text": "Por administri viajn sciigpreferojn:",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
@@ -204,15 +204,15 @@
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Vidi vian sekreton antaŭ eksvalidiĝo",
+    "text": "Vidu vian sekreton antaŭ ol ĝi eksvalidiĝos",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Memorigo:",
+    "text": "Memorigilo:",
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Post eksvalidiĝo, la sekreto estos permanente forigita kaj ne reakireble.",
+    "text": "Post eksvalidiĝo, la sekreto estos porĉiame forigita kaj ne estos restaŭrebla.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -224,15 +224,15 @@
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Post eksvalidiĝo, la sekreto estos permanente forigita.",
+    "text": "Post eksvalidiĝo, la sekreto estos porĉiame forigita.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Reago je %{date} per %{display_domain} (%{strategy})",
+    "text": "Komentoj je %{date} per %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Uzanta Reago",
+    "text": "Uzanta komento",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
@@ -252,15 +252,15 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Sekreta Subteno",
+    "text": "Secret Support",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Vi estas invitita aliĝi al %{organization_name}",
+    "text": "Vi estis invitita aliĝi al %{organization_name}",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Vi estas invitita aliĝi al %{organization_name}!",
+    "text": "Vi estis invitita aliĝi al %{organization_name}!",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
@@ -268,7 +268,7 @@
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Akcepti Inviton",
+    "text": "Akcepti inviton",
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
@@ -304,11 +304,11 @@
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Via Pasvorto Estis Ŝanĝita",
+    "text": "Via pasvorto estis ŝanĝita",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Via pasvorto por %{product_name} estis ŝanĝita je %{date} je %{time}.",
+    "text": "Via pasvorto por %{product_name} estis ŝanĝita je %{date} %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
@@ -320,23 +320,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Via retpoŝta adreso estis ŝanĝita (%{display_domain})",
+    "text": "Via retpoŝtadreso estis ŝanĝita (%{display_domain})",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Via retpoŝta adreso estis ŝanĝita",
+    "text": "Via retpoŝtadreso estis ŝanĝita",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "La retpoŝta adreso por via konto %{product_name} estis ŝanĝita al %{new_email_masked} je %{date}.",
+    "text": "La retpoŝtadreso por via %{product_name} konto estis ŝanĝita al %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Se vi ne faris ĉi tiun ŝanĝon, bonvolu tuj kontakti subtenon ĉar via konto eble estas kompromitita.",
+    "text": "Se vi ne faris ĉi tiun ŝanĝon, bonvolu kontakti subtenon tuj ĉar via konto eble estas kompromitita.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "La retpoŝta adreso de via %{product_name}-konto estis ŝanĝita.",
+    "text": "La retpoŝtadreso de via %{product_name} konto estis ŝanĝita.",
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
@@ -356,7 +356,7 @@
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Kontakti helpon",
+    "text": "Kontakti subtenon",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,23 +364,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} por informi vin pri retpoŝta adresŝanĝo.",
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} por sciigi vin pri retpoŝtadresa ŝanĝo.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Retpoŝtadresa ŝanĝo petita (%{display_domain})",
+    "text": "Retpoŝta ŝanĝo petita (%{display_domain})",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Retpoŝtadresa Ŝanĝo Petita",
+    "text": "Retpoŝta ŝanĝo petita",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Peto estis farita por ŝanĝi la retpoŝtadreson de via konto ĉe %{product_name}.",
+    "text": "Peto estis farita por ŝanĝi la retpoŝtadreson de via %{product_name} konto.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Petita nova retpoŝtadreso:",
+    "text": "Petita nova retpoŝto:",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
@@ -388,7 +388,7 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Se vi faris ĉi tiun peton, kontrolu vian novan retpoŝtadreson por konfirmligilo. Neniuj ŝanĝoj ankoraŭ estis faritaj.",
+    "text": "Se vi faris ĉi tiun peton, kontrolu vian novan retpoŝton por konfirma ligilo. Neniuj ŝanĝoj estis faritaj ankoraŭ.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -396,7 +396,7 @@
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Kontakti Subtenon",
+    "text": "Kontakti subtenon",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -404,27 +404,27 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} ĉar retpoŝtadresa ŝanĝo estis petita por via konto.",
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} ĉar retpoŝta ŝanĝo estis petita por via konto.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Kontrolu vian novan retpoŝtan adreson (%{display_domain})",
+    "text": "Konfirmu vian novan retpoŝtadreson (%{display_domain})",
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Kontrolu vian novan retpoŝtan adreson",
+    "text": "Konfirmu vian novan retpoŝtadreson",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Bonvolu kontroli ĉi tiun retpoŝtan adreson por kompletigi la ŝanĝon por via konto %{product_name}.",
+    "text": "Bonvolu konfirmi ĉi tiun retpoŝtadreson por kompletigi la ŝanĝon por via %{product_name} konto.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Kontroli retpoŝtan adreson",
+    "text": "Konfirmi retpoŝtadreson",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Peto estis farita por ŝanĝi la retpoŝtan adreson de via %{product_name}-konto al %{new_email}.",
+    "text": "Peto estis farita por ŝanĝi la retpoŝtadreson de via %{product_name} konto al %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -436,11 +436,11 @@
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "Ĉi tiu ligo eksvalidiĝos post %{hours} horoj.",
+    "text": "Ĉi tiu ligilo eksvalidiĝos post %{hours} horoj.",
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Se vi ne petis ĉi tiun ŝanĝon, vi povas senriske ignori ĉi tiun retpoŝton. Via retpoŝta adreso ne estos ŝanĝita.",
+    "text": "Se vi ne petis ĉi tiun ŝanĝon, vi povas sekure ignori ĉi tiun retpoŝton. Via retpoŝtadreso ne estos ŝanĝita.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,23 +448,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} por konfirmi retpoŝtan adresŝanĝon.",
+    "text": "P.S. Ĉi tiu retpoŝto estis sendita al %{email_address} por konfirmi retpoŝtadresan ŝanĝon.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
-    "text": "Du-faktora aŭtentikigo ŝaltita (%{display_domain})",
+    "text": "Dufaktora aŭtentikigo ŝaltita (%{display_domain})",
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Du-Faktora Aŭtentikigo Ŝaltita",
+    "text": "Dufaktora aŭtentikigo ŝaltita",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Du-faktora aŭtentikigo estis ŝaltita por via %{product_name}-konto je %{date}.",
+    "text": "Dufaktora aŭtentikigo estis ŝaltita por via %{product_name} konto je %{date}.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Via konto estas nun pli sekura. Vi devos enigi kontrolkodon de via aŭtentikilo-aplikaĵo kiam vi ensalutas.",
+    "text": "Via konto nun estas pli sekura. Vi devos enigi konfirmkodon el via aŭtentikiga aplikaĵo kiam vi ensalutas.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -472,19 +472,19 @@
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Du-faktora aŭtentikigo malŝaltita (%{display_domain})",
+    "text": "Dufaktora aŭtentikigo malŝaltita (%{display_domain})",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Du-Faktora Aŭtentikigo Malŝaltita",
+    "text": "Dufaktora aŭtentikigo malŝaltita",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Du-faktora aŭtentikigo estis malŝaltita por via %{product_name}-konto je %{date}.",
+    "text": "Dufaktora aŭtentikigo estis malŝaltita por via %{product_name} konto je %{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Via konto estas nun malpli sekura. Se vi ne faris ĉi tiun ŝanĝon, bonvolu sekurigi vian konton tuj.",
+    "text": "Via konto nun estas malpli sekura. Se vi ne faris ĉi tiun ŝanĝon, bonvolu sekurigi vian konton tuj.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -496,11 +496,11 @@
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Nova Ensaluto Detektita",
+    "text": "Nova ensaluto detektita",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Nova ensaluto al via %{product_name}-konto estis detektita je %{date} je %{time}.",
+    "text": "Nova ensaluto al via %{product_name} konto estis detektita je %{date} %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -512,15 +512,15 @@
     "source_hash": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IP-Adreso:",
+    "text": "IP-adreso:",
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Se ĉi tio ne estis vi, via konto eble estas kompromitita.",
+    "text": "Se tio ne estis vi, via konto eble estas kompromitita.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Sekurigi Vian Konton",
+    "text": "Sekurigi vian konton",
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
@@ -532,11 +532,11 @@
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Vi Estis Forigita el %{organization_name}",
+    "text": "Vi estis forigita el %{organization_name}",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Vi estis forigita el la organizaĵo \"%{organization_name}\" sur %{product_name}.",
+    "text": "Vi estis forigita el la organizo \"%{organization_name}\" ĉe %{product_name}.",
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
@@ -548,7 +548,7 @@
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Via Rolo Estis Ŝanĝita",
+    "text": "Via rolo estis ŝanĝita",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
@@ -560,15 +560,15 @@
     "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Organizaĵo \"%{organization_name}\" estis forigita",
+    "text": "Organizo \"%{organization_name}\" estis forigita",
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Organizaĵo Forigita",
+    "text": "Organizo forigita",
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "La organizaĵo \"%{organization_name}\" estis forigita el %{product_name}. Ĉiuj asociitaj datumoj estis forigitaj.",
+    "text": "La organizo \"%{organization_name}\" estis forigita de %{product_name}. Ĉiuj rilataj datumoj estis forigitaj.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -576,11 +576,11 @@
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Pagkvitanco por %{product_name}",
+    "text": "Paga kvitanco por %{product_name}",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Pagkvitanco",
+    "text": "Paga kvitanco",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
@@ -600,7 +600,7 @@
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Vidi Fakturon",
+    "text": "Vidi fakturon",
     "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
@@ -612,15 +612,15 @@
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Pago Malsukcesis",
+    "text": "Pago malsukcesis",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Ni ne povis procesi vian pagon por %{product_name}. Bonvolu ĝisdatigi vian pagmetodon por eviti interrompon de servo.",
+    "text": "Ni ne povis procezi vian pagon por %{product_name}. Bonvolu ĝisdatigi vian pagmetodon por eviti servinterrompon.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Ĝisdatigi Pagmetodon",
+    "text": "Ĝisdatigi pagmetodon",
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
@@ -628,19 +628,19 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Via prova periodo de %{product_name} finiĝos post %{days_remaining} tagoj",
+    "text": "Via %{product_name} provo eksvalidiĝas post %{days_remaining} tagoj",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Via Prova Periodo Baldaŭ Finiĝos",
+    "text": "Via provo baldaŭ finiĝos",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Via senpaga prova periodo de %{product_name} finiĝos post %{days_remaining} tagoj. Ĝisdatigu nun por konservi aliron al ĉiuj funkcioj.",
+    "text": "Via senpaga provo de %{product_name} eksvalidiĝos post %{days_remaining} tagoj. Ĝisdatigu nun por konservi aliron al ĉiuj funkcioj.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Ĝisdatigu Nun",
+    "text": "Ĝisdatigu nun",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
@@ -648,19 +648,19 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Via abono de %{product_name} estis ŝanĝita",
+    "text": "Via %{product_name} abono estis ŝanĝita",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Abono Ŝanĝita",
+    "text": "Abono ŝanĝita",
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Via abono de %{product_name} estis ŝanĝita de %{old_plan} al %{new_plan}.",
+    "text": "Via %{product_name} abono estis ŝanĝita de %{old_plan} al %{new_plan}.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ĉi tiu ŝanĝo efektiviĝas je %{date}.",
+    "text": "Ĉi tiu ŝanĝo efektiviĝas %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {

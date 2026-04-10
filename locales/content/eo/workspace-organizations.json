@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Administru viajn organizojn",
+    "text": "Administri viajn organizojn",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -20,7 +20,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Administru organizojn",
+    "text": "Administri organizojn",
     "source_hash": "be0fe4c3"
   },
   "web.organizations.new_organization": {
@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizoj provizas unuigitan fakturado kaj administradon. Komencu kreante vian unuan organizon.",
+    "text": "Organizoj provizas unuigitan fakturon kaj administradon. Komencu kreante vian unuan organizon.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -44,15 +44,15 @@
     "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Kreu organizon",
+    "text": "Krei organizon",
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Kreu unuan organizon",
+    "text": "Krei unuan organizon",
     "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Kreu novan organizon",
+    "text": "Krei novan organizon",
     "source_hash": "67cd5950"
   },
   "web.organizations.create": {
@@ -64,15 +64,15 @@
     "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Organioznomo",
+    "text": "Organiza nomo",
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "ekz. Acme Korporacio",
+    "text": "ekz. Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Organioznomo",
+    "text": "Organiza nomo",
     "source_hash": "4cbd9073"
   },
   "web.organizations.description": {
@@ -84,11 +84,11 @@
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Fakturada retpoŝto",
+    "text": "Faktura retpoŝto",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Ĉefa kontakto por fakturadaj kaj administraj sciigoj",
+    "text": "Ĉefa kontakto por fakturaj kaj administraj sciigoj",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -96,7 +96,7 @@
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organizoŝanĝado ne disponebla sur ĉi tiu paĝo",
+    "text": "Organiza ŝanĝado ne disponebla sur ĉi tiu paĝo",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -124,7 +124,7 @@
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Laste ĝisdatigita",
+    "text": "Lastfoje ĝisdatigita",
     "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Ĝisdatigu vian organiznomon kaj priskribon",
+    "text": "Ĝisdatigi vian organizan nomon kaj priskribon",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -144,7 +144,7 @@
     "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Konservu ŝanĝojn",
+    "text": "Konservi ŝanĝojn",
     "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
@@ -156,19 +156,19 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Fakturada retpoŝto sukcese ĝisdatigita",
+    "text": "Faktura retpoŝto sukcese ĝisdatigita",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Fakturada retpoŝto povas esti ŝanĝita sur la Fakturada Superrigardopaĝo",
+    "text": "Faktura retpoŝto povas esti ŝanĝita sur la paĝo Faktura superrigardo",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Fakturada integriĝo baldaŭ venonta",
+    "text": "Faktura integriĝo baldaŭ",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Unuigita fakturado kaj abono-administrado estos disponebla en estonta eldono.",
+    "text": "Unuigita fakturado kaj abona administrado estos disponebla en estonta eldono.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,15 +176,15 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organizoj provizas unuigitan fakturado kaj administradon por centralizita administrado.",
+    "text": "Organizoj provizas unuigitan fakturon kaj administradon por centralizita administrado.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Administru vian organizon",
+    "text": "Administri vian organizon",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Ĝisdatigu vian kompanionnomon kaj organizajn detalojn ĉi tie. Ĉi tiu informo helpas personecigi vian konton kaj povas esti uzata por markaj funkcioj en la estonteco.",
+    "text": "Ĝisdatigu vian kompanian nomon kaj organizajn detalojn ĉi tie. Ĉi tiu informo helpas personecigi vian konton kaj povas esti uzita por markaj funkcioj en la estonteco.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Kreu vian unuan organizon por administri viajn kompaniajn informojn kaj prepariĝi por estontaj markaj funkcioj.",
+    "text": "Kreu vian unuan organizon por administri viajn kompaniajn informojn kaj prepari por estontaj markaj funkcioj.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Administru viajn organizojn kaj teamanojn",
+    "text": "Administri viajn organizojn kaj teammembrojn",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -208,11 +208,11 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Teamo",
+    "text": "Membroj",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Fakturado",
+    "text": "Fakturo",
     "source_hash": "3ac8bbca"
   },
   "web.organizations.tabs.subscription": {
@@ -224,11 +224,11 @@
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Forigu organizon",
+    "text": "Forigi organizon",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Ĉi tio porĉiame forigos la organizon. Ĉi tiu ago ne povas esti malfarita.",
+    "text": "Ĉi tio porĉiame forigos la organizon. Ĉi tiu ago ne estas malfarebla.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -236,11 +236,11 @@
     "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Forigu organizon",
+    "text": "Forigi organizon",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Ĉu vi certas ke vi volas forigi {name}? Ĉi tiu ago ne povas esti malfarita.",
+    "text": "Ĉu vi certas ke vi volas forigi {name}? Ĉi tiu ago ne estas malfarebla.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -252,11 +252,11 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Administru organizajn membrojn kaj iliajn rolojn",
+    "text": "Administri organizajn membrojn kaj iliajn rolojn",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Nunaj membroj",
+    "text": "Aktualaj membroj",
     "source_hash": "cfc156ae"
   },
   "web.organizations.members.member": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Ankoraŭ neniuj membroj. Invitu teamanojn por komenci.",
+    "text": "Ankoraŭ neniuj membroj. Invitu teammembrojn por komenci.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -300,7 +300,7 @@
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Membrorolon sukcese ĝisdatigita",
+    "text": "Membrolo sukcese ĝisdatigita",
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
@@ -308,7 +308,7 @@
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Membro forigita de organizo",
+    "text": "Membro forigita el organizo",
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
@@ -316,11 +316,11 @@
     "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Forigu membron",
+    "text": "Forigi membron",
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Ĉu vi certas ke vi volas forigi {name} de ĉi tiu organizo?",
+    "text": "Ĉu vi certas ke vi volas forigi {name} el ĉi tiu organizo?",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
@@ -328,11 +328,11 @@
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Vi ne povas forigi vin mem de la organizo",
+    "text": "Vi ne povas forigi vin mem el la organizo",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Vi ne povas forigi la organizoposedanton",
+    "text": "Vi ne povas forigi la organizan posedanton",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
@@ -356,7 +356,7 @@
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Povas administri membrojn kaj plej multajn organizajn agordojn",
+    "text": "Povas administri membrojn kaj plejmulton de organizaj agordoj",
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
@@ -368,11 +368,11 @@
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Invitu membron",
+    "text": "Inviti membron",
     "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Invitu novan membron",
+    "text": "Inviti novan membron",
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
@@ -396,7 +396,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Sendu inviton",
+    "text": "Sendi inviton",
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
@@ -440,7 +440,7 @@
     "source_hash": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
-    "text": "Senvalidiĝas",
+    "text": "Eksvalidiĝas",
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
@@ -460,15 +460,15 @@
     "source_hash": "a00fb0c5"
   },
   "web.organizations.invitations.status.declined": {
-    "text": "Rifuzita",
+    "text": "Malakceptita",
     "source_hash": "dce083a2"
   },
   "web.organizations.invitations.status.expired": {
-    "text": "Senvalidiĝinta",
+    "text": "Eksvalidiĝinta",
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro",
+    "text": "Teammembro",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -476,11 +476,11 @@
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Akceptu inviton",
+    "text": "Akcepti inviton",
     "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Rifuzu inviton",
+    "text": "Malakcepti inviton",
     "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
@@ -504,19 +504,19 @@
     "source_hash": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
-    "text": "Invito rifuzita",
+    "text": "Invito malakceptita",
     "source_hash": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Malsukcesis rifuzi inviton",
+    "text": "Malsukcesis malakcepti inviton",
     "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "Ĉi tiu invito senvalidiĝis",
+    "text": "Ĉi tiu invito eksvalidiĝis",
     "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "Nevalida aŭ senvalidiĝinta invito",
+    "text": "Nevalida aŭ eksvalidiĝinta invito",
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Ĝisdatigu vian planon por inviti teamanojn",
+    "text": "Ĝisdatigu vian planon por inviti teammembrojn",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teamanaj invitoj bezonas planon kun team-administrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo.",
+    "text": "Teammembraj invitoj bezonas planon kun teamadministrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -540,7 +540,7 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "Frua subtenanto",
+    "text": "Frua subteno",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Alia konto ensalutita",
+    "text": "Malsama konto ensalutita",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Ĉi tiu invito estas por {invitedEmail}. Vi estas nuntempe ensalutinta kiel {currentEmail}.",
+    "text": "Ĉi tiu invito estas por {invitedEmail}. Vi estas nun ensalutinta kiel {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -568,23 +568,23 @@
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days}t restantaj",
+    "text": "{days}t restas",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours}h restantaj",
+    "text": "{hours}h restas",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Baldaŭ senvalidiĝas",
+    "text": "Baldaŭ eksvalidiĝos",
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "Unuopa Ensaluto (SSO)",
+    "text": "Ununura ensaluto (SSO)",
     "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Agordu SSO por permesi al membroj ensaluti per la identeca provizanto de via organizo",
+    "text": "Agordi SSO por permesi membrojn ensaluti per la identecprovizanto de via organizo",
     "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
@@ -592,7 +592,7 @@
     "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Elektu la identecan provizanton de via organizo",
+    "text": "Elektu la identecprovizanton de via organizo",
     "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
@@ -600,7 +600,7 @@
     "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Amika nomo montrata al uzantoj dum ensalutado",
+    "text": "Amika nomo montrata al uzantoj kiam ili ensalutas",
     "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
@@ -608,15 +608,15 @@
     "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "Klienta ID",
+    "text": "Kliento-ID",
     "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
-    "text": "Via OAuth klienta ID",
+    "text": "Via OAuth kliento-ID",
     "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Klienta Sekreto",
+    "text": "Klienta sekreto",
     "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
@@ -628,7 +628,7 @@
     "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "Luanta ID",
+    "text": "Luanto-ID",
     "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
@@ -640,11 +640,11 @@
     "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "Eldonanta URL",
+    "text": "Eldonanto URL",
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "La OIDC-malkovra URL por via identeca provizanto",
+    "text": "La OIDC-malkovra URL por via identecprovizanto",
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
@@ -652,7 +652,7 @@
     "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Permesitaj Retpoŝtaj Domajnoj",
+    "text": "Permesitaj retpoŝtdomajnoj",
     "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
@@ -680,15 +680,15 @@
     "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Kiam ebligita, organizaj membroj povas ensaluti uzante ĉi tiun SSO-provizanton",
+    "text": "Kiam ŝaltita, organizaj membroj povas ensaluti uzante ĉi tiun SSO-provizanton",
     "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
-    "text": "Konservi SSO-Agordon",
+    "text": "Konservi SSO-agordon",
     "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Forigi Agordon",
+    "text": "Forigi agordon",
     "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
@@ -720,15 +720,15 @@
     "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Testi Konekton",
+    "text": "Testi konekton",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Kontrolu, ke la identeca provizanto estas atingebla (ne kontrolas akreditaĵojn)",
+    "text": "Kontrolu ke la identecprovizanto estas atingebla (ne validigas akreditaĵojn)",
     "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Testi Konekton",
+    "text": "Testi konekton",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
@@ -740,15 +740,15 @@
     "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Rajtigiga Finpunkto",
+    "text": "Aŭtoriziga finpunkto",
     "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Mankantaj Kampoj",
+    "text": "Mankantaj kampoj",
     "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
-    "text": "Ebligita",
+    "text": "Ŝaltita",
     "source_hash": "92c1cdfd"
   },
   "web.organizations.sso.status_configured": {
@@ -756,11 +756,11 @@
     "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "Domajn-SSO",
+    "text": "Domajno SSO",
     "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "Agordu SSO por ĉiu kontrolita domajno",
+    "text": "Agordi SSO por ĉiu konfirmita domajno",
     "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
@@ -768,7 +768,49 @@
     "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Ne Agordita",
+    "text": "Ne agordita",
     "source_hash": "bbea960e"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Vidi kaj agordi viajn laborspacojn"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "de {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "kiel {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Reen al hejmo"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Ĉi tiu invito estis sendita al ĉi tiu retpoŝtadreso"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Daŭrigi"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Ensaluti kaj akcepti inviton"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Iri al organizoj"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Vi jam estas membro de ĉi tiu organizo"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Aliĝi al {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Ensalutu por aliĝi al {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Malakcepti"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Teamo"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Kial ĉi tiu sekreto estas nealirebla?",
+    "text": "Kial ĉi tiu sekreto ne estas disponebla?",
     "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
@@ -8,7 +8,7 @@
     "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Kion mi devus fari nun?",
+    "text": "Kion mi faru nun?",
     "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
@@ -16,11 +16,11 @@
     "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Averto forigita",
+    "text": "Averto ignorita",
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Forigi averton pri mallongigo",
+    "text": "Ignori mallongigan averton",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -28,19 +28,19 @@
     "source_hash": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Paĝo Ne Trovita",
+    "text": "404 - Paĝo ne trovita",
     "source_hash": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Paĝo Ne Trovita",
+    "text": "404 - Paĝo ne trovita",
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Forigi averton",
+    "text": "Ignori averton",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Forigi sciigon",
+    "text": "Ignori sciigon",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {

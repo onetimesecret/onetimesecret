@@ -48,17 +48,17 @@
     }
   },
   "web.auth.mfa_required": {
-    "text": "MFA-konfirmo necesas",
+    "text": "MFA-konfirmo bezonata",
     "context": "Page heading shown when user must complete MFA to proceed",
     "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "MFA-konfirmo necesas por aliri vian konton",
+    "text": "MFA-konfirmo bezonata por aliri vian konton",
     "context": "Explanatory text below the heading",
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Kompletigi MFA-Konfirmon",
+    "text": "Kompletigi MFA-konfirmon",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -70,19 +70,19 @@
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Tro multaj provoj. Bonvolu reprovi poste.",
+    "text": "Tro da provoj. Bonvolu reprovi poste.",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Sesio eksvalidiĝis. Bonvolu ensaluti denove.",
+    "text": "Seanco eksvalidiĝis. Bonvolu ensaluti denove.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Reakirkodo ne trovita. Bonvolu kontroli ke vi enigis ĝin ĝuste.",
+    "text": "Restaŭra kodo ne trovita. Bonvolu kontroli ke vi ĝuste enigis ĝin.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Ĉi tiu reakirkodo jam estis uzita. Ĉiu kodo povas esti uzita nur unufoje.",
+    "text": "Ĉi tiu restaŭra kodo jam estis uzita. Ĉiu kodo povas esti uzita nur unufoje.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
@@ -98,28 +98,28 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "Retpoŝt-Ligilo",
+    "text": "Retpoŝta ligilo",
     "context": "Passwordless authentication via email link",
     "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "Biometrio",
+    "text": "Biometria",
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "Ensaluti per Retpoŝto",
+    "text": "Ensaluti per retpoŝto",
     "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "Ni sendos al vi sekuran ensalut-ligilon",
+    "text": "Ni sendos al vi sekuran ensalutan ligilon",
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Enigu vian retpoŝtadreson",
+    "text": "Enigu vian retpoŝton",
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Sendi Ensalut-Ligilon",
+    "text": "Sendi ensalutan ligilon",
     "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
@@ -127,7 +127,7 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Ni sendis ensalut-ligilon al {email}",
+    "text": "Ni sendis ensalutan ligilon al {email}",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
@@ -135,11 +135,11 @@
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Provu alian retpoŝtadreson",
+    "text": "Provi alian retpoŝtadreson",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Neniu pasvorto necesas — simple klaku la ligilon en via retpoŝto",
+    "text": "Neniu pasvorto bezonata — simple alklaku la ligilon en via retpoŝto",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -147,11 +147,11 @@
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Malsukcesis sendi ensalut-ligilon. Bonvolu reprovi.",
+    "text": "Malsukcesis sendi ensalutan ligilon. Bonvolu reprovi.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Nevalida aŭ mankanta ensalut-ligilo",
+    "text": "Nevalida aŭ mankanta ensaluta ligilo",
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
@@ -163,19 +163,19 @@
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Ensalutigante vin...",
+    "text": "Ensalutante vin...",
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Bonvolu atendi dum ni kontrolas vian ligilon",
+    "text": "Bonvolu atendi dum ni konfirmas vian ligilon",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
-    "text": "Aŭtentikiga Eraro",
+    "text": "Aŭtentikiga eraro",
     "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Reen al Ensaluto",
+    "text": "Reen al ensaluto",
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
@@ -187,15 +187,15 @@
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "Biometria aŭtentikigo ne estas subtenata en ĉi tiu folumilo",
+    "text": "Biometria aŭtentikigo ne estas subtenata en ĉi tiu retumilo",
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Bonvolu uzi modernan folumilon kiu subtenas WebAuthn (Chrome, Safari, Firefox, aŭ Edge)",
+    "text": "Bonvolu uzi modernan retumilon kiu subtenas WebAuthn (Chrome, Safari, Firefox aŭ Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "Biometria ensaluto estis aktivigita",
+    "text": "Biometria ensaluto estis ŝaltita",
     "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
@@ -215,15 +215,15 @@
     "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "Aŭtentikigante...",
+    "text": "Aŭtentikante...",
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Uzu vian fingropremon, vizaĝon, aŭ sekurec-ŝlosilon por ensaluti",
+    "text": "Uzu vian fingrospuron, vizaĝon aŭ sekurecan ŝlosilon por ensaluti",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Subtenas Face ID, Touch ID, Windows Hello, kaj sekurec-ŝlosilojn",
+    "text": "Subtenas Face ID, Touch ID, Windows Hello kaj sekurecajn ŝlosilojn",
     "source_hash": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
@@ -232,7 +232,7 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Ensalutu per Face ID, Touch ID, Windows Hello, aŭ sekureca ŝlosilo",
+    "text": "Ensalutu per Face ID, Touch ID, Windows Hello aŭ sekureca ŝlosilo",
     "context": "Description of passkey authentication",
     "source_hash": "a513ed5c"
   },
@@ -252,22 +252,22 @@
     "source_hash": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "Aldoni Pasŝlosilon",
+    "text": "Aldoni pasŝlosilon",
     "context": "Button to add a new passkey",
     "source_hash": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Registri Pasŝlosilon",
+    "text": "Registri pasŝlosilon",
     "context": "Button to register a new passkey",
     "source_hash": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "Forigi Pasŝlosilon",
+    "text": "Forigi pasŝlosilon",
     "context": "Button to remove a passkey",
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Ĉu vi certas, ke vi volas forigi ĉi tiun pasŝlosilon? Vi ne plu povos ensaluti per ĝi.",
+    "text": "Ĉu vi certas ke vi volas forigi ĉi tiun pasŝlosilon? Vi ne plu povos ensaluti per ĝi.",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
@@ -292,7 +292,7 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Nomo de Pasŝlosilo",
+    "text": "Pasŝlosila nomo",
     "context": "Label for passkey name field",
     "source_hash": "22eefa67"
   },
@@ -312,17 +312,17 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Pli sekura ol pasvortoj - rezistema al phishing-atakoj",
+    "text": "Pli sekura ol pasvortoj - rezista kontraŭ phishing-atakoj",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Rapida kaj facila - simple uzu vian fingropresaĵon, vizaĝon, aŭ sekurecan ŝlosilon",
+    "text": "Rapida kaj facila - simple uzu vian fingrospuron, vizaĝon aŭ sekurecan ŝlosilon",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Sinkronigita tra viaj aparatoj kiam vi uzas platformajn aŭtentikilojn",
+    "text": "Sinkronigita tra viaj aparatoj kiam vi uzas platformajn aŭtentikigilojn",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -332,11 +332,11 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Averto: {count} ensalut-provo(j) restanta(j)",
+    "text": "Averto: {count} ensalutprovo(j) restas",
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Konto ŝlosita pro tro multaj malsukcesaj ensalut-provoj",
+    "text": "Konto ŝlosita pro tro da malsukcesaj ensalutprovoj",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -348,7 +348,7 @@
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Vi povas restarigi vian pasvorton anstataŭe",
+    "text": "Vi povas anstataŭe restarigi vian pasvorton",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -356,15 +356,15 @@
     "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
-    "text": "Aktivaj Sesioj",
+    "text": "Aktivaj seancoj",
     "source_hash": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "Aktuala Sesio",
+    "text": "Aktuala seanco",
     "source_hash": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "Aliaj Sesioj",
+    "text": "Aliaj seancoj",
     "source_hash": "8409f445"
   },
   "web.auth.sessions.device": {
@@ -376,11 +376,11 @@
     "source_hash": "15b61974"
   },
   "web.auth.sessions.ip_address": {
-    "text": "IP-Adreso",
+    "text": "IP-adreso",
     "source_hash": "3c3de0c9"
   },
   "web.auth.sessions.last_active": {
-    "text": "Laste Aktiva",
+    "text": "Lastfoje aktiva",
     "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
@@ -392,11 +392,11 @@
     "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Elsaluti Ĉiujn Aliajn Sesiojn",
+    "text": "Elsaluti ĉiujn aliajn seancojn",
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "Ĉu vi certas ke vi volas forigi ĉi tiun sesion?",
+    "text": "Ĉu vi certas ke vi volas forigi ĉi tiun seancon?",
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
@@ -404,55 +404,55 @@
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "Neniuj aliaj aktivaj sesioj",
+    "text": "Neniuj aliaj aktivaj seancoj",
     "source_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "Sesio sukcese forigita",
+    "text": "Seanco sukcese forigita",
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Ĉiuj aliaj sesioj estis elsalutitaj",
+    "text": "Ĉiuj aliaj seancoj estis elsalutitaj",
     "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "Aktivaj Sesioj",
+    "text": "Aktivaj seancoj",
     "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "Dufaktora Aŭtentikigo",
+    "text": "Dufaktora aŭtentikigo",
     "source_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "Dufaktora aŭtentikigo estas aktivigita",
+    "text": "Dufaktora aŭtentikigo estas ŝaltita",
     "source_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "Dufaktora aŭtentikigo estas malaktivigita",
+    "text": "Dufaktora aŭtentikigo estas malŝaltita",
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "Aktivigi Dufaktoran Aŭtentikigon",
+    "text": "Ebligi dufaktoran aŭtentikigon",
     "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "Malaktivigi Dufaktoran Aŭtentikigon",
+    "text": "Malŝalti dufaktoran aŭtentikigon",
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Agordi Dufaktoran Aŭtentikigon",
+    "text": "Agordi dufaktoran aŭtentikigon",
     "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Aldonu ekstran tavolon de sekureco al via konto",
+    "text": "Aldonu plian sekurecan tavolon al via konto",
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Skanu QR-Kodon",
+    "text": "1. Skani QR-kodon",
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Konfirmu Agordon",
+    "text": "2. Konfirmi agordon",
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
@@ -460,7 +460,7 @@
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Aŭ enigu ĉi tiun kodon mane",
+    "text": "Aŭ enigu ĉi tiun kodon permane",
     "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
@@ -472,7 +472,7 @@
     "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "Konfirmi kaj Aktivigi",
+    "text": "Konfirmi kaj ebligi",
     "source_hash": "7c08f68d"
   },
   "web.auth.mfa.verify_login": {
@@ -480,23 +480,23 @@
     "source_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
-    "text": "Aŭtentikiga kodo estas necesa",
+    "text": "Aŭtentikiga kodo estas bezonata",
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Nevalida kodo. Kodoj eksvalidiĝas ĉiun 30 sekundojn. Provu la plej novan kodon el via aŭtentikiga aplikaĵo.",
+    "text": "Nevalida kodo. Kodoj eksvalidiĝas ĉiujn 30 sekundojn. Provu la lastan kodon el via aŭtentikiga aplikaĵo.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "Dufaktora aŭtentikigo estis aktivigita",
+    "text": "Dufaktora aŭtentikigo estis ŝaltita",
     "source_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "Dufaktora aŭtentikigo estis malaktivigita",
+    "text": "Dufaktora aŭtentikigo estis malŝaltita",
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Enigu vian pasvorton por malaktivigi 2FA",
+    "text": "Enigu vian pasvorton por malŝalti 2FA",
     "source_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
@@ -508,7 +508,7 @@
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
-    "text": "Laste uzita: {time}",
+    "text": "Lastfoje uzita: {time}",
     "source_hash": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
@@ -516,11 +516,11 @@
     "source_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Uzu reakirkodo anstataŭe",
+    "text": "Uzu restaŭran kodon anstataŭe",
     "source_hash": "23d3441a"
   },
   "web.auth.mfa.use_recovery_code_short": {
-    "text": "Uzi reakirkodo",
+    "text": "Uzi restaŭran kodon",
     "source_hash": "50d5790d"
   },
   "web.auth.mfa.back_to_code": {
@@ -536,15 +536,15 @@
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Ŝarĝante MFA-staton...",
+    "text": "Ŝargante MFA-staton...",
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Via konto estas protektata per dufaktora aŭtentikigo",
+    "text": "Via konto estas protektita per dufaktora aŭtentikigo",
     "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Protektu vian konton per aldona tavolo de sekureco",
+    "text": "Protektu vian konton per plua sekureca tavolo",
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
@@ -552,11 +552,11 @@
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Funkcias kun Google Authenticator, Authy, kaj aliaj TOTP-aplikaĵoj",
+    "text": "Funkcias kun Google Authenticator, Authy kaj aliaj TOTP-aplikaĵoj",
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Rezervaj reakirkodoj por urĝa aliro",
+    "text": "Rezervaj restaŭraj kodoj por urĝa aliro",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -564,11 +564,11 @@
     "source_hash": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "Malaktivigas...",
+    "text": "Malŝaltante...",
     "source_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "Malaktivigi 2FA",
+    "text": "Malŝalti 2FA",
     "source_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
@@ -576,11 +576,11 @@
     "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Uzu Google Authenticator, Authy, aŭ iun ajn TOTP-aplikaĵon",
+    "text": "Uzu Google Authenticator, Authy aŭ iun ajn TOTP-aplikaĵon",
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "Daŭrigi al Konfirmo",
+    "text": "Daŭrigi al konfirmo",
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
@@ -588,27 +588,27 @@
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "Aktivigi MFA",
+    "text": "Ebligi MFA",
     "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Kompletigi Agordon",
+    "text": "Kompletigi agordon",
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Enigu unu el viaj reakirkodoj",
+    "text": "Enigu unu el viaj restaŭraj kodoj",
     "source_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "Reakirkodo",
+    "text": "Restaŭra kodo",
     "source_hash": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Enigu reakirkodo",
+    "text": "Enigu restaŭran kodon",
     "source_hash": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Konfirmi Reakirkodo",
+    "text": "Konfirmi restaŭran kodon",
     "source_hash": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
@@ -616,11 +616,11 @@
     "source_hash": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Reakirkoda reĝimo aktiva",
+    "text": "Restaŭra koda reĝimo aktiva",
     "source_hash": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Aŭtentikig-koda reĝimo aktiva",
+    "text": "Aŭtentikiga koda reĝimo aktiva",
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
@@ -632,11 +632,11 @@
     "source_hash": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "Reakirkodoj",
+    "text": "Restaŭraj kodoj",
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Konservu ĉi tiujn kodojn en sekura loko. Ĉiu povas esti uzita unufoje se vi perdas aliron al via aŭtentikilo.",
+    "text": "Konservu ĉi tiujn kodojn en sekura loko. Ĉiu povas esti uzita unufoje se vi perdas aliron al via aŭtentikigilo.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -644,35 +644,35 @@
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Vi devas elŝuti aŭ kopii viajn reakirkodojn antaŭ ol kompletigi agordon.",
+    "text": "Vi devas elŝuti aŭ kopii viajn restaŭrajn kodojn antaŭ ol kompletigi la agordon.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "Generi Novajn Kodojn",
+    "text": "Generi novajn kodojn",
     "source_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Regeneri Kodojn",
+    "text": "Regeneri kodojn",
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Ĉi tio nevalidigos ĉiujn ekzistantajn reakirkodojn",
+    "text": "Ĉi tio malvalidigos ĉiujn ekzistantajn restaŭrajn kodojn",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Elŝuti Kodojn",
+    "text": "Elŝuti kodojn",
     "source_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Reakirkodoj elŝutitaj",
+    "text": "Restaŭraj kodoj elŝutitaj",
     "source_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "Presi Kodojn",
+    "text": "Presi kodojn",
     "source_hash": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "Kopii Ĉiujn Kodojn",
+    "text": "Kopii ĉiujn kodojn",
     "source_hash": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
@@ -692,29 +692,38 @@
     "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} el {limit} reakirkodoj restantaj",
+    "text": "{count} el {limit} restaŭraj kodoj restas",
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Ĉiu kodo povas esti uzita nur unufoje. Regeneru kodojn se vi elĉerpiĝas.",
+    "text": "Ĉiu kodo povas esti uzita nur unufoje. Regeneru kodojn se vi havas malmultajn restantajn.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Neniuj reakirkodoj restantaj",
+    "text": "Neniuj restaŭraj kodoj restas",
     "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Novaj reakirkodoj estis generitaj",
+    "text": "Novaj restaŭraj kodoj estis generitaj",
     "source_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "Reakirkodoj",
+    "text": "Restaŭraj kodoj",
     "source_hash": "579c7f4e"
   },
   "web.auth.security._guidance.context": {
-    "text": "⚠️ SEKURECOKRITIKA: Mesaĝoj malhelpas informrevelon. Vidu src/locales/SECURITY-TRANSLATION-GUIDE.md"
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.sessions._guidance.context": {
-    "text": "Administra paĝo por ensalutitaj aparatoj/folumiloj de uzanto"
+    "text": "User's logged-in devices/browsers management page"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternativaj aŭtentikigaj opcioj"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "seanco"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "seancoj"
   }
 }

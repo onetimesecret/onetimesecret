@@ -5,7 +5,7 @@
     "note": "empty source"
   },
   "web.COMMON.tagline": {
-    "text": "Sekuraj ligiloj, kiuj funkcias nur unufoje",
+    "text": "Sekuraj ligiloj kiuj funkcias nur unufoje",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Pasvorta generilo estas malŝaltita kiam la formularo validas",
+    "text": "Generi pasvorton estas malŝaltita kiam la formularo estas valida",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -61,19 +61,19 @@
     "source_hash": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Prilaborante...",
+    "text": "Procesante...",
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Tenu sentemajn informojn ekster viaj babilprotokoloj kaj retpoŝto. Kunhavigu sekretan ligilon, kiu disponeblas nur unufoje.",
+    "text": "Tenu sentemajn informojn for de viaj babilo-protokoloj kaj retpoŝto. Kunhavigu sekretan ligilon kiu disponeblas nur unufoje.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Malĝusta sekreta frazo",
+    "text": "Neĝusta sekreta frazo",
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "sekreto,pasvorta generilo,kunhavigi sekreton,unufoja",
+    "text": "sekreto,pasvortgenerilo,kunhavigi sekreton,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -93,7 +93,7 @@
     "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "Vorto aŭ frazo, kiu estas malfacile diveni",
+    "text": "Vorto aŭ frazo kiun estas malfacile diveni",
     "source_hash": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Sekreta enhavo iras ĉi tien...",
+    "text": "Sekreta enhavo iru ĉi tien...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -161,11 +161,11 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Forbruligo de sekreto forigos ĝin antaŭ ol ĝi estas legita (alklaku por konfirmi)",
+    "text": "Forbruligi sekreton forigos ĝin antaŭ ol ĝi estos legita (alklaku por konfirmi)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Forbruligo de sekreto estas porĉiama kaj ne eblas malfari",
+    "text": "Forbruligi sekreton estas porĉiama kaj ne eblas malfari",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -185,7 +185,7 @@
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Rekontolu tiun sekretan frazon",
+    "text": "Rekontrolu tiun sekretan frazon",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Okazis neatendita eraro. Bonvolu reprovi.",
+    "text": "Neatendita eraro okazis. Bonvolu reprovi.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -293,7 +293,7 @@
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Sendi rimarkojn",
+    "text": "Sendi komentojn",
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
@@ -305,7 +305,7 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Se konto kun ĉi tiu retpoŝtadreso ekzistas, vi ricevos konfirman retmesaĝon.",
+    "text": "Se konto kun ĉi tiu retpoŝtadreso ekzistas, vi ricevos konfirman retpoŝton.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -317,7 +317,7 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Ĉu vi certas, ke vi volas forbruligi ĉi tiun sekreton? Ĉi tiu ago ne eblas malfari.",
+    "text": "Ĉu vi certas ke vi volas forbruligi ĉi tiun sekreton? Ĉi tiu ago ne estas malfarebla.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
@@ -325,11 +325,11 @@
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Forbruligo de sekreto forigos ĝin antaŭ ol ĝi estas ricevita.",
+    "text": "Forbruligi sekreton forigos ĝin antaŭ ol ĝi estos ricevita.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Por sekureco, kunhavigu ĉi tiun ligilon aparte de aliaj detaloj.",
+    "text": "Pro sekureco, kunhavigu ĉi tiun ligilon aparte de aliaj detaloj.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -345,7 +345,7 @@
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Konfirmo ne validas",
+    "text": "Konfirmo ne estas valida",
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
@@ -377,7 +377,7 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Prilaborante vian peton",
+    "text": "Procesante vian peton",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
@@ -449,7 +449,7 @@
     "source_hash": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "Eskapi",
+    "text": "Eskapo",
     "source_hash": "037c9684"
   },
   "web.COMMON.active": {
@@ -469,7 +469,7 @@
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
-    "text": "Enigi",
+    "text": "Eniri",
     "source_hash": "dc8659db"
   },
   "web.COMMON.important": {
@@ -481,7 +481,7 @@
     "source_hash": "a4fe6526"
   },
   "web.COMMON.theme": {
-    "text": "Temo",
+    "text": "Etoso",
     "source_hash": "efb52e71"
   },
   "web.COMMON.appearance": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Bone, daŭrigu.",
+    "text": "Bone, antaŭen.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -609,7 +609,7 @@
     "source_hash": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "Forteco de pasvorto:",
+    "text": "Pasvortforteco:",
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
@@ -625,7 +625,7 @@
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Nu",
+    "text": "Mezbona",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
@@ -641,7 +641,7 @@
     "source_hash": "ac7c949f"
   },
   "web.COMMON.an_error_occurred": {
-    "text": "Okazis eraro",
+    "text": "Eraro okazis",
     "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
@@ -653,7 +653,7 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Rekontolu tiun sekretan frazon",
+    "text": "Rekontrolu tiun sekretan frazon",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
@@ -681,11 +681,11 @@
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Ŝalti",
+    "text": "Ebligi",
     "source_hash": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Malŝalti",
+    "text": "Malebligi",
     "source_hash": "b7e3e4aa"
   },
   "web.LABELS.stats": {
@@ -701,7 +701,7 @@
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "Tempo de eksvalidiĝo",
+    "text": "Eksvalidiĝa tempo",
     "source_hash": "c5db84a8"
   },
   "web.LABELS.secret_ttl": {
@@ -733,7 +733,7 @@
     "source_hash": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Konservi ĉion",
+    "text": "Konservi ĉiujn",
     "source_hash": "d3c54e39"
   },
   "web.LABELS.details": {
@@ -745,7 +745,7 @@
     "source_hash": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "Stato de sekreto",
+    "text": "Sekreta stato",
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
@@ -761,7 +761,7 @@
     "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Neniu sekreta frazo necesa",
+    "text": "Neniu sekreta frazo bezonata",
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
@@ -813,7 +813,7 @@
     "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Helpa sekcio",
+    "text": "Helposekcio",
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
@@ -821,7 +821,7 @@
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Rimarkoj ricevitaj.",
+    "text": "Komentoj ricevitaj.",
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
@@ -849,7 +849,7 @@
     "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
-    "text": "Viŝi",
+    "text": "Malplenigi",
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
@@ -906,7 +906,7 @@
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
-    "text": "Antaŭvidita",
+    "text": "Antaŭvidata",
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
@@ -962,7 +962,7 @@
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Sekreta ligilo estis kreita kaj ne estis vidita",
+    "text": "Sekreta ligilo estis kreita kaj ankoraŭ ne vidita",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
@@ -974,7 +974,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Sekreta ligilo estis malfermita kaj preta por esti malkaŝita",
+    "text": "Sekreta ligilo estis malfermita kaj pretas esti malkaŝita",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -982,7 +982,7 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Sekreto estis mane forbruligita antaŭ ol esti vidita",
+    "text": "Sekreto estis permane forbruligita antaŭ ol esti vidita",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -1010,7 +1010,7 @@
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS malĝusta",
+    "text": "DNS neĝusta",
     "source_hash": "7848d601"
   },
   "web.STATUS.active": {
@@ -1026,11 +1026,11 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Fidata domajnmarka",
+    "text": "Fidata domajnmarkado",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Ĉifrita dum transiro kaj dum ripozo",
+    "text": "Ĉifrita dum transsendo kaj konservado",
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
@@ -1058,23 +1058,23 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "{count} {unit} restantaj",
+    "text": "{count} {unit} restas",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "tago restanta | tagoj restantaj",
+    "text": "tago restas | tagoj restas",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "horo restanta | horoj restantaj",
+    "text": "horo restas | horoj restas",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "minuto restanta | minutoj restantaj",
+    "text": "minuto restas | minutoj restas",
     "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "sekundo restanta | sekundoj restantaj",
+    "text": "sekundo restas | sekundoj restas",
     "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1082,19 +1082,19 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "limo de {count} vidoj",
+    "text": "Limo de {count} vidoj",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "{count} tagoj restantaj",
+    "text": "{count} tagoj restas",
     "source_hash": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "{count} horoj restantaj",
+    "text": "{count} horoj restas",
     "source_hash": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "{count} minutoj restantaj",
+    "text": "{count} minutoj restas",
     "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
@@ -1102,7 +1102,7 @@
     "source_hash": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "Rimarkoj",
+    "text": "Komentoj",
     "source_hash": "aac77df3"
   },
   "web.TITLES.help": {
@@ -1118,7 +1118,7 @@
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Forgesita pasvorto",
+    "text": "Forgesis pasvorton",
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
@@ -1134,7 +1134,7 @@
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Dufaktora aŭtentigo",
+    "text": "Dufaktora aŭtentikigo",
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
@@ -1190,11 +1190,11 @@
     "source_hash": "7e1b0d56"
   },
   "web.TITLES.data_region": {
-    "text": "Datuma regiono",
+    "text": "Datumregiono",
     "source_hash": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Nuna regiono",
+    "text": "Aktuala regiono",
     "source_hash": "b92e254d"
   },
   "web.TITLES.available_regions": {
@@ -1202,11 +1202,11 @@
     "source_hash": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Kial datuma suvereneco gravas",
+    "text": "Kial datumsuvereneco gravas",
     "source_hash": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
-    "text": "Profilaj agordoj",
+    "text": "Profilagordoj",
     "source_hash": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
@@ -1238,7 +1238,7 @@
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Dufaktora aŭtentigo",
+    "text": "Dufaktora aŭtentikigo",
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
@@ -1246,7 +1246,7 @@
     "source_hash": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Restarigaj kodoj",
+    "text": "Restaŭraj kodoj",
     "source_hash": "579c7f4e"
   },
   "web.TITLES.passkeys": {
@@ -1259,11 +1259,11 @@
     "source_hash": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Altnivela agordoj",
+    "text": "Altnivelaj agordoj",
     "source_hash": "22d4f608"
   },
   "web.TITLES.system_settings": {
-    "text": "Sistemaj agordoj",
+    "text": "Sistemagordoj",
     "source_hash": "1f87f883"
   },
   "web.TITLES.not_found": {
@@ -1283,11 +1283,11 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Fokuso nun estas en la ĉefa tekstoaroo",
+    "text": "Fokuso nun estas en la ĉefa tekstkampo",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Instrukcioj por kunhavigo",
+    "text": "Instrukcioj pri kunhavigo",
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
@@ -1303,15 +1303,15 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de Onetime Secret. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn.",
+    "text": "Ĉiam konfirmu ke vi estas sur la oficiala retejo de Onetime Secret. Frauduloj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regionan domajnon antaŭ ol krei novajn ligilojn.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
-    "text": "Simplaj, travideblaj prezoj",
+    "text": "Simpla, travidebla prezaro",
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Elektu la planon kiu konvenas al viaj bezonoj. Ĉiuj planoj inkluzivas senliman kunhavigon de sekretoj kaj privateco-unuan dezajnon.",
+    "text": "Elektu la planon kiu konvenas al viaj bezonoj. Ĉiuj planoj inkluzivas senliman sekretan kunhavigon kaj privatecon-unuan dezajnon.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1355,7 +1355,7 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Kreu kaj kunhavigu sekretojn kun bazaj funkcioj. Neniu kreditkarto necesa.",
+    "text": "Kreu kaj kunhavigu sekretojn kun bazaj funkcioj. Neniu kreditkarto bezonata.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
@@ -1364,12 +1364,12 @@
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "Via pasvorto estas bezonata por plenumi ĉi tiun agon",
+    "text": "Via pasvorto estas bezonata por kompletigi ĉi tiun agon",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "Okazis neatendita eraro",
+    "text": "Neatendita eraro okazis",
     "context": "Generic error message for unhandled exceptions in API",
     "source_hash": "6615bf1c"
   },
@@ -1384,8 +1384,56 @@
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Altigu vian planon por malŝlosi pliajn funkciojn",
+    "text": "Ĝisdatigu por malŝlosi pliajn funkciojn",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Agordi"
+  },
+  "web.COMMON.add": {
+    "text": "Aldoni"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Jes, forigi"
+  },
+  "web.COMMON.error_code": {
+    "text": "Erarkodo"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-stato"
+  },
+  "web.COMMON.details": {
+    "text": "Detaloj"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Konfirmi pasvorton"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Pasvortoj devas kongrui"
+  },
+  "web.COMMON.and": {
+    "text": "kaj"
+  },
+  "web.COMMON.or": {
+    "text": "aŭ"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Montri sekretan frazon"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Kaŝi sekretan frazon"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domajnaj agordoj"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domajno SSO"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Retpoŝta agordo"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Envenantaj sekretoj"
   }
 }

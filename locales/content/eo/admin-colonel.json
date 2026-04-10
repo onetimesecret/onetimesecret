@@ -32,43 +32,43 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Redakti sistemajn konfigurajn agordojn. Ŝanĝoj aplikiĝas tuj post konservado.",
+    "text": "Redakti sistemajn agordojn. Ŝanĝoj validas tuj post konservado.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "Nevalida JSON en {section} sekcio",
+    "text": "Nevalida JSON en sekcio {section}",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
-    "text": "Valida eraro",
+    "text": "Validiga eraro",
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Eraro ŝargante konfiguradon",
+    "text": "Eraro dum ŝargado de agordo",
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Eraro konservante konfiguradon",
+    "text": "Eraro dum konservado de agordo",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "Konfiguro konservita sukcese",
+    "text": "Agordo sukcese konservita",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "Konfiguro devas esti JSON-objekto",
+    "text": "Agordo devas esti JSON-objekto",
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Pluraj sekcioj havas validajn erarojn: {sections}",
+    "text": "Pluraj sekcioj havas validigajn erarojn: {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} havas validajn erarojn: {error}",
+    "text": "{section} havas validigajn erarojn: {error}",
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} konservita sukcese",
+    "text": "{section} sukcese konservita",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -76,7 +76,7 @@
     "source_hash": "4a379f10"
   },
   "web.colonel.saveAll": {
-    "text": "Konservi ĉion",
+    "text": "Konservi ĉiujn",
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
@@ -84,15 +84,15 @@
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Skema valida eraro: {message} ({path})",
+    "text": "Skemvalidiga eraro: {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Nekonata valida eraro: {error}",
+    "text": "Nekonata validiga eraro: {error}",
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section} sekcio havas neniujn konfiguritajn valorojn",
+    "text": "Sekcio {section} ne havas agorditajn valorojn",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "Administrado",
+    "text": "Administranto",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -136,7 +136,7 @@
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Administra kontrolpanelo por OneTimeSecret",
+    "text": "Administra stirpanelo por OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
@@ -148,11 +148,11 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Vidi ĉion",
+    "text": "Vidi ĉiujn",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Agaj datumoj estos montrataj ĉi tie",
+    "text": "Agaddatumoj estos montrataj ĉi tie",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
@@ -164,15 +164,15 @@
     "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Hodiaŭaj sekretoj",
+    "text": "Sekretoj hodiaŭ",
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Kreitaj sekretoj",
+    "text": "Sekretoj kreitaj",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Kunhavigitaj sekretoj",
+    "text": "Sekretoj kunhavigitaj",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
@@ -180,7 +180,7 @@
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Senditaj retpoŝtoj",
+    "text": "Retpoŝtoj senditaj",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
@@ -216,11 +216,11 @@
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "Sistemaj agordoj",
+    "text": "Sistemagordoj",
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "Aplikaĵa konfiguro",
+    "text": "Aplikaĵa agordo",
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
@@ -228,11 +228,11 @@
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
-    "text": "Stato de atendovico",
+    "text": "Vicostato",
     "source_hash": "3421ffa8"
   },
   "web.colonel.queueName": {
-    "text": "Atendovico",
+    "text": "Vico",
     "source_hash": "3b2fe03e"
   },
   "web.colonel.pendingMessages": {
@@ -244,31 +244,31 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Proporcio/sek",
+    "text": "Rapido/sek",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
-    "text": "Konekta stato",
+    "text": "Konektostato",
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Sanstato de laboranto",
+    "text": "Laborista sano",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "aktivaj laborantoj",
+    "text": "aktivaj laboristoj",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
-    "text": "Neniu atendovica datumo disponebla",
+    "text": "Neniuj vicodatumoj disponeblaj",
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Ŝargas atendovicajn datumojn...",
+    "text": "Ŝargante vicodatumojn...",
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Testa plana reĝimo",
+    "text": "Testa planreĝimo",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -276,7 +276,7 @@
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "Klaku por restarigi",
+    "text": "Alklaku por restarigi",
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
@@ -284,11 +284,11 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Restarigi al reala plano",
+    "text": "Restarigi al aktuala plano",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Nuna plano",
+    "text": "Aktuala plano",
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testu vian aplikaĵon kun malsamaj planaj rajtoj. Ŝanĝoj estas provizoraj kaj influas nur vian seancon.",
+    "text": "Testu vian aplikaĵon kun malsamaj planrajtoj. Ŝanĝoj estas provizoraj kaj influas nur vian seancon.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Vi testas kun {planName} rajtoj (provizora seanca anstataŭigo).",
+    "text": "Vi testas kun {planName} rajtoj (provizora seanca superrego).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Monitori organizan fakturadan sinkan sanstaton",
+    "text": "Monitori organizan fakturan sinkronigan sanon",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Fakturada sanstata monitoro",
+    "text": "Faktursana monitoro",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -340,7 +340,7 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "Sinkrona stato",
+    "text": "Sinkroniga stato",
     "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
@@ -368,11 +368,11 @@
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "Prova",
+    "text": "Provperioda",
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "Transpagdata",
+    "text": "Postdata",
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
@@ -384,7 +384,7 @@
     "source_hash": "7e1b0d56"
   },
   "web.colonel.organizations.columns.billing": {
-    "text": "Fakturado",
+    "text": "Fakturo",
     "source_hash": "3ac8bbca"
   },
   "web.colonel.organizations.columns.status": {
@@ -428,19 +428,19 @@
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "Havas fakturadon",
+    "text": "Havas fakturon",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Administrado de organizaĵa fakturado",
+    "text": "Organiza faktura administrado",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Administri organizaĵojn kaj kontroli sanon de fakturada sinkronigo ({total} entute)",
+    "text": "Administri organizojn kaj monitori fakturan sinkronigan sanon ({total} sume)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
-    "text": "Neniuj organizaĵoj trovitaj",
+    "text": "Neniuj organizoj trovitaj",
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
@@ -476,7 +476,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "Organiza ID",
+    "text": "Org-ID",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
@@ -488,7 +488,7 @@
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Kontrolite sinkronigita",
+    "text": "Konfirmite sinkronigita",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
@@ -500,7 +500,7 @@
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Detalaĵoj de Stripe-abono",
+    "text": "Stripe-abonaj detaloj",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -544,11 +544,11 @@
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "Malpermesitaj IP-adresoj",
+    "text": "Malpermesitaj IP-oj",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Administri IP-malpermesan liston",
+    "text": "Administri IP-malpermes-liston",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -564,7 +564,7 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.systemSettings.description": {
-    "text": "Sistemaj agordoj, datumbazoj, kaj agordo",
+    "text": "Sistemagordoj, datumbazoj kaj agordo",
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
@@ -576,7 +576,7 @@
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "Sendi retrosciigon",
+    "text": "Sendi komentojn",
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
@@ -588,11 +588,11 @@
     "source_hash": "4b42c669"
   },
   "web.colonel.titles.users": {
-    "text": "Uzanta administrado",
+    "text": "Uzantadministrado",
     "source_hash": "fe45f3a1"
   },
   "web.colonel.titles.secrets": {
-    "text": "Administrado de sekretoj",
+    "text": "Sekretadministrado",
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
@@ -624,7 +624,7 @@
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {
-    "text": "Organizaĵoj",
+    "text": "Organizoj",
     "source_hash": "2730183d"
   },
   "web.colonel.titles.redis": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Kiam vi sendos retrosciigon, ni vidos:",
+    "text": "Kiam vi sendas komentojn, ni vidos:",
     "source_hash": "fe77172e"
   }
 }

@@ -8,15 +8,15 @@
     "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Uzu agordojn",
+    "text": "Uzi agordon",
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Tipara familio",
+    "text": "Tiparfamilio",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Angula stilo",
+    "text": "Angulstilo",
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
@@ -28,11 +28,11 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Antaŭrigardi kaj personecigi",
+    "text": "Antaŭvido kaj personecigo",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Ŝanĝu al Safari retumila vido",
+    "text": "Ŝanĝi al Safari-retumila vido",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -48,7 +48,7 @@
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Ŝanĝu al Edge retumila vido",
+    "text": "Ŝanĝi al Edge-retumila vido",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontaktu onboarding{'@'}example.com kun ajnaj demandoj",
+    "text": "Kontaktu onboarding{'@'}example.com kun iuj demandoj",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Antaŭ-malkaŝaj instrukcioj",
+    "text": "Instrukcioj antaŭ malkaŝo",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Post-malkaŝaj instrukcioj",
+    "text": "Instrukcioj post malkaŝo",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -84,7 +84,7 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Logo-regiloj",
+    "text": "Emblemaj regiloj",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -92,11 +92,11 @@
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Alŝutu logon",
+    "text": "Alŝuti emblemon",
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Ŝargante antaŭrigardon...",
+    "text": "Ŝargante antaŭvidon...",
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
@@ -104,7 +104,7 @@
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Okula ikono",
+    "text": "Okula piktogramo",
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
@@ -112,7 +112,7 @@
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Bilda ikono",
+    "text": "Bilda piktogramo",
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
@@ -120,7 +120,7 @@
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Personeciga ikono",
+    "text": "Personeciga piktogramo",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Ĉi tio estas interaga antaŭrigardo de kiel ricevantoj vidos viajn sekurajn mesaĝojn. Vi povas: - Personecigi kolorojn kaj tiparojn per la regiloj supre - Alŝuti logon (minimume 128x128 pikseloj rekomenditaj, maks 1MB) - Testi la antaŭrigardon per la butono \"Vidi sekreton\"",
+    "text": "Ĉi tio estas interaga antaŭvido de kiel ricevantoj vidos viajn sekurajn mesaĝojn. Vi povas: - Personecigi kolorojn kaj tiparon per la supraj regiloj - Alŝuti emblemon (minimume 128x128 pikseloj rekomendata, 1MB maks) - Testi la antaŭvidon per la butono \"Vidi sekreton\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,7 +140,7 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japana kanĵio '秘' (himitsu) signifanta 'sekreto' aŭ 'konfidenciala'",
+    "text": "Japana kanĵi '秘' (himitsu) signifanta 'sekreto' aŭ 'konfidenciala'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -148,7 +148,7 @@
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0} logo",
+    "text": "{0} emblemo",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -156,7 +156,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Ŝanĝu al Edge antaŭrigardo",
+    "text": "Ŝanĝi al Edge-antaŭvido",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -164,11 +164,14 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Ŝanĝu al Safari antaŭrigardo",
+    "text": "Ŝanĝi al Safari-antaŭvido",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Altigu vian planon por personecigi la markadon por ĉi tiu domajno.",
+    "text": "Ĝisdatigu vian planon por personecigi markadon por ĉi tiu domajno.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Markaj agordoj sukcese konservitaj"
   }
 }

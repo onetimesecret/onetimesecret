@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Lernu pri niaj sekurecaj mezuroj",
+    "text": "Lerni pri niaj sekurecaj mezuroj",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Vidu niajn kondiĉojn kaj terminojn",
+    "text": "Vidi niajn kondiĉojn",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -36,7 +36,7 @@
     "source_hash": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "Kontakti",
+    "text": "Kontakto",
     "source_hash": "2b5c3d26"
   },
   "web.footer.support": {
@@ -44,23 +44,23 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Juraj",
+    "text": "Jura informo",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Kiam vi sendos rimarkojn, ni vidos:",
+    "text": "Kiam vi sendas komentojn, ni vidos:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Legu nian privatec-politikon",
+    "text": "Legi nian privatecan politikon",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Kontrolu la staton de nia servo",
+    "text": "Kontroli nian servostaton",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Esploru nian API-dokumentaron",
+    "text": "Esplori nian API-dokumentaron",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -68,11 +68,11 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Aliru nian dokumentaron",
+    "text": "Aliri nian dokumentaron",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Vidu nian fontkodon ĉe GitHub",
+    "text": "Vidi nian fontkodon ĉe GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -84,15 +84,15 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Legu niajn plej lastajn blogaĵojn",
+    "text": "Legi niajn lastajn blogartikolojn",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Vidu niajn abonajn prezojn",
+    "text": "Vidi niajn abonprezojn",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Lernu pri nia kompanio",
+    "text": "Lerni pri nia kompanio",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -108,7 +108,7 @@
     "source_hash": "29c5c68f"
   },
   "web.navigation.billing": {
-    "text": "Fakturado",
+    "text": "Fakturo",
     "source_hash": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Ni lastatempe aldonis tradukojn. Ĉu vi rimarkis eraron? {send-feedback}",
+    "text": "Ni lastatempe aldonis tradukojn. Ĉu vi trovis eraron? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -140,7 +140,7 @@
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Lernu pli",
+    "text": "Lerni pli",
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Vi rigardas sekuran mesaĝon kiu estis kunhavigita kun vi per Onetime Secret. Ĉi tiu enhavo estas montrata nur unufoje kaj poste por ĉiam forigita el niaj serviloj.",
+    "text": "Vi vidas sekuran mesaĝon kiu estis kunhavigita kun vi per Onetime Secret. Ĉi tiu enhavo estas montrata nur unufoje kaj poste porĉiame forigita de niaj serviloj.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -156,7 +156,7 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Ne. Pro sekurecaj kialoj, ĉi tiu sekreto estas videbla nur unufoje. Post fermo de ĉi tiu paĝo, la enhavo estos porĉiame forigita kaj ne reakirigebla de iu ajn, inkluzive de ni.",
+    "text": "Ne. Pro sekurecaj kialoj, ĉi tiu sekreto estas videbla nur unufoje. Post fermo de ĉi tiu paĝo, la enhavo estos porĉiame forigita kaj neniu povos restaŭri ĝin, inkluzive ni.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,7 +164,7 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Uzu la butonon 'Kopii al tondujo' por kopii la tutan sekreton. Por pli longaj sekretoj, certigu ke vi kopiis la kompletan enhavon antaŭ ol forlasi ĉi tiun paĝon.",
+    "text": "Uzu la butonon 'Kopii al tondujo' por kopii la tutan sekreton. Por pli longaj sekretoj, certiĝu ke vi kopiis la tutan enhavon antaŭ ol forlasi ĉi tiun paĝon.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -172,11 +172,11 @@
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "La sendinto estos sciigita ke ilia sekreto estis vidata, sed ni ne spuras kiu vidis ĝin aŭ de kiu loko. Via privateco estas protektata.",
+    "text": "La sendinto estos sciigita ke ilia sekreto estis vidita, sed ni ne spuras kiu vidis ĝin aŭ de kie. Via privateco estas protektita.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Post kiam vi forlasos aŭ refreŝigos ĉi tiun paĝon, ĉi tiu sekreto estos porĉiame forigita kaj ne reakirigebla de iu ajn.",
+    "text": "Post kiam vi forlasos aŭ refreŝigos ĉi tiun paĝon, ĉi tiu sekreto estos porĉiame forigita kaj neniu povos restaŭri ĝin.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -184,15 +184,15 @@
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Reteja piedteksto",
+    "text": "Reteja piedpaĝo",
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Baskuligi malhelan reĝimon",
+    "text": "Ŝalti malhelan reĝimon",
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Doni retrosciigon",
+    "text": "Doni komentojn",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -220,11 +220,11 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Eldonnotoj",
+    "text": "Eldonaj notoj",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Ŝargas agordan enhavon...",
+    "text": "Ŝargante agordojn...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
@@ -252,7 +252,7 @@
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Reveni al Hejmo",
+    "text": "Reveni al hejmo",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
@@ -260,19 +260,19 @@
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Vidi kondiĉojn de servo",
+    "text": "Vidi servajn kondiĉojn",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Viziti Onetime Secret hejmpaĝon",
+    "text": "Viziti hejmpaĝon de Onetime Secret",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Piedteksta navigado",
+    "text": "Piedpaĝa navigado",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Kondiĉoj de servo",
+    "text": "Servaj kondiĉoj",
     "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
@@ -312,7 +312,7 @@
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Ŝanĝi lingvon. Nuna lingvo estas {0}",
+    "text": "Ŝanĝi lingvon. Aktuala lingvo estas {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Laborspaca kunteksto",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Laborspaco"
   }
 }

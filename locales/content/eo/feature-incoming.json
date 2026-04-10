@@ -1,6 +1,6 @@
 {
   "incoming.page_title": {
-    "text": "Sendi Sekreton",
+    "text": "Sendi sekreton",
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
@@ -12,23 +12,23 @@
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Malsukcesis ŝargi agordojn",
+    "text": "Malsukcesis ŝargi agordon",
     "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Funkcio Ne Disponebla",
+    "text": "Funkcio ne disponebla",
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ĉi tiu funkcio estas nune malŝaltita. Bonvolu kontakti subtenon por helpo.",
+    "text": "Ĉi tiu funkcio estas nun malŝaltita. Bonvolu kontakti subtenon por helpo.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Noto",
+    "text": "Memorando",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Mallonga priskribo (ekz., Peto pri pasvorta restarigo)",
+    "text": "Mallonga priskribo (ekz., Peto pri pasvortrestarigo)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -40,11 +40,11 @@
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Elektu ricevonton",
+    "text": "Elektu ricevanton",
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Elektu ricevonton por ĉi tiu sekreto",
+    "text": "Elektu ricevanton por ĉi tiu sekreto",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
@@ -52,11 +52,11 @@
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Neniuj ricevontoj disponeblas",
+    "text": "Neniuj ricevantoj disponeblas",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Sekreta Informo",
+    "text": "Sekreta informo",
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
@@ -64,15 +64,15 @@
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Ĉi tiu informo estos ĉifrita kaj rigardata nur unufoje",
+    "text": "Ĉi tiu informo estos ĉifrita kaj videbla nur unufoje",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Sendi Sekreton",
+    "text": "Sendi sekreton",
     "source_hash": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Sendi Sekreton",
+    "text": "Sendi sekreton",
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
@@ -84,15 +84,15 @@
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Vakigi Formularon",
+    "text": "Malplenigi formularon",
     "source_hash": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Vakigi Formularon",
+    "text": "Malplenigi formularon",
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Sendita Sukcese",
+    "text": "Sukcese sendita",
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
@@ -104,15 +104,15 @@
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Kio okazos poste?",
+    "text": "Kio okazas poste?",
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "La ricevonto povos rigardi ĉi tiun sekreton nur unufoje. Post kiam ili rigardos ĝin, la sekreto estos porĉiam forigita.",
+    "text": "La ricevanto povos vidi ĉi tiun sekreton nur unufoje. Post vidado, la sekreto estos porĉiame forigita.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Sendi Alian Sekreton",
+    "text": "Sendi alian sekreton",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
@@ -120,7 +120,7 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Tenu pasvortojn kaj privatajn datumojn ekster retpoŝto kaj babilaj protokoloj",
+    "text": "Tenu pasvortojn kaj privatajn datumojn for de retpoŝto kaj babilprotokoloj",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "kvitanco",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Ĝisdatigo bezonata"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ĉi tiu funkcio bezonas planĝisdatigon. Bonvolu kontakti la kontposedanton por ebligi envenantajn sekretojn."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Memorando devas havi {max} signojn aŭ malpli"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Sekreta enhavo estas bezonata"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Bonvolu elekti ricevanton"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Envena sekretfunkcio ne estas ŝaltita"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Bonvolu kontroli la formularon por eraroj"
   }
 }
