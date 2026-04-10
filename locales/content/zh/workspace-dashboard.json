@@ -1,10 +1,10 @@
 {
   "web.dashboard.title_received": {
-    "text": "已查看",
+    "text": "已接收",
     "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "未查看",
+    "text": "未接收",
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
@@ -20,7 +20,7 @@
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "加载数据时出现问题，请重试。",
+    "text": "加载数据时出现问题。请重试。",
     "source_hash": "ff0d904e"
   }
 }

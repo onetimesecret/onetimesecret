@@ -4,7 +4,7 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "您的数据仅存储在您选择的区域，绝不会跨区域传输",
+    "text": "您的数据专门存储在您选择的区域，绝不会跨区域传输",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -12,11 +12,11 @@
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "我们维护严格的政策：在任何情况下，客户数据都不会在区域之间传输",
+    "text": "我们严格执行政策：在任何情况下，客户数据绝不会在区域之间传输",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "重要提示：切换到其他区域将创建新账户。您的数据将保留在原始区域。",
+    "text": "重要提示：切换到不同区域会创建一个新账户。您的数据保留在原始区域。",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -36,7 +36,7 @@
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
-    "text": "数据主权的重要性",
+    "text": "为什么数据主权很重要",
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
@@ -44,15 +44,15 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "准确了解您的数据存储位置以及哪些法律保护您的数据。",
+    "text": "准确了解您的数据存储位置以及哪些法律管辖其保护。",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
-    "text": "隐私权",
+    "text": "隐私权利",
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "确保您的个人信息按照您所在国家的隐私法律法规进行处理，防止未经授权的访问或滥用。",
+    "text": "确保您的个人信息按照您所在国家的隐私法律和法规进行处理，防止未授权访问或滥用。",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "满足 GDPR、HIPAA、CCPA 及其他区域数据保护要求",
+    "text": "满足 GDPR、HIPAA、CCPA 和其他区域数据保护要求",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "数据存储在离您更近的地方意味着更低的延迟和更好的性能。",
+    "text": "数据存储在离您更近的地方，意味着更低的延迟和更好的性能。",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -80,7 +80,7 @@
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "查看我们的文档",
+    "text": "查阅我们的文档",
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
@@ -112,7 +112,7 @@
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "司法管辖区",
+    "text": "管辖区域",
     "source_hash": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
@@ -124,11 +124,11 @@
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "未知司法管辖区",
+    "text": "未知管辖区域",
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "服务区域",
+    "text": "为您提供服务的区域",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -136,7 +136,7 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "当前司法管辖区：",
+    "text": "当前管辖区域：",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -148,15 +148,18 @@
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "要使用其他区域，请使用与账单联系邮箱关联的相同邮箱地址在该区域创建新账户。",
+    "text": "要使用不同的区域，请使用与您账单联系邮箱关联的相同邮箱地址在那里创建新账户。",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "如果您的账单联系邮箱与 Onetime Secret 账户邮箱不同，请使用账单联系邮箱创建新区域账户，以保留您的订阅权益。",
+    "text": "如果您的账单联系邮箱与 Onetime Secret 账户邮箱不同，请使用账单联系邮箱创建新区域账户以保留订阅权益。",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "您的订阅权益将自动应用于使用账单邮箱地址创建的任何账户。",
+    "text": "您的订阅权益将自动应用于使用您账单邮箱创建的任何账户。",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "目前没有可用的账户区域信息。"
   }
 }

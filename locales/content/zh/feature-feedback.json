@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "帮助内容在此处。",
+    "text": "帮助内容在此显示。",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "我会阅读这里收到的每一条反馈。这是我决定把时间花在哪里的方式。",
+    "text": "我会阅读这里收到的每一条反馈。这是我决定把时间花在哪里的依据。",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "如果有什么不对，或者您有关于它应该如何工作的想法，这里是正确的地方。",
+    "text": "如果有什么不对的地方，或者您有关于它应该如何运作的想法，这里就是合适的地方。",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "您似乎在报告账户邮箱被未授权更改的情况。请描述发生了什么，我们将立即调查。",
+    "text": "看起来您正在报告账户上的未授权邮箱更改。请描述发生了什么，我们会立即调查。",
     "source_hash": "00e56551"
   }
 }

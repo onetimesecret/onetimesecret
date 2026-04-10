@@ -24,7 +24,7 @@
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "查看我们的服务条款",
+    "text": "查看我们的条款和条件",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -36,7 +36,7 @@
     "source_hash": "54a57c31"
   },
   "web.footer.contact": {
-    "text": "联系我们",
+    "text": "联系",
     "source_hash": "2b5c3d26"
   },
   "web.footer.support": {
@@ -44,11 +44,11 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "法律信息",
+    "text": "法律",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "当您提交反馈时，我们会看到：",
+    "text": "当您提交反馈时，我们将看到：",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "我们最近添加了翻译功能。发现错误？{send-feedback}",
+    "text": "我们最近添加了翻译。发现错误？{send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -144,19 +144,19 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "我在看什么？",
+    "text": "这是什么？",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "您正在查看通过 Onetime Secret 分享给您的安全信息。此内容仅显示一次，然后将从我们的服务器永久删除。",
+    "text": "您正在查看通过 Onetime Secret 分享给您的安全消息。此内容仅显示一次，之后将从我们的服务器上永久删除。",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "我可以稍后再次查看此内容吗？",
+    "text": "以后还能再查看此内容吗？",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "不可以。出于安全考虑，此内容只能查看一次。关闭此页面后，内容将被永久删除，包括我们在内的任何人都无法恢复。",
+    "text": "不能。出于安全原因，此内容仅可查看一次。关闭此页面后，内容将被永久删除，包括我们在内的任何人都无法恢复。",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,15 +164,15 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "使用\"复制\"按钮复制全部内容。对于较长的内容，请在离开此页面前确认已复制完整。",
+    "text": "使用「复制到剪贴板」按钮复制全部内容。对于较长的内容，请在离开此页面前确认已完整复制。",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "我查看此内容会被追踪吗？",
+    "text": "我的查看行为会被追踪吗？",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "发送者会收到其内容已被查看的通知，但我们不会追踪是谁查看的或从何处查看。您的隐私受到保护。",
+    "text": "发送者会收到其内容已被查看的通知，但我们不会追踪谁查看了内容或从什么位置查看。您的隐私受到保护。",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
@@ -204,7 +204,7 @@
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "控制面板导航",
+    "text": "仪表板导航",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
@@ -216,7 +216,7 @@
     "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
-    "text": "{count} 个项目",
+    "text": "{count} 项",
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
@@ -228,7 +228,7 @@
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "设置选项",
+    "text": "设置分区",
     "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
@@ -236,7 +236,7 @@
     "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "设置选项",
+    "text": "设置分区",
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "访问 Onetime Secret 主页",
+    "text": "访问 Onetime Secret 首页",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -312,11 +312,11 @@
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "更改语言。当前语言为 {0}",
+    "text": "更改语言。当前语言为{0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "语言已更改为 {0}",
+    "text": "语言已更改为{0}",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
@@ -324,19 +324,22 @@
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "切换到 {0} 模式",
+    "text": "切换到{0}模式",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "{0} 模式已启用",
+    "text": "已启用{0}模式",
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "工作区",
+    "text": "工作空间",
     "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "工作区上下文",
+    "text": "工作空间上下文",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "工作空间"
   }
 }

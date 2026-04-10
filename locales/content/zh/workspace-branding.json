@@ -28,7 +28,7 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "预览和自定义",
+    "text": "预览与自定义",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "如有任何问题，请联系 onboarding{'@'}example.com",
+    "text": "如有疑问，请联系 onboarding{'@'}example.com",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "这是接收者将如何看到您的安全消息的交互式预览。您可以：- 使用上方的控件自定义颜色和字体 - 上传标志（建议最小 128x128 像素，最大 1MB）- 使用「查看内容」按钮测试预览",
+    "text": "这是收件人查看安全消息时的交互式预览。您可以：使用上方控件自定义颜色和字体；上传标志（建议最小 128x128 像素，最大 1MB）；使用「查看内容」按钮测试预览",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,7 +140,7 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "日文汉字「秘」(himitsu)，意为「秘密」或「机密」",
+    "text": "日文汉字「秘」（himitsu），意为「秘密」或「机密」",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "升级方案以自定义此域名的品牌。",
+    "text": "升级您的方案以自定义此域名的品牌。",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "品牌设置已成功保存"
   }
 }

@@ -4,15 +4,15 @@
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "客户发送了以下信息",
+    "text": "一位客户发送了以下信息",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} 向您发送了一条加密信息",
+    "text": "%{sender_email} 向您发送了内容",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "向您发送了一条加密信息：",
+    "text": "向您发送了内容：",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -52,11 +52,11 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "附：此邮件已发送至 %{email_address}。如果您没有创建账户，可以安全地忽略此消息。",
+    "text": "附注：此邮件发送至 %{email_address}。如果您没有创建账户，可以安全地忽略此消息。",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "重置您的密码 (%{display_domain})",
+    "text": "重置您的密码（%{display_domain}）",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
@@ -84,7 +84,7 @@
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "附：此邮件已发送至 %{email_address}。",
+    "text": "附注：此邮件发送至 %{email_address}。",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
@@ -92,7 +92,7 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "使用魔法链接登录",
+    "text": "通过魔法链接登录",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
@@ -108,7 +108,7 @@
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "此链接将在 15 分钟后过期。",
+    "text": "此链接将在15分钟后过期。",
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
@@ -120,27 +120,27 @@
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "附：此邮件已发送至 %{email_address}。",
+    "text": "附注：此邮件发送至 %{email_address}。",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "您收到了一条加密信息",
+    "text": "您收到了一条加密消息",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "您收到了一条安全信息：",
+    "text": "您收到了一条安全消息：",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "备注：",
+    "text": "备忘：",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "有人通过 %{display_domain} 向您发送了一条安全信息。",
+    "text": "有人通过 %{display_domain} 向您发送了一条安全消息。",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "点击下方链接查看此内容：",
+    "text": "要查看此内容，请点击下方链接：",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -152,11 +152,11 @@
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "此内容受口令保护。发送者应另行提供口令给您。",
+    "text": "此内容受口令保护。发送者应通过其他方式将口令提供给您。",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "需要口令:",
+    "text": "需要口令：",
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
@@ -180,7 +180,7 @@
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "这是一条自动通知。无需采取任何操作。",
+    "text": "这是一条自动通知，无需采取任何操作。",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -200,7 +200,7 @@
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "您的链接将在 %{time_remaining} 后过期",
+    "text": "您的一次性链接将在 %{time_remaining} 后过期",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
@@ -228,7 +228,7 @@
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "反馈于 %{date} 通过 %{display_domain} (%{strategy})",
+    "text": "%{date} 通过 %{display_domain} 的反馈（%{strategy}）",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
@@ -248,7 +248,7 @@
     "source_hash": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "内容：",
+    "text": "消息：",
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
@@ -264,7 +264,7 @@
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} 邀请您以 %{role_description} 身份加入「%{organization_name}」。",
+    "text": "%{inviter_email} 邀请您以%{role_description}身份加入「%{organization_name}」。",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "附：此邮件已发送至 %{invited_email}。如果您没有预期收到此邀请，可以安全地忽略此消息。",
+    "text": "附注：此邮件发送至 %{invited_email}。如果您没有预期收到此邀请，可以安全地忽略此消息。",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -300,7 +300,7 @@
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "您的密码已更改 (%{display_domain})",
+    "text": "您的密码已更改（%{display_domain}）",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
@@ -308,11 +308,11 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "您 %{product_name} 账户的密码已于 %{date} %{time} 更改。",
+    "text": "您的 %{product_name} 密码已于 %{date} %{time} 更改。",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "如果这不是您本人操作，请立即重置密码并联系支持团队以保护您的账户。",
+    "text": "如果这不是您进行的更改，请立即重置密码并联系支持以保护您的账户。",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -320,7 +320,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "您的邮箱地址已更改 (%{display_domain})",
+    "text": "您的邮箱地址已更改（%{display_domain}）",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
@@ -328,11 +328,11 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "您 %{product_name} 账户的邮箱地址已于 %{date} 更改为 %{new_email_masked}。",
+    "text": "您的 %{product_name} 账户邮箱地址已更改为 %{new_email_masked}。",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "如果这不是您本人操作，请立即联系支持团队，您的账户可能已被盗用。",
+    "text": "如果这不是您进行的更改，请立即联系支持，您的账户可能已被盗用。",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -340,19 +340,19 @@
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "新邮箱:",
+    "text": "新邮箱：",
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "更改时间:",
+    "text": "更改时间：",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "如果此更改由您本人操作，无需进一步处理。",
+    "text": "如果这是您进行的更改，无需进一步操作。",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "如果此更改并非由您操作，您的账户可能已被盗用。",
+    "text": "如果这不是您进行的更改，您的账户可能已被盗用。",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -364,7 +364,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "附: 此邮件已发送至 %{email_address}，通知您邮箱地址变更事宜。",
+    "text": "附注：此邮件发送至 %{email_address}，通知您邮箱地址已更改。",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -388,11 +388,11 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "如果是您发起的请求，请检查新邮箱中的确认链接。目前尚未进行任何更改。",
+    "text": "如果这是您发起的请求，请查收新邮箱中的确认链接。目前尚未进行任何更改。",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "如果您没有发起此请求，可以安全地忽略此邮件。您的账户未被更改。",
+    "text": "如果这不是您发起的请求，可以安全地忽略此邮件。您的账户未被更改。",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,11 +404,11 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "附：此邮件发送至 %{email_address}，因为有人请求更改您账户的邮箱地址。",
+    "text": "附注：此邮件发送至 %{email_address}，因为有人为您的账户请求了邮箱更改。",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
-    "text": "验证您的新邮箱地址 (%{display_domain})",
+    "text": "验证您的新邮箱地址（%{display_domain}）",
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
@@ -416,7 +416,7 @@
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "请验证此邮箱地址以完成您 %{product_name} 账户的更改。",
+    "text": "请验证此邮箱地址以完成您的 %{product_name} 账户更改。",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
@@ -436,11 +436,11 @@
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "此链接将在 %{hours} 小时后失效。",
+    "text": "此链接将在 %{hours} 小时后过期。",
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "如果您未请求此更改，可以安全地忽略此邮件。您的邮箱地址不会被更改。",
+    "text": "如果您没有请求此更改，可以安全地忽略此邮件。您的邮箱地址不会被更改。",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,11 +448,11 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "附: 此邮件已发送至 %{email_address}，用于确认邮箱地址变更。",
+    "text": "附注：此邮件发送至 %{email_address}，用于确认邮箱地址更改。",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
-    "text": "双因素认证已启用 (%{display_domain})",
+    "text": "双因素认证已启用（%{display_domain}）",
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
@@ -460,11 +460,11 @@
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "您 %{product_name} 账户的双因素认证已于 %{date} 启用。",
+    "text": "您的 %{product_name} 账户的双因素认证已于 %{date} 启用。",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "您的账户现在更安全了。登录时您需要输入身份验证器应用中的验证码。",
+    "text": "您的账户现在更加安全。登录时需要输入验证器应用中的验证码。",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -472,7 +472,7 @@
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "双因素认证已禁用 (%{display_domain})",
+    "text": "双因素认证已禁用（%{display_domain}）",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
@@ -480,11 +480,11 @@
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "您 %{product_name} 账户的双因素认证已于 %{date} 禁用。",
+    "text": "您的 %{product_name} 账户的双因素认证已于 %{date} 被禁用。",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "您的账户现在安全性较低。如果这不是您本人操作，请立即保护您的账户。",
+    "text": "您的账户安全性已降低。如果这不是您进行的更改，请立即保护您的账户。",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -492,15 +492,15 @@
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "您的账户有新登录 (%{display_domain})",
+    "text": "您的账户有新的登录（%{display_domain}）",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "检测到新登录",
+    "text": "检测到新的登录",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "检测到您的 %{product_name} 账户于 %{date} %{time} 有新登录。",
+    "text": "在 %{date} %{time}，检测到您的 %{product_name} 账户有新的登录。",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "如果这不是您本人，您的账户可能已被盗用。",
+    "text": "如果这不是您的操作，您的账户可能已被盗用。",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -528,15 +528,15 @@
     "source_hash": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "您已被从 %{organization_name} 中移除",
+    "text": "您已从 %{organization_name} 中被移除",
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "您已被从 %{organization_name} 中移除",
+    "text": "您已从 %{organization_name} 中被移除",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "您已被从 %{product_name} 上的组织「%{organization_name}」中移除。",
+    "text": "您已从 %{product_name} 上的组织「%{organization_name}」中被移除。",
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
@@ -552,7 +552,7 @@
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "您在「%{organization_name}」中的角色已从 %{old_role} 更改为 %{new_role}。",
+    "text": "您在「%{organization_name}」中的角色已从%{old_role}更改为%{new_role}。",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -560,7 +560,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "组织「%{organization_name}」已删除",
+    "text": "组织「%{organization_name}」已被删除",
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
@@ -608,19 +608,19 @@
     "source_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "%{product_name} 支付失败",
+    "text": "%{product_name} 付款失败",
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "支付失败",
+    "text": "付款失败",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "我们无法处理您 %{product_name} 的付款。请更新您的支付方式以避免服务中断。",
+    "text": "我们无法处理您的 %{product_name} 付款。请更新您的付款方式以避免服务中断。",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "更新支付方式",
+    "text": "更新付款方式",
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {

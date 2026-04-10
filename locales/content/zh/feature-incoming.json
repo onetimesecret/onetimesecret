@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "与我们的支持团队安全分享敏感信息",
+    "text": "安全地与我们的支持团队分享敏感信息",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,19 +20,19 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "此功能目前已禁用。请联系支持团队获取帮助。",
+    "text": "此功能目前已禁用。请联系支持获取帮助。",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "备注",
+    "text": "备忘",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "简要说明（例如：密码重置请求）",
+    "text": "简要描述（例如，密码重置请求）",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "帮助我们将您的信息转给合适的人",
+    "text": "帮助我们将您的消息转发给正确的人",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -40,23 +40,23 @@
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "选择接收者",
+    "text": "选择收件人",
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "选择此内容的接收者",
+    "text": "为此内容选择收件人",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "选择谁将收到此安全信息",
+    "text": "选择谁将收到此安全消息",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "没有可用的接收者",
+    "text": "没有可用的收件人",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "机密信息",
+    "text": "加密信息",
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
@@ -64,7 +64,7 @@
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "此信息将被加密且只能查看一次",
+    "text": "此信息将被加密，且仅可查看一次",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -84,11 +84,11 @@
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "清除表单",
+    "text": "清空表单",
     "source_hash": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "清除表单",
+    "text": "清空表单",
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
@@ -96,7 +96,7 @@
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "您的安全信息已送达。",
+    "text": "您的安全消息已送达。",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -104,15 +104,15 @@
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "接下来会发生什么？",
+    "text": "接下来会怎样？",
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "接收者只能查看此内容一次。查看后，内容将被永久删除。",
+    "text": "收件人只能查看此内容一次。查看后，内容将被永久删除。",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "发送另一条内容",
+    "text": "再发送一条内容",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
@@ -120,15 +120,36 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "让密码和私密数据远离邮件和聊天记录",
+    "text": "将密码和隐私数据从邮件和聊天记录中移除",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "请保存您的{receipt}作为记录。",
+    "text": "请保存您的{receipt}以备查阅。",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "回执",
+    "text": "记录",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "需要升级"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "此功能需要升级方案。请联系账户所有者以启用接收内容功能。"
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "备忘不能超过 {max} 个字符"
+  },
+  "incoming.validation_secret_required": {
+    "text": "内容为必填项"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "请选择收件人"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "接收内容功能未启用"
+  },
+  "incoming.validation_form_errors": {
+    "text": "请检查表单中的错误"
   }
 }

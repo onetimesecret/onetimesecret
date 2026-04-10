@@ -68,15 +68,15 @@
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
-    "text": "或继续使用",
+    "text": "或通过以下方式继续",
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
-    "text": "使用 SSO 登录",
+    "text": "通过 SSO 登录",
     "source_hash": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
-    "text": "使用 {provider} 登录",
+    "text": "通过 {provider} 登录",
     "source_hash": "b8794f11"
   },
   "web.auth.sso.signing_in": {
@@ -84,7 +84,7 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "SSO 登录失败。请重试。",
+    "text": "SSO 登录失败，请重试。",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
@@ -92,15 +92,15 @@
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "认证链接不完整。请重新获取登录链接。",
+    "text": "认证链接不完整。请重新请求登录链接。",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "此登录链接已过期。请重新获取。",
+    "text": "此登录链接已过期。请重新请求一个。",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "此登录链接无效。请重新获取。",
+    "text": "此登录链接无效。请重新请求一个。",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -116,7 +116,7 @@
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "账户创建错误",
+    "text": "创建账户错误",
     "source_hash": "e380a0b6"
   },
   "web.signup.password_error": {
@@ -143,7 +143,7 @@
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "此验证链接已过期。请申请新的链接。",
+    "text": "此验证链接已过期。请重新请求一个。",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
@@ -151,7 +151,7 @@
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "无法验证账户。请重试或联系支持团队。",
+    "text": "无法验证账户。请重试或联系支持。",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
@@ -159,7 +159,7 @@
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "账户验证失败。请检查您的验证链接或申请新的链接。",
+    "text": "账户验证失败。请检查验证链接或请求一个新的。",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -171,7 +171,7 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "请查收邮件中的最新验证链接",
+    "text": "请查收邮件中最新的验证链接",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
@@ -179,7 +179,7 @@
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "如果问题持续，请联系支持团队",
+    "text": "如问题持续，请联系支持",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "请使用发送到您邮箱的验证链接来验证您的账户。",
+    "text": "请使用发送到您邮箱地址的验证链接来验证您的账户。",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "更改密码失败，请确认您的当前密码并重试。",
+    "text": "更改密码失败。请确认当前密码后重试。",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -227,11 +227,11 @@
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "我了解此操作是永久性的",
+    "text": "我了解此操作不可逆",
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "输入您的密码以确认",
+    "text": "输入密码以确认",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
@@ -247,7 +247,7 @@
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "在下方输入您的邮箱地址，我们将向您发送重置密码的链接",
+    "text": "在下方输入您的邮箱地址，我们将向您发送密码重置链接",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
@@ -255,16 +255,16 @@
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "设置新密码",
+    "text": "选择新密码",
     "context": "Password reset request flow - user requests a reset link",
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "请在下方输入您的新密码。确保它足够强且唯一，以保护您的账户。",
+    "text": "请在下方输入新密码。确保密码强度高且唯一以保护您的账户。",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "已向您发送一封包含密码重置链接的邮件",
+    "text": "我们已向您发送了一封包含密码重置链接的邮件",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -345,35 +345,35 @@
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "登录问题排查",
+    "text": "登录故障排除",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "魔法链接没有收到？",
+    "text": "没收到魔法链接？",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "检查您的垃圾邮件文件夹",
+    "text": "请检查垃圾邮件文件夹",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "确认您输入的邮箱地址正确",
+    "text": "请确认邮箱地址输入正确",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "等待几分钟 - 邮件有时会延迟",
+    "text": "请等待几分钟——邮件有时会延迟",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "如果超过 10 分钟，请尝试申请新链接",
+    "text": "如果超过10分钟，请重新请求一个链接",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "忘记密码？",
+    "text": "忘记密码了？",
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "使用魔法链接选项无需密码登录。登录后，您可以在账户设置中更改密码。",
+    "text": "使用魔法链接选项无需密码即可登录。登录后，您可以在账户设置中更改密码。",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,11 +381,11 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "多次登录失败后，账户将被临时锁定以确保安全。请等待 15 分钟后重试，或使用魔法链接登录。",
+    "text": "多次登录失败后，账户会被临时锁定以确保安全。请等待15分钟后重试，或使用魔法链接登录。",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "仍需帮助？",
+    "text": "还需要帮助？",
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
@@ -397,6 +397,15 @@
     "source_hash": "f8d47b82"
   },
   "web.auth.verify._guidance.context": {
-    "text": "注册后的邮箱验证流程"
+    "text": "Email verification flow after signup"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO 账户"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "此域名支持单点登录"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "组织管理员可以启用 SSO 以允许团队成员在此登录。请联系管理员获取访问权限。"
   }
 }
