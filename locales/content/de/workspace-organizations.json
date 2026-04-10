@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung. Beginne, indem du deine erste Organisation erstellst.",
+    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung. Beginne mit dem Erstellen deiner ersten Organisation.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -68,7 +68,7 @@
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "z.B. Acme Corporation",
+    "text": "z. B. Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -88,7 +88,7 @@
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Hauptkontakt für Abrechnungs- und Administrationsbenachrichtigungen",
+    "text": "Hauptkontakt für Abrechnungs- und Verwaltungsbenachrichtigungen",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aktualisiere deinen Organisationsnamen und deine Beschreibung",
+    "text": "Aktualisiere deinen Organisationsnamen und die Beschreibung",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -140,7 +140,7 @@
     "source_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Abrechnung & Abonnement",
+    "text": "Abrechnung und Abonnement",
     "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
@@ -160,15 +160,15 @@
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Die Rechnungs-E-Mail kann auf der Abrechnungsübersicht-Seite geändert werden",
+    "text": "Rechnungs-E-Mail kann auf der Abrechnungsübersicht geändert werden",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Abrechnungsintegration bald verfügbar",
+    "text": "Abrechnungsintegration kommt bald",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Vereinheitlichte Abrechnungs- und Abonnementverwaltung wird in einer zukünftigen Version verfügbar sein.",
+    "text": "Einheitliche Abrechnungs- und Abonnementverwaltung wird in einer zukünftigen Version verfügbar sein.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,7 +176,7 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung für eine zentralisierte Steuerung.",
+    "text": "Organisationen bieten einheitliche Abrechnung und Verwaltung für zentralisiertes Management.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
@@ -184,7 +184,7 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Aktualisiere hier deinen Firmennamen und deine Organisationsdetails. Diese Informationen helfen dabei, dein Konto zu personalisieren und können für zukünftige Branding-Funktionen verwendet werden.",
+    "text": "Aktualisiere hier deinen Firmennamen und deine Organisationsdetails. Diese Informationen helfen, dein Konto zu personalisieren und können in Zukunft für Branding-Funktionen verwendet werden.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
+    "text": "Mitglieder",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Verwalte Organisationsmitglieder und ihre Rollen",
+    "text": "Organisationsmitglieder und deren Rollen verwalten",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -300,15 +300,15 @@
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Mitgliederrolle erfolgreich aktualisiert",
+    "text": "Mitgliedsrolle erfolgreich aktualisiert",
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Mitgliederrolle konnte nicht aktualisiert werden",
+    "text": "Rolle des Mitglieds konnte nicht aktualisiert werden",
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Mitglied aus Organisation entfernt",
+    "text": "Mitglied aus der Organisation entfernt",
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
@@ -332,7 +332,7 @@
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Du kannst den Organisationsinhaber nicht entfernen",
+    "text": "Du kannst den Eigentümer der Organisation nicht entfernen",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
@@ -340,7 +340,7 @@
     "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
-    "text": "Inhaber",
+    "text": "Eigentümer",
     "source_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
@@ -352,7 +352,7 @@
     "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Vollständiger Zugang zu allen Organisationseinstellungen und Mitgliedern",
+    "text": "Vollständiger Zugriff auf alle Organisationseinstellungen und Mitglieder",
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
@@ -360,7 +360,7 @@
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Grundlegender Zugang zu Organisationsressourcen",
+    "text": "Grundlegender Zugriff auf Organisationsressourcen",
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Mitglied",
+    "text": "Teammitglied",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -540,7 +540,7 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "Frühzeitiger Unterstützer",
+    "text": "Früher Unterstützer",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
@@ -592,7 +592,7 @@
     "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Wähle den Identitätsanbieter deiner Organisation",
+    "text": "Identitätsanbieter deiner Organisation auswählen",
     "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
@@ -600,11 +600,11 @@
     "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Ein benutzerfreundlicher Name, der Benutzern bei der Anmeldung angezeigt wird",
+    "text": "Ein benutzerfreundlicher Name, der Nutzern bei der Anmeldung angezeigt wird",
     "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "z.B. Acme Corp SSO",
+    "text": "z. B. Acme Corp SSO",
     "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
@@ -616,15 +616,15 @@
     "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Client-Geheimnis",
+    "text": "Client-Secret",
     "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Dein OAuth-Client-Geheimnis",
+    "text": "Dein OAuth-Client-Secret",
     "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "Leer lassen, um das bestehende Geheimnis beizubehalten",
+    "text": "Leer lassen, um das bestehende Secret beizubehalten",
     "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
@@ -632,11 +632,11 @@
     "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Deine Azure AD / Entra ID Mandantenkennung",
+    "text": "Deine Azure AD / Entra ID Mandanten-ID",
     "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "z.B. 12345678-1234-1234-1234-123456789abc",
+    "text": "z. B. 12345678-1234-1234-1234-123456789abc",
     "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
@@ -644,11 +644,11 @@
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "Die OIDC-Discovery-URL für deinen Identitätsanbieter",
+    "text": "Die OIDC-Discovery-URL deines Identitätsanbieters",
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "z.B. https://login.beispiel.de",
+    "text": "z. B. https://login.example.com",
     "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
@@ -656,15 +656,15 @@
     "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Nur Benutzer mit E-Mail-Adressen dieser Domains können sich anmelden. Leer lassen, um alle Domains zu erlauben.",
+    "text": "Nur Nutzer mit E-Mail-Adressen dieser Domains können sich anmelden. Leer lassen, um alle Domains zuzulassen.",
     "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "z.B. acme.de",
+    "text": "z. B. acme.com",
     "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Bitte gib eine gültige Domain ein (z.B. beispiel.de)",
+    "text": "Bitte gib eine gültige Domain ein (z. B. example.com)",
     "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
@@ -680,7 +680,7 @@
     "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Wenn aktiviert, können sich Organisationsmitglieder mit diesem SSO-Anbieter anmelden",
+    "text": "Wenn aktiviert, können sich Organisationsmitglieder über diesen SSO-Anbieter anmelden",
     "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
@@ -692,7 +692,7 @@
     "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Bist du sicher? Dies deaktiviert SSO für deine Organisation.",
+    "text": "Bist du sicher? Dadurch wird SSO für deine Organisation deaktiviert.",
     "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
@@ -724,7 +724,7 @@
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Prüft, ob der Identitätsanbieter erreichbar ist (validiert keine Anmeldedaten)",
+    "text": "Überprüft, ob der Identitätsanbieter erreichbar ist (validiert keine Anmeldedaten)",
     "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
@@ -732,7 +732,7 @@
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
-    "text": "Teste...",
+    "text": "Wird getestet...",
     "source_hash": "6c02a284"
   },
   "web.organizations.sso.test_error": {
@@ -770,5 +770,14 @@
   "web.organizations.sso.status_not_configured": {
     "text": "Nicht konfiguriert",
     "source_hash": "bbea960e"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Arbeitsbereiche ansehen und konfigurieren"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

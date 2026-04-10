@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(in den letzten 5 Minuten aktiv)",
+    "text": "(aktiv in den letzten 5 Minuten)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Systemkonfigurationseinstellungen bearbeiten. Änderungen werden nach dem Speichern sofort wirksam.",
+    "text": "Systemkonfigurationseinstellungen bearbeiten. Änderungen werden sofort nach dem Speichern wirksam.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -80,7 +80,7 @@
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Nicht gespeicherte Änderungen",
+    "text": "Ungespeicherte Änderungen",
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "Admin",
+    "text": "Administrator",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -132,11 +132,11 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "Willkommen bei Colonel",
+    "text": "Willkommen im Administratorbereich",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Administratives Kontrollzentrum für OneTimeSecret",
+    "text": "Administrativer Steuerungsbereich für OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
@@ -168,11 +168,11 @@
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Erstellte Nachrichten",
+    "text": "Nachrichten erstellt",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Geteilte Nachrichten",
+    "text": "Nachrichten geteilt",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
@@ -184,7 +184,7 @@
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Systemzustand",
+    "text": "Systemstatus",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
@@ -224,7 +224,7 @@
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Hintergrundaufgaben",
+    "text": "Hintergrundjobs",
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
@@ -264,15 +264,15 @@
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "Lade Warteschlangendaten...",
+    "text": "Warteschlangendaten werden geladen...",
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Tarif-Testmodus",
+    "text": "Plan-Testmodus",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Test als {planName}",
+    "text": "Testen als {planName}",
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
@@ -280,19 +280,19 @@
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Tarif zum Testen auswählen",
+    "text": "Wähle einen Plan zum Testen",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Auf aktuellen Tarif zurücksetzen",
+    "text": "Auf aktuellen Plan zurücksetzen",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Aktueller Tarif",
+    "text": "Aktueller Plan",
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "Verfügbare Tarife",
+    "text": "Verfügbare Pläne",
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
@@ -304,7 +304,7 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Teste deine Anwendung mit verschiedenen Tarifberechtigungen. Änderungen sind temporär und betreffen nur deine Sitzung.",
+    "text": "Teste deine Anwendung mit verschiedenen Plan-Berechtigungen. Änderungen sind temporär und betreffen nur deine Sitzung.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Synchronisierungszustand der Organisationsabrechnung überwachen",
+    "text": "Synchronisationsstatus der Organisationsabrechnung überwachen",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Abrechnungszustand-Monitor",
+    "text": "Abrechnungs-Statusmonitor",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -328,7 +328,7 @@
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count} erfordern Aufmerksamkeit",
+    "text": "{count} benötigen Aufmerksamkeit",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
@@ -340,7 +340,7 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "Synchronisierungsstatus",
+    "text": "Sync-Status",
     "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
@@ -404,11 +404,11 @@
     "source_hash": "45989de4"
   },
   "web.colonel.organizations.columns.owner": {
-    "text": "Inhaber",
+    "text": "Eigentümer",
     "source_hash": "4b1b8aa3"
   },
   "web.colonel.organizations.columns.plan": {
-    "text": "Tarif",
+    "text": "Plan",
     "source_hash": "fa8ed0bd"
   },
   "web.colonel.organizations.columns.members": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Organisationen verwalten und Abrechnungssynchronisierung überwachen ({total} gesamt)",
+    "text": "Organisationen verwalten und Abrechnungssynchronisation überwachen ({total} gesamt)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -456,7 +456,7 @@
     "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.status.active": {
-    "text": "Aktiv",
+    "text": "aktiv",
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
@@ -512,7 +512,7 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Ermittelter Tarif",
+    "text": "Ermittelter Plan",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
@@ -540,7 +540,7 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Alle Nachrichten anzeigen und verwalten",
+    "text": "Alle Nachrichten ansehen und verwalten",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
@@ -596,7 +596,7 @@
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
-    "text": "Benutzerdefinierte Domains",
+    "text": "Eigene Domains",
     "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {

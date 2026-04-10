@@ -4,11 +4,11 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Teile vertrauliche Informationen sicher mit unserem Support-Team",
+    "text": "Teile sensible Informationen sicher mit unserem Support-Team",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Laden...",
+    "text": "Lädt...",
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
@@ -24,11 +24,11 @@
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Notiz",
+    "text": "Memo",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Kurze Beschreibung (z. B. Anfrage zur Passwortzurücksetzung)",
+    "text": "Kurze Beschreibung (z. B. Anfrage zum Zurücksetzen des Passworts)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -44,11 +44,11 @@
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Empfänger für diese Nachricht auswählen",
+    "text": "Wähle einen Empfänger für diese Nachricht",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Wähle aus, wer diese sichere Nachricht erhalten soll",
+    "text": "Wähle, wer diese sichere Nachricht erhalten soll",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
@@ -56,15 +56,15 @@
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Vertrauliche Informationen",
+    "text": "Geheime Informationen",
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Füge vertrauliche Informationen hier ein (Passwörter, Schlüssel usw.)",
+    "text": "Sensible Informationen hier einfügen (Passwörter, Schlüssel usw.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Diese Informationen werden verschlüsselt und können nur einmal angesehen werden",
+    "text": "Diese Informationen werden verschlüsselt und sind nur einmal einsehbar",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -76,11 +76,11 @@
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Senden...",
+    "text": "Wird gesendet...",
     "source_hash": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Senden...",
+    "text": "Wird gesendet...",
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
@@ -116,7 +116,7 @@
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Vertrauliche Informationen sicher teilen",
+    "text": "Sensible Informationen sicher teilen",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
@@ -128,7 +128,28 @@
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "Quittung",
+    "text": "Empfangsbestätigung",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade erforderlich"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Diese Funktion erfordert ein Plan-Upgrade. Bitte kontaktiere den Kontoinhaber, um eingehende Nachrichten zu aktivieren."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Memo darf maximal {max} Zeichen lang sein"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Geheimer Inhalt ist erforderlich"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Bitte wähle einen Empfänger aus"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Die Funktion für eingehende Nachrichten ist nicht aktiviert"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Bitte überprüfe das Formular auf Fehler"
   }
 }

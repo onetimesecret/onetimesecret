@@ -9,7 +9,7 @@
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Powered by",
+    "text": "Bereitgestellt von",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -25,7 +25,7 @@
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "z.B. tom{'@'}myspace.com",
+    "text": "z. B. tom{'@'}myspace.com",
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Halte sensible Informationen aus deinen Chat-Protokollen und E-Mails fern. Teile einen geheimen Link, der nur einmal verfügbar ist.",
+    "text": "Halte sensible Informationen aus deinen Chat-Protokollen und E-Mails heraus. Teile einen geheimen Link, der nur ein einziges Mal verfügbar ist.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "geheimnis,passwortgenerator,nachricht teilen,einmalig",
+    "text": "geheimnis,passwort-generator,nachricht teilen,einmalig",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -161,7 +161,7 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Das Löschen einer Nachricht entfernt sie, bevor sie gelesen wurde (klicke zum Bestätigen)",
+    "text": "Beim Löschen wird die Nachricht entfernt, bevor sie gelesen wurde (zum Bestätigen klicken)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
@@ -173,11 +173,11 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Klicke zum Anzeigen →",
+    "text": "Zum Anzeigen klicken →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Weiter zur Verifizierung deines Kontos:",
+    "text": "Fahre fort, um dein Konto zu verifizieren:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Achtung: Wir zeigen es nur einmal.",
+    "text": "Achtung: Wir zeigen sie nur einmal an.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -305,11 +305,11 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Falls ein Konto mit dieser E-Mail existiert, erhältst du eine Verifizierungs-E-Mail.",
+    "text": "Falls ein Konto mit dieser E-Mail-Adresse existiert, erhältst du eine Verifizierungs-E-Mail.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Diese Nachricht dauerhaft löschen",
+    "text": "Diese Nachricht unwiderruflich löschen",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -325,11 +325,11 @@
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Das Löschen einer Nachricht entfernt sie, bevor sie empfangen wurde.",
+    "text": "Beim Löschen wird die Nachricht entfernt, bevor sie empfangen wurde.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Aus Sicherheitsgründen teile diesen Link getrennt von anderen Details.",
+    "text": "Teile diesen Link aus Sicherheitsgründen getrennt von anderen Details.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -337,7 +337,7 @@
     "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Eingang erstellen",
+    "text": "Eingehend erstellen",
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
@@ -345,11 +345,11 @@
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Verifizierung ist nicht gültig",
+    "text": "Verifizierung ist ungültig",
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Du kannst kein Konto verifizieren, während du bereits angemeldet bist",
+    "text": "Ein Konto kann nicht verifiziert werden, wenn du bereits angemeldet bist",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -401,7 +401,7 @@
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Vorsichtszone",
+    "text": "Zone der Vorsicht",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -425,7 +425,7 @@
     "source_hash": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Speichern...",
+    "text": "Wird gespeichert...",
     "source_hash": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
@@ -433,11 +433,11 @@
     "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "z.B.",
+    "text": "z. B.",
     "source_hash": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
-    "text": "z.B. {example}",
+    "text": "z. B. {example}",
     "source_hash": "cc921aaa"
   },
   "web.COMMON.about": {
@@ -465,7 +465,7 @@
     "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "ESC zum Schließen drücken",
+    "text": "ESC drücken zum Schließen",
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
@@ -485,7 +485,7 @@
     "source_hash": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "Darstellung",
+    "text": "Erscheinungsbild",
     "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
@@ -565,7 +565,7 @@
     "source_hash": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Sonstige",
+    "text": "Sonstiges",
     "source_hash": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
@@ -573,11 +573,11 @@
     "source_hash": "c8a306d0"
   },
   "web.COMMON.ctrl_enter": {
-    "text": "Strg + Eingabe",
+    "text": "Strg + Enter",
     "source_hash": "78192e6e"
   },
   "web.COMMON.enter_0": {
-    "text": "⌘ + Eingabe",
+    "text": "⌘ + Enter",
     "source_hash": "558acbab"
   },
   "web.COMMON.mac": {
@@ -585,7 +585,7 @@
     "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "E-Mail-Adresse in Zwischenablage kopiert!",
+    "text": "E-Mail-Adresse in die Zwischenablage kopiert!",
     "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
@@ -613,7 +613,7 @@
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "Großartig",
+    "text": "Sehr gut",
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
@@ -621,7 +621,7 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Mittelmäßig",
+    "text": "Akzeptabel",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
@@ -645,11 +645,11 @@
     "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Nachricht in Zwischenablage kopieren",
+    "text": "Nachricht in die Zwischenablage kopieren",
     "source_hash": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
-    "text": "Nachricht in Zwischenablage kopiert",
+    "text": "Nachricht in die Zwischenablage kopiert",
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
@@ -657,7 +657,7 @@
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Klicke unten auf die Kopieren-Schaltfläche.",
+    "text": "Drücke unten die Kopiertaste.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -697,7 +697,7 @@
     "source_hash": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "Gültigkeitsdauer",
+    "text": "Lebensdauer",
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
@@ -721,7 +721,7 @@
     "source_hash": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Speichern...",
+    "text": "Wird gespeichert...",
     "source_hash": "dc85af8f"
   },
   "web.LABELS.saved": {
@@ -765,7 +765,7 @@
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "In Zwischenablage kopieren",
+    "text": "In die Zwischenablage kopieren",
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
@@ -781,7 +781,7 @@
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Schließen",
+    "text": "Verwerfen",
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
@@ -829,7 +829,7 @@
     "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
-    "text": "Aktuelle Nachrichten",
+    "text": "Letzte Nachrichten",
     "source_hash": "0b907f8b"
   },
   "web.LABELS.pricing": {
@@ -845,7 +845,7 @@
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "Filtern",
+    "text": "Filter",
     "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
@@ -882,11 +882,11 @@
     "source_hash": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Links werden erstellt für",
+    "text": "Links erstellen für",
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "Nachrichten werden erstellt in {domain}",
+    "text": "Nachrichten erstellen in {domain}",
     "source_hash": "3bbed96b"
   },
   "web.STATUS.new": {
@@ -906,7 +906,7 @@
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
-    "text": "Vorschau angezeigt",
+    "text": "Vorschau angesehen",
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
@@ -958,51 +958,51 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Der geheime Link wurde erstellt und noch nicht angesehen",
+    "text": "Geheimer Link wurde erstellt und noch nicht angesehen",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Der geheime Link wurde erstellt und noch nicht angesehen",
+    "text": "Geheimer Link wurde erstellt und noch nicht angesehen",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Der geheime Link wurde geöffnet und kann angesehen werden",
+    "text": "Geheimer Link wurde geöffnet und kann angesehen werden",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Die Nachricht wurde dem Empfänger enthüllt",
+    "text": "Nachricht wurde dem Empfänger angezeigt",
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Der geheime Link wurde geöffnet und kann enthüllt werden",
+    "text": "Geheimer Link wurde geöffnet und kann enthüllt werden",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Der Nachrichteninhalt wurde dem Empfänger enthüllt",
+    "text": "Nachrichteninhalt wurde dem Empfänger angezeigt",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Die Nachricht wurde manuell gelöscht, bevor sie angesehen wurde",
+    "text": "Nachricht wurde manuell gelöscht, bevor sie angesehen wurde",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Die Nachricht wurde dauerhaft zerstört",
+    "text": "Nachricht wurde dauerhaft zerstört",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "Die Nachricht läuft bald ab",
+    "text": "Nachricht läuft bald ab",
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Die Nachricht ist verwaist und wird bald zerstört",
+    "text": "Nachricht ist verwaist und wird bald zerstört",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Die Nachricht ist abgelaufen, bevor sie angesehen wurde",
+    "text": "Nachricht ist abgelaufen, bevor sie angesehen wurde",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
-    "text": "Erfolg",
+    "text": "Erfolgreich",
     "source_hash": "c88a0b90"
   },
   "web.STATUS.delivered": {
@@ -1082,19 +1082,19 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} Aufruf-Limit",
+    "text": "{count} Aufrufe Limit",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
-    "text": "Noch {count} Tage",
+    "text": "{count} Tage verbleibend",
     "source_hash": "398e4024"
   },
   "web.UNITS.hours_remaining": {
-    "text": "Noch {count} Stunden",
+    "text": "{count} Stunden verbleibend",
     "source_hash": "717b6d58"
   },
   "web.UNITS.minutes_remaining": {
-    "text": "Noch {count} Minuten",
+    "text": "{count} Minuten verbleibend",
     "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
@@ -1126,7 +1126,7 @@
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "Abmelden",
+    "text": "Abmeldung",
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
@@ -1166,7 +1166,7 @@
     "source_hash": "67b69646"
   },
   "web.TITLES.recent": {
-    "text": "Aktuelle Nachrichten",
+    "text": "Letzte Nachrichten",
     "source_hash": "0b907f8b"
   },
   "web.TITLES.domains": {
@@ -1287,7 +1287,7 @@
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "Freigabeanweisungen",
+    "text": "Freigabeanleitung",
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Überprüfe immer, ob du auf der offiziellen Onetime Secret-Website bist. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst.",
+    "text": "Stelle immer sicher, dass du dich auf der offiziellen Onetime Secret Website befindest. Betrüger erstellen manchmal gefälschte Websites, die genau wie Onetime Secret aussehen, um deine Geheimnisse zu stehlen. Um Phishing-Angriffe zu vermeiden, überprüfe die Domain, bevor du neue Links erstellst.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1355,7 +1355,7 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Erstelle und teile Nachrichten mit Basisfunktionen. Keine Kreditkarte erforderlich.",
+    "text": "Erstelle und teile Nachrichten mit den Grundfunktionen. Keine Kreditkarte erforderlich.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
@@ -1364,7 +1364,7 @@
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "Dein Passwort wird benötigt, um diese Aktion abzuschließen",
+    "text": "Dein Passwort ist erforderlich, um diese Aktion abzuschließen",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
@@ -1374,7 +1374,7 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Dienst vorübergehend nicht verfügbar. Bitte versuche es in Kürze erneut.",
+    "text": "Der Dienst ist vorübergehend nicht verfügbar. Bitte versuche es in Kürze erneut.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
@@ -1387,5 +1387,53 @@
     "text": "Upgrade, um weitere Funktionen freizuschalten",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfigurieren"
+  },
+  "web.COMMON.add": {
+    "text": "Hinzufügen"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, löschen"
+  },
+  "web.COMMON.error_code": {
+    "text": "Fehlercode"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-Status"
+  },
+  "web.COMMON.details": {
+    "text": "Details"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Passwort bestätigen"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Passwörter müssen übereinstimmen"
+  },
+  "web.COMMON.and": {
+    "text": "und"
+  },
+  "web.COMMON.or": {
+    "text": "oder"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Passphrase anzeigen"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Passphrase verbergen"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domain-Einstellungen"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domain-SSO"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-Mail-Konfiguration"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Eingehende Nachrichten"
   }
 }

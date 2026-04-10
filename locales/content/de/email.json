@@ -4,7 +4,7 @@
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Ein Kunde hat folgende Informationen gesendet",
+    "text": "Ein Kunde hat die folgenden Informationen gesendet",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
@@ -28,7 +28,7 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Willkommen bei %{product_name} - Bitte bestätige deine E-Mail-Adresse",
+    "text": "Willkommen bei %{product_name} – Bitte bestätige deine E-Mail",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
@@ -40,11 +40,11 @@
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "E-Mail-Adresse bestätigen",
+    "text": "E-Mail-Adresse verifizieren",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Oder kopiere und füge diesen Link ein:",
+    "text": "Oder kopiere diesen Link:",
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
@@ -88,11 +88,11 @@
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Anmelden bei %{display_domain}",
+    "text": "Bei %{display_domain} anmelden",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Anmelden mit Magic Link",
+    "text": "Mit Magic Link anmelden",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
@@ -132,7 +132,7 @@
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Notiz:",
+    "text": "Memo:",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -140,7 +140,7 @@
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Um diese Nachricht anzuzeigen, klicke auf den Link unten:",
+    "text": "Um diese Nachricht anzusehen, klicke auf den folgenden Link:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -196,15 +196,15 @@
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Dein Nachrichtenlink läuft bald ab",
+    "text": "Dein geheimer Link läuft bald ab",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Dein Nachrichtenlink läuft in %{time_remaining} ab",
+    "text": "Dein geheimer Link läuft in %{time_remaining} ab",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Nachricht ansehen, bevor sie abläuft",
+    "text": "Deine Nachricht ansehen, bevor sie abläuft",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
@@ -220,7 +220,7 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Ansehen, bevor sie weg ist:",
+    "text": "Sieh sie dir an, bevor sie weg ist:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
@@ -228,11 +228,11 @@
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Feedback vom %{date} über %{display_domain} (%{strategy})",
+    "text": "Feedback am %{date} über %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Benutzerfeedback",
+    "text": "Benutzer-Feedback",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
@@ -328,7 +328,7 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Die E-Mail-Adresse für dein %{product_name}-Konto wurde am %{date} auf %{new_email_masked} geändert.",
+    "text": "Die E-Mail-Adresse deines %{product_name}-Kontos wurde in %{new_email_masked} geändert.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -348,7 +348,7 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Wenn du diese Änderung vorgenommen hast, ist keine weitere Aktion erforderlich.",
+    "text": "Wenn du diese Änderung vorgenommen hast, sind keine weiteren Schritte erforderlich.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
@@ -420,11 +420,11 @@
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "E-Mail-Adresse bestätigen",
+    "text": "E-Mail-Adresse verifizieren",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Es wurde eine Anfrage gestellt, die E-Mail-Adresse deines %{product_name}-Kontos zu %{new_email} zu ändern.",
+    "text": "Es wurde angefordert, die E-Mail-Adresse deines %{product_name}-Kontos in %{new_email} zu ändern.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet, um eine E-Mail-Adressänderung zu bestätigen.",
+    "text": "P.S. Diese E-Mail wurde an %{email_address} gesendet, um eine Änderung der E-Mail-Adresse zu bestätigen.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -464,7 +464,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Dein Konto ist jetzt sicherer. Du musst bei der Anmeldung einen Bestätigungscode aus deiner Authenticator-App eingeben.",
+    "text": "Dein Konto ist jetzt sicherer. Du musst beim Anmelden einen Verifizierungscode aus deiner Authenticator-App eingeben.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -576,11 +576,11 @@
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Zahlungsbeleg für %{product_name}",
+    "text": "Zahlungsbestätigung für %{product_name}",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Zahlungsbeleg",
+    "text": "Zahlungsbestätigung",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
@@ -596,7 +596,7 @@
     "source_hash": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Tarif:",
+    "text": "Plan:",
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
@@ -628,7 +628,7 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Deine %{product_name} Testphase läuft in %{days_remaining} Tagen ab",
+    "text": "Deine %{product_name}-Testphase läuft in %{days_remaining} Tagen ab",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
@@ -636,7 +636,7 @@
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Deine kostenlose Testphase von %{product_name} läuft in %{days_remaining} Tagen ab. Führe jetzt ein Upgrade durch, um weiterhin Zugriff auf alle Funktionen zu haben.",
+    "text": "Deine kostenlose Testphase von %{product_name} läuft in %{days_remaining} Tagen ab. Upgrade jetzt, um Zugang zu allen Funktionen zu behalten.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -656,11 +656,11 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Dein %{product_name}-Abonnement wurde von %{old_plan} zu %{new_plan} geändert.",
+    "text": "Dein %{product_name}-Abonnement wurde von %{old_plan} auf %{new_plan} geändert.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Diese Änderung gilt ab dem %{date}.",
+    "text": "Diese Änderung gilt ab %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
@@ -680,7 +680,7 @@
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Im Browser anzeigen",
+    "text": "Im Browser ansehen",
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {

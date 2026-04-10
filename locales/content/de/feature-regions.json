@@ -1,18 +1,18 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Datensouveränität und regionale Isolierung",
+    "text": "Datensouveränität und regionale Isolation",
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Deine Daten befinden sich ausschließlich in der von dir gewählten Region und werden niemals zwischen Regionen übertragen",
+    "text": "Deine Daten befinden sich ausschließlich in deiner gewählten Region und werden niemals zwischen Regionen übertragen",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Jede Region arbeitet als vollständig unabhängige Umgebung mit eigener Infrastruktur, Verschlüsselungsschlüsseln und Datenspeicherung",
+    "text": "Jede Region arbeitet als vollständig unabhängige Umgebung mit eigener Infrastruktur, eigenen Verschlüsselungsschlüsseln und eigenem Datenspeicher",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Wir verfolgen eine strikte Richtlinie: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen",
+    "text": "Wir verfolgen eine strenge Richtlinie: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Stelle sicher, dass deine persönlichen Daten gemäß den Datenschutzgesetzen und -vorschriften deines Landes behandelt werden und unbefugter Zugriff oder Missbrauch verhindert wird.",
+    "text": "Stelle sicher, dass deine persönlichen Informationen gemäß den Datenschutzgesetzen und -vorschriften deines Landes behandelt werden, um unbefugten Zugriff oder Missbrauch zu verhindern.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Erfülle die Anforderungen von DSGVO, HIPAA, CCPA und anderen regionalen Datenschutzbestimmungen",
+    "text": "Erfülle DSGVO-, HIPAA-, CCPA- und andere regionale Datenschutzanforderungen",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -112,7 +112,7 @@
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "Rechtsgebiet",
+    "text": "Gerichtsbarkeit",
     "source_hash": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
@@ -124,11 +124,11 @@
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Unbekanntes Rechtsgebiet",
+    "text": "Unbekannte Gerichtsbarkeit",
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Wir bedienen dich aus",
+    "text": "Bereitgestellt aus",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -136,7 +136,7 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Aktuelles Rechtsgebiet:",
+    "text": "Aktuelle Gerichtsbarkeit:",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -144,7 +144,7 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Unsere Richtlinie ist es, niemals Daten zwischen Regionen zu übertragen. Jede Region arbeitet als vollständig unabhängige Umgebung.",
+    "text": "Unsere Richtlinie sieht vor, niemals Daten zwischen Regionen zu übertragen. Jede Region arbeitet als vollständig unabhängige Umgebung.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
@@ -152,11 +152,14 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Wenn deine Rechnungskontakt-E-Mail von deiner Onetime Secret Konto-E-Mail abweicht, verwende die Rechnungskontakt-E-Mail für das neue Regionskonto, um deine Abonnementvorteile beizubehalten.",
+    "text": "Wenn sich deine Rechnungskontakt-E-Mail von deiner Onetime Secret Konto-E-Mail unterscheidet, verwende die Rechnungskontakt-E-Mail für das neue Regionskonto, um deine Abonnementvorteile beizubehalten.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Deine Abonnementvorteile gelten automatisch für jedes Konto, das mit deiner Rechnungs-E-Mail-Adresse erstellt wurde.",
+    "text": "Deine Abonnementvorteile werden automatisch auf jedes Konto angewendet, das mit deiner Rechnungs-E-Mail-Adresse erstellt wird.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Für dein Konto sind derzeit keine Regionsinformationen verfügbar."
   }
 }
