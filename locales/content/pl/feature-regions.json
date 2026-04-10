@@ -4,19 +4,19 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Twoje dane znajdują się wyłącznie w wybranym regionie i nigdy nie są transferowane między regionami",
+    "text": "Twoje dane znajdują się wyłącznie w wybranym regionie i nigdy nie są przesyłane między regionami",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Każdy region działa jako całkowicie niezależne środowisko z własną infrastrukturą, kluczami szyfrowania i pamięcią masową danych",
+    "text": "Każdy region działa jako całkowicie niezależne środowisko z własną infrastrukturą, kluczami szyfrowania i przechowywaniem danych",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Utrzymujemy ścisłą politykę: dane klientów nigdy nie są transferowane między regionami w żadnych okolicznościach",
+    "text": "Stosujemy ścisłą zasadę: dane klientów nigdy nie są przesyłane między regionami w żadnych okolicznościach",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Ważne: przejście do innego regionu powoduje utworzenie nowego konta. Twoje dane pozostają w oryginalnym regionie.",
+    "text": "Ważne: Przełączenie na inny region tworzy nowe konto. Twoje dane pozostają w oryginalnym regionie.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Wiesz dokładnie, gdzie znajdują się Twoje dane i jakie przepisy regulują ich ochronę.",
+    "text": "Wiedz dokładnie, gdzie przechowywane są Twoje dane i jakie przepisy regulują ich ochronę.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Upewnij się, że Twoje dane osobowe są przetwarzane zgodnie z przepisami o ochronie prywatności w Twoim kraju, zapobiegając nieautoryzowanemu dostępowi lub niewłaściwemu wykorzystaniu.",
+    "text": "Upewnij się, że Twoje dane osobowe są przetwarzane zgodnie z przepisami o ochronie prywatności Twojego kraju, zapobiegając nieautoryzowanemu dostępowi lub niewłaściwemu wykorzystaniu.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Spełnij wymagania RODO, HIPAA, CCPA i innych regionalnych przepisów o ochronie danych",
+    "text": "Spełniaj wymagania RODO, HIPAA, CCPA i innych regionalnych przepisów o ochronie danych",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Dane przechowywane bliżej Ciebie oznaczają niższe opóźnienia i lepszą wydajność.",
+    "text": "Dane przechowywane bliżej Ciebie oznaczają mniejsze opóźnienia i lepszą wydajność.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -140,7 +140,7 @@
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Zmiana regionu",
+    "text": "Zmiana regionów",
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
@@ -148,7 +148,7 @@
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Aby korzystać z innego regionu, utwórz tam nowe konto, używając tego samego adresu e-mail, który jest powiązany z Twoim adresem kontaktowym do rozliczeń.",
+    "text": "Aby korzystać z innego regionu, utwórz tam nowe konto, używając tego samego adresu e-mail powiązanego z Twoim adresem do rozliczeń.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
@@ -158,5 +158,8 @@
   "web.regions.changing_regions_subscription_note": {
     "text": "Korzyści z Twojej subskrypcji zostaną automatycznie zastosowane do każdego konta utworzonego z Twoim adresem e-mail do rozliczeń.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Informacje o regionie nie są obecnie dostępne dla Twojego konta."
   }
 }

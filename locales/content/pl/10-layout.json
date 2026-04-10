@@ -4,11 +4,11 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Przewodnik brandingowy",
+    "text": "Przewodnik po marce",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "Dostosuj",
+    "text": "Personalizuj",
     "source_hash": "c5276e27"
   },
   "web.footer.plans": {
@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Dowiedz się o naszych środkach bezpieczeństwa",
+    "text": "Dowiedz się o naszych zabezpieczeniach",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Zobacz nasze warunki korzystania",
+    "text": "Zobacz nasz regulamin",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -44,7 +44,7 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Prawne",
+    "text": "Informacje prawne",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
@@ -68,7 +68,7 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Uzyskaj dostęp do naszej dokumentacji",
+    "text": "Przejdź do naszej dokumentacji",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
@@ -144,7 +144,7 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Co widzę?",
+    "text": "Co tu widzę?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
@@ -156,15 +156,15 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nie. Ze względów bezpieczeństwa ten sekret można wyświetlić tylko raz. Po zamknięciu tej strony treść zostanie trwale usunięta i nie będzie mogła zostać odzyskana przez nikogo, w tym przez nas.",
+    "text": "Nie. Ze względów bezpieczeństwa ten sekret można wyświetlić tylko raz. Po zamknięciu tej strony treść zostanie trwale usunięta i nikt, łącznie z nami, nie będzie mógł jej odzyskać.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Jak zapisać te informacje?",
+    "text": "Jak mogę zapisać te informacje?",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Użyj przycisku 'Kopiuj do schowka', aby skopiować cały sekret. W przypadku dłuższych sekretów upewnij się, że skopiowałeś całą treść przed opuszczeniem tej strony.",
+    "text": "Użyj przycisku \"Kopiuj do schowka\", aby skopiować cały sekret. W przypadku dłuższych sekretów upewnij się, że skopiowałeś całą treść przed opuszczeniem tej strony.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -176,11 +176,11 @@
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Po opuszczeniu lub odświeżeniu tej strony sekret zostanie trwale usunięty i nie będzie mógł zostać odzyskany przez nikogo.",
+    "text": "Po opuszczeniu lub odświeżeniu tej strony ten sekret zostanie trwale usunięty i nikt nie będzie mógł go odzyskać.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Wróć do poprzedniej strony",
+    "text": "Wróć na poprzednią stronę",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
@@ -192,7 +192,7 @@
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Przekaż opinię",
+    "text": "Wyślij opinię",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -212,7 +212,7 @@
     "source_hash": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Główna nawigacja",
+    "text": "Nawigacja główna",
     "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
@@ -244,15 +244,15 @@
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Wróć do strony głównej",
+    "text": "Wróć na stronę główną",
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Wróć do strony głównej",
+    "text": "Wróć na stronę główną",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Wróć do strony głównej",
+    "text": "Wróć na stronę główną",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
@@ -260,7 +260,7 @@
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Zobacz warunki korzystania z usługi",
+    "text": "Zobacz regulamin usługi",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
@@ -268,11 +268,11 @@
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Nawigacja stopki",
+    "text": "Nawigacja w stopce",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Warunki korzystania z usługi",
+    "text": "Regulamin usługi",
     "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
@@ -316,11 +316,11 @@
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Język zmieniono na {0}",
+    "text": "Język zmieniony na {0}",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
-    "text": "Zresetuj do {0}",
+    "text": "Resetuj do {0}",
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Kontekst przestrzeni roboczej",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Przestrzeń robocza"
   }
 }

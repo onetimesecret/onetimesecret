@@ -32,11 +32,11 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizacje zapewniają ujednolicone płatności i administrację. Zacznij od utworzenia pierwszej organizacji.",
+    "text": "Organizacje zapewniają ujednolicone płatności i administrację. Zacznij od utworzenia swojej pierwszej organizacji.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Brak opisu",
+    "text": "Nie podano opisu",
     "source_hash": "41183d01"
   },
   "web.organizations.default": {
@@ -84,11 +84,11 @@
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "E-mail do płatności",
+    "text": "E-mail rozliczeniowy",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Główny kontakt dla powiadomień o płatnościach i administracji",
+    "text": "Główny kontakt dla powiadomień rozliczeniowych i administracyjnych",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -100,7 +100,7 @@
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
-    "text": "Organizacja nie znaleziona",
+    "text": "Nie znaleziono organizacji",
     "source_hash": "00c50f7a"
   },
   "web.organizations.load_error": {
@@ -156,11 +156,11 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "E-mail do płatności zaktualizowany pomyślnie",
+    "text": "E-mail rozliczeniowy zaktualizowany pomyślnie",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "E-mail do płatności można zmienić na stronie Przegląd płatności",
+    "text": "E-mail rozliczeniowy można zmienić na stronie Przegląd płatności",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Ujednolicone zarządzanie płatnościami i subskrypcjami będzie dostępne w przyszłej wersji.",
+    "text": "Ujednolicone zarządzanie płatnościami i subskrypcjami będzie dostępne w przyszłym wydaniu.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,7 +176,7 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organizacje zapewniają ujednolicone płatności i administrację dla scentralizowanego zarządzania.",
+    "text": "Organizacje zapewniają ujednolicone płatności i administrację do scentralizowanego zarządzania.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
@@ -184,19 +184,19 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Zaktualizuj tutaj nazwę firmy i szczegóły organizacji. Te informacje pomagają personalizować Twoje konto i mogą być używane do funkcji brandingowych w przyszłości.",
+    "text": "Zaktualizuj tutaj nazwę firmy i szczegóły organizacji. Te informacje pomagają spersonalizować Twoje konto i mogą być wykorzystywane do funkcji brandingowych w przyszłości.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Pierwsze kroki z organizacjami",
+    "text": "Wprowadzenie do organizacji",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Utwórz pierwszą organizację, aby zarządzać informacjami o firmie i przygotować się do przyszłych funkcji brandingowych.",
+    "text": "Utwórz swoją pierwszą organizację, aby zarządzać informacjami o firmie i przygotować się na przyszłe funkcje brandingowe.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Zarządzaj swoimi organizacjami i członkami zespołu",
+    "text": "Zarządzaj organizacjami i członkami zespołu",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Zespół",
+    "text": "Członkowie",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "To trwale usunie organizację. Tej operacji nie można cofnąć.",
+    "text": "To trwale usunie organizację. Tej czynności nie można cofnąć.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -240,7 +240,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Czy na pewno chcesz usunąć {name}? Tej operacji nie można cofnąć.",
+    "text": "Czy na pewno chcesz usunąć {name}? Tej czynności nie można cofnąć.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -324,7 +324,7 @@
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Nie możesz zmienić swojej własnej roli",
+    "text": "Nie możesz zmienić własnej roli",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "czlonek{'@'}przyklad.pl",
+    "text": "member{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -420,7 +420,7 @@
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Nie udało się wysłać ponownie zaproszenia",
+    "text": "Nie udało się ponownie wysłać zaproszenia",
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Członek",
+    "text": "Członek zespołu",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -488,11 +488,11 @@
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Zostałeś zaproszony do dołączenia do",
+    "text": "Zaproszono Cię do dołączenia do",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Zostałeś zaproszony jako",
+    "text": "Zaproszono Cię jako",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -532,7 +532,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Zaproszenia członków zespołu wymagają planu z zarządzaniem zespołami. Ulepsz, aby dodać współpracowników do swojej organizacji.",
+    "text": "Zaproszenia członków zespołu wymagają planu z zarządzaniem zespołem. Ulepsz, aby dodać współpracowników do swojej organizacji.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -544,11 +544,11 @@
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
-    "text": "{count} członek | {count} członków | {count} członków",
+    "text": "{count} członek | {count} członków",
     "source_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} domena | {count} domeny | {count} domen",
+    "text": "{count} domena | {count} domen",
     "source_hash": "09f52efa"
   },
   "web.organizations.tabs.domains": {
@@ -568,15 +568,201 @@
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "pozostało {days}d",
+    "text": "Pozostało {days}d",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "pozostało {hours}g",
+    "text": "Pozostało {hours}h",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Wkrótce wygasa",
+    "text": "Wkrótce wygaśnie",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Wyświetl i konfiguruj przestrzenie robocze"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "przez {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "jako {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Wróć na stronę główną"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "To zaproszenie zostało wysłane na ten adres e-mail"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Kontynuuj"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Zaloguj się i zaakceptuj zaproszenie"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Przejdź do organizacji"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Jesteś już członkiem tej organizacji"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Dołącz do {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Zaloguj się, aby dołączyć do {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Odrzuć"
+  },
+  "web.organizations.sso.title": {
+    "text": "Jednokrotne logowanie (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Skonfiguruj SSO, aby członkowie mogli logować się za pomocą dostawcy tożsamości organizacji"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Typ dostawcy"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Wybierz dostawcę tożsamości swojej organizacji"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nazwa wyświetlana"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Przyjazna nazwa wyświetlana użytkownikom podczas logowania"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "np. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID klienta"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Twój identyfikator klienta OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Tajny klucz klienta"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Twój tajny klucz klienta OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Pozostaw puste, aby zachować istniejący klucz"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID dzierżawcy"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Identyfikator dzierżawcy Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "np. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL wystawcy"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "URL odkrywania OIDC Twojego dostawcy tożsamości"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "np. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Dozwolone domeny e-mail"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Tylko użytkownicy z adresami e-mail z tych domen mogą się logować. Pozostaw puste, aby zezwolić na wszystkie domeny."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "np. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Wprowadź prawidłową domenę (np. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Ta domena jest już na liście"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Usuń {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Włącz SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Po włączeniu członkowie organizacji mogą logować się za pomocą tego dostawcy SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Zapisz konfigurację SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Usuń konfigurację"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Czy na pewno? To wyłączy SSO dla Twojej organizacji."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Nie udało się załadować konfiguracji SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Nie udało się zapisać konfiguracji SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Konfiguracja SSO utworzona pomyślnie"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Konfiguracja SSO zaktualizowana pomyślnie"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Konfiguracja SSO usunięta pomyślnie"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Nie udało się usunąć konfiguracji SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testuj połączenie"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Sprawdź, czy dostawca tożsamości jest osiągalny (nie weryfikuje poświadczeń)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testuj połączenie"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testowanie..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Nie udało się przetestować połączenia"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Endpoint autoryzacji"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Brakujące pola"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Włączone"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Skonfigurowane"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO domeny"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Konfiguruj SSO dla każdej zweryfikowanej domeny"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Aby zmienić dostawcę, najpierw usuń tę konfigurację"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Nie skonfigurowane"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Zespół"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

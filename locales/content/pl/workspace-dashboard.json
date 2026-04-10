@@ -1,10 +1,10 @@
 {
   "web.dashboard.title_received": {
-    "text": "Odebrano",
+    "text": "Otrzymane",
     "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Nie odebrano",
+    "text": "Nie otrzymane",
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
@@ -16,7 +16,7 @@
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Nie można załadować danych",
+    "text": "Nie udało się załadować danych",
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {

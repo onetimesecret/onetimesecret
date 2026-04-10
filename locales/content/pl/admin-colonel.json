@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(aktywni w ciągu ostatnich 5 minut)",
+    "text": "(aktywne w ciągu ostatnich 5 minut)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Edytuj ustawienia konfiguracji systemu. Zmiany są stosowane natychmiast po zapisaniu.",
+    "text": "Edytuj ustawienia konfiguracji systemu. Zmiany zaczynają obowiązywać natychmiast po zapisaniu.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -132,11 +132,11 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "Witaj w Colonel",
+    "text": "Witamy w Colonel",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Panel administracyjny dla OneTimeSecret",
+    "text": "Panel administracyjny OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
@@ -148,7 +148,7 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Zobacz wszystko",
+    "text": "Wyświetl wszystko",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
@@ -156,7 +156,7 @@
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Łącznie sekretów",
+    "text": "Wszystkie sekrety",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -176,7 +176,7 @@
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Łącznie użytkowników",
+    "text": "Wszyscy użytkownicy",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
@@ -192,7 +192,7 @@
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Zobacz aktywność",
+    "text": "Wyświetl aktywność",
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
@@ -216,7 +216,7 @@
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "Ustawienia systemu",
+    "text": "Ustawienia systemowe",
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
@@ -244,7 +244,7 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Przetwarzanie/s",
+    "text": "Tempo/s",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
@@ -256,7 +256,7 @@
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "aktywni workerzy",
+    "text": "aktywne workery",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Przywróć rzeczywisty plan",
+    "text": "Resetuj do rzeczywistego planu",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -368,11 +368,11 @@
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "W okresie próbnym",
+    "text": "Okres próbny",
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "Zaległe",
+    "text": "Zaległa płatność",
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Zarządzaj organizacjami i monitoruj stan synchronizacji płatności ({total} łącznie)",
+    "text": "Zarządzaj organizacjami i monitoruj stan synchronizacji płatności ({total} razem)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -520,7 +520,7 @@
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
-    "text": "Lokalny",
+    "text": "Lokalne",
     "source_hash": "8c31e6e7"
   },
   "web.colonel.organizations.investigation.stripe": {
@@ -540,7 +540,7 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Wyświetl i zarządzaj wszystkimi sekretami",
+    "text": "Przeglądaj i zarządzaj wszystkimi sekretami",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
@@ -564,7 +564,7 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.systemSettings.description": {
-    "text": "Ustawienia systemu, bazy danych i konfiguracja",
+    "text": "Ustawienia systemowe, bazy danych i konfiguracja",
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
@@ -608,7 +608,7 @@
     "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
-    "text": "Baza danych autoryzacji",
+    "text": "Baza danych uwierzytelniania",
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
@@ -620,7 +620,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
-    "text": "Informacje systemowe",
+    "text": "Informacje o systemie",
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {

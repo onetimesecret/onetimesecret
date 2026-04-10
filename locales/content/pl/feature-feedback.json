@@ -32,11 +32,11 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Czytam każdą opinię, która tu trafia. W ten sposób określam, na co poświęcić czas.",
+    "text": "Czytam każdą opinię, która tu trafia. Dzięki temu wiem, na co poświęcić czas.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Jeśli coś jest nie tak lub masz pomysły na to, jak to powinno działać, to jest właściwe miejsce.",
+    "text": "Jeśli coś nie działa, albo masz pomysły, jak powinno działać, to jest właściwe miejsce.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Wygląda na to, że zgłaszasz nieautoryzowaną zmianę adresu e-mail na swoim koncie. Opisz, co się stało, a my natychmiast to zbadamy.",
+    "text": "Wygląda na to, że zgłaszasz nieautoryzowaną zmianę e-maila na swoim koncie. Opisz, co się wydarzyło, a my natychmiast to zbadamy.",
     "source_hash": "00e56551"
   }
 }

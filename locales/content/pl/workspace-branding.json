@@ -28,7 +28,7 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Podgląd i dostosowywanie",
+    "text": "Podgląd i personalizacja",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instrukcje przed wyświetleniem",
+    "text": "Instrukcje przed odsłonięciem",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instrukcje po wyświetleniu",
+    "text": "Instrukcje po odsłonięciu",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -84,7 +84,7 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Kontrolki logo",
+    "text": "Elementy sterujące logo",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -120,7 +120,7 @@
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Ikona dostosowywania",
+    "text": "Ikona personalizacji",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "To interaktywny podgląd, jak odbiorcy zobaczą Twoje bezpieczne wiadomości. Możesz: - Dostosować kolory i czcionki za pomocą kontrolek powyżej - Przesłać logo (zalecane minimum 128x128 pikseli, maks. 1MB) - Przetestować podgląd za pomocą przycisku \"Wyświetl sekret\"",
+    "text": "To jest interaktywny podgląd tego, jak odbiorcy zobaczą Twoje bezpieczne wiadomości. Możesz: - Dostosować kolory i czcionki za pomocą elementów sterujących powyżej - Przesłać logo (zalecane minimum 128x128 pikseli, maks. 1MB) - Przetestować podgląd za pomocą przycisku \"Wyświetl sekret\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,7 +140,7 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japoński znak kanji '秘' (himitsu) oznaczający 'sekret' lub 'poufny'",
+    "text": "Japoński znak kanji '秘' (himitsu) oznaczający 'tajemnica' lub 'poufność'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -170,5 +170,8 @@
   "web.branding.upgrade_to_customize": {
     "text": "Ulepsz swój plan, aby dostosować branding dla tej domeny.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Ustawienia marki zapisane pomyślnie"
   }
 }

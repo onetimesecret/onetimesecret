@@ -17,15 +17,15 @@
     "source_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Wygeneruj hasło",
+    "text": "Generuj hasło",
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Generowanie hasła jest wyłączone, gdy formularz jest poprawny",
+    "text": "Generowanie hasła jest wyłączone, gdy formularz jest prawidłowy",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "np. jan{'@'}przyklad.pl",
+    "text": "np. tom{'@'}myspace.com",
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Chroń poufne informacje przed zapisaniem w historii czatu i e-mailach. Udostępnij link do sekretu, który jest dostępny tylko raz.",
+    "text": "Chroń poufne informacje przed zapisaniem w logach czatu i wiadomościach e-mail. Udostępnij tajny link dostępny tylko raz.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -77,7 +77,7 @@
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Utwórz link do sekretu",
+    "text": "Utwórz tajny link",
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
@@ -121,7 +121,7 @@
     "source_hash": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Wyloguj",
+    "text": "Wyloguj się",
     "source_hash": "d0527e4b"
   },
   "web.COMMON.secret": {
@@ -161,11 +161,11 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Zniszczenie sekretu spowoduje jego usunięcie przed odczytaniem (kliknij, aby potwierdzić)",
+    "text": "Zniszczenie sekretu usunie go, zanim zostanie odczytany (kliknij, aby potwierdzić)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Zniszczenie sekretu jest trwałe i nie można tego cofnąć",
+    "text": "Zniszczenie sekretu jest nieodwracalne",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -173,7 +173,7 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Kliknij, aby wyświetlić →",
+    "text": "Kliknij, aby odsłonić →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
@@ -181,7 +181,7 @@
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Nie podano niczego do udostępnienia",
+    "text": "Nie podano żadnej treści do udostępnienia",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
@@ -265,7 +265,7 @@
     "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "odebrano",
+    "text": "otrzymany",
     "source_hash": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
@@ -305,11 +305,11 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Jeśli konto z tym adresem e-mail istnieje, otrzymasz e-mail weryfikacyjny.",
+    "text": "Jeśli konto z tym adresem e-mail istnieje, otrzymasz wiadomość weryfikacyjną.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Zniszcz ten sekret na zawsze",
+    "text": "Zniszcz ten sekret na stałe",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -317,7 +317,7 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Czy na pewno chcesz zniszczyć ten sekret? Tej operacji nie można cofnąć.",
+    "text": "Czy na pewno chcesz zniszczyć ten sekret? Tej czynności nie można cofnąć.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
@@ -325,11 +325,11 @@
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Zniszczenie sekretu spowoduje jego usunięcie przed odebraniem.",
+    "text": "Zniszczenie sekretu usunie go, zanim zostanie odczytany.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Ze względów bezpieczeństwa udostępnij ten link oddzielnie od innych informacji.",
+    "text": "Ze względów bezpieczeństwa udostępnij ten link osobno od innych szczegółów.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -337,11 +337,11 @@
     "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Utwórz przychodzące",
+    "text": "Utwórz przychodzący",
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "FAQ",
+    "text": "F.A.Q.",
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
@@ -369,7 +369,7 @@
     "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "Hasła nie są zgodne",
+    "text": "Hasła nie są identyczne",
     "source_hash": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
@@ -381,7 +381,7 @@
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Pozostań zalogowany przez 30 dni",
+    "text": "Nie wylogowuj mnie przez 30 dni",
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "No dobrze.",
+    "text": "No to dalej.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -521,7 +521,7 @@
     "source_hash": "47d2a515"
   },
   "web.COMMON.not_received": {
-    "text": "NIE ODEBRANO",
+    "text": "NIE OTRZYMANO",
     "source_hash": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
@@ -557,7 +557,7 @@
     "source_hash": "1d456424"
   },
   "web.COMMON.supported": {
-    "text": "Obsługiwane",
+    "text": "Obsługiwany",
     "source_hash": "c1658000"
   },
   "web.COMMON.version": {
@@ -621,11 +621,11 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "W porządku",
+    "text": "Średnio",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Tak sobie",
+    "text": "Meh",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
@@ -805,11 +805,11 @@
     "source_hash": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "razy wyświetlono",
+    "text": "razy wyświetlony",
     "source_hash": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Zobacz postęp",
+    "text": "Wyświetl postęp",
     "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
@@ -817,7 +817,7 @@
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Chronione frazą dostępową",
+    "text": "Chroniony frazą dostępową",
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
@@ -841,7 +841,7 @@
     "source_hash": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Odśwież",
+    "text": "Przeładuj",
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
@@ -861,7 +861,7 @@
     "source_hash": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Utwórz link do sekretu",
+    "text": "Utwórz tajny link",
     "source_hash": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
@@ -902,7 +902,7 @@
     "source_hash": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Odebrano",
+    "text": "Otrzymany",
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
@@ -910,7 +910,7 @@
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Wyświetlony",
+    "text": "Odsłonięty",
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
@@ -922,7 +922,7 @@
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
-    "text": "Wkrótce wygasa",
+    "text": "Wkrótce wygaśnie",
     "source_hash": "0259442c"
   },
   "web.STATUS.created": {
@@ -950,7 +950,7 @@
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
-    "text": "Skopiowano",
+    "text": "Skopiowany",
     "source_hash": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
@@ -958,7 +958,7 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Link do sekretu został utworzony i jeszcze nie wyświetlony",
+    "text": "Link do sekretu został utworzony i jeszcze nie został wyświetlony",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
@@ -970,15 +970,15 @@
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "Sekret został wyświetlony odbiorcy",
+    "text": "Sekret został odsłonięty odbiorcy",
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Link do sekretu został otwarty i jest gotowy do ujawnienia",
+    "text": "Link do sekretu został otwarty i jest gotowy do odsłonięcia",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Treść sekretu została wyświetlona odbiorcy",
+    "text": "Treść sekretu została odsłonięta odbiorcy",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
@@ -1026,11 +1026,11 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Branding zaufanej domeny",
+    "text": "Branding z zaufaną domeną",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Szyfrowanie podczas przesyłania i przechowywania",
+    "text": "Zaszyfrowany w trakcie przesyłania i w spoczynku",
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
@@ -1038,19 +1038,19 @@
     "source_hash": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "dzień | dni | dni",
+    "text": "dzień | dni",
     "source_hash": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "godzina | godziny | godzin",
+    "text": "godzina | godziny",
     "source_hash": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "minuta | minuty | minut",
+    "text": "minuta | minuty",
     "source_hash": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "sekunda | sekundy | sekund",
+    "text": "sekunda | sekundy",
     "source_hash": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
@@ -1058,23 +1058,23 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Pozostało {count} {unit}",
+    "text": "pozostało {count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "pozostał dzień | pozostały dni | pozostało dni",
+    "text": "pozostał dzień | pozostało dni",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "pozostała godzina | pozostały godziny | pozostało godzin",
+    "text": "pozostała godzina | pozostało godzin",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "pozostała minuta | pozostały minuty | pozostało minut",
+    "text": "pozostała minuta | pozostało minut",
     "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "pozostała sekunda | pozostały sekundy | pozostało sekund",
+    "text": "pozostała sekunda | pozostało sekund",
     "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1098,7 +1098,7 @@
     "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Przychodzące sekrety",
+    "text": "Sekrety przychodzące",
     "source_hash": "883dbca9"
   },
   "web.TITLES.feedback": {
@@ -1110,7 +1110,7 @@
     "source_hash": "b79cac92"
   },
   "web.TITLES.signin": {
-    "text": "Zaloguj się",
+    "text": "Logowanie",
     "source_hash": "bcc0bcc9"
   },
   "web.TITLES.signup": {
@@ -1118,11 +1118,11 @@
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Zapomniałem hasła",
+    "text": "Zapomniałeś hasła",
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Zresetuj hasło",
+    "text": "Resetuj hasło",
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
@@ -1130,7 +1130,7 @@
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Zweryfikuj konto",
+    "text": "Weryfikuj konto",
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
@@ -1138,7 +1138,7 @@
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Logowanie e-mail",
+    "text": "Logowanie e-mailem",
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
@@ -1178,11 +1178,11 @@
     "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Zweryfikuj domenę",
+    "text": "Weryfikuj domenę",
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Branding domeny",
+    "text": "Domena markowa",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1226,7 +1226,7 @@
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "Potwierdź zmianę adresu e-mail",
+    "text": "Potwierdź zmianę e-maila",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1267,7 +1267,7 @@
     "source_hash": "1f87f883"
   },
   "web.TITLES.not_found": {
-    "text": "Strona nie znaleziona",
+    "text": "Nie znaleziono strony",
     "source_hash": "cb2f00d1"
   },
   "web.TITLES.organizations_settings": {
@@ -1283,7 +1283,7 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Fokus znajduje się teraz w głównym obszarze tekstu",
+    "text": "Fokus jest teraz w głównym polu tekstowym",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
@@ -1295,7 +1295,7 @@
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Udostępnij frazę dostępową oddzielnie, przez bezpieczny kanał",
+    "text": "Udostępnij frazę dostępową osobno, przez bezpieczny kanał",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Zawsze sprawdzaj, czy znajdujesz się na oficjalnej stronie Onetime Secret. Oszuści czasami tworzą fałszywe strony wyglądające dokładnie jak Onetime Secret, aby wykraść Twoje sekrety. Aby uniknąć ataków phishingowych, sprawdź domenę regionalną przed utworzeniem nowych linków.",
+    "text": "Zawsze sprawdzaj, czy jesteś na oficjalnej stronie Onetime Secret. Oszuści czasem tworzą fałszywe strony, które wyglądają dokładnie jak Onetime Secret, aby wykraść Twoje sekrety. Aby uniknąć ataków phishingowych, sprawdź domenę przed tworzeniem nowych linków.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Wybierz plan odpowiedni dla Twoich potrzeb. Wszystkie plany obejmują nieograniczone udostępnianie sekretów i projektowanie z priorytetem prywatności.",
+    "text": "Wybierz plan, który odpowiada Twoim potrzebom. Wszystkie plany obejmują nieograniczone udostępnianie sekretów i projektowanie zorientowane na prywatność.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1331,11 +1331,11 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Polecane dla Ciebie",
+    "text": "Zalecane dla Ciebie",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
-    "text": "Odebrano",
+    "text": "Otrzymany",
     "source_hash": "49f19bee"
   },
   "web.LABELS.add_note": {
@@ -1379,13 +1379,61 @@
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Nie można przetworzyć Twojego żądania w tej chwili",
+    "text": "Nie można teraz przetworzyć Twojego żądania",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Ulepsz plan, aby odblokować więcej funkcji",
+    "text": "Ulepsz, aby odblokować więcej funkcji",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfiguruj"
+  },
+  "web.COMMON.add": {
+    "text": "Dodaj"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Tak, usuń"
+  },
+  "web.COMMON.error_code": {
+    "text": "Kod błędu"
+  },
+  "web.COMMON.http_status": {
+    "text": "Status HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Szczegóły"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Potwierdź hasło"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Hasła muszą być identyczne"
+  },
+  "web.COMMON.and": {
+    "text": "i"
+  },
+  "web.COMMON.or": {
+    "text": "lub"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Pokaż frazę dostępową"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Ukryj frazę dostępową"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Ustawienia domeny"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO domeny"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Konfiguracja e-mail"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Sekrety przychodzące"
   }
 }

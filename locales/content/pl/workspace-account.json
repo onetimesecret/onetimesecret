@@ -60,7 +60,7 @@
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Następna data płatności:",
+    "text": "Następna data rozliczenia:",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -68,7 +68,7 @@
     "source_hash": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
-    "text": "Aktualne hasło",
+    "text": "Obecne hasło",
     "source_hash": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
@@ -124,7 +124,7 @@
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Powrót do szczegółów",
+    "text": "Wróć do szczegółów",
     "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
@@ -176,7 +176,7 @@
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Wszelkie sekrety, które chcesz usunąć,",
+    "text": "Sekrety, które chcesz usunąć,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
@@ -216,7 +216,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Powrót do panelu",
+    "text": "Wróć do panelu",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -288,7 +288,7 @@
     "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
-    "text": "Aktualne hasło",
+    "text": "Obecne hasło",
     "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
@@ -296,7 +296,7 @@
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Wprowadź swoje aktualne hasło",
+    "text": "Wprowadź swoje obecne hasło",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
@@ -324,11 +324,11 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Nowy e-mail musi być inny niż bieżący e-mail",
+    "text": "Nowy e-mail musi się różnić od obecnego",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail zaktualizowany pomyślnie. Sprawdź swoją skrzynkę odbiorczą, aby zweryfikować nowy adres e-mail.",
+    "text": "E-mail weryfikacyjny wysłany. Sprawdź nową skrzynkę odbiorczą i kliknij link potwierdzający, aby dokończyć zmianę.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
@@ -340,11 +340,11 @@
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Zarządzaj aktywnymi sesjami",
+    "text": "Zarządzaj swoimi aktywnymi sesjami",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Zarządzaj aktywnymi sesjami",
+    "text": "Zarządzaj swoimi aktywnymi sesjami",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,11 +352,11 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Zaktualizuj hasło do konta",
+    "text": "Zaktualizuj hasło konta",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Zaktualizuj hasło do konta",
+    "text": "Zaktualizuj hasło konta",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
@@ -380,15 +380,15 @@
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
-    "text": "Doskonałe",
+    "text": "Doskonale",
     "source_hash": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "Dobre",
+    "text": "Dobrze",
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "W porządku",
+    "text": "Średnio",
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
@@ -428,11 +428,11 @@
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Brak wygenerowanych kodów",
+    "text": "Nie wygenerowano kodów",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} aktywna sesja | {0} aktywne sesje | {0} aktywnych sesji",
+    "text": "{0} aktywna sesja | {0} aktywnych sesji",
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
@@ -440,7 +440,7 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Używaj silnego, unikalnego hasła do swojego konta",
+    "text": "Używaj silnego, unikatowego hasła do swojego konta",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
@@ -456,7 +456,7 @@
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Zobacz szczegóły",
+    "text": "Wyświetl szczegóły",
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
@@ -500,7 +500,7 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Nigdy nie commituj kluczy API do kontroli wersji",
+    "text": "Nigdy nie commituj kluczy API do systemu kontroli wersji",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
@@ -512,11 +512,11 @@
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Zawsze używaj HTTPS podczas wykonywania żądań API",
+    "text": "Zawsze używaj HTTPS przy wykonywaniu żądań API",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Monitoruj użycie API i skonfiguruj alerty",
+    "text": "Monitoruj użycie API i konfiguruj alerty",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -540,7 +540,7 @@
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Niepodlegające negocjacjom",
+    "text": "Bezdyskusyjne",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -552,7 +552,7 @@
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "To nie jest ustawienie, ponieważ nie ma niczego do włączenia lub wyłączenia. Twoja prywatność jest wbudowana w sposób, w jaki działamy.",
+    "text": "To nie jest ustawienie, ponieważ nie ma nic do włączenia ani wyłączenia. Twoja prywatność jest wbudowana w sposób, w jaki działamy.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -568,19 +568,19 @@
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Powiadomienia o wyświetleniu sekretu",
+    "text": "Powiadomienia o odsłonięciu sekretu",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Otrzymuj e-mail, gdy ktoś wyświetli Twój sekret",
+    "text": "Otrzymaj e-mail, gdy ktoś wyświetli Twój sekret",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Otrzymasz powiadomienie za każdym razem, gdy odbiorca wyświetli jeden z Twoich sekretów",
+    "text": "Będziesz powiadamiany za każdym razem, gdy odbiorca odsłoni jeden z Twoich sekretów",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "E-maile z powiadomieniami zawierają tylko znacznik czasu i ID sekretu. Informacje o przeglądającym nigdy nie są zawarte.",
+    "text": "E-maile z powiadomieniami zawierają tylko znacznik czasu i ID sekretu. Informacje o osobie przeglądającej nigdy nie są uwzględniane.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -596,15 +596,15 @@
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Eksportuj dane swojego konta",
+    "text": "Eksportuj dane konta",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Poproś o pełną kopię danych Twojego konta w formacie do odczytu maszynowego",
+    "text": "Żądaj kompletnej kopii danych konta w formacie czytelnym maszynowo",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Poproś o eksport danych",
+    "text": "Żądaj eksportu danych",
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
@@ -624,7 +624,7 @@
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Usunięcie wszystkich metadanych sekretów i historii",
+    "text": "Usunięcie wszystkich metadanych i historii sekretów",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -632,7 +632,7 @@
     "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Tej operacji nie można cofnąć",
+    "text": "Tej czynności nie można cofnąć",
     "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
@@ -640,15 +640,15 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Twój adres e-mail został pomyślnie zaktualizowany. Zaloguj się używając nowego adresu e-mail.",
+    "text": "Twój e-mail został pomyślnie zaktualizowany. Zaloguj się za pomocą nowego adresu e-mail.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Weryfikowanie Twojego nowego adresu e-mail...",
+    "text": "Weryfikacja Twojego nowego adresu e-mail...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Zmiana adresu e-mail nie powiodła się",
+    "text": "Zmiana e-maila nie powiodła się",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
@@ -668,7 +668,7 @@
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "E-mail potwierdzający został ponownie wysłany.",
+    "text": "E-mail potwierdzający wysłany ponownie pomyślnie.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
@@ -676,7 +676,7 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "E-mail weryfikacyjny został wysłany. Sprawdź swoją skrzynkę odbiorczą i kliknij link potwierdzający.",
+    "text": "E-mail weryfikacyjny został wysłany. Sprawdź skrzynkę odbiorczą i kliknij link potwierdzający.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {

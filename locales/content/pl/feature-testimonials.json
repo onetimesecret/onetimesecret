@@ -1,10 +1,10 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Referencja wygenerowana przez AI",
+    "text": "Opinia wygenerowana przez AI",
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Treść wygenerowana przez AI w celach demonstracyjnych. Nie pochodzi od rzeczywistej osoby ani firmy.",
+    "text": "Treść wygenerowana przez AI do celów demonstracyjnych. Nie pochodzi od rzeczywistej osoby ani firmy.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -24,11 +24,11 @@
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Co czołowa AI mówi o nas",
+    "text": "Co wiodące AI mówi o nas",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Referencje wygenerowane przez AI",
+    "text": "Opinie wygenerowane przez AI",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
@@ -40,7 +40,7 @@
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Sztuczna opinia",
+    "text": "Sztuczne opinie",
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
