@@ -64,6 +64,7 @@ SCHEMA_VERSIONS = [
     ("005", "source_status"),
     ("006", "rename_columns"),
     ("007", "translation_issues"),
+    ("008", "task_model_effort"),
 ]
 
 
@@ -103,6 +104,20 @@ def init_database(force: bool = False) -> None:
     print(f"Created database: {DB_FILE}")
 
 
+def _apply_column_migrations(cursor) -> None:
+    """Apply ALTER TABLE migrations that add columns to existing tables.
+
+    Each migration checks for column existence first, so it's safe to
+    run repeatedly.
+    """
+    # 008: Add model and effort columns to translation_tasks
+    existing = {row[1] for row in cursor.execute("PRAGMA table_info(translation_tasks)")}
+    if "model" not in existing:
+        cursor.execute("ALTER TABLE translation_tasks ADD COLUMN model TEXT")
+    if "effort" not in existing:
+        cursor.execute("ALTER TABLE translation_tasks ADD COLUMN effort TEXT")
+
+
 def migrate_schema() -> None:
     """Apply schema updates to existing database.
 
@@ -124,8 +139,12 @@ def migrate_schema() -> None:
         # Apply schema (idempotent due to IF NOT EXISTS)
         conn.executescript(schema)
 
-        # Check which versions are already recorded
+        # Apply column-level migrations (ALTER TABLE is not idempotent,
+        # so we check for column existence first)
         cursor = conn.cursor()
+        _apply_column_migrations(cursor)
+
+        # Check which versions are already recorded
         cursor.execute("SELECT version FROM schema_migrations")
         applied = {row[0] for row in cursor.fetchall()}
 

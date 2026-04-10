@@ -40,6 +40,8 @@ def update_task(
     translations_json: Optional[str] = None,
     status: Optional[str] = None,
     notes: Optional[str] = None,
+    model: Optional[str] = None,
+    effort: Optional[str] = None,
 ) -> dict:
     """Update a task with translations and/or status.
 
@@ -107,6 +109,14 @@ def update_task(
             updates.append("notes = ?")
             params.append(notes)
 
+        if model is not None:
+            updates.append("model = ?")
+            params.append(model)
+
+        if effort is not None:
+            updates.append("effort = ?")
+            params.append(effort)
+
         params.append(task_id)
 
         query = (
@@ -119,7 +129,7 @@ def update_task(
         cursor.execute(
             """
             SELECT id, file, level_path, locale, status, keys_json,
-                   translations_json, notes, created_at, updated_at
+                   translations_json, notes, model, effort, created_at, updated_at
             FROM translation_tasks
             WHERE id = ?
             """,
@@ -232,6 +242,16 @@ Examples:
         action="store_true",
         help="Validate translations against expected keys before saving",
     )
+    parser.add_argument(
+        "--model",
+        "-m",
+        help="LLM model used (e.g., opus, sonnet, haiku)",
+    )
+    parser.add_argument(
+        "--effort",
+        "-e",
+        help="Effort/reasoning level (e.g., low, medium, high)",
+    )
 
     args = parser.parse_args()
 
@@ -289,6 +309,8 @@ Examples:
             translations_json=translations_json,
             status=status,
             notes=args.note,
+            model=args.model,
+            effort=args.effort,
         )
 
         if args.json:

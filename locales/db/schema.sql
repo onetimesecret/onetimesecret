@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS translation_tasks (
     keys_json TEXT NOT NULL,          -- JSON: {"submit": "Submit", "cancel": "Cancel"}
     translations_json TEXT,           -- JSON: {"submit": "Sendi", "cancel": "Nuligi"} or NULL
     notes TEXT,
+    model TEXT,                        -- LLM model used: 'opus', 'sonnet', 'haiku', etc.
+    effort TEXT,                       -- Effort/reasoning level: 'low', 'medium', 'high', etc.
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
     UNIQUE(file, level_path, locale)
