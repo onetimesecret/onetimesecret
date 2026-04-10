@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(지난 5분 동안 활성)",
+    "text": "(최근 5분 이내 활성)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -32,11 +32,11 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "시스템 설정을 편집합니다. 변경사항은 저장 후 즉시 적용됩니다.",
+    "text": "시스템 구성 설정을 편집합니다. 변경 사항은 저장 후 즉시 적용됩니다.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "{section} 섹션의 JSON이 올바르지 않습니다",
+    "text": "{section} 섹션에 잘못된 JSON이 있습니다",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
@@ -44,19 +44,19 @@
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "설정 로딩 중 오류",
+    "text": "구성 로딩 오류",
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "설정 저장 중 오류",
+    "text": "구성 저장 오류",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "설정이 성공적으로 저장되었습니다",
+    "text": "구성이 저장되었습니다",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "설정은 JSON 객체여야 합니다",
+    "text": "구성은 JSON 객체여야 합니다",
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
@@ -68,7 +68,7 @@
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section}이(가) 성공적으로 저장되었습니다",
+    "text": "{section}이(가) 저장되었습니다",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -80,7 +80,7 @@
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
-    "text": "저장되지 않은 변경사항",
+    "text": "저장되지 않은 변경 사항",
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
@@ -92,7 +92,7 @@
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section} 섹션에 설정된 값이 없습니다",
+    "text": "{section} 섹션에 구성된 값이 없습니다",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "관리자",
+    "text": "관리",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -148,7 +148,7 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "모두 보기",
+    "text": "전체 보기",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
@@ -156,7 +156,7 @@
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "총 비밀 메시지",
+    "text": "전체 비밀 메시지",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -176,7 +176,7 @@
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "총 사용자",
+    "text": "전체 사용자",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
@@ -208,7 +208,7 @@
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "도메인 설정",
+    "text": "도메인 구성",
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
@@ -220,7 +220,7 @@
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "애플리케이션 설정",
+    "text": "애플리케이션 구성",
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "테스트 요금제 모드",
+    "text": "테스트 플랜 모드",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -280,19 +280,19 @@
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "테스트할 요금제 선택",
+    "text": "테스트할 플랜 선택",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "실제 요금제로 재설정",
+    "text": "실제 플랜으로 재설정",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
-    "text": "현재 요금제",
+    "text": "현재 플랜",
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "이용 가능한 요금제",
+    "text": "이용 가능한 플랜",
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "다른 요금제 자격으로 애플리케이션을 테스트합니다. 변경사항은 임시적이며 현재 세션에만 적용됩니다.",
+    "text": "다른 플랜 권한으로 애플리케이션을 테스트합니다. 변경 사항은 임시적이며 현재 세션에만 영향을 줍니다.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "{planName} 자격으로 테스트 중입니다 (임시 세션 재정의).",
+    "text": "{planName} 권한으로 테스트 중입니다 (임시 세션 재정의).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -352,7 +352,7 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "오래됨 가능성",
+    "text": "잠재적 만료",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
@@ -400,7 +400,7 @@
     "source_hash": "d70b9e24"
   },
   "web.colonel.organizations.columns.details": {
-    "text": "세부정보",
+    "text": "세부 정보",
     "source_hash": "45989de4"
   },
   "web.colonel.organizations.columns.owner": {
@@ -408,7 +408,7 @@
     "source_hash": "4b1b8aa3"
   },
   "web.colonel.organizations.columns.plan": {
-    "text": "요금제",
+    "text": "플랜",
     "source_hash": "fa8ed0bd"
   },
   "web.colonel.organizations.columns.members": {
@@ -424,11 +424,11 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "기본 작업 공간",
+    "text": "기본 워크스페이스",
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "결제 정보",
+    "text": "결제 등록 여부",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "조직 관리 및 결제 동기화 상태 모니터링 (총 {total}개)",
+    "text": "조직을 관리하고 결제 동기화 상태를 모니터링합니다 (총 {total}개)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -444,11 +444,11 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "오래됨 가능성",
+    "text": "잠재적 만료",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "오래됨",
+    "text": "만료",
     "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
@@ -500,7 +500,7 @@
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Stripe 구독 세부정보",
+    "text": "Stripe 구독 세부 정보",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -508,11 +508,11 @@
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.investigation.product": {
-    "text": "상품",
+    "text": "제품",
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "해결된 요금제",
+    "text": "확인된 플랜",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
@@ -568,19 +568,19 @@
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
-    "text": "사용자 지정 도메인",
+    "text": "사용자 정의 도메인",
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "사용자 지정 도메인 및 브랜딩 관리",
+    "text": "사용자 정의 도메인 및 브랜딩 관리",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "의견 보내기",
+    "text": "피드백 보내기",
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
-    "text": "전송 중...",
+    "text": "발송 중...",
     "source_hash": "286a3af7"
   },
   "web.colonel.titles.index": {
@@ -596,7 +596,7 @@
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
-    "text": "사용자 지정 도메인",
+    "text": "사용자 정의 도메인",
     "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "의견을 제출하시면 다음 정보를 확인할 수 있습니다:",
+    "text": "피드백을 제출하시면 다음 내용이 확인됩니다:",
     "source_hash": "fe77172e"
   }
 }

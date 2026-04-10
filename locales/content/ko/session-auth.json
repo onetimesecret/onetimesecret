@@ -1,6 +1,6 @@
 {
   "web.login.alternate_prefix": {
-    "text": "계정이 필요하세요?",
+    "text": "계정이 필요하신가요?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
@@ -64,7 +64,7 @@
     "source_hash": "904c9aa9"
   },
   "web.login.need_help": {
-    "text": "도움이 필요하세요?",
+    "text": "도움이 필요하신가요?",
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
@@ -80,7 +80,7 @@
     "source_hash": "b8794f11"
   },
   "web.auth.sso.signing_in": {
-    "text": "ID 공급자로 리디렉션 중...",
+    "text": "ID 제공업체로 리디렉션 중...",
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
@@ -100,7 +100,7 @@
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "이 로그인 링크는 유효하지 않습니다. 새 링크를 요청해 주세요.",
+    "text": "이 로그인 링크가 유효하지 않습니다. 새 링크를 요청해 주세요.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -112,7 +112,7 @@
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "로그인",
+    "text": "로그인하기",
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
@@ -139,7 +139,7 @@
     "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "유효하지 않거나 만료된 인증 키",
+    "text": "잘못되었거나 만료된 인증 키",
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
@@ -147,19 +147,19 @@
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "이 계정은 이미 인증되었습니다. 지금 로그인하실 수 있습니다.",
+    "text": "이 계정은 이미 인증되었습니다. 지금 로그인할 수 있습니다.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "계정을 인증할 수 없습니다. 다시 시도하거나 고객 지원에 문의해 주세요.",
+    "text": "계정을 인증할 수 없습니다. 다시 시도하거나 지원팀에 문의해 주세요.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "인증 링크가 포함된 이메일을 확인해 주세요",
+    "text": "이메일에서 인증 링크를 확인해 주세요",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "계정 인증 실패. 인증 링크를 확인하거나 새 링크를 요청해 주세요.",
+    "text": "계정 인증에 실패했습니다. 인증 링크를 확인하거나 새 링크를 요청해 주세요.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -171,15 +171,15 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "가장 최근 인증 링크가 포함된 이메일을 확인해 주세요",
+    "text": "이메일에서 가장 최근 인증 링크를 확인하세요",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "이메일을 찾을 수 없으면 스팸/정크 폴더를 확인해 주세요",
+    "text": "이메일을 찾을 수 없으면 스팸/정크 폴더를 확인하세요",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "문제가 계속되면 고객 지원에 문의해 주세요",
+    "text": "문제가 계속되면 지원팀에 문의하세요",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "비밀번호 변경 실패. 현재 비밀번호를 확인하고 다시 시도해 주세요.",
+    "text": "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인하고 다시 시도해 주세요.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -223,7 +223,7 @@
     "source_hash": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "이 작업은 취소할 수 없습니다. 모든 비밀 메시지가 영구적으로 삭제됩니다.",
+    "text": "이 작업은 되돌릴 수 없습니다. 모든 비밀 메시지가 영구적으로 삭제됩니다.",
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
@@ -231,7 +231,7 @@
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "확인하려면 비밀번호를 입력하세요",
+    "text": "확인을 위해 비밀번호를 입력하세요",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
@@ -255,12 +255,12 @@
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
-    "text": "새 비밀번호 선택",
+    "text": "새 비밀번호 설정",
     "context": "Password reset request flow - user requests a reset link",
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "아래에 새 비밀번호를 입력해 주세요. 계정을 보호하기 위해 강력하고 고유한 비밀번호를 사용하세요.",
+    "text": "아래에 새 비밀번호를 입력하세요. 계정을 보호하기 위해 강력하고 고유한 비밀번호를 사용하세요.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
@@ -301,7 +301,7 @@
     "source_hash": "d261b9df"
   },
   "web.auth.account.mfa_status": {
-    "text": "2단계 인증",
+    "text": "이중 인증",
     "source_hash": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
@@ -325,7 +325,7 @@
     "source_hash": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "2단계 인증 관리",
+    "text": "이중 인증 관리",
     "source_hash": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
@@ -365,7 +365,7 @@
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "10분 이상 지났으면 새 링크를 요청해 보세요",
+    "text": "10분 이상 경과했다면 새 링크를 요청해 보세요",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "매직 링크 옵션을 사용하여 비밀번호 없이 로그인하세요. 로그인 후 계정 설정에서 비밀번호를 변경할 수 있습니다.",
+    "text": "비밀번호 없이 로그인하려면 매직 링크 옵션을 사용하세요. 로그인 후 계정 설정에서 비밀번호를 변경할 수 있습니다.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,7 +381,7 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "여러 번 로그인 실패 후 보안을 위해 계정이 일시적으로 잠깁니다. 15분 기다린 후 다시 시도하거나 매직 링크를 사용하여 로그인하세요.",
+    "text": "보안을 위해 여러 번 로그인에 실패하면 계정이 일시적으로 잠깁니다. 15분 후에 다시 시도하거나 매직 링크를 사용하여 로그인하세요.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -389,14 +389,23 @@
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "여전히 문제가 있으시면 도움을 드리겠습니다. 메시지를 보내주시면 가능한 빨리 답변드리겠습니다.",
+    "text": "여전히 문제가 있으시면 도와드리겠습니다. 메시지를 보내주시면 가능한 빨리 답변드리겠습니다.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "고객 지원 문의",
+    "text": "지원팀 문의",
     "source_hash": "f8d47b82"
   },
   "web.auth.verify._guidance.context": {
-    "text": "가입 후 이메일 인증 흐름"
+    "text": "Email verification flow after signup"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO 계정"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "이 도메인에서 SSO를 사용할 수 있습니다"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "조직 관리자가 SSO를 활성화하면 팀 멤버가 여기에서 로그인할 수 있습니다. 접근 권한은 관리자에게 문의하세요."
   }
 }

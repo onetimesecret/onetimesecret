@@ -5,11 +5,11 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "한 번만 작동하는 안전한 링크",
+    "text": "한 번만 사용할 수 있는 안전한 링크",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "제공",
+    "text": "제공:",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "양식이 유효할 때 비밀번호 생성이 비활성화됩니다",
+    "text": "양식이 유효한 경우 비밀번호 생성이 비활성화됩니다",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -33,11 +33,11 @@
     "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "사용자 지정 도메인",
+    "text": "사용자 정의 도메인",
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "나만의 브랜드 비밀 링크로 신뢰를 구축하고 연결을 강화하세요.",
+    "text": "자체 브랜드 비밀 링크로 신뢰를 구축하고 관계를 강화하세요.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -53,7 +53,7 @@
     "source_hash": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "제출",
+    "text": "제출하기",
     "source_hash": "155f816c"
   },
   "web.COMMON.submitting": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "채팅 기록과 이메일에서 민감한 정보를 보호하세요. 한 번만 사용할 수 있는 비밀 링크를 공유하세요.",
+    "text": "민감한 정보를 채팅 기록이나 이메일에 남기지 마세요. 한 번만 사용할 수 있는 비밀 링크를 공유하세요.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "비밀,비밀번호 생성기,비밀 공유,원타임",
+    "text": "secret,password generator,share a secret,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -81,11 +81,11 @@
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "또는 임의의 비밀번호 생성",
+    "text": "또는 무작위 비밀번호 생성",
     "source_hash": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
-    "text": "개인정보 보호 옵션",
+    "text": "비밀 메시지 설정",
     "source_hash": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
@@ -93,7 +93,7 @@
     "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
-    "text": "추측하기 어려운 단어나 문구",
+    "text": "추측하기 어려운 단어 또는 문구",
     "source_hash": "29d0cf13"
   },
   "web.COMMON.secret_recipient_address": {
@@ -161,15 +161,15 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "비밀 메시지를 소각하면 읽기 전에 삭제됩니다 (확인하려면 클릭)",
+    "text": "비밀 메시지를 소각하면 읽기 전에 삭제됩니다 (클릭하여 확인)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "비밀 메시지 소각은 영구적이며 취소할 수 없습니다",
+    "text": "비밀 메시지 소각은 영구적이며 되돌릴 수 없습니다",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "이메일을 확인해 주세요",
+    "text": "이메일을 확인하세요",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
@@ -185,7 +185,7 @@
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "접근 문구를 다시 확인해 주세요",
+    "text": "접근 문구를 다시 확인하세요",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
@@ -205,7 +205,7 @@
     "source_hash": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "앗!",
+    "text": "이런!",
     "source_hash": "8344947a"
   },
   "web.COMMON.error": {
@@ -229,7 +229,7 @@
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "수신자:",
+    "text": "발송 대상:",
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
@@ -293,11 +293,11 @@
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "의견 보내기",
+    "text": "피드백 보내기",
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "인증 이메일이 다음 주소로 발송되었습니다:",
+    "text": "인증 메일이 발송되었습니다:",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
@@ -305,7 +305,7 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "이 이메일로 등록된 계정이 있으면 인증 이메일을 받게 됩니다.",
+    "text": "이 이메일로 등록된 계정이 있으면 인증 이메일을 보내드립니다.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -317,7 +317,7 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "이 비밀 메시지를 정말 소각하시겠습니까? 이 작업은 취소할 수 없습니다.",
+    "text": "정말 이 비밀 메시지를 소각하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
@@ -325,19 +325,19 @@
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "비밀 메시지를 소각하면 수신되기 전에 삭제됩니다.",
+    "text": "비밀 메시지를 소각하면 수신 전에 삭제됩니다.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "보안을 위해 이 링크를 다른 정보와 별도로 공유하세요.",
+    "text": "보안을 위해 이 링크를 다른 세부 정보와 별도로 공유하세요.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
-    "text": "클립보드에 복사됨",
+    "text": "클립보드에 복사되었습니다",
     "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "수신용 링크 생성",
+    "text": "수신용 생성",
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
@@ -349,7 +349,7 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "이미 로그인되어 있으면 계정을 인증할 수 없습니다",
+    "text": "이미 로그인된 상태에서는 계정을 인증할 수 없습니다",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -381,11 +381,11 @@
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "30일간 로그인 상태 유지",
+    "text": "30일 동안 로그인 유지",
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "이동 중...",
+    "text": "리디렉션 중...",
     "source_hash": "cd23991b"
   },
   "web.COMMON.continue": {
@@ -393,7 +393,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "정말 진행하시겠습니까?",
+    "text": "정말 하시겠습니까?",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
@@ -401,7 +401,7 @@
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "신중한 고려 구역",
+    "text": "주의 필요 구역",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -421,7 +421,7 @@
     "source_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "변경사항 저장",
+    "text": "변경 사항 저장",
     "source_hash": "35322b5b"
   },
   "web.COMMON.saving": {
@@ -433,7 +433,7 @@
     "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
-    "text": "예:",
+    "text": "예시",
     "source_hash": "a79b4bf9"
   },
   "web.COMMON.example_placeholder": {
@@ -485,7 +485,7 @@
     "source_hash": "efb52e71"
   },
   "web.COMMON.appearance": {
-    "text": "화면 설정",
+    "text": "외관",
     "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "그럼 진행하세요.",
+    "text": "계속 진행하세요.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -613,11 +613,11 @@
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
-    "text": "훌륭해요",
+    "text": "좋음",
     "source_hash": "c8cc1c7b"
   },
   "web.COMMON.pretty_good": {
-    "text": "꽤 좋아요",
+    "text": "꽤 좋음",
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
@@ -625,11 +625,11 @@
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "그저 그래요",
+    "text": "보통",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "별로예요",
+    "text": "별로",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -653,11 +653,11 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "접근 문구를 다시 확인해 주세요",
+    "text": "접근 문구를 다시 확인하세요",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "아래 복사 버튼을 누르세요.",
+    "text": "아래의 복사 버튼을 누르세요.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -677,7 +677,7 @@
     "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "접기",
+    "text": "간략히 보기",
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
@@ -697,7 +697,7 @@
     "source_hash": "9dcff98e"
   },
   "web.LABELS.lifespan": {
-    "text": "유효기간",
+    "text": "유효 기간",
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
@@ -737,7 +737,7 @@
     "source_hash": "d3c54e39"
   },
   "web.LABELS.details": {
-    "text": "세부정보",
+    "text": "세부 정보",
     "source_hash": "45989de4"
   },
   "web.LABELS.encrypted": {
@@ -749,7 +749,7 @@
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "도움이 필요하세요?",
+    "text": "도움이 필요하신가요?",
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -761,7 +761,7 @@
     "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "접근 문구 필요 없음",
+    "text": "접근 문구 불필요",
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
@@ -769,7 +769,7 @@
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "수신확인",
+    "text": "수신 확인",
     "source_hash": "60a627df"
   },
   "web.LABELS.share": {
@@ -785,7 +785,7 @@
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
-    "text": "보안 세부정보",
+    "text": "보안 세부 정보",
     "source_hash": "96d2098c"
   },
   "web.LABELS.items_count": {
@@ -793,7 +793,7 @@
     "source_hash": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count}명의 수신자",
+    "text": "{count}명 수신자",
     "source_hash": "48187543"
   },
   "web.LABELS.view": {
@@ -801,11 +801,11 @@
     "source_hash": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "조회",
+    "text": "조회수",
     "source_hash": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "회 조회됨",
+    "text": "조회 횟수",
     "source_hash": "73758343"
   },
   "web.LABELS.view_progress": {
@@ -813,7 +813,7 @@
     "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "도움말 섹션",
+    "text": "도움말",
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
@@ -821,11 +821,11 @@
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "의견을 받았습니다.",
+    "text": "피드백이 접수되었습니다.",
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "전송 중...",
+    "text": "발송 중...",
     "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
@@ -882,15 +882,15 @@
     "source_hash": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
-    "text": "링크 생성 중:",
+    "text": "링크 생성 대상:",
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "{domain}에서 비밀 메시지 생성",
+    "text": "{domain}에서 비밀 메시지 생성 중",
     "source_hash": "3bbed96b"
   },
   "web.STATUS.new": {
-    "text": "새 항목",
+    "text": "신규",
     "source_hash": "18fdd549"
   },
   "web.STATUS.unread": {
@@ -906,7 +906,7 @@
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
-    "text": "미리보기됨",
+    "text": "미리보기 완료",
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
@@ -930,7 +930,7 @@
     "source_hash": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "만료",
+    "text": "만료 예정",
     "source_hash": "f6725f3a"
   },
   "web.STATUS.expired": {
@@ -938,15 +938,15 @@
     "source_hash": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "고아 상태",
+    "text": "미연결",
     "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "보호됨",
+    "text": "보안 적용됨",
     "source_hash": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "보호 중",
+    "text": "보안 적용 중",
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
@@ -958,15 +958,15 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "비밀 링크가 생성되었으며 아직 조회되지 않았습니다",
+    "text": "비밀 링크가 생성되었으며 아직 열람되지 않았습니다",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "비밀 링크가 생성되었으며 조회되지 않았습니다",
+    "text": "비밀 링크가 생성되었으며 아직 열람되지 않았습니다",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "비밀 링크가 열렸으며 조회할 준비가 되었습니다",
+    "text": "비밀 링크가 열렸으며 열람 준비가 되었습니다",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
@@ -974,7 +974,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "비밀 링크가 열렸으며 공개할 준비가 되었습니다",
+    "text": "비밀 링크가 열렸으며 공개 준비가 되었습니다",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -982,7 +982,7 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "비밀 메시지가 조회되기 전에 수동으로 소각되었습니다",
+    "text": "비밀 메시지가 열람되기 전에 수동으로 소각되었습니다",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -994,11 +994,11 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "비밀 메시지가 고아 상태가 되었으며 곧 삭제됩니다",
+    "text": "비밀 메시지가 미연결 상태이며 곧 삭제됩니다",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "비밀 메시지가 조회되기 전에 만료되었습니다",
+    "text": "비밀 메시지가 열람되기 전에 만료되었습니다",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1102,7 +1102,7 @@
     "source_hash": "883dbca9"
   },
   "web.TITLES.feedback": {
-    "text": "의견",
+    "text": "피드백",
     "source_hash": "aac77df3"
   },
   "web.TITLES.help": {
@@ -1134,7 +1134,7 @@
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "2단계 인증",
+    "text": "이중 인증",
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
@@ -1150,11 +1150,11 @@
     "source_hash": "7e32a729"
   },
   "web.TITLES.metadata": {
-    "text": "비밀 메시지 세부정보",
+    "text": "비밀 메시지 세부 정보",
     "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "비밀 메시지 수신확인",
+    "text": "비밀 메시지 수신 확인",
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
@@ -1170,7 +1170,7 @@
     "source_hash": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "사용자 지정 도메인",
+    "text": "사용자 정의 도메인",
     "source_hash": "6170ab94"
   },
   "web.TITLES.domain_add": {
@@ -1178,11 +1178,11 @@
     "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "도메인 인증",
+    "text": "도메인 확인",
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "도메인 브랜딩",
+    "text": "브랜드 도메인",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1210,11 +1210,11 @@
     "source_hash": "4f1063c9"
   },
   "web.TITLES.preferences_settings": {
-    "text": "환경설정",
+    "text": "환경 설정",
     "source_hash": "66962f72"
   },
   "web.TITLES.privacy_settings": {
-    "text": "개인정보 보호",
+    "text": "개인정보",
     "source_hash": "54a57c31"
   },
   "web.TITLES.notification_settings": {
@@ -1238,7 +1238,7 @@
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "2단계 인증",
+    "text": "이중 인증",
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
@@ -1283,19 +1283,19 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "포커스가 주요 텍스트 영역으로 이동했습니다",
+    "text": "포커스가 기본 텍스트 영역으로 이동했습니다",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
-    "text": "공유 지침",
+    "text": "공유 안내",
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "의도한 수신자에게 링크를 공유하세요",
+    "text": "의도한 수신자와 링크를 공유하세요",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "접근 문구는 안전한 별도의 채널을 통해 공유하세요",
+    "text": "접근 문구는 안전한 채널을 통해 별도로 공유하세요",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "항상 공식 Onetime Secret 웹사이트에 있는지 확인하세요. 사기꾼들은 때때로 비밀을 훔치기 위해 Onetime Secret과 똑같이 생긴 가짜 웹사이트를 만듭니다. 피싱 공격을 피하려면 새 링크를 만들기 전에 지역 도메인을 확인하세요.",
+    "text": "항상 공식 Onetime Secret 웹사이트에 접속했는지 확인하세요. 사기꾼들은 때때로 비밀 메시지를 탈취하기 위해 Onetime Secret과 똑같이 보이는 가짜 웹사이트를 만듭니다. 피싱 공격을 방지하려면 새 링크를 생성하기 전에 도메인 주소를 확인하세요.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "필요에 맞는 요금제를 선택하세요. 모든 요금제에는 무제한 비밀 공유와 개인정보 보호 우선 설계가 포함됩니다.",
+    "text": "필요에 맞는 플랜을 선택하세요. 모든 플랜에는 무제한 비밀 메시지 공유와 개인정보 보호 최우선 설계가 포함됩니다.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "추천",
+    "text": "추천 플랜",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1369,12 +1369,12 @@
     "source_hash": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "예상치 못한 오류가 발생했습니다",
+    "text": "예기치 않은 오류가 발생했습니다",
     "context": "Generic error message for unhandled exceptions in API",
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "서비스가 일시적으로 이용 불가합니다. 잠시 후 다시 시도해 주세요.",
+    "text": "서비스를 일시적으로 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
@@ -1384,8 +1384,56 @@
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "업그레이드하여 더 많은 기능을 사용하세요",
+    "text": "더 많은 기능을 이용하려면 업그레이드하세요",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "구성"
+  },
+  "web.COMMON.add": {
+    "text": "추가"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "예, 삭제합니다"
+  },
+  "web.COMMON.error_code": {
+    "text": "오류 코드"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP 상태"
+  },
+  "web.COMMON.details": {
+    "text": "세부 정보"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "비밀번호 확인"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "비밀번호가 일치해야 합니다"
+  },
+  "web.COMMON.and": {
+    "text": "그리고"
+  },
+  "web.COMMON.or": {
+    "text": "또는"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "접근 문구 표시"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "접근 문구 숨기기"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "도메인 설정"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "도메인 SSO"
+  },
+  "web.TITLES.domain_email": {
+    "text": "이메일 구성"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "수신 비밀 메시지"
   }
 }

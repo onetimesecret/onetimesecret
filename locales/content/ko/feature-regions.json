@@ -4,23 +4,23 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "귀하의 데이터는 선택한 지역에만 존재하며 지역 간에 전송되지 않습니다",
+    "text": "데이터는 선택한 지역에만 저장되며 지역 간 전송되지 않습니다",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "각 지역은 자체 인프라, 암호화 키 및 데이터 저장소를 갖춘 완전히 독립적인 환경으로 운영됩니다",
+    "text": "각 지역은 자체 인프라, 암호화 키 및 데이터 스토리지를 갖춘 완전히 독립된 환경으로 운영됩니다",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "엄격한 정책을 유지합니다: 고객 데이터는 어떤 상황에서도 지역 간에 전송되지 않습니다",
+    "text": "저희는 어떠한 상황에서도 고객 데이터를 지역 간 전송하지 않는 엄격한 정책을 유지합니다",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "중요: 다른 지역으로 전환하면 새 계정이 생성됩니다. 데이터는 원래 지역에 유지됩니다.",
+    "text": "중요: 다른 지역으로 전환하면 새 계정이 생성됩니다. 기존 데이터는 원래 지역에 유지됩니다.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "귀하의 지역",
+    "text": "사용자 지역",
     "source_hash": "cafa720f"
   },
   "web.regions.your_current_region": {
@@ -32,7 +32,7 @@
     "source_hash": "92340695"
   },
   "web.regions.explore_other_regions": {
-    "text": "다른 이용 가능한 지역 탐색",
+    "text": "다른 이용 가능한 지역 살펴보기",
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
@@ -44,15 +44,15 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "데이터가 정확히 어디에 있고 어떤 법률이 보호를 관장하는지 알 수 있습니다.",
+    "text": "데이터가 어디에 저장되고 어떤 법률로 보호되는지 정확히 알 수 있습니다.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
-    "text": "개인정보 권리",
+    "text": "개인정보 보호 권리",
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "귀하의 개인정보가 국가의 개인정보 보호법 및 규정에 따라 처리되도록 하여 무단 접근이나 오용을 방지합니다.",
+    "text": "귀하의 국가의 개인정보 보호법 및 규정에 따라 개인 정보가 처리되도록 하여 무단 접근이나 오용을 방지합니다.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "가까운 곳에 저장된 데이터는 더 낮은 지연 시간과 더 나은 성능을 제공합니다.",
+    "text": "가까운 곳에 데이터를 저장하면 지연 시간이 줄어들고 성능이 향상됩니다.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,11 +76,11 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "준수 팀에 문의",
+    "text": "규정 준수팀 문의",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "문서 검토",
+    "text": "문서 살펴보기",
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
@@ -128,11 +128,11 @@
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "서비스 제공 위치:",
+    "text": "서비스 제공 지역:",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "{0}(으)로 계속",
+    "text": "{0}(으)로 이동",
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
@@ -144,11 +144,11 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "지역 간 데이터 전송은 하지 않는 것이 저희 정책입니다. 각 지역은 완전히 독립적인 환경으로 운영됩니다.",
+    "text": "저희 정책은 지역 간 데이터를 전송하지 않는 것입니다. 각 지역은 완전히 독립된 환경으로 운영됩니다.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "다른 지역을 사용하려면 결제 연락처 이메일과 동일한 이메일 주소로 해당 지역에 새 계정을 만드세요.",
+    "text": "다른 지역을 사용하려면 결제 연락처 이메일과 동일한 이메일 주소로 해당 지역에서 새 계정을 만드세요.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
@@ -156,7 +156,10 @@
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "결제 이메일 주소로 생성된 모든 계정에 구독 혜택이 자동으로 적용됩니다.",
+    "text": "구독 혜택은 결제 이메일 주소로 생성된 모든 계정에 자동으로 적용됩니다.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "현재 귀하의 계정에 대한 지역 정보를 사용할 수 없습니다."
   }
 }

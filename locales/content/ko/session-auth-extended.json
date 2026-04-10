@@ -48,7 +48,7 @@
     }
   },
   "web.auth.mfa_required": {
-    "text": "MFA 인증 필요",
+    "text": "MFA 인증이 필요합니다",
     "context": "Page heading shown when user must complete MFA to proceed",
     "source_hash": "e93fd3a4"
   },
@@ -103,7 +103,7 @@
     "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "생체 인식",
+    "text": "생체 인증",
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
@@ -135,31 +135,31 @@
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "다른 이메일로 시도",
+    "text": "다른 이메일 시도",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "비밀번호가 필요 없습니다 — 이메일의 링크를 클릭하세요",
+    "text": "비밀번호 없이 이메일의 링크를 클릭하면 됩니다",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "네트워크 오류. 다시 시도해 주세요.",
+    "text": "네트워크 오류입니다. 다시 시도해 주세요.",
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "로그인 링크 전송 실패. 다시 시도해 주세요.",
+    "text": "로그인 링크 발송에 실패했습니다. 다시 시도해 주세요.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "유효하지 않거나 누락된 로그인 링크",
+    "text": "잘못되었거나 누락된 로그인 링크",
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "세션이 만료되었습니다. 페이지를 새로고침한 후 다시 시도해 주세요.",
+    "text": "세션이 만료되었습니다. 페이지를 새로고침하고 다시 시도해 주세요.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "로그인 실패. 다시 시도해 주세요.",
+    "text": "로그인에 실패했습니다. 다시 시도해 주세요.",
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
@@ -183,23 +183,23 @@
     "source_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "생체 인식 로그인 설정",
+    "text": "생체 인증 로그인 설정",
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "이 브라우저에서는 생체 인식 인증이 지원되지 않습니다",
+    "text": "이 브라우저에서는 생체 인증이 지원되지 않습니다",
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "WebAuthn을 지원하는 최신 브라우저를 사용해 주세요 (Chrome, Safari, Firefox 또는 Edge)",
+    "text": "WebAuthn을 지원하는 최신 브라우저(Chrome, Safari, Firefox 또는 Edge)를 사용해 주세요",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "생체 인식 로그인이 활성화되었습니다",
+    "text": "생체 인증 로그인이 활성화되었습니다",
     "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "생체 인식 로그인 설정 실패",
+    "text": "생체 인증 로그인 설정에 실패했습니다",
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
@@ -207,7 +207,7 @@
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "생체 인식 인증 실패. 다시 시도해 주세요.",
+    "text": "생체 인증에 실패했습니다. 다시 시도해 주세요.",
     "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
@@ -219,11 +219,11 @@
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "지문, 얼굴 또는 보안 키를 사용하여 로그인",
+    "text": "지문, 얼굴 또는 보안 키로 로그인하세요",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Face ID, Touch ID, Windows Hello 및 보안 키 지원",
+    "text": "Face ID, Touch ID, Windows Hello 및 보안 키를 지원합니다",
     "source_hash": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
@@ -242,12 +242,12 @@
     "source_hash": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "설정되지 않음",
+    "text": "구성되지 않음",
     "context": "Status when no passkeys are registered",
     "source_hash": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "패스키 {count}개 등록됨 | 패스키 {count}개 등록됨",
+    "text": "{count}개 패스키 등록됨 | {count}개 패스키 등록됨",
     "context": "Number of registered passkeys",
     "source_hash": "82e6681f"
   },
@@ -267,7 +267,7 @@
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "이 패스키를 제거하시겠습니까? 제거하면 더 이상 이 패스키로 로그인할 수 없습니다.",
+    "text": "이 패스키를 제거하시겠습니까? 더 이상 이 패스키로 로그인할 수 없게 됩니다.",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
@@ -282,12 +282,12 @@
     "source_hash": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "등록된 패스키가 없습니다",
+    "text": "등록된 패스키 없음",
     "context": "Empty state when no passkeys exist",
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "비밀번호 입력 없이 더 안전하게 로그인하려면 패스키를 추가하세요",
+    "text": "비밀번호를 입력하지 않고 더 안전하게 로그인하려면 패스키를 추가하세요",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
@@ -307,22 +307,22 @@
     "source_hash": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "사용된 적 없음",
+    "text": "사용한 적 없음",
     "context": "Status when passkey has not been used",
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "비밀번호보다 더 안전함 - 피싱 공격에 강함",
+    "text": "비밀번호보다 안전합니다 - 피싱 공격에 강함",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "빠르고 간편함 - 지문, 얼굴 또는 보안 키만 사용하면 됩니다",
+    "text": "빠르고 간편합니다 - 지문, 얼굴 또는 보안 키를 사용하세요",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "플랫폼 인증기 사용 시 기기 간 동기화됨",
+    "text": "플랫폼 인증기 사용 시 기기 간 동기화됩니다",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -336,19 +336,19 @@
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "로그인 실패 횟수 초과로 계정이 잠겼습니다",
+    "text": "로그인 실패가 너무 많아 계정이 잠겼습니다",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "{time}까지 계정이 잠겨 있습니다",
+    "text": "계정이 {time}까지 잠겨 있습니다",
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "즉시 접근이 필요하시면 고객 지원에 문의해 주세요",
+    "text": "즉시 접근이 필요하시면 지원팀에 문의하세요",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "대신 비밀번호를 재설정할 수 있습니다",
+    "text": "비밀번호를 재설정할 수 있습니다",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -384,7 +384,7 @@
     "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "생성일",
+    "text": "생성됨",
     "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
@@ -392,7 +392,7 @@
     "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "모든 다른 세션 로그아웃",
+    "text": "다른 모든 세션에서 로그아웃",
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "다른 모든 기기에서 로그아웃됩니다. 확실합니까?",
+    "text": "다른 모든 기기에서 로그아웃됩니다. 계속하시겠습니까?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -412,7 +412,7 @@
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "모든 다른 세션이 로그아웃되었습니다",
+    "text": "다른 모든 세션에서 로그아웃되었습니다",
     "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
@@ -420,31 +420,31 @@
     "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "2단계 인증",
+    "text": "이중 인증",
     "source_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "2단계 인증이 활성화되어 있습니다",
+    "text": "이중 인증이 활성화되어 있습니다",
     "source_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "2단계 인증이 비활성화되어 있습니다",
+    "text": "이중 인증이 비활성화되어 있습니다",
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "2단계 인증 활성화",
+    "text": "이중 인증 활성화",
     "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "2단계 인증 비활성화",
+    "text": "이중 인증 비활성화",
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "2단계 인증 설정",
+    "text": "이중 인증 설정",
     "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "계정에 추가 보안 계층 추가",
+    "text": "계정에 추가 보안 계층을 추가하세요",
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
@@ -472,7 +472,7 @@
     "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "확인 및 활성화",
+    "text": "인증 및 활성화",
     "source_hash": "7c08f68d"
   },
   "web.auth.mfa.verify_login": {
@@ -484,15 +484,15 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "유효하지 않은 코드입니다. 코드는 30초마다 만료됩니다. 인증 앱의 최신 코드를 시도해 주세요.",
+    "text": "잘못된 코드입니다. 코드는 30초마다 만료됩니다. 인증 앱에서 최신 코드를 사용하세요.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "2단계 인증이 활성화되었습니다",
+    "text": "이중 인증이 활성화되었습니다",
     "source_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "2단계 인증이 비활성화되었습니다",
+    "text": "이중 인증이 비활성화되었습니다",
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "2단계 인증 설정을 변경하려면 본인 확인",
+    "text": "이중 인증 설정을 변경하려면 본인 확인이 필요합니다",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -540,15 +540,15 @@
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "계정이 2단계 인증으로 보호되고 있습니다",
+    "text": "이중 인증으로 계정이 보호되고 있습니다",
     "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "추가 보안 계층으로 계정 보호",
+    "text": "추가 보안 계층으로 계정을 보호하세요",
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "비밀번호가 유출되더라도 무단 접근 방지",
+    "text": "비밀번호가 유출되더라도 무단 접근을 방지합니다",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -556,7 +556,7 @@
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "긴급 접근을 위한 백업 복구 코드",
+    "text": "비상 접근을 위한 백업 복구 코드",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -576,15 +576,15 @@
     "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Google Authenticator, Authy 또는 TOTP 앱 사용",
+    "text": "Google Authenticator, Authy 또는 기타 TOTP 앱 사용",
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "인증 계속",
+    "text": "인증으로 계속",
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "인증 앱의 6자리 코드를 입력하세요",
+    "text": "인증 앱에서 6자리 코드를 입력하세요",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -624,7 +624,7 @@
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "계속하려면 6자리를 모두 입력해 주세요",
+    "text": "계속하려면 6자리를 모두 입력하세요",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -656,7 +656,7 @@
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "모든 기존 복구 코드가 무효화됩니다",
+    "text": "기존의 모든 복구 코드가 무효화됩니다",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
@@ -696,7 +696,7 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "각 코드는 한 번만 사용할 수 있습니다. 부족할 경우 코드를 재생성하세요.",
+    "text": "각 코드는 한 번만 사용할 수 있습니다. 남은 코드가 부족하면 코드를 재생성하세요.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -712,9 +712,18 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.security._guidance.context": {
-    "text": "⚠️ 보안 중요: 정보 노출을 방지하는 메시지입니다. src/locales/SECURITY-TRANSLATION-GUIDE.md를 참조하세요"
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.sessions._guidance.context": {
-    "text": "사용자의 로그인된 기기/브라우저 관리 페이지"
+    "text": "User's logged-in devices/browsers management page"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "대체 인증 옵션"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "세션"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "세션"
   }
 }

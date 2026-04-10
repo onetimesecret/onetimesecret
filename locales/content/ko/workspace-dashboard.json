@@ -20,7 +20,7 @@
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "데이터를 로드하는 데 문제가 발생했습니다. 다시 시도해 주세요.",
+    "text": "데이터를 로드하는 중에 문제가 발생했습니다. 다시 시도해 주세요.",
     "source_hash": "ff0d904e"
   }
 }

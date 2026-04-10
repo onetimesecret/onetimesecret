@@ -1,10 +1,10 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "DNS 설정에 대해 자세히 알아보기",
+    "text": "DNS 구성에 대해 자세히 알아보기",
     "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "도메인 인증 상태 보기",
+    "text": "도메인 확인 상태 보기",
     "source_hash": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
@@ -12,31 +12,31 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "이 도메인은 이미 다른 조직에 등록되어 있습니다. 오류라고 생각되시면 고객 지원에 문의해 주세요.",
+    "text": "이 도메인은 이미 다른 조직에 등록되어 있습니다. 오류라고 생각되시면 지원팀에 문의해 주세요.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "도메인이 성공적으로 청구되어 조직에 추가되었습니다",
+    "text": "도메인이 성공적으로 확인되어 조직에 추가되었습니다",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "개인정보 보호 기본값",
+    "text": "비밀 메시지 기본 설정",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "이 도메인에서 생성된 비밀 메시지의 기본 개인정보 보호 옵션을 설정합니다. 이 설정은 새 비밀 메시지를 생성할 때 미리 채워집니다.",
+    "text": "이 도메인에서 생성되는 비밀 메시지의 기본 비밀 메시지 설정을 지정합니다. 새 비밀 메시지를 생성할 때 이 설정이 미리 채워집니다.",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "개인정보 보호 기본값",
+    "text": "비밀 메시지 기본 설정",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "개인정보 보호 기본값 아이콘",
+    "text": "비밀 메시지 기본 설정 아이콘",
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "기본 유효기간",
+    "text": "기본 유효 기간",
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
@@ -56,7 +56,7 @@
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "비밀 메시지가 조회될 때 기본적으로 이메일 알림 활성화",
+    "text": "비밀 메시지가 열람될 때 기본적으로 이메일 알림을 활성화",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "활성화됨",
+    "text": "활성화",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -84,7 +84,7 @@
     "source_hash": "75081b59"
   },
   "web.domains.custom": {
-    "text": "사용자 지정",
+    "text": "사용자 정의",
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
@@ -112,7 +112,7 @@
     "source_hash": "ccd202fe"
   },
   "web.domains.scope_list_label": {
-    "text": "사용 가능한 도메인",
+    "text": "이용 가능한 도메인",
     "source_hash": "026552b3"
   },
   "web.domains.scope_header": {
@@ -188,11 +188,11 @@
     "source_hash": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
-    "text": "사용자 지정 도메인 수",
+    "text": "사용자 정의 도메인 수",
     "source_hash": "a9929be0"
   },
   "web.domains.custom_domain": {
-    "text": "사용자 지정 도메인",
+    "text": "사용자 정의 도메인",
     "source_hash": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
@@ -208,7 +208,7 @@
     "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
-    "text": "도메인 인증",
+    "text": "도메인 확인",
     "source_hash": "b416f537"
   },
   "web.domains.manage_brand": {
@@ -260,11 +260,11 @@
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "apex 도메인의 경우(예:",
+    "text": "에이펙스 도메인(예:",
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "도메인 인증",
+    "text": "도메인 확인",
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
@@ -272,7 +272,7 @@
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "도메인 브랜딩 사용자 지정",
+    "text": "도메인 브랜딩 사용자 정의",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -340,7 +340,7 @@
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "도메인 인증 단계",
+    "text": "도메인 확인 단계",
     "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
@@ -360,7 +360,7 @@
     "source_hash": "2984d483"
   },
   "web.domains.failed_to_add_domain": {
-    "text": "도메인 추가 실패",
+    "text": "도메인 추가에 실패했습니다",
     "source_hash": "5fc4c4b3"
   },
   "web.domains.domain_added_successfully": {
@@ -380,7 +380,7 @@
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "유효기간 설정 편집",
+    "text": "유효 기간 설정 편집",
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
@@ -392,11 +392,11 @@
     "source_hash": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "DNS 레코드 설정",
+    "text": "DNS 레코드 구성",
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "아래 도구를 사용하여 DNS 제공업체를 자동으로 감지하고 도메인 설정을 위한 단계별 지침을 받으세요.",
+    "text": "아래 도구를 사용하여 DNS 제공업체를 자동으로 감지하고 도메인 구성에 대한 단계별 안내를 받으세요.",
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
@@ -404,23 +404,23 @@
     "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "이메일 설정",
+    "text": "이메일 구성",
     "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "이 도메인의 이메일 발송을 설정합니다",
+    "text": "이 도메인의 이메일 발송 구성",
     "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "이메일 공급자",
+    "text": "이메일 제공업체",
     "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
-    "text": "이메일 공급자를 선택하세요",
+    "text": "이메일 제공업체 선택",
     "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "보내는 사람 이름",
+    "text": "발신자 이름",
     "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
@@ -428,7 +428,7 @@
     "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "보내는 사람 주소",
+    "text": "발신자 주소",
     "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
@@ -468,19 +468,19 @@
     "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "DKIM 및 SPF 레코드를 통한 도메인 확인이 필요합니다",
+    "text": "DKIM 및 SPF 레코드를 통한 도메인 인증 필요",
     "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "도메인 인증 설정이 필요합니다",
+    "text": "도메인 인증 설정 필요",
     "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
-    "text": "도메인 확인이 필요합니다",
+    "text": "도메인 인증 필요",
     "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "계정의 기본 이메일 발송 설정을 사용합니다",
+    "text": "계정의 기본 이메일 발송 구성을 사용합니다",
     "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
@@ -488,7 +488,7 @@
     "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "이메일 발송을 위해 도메인을 확인하려면 다음 DNS 레코드를 추가하세요.",
+    "text": "이메일 발송을 위해 도메인을 인증하려면 다음 DNS 레코드를 추가하세요.",
     "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
@@ -512,7 +512,7 @@
     "source_hash": "8d525e5f"
   },
   "web.domains.email.status_verified": {
-    "text": "확인됨",
+    "text": "인증됨",
     "source_hash": "4f783840"
   },
   "web.domains.email.status_pending": {
@@ -532,7 +532,7 @@
     "source_hash": "b28b48d5"
   },
   "web.domains.email.domain_verified": {
-    "text": "도메인 확인됨",
+    "text": "도메인 인증됨",
     "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
@@ -544,15 +544,15 @@
     "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "이 도메인의 이메일 발송을 설정하려면 플랜을 업그레이드하세요.",
+    "text": "이 도메인의 이메일 발송을 구성하려면 플랜을 업그레이드하세요.",
     "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "이메일 설정",
+    "text": "이메일 구성",
     "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "접근 거부됨",
+    "text": "접근 거부",
     "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
@@ -560,23 +560,23 @@
     "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
-    "text": "이메일 설정이 성공적으로 저장되었습니다",
+    "text": "이메일 구성이 성공적으로 저장되었습니다",
     "source_hash": "dd3607fc"
   },
   "web.domains.email.delete_success": {
-    "text": "이메일 설정이 성공적으로 제거되었습니다",
+    "text": "이메일 구성이 성공적으로 제거되었습니다",
     "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "이 도메인의 이메일은 현재 전역 발신자로 발송됩니다. 자체 발신자 ID를 사용하려면 이메일 설정을 완료하세요.",
+    "text": "이 도메인의 이메일은 현재 전역 발신자에서 발송됩니다. 자체 발신자 ID를 사용하려면 이메일 구성을 완료하세요.",
     "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "사용자 정의 이메일 발송이 현재 비활성화되어 있습니다. 이메일은 전역 발신자로 발송됩니다. 사용자 정의 발신자 ID를 사용하려면 아래에서 기능을 활성화하세요.",
+    "text": "사용자 정의 이메일 발송이 현재 비활성화되어 있습니다. 이메일은 전역 발신자에서 발송됩니다. 사용자 정의 발신자 ID를 사용하려면 아래에서 기능을 활성화하세요.",
     "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
-    "text": "설정되지 않음",
+    "text": "구성되지 않음",
     "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
@@ -584,11 +584,11 @@
     "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
-    "text": "확인됨",
+    "text": "인증됨",
     "source_hash": "4f783840"
   },
   "web.domains.email.badge_pending": {
-    "text": "확인 대기 중",
+    "text": "인증 대기 중",
     "source_hash": "417a6b7e"
   },
   "web.domains.email.badge_disabled": {
@@ -596,19 +596,19 @@
     "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "이메일 발신자가 설정되지 않음 — 플랫폼 기본 발신자를 사용합니다",
+    "text": "이메일 발신자 미구성 — 플랫폼 기본 발신자가 사용됩니다",
     "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "이메일 발신자 설정이 확인 대기 중 — 플랫폼 기본 발신자를 사용합니다",
+    "text": "이메일 발신자 구성이 인증 대기 중 — 플랫폼 기본 발신자가 사용됩니다",
     "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "이메일 발신자가 비활성화됨 — 플랫폼 기본 발신자를 사용합니다",
+    "text": "이메일 발신자 비활성화됨 — 플랫폼 기본 발신자가 사용됩니다",
     "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "이메일 발신자 확인됨 — 이 도메인에서 이메일이 발송됩니다",
+    "text": "이메일 발신자 인증됨 — 이 도메인에서 이메일이 발송됩니다",
     "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
@@ -616,7 +616,7 @@
     "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "수신 비밀 메시지 설정",
+    "text": "수신 비밀 메시지 구성",
     "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
@@ -624,7 +624,7 @@
     "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
-    "text": "접근 거부됨",
+    "text": "접근 거부",
     "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
@@ -632,15 +632,15 @@
     "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "이 도메인의 수신 비밀 메시지를 설정하려면 플랜을 업그레이드하세요.",
+    "text": "이 도메인의 수신 비밀 메시지를 구성하려면 플랜을 업그레이드하세요.",
     "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "수신 비밀 메시지 설정",
+    "text": "수신 비밀 메시지 구성",
     "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "이 도메인의 수신 비밀 메시지가 설정되지 않았습니다. 외부 사용자가 팀에 비밀 메시지를 보낼 수 있도록 수신자를 추가하세요.",
+    "text": "이 도메인에 수신 비밀 메시지가 구성되지 않았습니다. 외부 사용자가 팀에 비밀 메시지를 보낼 수 있도록 수신자를 추가하세요.",
     "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
@@ -652,7 +652,7 @@
     "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "이 도메인에서 수신 비밀 메시지를 받을 수 있는 사람을 정의합니다. 수신자는 비밀 메시지가 전송되면 이메일 알림을 받습니다.",
+    "text": "이 도메인에서 수신 비밀 메시지를 받을 수 있는 사람을 정의합니다. 비밀 메시지가 발송되면 수신자에게 이메일 알림이 전송됩니다.",
     "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
@@ -680,15 +680,15 @@
     "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
-    "text": "설정된 수신자가 없습니다",
+    "text": "구성된 수신자가 없습니다",
     "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "외부 사용자가 팀에 비밀 메시지를 보낼 수 있도록 수신자를 추가하세요.",
+    "text": "팀에 비밀 메시지를 보낼 수 있도록 수신자를 추가하세요.",
     "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "유효하지 않은 이메일 주소",
+    "text": "잘못된 이메일 주소",
     "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
@@ -696,7 +696,7 @@
     "source_hash": "f89de141"
   },
   "web.domains.incoming.validation_max_recipients": {
-    "text": "최대 {max}명의 수신자만 허용됩니다",
+    "text": "최대 {max}명의 수신자가 허용됩니다",
     "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
@@ -716,23 +716,23 @@
     "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "수신 비밀 메시지 설정이 성공적으로 저장되었습니다",
+    "text": "수신 비밀 메시지 구성이 성공적으로 저장되었습니다",
     "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "수신 비밀 메시지 설정이 성공적으로 제거되었습니다",
+    "text": "수신 비밀 메시지 구성이 성공적으로 제거되었습니다",
     "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "수신자 {count}명 | 수신자 {count}명",
+    "text": "{count}명 수신자 | {count}명 수신자",
     "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
-    "text": "설정되지 않음",
+    "text": "구성되지 않음",
     "source_hash": "dd1841d2"
   },
   "web.domains.incoming.badge_configured": {
-    "text": "설정됨",
+    "text": "구성됨",
     "source_hash": "84aebc69"
   },
   "web.domains.incoming.badge_disabled": {
@@ -740,15 +740,15 @@
     "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "수신 비밀 메시지가 설정되지 않음 - 외부 사용자가 이 도메인에 비밀 메시지를 보낼 수 없습니다",
+    "text": "수신 비밀 메시지 미구성 - 외부 사용자가 이 도메인에 비밀 메시지를 보낼 수 없습니다",
     "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "수신 비밀 메시지 활성화됨, 수신자 {count}명",
+    "text": "{count}명 수신자로 수신 비밀 메시지가 활성화됨",
     "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "이 도메인의 수신 비밀 메시지 기능이 비활성화되어 있습니다",
+    "text": "이 도메인에서 수신 비밀 메시지 기능이 비활성화되어 있습니다",
     "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
@@ -764,7 +764,7 @@
     "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "외부 사용자가 비밀 메시지를 보낼 수 있도록 이 URL을 공유하세요",
+    "text": "이 URL을 외부 사용자와 공유하여 비밀 메시지를 보낼 수 있도록 하세요",
     "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
@@ -788,7 +788,7 @@
     "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "저장하면 기존 모든 수신자가 대기 중인 변경 사항으로 대체됩니다. 계속하시겠습니까?",
+    "text": "저장하면 기존 수신자가 모두 변경 사항으로 대체됩니다. 계속하시겠습니까?",
     "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
@@ -796,19 +796,19 @@
     "source_hash": "207d0dbe"
   },
   "web.domains.sso.title": {
-    "text": "Single Sign-On",
+    "text": "싱글 사인온",
     "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "SSO 설정",
+    "text": "SSO 구성",
     "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "이 도메인의 Single Sign-On 인증을 설정합니다",
+    "text": "이 도메인의 싱글 사인온 인증 구성",
     "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "접근 거부됨",
+    "text": "접근 거부",
     "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
@@ -816,27 +816,117 @@
     "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "이 도메인의 Single Sign-On을 설정하려면 플랜을 업그레이드하세요.",
+    "text": "이 도메인의 싱글 사인온을 구성하려면 플랜을 업그레이드하세요.",
     "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "SSO 설정이 성공적으로 생성되었습니다",
+    "text": "SSO 구성이 성공적으로 생성되었습니다",
     "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "SSO 설정이 성공적으로 업데이트되었습니다",
+    "text": "SSO 구성이 성공적으로 업데이트되었습니다",
     "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "SSO 설정이 성공적으로 제거되었습니다",
+    "text": "SSO 구성이 성공적으로 제거되었습니다",
     "source_hash": "2e924798"
   },
   "web.domains.sso.configure_sso": {
-    "text": "SSO 설정",
+    "text": "SSO 구성",
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "이 도메인에 SSO가 아직 설정되지 않았습니다. 팀원들이 조직의 ID 공급자를 사용하여 인증할 수 있도록 Single Sign-On을 활성화하세요.",
+    "text": "이 도메인에 SSO가 아직 구성되지 않았습니다. 팀 멤버가 조직의 ID 제공업체를 사용하여 인증할 수 있도록 싱글 사인온을 활성화하세요.",
     "source_hash": "c439214b"
+  },
+  "web.domains.public_homepage": {
+    "text": "공개 홈페이지"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "도메인 인증 및 활성화됨"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS가 구성되지 않음 — 클릭하여 수정"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "도메인 미인증 — 클릭하여 확인"
+  },
+  "web.domains.click_to_verify": {
+    "text": "클릭하여 확인"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS 위젯을 로드하지 못했습니다"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS 위젯을 사용할 수 없습니다"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS 위젯 초기화에 실패했습니다"
+  },
+  "web.domains.verified": {
+    "text": "인증됨"
+  },
+  "web.domains.pending_verification": {
+    "text": "인증 대기 중"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "저장되지 않은 변경 사항이 있습니다. 이 페이지를 떠나시겠습니까?"
+  },
+  "web.domains.detail.manage": {
+    "text": "관리"
+  },
+  "web.domains.detail.features": {
+    "text": "기능"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "홈페이지 비밀 메시지"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "도메인 홈페이지에서 비밀 메시지 생성을 위한 공개 접근 허용"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "로고, 색상 및 맞춤형 브랜딩"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "싱글 사인온 제공업체 설정"
+  },
+  "web.domains.detail.email_description": {
+    "text": "사용자 정의 이메일 발신자 구성"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "수신 비밀 메시지 수신자 설정"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "제공업체"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "이메일 전달 테스트"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "저장된 구성을 사용하여 자신에게 테스트 이메일을 보냅니다. 기능이 아직 활성화되지 않은 경우에도 작동합니다."
+  },
+  "web.domains.email.send_test": {
+    "text": "테스트 발송"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "테스트 이메일이 성공적으로 발송되었습니다"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "테스트 이메일 발송에 실패했습니다"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "{email}(으)로 발송됨"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "{provider}을(를) 통해 전달됨"
+  },
+  "web.domains.sso.test_success": {
+    "text": "연결 테스트 성공 — 제공업체가 올바르게 응답했습니다"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "연결 테스트 실패"
   }
 }

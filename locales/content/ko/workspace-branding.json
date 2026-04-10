@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "글꼴 패밀리",
+    "text": "글꼴",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -28,7 +28,7 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "미리보기 및 사용자 지정",
+    "text": "미리보기 및 사용자 정의",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "질문이 있으시면 onboarding{'@'}example.com으로 연락해 주세요",
+    "text": "질문이 있으시면 onboarding{'@'}example.com으로 문의하세요",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,19 +72,19 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "공개 전 지침",
+    "text": "공개 전 안내",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "공개 후 지침",
+    "text": "공개 후 안내",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "지침",
+    "text": "안내",
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "로고 컨트롤",
+    "text": "로고 제어",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -120,7 +120,7 @@
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "사용자 지정 아이콘",
+    "text": "사용자 정의 아이콘",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
@@ -128,11 +128,11 @@
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "브랜드 설정 로드 실패",
+    "text": "브랜드 설정을 로드하지 못했습니다",
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "수신자가 보안 메시지를 어떻게 볼지에 대한 대화형 미리보기입니다. - 위의 컨트롤을 사용하여 색상과 글꼴을 사용자 지정할 수 있습니다 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - '비밀 메시지 보기' 버튼을 사용하여 미리보기 테스트",
+    "text": "수신자가 보안 메시지를 보는 방식의 대화형 미리보기입니다. 다음을 할 수 있습니다: - 위의 제어로 색상과 글꼴 사용자 정의 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - \"비밀 메시지 보기\" 버튼으로 미리보기 테스트",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,11 +140,11 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "일본어 한자 '秘' (히미츠)는 '비밀' 또는 '기밀'을 의미합니다",
+    "text": "일본 한자 '秘' (히미쓰) - '비밀' 또는 '기밀'을 의미",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Onetime Secret 제공",
+    "text": "Powered by Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "이 도메인의 브랜딩을 맞춤 설정하려면 플랜을 업그레이드하세요.",
+    "text": "이 도메인의 브랜딩을 사용자 정의하려면 플랜을 업그레이드하세요.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "브랜드 설정이 성공적으로 저장되었습니다"
   }
 }

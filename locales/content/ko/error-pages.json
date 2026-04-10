@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "이 비밀 메시지를 왜 이용할 수 없나요?",
+    "text": "이 비밀 메시지를 볼 수 없는 이유는 무엇인가요?",
     "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
@@ -8,7 +8,7 @@
     "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "이제 어떻게 해야 하나요?",
+    "text": "어떻게 해야 하나요?",
     "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
@@ -60,7 +60,7 @@
     "source_hash": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "비밀 메시지를 공유하러 가세요!",
+    "text": "비밀 메시지를 공유해 보세요!",
     "source_hash": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
