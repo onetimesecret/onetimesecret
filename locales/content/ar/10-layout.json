@@ -1,6 +1,6 @@
 {
   "web.footer.api_docs": {
-    "text": "توثيق API",
+    "text": "وثائق API",
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "تعرف على إجراءات الأمان لدينا",
+    "text": "تعرّف على إجراءات الأمان لدينا",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "عرض الشروط والأحكام",
+    "text": "اطّلع على الشروط والأحكام",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -52,19 +52,19 @@
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "اقرأ سياسة الخصوصية لدينا",
+    "text": "اقرأ سياسة الخصوصية الخاصة بنا",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "تحقق من حالة خدمتنا",
+    "text": "تحقّق من حالة خدمتنا",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "استكشف توثيق API لدينا",
+    "text": "استكشف وثائق API الخاصة بنا",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "التوثيق",
+    "text": "الوثائق",
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
@@ -72,7 +72,7 @@
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "عرض الكود المصدري على GitHub",
+    "text": "اطّلع على الكود المصدري على GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -84,15 +84,15 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "اقرأ أحدث منشورات مدونتنا",
+    "text": "اقرأ أحدث مقالات مدونتنا",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "عرض أسعار الاشتراك",
+    "text": "اطّلع على أسعار الاشتراكات",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "تعرف على شركتنا",
+    "text": "تعرّف على شركتنا",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -104,7 +104,7 @@
     "source_hash": "7f5540e9"
   },
   "web.footer.source_code_purveyor": {
-    "text": "الشيفرة المصدرية",
+    "text": "الكود المصدري",
     "source_hash": "29c5c68f"
   },
   "web.navigation.billing": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "أضفنا الترجمات مؤخراً. لاحظت خطأً؟ {send-feedback}",
+    "text": "أضفنا الترجمات مؤخراً. لاحظت خطأ؟ {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -160,11 +160,11 @@
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "كيف يمكنني حفظ هذه المعلومات؟",
+    "text": "كيف أحفظ هذه المعلومات؟",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "استخدم زر 'نسخ إلى الحافظة' لنسخ السر بالكامل. للأسرار الأطول، تأكد من التحقق من نسخ المحتوى كاملاً قبل مغادرة هذه الصفحة.",
+    "text": "استخدم زر 'نسخ إلى الحافظة' لنسخ السر بالكامل. بالنسبة للأسرار الطويلة، تأكّد من أنك نسخت المحتوى كاملاً قبل مغادرة هذه الصفحة.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -172,7 +172,7 @@
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "سيتم إبلاغ المرسل بأن سره قد تم عرضه، لكننا لا نتتبع من شاهده أو من أي موقع. خصوصيتك محمية.",
+    "text": "سيتم إشعار المرسل بأن سره قد تمت مشاهدته، لكننا لا نتتبع من شاهده أو من أي موقع. خصوصيتك محمية.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
@@ -208,7 +208,7 @@
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "التنقل للجوال",
+    "text": "التنقل عبر الهاتف",
     "source_hash": "ccea1730"
   },
   "web.layout.main_navigation": {
@@ -224,7 +224,7 @@
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "جاري تحميل محتوى الإعدادات...",
+    "text": "جارٍ تحميل محتوى الإعدادات...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
@@ -252,7 +252,7 @@
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "العودة للرئيسية",
+    "text": "العودة إلى الرئيسية",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "سياق مساحة العمل",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "مساحة العمل"
   }
 }

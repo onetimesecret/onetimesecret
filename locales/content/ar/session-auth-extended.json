@@ -37,17 +37,17 @@
     }
   },
   "web.auth.mfa_required": {
-    "text": "مطلوب التحقق بالمصادقة الثنائية",
+    "text": "التحقق بالمصادقة الثنائية مطلوب",
     "context": "",
     "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "مطلوب التحقق بالمصادقة الثنائية للوصول إلى حسابك",
+    "text": "التحقق بالمصادقة الثنائية مطلوب للوصول إلى حسابك",
     "context": "",
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "إكمال التحقق بالمصادقة الثنائية",
+    "text": "إتمام التحقق بالمصادقة الثنائية",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -55,31 +55,31 @@
     "context": ""
   },
   "web.auth.security.authentication_failed": {
-    "text": "فشلت المصادقة. يرجى التحقق من بيانات اعتمادك والمحاولة مرة أخرى.",
+    "text": "فشلت المصادقة. يُرجى التحقق من بياناتك والمحاولة مرة أخرى.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "الكثير من المحاولات. يرجى المحاولة مرة أخرى لاحقاً.",
+    "text": "محاولات كثيرة جداً. يُرجى المحاولة لاحقاً.",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+    "text": "انتهت الجلسة. يُرجى تسجيل الدخول مرة أخرى.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "رمز الاسترداد غير موجود. يرجى التحقق من إدخاله بشكل صحيح.",
+    "text": "رمز الاسترداد غير موجود. يُرجى التحقق من إدخاله بشكل صحيح.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "رمز الاسترداد هذا مُستخدم بالفعل. كل رمز يمكن استخدامه مرة واحدة فقط.",
+    "text": "تم استخدام رمز الاسترداد هذا بالفعل. يمكن استخدام كل رمز مرة واحدة فقط.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "خطأ في الشبكة. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
+    "text": "خطأ في الشبكة. يُرجى التحقق من اتصالك والمحاولة مرة أخرى.",
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "text": "حدث خطأ. يُرجى المحاولة مرة أخرى.",
     "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
@@ -92,7 +92,7 @@
     "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "البصمة الحيوية",
+    "text": "المقاييس الحيوية",
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
@@ -112,7 +112,7 @@
     "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
-    "text": "تحقق من بريدك الإلكتروني",
+    "text": "تحقّق من بريدك الإلكتروني",
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
@@ -124,19 +124,19 @@
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "جرب بريداً إلكترونياً مختلفاً",
+    "text": "جرّب بريداً إلكترونياً مختلفاً",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "لا حاجة لكلمة مرور - فقط انقر على الرابط في بريدك الإلكتروني",
+    "text": "لا حاجة لكلمة مرور — فقط انقر الرابط في بريدك الإلكتروني",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+    "text": "خطأ في الشبكة. يُرجى المحاولة مرة أخرى.",
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "فشل إرسال رابط تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "text": "فشل إرسال رابط تسجيل الدخول. يُرجى المحاولة مرة أخرى.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
@@ -144,19 +144,19 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "انتهت صلاحية جلستك. يرجى تحديث الصفحة والمحاولة مرة أخرى.",
+    "text": "انتهت جلستك. يُرجى تحديث الصفحة والمحاولة مرة أخرى.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "text": "فشل تسجيل الدخول. يُرجى المحاولة مرة أخرى.",
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "جاري تسجيل دخولك...",
+    "text": "جارٍ تسجيل دخولك...",
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "يرجى الانتظار بينما نتحقق من رابطك",
+    "text": "يُرجى الانتظار أثناء التحقق من رابطك",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -164,39 +164,39 @@
     "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "العودة لتسجيل الدخول",
+    "text": "العودة إلى تسجيل الدخول",
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "تسجيل الدخول بـ Face ID / Touch ID",
+    "text": "تسجيل الدخول باستخدام Face ID / Touch ID",
     "source_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "إعداد تسجيل الدخول بالبصمة الحيوية",
+    "text": "إعداد تسجيل الدخول البيومتري",
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "المصادقة بالبصمة الحيوية غير مدعومة في هذا المتصفح",
+    "text": "المصادقة البيومترية غير مدعومة في هذا المتصفح",
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "يرجى استخدام متصفح حديث يدعم WebAuthn (Chrome أو Safari أو Firefox أو Edge)",
+    "text": "يُرجى استخدام متصفح حديث يدعم WebAuthn (Chrome أو Safari أو Firefox أو Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
-    "text": "تم تفعيل تسجيل الدخول بالبصمة الحيوية",
+    "text": "تم تفعيل تسجيل الدخول البيومتري",
     "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "فشل إعداد تسجيل الدخول بالبصمة الحيوية",
+    "text": "فشل إعداد تسجيل الدخول البيومتري",
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "كلمة المرور مطلوبة لإعداد مفتاح المرور",
+    "text": "كلمة المرور مطلوبة لإعداد مفتاح مرور",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "فشلت المصادقة بالبصمة الحيوية. يرجى المحاولة مرة أخرى.",
+    "text": "فشلت المصادقة البيومترية. يُرجى المحاولة مرة أخرى.",
     "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
@@ -204,15 +204,15 @@
     "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "جاري المصادقة...",
+    "text": "جارٍ المصادقة...",
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "استخدم بصمة إصبعك أو وجهك أو مفتاح الأمان لتسجيل الدخول",
+    "text": "استخدم بصمة إصبعك أو وجهك أو مفتاح أمان لتسجيل الدخول",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "يدعم Face ID و Touch ID و Windows Hello ومفاتيح الأمان",
+    "text": "يدعم Face ID وTouch ID وWindows Hello ومفاتيح الأمان",
     "source_hash": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
@@ -221,17 +221,17 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "تسجيل الدخول باستخدام Face ID أو Touch ID أو Windows Hello أو مفتاح الأمان",
+    "text": "سجّل الدخول باستخدام Face ID أو Touch ID أو Windows Hello أو مفتاح أمان",
     "context": "Description of passkey authentication",
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "تتيح لك مفاتيح المرور تسجيل الدخول بأمان بدون كلمة مرور",
+    "text": "تتيح لك مفاتيح المرور تسجيل الدخول بأمان دون كلمة مرور",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "غير مُهيّأ",
+    "text": "غير مُكوّن",
     "context": "Status when no passkeys are registered",
     "source_hash": "dd1841d2"
   },
@@ -251,17 +251,17 @@
     "source_hash": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "إزالة مفتاح مرور",
+    "text": "إزالة مفتاح المرور",
     "context": "Button to remove a passkey",
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "هل أنت متأكد من رغبتك في إزالة مفتاح المرور هذا؟ لن تتمكن بعدها من تسجيل الدخول به.",
+    "text": "هل أنت متأكد أنك تريد إزالة مفتاح المرور هذا؟ لن تتمكن من تسجيل الدخول به بعد الآن.",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "تمت إزالة مفتاح المرور بنجاح",
+    "text": "تم إزالة مفتاح المرور بنجاح",
     "context": "Success message after removing passkey",
     "source_hash": "436c1050"
   },
@@ -276,7 +276,7 @@
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "أضف مفتاح مرور لتسجيل الدخول بشكل أكثر أماناً بدون إدخال كلمة مرور",
+    "text": "أضف مفتاح مرور لتسجيل الدخول بأمان أكبر دون إدخال كلمة مرور",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
@@ -286,7 +286,7 @@
     "source_hash": "22eefa67"
   },
   "web.auth.passkeys.created": {
-    "text": "تاريخ الإنشاء",
+    "text": "تم الإنشاء",
     "context": "Label for creation date",
     "source_hash": "d70b9e24"
   },
@@ -296,17 +296,17 @@
     "source_hash": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "لم يُستخدم أبداً",
+    "text": "لم تُستخدم أبداً",
     "context": "Status when passkey has not been used",
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "أكثر أماناً من كلمات المرور - مقاومة لهجمات التصيد الاحتيالي",
+    "text": "أكثر أماناً من كلمات المرور - مقاومة لهجمات التصيّد",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "سريعة وسهلة - فقط استخدم بصمة الإصبع أو الوجه أو مفتاح الأمان",
+    "text": "سريعة وسهلة - فقط استخدم بصمة إصبعك أو وجهك أو مفتاح أمان",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
@@ -321,11 +321,11 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "تحذير: متبقي {count} محاولة (محاولات) تسجيل دخول",
+    "text": "تحذير: متبقي {count} محاولة تسجيل دخول",
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "تم قفل الحساب بسبب الكثير من محاولات تسجيل الدخول الفاشلة",
+    "text": "تم قفل الحساب بسبب كثرة محاولات تسجيل الدخول الفاشلة",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -333,7 +333,7 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "اتصل بالدعم إذا كنت بحاجة إلى وصول فوري",
+    "text": "تواصل مع الدعم إذا كنت بحاجة للوصول فوراً",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
@@ -353,7 +353,7 @@
     "source_hash": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "الجلسات الأخرى",
+    "text": "جلسات أخرى",
     "source_hash": "8409f445"
   },
   "web.auth.sessions.device": {
@@ -373,7 +373,7 @@
     "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "تاريخ الإنشاء",
+    "text": "تم الإنشاء",
     "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
@@ -385,11 +385,11 @@
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "هل أنت متأكد من رغبتك في إزالة هذه الجلسة؟",
+    "text": "هل أنت متأكد أنك تريد إزالة هذه الجلسة؟",
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "سيؤدي هذا إلى تسجيل خروجك من جميع الأجهزة الأخرى. هل أنت متأكد؟",
+    "text": "سيتم تسجيل خروجك من جميع الأجهزة الأخرى. هل أنت متأكد؟",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -397,7 +397,7 @@
     "source_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "تمت إزالة الجلسة بنجاح",
+    "text": "تم إزالة الجلسة بنجاح",
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
@@ -413,11 +413,11 @@
     "source_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "المصادقة الثنائية مفعلة",
+    "text": "المصادقة الثنائية مفعّلة",
     "source_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "المصادقة الثنائية معطلة",
+    "text": "المصادقة الثنائية معطّلة",
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
@@ -445,7 +445,7 @@
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "امسح رمز QR هذا بتطبيق المصادقة الخاص بك",
+    "text": "امسح رمز QR هذا بتطبيق المصادقة",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
@@ -473,7 +473,7 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "رمز غير صالح. تنتهي صلاحية الرموز كل 30 ثانية. جرب أحدث رمز من تطبيق المصادقة الخاص بك.",
+    "text": "رمز غير صالح. تنتهي صلاحية الرموز كل 30 ثانية. جرّب أحدث رمز من تطبيق المصادقة.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -493,7 +493,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "أكد هويتك لتعديل إعدادات المصادقة الثنائية",
+    "text": "أكّد هويتك لتعديل إعدادات المصادقة الثنائية",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -501,7 +501,7 @@
     "source_hash": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "لم يُستخدم أبداً",
+    "text": "لم تُستخدم أبداً",
     "source_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
@@ -509,15 +509,15 @@
     "source_hash": "23d3441a"
   },
   "web.auth.mfa.use_recovery_code_short": {
-    "text": "استخدام رمز الاسترداد",
+    "text": "استخدم رمز استرداد",
     "source_hash": "50d5790d"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "العودة لرمز المصادقة",
+    "text": "العودة إلى رمز المصادقة",
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "إلغاء والعودة لتسجيل الدخول",
+    "text": "إلغاء والعودة إلى تسجيل الدخول",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
@@ -525,7 +525,7 @@
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "جاري تحميل حالة المصادقة الثنائية...",
+    "text": "جارٍ تحميل حالة المصادقة الثنائية...",
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
@@ -537,15 +537,15 @@
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "منع الوصول غير المصرح به حتى لو تم اختراق كلمة المرور",
+    "text": "منع الوصول غير المصرح به حتى لو تم اختراق كلمة مرورك",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "يعمل مع Google Authenticator و Authy وتطبيقات TOTP الأخرى",
+    "text": "يعمل مع Google Authenticator وAuthy وتطبيقات TOTP الأخرى",
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "رموز استرداد احتياطية للوصول في حالات الطوارئ",
+    "text": "رموز استرداد احتياطية للوصول الطارئ",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -553,7 +553,7 @@
     "source_hash": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "جاري التعطيل...",
+    "text": "جارٍ التعطيل...",
     "source_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
@@ -561,7 +561,7 @@
     "source_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "جاري توليد رمز QR...",
+    "text": "جارٍ إنشاء رمز QR...",
     "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
@@ -569,11 +569,11 @@
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "المتابعة للتحقق",
+    "text": "المتابعة إلى التحقق",
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة الخاص بك",
+    "text": "أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -585,7 +585,7 @@
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "أدخل أحد رموز الاسترداد الخاصة بك",
+    "text": "أدخل أحد رموز الاسترداد",
     "source_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
@@ -613,7 +613,7 @@
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "يرجى إدخال جميع الأرقام الستة للمتابعة",
+    "text": "يُرجى إدخال جميع الأرقام الستة للمتابعة",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -625,15 +625,15 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "احفظ هذه الرموز في مكان آمن. يمكن استخدام كل رمز مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة.",
+    "text": "احفظ هذه الرموز في مكان آمن. يمكن استخدام كل منها مرة واحدة إذا فقدت الوصول إلى تطبيق المصادقة.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "ستُعرض هذه الرموز مرة واحدة فقط",
+    "text": "ستظهر هذه الرموز مرة واحدة فقط",
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "يجب تنزيل أو نسخ رموز الاسترداد الخاصة بك قبل إكمال الإعداد.",
+    "text": "يجب عليك تنزيل أو نسخ رموز الاسترداد قبل إكمال الإعداد.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
@@ -685,11 +685,11 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "كل رمز يمكن استخدامه مرة واحدة فقط. أعد توليد الرموز إذا كانت تنفد.",
+    "text": "يمكن استخدام كل رمز مرة واحدة فقط. أعد توليد الرموز إذا كانت تنفد.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "لا توجد رموز استرداد متبقية",
+    "text": "لم تتبقَّ رموز استرداد",
     "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
@@ -699,5 +699,20 @@
   "web.auth.recovery_codes.link_title": {
     "text": "رموز الاسترداد",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "خيارات مصادقة بديلة"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "جلسة"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "جلسات"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }

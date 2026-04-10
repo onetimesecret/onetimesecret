@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(نشط في الدقائق الخمس الماضية)",
+    "text": "(نشط في آخر 5 دقائق)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "تعديل إعدادات تكوين النظام. تُطبق التغييرات فور الحفظ.",
+    "text": "تعديل إعدادات تكوين النظام. تُطبّق التغييرات فوراً بعد الحفظ.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -92,7 +92,7 @@
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "قسم {section} لا يحتوي على قيم مُعدَّة",
+    "text": "قسم {section} لا يحتوي على قيم مكوّنة",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "المسؤول",
+    "text": "المدير",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -132,7 +132,7 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "مرحباً في Colonel",
+    "text": "مرحباً بك في Colonel",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
@@ -196,7 +196,7 @@
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "مراقبة نشاط واستخدام النظام",
+    "text": "مراقبة نشاط النظام والاستخدام",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
@@ -212,7 +212,7 @@
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "إعدادات النطاق و DNS",
+    "text": "إعدادات النطاق وDNS",
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
@@ -224,7 +224,7 @@
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
-    "text": "المهام في الخلفية",
+    "text": "المهام الخلفية",
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
@@ -252,19 +252,19 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "صحة العامل",
+    "text": "حالة العاملين",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "عمال نشطون",
+    "text": "عاملون نشطون",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
-    "text": "لا توجد بيانات قائمة انتظار متاحة",
+    "text": "لا تتوفر بيانات قائمة الانتظار",
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "جاري تحميل بيانات قائمة الانتظار...",
+    "text": "جارٍ تحميل بيانات قائمة الانتظار...",
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
@@ -272,7 +272,7 @@
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
-    "text": "الاختبار كـ {planName}",
+    "text": "الاختبار كخطة {planName}",
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "إعادة التعيين للخطة الفعلية",
+    "text": "إعادة التعيين إلى الخطة الفعلية",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -308,7 +308,7 @@
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "أنت تختبر بصلاحيات {planName} (تجاوز مؤقت للجلسة).",
+    "text": "أنت تختبر بصلاحيات خطة {planName} (تجاوز مؤقت للجلسة).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -328,7 +328,7 @@
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count} تحتاج انتباه",
+    "text": "{count} تحتاج اهتماماً",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
@@ -460,11 +460,11 @@
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
-    "text": "التحقيق",
+    "text": "فحص",
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "جاري التحقق...",
+    "text": "جارٍ التحقق...",
     "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.expanded.customer": {
@@ -476,15 +476,15 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "معرف المؤسسة",
+    "text": "معرّف المؤسسة",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "فشل التحقيق",
+    "text": "فشل الفحص",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "نتيجة التحقيق",
+    "text": "نتيجة الفحص",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
@@ -492,11 +492,11 @@
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "تم العثور على عدم تطابق",
+    "text": "تم العثور على تناقض",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "تعذرت المقارنة",
+    "text": "تعذّرت المقارنة",
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
@@ -516,7 +516,7 @@
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
-    "text": "معرف السعر",
+    "text": "معرّف السعر",
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
@@ -580,7 +580,7 @@
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
-    "text": "جاري الإرسال...",
+    "text": "جارٍ الإرسال...",
     "source_hash": "286a3af7"
   },
   "web.colonel.titles.index": {

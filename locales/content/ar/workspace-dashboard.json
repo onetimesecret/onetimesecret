@@ -1,6 +1,6 @@
 {
   "web.dashboard.title_received": {
-    "text": "مستلم",
+    "text": "تم الاستلام",
     "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
@@ -16,11 +16,11 @@
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "تعذر تحميل البيانات",
+    "text": "تعذّر تحميل البيانات",
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "حدثت مشكلة في تحميل بياناتك. يرجى المحاولة مرة أخرى.",
+    "text": "حدثت مشكلة في تحميل بياناتك. يُرجى المحاولة مرة أخرى.",
     "source_hash": "ff0d904e"
   }
 }

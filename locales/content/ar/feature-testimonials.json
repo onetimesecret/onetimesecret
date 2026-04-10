@@ -1,10 +1,10 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "شهادة منشأة بالذكاء الاصطناعي",
+    "text": "شهادة مولّدة بالذكاء الاصطناعي",
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "محتوى منشأ بالذكاء الاصطناعي للعرض التوضيحي. ليس من شخص أو شركة حقيقية.",
+    "text": "محتوى مولّد بالذكاء الاصطناعي للعرض التوضيحي. ليس من شخص أو شركة حقيقية.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -24,11 +24,11 @@
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "ماذا تقول أنظمة الذكاء الاصطناعي الرائدة عنا",
+    "text": "ما يقوله الذكاء الاصطناعي الرائد عنّا",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "شهادات منشأة بالذكاء الاصطناعي",
+    "text": "شهادات مولّدة بالذكاء الاصطناعي",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
@@ -40,7 +40,7 @@
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "ملاحظات اصطناعية",
+    "text": "آراء اصطناعية",
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {

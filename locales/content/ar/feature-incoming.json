@@ -8,7 +8,7 @@
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "جاري التحميل...",
+    "text": "جارٍ التحميل...",
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
@@ -20,19 +20,19 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "هذه الميزة معطلة حالياً. يرجى الاتصال بالدعم للمساعدة.",
+    "text": "هذه الميزة معطّلة حالياً. يُرجى التواصل مع الدعم للمساعدة.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "ملاحظة",
+    "text": "مذكرة",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "وصف موجز (مثال: طلب إعادة تعيين كلمة المرور)",
+    "text": "وصف مختصر (مثال: طلب إعادة تعيين كلمة المرور)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "ساعدنا في توجيه رسالتك للشخص المناسب",
+    "text": "ساعدنا في توجيه رسالتك إلى الشخص المناسب",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -64,7 +64,7 @@
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "سيتم تشفير هذه المعلومات ولن تُعرض إلا مرة واحدة",
+    "text": "سيتم تشفير هذه المعلومات ولن يمكن مشاهدتها إلا مرة واحدة",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -76,11 +76,11 @@
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "جاري الإرسال...",
+    "text": "جارٍ الإرسال...",
     "source_hash": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "جاري الإرسال...",
+    "text": "جارٍ الإرسال...",
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
@@ -100,7 +100,7 @@
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "رقم المرجع",
+    "text": "الرقم المرجعي",
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
@@ -108,7 +108,7 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائياً.",
+    "text": "سيتمكن المستلم من مشاهدة هذا السر مرة واحدة فقط. بعد مشاهدته، سيتم حذف السر نهائياً.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -120,15 +120,36 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "أبقِ كلمات المرور والبيانات الخاصة بعيدة عن البريد الإلكتروني وسجلات المحادثات",
+    "text": "احفظ كلمات المرور والبيانات الخاصة بعيداً عن البريد الإلكتروني وسجلات المحادثات",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "احفظ {receipt} لسجلاتك.",
+    "text": "احفظ {receipt} الخاص بك لسجلاتك.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "الإيصال",
+    "text": "إيصال",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "الترقية مطلوبة"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "هذه الميزة تتطلب ترقية الخطة. يُرجى التواصل مع مالك الحساب لتفعيل الأسرار الواردة."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "يجب أن تكون المذكرة {max} حرفاً أو أقل"
+  },
+  "incoming.validation_secret_required": {
+    "text": "محتوى السر مطلوب"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "يُرجى اختيار مستلم"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "ميزة الأسرار الواردة غير مفعّلة"
+  },
+  "incoming.validation_form_errors": {
+    "text": "يُرجى التحقق من أخطاء النموذج"
   }
 }

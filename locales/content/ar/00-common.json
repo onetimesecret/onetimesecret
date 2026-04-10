@@ -5,7 +5,7 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "روابط آمنة تعمل مرة واحدة فقط",
+    "text": "روابط آمنة تعمل لمرة واحدة فقط",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "توليد كلمة المرور معطل عندما يكون النموذج صالحاً",
+    "text": "توليد كلمة المرور معطّل عندما يكون النموذج صالحاً",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "عزز علاقاتك وابنِ الثقة باستخدام روابط سرية بعلامتك التجارية الخاصة.",
+    "text": "عزّز علاقاتك وابنِ الثقة باستخدام روابط أسرار تحمل علامتك التجارية.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -45,7 +45,7 @@
     "source_hash": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "أكد كلمة المرور",
+    "text": "أكّد كلمة المرور",
     "source_hash": "bfd8c343"
   },
   "web.COMMON.header_settings": {
@@ -57,23 +57,23 @@
     "source_hash": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "جاري الإرسال...",
+    "text": "جارٍ الإرسال...",
     "source_hash": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "جاري المعالجة...",
+    "text": "جارٍ المعالجة...",
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "أبقِ المعلومات الحساسة بعيدة عن سجلات المحادثات والبريد الإلكتروني. شارك رابطاً سرياً متاحاً لمرة واحدة فقط.",
+    "text": "احفظ المعلومات الحساسة بعيداً عن سجلات المحادثات والبريد الإلكتروني. شارك رابطاً سرياً متاحاً لمرة واحدة فقط.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "عبارة المرور غير صحيحة",
+    "text": "عبارة مرور غير صحيحة",
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "سر,مولد كلمات المرور,مشاركة سر,وقت واحد",
+    "text": "سر,مولّد كلمات مرور,مشاركة سر,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "اكتب المحتوى السري هنا...",
+    "text": "أدخل المحتوى السري هنا...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -145,35 +145,35 @@
     "source_hash": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "حذف نهائياً",
+    "text": "إتلاف",
     "source_hash": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "محذوف نهائياً",
+    "text": "تم الإتلاف",
     "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
-    "text": "ينتهي خلال",
+    "text": "تنتهي صلاحيته في",
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "حذف هذا السر نهائياً",
+    "text": "إتلاف هذا السر",
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "حذف السر نهائياً سيؤدي إلى حذفه قبل قراءته (انقر للتأكيد)",
+    "text": "إتلاف السر سيحذفه قبل أن تتم قراءته (انقر للتأكيد)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "حذف السر نهائياً إجراء دائم لا يمكن التراجع عنه",
+    "text": "إتلاف السر إجراء دائم ولا يمكن التراجع عنه",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "تحقق من بريدك الإلكتروني",
+    "text": "تحقّق من بريدك الإلكتروني",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "← انقر للكشف",
+    "text": "انقر للكشف ←",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
@@ -181,11 +181,11 @@
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "لم تقدم أي شيء للمشاركة",
+    "text": "لم تقدّم أي محتوى للمشاركة",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "تحقق من عبارة المرور مرة أخرى",
+    "text": "تحقّق من عبارة المرور مرة أخرى",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "text": "حدث خطأ غير متوقع. يُرجى المحاولة مرة أخرى.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -261,11 +261,11 @@
     "source_hash": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "محذوف نهائياً",
+    "text": "تم إتلافه",
     "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "مستلم",
+    "text": "تم الاستلام",
     "source_hash": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
@@ -293,43 +293,43 @@
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "إرسال ملاحظات",
+    "text": "إرسال الملاحظات",
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "تم إرسال رمز التحقق إلى",
+    "text": "تم إرسال رسالة تحقق إلى",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "تم إنشاء الحساب. يرجى تسجيل الدخول.",
+    "text": "تم إنشاء الحساب. يُرجى تسجيل الدخول.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "إذا كان هناك حساب بهذا البريد الإلكتروني، ستتلقى رسالة تحقق.",
+    "text": "إذا كان هناك حساب بهذا البريد الإلكتروني، فستتلقى رسالة تحقق.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "حذف هذا السر نهائياً بشكل دائم",
+    "text": "إتلاف هذا السر نهائياً",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "يرجى التأكيد",
+    "text": "يُرجى التأكيد",
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "هل أنت متأكد من رغبتك في حذف هذا السر نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+    "text": "هل أنت متأكد أنك تريد إتلاف هذا السر؟ لا يمكن التراجع عن هذا الإجراء.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "نعم، احذف هذا السر نهائياً",
+    "text": "نعم، أتلف هذا السر",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "حذف السر نهائياً سيؤدي إلى حذفه قبل استلامه.",
+    "text": "إتلاف السر سيحذفه قبل أن يتم استلامه.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "للأمان، شارك هذا الرابط بشكل منفصل عن التفاصيل الأخرى.",
+    "text": "لأسباب أمنية، شارك هذا الرابط بشكل منفصل عن التفاصيل الأخرى.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -349,7 +349,7 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "لا يمكن التحقق من الحساب وأنت مسجل الدخول بالفعل",
+    "text": "لا يمكن التحقق من حساب أثناء تسجيل الدخول بالفعل",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -369,7 +369,7 @@
     "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
-    "text": "كلمات المرور غير متطابقة",
+    "text": "كلمتا المرور غير متطابقتين",
     "source_hash": "b6eb82cd"
   },
   "web.COMMON.form_field_required": {
@@ -377,15 +377,15 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "جاري معالجة طلبك",
+    "text": "جارٍ معالجة طلبك",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "إبقائي مسجلاً لمدة 30 يوماً",
+    "text": "إبقائي مسجّل الدخول لمدة 30 يوماً",
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "جاري إعادة التوجيه...",
+    "text": "جارٍ إعادة التوجيه...",
     "source_hash": "cd23991b"
   },
   "web.COMMON.continue": {
@@ -417,7 +417,7 @@
     "source_hash": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "جاري التحميل...",
+    "text": "جارٍ التحميل...",
     "source_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
@@ -425,11 +425,11 @@
     "source_hash": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "جاري الحفظ...",
+    "text": "جارٍ الحفظ...",
     "source_hash": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
-    "text": "جاري الإضافة",
+    "text": "جارٍ الإضافة",
     "source_hash": "0a6691ef"
   },
   "web.COMMON.e_g_example": {
@@ -449,7 +449,7 @@
     "source_hash": "920e413c"
   },
   "web.COMMON.escape": {
-    "text": "إلغاء",
+    "text": "Escape",
     "source_hash": "037c9684"
   },
   "web.COMMON.active": {
@@ -493,7 +493,7 @@
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "نهاية",
+    "text": "إنهاء",
     "source_hash": "f4db1e48"
   },
   "web.COMMON.general": {
@@ -513,11 +513,11 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "تابع إذاً.",
+    "text": "حسناً، تفضّل.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "جاري التحميل...",
+    "text": "جارٍ التحميل...",
     "source_hash": "47d2a515"
   },
   "web.COMMON.not_received": {
@@ -529,11 +529,11 @@
     "source_hash": "5ac265f3"
   },
   "web.COMMON.new_password": {
-    "text": "كلمة المرور الجديدة",
+    "text": "كلمة مرور جديدة",
     "source_hash": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "البريد الإلكتروني",
+    "text": "عنوان البريد الإلكتروني",
     "source_hash": "f2488fd4"
   },
   "web.COMMON.switch": {
@@ -565,7 +565,7 @@
     "source_hash": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "آخر",
+    "text": "أخرى",
     "source_hash": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
@@ -581,11 +581,11 @@
     "source_hash": "558acbab"
   },
   "web.COMMON.mac": {
-    "text": "ماك",
+    "text": "Mac",
     "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "تم نسخ البريد الإلكتروني إلى الحافظة!",
+    "text": "تم نسخ عنوان البريد الإلكتروني إلى الحافظة!",
     "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
@@ -653,7 +653,7 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "تحقق من عبارة المرور مرة أخرى",
+    "text": "تحقّق من عبارة المرور مرة أخرى",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
@@ -673,11 +673,11 @@
     "source_hash": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "إظهار المزيد",
+    "text": "عرض المزيد",
     "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "إظهار أقل",
+    "text": "عرض أقل",
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
@@ -705,7 +705,7 @@
     "source_hash": "c5db84a8"
   },
   "web.LABELS.secret_ttl": {
-    "text": "ينتهي خلال",
+    "text": "تنتهي صلاحيته في",
     "source_hash": "de996752"
   },
   "web.LABELS.close": {
@@ -713,7 +713,7 @@
     "source_hash": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "جاري التحميل...",
+    "text": "جارٍ التحميل...",
     "source_hash": "47d2a515"
   },
   "web.LABELS.cancel": {
@@ -721,7 +721,7 @@
     "source_hash": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "جاري الحفظ...",
+    "text": "جارٍ الحفظ...",
     "source_hash": "dc85af8f"
   },
   "web.LABELS.saved": {
@@ -749,7 +749,7 @@
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "هل تحتاج مساعدة؟",
+    "text": "تحتاج مساعدة؟",
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -761,7 +761,7 @@
     "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "لا تتطلب عبارة مرور",
+    "text": "لا حاجة لعبارة مرور",
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
@@ -825,7 +825,7 @@
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "جاري الإرسال...",
+    "text": "جارٍ الإرسال...",
     "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
@@ -853,7 +853,7 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "روابط الأسرار المنشأة في هذه الجلسة",
+    "text": "روابط الأسرار التي تم إنشاؤها في هذه الجلسة",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -873,7 +873,7 @@
     "source_hash": "190463dc"
   },
   "web.LABELS.related_settings": {
-    "text": "الإعدادات ذات الصلة",
+    "text": "إعدادات ذات صلة",
     "source_hash": "68574b20"
   },
   "web.LABELS.benefits": {
@@ -882,7 +882,7 @@
     "source_hash": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
-    "text": "جاري إنشاء روابط لـ",
+    "text": "جارٍ إنشاء روابط لـ",
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
@@ -902,7 +902,7 @@
     "source_hash": "66844573"
   },
   "web.STATUS.received": {
-    "text": "مستلم",
+    "text": "تم الاستلام",
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
@@ -910,15 +910,15 @@
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "تم الكشف عنه",
+    "text": "تم الكشف",
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "محذوف نهائياً",
+    "text": "تم الإتلاف",
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "تم التدمير",
+    "text": "تم الإتلاف",
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
@@ -930,7 +930,7 @@
     "source_hash": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "ينتهي",
+    "text": "تنتهي صلاحيته",
     "source_hash": "f6725f3a"
   },
   "web.STATUS.expired": {
@@ -942,11 +942,11 @@
     "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "مؤمَّن",
+    "text": "مؤمّن",
     "source_hash": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "جاري التأمين",
+    "text": "جارٍ التأمين",
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
@@ -958,15 +958,15 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "تم إنشاء رابط السر ولم يُعرض بعد",
+    "text": "تم إنشاء رابط السر ولم تتم مشاهدته بعد",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "تم إنشاء رابط السر ولم يُعرض بعد",
+    "text": "تم إنشاء رابط السر ولم تتم مشاهدته",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "تم فتح رابط السر وهو جاهز للعرض",
+    "text": "تم فتح رابط السر وهو جاهز للمشاهدة",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
@@ -982,23 +982,23 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "تم حذف السر نهائياً يدوياً قبل عرضه",
+    "text": "تم إتلاف السر يدوياً قبل أن تتم مشاهدته",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "تم تدمير السر نهائياً",
+    "text": "تم إتلاف السر نهائياً",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
-    "text": "السر سينتهي قريباً",
+    "text": "ستنتهي صلاحية السر قريباً",
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "أصبح السر يتيماً وسيتم تدميره قريباً",
+    "text": "أصبح السر يتيماً وسيتم إتلافه قريباً",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "انتهت صلاحية السر قبل عرضه",
+    "text": "انتهت صلاحية السر قبل أن تتم مشاهدته",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1026,11 +1026,11 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "علامة تجارية على نطاق موثوق",
+    "text": "علامة تجارية بنطاق موثوق",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "مشفر أثناء النقل وفي حالة السكون",
+    "text": "مشفر أثناء النقل والتخزين",
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
@@ -1062,7 +1062,7 @@
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "يوم متبقي | أيام متبقية",
+    "text": "يوم متبقٍ | أيام متبقية",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
@@ -1126,7 +1126,7 @@
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
-    "text": "جاري تسجيل الخروج",
+    "text": "تسجيل الخروج",
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
@@ -1138,7 +1138,7 @@
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "تسجيل الدخول بالبريد الإلكتروني",
+    "text": "الدخول بالبريد الإلكتروني",
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
@@ -1158,7 +1158,7 @@
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "حذف السر نهائياً",
+    "text": "إتلاف السر",
     "source_hash": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1259,7 +1259,7 @@
     "source_hash": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "الإعدادات المتقدمة",
+    "text": "إعدادات متقدمة",
     "source_hash": "22d4f608"
   },
   "web.TITLES.system_settings": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "تحقق دائماً من أنك على موقع Onetime Secret الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو تماماً مثل Onetime Secret لسرقة أسرارك. لتجنب هجمات التصيد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة.",
+    "text": "تحقّق دائماً من أنك على موقع Onetime Secret الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو مطابقة لموقع Onetime Secret لسرقة أسرارك. لتجنب هجمات التصيّد الاحتيالي، تحقّق من نطاق الموقع قبل إنشاء روابط جديدة.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "اختر الخطة التي تناسب احتياجاتك. جميع الخطط تتضمن مشاركة أسرار غير محدودة وتصميماً يضع الخصوصية أولاً.",
+    "text": "اختر الخطة التي تناسب احتياجاتك. جميع الخطط تتضمن مشاركة غير محدودة للأسرار وتصميماً يعطي الأولوية للخصوصية.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1323,7 +1323,7 @@
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "هل لديك حساب بالفعل؟",
+    "text": "لديك حساب بالفعل؟",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1335,11 +1335,11 @@
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
-    "text": "مستلم",
+    "text": "تم الاستلام",
     "source_hash": "49f19bee"
   },
   "web.LABELS.add_note": {
-    "text": "أضف ملاحظة...",
+    "text": "إضافة ملاحظة...",
     "source_hash": "32738894"
   },
   "web.LABELS.edit_note": {
@@ -1347,7 +1347,7 @@
     "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "أضف مذكرة...",
+    "text": "إضافة مذكرة...",
     "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
@@ -1355,7 +1355,7 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "أنشئ وشارك الأسرار بالميزات الأساسية. لا حاجة لبطاقة ائتمان.",
+    "text": "أنشئ وشارك الأسرار مع الميزات الأساسية. لا حاجة لبطاقة ائتمان.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
@@ -1374,12 +1374,12 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "الخدمة غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى بعد قليل.",
+    "text": "الخدمة غير متاحة مؤقتاً. يُرجى المحاولة مرة أخرى بعد قليل.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "تعذرت معالجة طلبك في الوقت الحالي",
+    "text": "تعذّر معالجة طلبك في الوقت الحالي",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
@@ -1387,5 +1387,53 @@
     "text": "قم بالترقية لفتح المزيد من الميزات",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "تكوين"
+  },
+  "web.COMMON.add": {
+    "text": "إضافة"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "نعم، احذف"
+  },
+  "web.COMMON.error_code": {
+    "text": "رمز الخطأ"
+  },
+  "web.COMMON.http_status": {
+    "text": "حالة HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "التفاصيل"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "تأكيد كلمة المرور"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "يجب أن تتطابق كلمتا المرور"
+  },
+  "web.COMMON.and": {
+    "text": "و"
+  },
+  "web.COMMON.or": {
+    "text": "أو"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "إظهار عبارة المرور"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "إخفاء عبارة المرور"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "إعدادات النطاق"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "تسجيل دخول موحد للنطاق"
+  },
+  "web.TITLES.domain_email": {
+    "text": "إعدادات البريد الإلكتروني"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "الأسرار الواردة"
   }
 }

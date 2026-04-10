@@ -8,7 +8,7 @@
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "ساعدنا على التحسين",
+    "text": "ساعدنا في التحسين",
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
@@ -32,7 +32,7 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "أقرأ كل ملاحظة تأتي من هنا. هذه هي الطريقة التي أحدد بها ما يجب التركيز عليه.",
+    "text": "أقرأ كل ملاحظة تصلني من هنا. هذه هي الطريقة التي أحدد بها ما يجب التركيز عليه.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "يبدو أنك تبلغ عن تغيير غير مصرح به للبريد الإلكتروني في حسابك. يرجى وصف ما حدث وسنحقق في الأمر فوراً.",
+    "text": "يبدو أنك تبلّغ عن تغيير غير مصرح به للبريد الإلكتروني في حسابك. يُرجى وصف ما حدث وسنحقق في الأمر فوراً.",
     "source_hash": "00e56551"
   }
 }

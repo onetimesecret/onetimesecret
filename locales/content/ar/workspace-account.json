@@ -12,7 +12,7 @@
     "source_hash": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "تأكيد الحساب",
+    "text": "التحقق من الحساب",
     "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
@@ -60,7 +60,7 @@
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "تاريخ الفوترة القادم:",
+    "text": "تاريخ الفوترة التالي:",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -84,7 +84,7 @@
     "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
-    "text": "جاري التحديث...",
+    "text": "جارٍ التحديث...",
     "source_hash": "0a4e0b71"
   },
   "web.account.timezone": {
@@ -92,11 +92,11 @@
     "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "معرف العميل",
+    "text": "معرّف العميل",
     "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "معرف الحساب",
+    "text": "معرّف الحساب",
     "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
@@ -124,11 +124,11 @@
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "العودة للتفاصيل",
+    "text": "العودة إلى التفاصيل",
     "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "معرف العميل: {0}",
+    "text": "معرّف العميل: {0}",
     "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
@@ -140,7 +140,7 @@
     "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "أكد بكلمة المرور الخاصة بك",
+    "text": "أكّد بكلمة المرور",
     "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
@@ -152,11 +152,11 @@
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
-    "text": "جاري حذف {0}",
+    "text": "جارٍ حذف {0}",
     "source_hash": "81d21828"
   },
   "web.account.deleting_ellipsis": {
-    "text": "جاري الحذف...",
+    "text": "جارٍ الحذف...",
     "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
@@ -164,15 +164,15 @@
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "نهائي ولا يمكن التراجع عنه.",
+    "text": "دائم ولا يمكن التراجع عنه.",
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "حذف حسابك هو إجراء",
+    "text": "حذف حسابك هو",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "احذفها نهائياً قبل المتابعة",
+    "text": "أتلفها قبل المتابعة",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
@@ -184,7 +184,7 @@
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "يرجى الانتباه:",
+    "text": "يُرجى العلم:",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
@@ -192,7 +192,7 @@
     "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "إلغاء التنشيط",
+    "text": "تعطيل",
     "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
@@ -200,7 +200,7 @@
     "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "إلغاء تنشيط الحساب",
+    "text": "تعطيل الحساب",
     "source_hash": "5e31b73d"
   },
   "web.settings.title": {
@@ -216,7 +216,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "العودة للوحة التحكم",
+    "text": "العودة إلى لوحة التحكم",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -312,7 +312,7 @@
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "تحديث البريد الإلكتروني المرتبط بحسابك",
+    "text": "تحديث عنوان البريد الإلكتروني المرتبط بحسابك",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -320,19 +320,19 @@
     "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "يرجى إدخال بريد إلكتروني صالح",
+    "text": "يُرجى إدخال عنوان بريد إلكتروني صالح",
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "يجب أن يكون البريد الإلكتروني الجديد مختلفاً عن الحالي",
+    "text": "يجب أن يختلف البريد الإلكتروني الجديد عن الحالي",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "تم تحديث البريد الإلكتروني بنجاح. يرجى التحقق من صندوق الوارد لتأكيد بريدك الإلكتروني الجديد.",
+    "text": "تم إرسال بريد التحقق. يُرجى التحقق من صندوق الوارد الجديد والنقر على رابط التأكيد لإتمام التغيير.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "فشل تحديث البريد الإلكتروني. يرجى المحاولة مرة أخرى.",
+    "text": "فشل تحديث البريد الإلكتروني. يُرجى المحاولة مرة أخرى.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -408,7 +408,7 @@
     "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "مُعدّ",
+    "text": "مُكوّن",
     "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
@@ -452,7 +452,7 @@
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "راجع وأبطل الجلسات غير المستخدمة بانتظام",
+    "text": "راجع الجلسات غير المستخدمة وأبطلها بانتظام",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -472,11 +472,11 @@
     "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
-    "text": "توثيق API",
+    "text": "وثائق API",
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "تعرف على كيفية دمج Onetime Secret في تطبيقاتك",
+    "text": "تعلّم كيفية دمج Onetime Secret في تطبيقاتك",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -484,15 +484,15 @@
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "توثيق API الكامل ونقاط النهاية",
+    "text": "وثائق API الكاملة ونقاط النهاية",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
-    "text": "أمثلة الكود",
+    "text": "أمثلة على الكود",
     "source_hash": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "أمثلة الكود ومكتبات العميل",
+    "text": "أمثلة على الكود ومكتبات العملاء",
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
@@ -500,7 +500,7 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "لا تقم أبداً بإرسال مفاتيح API إلى التحكم بالإصدارات",
+    "text": "لا تقم أبداً بحفظ مفاتيح API في نظام التحكم بالإصدارات",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
@@ -512,11 +512,11 @@
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "استخدم دائماً HTTPS عند إجراء طلبات API",
+    "text": "استخدم HTTPS دائماً عند إجراء طلبات API",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "راقب استخدام API الخاص بك وقم بإعداد التنبيهات",
+    "text": "راقب استخدام API وقم بإعداد التنبيهات",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "إعادة توليد مفتاح API الخاص بك سيبطل المفتاح الحالي. قم بتحديث جميع التطبيقات التي تستخدم المفتاح القديم.",
+    "text": "إعادة توليد مفتاح API ستبطل المفتاح الحالي. قم بتحديث جميع التطبيقات التي تستخدم المفتاح القديم.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "إدارة تفضيلات الخصوصية الخاصة بك",
+    "text": "إدارة تفضيلات الخصوصية",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -548,7 +548,7 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "لا تحليلات. لا تتبع. نقطة.",
+    "text": "لا تحليلات. لا تتبع. نهائياً.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
@@ -560,27 +560,27 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "إدارة كيفية تلقي الإشعارات",
+    "text": "إدارة طريقة تلقي الإشعارات",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "فشل تحديث تفضيل الإشعارات. يرجى المحاولة مرة أخرى.",
+    "text": "فشل تحديث تفضيلات الإشعارات. يُرجى المحاولة مرة أخرى.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "إشعارات كشف السر",
+    "text": "إشعارات الكشف عن الأسرار",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "تلقي بريد إلكتروني عندما يشاهد شخص ما سرك",
+    "text": "تلقّي بريد إلكتروني عند مشاهدة شخص لسرك",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "سيتم إعلامك في كل مرة يكشف فيها مستلم أحد أسرارك",
+    "text": "سيتم إشعارك في كل مرة يكشف فيها مستلم عن أحد أسرارك",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "رسائل الإشعارات تتضمن فقط الطابع الزمني ومعرف السر. لا يتم تضمين معلومات المشاهد أبداً.",
+    "text": "تتضمن رسائل الإشعارات فقط الطابع الزمني ومعرّف السر. لا يتم تضمين معلومات المشاهد أبداً.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -588,7 +588,7 @@
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
-    "text": "الإعدادات المتقدمة وإدارة البيانات",
+    "text": "إعدادات متقدمة وإدارة البيانات",
     "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
@@ -612,7 +612,7 @@
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "تتم معالجة التصدير خلال 24 ساعة ويُرسل إلى بريدك الإلكتروني",
+    "text": "تتم معالجة عمليات التصدير خلال 24 ساعة وإرسالها إلى عنوان بريدك الإلكتروني",
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
@@ -624,7 +624,7 @@
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "إزالة جميع البيانات الوصفية للأسرار والسجل",
+    "text": "إزالة جميع البيانات الوصفية والسجل للأسرار",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -640,7 +640,7 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "تم تحديث بريدك الإلكتروني بنجاح. يرجى تسجيل الدخول بعنوان بريدك الإلكتروني الجديد.",
+    "text": "تم تحديث بريدك الإلكتروني بنجاح. يُرجى تسجيل الدخول بعنوان بريدك الإلكتروني الجديد.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
@@ -652,7 +652,7 @@
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "رابط التحقق هذا غير صالح أو منتهي الصلاحية.",
+    "text": "رابط التحقق هذا غير صالح أو انتهت صلاحيته.",
     "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
@@ -668,7 +668,7 @@
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "تمت إعادة إرسال بريد التأكيد بنجاح.",
+    "text": "تم إعادة إرسال بريد التأكيد بنجاح.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
@@ -676,7 +676,7 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "تم إرسال بريد تحقق. تحقق من صندوق الوارد وانقر على رابط التأكيد.",
+    "text": "تم إرسال بريد تحقق. تحقّق من صندوق الوارد وانقر رابط التأكيد.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {

@@ -8,7 +8,7 @@
     "source_hash": "a99b7a98"
   },
   "web.billing.upgrade.required": {
-    "text": "مطلوب ترقية",
+    "text": "الترقية مطلوبة",
     "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
@@ -24,15 +24,15 @@
     "source_hash": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "الوصول إلى API يتطلب Identity Plus أو أعلى",
+    "text": "الوصول لـ API يتطلب Identity Plus أو أعلى",
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "سجلات التدقيق تتطلب خطة فرق متعددة أو أعلى",
+    "text": "سجلات التدقيق تتطلب خطة Multi-Team أو أعلى",
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "إدارة اشتراكك والمؤسسات وإعدادات الفوترة",
+    "text": "إدارة اشتراكك ومؤسساتك وإعدادات الفوترة",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
@@ -44,7 +44,7 @@
     "source_hash": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
-    "text": "الفوترة لهذه المؤسسة",
+    "text": "فوترة هذه المؤسسة",
     "source_hash": "21806992"
   },
   "web.billing.overview.current_plan": {
@@ -60,7 +60,7 @@
     "source_hash": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "تاريخ الفوترة القادم",
+    "text": "تاريخ الفوترة التالي",
     "source_hash": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
@@ -88,7 +88,7 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "أنت على خطة مميزة بأسعار خاصة.",
+    "text": "أنت على خطة قديمة بأسعار خاصة.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
@@ -96,7 +96,7 @@
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "سيؤدي تغيير الخطة إلى فقدان السعر المميز الخاص بك. لا يمكن التراجع عن هذا.",
+    "text": "تبديل الخطط سيفقدك سعرك القديم. لا يمكن التراجع عن ذلك.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -120,7 +120,7 @@
     "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "قارن وقم بالترقية",
+    "text": "المقارنة والترقية",
     "source_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
@@ -152,11 +152,11 @@
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "تمت ترقية خطتك بنجاح",
+    "text": "تم ترقية خطتك بنجاح",
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "خطتك الجديدة نشطة الآن. شكراً لشرائك.",
+    "text": "خطتك الجديدة نشطة الآن. شكراً لك على الشراء.",
     "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -172,7 +172,7 @@
     "source_hash": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
-    "text": "الوصول إلى API",
+    "text": "الوصول لـ API",
     "source_hash": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
@@ -180,19 +180,19 @@
     "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "إعدادات الخصوصية المخصصة الافتراضية",
+    "text": "إعدادات الخصوصية الافتراضية المخصصة",
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "انتهاء صلاحية افتراضي ممتد",
+    "text": "صلاحية افتراضية ممتدة",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "إعدادات البريد المخصصة الافتراضية",
+    "text": "إعدادات البريد المخصصة",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "العلامة التجارية المخصصة",
+    "text": "علامة تجارية مخصصة",
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
@@ -220,7 +220,7 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "تسجيل الدخول الموحد",
+    "text": "تسجيل دخول موحد",
     "source_hash": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
@@ -232,7 +232,7 @@
     "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "تعذر تحميل تفاصيل الميزات",
+    "text": "تعذّر تحميل تفاصيل الميزات",
     "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
@@ -244,7 +244,7 @@
     "source_hash": "303f9386"
   },
   "web.billing.features.api_access": {
-    "text": "الوصول إلى API",
+    "text": "الوصول لـ API",
     "source_hash": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
@@ -260,7 +260,7 @@
     "source_hash": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "العلامة التجارية المخصصة",
+    "text": "علامة تجارية مخصصة",
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
@@ -280,7 +280,7 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "تسجيل الدخول الموحد (SSO)",
+    "text": "تسجيل دخول موحد (SSO)",
     "source_hash": "5db5c812"
   },
   "web.billing.features.priority_support": {
@@ -324,7 +324,7 @@
     "source_hash": "5d856320"
   },
   "web.billing.plans.current_badge": {
-    "text": "الحالي",
+    "text": "الحالية",
     "source_hash": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
@@ -372,11 +372,11 @@
     "source_hash": "324221e2"
   },
   "web.billing.plans.team_account": {
-    "text": "حساب الفريق",
+    "text": "حساب فريق",
     "source_hash": "44e90aad"
   },
   "web.billing.plans.multi_team_account": {
-    "text": "حساب المؤسسة",
+    "text": "حساب مؤسسة",
     "source_hash": "86e3a165"
   },
   "web.billing.plans.features": {
@@ -388,7 +388,7 @@
     "source_hash": "0f077568"
   },
   "web.billing.plans.api_access": {
-    "text": "الوصول إلى API",
+    "text": "الوصول لـ API",
     "source_hash": "923fd434"
   },
   "web.billing.plans.priority_support": {
@@ -400,7 +400,7 @@
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "اتصل بالمبيعات",
+    "text": "تواصل مع المبيعات",
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
@@ -432,7 +432,7 @@
     "source_hash": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "مقترح",
+    "text": "موصى به",
     "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
@@ -440,7 +440,7 @@
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "لا توجد خطط {interval} متاحة في الوقت الحالي.",
+    "text": "لا توجد خطط {interval} متاحة حالياً.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
@@ -448,7 +448,7 @@
     "source_hash": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
-    "text": "سيتم تغيير خطتك فوراً.",
+    "text": "ستتغير خطتك فوراً.",
     "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
@@ -468,19 +468,19 @@
     "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "الفوترة القادمة ({date}):",
+    "text": "الفوترة التالية ({date}):",
     "source_hash": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
-    "text": "الفاتورة القادمة",
+    "text": "الفاتورة التالية",
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "ستُحدَّث حدود ميزاتك فوراً بعد تغيير الخطة.",
+    "text": "ستتحدث حدود الميزات فوراً بعد تغيير الخطة.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "فشل تغيير الخطة. يرجى المحاولة مرة أخرى.",
+    "text": "فشل تغيير الخطة. يُرجى المحاولة مرة أخرى.",
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
@@ -500,19 +500,19 @@
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "كيف يُطبق رصيدك:",
+    "text": "كيف يُطبّق رصيدك:",
     "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
-    "text": "مبلغ الفاتورة القادمة:",
+    "text": "مبلغ الفاتورة التالية:",
     "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "الرصيد المطبق:",
+    "text": "الرصيد المطبّق:",
     "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
-    "text": "المبلغ المستحق في الفوترة القادمة:",
+    "text": "المبلغ المستحق في الفوترة التالية:",
     "source_hash": "22ee868a"
   },
   "web.billing.plans.remaining_account_credit": {
@@ -520,7 +520,7 @@
     "source_hash": "eedd0c0a"
   },
   "web.billing.plans.credit_future_note": {
-    "text": "يُطبق على الفواتير المستقبلية",
+    "text": "يُطبّق على الفواتير المستقبلية",
     "source_hash": "5007add6"
   },
   "web.billing.invoices.title": {
@@ -528,7 +528,7 @@
     "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "اعرض سجل الفوترة ونزّل الفواتير",
+    "text": "اعرض سجل الفوترة وحمّل الفواتير",
     "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
@@ -548,7 +548,7 @@
     "source_hash": "d6eafe82"
   },
   "web.billing.invoices.invoice_number": {
-    "text": "فاتورة #",
+    "text": "رقم الفاتورة",
     "source_hash": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
@@ -568,11 +568,11 @@
     "source_hash": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "قيد الانتظار",
+    "text": "معلّق",
     "source_hash": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "فشل",
+    "text": "فاشل",
     "source_hash": "031a8f0f"
   },
   "web.billing.invoices.draft": {
@@ -580,15 +580,15 @@
     "source_hash": "d2e16e61"
   },
   "web.billing.invoices.open": {
-    "text": "مفتوحة",
+    "text": "مفتوح",
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "غير قابلة للتحصيل",
+    "text": "غير قابل للتحصيل",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
-    "text": "ملغاة",
+    "text": "ملغى",
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
@@ -604,7 +604,7 @@
     "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "لقد وصلت إلى حد الأعضاء لهذا الفريق",
+    "text": "لقد وصلت إلى الحد الأقصى لأعضاء هذا الفريق",
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
@@ -660,7 +660,7 @@
     "source_hash": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
-    "text": "جاري إعادة التوجيه إلى بوابة الفوترة...",
+    "text": "جارٍ إعادة التوجيه إلى بوابة الفوترة...",
     "source_hash": "b6f47df3"
   },
   "web.billing.start_today": {
@@ -680,7 +680,7 @@
     "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "تصميم يضع الخصوصية أولاً",
+    "text": "تصميم يعطي الأولوية للخصوصية",
     "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
@@ -770,7 +770,7 @@
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "هل أنت متأكد من رغبتك في إلغاء اشتراكك في {plan}؟",
+    "text": "هل أنت متأكد أنك تريد إلغاء اشتراك {plan}؟",
     "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
@@ -786,7 +786,7 @@
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "لن يتم تحصيل رسوم منك مرة أخرى",
+    "text": "لن يتم محاسبتك مرة أخرى",
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
@@ -808,7 +808,7 @@
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "فشل إلغاء الاشتراك. يرجى المحاولة مرة أخرى.",
+    "text": "فشل إلغاء الاشتراك. يُرجى المحاولة مرة أخرى.",
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
@@ -817,12 +817,12 @@
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "سيبقى اشتراكك نشطاً حتى {date}. ستستمر في الوصول الكامل لجميع الميزات حتى ذلك الحين.",
+    "text": "سيبقى اشتراكك نشطاً حتى {date}. ستستمر في الحصول على وصول كامل إلى جميع الميزات حتى ذلك الحين.",
     "context": "",
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "غيرت رأيك؟ يمكنك إعادة تفعيل اشتراكك في أي وقت قبل تاريخ الإلغاء.",
+    "text": "غيّرت رأيك؟ يمكنك إعادة تفعيل اشتراكك في أي وقت قبل تاريخ الإلغاء.",
     "context": "",
     "source_hash": "c94d5527"
   },
@@ -831,11 +831,11 @@
     "source_hash": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "قواعد الوصول بـ IP",
+    "text": "قواعد الوصول بعنوان IP",
     "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "علامة مساحة العمل التجارية",
+    "text": "العلامة التجارية لمساحة العمل",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
@@ -871,11 +871,11 @@
     "source_hash": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "قواعد الوصول بـ IP",
+    "text": "قواعد الوصول بعنوان IP",
     "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "علامة مساحة العمل التجارية",
+    "text": "العلامة التجارية لمساحة العمل",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
@@ -883,11 +883,11 @@
     "source_hash": "0c10aea7"
   },
   "web.billing.features.shared_workflows": {
-    "text": "سير العمل المشترك",
+    "text": "سير عمل مشترك",
     "source_hash": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "مطلوب تغيير العملة",
+    "text": "تغيير العملة مطلوب",
     "context": "Modal title when plan requires different currency than current subscription",
     "source_hash": "2cd800c5"
   },
@@ -904,7 +904,7 @@
     "source_hash": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "تنتهي الفترة الحالية في:",
+    "text": "تنتهي الفترة الحالية:",
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
@@ -924,7 +924,7 @@
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "يتم إلغاء خطتك الحالية الآن. ستحصل على استرداد للوقت غير المستخدم وستكمل عملية الدفع للخطة الجديدة.",
+    "text": "يتم إلغاء خطتك الحالية الآن. ستتلقى استرداداً للوقت غير المستخدم وستكمل عملية الدفع للخطة الجديدة.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,7 +932,7 @@
     "source_hash": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "فشل ترحيل العملة. يرجى المحاولة مرة أخرى.",
+    "text": "فشل ترحيل العملة. يُرجى المحاولة مرة أخرى.",
     "source_hash": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
@@ -940,7 +940,7 @@
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "ستبقى خطتك الحالية نشطة حتى نهاية فترة الفوترة. ستتم مطالبتك بإكمال عملية الدفع لخطتك الجديدة بعد ذلك.",
+    "text": "ستبقى خطتك الحالية نشطة حتى نهاية فترة الفوترة. سيُطلب منك إكمال عملية الدفع لخطتك الجديدة بعد ذلك.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -948,15 +948,15 @@
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "لديك عناصر فواتير معلقة يجب تسويتها قبل الترحيل.",
+    "text": "لديك عناصر فوترة معلّقة تحتاج إلى حلها قبل الترحيل.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "قد لا تكون القسائم النشطة في حسابك متوافقة مع العملة الجديدة.",
+    "text": "القسائم النشطة على حسابك قد لا تكون متوافقة مع العملة الجديدة.",
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "ترحيل العملة قيد الانتظار",
+    "text": "ترحيل العملة معلّق",
     "context": "Banner heading when graceful migration is scheduled",
     "source_hash": "018ae653"
   },
@@ -965,7 +965,7 @@
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "إكمال الترحيل",
+    "text": "إتمام الترحيل",
     "context": "Button to start checkout for the new currency plan",
     "source_hash": "fa794e0c"
   },
@@ -988,5 +988,26 @@
     "text": "متاح في منطقة اشتراكك الأصلية فقط",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "أنت مشترك بالفعل في هذه الخطة."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "إعادة تفعيل الاشتراك"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "تم إعادة تفعيل اشتراكك. ستستمر الفوترة بشكل طبيعي."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "فشل إعادة تفعيل الاشتراك. يُرجى المحاولة مرة أخرى أو التواصل مع الدعم."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "نطاق مرسل بريد إلكتروني مرن"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "تسجيل دخول موحد (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "إعادة التفعيل"
   }
 }

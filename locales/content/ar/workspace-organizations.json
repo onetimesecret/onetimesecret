@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "توفر المؤسسات فوترة وإدارة موحدة. ابدأ بإنشاء أول مؤسسة لك.",
+    "text": "توفر المؤسسات فوترة وإدارة موحدة. ابدأ بإنشاء مؤسستك الأولى.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -40,7 +40,7 @@
     "source_hash": "41183d01"
   },
   "web.organizations.default": {
-    "text": "افتراضي",
+    "text": "الافتراضي",
     "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
@@ -48,7 +48,7 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "إنشاء أول مؤسسة",
+    "text": "إنشاء المؤسسة الأولى",
     "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
@@ -68,7 +68,7 @@
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "مثال: شركة Acme",
+    "text": "مثال: شركة أكمي",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -80,7 +80,7 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "ما الغرض من هذه المؤسسة؟",
+    "text": "ما هو الغرض من هذه المؤسسة؟",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
@@ -88,7 +88,7 @@
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "جهة الاتصال الرئيسية للفوترة والإشعارات الإدارية",
+    "text": "جهة الاتصال الرئيسية لإشعارات الفوترة والإدارة",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -120,7 +120,7 @@
     "source_hash": "85274cee"
   },
   "web.organizations.created": {
-    "text": "تاريخ الإنشاء",
+    "text": "تم الإنشاء",
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
@@ -160,15 +160,15 @@
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "يمكن تغيير بريد الفوترة من صفحة نظرة عامة على الفوترة",
+    "text": "يمكن تغيير بريد الفوترة في صفحة نظرة عامة على الفوترة",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "تكامل الفوترة قريباً",
+    "text": "تكامل الفوترة قادم قريباً",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "ستتوفر إدارة الفوترة والاشتراك الموحدة في إصدار مستقبلي.",
+    "text": "ستتوفر إدارة الفوترة والاشتراكات الموحدة في إصدار مستقبلي.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -184,15 +184,15 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "حدّث اسم شركتك وتفاصيل المؤسسة هنا. تساعد هذه المعلومات في تخصيص حسابك ويمكن استخدامها لميزات العلامة التجارية في المستقبل.",
+    "text": "حدّث اسم شركتك وتفاصيل المؤسسة هنا. تساعد هذه المعلومات في تخصيص حسابك ويمكن استخدامها لميزات العلامة التجارية مستقبلاً.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "البدء مع المؤسسات",
+    "text": "بدء العمل مع المؤسسات",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "أنشئ أول مؤسسة لك لإدارة معلومات شركتك والتحضير لميزات العلامة التجارية المستقبلية.",
+    "text": "أنشئ مؤسستك الأولى لإدارة معلومات شركتك والاستعداد لميزات العلامة التجارية المستقبلية.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "الفريق",
+    "text": "الأعضاء",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "سيؤدي هذا إلى حذف المؤسسة نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+    "text": "سيتم حذف المؤسسة نهائياً. لا يمكن التراجع عن هذا الإجراء.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -240,7 +240,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "هل أنت متأكد من رغبتك في حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "text": "هل أنت متأكد أنك تريد حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -284,7 +284,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "تاريخ الانضمام",
+    "text": "انضمّ",
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
@@ -296,7 +296,7 @@
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "هذه المؤسسة ليس لديها أعضاء بعد.",
+    "text": "لا يوجد أعضاء في هذه المؤسسة بعد.",
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
@@ -308,7 +308,7 @@
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "تمت إزالة العضو من المؤسسة",
+    "text": "تم إزالة العضو من المؤسسة",
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
@@ -316,11 +316,11 @@
     "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "إزالة عضو",
+    "text": "إزالة العضو",
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "هل أنت متأكد من رغبتك في إزالة {name} من هذه المؤسسة؟",
+    "text": "هل أنت متأكد أنك تريد إزالة {name} من هذه المؤسسة؟",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
@@ -336,7 +336,7 @@
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "ليس لديك صلاحية لإدارة الأعضاء",
+    "text": "ليس لديك صلاحية إدارة الأعضاء",
     "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
@@ -344,7 +344,7 @@
     "source_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "مسؤول",
+    "text": "مدير",
     "source_hash": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
@@ -376,15 +376,15 @@
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "الدعوات المعلقة",
+    "text": "الدعوات المعلّقة",
     "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "text": "لا توجد دعوات معلقة",
+    "text": "لا توجد دعوات معلّقة",
     "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "البريد الإلكتروني",
+    "text": "عنوان البريد الإلكتروني",
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
@@ -416,7 +416,7 @@
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "تمت إعادة إرسال الدعوة بنجاح",
+    "text": "تم إعادة إرسال الدعوة بنجاح",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
@@ -444,15 +444,15 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "أُعيد إرسالها {count} مرة",
+    "text": "أُعيد الإرسال {count} مرة",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "أُعيد إرسالها {count} مرات",
+    "text": "أُعيد الإرسال {count} مرات",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "قيد الانتظار",
+    "text": "معلّق",
     "source_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
@@ -468,11 +468,11 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "عضو",
+    "text": "عضو فريق",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "مسؤول",
+    "text": "مدير",
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
@@ -520,11 +520,11 @@
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "يرجى تسجيل الدخول لقبول هذه الدعوة",
+    "text": "يُرجى تسجيل الدخول لقبول هذه الدعوة",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "جاري تحميل تفاصيل الدعوة",
+    "text": "جارٍ تحميل تفاصيل الدعوة",
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
@@ -556,15 +556,15 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "تم تسجيل الدخول بحساب مختلف",
+    "text": "حساب مختلف مسجّل الدخول",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "هذه الدعوة مخصصة لـ {invitedEmail}. أنت حالياً مسجل الدخول بـ {currentEmail}.",
+    "text": "هذه الدعوة موجهة لـ {invitedEmail}. أنت حالياً مسجّل الدخول بـ {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
-    "text": "المتابعة بحساب {email}",
+    "text": "المتابعة بصفة {email}",
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
@@ -576,7 +576,193 @@
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "تنتهي قريباً",
+    "text": "ينتهي قريباً",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "عرض وتكوين مساحات العمل"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "بواسطة {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "بصفة {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "العودة للرئيسية"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "تم إرسال هذه الدعوة إلى عنوان البريد الإلكتروني هذا"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "متابعة"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "تسجيل الدخول وقبول الدعوة"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "الذهاب إلى المؤسسات"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "أنت عضو بالفعل في هذه المؤسسة"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "الانضمام إلى {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "سجّل الدخول للانضمام إلى {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "رفض"
+  },
+  "web.organizations.sso.title": {
+    "text": "تسجيل الدخول الموحد (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "تكوين SSO للسماح للأعضاء بتسجيل الدخول باستخدام مزوّد هوية مؤسستك"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "نوع المزوّد"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "اختر مزوّد الهوية لمؤسستك"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "الاسم المعروض"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "اسم ودي يظهر للمستخدمين عند تسجيل الدخول"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "مثال: Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "معرّف العميل"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "معرّف عميل OAuth الخاص بك"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "سر العميل"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "سر عميل OAuth الخاص بك"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "اتركه فارغاً للاحتفاظ بالسر الحالي"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "معرّف المستأجر"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "معرّف مستأجر Azure AD / Entra ID الخاص بك"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "مثال: 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "رابط المُصدر"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "رابط اكتشاف OIDC لمزوّد الهوية الخاص بك"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "مثال: https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "نطاقات البريد الإلكتروني المسموح بها"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "يمكن فقط للمستخدمين الذين لديهم عناوين بريد من هذه النطاقات تسجيل الدخول. اتركه فارغاً للسماح بجميع النطاقات."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "مثال: acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "يُرجى إدخال نطاق صالح (مثال: example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "هذا النطاق موجود بالفعل في القائمة"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "إزالة {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "تفعيل SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "عند التفعيل، يمكن لأعضاء المؤسسة تسجيل الدخول باستخدام مزوّد SSO هذا"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "حفظ تكوين SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "حذف التكوين"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "هل أنت متأكد؟ سيؤدي هذا إلى تعطيل SSO لمؤسستك."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "فشل تحميل تكوين SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "فشل حفظ تكوين SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "تم إنشاء تكوين SSO بنجاح"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "تم تحديث تكوين SSO بنجاح"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "تم حذف تكوين SSO بنجاح"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "فشل حذف تكوين SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "اختبار الاتصال"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "التحقق من إمكانية الوصول لمزوّد الهوية (لا يتحقق من بيانات الاعتماد)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "اختبار الاتصال"
+  },
+  "web.organizations.sso.testing": {
+    "text": "جارٍ الاختبار..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "فشل اختبار الاتصال"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "نقطة نهاية التفويض"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "حقول مفقودة"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "مفعّل"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "مُكوّن"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO للنطاق"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "تكوين SSO لكل نطاق متحقق منه"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "لتغيير المزوّد، احذف هذا التكوين أولاً"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "غير مُكوّن"
+  },
+  "web.organizations.tabs.team": {
+    "text": "الفريق"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

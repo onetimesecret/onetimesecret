@@ -12,11 +12,11 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "هذا النطاق مسجل بالفعل لمؤسسة أخرى. يرجى الاتصال بالدعم إذا كنت تعتقد أن هذا خطأ.",
+    "text": "هذا النطاق مسجل بالفعل في مؤسسة أخرى. يُرجى التواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "تم المطالبة بالنطاق بنجاح وإضافته لمؤسستك",
+    "text": "تم المطالبة بالنطاق بنجاح وإضافته إلى مؤسستك",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
@@ -36,11 +36,11 @@
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "وقت الصلاحية الافتراضي",
+    "text": "مدة الصلاحية الافتراضية",
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "كم من الوقت يجب أن تبقى الأسرار متاحة افتراضياً",
+    "text": "المدة الافتراضية لبقاء الأسرار متاحة",
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
@@ -56,11 +56,11 @@
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "تفعيل إشعارات البريد الإلكتروني افتراضياً عند عرض الأسرار",
+    "text": "تفعيل إشعارات البريد الإلكتروني افتراضياً عند مشاهدة الأسرار",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "استخدام الافتراضي العام",
+    "text": "استخدام الإعداد الافتراضي العام",
     "source_hash": "a83c91e4"
   },
   "web.domains.global_default": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "مفعّل",
+    "text": "تفعيل",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -88,7 +88,7 @@
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "تعديل الافتراضيات",
+    "text": "تعديل الإعدادات الافتراضية",
     "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
@@ -128,11 +128,11 @@
     "source_hash": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "النطاق الافتراضي ليس لديه صفحة إعدادات",
+    "text": "النطاق الافتراضي لا يحتوي على صفحة إعدادات",
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "يرجى إدخال اسم نطاق {0}",
+    "text": "يُرجى إدخال اسم نطاق {0}",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -200,11 +200,11 @@
     "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "العودة للنطاقات",
+    "text": "العودة إلى النطاقات",
     "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "العودة لقائمة النطاقات",
+    "text": "العودة إلى قائمة النطاقات",
     "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
@@ -232,7 +232,7 @@
     "source_hash": "574264df"
   },
   "web.domains.loading_domain_information": {
-    "text": "جاري تحميل معلومات النطاق...",
+    "text": "جارٍ تحميل معلومات النطاق...",
     "source_hash": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
@@ -260,11 +260,11 @@
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "يرجى ملاحظة أنه للنطاقات الرئيسية (مثل،",
+    "text": "يُرجى ملاحظة أنه بالنسبة للنطاقات الجذرية (مثال:",
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
-    "text": "تحقق من نطاقك",
+    "text": "تحقّق من نطاقك",
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
@@ -272,7 +272,7 @@
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "تخصيص علامتك التجارية للنطاق",
+    "text": "تخصيص العلامة التجارية لنطاقك",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -284,7 +284,7 @@
     "source_hash": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. انتظار الانتشار",
+    "text": "3. الانتظار للانتشار",
     "source_hash": "3e6cf4e1"
   },
   "web.domains.value_2": {
@@ -356,7 +356,7 @@
     "source_hash": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
-    "text": "تمت إزالة النطاق بنجاح",
+    "text": "تم إزالة النطاق بنجاح",
     "source_hash": "2984d483"
   },
   "web.domains.failed_to_add_domain": {
@@ -364,7 +364,7 @@
     "source_hash": "5fc4c4b3"
   },
   "web.domains.domain_added_successfully": {
-    "text": "تمت إضافة النطاق بنجاح",
+    "text": "تم إضافة النطاق بنجاح",
     "source_hash": "dd8180cf"
   },
   "web.domains.passphrase_set": {
@@ -376,15 +376,15 @@
     "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "الافتراضيات العامة",
+    "text": "الإعدادات الافتراضية العامة",
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "تعديل إعداد وقت الصلاحية",
+    "text": "تعديل إعداد مدة الصلاحية",
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "تعديل متطلب عبارة المرور",
+    "text": "تعديل متطلبات عبارة المرور",
     "source_hash": "0b5555b5"
   },
   "web.domains.edit_notify": {
@@ -396,7 +396,427 @@
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "استخدم الأداة أدناه للكشف تلقائياً عن مزود DNS الخاص بك والحصول على تعليمات خطوة بخطوة لتكوين نطاقك.",
+    "text": "استخدم الأداة أدناه للكشف التلقائي عن مزود DNS الخاص بك والحصول على تعليمات خطوة بخطوة لتكوين نطاقك.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "صفحة رئيسية عامة"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "تم التحقق من النطاق وهو نشط"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS غير مكوّن — انقر للإصلاح"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "لم يتم التحقق من النطاق — انقر للتحقق"
+  },
+  "web.domains.click_to_verify": {
+    "text": "انقر للتحقق"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "فشل تحميل أداة DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "أداة DNS غير متاحة"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "فشل تهيئة أداة DNS"
+  },
+  "web.domains.verified": {
+    "text": "تم التحقق"
+  },
+  "web.domains.pending_verification": {
+    "text": "في انتظار التحقق"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟"
+  },
+  "web.domains.detail.manage": {
+    "text": "إدارة"
+  },
+  "web.domains.detail.features": {
+    "text": "الميزات"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "أسرار الصفحة الرئيسية"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "السماح بالوصول العام لإنشاء أسرار على الصفحة الرئيسية لنطاقك"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "الشعار والألوان والعلامة التجارية المخصصة"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "إعدادات مزود تسجيل الدخول الموحد"
+  },
+  "web.domains.detail.email_description": {
+    "text": "تكوين مرسل البريد الإلكتروني المخصص"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "إعدادات مستلمي الأسرار الواردة"
+  },
+  "web.domains.email.title": {
+    "text": "إرسال البريد الإلكتروني"
+  },
+  "web.domains.email.config_title": {
+    "text": "تكوين البريد الإلكتروني"
+  },
+  "web.domains.email.config_description": {
+    "text": "تكوين إرسال البريد الإلكتروني لهذا النطاق"
+  },
+  "web.domains.email.provider_label": {
+    "text": "مزوّد البريد الإلكتروني"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "اختر مزوّد بريد إلكتروني"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "اسم المرسل"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "مثال: Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "عنوان المرسل"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "مثال: secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "عنوان الرد"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "مثال: support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "حفظ التغييرات"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "تجاهل التغييرات"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "استخدام الإعدادات الافتراضية للحساب"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "يتطلب التحقق من النطاق عبر سجلات DKIM وSPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "يتطلب إعداد مصادقة النطاق"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "يتطلب التحقق من النطاق"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "يستخدم تكوين إرسال البريد الإلكتروني الافتراضي لحسابك"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "سجلات DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "أضف سجلات DNS التالية للتحقق من نطاقك لإرسال البريد الإلكتروني."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "النوع"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "الاسم"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "القيمة"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "المزوّد"
+  },
+  "web.domains.email.copy": {
+    "text": "نسخ"
+  },
+  "web.domains.email.copied": {
+    "text": "تم النسخ"
+  },
+  "web.domains.email.status_verified": {
+    "text": "تم التحقق"
+  },
+  "web.domains.email.status_pending": {
+    "text": "معلّق"
+  },
+  "web.domains.email.status_failed": {
+    "text": "فاشل"
+  },
+  "web.domains.email.revalidate": {
+    "text": "إعادة التحقق"
+  },
+  "web.domains.email.validating": {
+    "text": "جارٍ التحقق..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "تم التحقق من النطاق"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "فشل التحقق"
+  },
+  "web.domains.email.last_validated": {
+    "text": "آخر تحقق"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "قم بترقية خطتك لتكوين إرسال البريد الإلكتروني لهذا النطاق."
+  },
+  "web.domains.email.configure_email": {
+    "text": "تكوين البريد الإلكتروني"
+  },
+  "web.domains.email.access_denied": {
+    "text": "تم رفض الوصول"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "ليس لديك صلاحية إدارة إعدادات البريد الإلكتروني لهذا النطاق. تواصل مع مدير مؤسستك."
+  },
+  "web.domains.email.update_success": {
+    "text": "تم حفظ تكوين البريد الإلكتروني بنجاح"
+  },
+  "web.domains.email.delete_success": {
+    "text": "تم إزالة تكوين البريد الإلكتروني بنجاح"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "يتم حالياً إرسال رسائل هذا النطاق من المرسل العام. أكمل تكوين البريد الإلكتروني لاستخدام هوية المرسل الخاصة بك."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "إرسال البريد المخصص معطّل حالياً. سيتم إرسال الرسائل من المرسل العام. فعّل الميزة أدناه لاستخدام هوية المرسل المخصصة."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "اختبار تسليم البريد الإلكتروني"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "أرسل بريداً اختبارياً لنفسك باستخدام التكوين المحفوظ. يعمل حتى عندما لا تكون الميزة مفعّلة بعد."
+  },
+  "web.domains.email.send_test": {
+    "text": "إرسال اختبار"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "تم إرسال البريد الاختباري بنجاح"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "فشل إرسال البريد الاختباري"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "أُرسل إلى {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "تم التسليم عبر {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "غير مُكوّن"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "استخدام المرسل الافتراضي"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "تم التحقق"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "في انتظار التحقق"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "معطّل"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "لم يتم تكوين مرسل بريد — تستخدم الرسائل المرسل الافتراضي للمنصة"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "تكوين مرسل البريد في انتظار التحقق — تستخدم الرسائل المرسل الافتراضي للمنصة"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "مرسل البريد معطّل — تستخدم الرسائل المرسل الافتراضي للمنصة"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "تم التحقق من مرسل البريد — يتم إرسال الرسائل من هذا النطاق"
+  },
+  "web.domains.incoming.title": {
+    "text": "الأسرار الواردة"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "تكوين الأسرار الواردة"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "السماح للمستخدمين الخارجيين بإرسال أسرار مباشرة إلى مستلمين محددين على هذا النطاق"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "تم رفض الوصول"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "ليس لديك صلاحية إدارة إعدادات الأسرار الواردة لهذا النطاق. تواصل مع مدير مؤسستك."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "قم بترقية خطتك لتكوين الأسرار الواردة لهذا النطاق."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "تكوين الأسرار الواردة"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "الأسرار الواردة غير مكوّنة لهذا النطاق. أضف مستلمين للسماح للمستخدمين الخارجيين بإرسال أسرار إلى فريقك."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "الأسرار الواردة معطّلة حالياً. لا يمكن للمستخدمين الخارجيين إرسال أسرار إلى مستلمين على هذا النطاق. فعّل الميزة أدناه للسماح بالأسرار الواردة."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "المستلمون"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "حدد من يمكنه استلام الأسرار الواردة على هذا النطاق. سيتلقى المستلمون إشعارات بالبريد الإلكتروني عند إرسال سر إليهم."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "إضافة مستلم"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "إزالة"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "عنوان البريد الإلكتروني"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "اسم العرض"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "مثال: فريق الأمان"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "لم يتم تكوين مستلمين"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "أضف مستلمين للسماح للمستخدمين الخارجيين بإرسال أسرار إلى فريقك."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "عنوان بريد إلكتروني غير صالح"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "عنوان البريد الإلكتروني هذا مضاف بالفعل"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "الحد الأقصى {max} مستلمين مسموح بهم"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "اسم العرض مطلوب"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "عنوان البريد الإلكتروني مطلوب"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "حفظ التغييرات"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "تجاهل التغييرات"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "تم حفظ تكوين الأسرار الواردة بنجاح"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "تم إزالة تكوين الأسرار الواردة بنجاح"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} مستلم | {count} مستلمين"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "غير مُكوّن"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "مُكوّن"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "معطّل"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "الأسرار الواردة غير مكوّنة - لا يمكن للمستخدمين الخارجيين إرسال أسرار إلى هذا النطاق"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "الأسرار الواردة مفعّلة مع {count} مستلم"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "ميزة الأسرار الواردة معطّلة لهذا النطاق"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "تفعيل الأسرار الواردة"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "السماح للمستخدمين الخارجيين بإرسال أسرار إلى مستلمين على هذا النطاق"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "الرابط العام"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "شارك هذا الرابط مع المستخدمين الخارجيين للسماح لهم بإرسال أسرار"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "نسخ الرابط"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "تم نسخ الرابط إلى الحافظة"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "هل أنت متأكد أنك تريد إزالة جميع المستلمين؟ لن يتمكن المستخدمون الخارجيون من إرسال أسرار إلى هذا النطاق بعد الآن."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "تم الوصول إلى الحد الأقصى لعدد المستلمين"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "عنوان البريد الإلكتروني هذا مضاف بالفعل"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "الحفظ سيستبدل جميع المستلمين الحاليين بتغييراتك المعلّقة. هل أنت متأكد؟"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "حذف جميع المستلمين"
+  },
+  "web.domains.sso.title": {
+    "text": "تسجيل الدخول الموحد"
+  },
+  "web.domains.sso.config_title": {
+    "text": "تكوين SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "تكوين مصادقة تسجيل الدخول الموحد لهذا النطاق"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "تم رفض الوصول"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "ليس لديك صلاحية إدارة إعدادات SSO لهذا النطاق. تواصل مع مدير مؤسستك."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "قم بترقية خطتك لتكوين تسجيل الدخول الموحد لهذا النطاق."
+  },
+  "web.domains.sso.create_success": {
+    "text": "تم إنشاء تكوين SSO بنجاح"
+  },
+  "web.domains.sso.update_success": {
+    "text": "تم تحديث تكوين SSO بنجاح"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "تم إزالة تكوين SSO بنجاح"
+  },
+  "web.domains.sso.test_success": {
+    "text": "نجح اختبار الاتصال — استجاب المزوّد بشكل صحيح"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "فشل اختبار الاتصال"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "تكوين SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "لم يتم تكوين SSO بعد لهذا النطاق. فعّل تسجيل الدخول الموحد للسماح لأعضاء الفريق بالمصادقة باستخدام مزوّد هوية مؤسستك."
   }
 }
