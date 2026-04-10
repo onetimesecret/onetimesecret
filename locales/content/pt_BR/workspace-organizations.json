@@ -20,11 +20,11 @@
     "source_hash": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Gerenciar Organizações",
+    "text": "Gerenciar organizações",
     "source_hash": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Nova Organização",
+    "text": "Nova organização",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organizações fornecem cobrança unificada e administração. Comece criando sua primeira organização.",
+    "text": "As organizações fornecem faturamento e administração unificados. Comece criando sua primeira organização.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -44,11 +44,11 @@
     "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Criar Organização",
+    "text": "Criar organização",
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Criar Primeira Organização",
+    "text": "Criar primeira organização",
     "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
@@ -64,7 +64,7 @@
     "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Nome da Organização",
+    "text": "Nome da organização",
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
@@ -72,7 +72,7 @@
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Nome da Organização",
+    "text": "Nome da organização",
     "source_hash": "4cbd9073"
   },
   "web.organizations.description": {
@@ -84,11 +84,11 @@
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "E-mail de Cobrança",
+    "text": "E-mail de faturamento",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Contato principal para notificações de cobrança e administrativas",
+    "text": "Contato principal para notificações de faturamento e administrativas",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -116,7 +116,7 @@
     "source_hash": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Informações da Organização",
+    "text": "Informações da organização",
     "source_hash": "85274cee"
   },
   "web.organizations.created": {
@@ -124,11 +124,11 @@
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Última Atualização",
+    "text": "Última atualização",
     "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Configurações da Organização",
+    "text": "Configurações da organização",
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
@@ -136,15 +136,15 @@
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Configurações Gerais",
+    "text": "Configurações gerais",
     "source_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Cobrança e Assinatura",
+    "text": "Faturamento e assinatura",
     "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Salvar Alterações",
+    "text": "Salvar alterações",
     "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
@@ -156,39 +156,39 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "E-mail de cobrança atualizado com sucesso",
+    "text": "E-mail de faturamento atualizado com sucesso",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "O e-mail de cobrança pode ser alterado na página Visão Geral de Cobrança",
+    "text": "O e-mail de faturamento pode ser alterado na página Visão geral do faturamento",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Integração de Cobrança Em Breve",
+    "text": "Integração de faturamento em breve",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "O gerenciamento unificado de cobrança e assinatura estará disponível em uma versão futura.",
+    "text": "O gerenciamento unificado de faturamento e assinaturas estará disponível em uma versão futura.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "Sobre Organizações",
+    "text": "Sobre organizações",
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organizações fornecem cobrança unificada e administração para gerenciamento centralizado.",
+    "text": "As organizações fornecem faturamento e administração unificados para gerenciamento centralizado.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Gerencie Sua Organização",
+    "text": "Gerencie sua organização",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Atualize o nome da sua empresa e detalhes da organização aqui. Essas informações ajudam a personalizar sua conta e podem ser usadas para recursos de marca no futuro.",
+    "text": "Atualize o nome da sua empresa e os detalhes da organização aqui. Essas informações ajudam a personalizar sua conta e podem ser usadas para recursos de marca no futuro.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Começando com Organizações",
+    "text": "Começando com organizações",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
@@ -204,15 +204,15 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Marca da Empresa",
+    "text": "Marca da empresa",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Equipe",
+    "text": "Membros",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
-    "text": "Cobrança",
+    "text": "Faturamento",
     "source_hash": "3ac8bbca"
   },
   "web.organizations.tabs.subscription": {
@@ -220,11 +220,11 @@
     "source_hash": "4999c6c6"
   },
   "web.organizations.danger_zone": {
-    "text": "Zona de Perigo",
+    "text": "Zona de perigo",
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Excluir Organização",
+    "text": "Excluir organização",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
@@ -236,7 +236,7 @@
     "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Excluir Organização",
+    "text": "Excluir organização",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
@@ -252,11 +252,11 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Gerencie membros da organização e suas funções",
+    "text": "Gerenciar membros da organização e seus cargos",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Membros Atuais",
+    "text": "Membros atuais",
     "source_hash": "cfc156ae"
   },
   "web.organizations.members.member": {
@@ -280,7 +280,7 @@
     "source_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Função",
+    "text": "Cargo",
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
@@ -300,11 +300,11 @@
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Função do membro atualizada com sucesso",
+    "text": "Cargo do membro atualizado com sucesso",
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Falha ao atualizar função do membro",
+    "text": "Falha ao atualizar cargo do membro",
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
@@ -316,7 +316,7 @@
     "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Remover Membro",
+    "text": "Remover membro",
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
@@ -324,11 +324,11 @@
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Você não pode alterar sua própria função",
+    "text": "Você não pode alterar seu próprio cargo",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Você não pode se remover da organização",
+    "text": "Você não pode remover a si mesmo da organização",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
@@ -364,19 +364,19 @@
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Convites da Organização",
+    "text": "Convites da organização",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Convidar Membro",
+    "text": "Convidar membro",
     "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Convidar Novo Membro",
+    "text": "Convidar novo membro",
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Convites Pendentes",
+    "text": "Convites pendentes",
     "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
@@ -384,19 +384,19 @@
     "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "Endereço de E-mail",
+    "text": "Endereço de e-mail",
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "membro{'@'}exemplo.com",
+    "text": "membro{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Função",
+    "text": "Cargo",
     "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Enviar Convite",
+    "text": "Enviar convite",
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro",
+    "text": "Membro da equipe",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -476,15 +476,15 @@
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Aceitar Convite",
+    "text": "Aceitar convite",
     "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Recusar Convite",
+    "text": "Recusar convite",
     "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Detalhes do Convite",
+    "text": "Detalhes do convite",
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
@@ -520,7 +520,7 @@
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Por favor, entre para aceitar este convite",
+    "text": "Entre para aceitar este convite",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
@@ -532,7 +532,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Convites para membros da equipe requerem um plano com gerenciamento de equipes. Faça upgrade para adicionar colaboradores à sua organização.",
+    "text": "Convites de membros de equipe requerem um plano com gerenciamento de equipe. Faça upgrade para adicionar colaboradores à sua organização.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,7 +556,7 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Conectado com outra conta",
+    "text": "Conta diferente conectada",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
@@ -580,7 +580,7 @@
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "Login Único (SSO)",
+    "text": "Login único (SSO)",
     "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
@@ -588,7 +588,7 @@
     "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
-    "text": "Tipo de Provedor",
+    "text": "Tipo de provedor",
     "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
@@ -596,19 +596,19 @@
     "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
-    "text": "Nome de Exibição",
+    "text": "Nome de exibição",
     "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "Um nome amigável exibido aos usuários ao entrar",
+    "text": "Um nome amigável mostrado aos usuários ao entrar",
     "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "ex. SSO Acme Corp",
+    "text": "ex. Acme Corp SSO",
     "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
-    "text": "ID do Cliente",
+    "text": "ID do cliente",
     "source_hash": "8726db01"
   },
   "web.organizations.sso.client_id_placeholder": {
@@ -616,7 +616,7 @@
     "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Segredo do Cliente",
+    "text": "Segredo do cliente",
     "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
@@ -628,11 +628,11 @@
     "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
-    "text": "ID do Locatário",
+    "text": "ID do inquilino",
     "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "O identificador do seu locatário Azure AD / Entra ID",
+    "text": "Seu identificador de inquilino do Azure AD / Entra ID",
     "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
@@ -640,7 +640,7 @@
     "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
-    "text": "URL do Emissor",
+    "text": "URL do emissor",
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
@@ -648,23 +648,23 @@
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "ex. https://login.exemplo.com",
+    "text": "ex. https://login.example.com",
     "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "Domínios de E-mail Permitidos",
+    "text": "Domínios de e-mail permitidos",
     "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Apenas usuários com endereços de e-mail desses domínios podem entrar. Deixe vazio para permitir todos os domínios.",
+    "text": "Apenas usuários com endereços de e-mail destes domínios podem entrar. Deixe vazio para permitir todos os domínios.",
     "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "ex. acme.com.br",
+    "text": "ex. acme.com",
     "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "Por favor, insira um domínio válido (ex. exemplo.com)",
+    "text": "Insira um domínio válido (ex. example.com)",
     "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
@@ -680,15 +680,15 @@
     "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Quando ativado, membros da organização podem entrar usando este provedor de SSO",
+    "text": "Quando ativado, membros da organização podem entrar usando este provedor SSO",
     "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
-    "text": "Salvar Configuração de SSO",
+    "text": "Salvar configuração SSO",
     "source_hash": "70853769"
   },
   "web.organizations.sso.delete_config": {
-    "text": "Excluir Configuração",
+    "text": "Excluir configuração",
     "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
@@ -696,39 +696,39 @@
     "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
-    "text": "Falha ao carregar configuração de SSO",
+    "text": "Falha ao carregar configuração SSO",
     "source_hash": "75cb73f6"
   },
   "web.organizations.sso.save_error": {
-    "text": "Falha ao salvar configuração de SSO",
+    "text": "Falha ao salvar configuração SSO",
     "source_hash": "99ef145b"
   },
   "web.organizations.sso.create_success": {
-    "text": "Configuração de SSO criada com sucesso",
+    "text": "Configuração SSO criada com sucesso",
     "source_hash": "531c7d92"
   },
   "web.organizations.sso.update_success": {
-    "text": "Configuração de SSO atualizada com sucesso",
+    "text": "Configuração SSO atualizada com sucesso",
     "source_hash": "d98d8e83"
   },
   "web.organizations.sso.delete_success": {
-    "text": "Configuração de SSO excluída com sucesso",
+    "text": "Configuração SSO excluída com sucesso",
     "source_hash": "55f5d4f5"
   },
   "web.organizations.sso.delete_error": {
-    "text": "Falha ao excluir configuração de SSO",
+    "text": "Falha ao excluir configuração SSO",
     "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Testar Conexão",
+    "text": "Testar conexão",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Verifica se o provedor de identidade está acessível (não valida credenciais)",
+    "text": "Verifique se o provedor de identidade está acessível (não valida credenciais)",
     "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Testar Conexão",
+    "text": "Testar conexão",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
@@ -740,11 +740,11 @@
     "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "Endpoint de Autorização",
+    "text": "Endpoint de autorização",
     "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "Campos Ausentes",
+    "text": "Campos ausentes",
     "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
@@ -756,7 +756,7 @@
     "source_hash": "84aebc69"
   },
   "web.organizations.sso.domain_sso_title": {
-    "text": "SSO do Domínio",
+    "text": "SSO do domínio",
     "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
@@ -768,7 +768,49 @@
     "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
-    "text": "Não Configurado",
+    "text": "Não configurado",
     "source_hash": "bbea960e"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Visualize e configure suas áreas de trabalho"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "por {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "como {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Voltar ao início"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Este convite foi enviado para este endereço de e-mail"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Continuar"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Entrar e aceitar convite"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Ir para organizações"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Você já é membro desta organização"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Participar de {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Entre para participar de {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Recusar"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Equipe"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

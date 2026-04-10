@@ -1,6 +1,6 @@
 {
   "web.regions.data_sovereignty_title": {
-    "text": "Soberania de Dados e Isolamento Regional",
+    "text": "Soberania de dados e isolamento regional",
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
@@ -16,19 +16,19 @@
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Importante: Mudar para uma região diferente cria uma nova conta. Seus dados permanecem na sua região original.",
+    "text": "Importante: Mudar para uma região diferente cria uma nova conta. Seus dados permanecem na região original.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "Sua Região",
+    "text": "Sua região",
     "source_hash": "cafa720f"
   },
   "web.regions.your_current_region": {
-    "text": "Sua Região Atual",
+    "text": "Sua região atual",
     "source_hash": "45e2a9d6"
   },
   "web.regions.active": {
-    "text": "Ativa",
+    "text": "Ativo",
     "source_hash": "92340695"
   },
   "web.regions.explore_other_regions": {
@@ -36,11 +36,11 @@
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
-    "text": "Por Que a Soberania de Dados Importa",
+    "text": "Por que a soberania de dados é importante",
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
-    "text": "Transparência e Controle",
+    "text": "Transparência e controle",
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
@@ -48,7 +48,7 @@
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
-    "text": "Direitos de Privacidade",
+    "text": "Direitos de privacidade",
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
@@ -56,15 +56,15 @@
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
-    "text": "Conformidade Regulatória",
+    "text": "Conformidade regulatória",
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Atenda aos requisitos de proteção de dados regionais como GDPR, HIPAA, CCPA e outros",
+    "text": "Atenda aos requisitos do GDPR, HIPAA, CCPA e outras regulamentações regionais de proteção de dados",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
-    "text": "Acesso Mais Rápido",
+    "text": "Acesso mais rápido",
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
@@ -108,7 +108,7 @@
     "source_hash": "10866a9d"
   },
   "web.regions.available_regions": {
-    "text": "Regiões Disponíveis",
+    "text": "Regiões disponíveis",
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
@@ -120,15 +120,15 @@
     "source_hash": "f1699c90"
   },
   "web.regions.data_region": {
-    "text": "Região de Dados",
+    "text": "Região de dados",
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Jurisdição Desconhecida",
+    "text": "Jurisdição desconhecida",
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Servindo você a partir de",
+    "text": "Atendendo você de",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -140,7 +140,7 @@
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Alteração de região",
+    "text": "Alterando regiões",
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
@@ -148,15 +148,18 @@
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Para usar uma região diferente, crie uma nova conta lá usando o mesmo endereço de e-mail associado ao seu e-mail de contato de cobrança.",
+    "text": "Para usar uma região diferente, crie uma nova conta lá usando o mesmo endereço de e-mail associado ao seu e-mail de contato de faturamento.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se o seu e-mail de contato de cobrança for diferente do e-mail da sua conta Onetime Secret, use o e-mail de contato de cobrança para a conta na nova região para manter os benefícios da sua assinatura.",
+    "text": "Se o e-mail de contato de faturamento for diferente do e-mail da sua conta Onetime Secret, use o e-mail de contato de faturamento para a conta da nova região para manter os benefícios da sua assinatura.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Os benefícios da sua assinatura serão aplicados automaticamente a qualquer conta criada com seu endereço de e-mail de cobrança.",
+    "text": "Os benefícios da sua assinatura serão aplicados automaticamente a qualquer conta criada com o endereço de e-mail de faturamento.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Nenhuma informação de região está disponível no momento para sua conta."
   }
 }

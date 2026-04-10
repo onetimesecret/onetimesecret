@@ -44,7 +44,7 @@
     "source_hash": "f96a59a1"
   },
   "web.translations.english_template": {
-    "text": "Modelo em inglês",
+    "text": "modelo em inglês",
     "source_hash": "1a843644"
   },
   "web.translations.start_a_new_translation_from_our": {
@@ -88,7 +88,7 @@
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Ajude a Comunicação Segura a se Tornar Global",
+    "text": "Ajude a comunicação segura a se tornar global",
     "source_hash": "e94bdc8e"
   }
 }

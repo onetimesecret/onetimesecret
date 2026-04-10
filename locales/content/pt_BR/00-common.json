@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "Gerar senha está desabilitado quando o formulário é válido",
+    "text": "Gerar senha está desativado quando o formulário é válido",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Mantenha informações sensíveis fora dos seus logs de chat e e-mail. Compartilhe um link confidencial disponível apenas uma vez.",
+    "text": "Mantenha informações sensíveis fora dos seus registros de chat e e-mail. Compartilhe um link confidencial que estará disponível apenas uma vez.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "confidencial,gerador de senhas,compartilhar mensagem,onetime",
+    "text": "secret,gerador de senhas,compartilhar mensagem confidencial,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -129,7 +129,7 @@
     "source_hash": "c7ebd045"
   },
   "web.COMMON.recent": {
-    "text": "Recentes",
+    "text": "Recente",
     "source_hash": "690dbe9d"
   },
   "web.COMMON.not_set": {
@@ -189,7 +189,7 @@
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Digite a frase secreta aqui",
+    "text": "Insira a frase secreta aqui",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Cuidado: mostraremos apenas uma vez.",
+    "text": "Cuidado: só mostraremos uma vez.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Ocorreu um erro inesperado. Por favor, tente novamente.",
+    "text": "Ocorreu um erro inesperado. Tente novamente.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -225,7 +225,7 @@
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Entrar na sua conta",
+    "text": "Entre na sua conta",
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
@@ -289,7 +289,7 @@
     "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Compartilhe seus pensamentos, ideias ou experiências...",
+    "text": "Compartilhe suas opiniões, ideias ou experiências...",
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
@@ -341,7 +341,7 @@
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
-    "text": "Perguntas Frequentes",
+    "text": "F.A.Q.",
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
@@ -361,11 +361,11 @@
     "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "A senha deve ter pelo menos 8 caracteres",
+    "text": "A senha deve ter no mínimo 8 caracteres",
     "source_hash": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
-    "text": "A senha deve ter pelo menos 8 caracteres",
+    "text": "A senha deve ter no mínimo 8 caracteres",
     "source_hash": "e5054833"
   },
   "web.COMMON.passwords_do_not_match": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Vamos lá então.",
+    "text": "Prossiga então.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -657,7 +657,7 @@
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Pressione o botão de cópia abaixo.",
+    "text": "Pressione o botão de copiar abaixo.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -681,11 +681,11 @@
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Habilitar",
+    "text": "Ativar",
     "source_hash": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Desabilitar",
+    "text": "Desativar",
     "source_hash": "b7e3e4aa"
   },
   "web.LABELS.stats": {
@@ -761,7 +761,7 @@
     "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
-    "text": "Frase secreta não requerida",
+    "text": "Frase secreta não necessária",
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
@@ -918,7 +918,7 @@
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Queimado",
+    "text": "Destruído",
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
@@ -958,15 +958,15 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "O link confidencial foi criado e ainda não foi visualizado",
+    "text": "O link da mensagem confidencial foi criado e ainda não foi visualizado",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "O link confidencial foi criado e não foi visualizado",
+    "text": "O link da mensagem confidencial foi criado e não foi visualizado",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "O link confidencial foi aberto e está pronto para ser visualizado",
+    "text": "O link da mensagem confidencial foi aberto e está pronto para ser visualizado",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
@@ -974,7 +974,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "O link confidencial foi aberto e está pronto para ser revelado",
+    "text": "O link da mensagem confidencial foi aberto e está pronto para ser revelado",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -986,7 +986,7 @@
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "A mensagem confidencial foi destruída permanentemente",
+    "text": "A mensagem confidencial foi permanentemente destruída",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
@@ -1026,7 +1026,7 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Marca de domínio confiável",
+    "text": "Marca com domínio confiável",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1118,7 +1118,7 @@
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Esqueceu a senha",
+    "text": "Esqueci a senha",
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
@@ -1182,7 +1182,7 @@
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Domínio de marca",
+    "text": "Domínio da marca",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1202,7 +1202,7 @@
     "source_hash": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Por que a soberania de dados importa",
+    "text": "Por que a soberania de dados é importante",
     "source_hash": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
@@ -1250,7 +1250,7 @@
     "source_hash": "579c7f4e"
   },
   "web.TITLES.passkeys": {
-    "text": "Passkeys",
+    "text": "Chaves de acesso",
     "context": "Page title for passkey management",
     "source_hash": "c87ccdb4"
   },
@@ -1283,7 +1283,7 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "O foco agora está na área de texto principal",
+    "text": "O foco está agora na área de texto principal",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
@@ -1295,7 +1295,7 @@
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Compartilhe a frase secreta separadamente através de um canal seguro",
+    "text": "Compartilhe a frase secreta separadamente por um canal seguro",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Sempre verifique se você está no site oficial do Onetime Secret. Fraudadores às vezes criam sites falsos que parecem exatamente com o Onetime Secret para roubar suas informações confidenciais. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links.",
+    "text": "Sempre verifique se você está no site oficial do Onetime Secret. Fraudadores às vezes criam sites falsos que parecem exatamente com o Onetime Secret para roubar suas mensagens confidenciais. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Escolha o plano que atende às suas necessidades. Todos os planos incluem compartilhamento ilimitado de mensagens confidenciais e design com privacidade em primeiro lugar.",
+    "text": "Escolha o plano que se adapta às suas necessidades. Todos os planos incluem compartilhamento ilimitado de mensagens confidenciais e design com privacidade em primeiro lugar.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1347,15 +1347,15 @@
     "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "Adicionar anotação...",
+    "text": "Adicionar memorando...",
     "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Editar anotação",
+    "text": "Editar memorando",
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Crie e compartilhe mensagens confidenciais com recursos básicos. Sem necessidade de cartão de crédito.",
+    "text": "Crie e compartilhe mensagens confidenciais com recursos básicos. Não é necessário cartão de crédito.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
@@ -1374,12 +1374,12 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Serviço temporariamente indisponível. Por favor, tente novamente em breve.",
+    "text": "Serviço temporariamente indisponível. Tente novamente em breve.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Não foi possível processar sua solicitação no momento",
+    "text": "Não foi possível processar sua solicitação neste momento",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
@@ -1387,5 +1387,53 @@
     "text": "Faça upgrade para desbloquear mais recursos",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Configurar"
+  },
+  "web.COMMON.add": {
+    "text": "Adicionar"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Sim, excluir"
+  },
+  "web.COMMON.error_code": {
+    "text": "Código de erro"
+  },
+  "web.COMMON.http_status": {
+    "text": "Status HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Detalhes"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Confirmar senha"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "As senhas devem ser iguais"
+  },
+  "web.COMMON.and": {
+    "text": "e"
+  },
+  "web.COMMON.or": {
+    "text": "ou"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Mostrar frase secreta"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Ocultar frase secreta"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Configurações do domínio"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO do domínio"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Configuração de e-mail"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Mensagens confidenciais recebidas"
   }
 }

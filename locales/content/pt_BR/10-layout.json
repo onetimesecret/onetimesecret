@@ -1,10 +1,10 @@
 {
   "web.footer.api_docs": {
-    "text": "Documentação da API",
+    "text": "Docs da API",
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Guia de Marca",
+    "text": "Guia de marca",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Conheça nossas medidas de segurança",
+    "text": "Saiba mais sobre nossas medidas de segurança",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Consulte nossos Termos e Condições",
+    "text": "Veja nossos Termos e Condições",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -44,7 +44,7 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Informações Legais",
+    "text": "Jurídico",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
@@ -60,11 +60,11 @@
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Explore nossa documentação de API",
+    "text": "Explore nossa documentação da API",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "Documentação",
+    "text": "Docs",
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
@@ -88,11 +88,11 @@
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Veja nossos preços de assinatura",
+    "text": "Veja os preços das nossas assinaturas",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Conheça nossa empresa",
+    "text": "Saiba mais sobre nossa empresa",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -112,7 +112,7 @@
     "source_hash": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
-    "text": "Visão Geral",
+    "text": "Visão geral",
     "source_hash": "d4b1ea57"
   },
   "web.navigation.organizations": {
@@ -120,7 +120,7 @@
     "source_hash": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Versão do Site",
+    "text": "Versão do site",
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Você está visualizando uma mensagem segura que foi compartilhada com você através do Onetime Secret. Este conteúdo é exibido apenas uma vez e depois é permanentemente excluído dos nossos servidores.",
+    "text": "Você está visualizando uma mensagem segura que foi compartilhada com você através do Onetime Secret. Este conteúdo é exibido apenas uma vez e depois permanentemente excluído dos nossos servidores.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -164,7 +164,7 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Use o botão 'Copiar para Área de Transferência' para copiar toda a mensagem confidencial. Para mensagens mais longas, verifique se você copiou o conteúdo completo antes de sair desta página.",
+    "text": "Use o botão 'Copiar para a área de transferência' para copiar toda a mensagem confidencial. Para mensagens mais longas, certifique-se de verificar que copiou o conteúdo completo antes de sair desta página.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
@@ -172,15 +172,15 @@
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "O remetente será notificado de que sua mensagem confidencial foi visualizada, mas não rastreamos quem a visualizou nem de qual localização. Sua privacidade está protegida.",
+    "text": "O remetente será notificado de que sua mensagem confidencial foi visualizada, mas não rastreamos quem a visualizou ou de qual localização. Sua privacidade está protegida.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Quando você sair ou atualizar esta página, esta mensagem confidencial será permanentemente excluída e não poderá ser recuperada por ninguém.",
+    "text": "Ao sair ou atualizar esta página, esta mensagem confidencial será permanentemente excluída e não poderá ser recuperada por ninguém.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Voltar para a página anterior",
+    "text": "Voltar à página anterior",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
@@ -204,15 +204,15 @@
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Navegação do Painel",
+    "text": "Navegação do painel",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "Navegação Mobile",
+    "text": "Navegação mobile",
     "source_hash": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Navegação Principal",
+    "text": "Navegação principal",
     "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
@@ -220,7 +220,7 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Notas de Versão",
+    "text": "Notas de versão",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
@@ -244,15 +244,15 @@
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Voltar para início",
+    "text": "Voltar ao início",
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Voltar para a página inicial",
+    "text": "Voltar à página inicial",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Voltar para Início",
+    "text": "Voltar ao início",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
@@ -280,7 +280,7 @@
     "source_hash": "506ff394"
   },
   "web.layout.icon_library": {
-    "text": "Biblioteca de Ícones",
+    "text": "Biblioteca de ícones",
     "source_hash": "a73f4c07"
   },
   "web.layout.google_material": {
@@ -308,11 +308,11 @@
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Versão do Site: v{0}",
+    "text": "Versão do site: v{0}",
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Alterar idioma. Idioma atual é {0}",
+    "text": "Alterar idioma. O idioma atual é {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
@@ -324,7 +324,7 @@
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Mudar para modo {0}",
+    "text": "Alternar para modo {0}",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
@@ -332,11 +332,14 @@
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Área de Trabalho",
+    "text": "Área de trabalho",
     "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
     "text": "Contexto da área de trabalho",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Área de trabalho"
   }
 }

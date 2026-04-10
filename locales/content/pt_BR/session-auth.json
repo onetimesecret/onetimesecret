@@ -16,7 +16,7 @@
     "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Digite suas credenciais",
+    "text": "Insira suas credenciais",
     "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
@@ -24,11 +24,11 @@
     "source_hash": "f93267aa"
   },
   "web.login.send_sign_in_link": {
-    "text": "Enviar link de acesso",
+    "text": "Enviar link de login",
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Um link seguro será enviado para sua caixa de entrada.",
+    "text": "Um link seguro será enviado para sua caixa de e-mail.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -40,7 +40,7 @@
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Usar acesso sem senha",
+    "text": "Usar login sem senha",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
@@ -56,7 +56,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "Link Mágico",
+    "text": "Link mágico",
     "source_hash": "7a9ba11a"
   },
   "web.login.tab_passkey": {
@@ -68,7 +68,7 @@
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
-    "text": "Ou continuar com",
+    "text": "Ou continue com",
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
@@ -84,27 +84,27 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "Falha no login SSO. Por favor, tente novamente.",
+    "text": "Login SSO falhou. Tente novamente.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "Falha na autenticação SSO. Por favor, tente novamente ou use o login com senha.",
+    "text": "A autenticação SSO falhou. Tente novamente ou use login com senha.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "O link de autenticação está incompleto. Por favor, solicite um novo link de login.",
+    "text": "O link de autenticação está incompleto. Solicite um novo link de login.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Este link de login expirou. Por favor, solicite um novo.",
+    "text": "Este link de login expirou. Solicite um novo.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Este link de login é inválido. Por favor, solicite um novo.",
+    "text": "Este link de login é inválido. Solicite um novo.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Crie Sua Conta",
+    "text": "Crie sua conta",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
@@ -112,11 +112,11 @@
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Entrar.",
+    "text": "Entre.",
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "Erro ao Criar Conta",
+    "text": "Erro ao criar conta",
     "source_hash": "e380a0b6"
   },
   "web.signup.password_error": {
@@ -143,23 +143,23 @@
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Este link de verificação expirou. Por favor, solicite um novo.",
+    "text": "Este link de verificação expirou. Solicite um novo.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Esta conta já foi verificada. Você pode entrar agora.",
+    "text": "Esta conta já foi verificada. Você já pode entrar.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Não foi possível verificar a conta. Por favor, tente novamente ou entre em contato com o suporte.",
+    "text": "Não foi possível verificar a conta. Tente novamente ou entre em contato com o suporte.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Por favor, verifique seu e-mail para obter um link de verificação",
+    "text": "Verifique seu e-mail para obter um link de verificação",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Falha na verificação da conta. Por favor, verifique seu link de verificação ou solicite um novo.",
+    "text": "A verificação da conta falhou. Verifique seu link de verificação ou solicite um novo.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -171,11 +171,11 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Verifique seu e-mail para obter o link de verificação mais recente",
+    "text": "Verifique seu e-mail para o link de verificação mais recente",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Verifique sua pasta de spam/lixo eletrônico se não encontrar o e-mail",
+    "text": "Verifique sua pasta de spam/lixo se não encontrar o e-mail",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Por favor, use o link de verificação enviado para seu endereço de e-mail para verificar sua conta.",
+    "text": "Use o link de verificação enviado para seu endereço de e-mail para verificar sua conta.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Falha ao alterar a senha. Por favor, verifique sua senha atual e tente novamente.",
+    "text": "Falha ao alterar a senha. Verifique sua senha atual e tente novamente.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -247,7 +247,7 @@
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Digite seu endereço de e-mail abaixo e enviaremos um link para redefinir sua senha",
+    "text": "Insira seu endereço de e-mail abaixo e enviaremos um link para redefinir sua senha",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
@@ -260,7 +260,7 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Por favor, digite sua nova senha abaixo. Certifique-se de que seja forte e única para proteger sua conta.",
+    "text": "Insira sua nova senha abaixo. Certifique-se de que ela seja forte e única para proteger sua conta.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
@@ -305,11 +305,11 @@
     "source_hash": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Habilitado",
+    "text": "Ativado",
     "source_hash": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Desabilitado",
+    "text": "Desativado",
     "source_hash": "75081b59"
   },
   "web.auth.account.active_sessions": {
@@ -341,11 +341,11 @@
     "source_hash": "e1513814"
   },
   "web.help.title": {
-    "text": "Ajuda e Suporte",
+    "text": "Ajuda e suporte",
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Problemas ao entrar",
+    "text": "Solução de problemas de login",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
@@ -353,19 +353,19 @@
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Verifique sua pasta de spam ou lixo eletrônico",
+    "text": "Verifique sua pasta de spam ou lixo",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Verifique se você digitou seu endereço de e-mail corretamente",
+    "text": "Verifique se digitou seu endereço de e-mail corretamente",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Aguarde alguns minutos - às vezes os e-mails podem demorar",
+    "text": "Aguarde alguns minutos - e-mails podem às vezes atrasar",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Tente solicitar um novo link se já se passaram mais de 10 minutos",
+    "text": "Tente solicitar um novo link se já passaram mais de 10 minutos",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Use a opção Link Mágico para entrar sem senha. Depois de entrar, você pode alterar sua senha nas Configurações da Conta.",
+    "text": "Use a opção Link Mágico para entrar sem senha. Após entrar, você pode alterar sua senha nas Configurações da Conta.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,7 +381,7 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Após várias tentativas de login malsucedidas, as contas são temporariamente bloqueadas por segurança. Aguarde 15 minutos e tente novamente, ou use o Link Mágico para entrar.",
+    "text": "Após várias tentativas de login fracassadas, as contas são temporariamente bloqueadas por segurança. Aguarde 15 minutos e tente novamente, ou use o Link Mágico para entrar.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -389,14 +389,23 @@
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Se você ainda estiver com problemas, estamos aqui para ajudar. Envie-nos uma mensagem e responderemos assim que possível.",
+    "text": "Se ainda estiver com problemas, estamos aqui para ajudar. Envie-nos uma mensagem e responderemos o mais rápido possível.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "Contatar Suporte",
+    "text": "Contatar suporte",
     "source_hash": "f8d47b82"
   },
   "web.auth.verify._guidance.context": {
-    "text": "Fluxo de verificação de e-mail após o cadastro"
+    "text": "Email verification flow after signup"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Conta SSO"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Login único está disponível para este domínio"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "O administrador da organização pode ativar o SSO para permitir que membros da equipe entrem aqui. Entre em contato com o administrador para obter acesso."
   }
 }

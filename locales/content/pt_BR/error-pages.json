@@ -16,11 +16,11 @@
     "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Aviso ignorado",
+    "text": "Aviso dispensado",
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Ignorar aviso de truncamento",
+    "text": "Dispensar aviso de truncamento",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -28,19 +28,19 @@
     "source_hash": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Página Não Encontrada",
+    "text": "404 - Página não encontrada",
     "source_hash": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Página Não Encontrada",
+    "text": "404 - Página não encontrada",
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Ignorar aviso",
+    "text": "Dispensar aviso",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Ignorar notificação",
+    "text": "Dispensar notificação",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {

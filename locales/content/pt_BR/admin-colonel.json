@@ -44,11 +44,11 @@
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Erro ao carregar configuração",
+    "text": "Erro ao carregar a configuração",
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Erro ao salvar configuração",
+    "text": "Erro ao salvar a configuração",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
@@ -76,7 +76,7 @@
     "source_hash": "4a379f10"
   },
   "web.colonel.saveAll": {
-    "text": "Salvar Tudo",
+    "text": "Salvar tudo",
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
@@ -136,19 +136,19 @@
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Painel de controle administrativo do OneTimeSecret",
+    "text": "Painel de controle administrativo para o OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
-    "text": "Ações Rápidas",
+    "text": "Ações rápidas",
     "source_hash": "2cc2b6f7"
   },
   "web.colonel.recentActivity": {
-    "text": "Atividade Recente",
+    "text": "Atividade recente",
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Ver Tudo",
+    "text": "Ver tudo",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
@@ -156,35 +156,35 @@
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Total de Mensagens Confidenciais",
+    "text": "Total de mensagens confidenciais",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Usuários Ativos",
+    "text": "Usuários ativos",
     "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Mensagens Confidenciais Hoje",
+    "text": "Mensagens confidenciais hoje",
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Mensagens Confidenciais Criadas",
+    "text": "Mensagens confidenciais criadas",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Mensagens Confidenciais Compartilhadas",
+    "text": "Mensagens confidenciais compartilhadas",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Total de Usuários",
+    "text": "Total de usuários",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "E-mails Enviados",
+    "text": "E-mails enviados",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Saúde do Sistema",
+    "text": "Saúde do sistema",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
@@ -192,7 +192,7 @@
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Ver Atividade",
+    "text": "Ver atividade",
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
@@ -200,7 +200,7 @@
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "Gerenciar Contas",
+    "text": "Gerenciar contas",
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
@@ -208,7 +208,7 @@
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Configurar Domínios",
+    "text": "Configurar domínios",
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
@@ -216,7 +216,7 @@
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
-    "text": "Configurações do Sistema",
+    "text": "Configurações do sistema",
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
@@ -224,11 +224,11 @@
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Tarefas em Segundo Plano",
+    "text": "Tarefas em segundo plano",
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
-    "text": "Status da Fila",
+    "text": "Status da fila",
     "source_hash": "3421ffa8"
   },
   "web.colonel.queueName": {
@@ -248,11 +248,11 @@
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
-    "text": "Status da Conexão",
+    "text": "Status da conexão",
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Saúde dos Workers",
+    "text": "Saúde dos workers",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Modo de Teste de Plano",
+    "text": "Modo de teste de plano",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Redefinir para plano atual",
+    "text": "Redefinir para o plano atual",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -304,11 +304,11 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Teste seu aplicativo com direitos de diferentes planos. As alterações são temporárias e afetam apenas sua sessão.",
+    "text": "Teste seu aplicativo com diferentes permissões de plano. As alterações são temporárias e afetam apenas sua sessão.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Você está testando com os direitos do {planName} (substituição temporária de sessão).",
+    "text": "Você está testando com as permissões do plano {planName} (substituição temporária de sessão).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Monitorar saúde de sincronização de faturamento da organização",
+    "text": "Monitorar saúde da sincronização de faturamento das organizações",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Monitor de Saúde de Faturamento",
+    "text": "Monitor de saúde do faturamento",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -340,7 +340,7 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "Status de Sincronização",
+    "text": "Status de sincronização",
     "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
@@ -352,7 +352,7 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Potencialmente Desatualizado",
+    "text": "Potencialmente desatualizado",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
@@ -368,7 +368,7 @@
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "Em Teste",
+    "text": "Em teste",
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
@@ -424,19 +424,19 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "Workspace Padrão",
+    "text": "Área de trabalho padrão",
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "Tem Faturamento",
+    "text": "Tem faturamento",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Administração de Faturamento de Organizações",
+    "text": "Administração de faturamento das organizações",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Gerenciar organizações e monitorar saúde de sincronização de faturamento ({total} total)",
+    "text": "Gerenciar organizações e monitorar saúde da sincronização de faturamento ({total} total)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -476,31 +476,31 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID da Organização",
+    "text": "ID da org",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Investigação falhou",
+    "text": "A investigação falhou",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "Resultado da Investigação",
+    "text": "Resultado da investigação",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Sincronização Verificada",
+    "text": "Sincronização verificada",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "Divergência Encontrada",
+    "text": "Divergência encontrada",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "Não Foi Possível Comparar",
+    "text": "Não foi possível comparar",
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Detalhes da Assinatura Stripe",
+    "text": "Detalhes da assinatura Stripe",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -512,11 +512,11 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Plano Resolvido",
+    "text": "Plano resolvido",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
-    "text": "ID do Preço",
+    "text": "ID do preço",
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
@@ -536,7 +536,7 @@
     "source_hash": "cf548c8c"
   },
   "web.colonel.secrets.title": {
-    "text": "Mensagens Confidenciais",
+    "text": "Mensagens confidenciais",
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
@@ -544,7 +544,7 @@
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "IPs Banidos",
+    "text": "IPs banidos",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
@@ -552,11 +552,11 @@
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
-    "text": "Exportar Uso",
+    "text": "Exportar uso",
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "Exportar dados de uso e estatísticas",
+    "text": "Exportar dados e estatísticas de uso",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -568,7 +568,7 @@
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
-    "text": "Domínios Personalizados",
+    "text": "Domínios personalizados",
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
@@ -588,15 +588,15 @@
     "source_hash": "4b42c669"
   },
   "web.colonel.titles.users": {
-    "text": "Gerenciamento de Usuários",
+    "text": "Gerenciamento de usuários",
     "source_hash": "fe45f3a1"
   },
   "web.colonel.titles.secrets": {
-    "text": "Gerenciamento de Mensagens Confidenciais",
+    "text": "Gerenciamento de mensagens confidenciais",
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
-    "text": "Domínios Personalizados",
+    "text": "Domínios personalizados",
     "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {
@@ -604,23 +604,23 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.titles.maindb": {
-    "text": "Banco de Dados Principal",
+    "text": "Banco de dados principal",
     "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
-    "text": "Banco de Dados de Autenticação",
+    "text": "Banco de dados de autenticação",
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
-    "text": "IPs Bloqueados",
+    "text": "IPs banidos",
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
-    "text": "Exportação de Uso",
+    "text": "Exportar uso",
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
-    "text": "Informações do Sistema",
+    "text": "Informações do sistema",
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Quando você enviar seu feedback, veremos:",
+    "text": "Quando você enviar feedback, veremos:",
     "source_hash": "fe77172e"
   }
 }

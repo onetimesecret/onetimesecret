@@ -1,6 +1,6 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "Saiba mais sobre configuração de DNS",
+    "text": "Saiba mais sobre configuração DNS",
     "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
@@ -12,7 +12,7 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Este domínio já está registrado em outra organização. Por favor, entre em contato com o suporte se você acredita que isso é um erro.",
+    "text": "Este domínio já está registrado em outra organização. Entre em contato com o suporte se acredita que isso é um erro.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
@@ -20,7 +20,7 @@
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Padrões de Privacidade",
+    "text": "Padrões de privacidade",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
@@ -28,7 +28,7 @@
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "Padrões de Privacidade",
+    "text": "Padrões de privacidade",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
@@ -36,11 +36,11 @@
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Tempo de Vida Padrão",
+    "text": "Tempo de vida padrão",
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Por quanto tempo as mensagens confidenciais devem permanecer acessíveis por padrão",
+    "text": "Quanto tempo as mensagens confidenciais devem permanecer acessíveis por padrão",
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
@@ -48,7 +48,7 @@
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Tornar frase secreta obrigatória para todas as mensagens confidenciais neste domínio",
+    "text": "Tornar a frase secreta obrigatória para todas as mensagens confidenciais neste domínio",
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Ativado",
+    "text": "Ativar",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -88,7 +88,7 @@
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Editar Padrões",
+    "text": "Editar padrões",
     "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
@@ -128,11 +128,11 @@
     "source_hash": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Domínio padrão não possui página de configurações",
+    "text": "O domínio padrão não tem página de configurações",
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Por favor, insira um nome de domínio {0}",
+    "text": "Insira um nome de domínio {0}",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -144,11 +144,11 @@
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Acesso à Página Inicial",
+    "text": "Acesso à página inicial",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "& Status",
+    "text": "e status",
     "source_hash": "fe871d2c"
   },
   "web.domains.domain": {
@@ -164,15 +164,15 @@
     "source_hash": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "Última Verificação",
+    "text": "Último monitoramento",
     "source_hash": "8d39d1d0"
   },
   "web.domains.ssl_status": {
-    "text": "Status do SSL",
+    "text": "Status SSL",
     "source_hash": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "Renovação do SSL",
+    "text": "Renovação SSL",
     "source_hash": "c49a8cff"
   },
   "web.domains.dns_record": {
@@ -180,11 +180,11 @@
     "source_hash": "33cbb244"
   },
   "web.domains.target_address": {
-    "text": "Endereço de Destino",
+    "text": "Endereço de destino",
     "source_hash": "5e812179"
   },
   "web.domains.domain_status": {
-    "text": "Status do Domínio",
+    "text": "Status do domínio",
     "source_hash": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
@@ -192,7 +192,7 @@
     "source_hash": "a9929be0"
   },
   "web.domains.custom_domain": {
-    "text": "Domínio Personalizado",
+    "text": "Domínio personalizado",
     "source_hash": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
@@ -200,19 +200,19 @@
     "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "Voltar para Domínios",
+    "text": "Voltar aos domínios",
     "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Voltar para lista de domínios",
+    "text": "Voltar à lista de domínios",
     "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
-    "text": "Verificar Domínio",
+    "text": "Verificar domínio",
     "source_hash": "b416f537"
   },
   "web.domains.manage_brand": {
-    "text": "Gerenciar Marca",
+    "text": "Gerenciar marca",
     "source_hash": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
@@ -252,7 +252,7 @@
     "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", você precisará completar estas etapas.",
+    "text": ", você precisará concluir estas etapas.",
     "source_hash": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
@@ -260,7 +260,7 @@
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Por favor, note que para domínios apex (ex.,",
+    "text": "Observe que para domínios apex (ex.",
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
@@ -268,7 +268,7 @@
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.exemplo.com",
+    "text": "secrets.example.com",
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
@@ -340,7 +340,7 @@
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Etapas de Verificação do Domínio",
+    "text": "Etapas de verificação do domínio",
     "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
@@ -352,7 +352,7 @@
     "source_hash": "403c6d3b"
   },
   "web.domains.remove_domain": {
-    "text": "Remover Domínio",
+    "text": "Remover domínio",
     "source_hash": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
@@ -372,11 +372,11 @@
     "source_hash": "b0ed2633"
   },
   "web.domains.manage_domains": {
-    "text": "Gerenciar Domínios",
+    "text": "Gerenciar domínios",
     "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "Padrões Globais",
+    "text": "Padrões globais",
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
@@ -384,7 +384,7 @@
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "Editar exigência de frase secreta",
+    "text": "Editar requisito de frase secreta",
     "source_hash": "0b5555b5"
   },
   "web.domains.edit_notify": {
@@ -392,27 +392,27 @@
     "source_hash": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "Configurar Registros DNS",
+    "text": "Configurar registros DNS",
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Use a ferramenta abaixo para detectar automaticamente seu provedor de DNS e obter instruções passo a passo para configurar seu domínio.",
+    "text": "Use a ferramenta abaixo para detectar automaticamente seu provedor DNS e obter instruções passo a passo para configurar seu domínio.",
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
-    "text": "Envio de E-mail",
+    "text": "Envio de e-mail",
     "source_hash": "6c428e5f"
   },
   "web.domains.email.config_title": {
-    "text": "Configuração de E-mail",
+    "text": "Configuração de e-mail",
     "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "Configure o envio de e-mail para este domínio",
+    "text": "Configurar envio de e-mail para este domínio",
     "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
-    "text": "Provedor de E-mail",
+    "text": "Provedor de e-mail",
     "source_hash": "a7ed3f4e"
   },
   "web.domains.email.provider_placeholder": {
@@ -420,35 +420,35 @@
     "source_hash": "63c8080c"
   },
   "web.domains.email.from_name_label": {
-    "text": "Nome do Remetente",
+    "text": "Nome do remetente",
     "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "ex. Acme Segurança",
+    "text": "ex. Acme Security",
     "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
-    "text": "Endereço do Remetente",
+    "text": "Endereço do remetente",
     "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "ex. secrets{'@'}exemplo.com",
+    "text": "ex. secrets{'@'}example.com",
     "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Endereço de Resposta",
+    "text": "Endereço de resposta",
     "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "ex. suporte{'@'}exemplo.com",
+    "text": "ex. support{'@'}example.com",
     "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
-    "text": "Salvar Alterações",
+    "text": "Salvar alterações",
     "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Descartar Alterações",
+    "text": "Descartar alterações",
     "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
@@ -536,7 +536,7 @@
     "source_hash": "08e0df67"
   },
   "web.domains.email.validation_failed": {
-    "text": "Falha na validação",
+    "text": "Validação falhou",
     "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
@@ -544,19 +544,19 @@
     "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
-    "text": "Faça upgrade do seu plano para configurar o envio de e-mail para este domínio.",
+    "text": "Faça upgrade do seu plano para configurar envio de e-mail para este domínio.",
     "source_hash": "16a876f7"
   },
   "web.domains.email.configure_email": {
-    "text": "Configurar E-mail",
+    "text": "Configurar e-mail",
     "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "Acesso Negado",
+    "text": "Acesso negado",
     "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "Você não tem permissão para gerenciar as configurações de e-mail deste domínio. Entre em contato com o administrador da sua organização.",
+    "text": "Você não tem permissão para gerenciar configurações de e-mail para este domínio. Entre em contato com o administrador da sua organização.",
     "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
@@ -568,11 +568,11 @@
     "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "E-mails para este domínio são atualmente enviados do remetente global. Complete a configuração de e-mail para usar sua própria identidade de remetente.",
+    "text": "Os e-mails para este domínio são atualmente enviados do remetente global. Complete a configuração de e-mail para usar sua própria identidade de remetente.",
     "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "O envio de e-mail personalizado está atualmente desativado. E-mails serão enviados do remetente global. Ative o recurso abaixo para usar sua identidade de remetente personalizada.",
+    "text": "O envio de e-mail personalizado está desativado no momento. Os e-mails serão enviados do remetente global. Ative o recurso abaixo para usar sua identidade de remetente personalizada.",
     "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
@@ -600,7 +600,7 @@
     "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "Configuração do remetente de e-mail aguardando verificação — e-mails usam o remetente padrão da plataforma",
+    "text": "Configuração de remetente de e-mail pendente de verificação — e-mails usam o remetente padrão da plataforma",
     "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
@@ -612,11 +612,11 @@
     "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "Mensagens Confidenciais Recebidas",
+    "text": "Mensagens confidenciais recebidas",
     "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "Configuração de Mensagens Confidenciais Recebidas",
+    "text": "Configuração de mensagens confidenciais recebidas",
     "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
@@ -624,11 +624,11 @@
     "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
-    "text": "Acesso Negado",
+    "text": "Acesso negado",
     "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "Você não tem permissão para gerenciar as configurações de mensagens confidenciais recebidas deste domínio. Entre em contato com o administrador da sua organização.",
+    "text": "Você não tem permissão para gerenciar configurações de mensagens confidenciais recebidas para este domínio. Entre em contato com o administrador da sua organização.",
     "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
@@ -636,7 +636,7 @@
     "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "Configurar Mensagens Confidenciais Recebidas",
+    "text": "Configurar mensagens confidenciais recebidas",
     "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
@@ -644,7 +644,7 @@
     "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Mensagens confidenciais recebidas estão atualmente desativadas. Usuários externos não podem enviar mensagens confidenciais para destinatários neste domínio. Ative o recurso abaixo para permitir mensagens confidenciais recebidas.",
+    "text": "Mensagens confidenciais recebidas estão desativadas no momento. Usuários externos não podem enviar mensagens confidenciais para destinatários neste domínio. Ative o recurso abaixo para permitir mensagens confidenciais recebidas.",
     "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
@@ -656,7 +656,7 @@
     "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
-    "text": "Adicionar Destinatário",
+    "text": "Adicionar destinatário",
     "source_hash": "25f93c13"
   },
   "web.domains.incoming.remove_recipient": {
@@ -664,19 +664,19 @@
     "source_hash": "c3812fc4"
   },
   "web.domains.incoming.email_label": {
-    "text": "Endereço de E-mail",
+    "text": "Endereço de e-mail",
     "source_hash": "09bf25ef"
   },
   "web.domains.incoming.email_placeholder": {
-    "text": "destinatario{'@'}exemplo.com",
+    "text": "destinatario{'@'}example.com",
     "source_hash": "55d1508e"
   },
   "web.domains.incoming.name_label": {
-    "text": "Nome de Exibição",
+    "text": "Nome de exibição",
     "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "ex. Equipe de Segurança",
+    "text": "ex. Equipe de segurança",
     "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
@@ -700,19 +700,19 @@
     "source_hash": "e2585847"
   },
   "web.domains.incoming.validation_name_required": {
-    "text": "Nome de exibição é obrigatório",
+    "text": "O nome de exibição é obrigatório",
     "source_hash": "c6892c89"
   },
   "web.domains.incoming.validation_email_required": {
-    "text": "Endereço de e-mail é obrigatório",
+    "text": "O endereço de e-mail é obrigatório",
     "source_hash": "41381ba2"
   },
   "web.domains.incoming.save_changes": {
-    "text": "Salvar Alterações",
+    "text": "Salvar alterações",
     "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Descartar Alterações",
+    "text": "Descartar alterações",
     "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
@@ -752,7 +752,7 @@
     "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "Ativar Mensagens Confidenciais Recebidas",
+    "text": "Ativar mensagens confidenciais recebidas",
     "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
@@ -760,7 +760,7 @@
     "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "URL Pública",
+    "text": "URL pública",
     "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
@@ -788,31 +788,31 @@
     "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Salvar substituirá todos os destinatários existentes pelas suas alterações pendentes. Tem certeza?",
+    "text": "Salvar substituirá todos os destinatários existentes por suas alterações pendentes. Tem certeza?",
     "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
-    "text": "Excluir Todos os Destinatários",
+    "text": "Excluir todos os destinatários",
     "source_hash": "207d0dbe"
   },
   "web.domains.sso.title": {
-    "text": "Login Único",
+    "text": "Login único",
     "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
-    "text": "Configuração de SSO",
+    "text": "Configuração SSO",
     "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Configure a autenticação de login único para este domínio",
+    "text": "Configure autenticação de login único para este domínio",
     "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "Acesso Negado",
+    "text": "Acesso negado",
     "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "Você não tem permissão para gerenciar as configurações de SSO deste domínio. Entre em contato com o administrador da sua organização.",
+    "text": "Você não tem permissão para gerenciar configurações SSO para este domínio. Entre em contato com o administrador da sua organização.",
     "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
@@ -820,15 +820,15 @@
     "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
-    "text": "Configuração de SSO criada com sucesso",
+    "text": "Configuração SSO criada com sucesso",
     "source_hash": "531c7d92"
   },
   "web.domains.sso.update_success": {
-    "text": "Configuração de SSO atualizada com sucesso",
+    "text": "Configuração SSO atualizada com sucesso",
     "source_hash": "d98d8e83"
   },
   "web.domains.sso.delete_success": {
-    "text": "Configuração de SSO removida com sucesso",
+    "text": "Configuração SSO removida com sucesso",
     "source_hash": "2e924798"
   },
   "web.domains.sso.configure_sso": {
@@ -836,7 +836,97 @@
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ainda não está configurado para este domínio. Ative o login único para permitir que membros da equipe se autentiquem usando o provedor de identidade da sua organização.",
+    "text": "O SSO ainda não está configurado para este domínio. Ative o login único para permitir que membros da equipe se autentiquem usando o provedor de identidade da sua organização.",
     "source_hash": "c439214b"
+  },
+  "web.domains.public_homepage": {
+    "text": "Página inicial pública"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domínio verificado e ativo"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS não configurado — clique para corrigir"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domínio não verificado — clique para verificar"
+  },
+  "web.domains.click_to_verify": {
+    "text": "clique para verificar"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Falha ao carregar widget DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Widget DNS não disponível"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Falha ao inicializar widget DNS"
+  },
+  "web.domains.verified": {
+    "text": "Verificado"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verificação pendente"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Você tem alterações não salvas. Tem certeza de que deseja sair?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Gerenciar"
+  },
+  "web.domains.detail.features": {
+    "text": "Recursos"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Mensagens confidenciais na página inicial"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Permitir acesso público para criar mensagens confidenciais na página inicial do seu domínio"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, cores e marca personalizada"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Configurações do provedor de login único"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configuração personalizada de remetente de e-mail"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Configurações de destinatário de mensagens confidenciais recebidas"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Provedor"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Testar entrega de e-mail"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Envie um e-mail de teste para você mesmo usando a configuração salva. Funciona mesmo quando o recurso ainda não está ativado."
+  },
+  "web.domains.email.send_test": {
+    "text": "Enviar teste"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "E-mail de teste enviado com sucesso"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Falha ao enviar e-mail de teste"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Enviado para {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Entregue via {provider}"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Teste de conexão bem-sucedido — provedor respondeu corretamente"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Teste de conexão falhou"
   }
 }

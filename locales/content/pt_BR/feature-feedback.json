@@ -32,7 +32,7 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Eu leio cada feedback que chega aqui. É assim que decido no que investir meu tempo.",
+    "text": "Eu leio cada feedback que chega aqui. É assim que decido em que dedicar meu tempo.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Parece que você está relatando uma alteração de e-mail não autorizada na sua conta. Descreva o que aconteceu e investigaremos imediatamente.",
+    "text": "Parece que você está relatando uma alteração não autorizada de e-mail na sua conta. Por favor, descreva o que aconteceu e investigaremos imediatamente.",
     "source_hash": "00e56551"
   }
 }

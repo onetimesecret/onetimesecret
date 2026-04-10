@@ -20,7 +20,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Este link funcionará apenas uma vez. Após a visualização, a mensagem confidencial será excluída permanentemente.",
+    "text": "Este link funcionará apenas uma vez. Após a visualização, a mensagem confidencial será permanentemente excluída.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -40,7 +40,7 @@
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Verificar Endereço de E-mail",
+    "text": "Verificar endereço de e-mail",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
@@ -60,7 +60,7 @@
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Redefina Sua Senha",
+    "text": "Redefina sua senha",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
@@ -68,7 +68,7 @@
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Redefinir Senha",
+    "text": "Redefinir senha",
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
@@ -92,7 +92,7 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Entrar com Link Mágico",
+    "text": "Entrar com link mágico",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
@@ -108,7 +108,7 @@
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Este link vai expirar em 15 minutos.",
+    "text": "Este link expirará em 15 minutos.",
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
@@ -132,15 +132,15 @@
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Nota:",
+    "text": "Memorando:",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Alguém enviou uma mensagem segura para você através de %{display_domain}.",
+    "text": "Alguém enviou a você uma mensagem segura através do %{display_domain}.",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Para ver esta mensagem confidencial, clique no link abaixo:",
+    "text": "Para visualizar esta mensagem confidencial, clique no link abaixo:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -152,7 +152,7 @@
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Esta mensagem confidencial está protegida com uma frase secreta. O remetente deve fornecê-la a você separadamente.",
+    "text": "Esta mensagem confidencial é protegida com uma frase secreta. O remetente deve fornecê-la a você separadamente.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -168,7 +168,7 @@
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Sua Mensagem Confidencial Foi Visualizada",
+    "text": "Sua mensagem confidencial foi visualizada",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
@@ -176,7 +176,7 @@
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "ID da Mensagem:",
+    "text": "ID da mensagem confidencial:",
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
@@ -196,15 +196,15 @@
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Seu link da mensagem confidencial vai expirar em breve",
+    "text": "Seu link confidencial expirará em breve",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Seu link da mensagem confidencial vai expirar em %{time_remaining}",
+    "text": "Seu link confidencial expirará em %{time_remaining}",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Ver sua mensagem confidencial antes de expirar",
+    "text": "Visualize sua mensagem confidencial antes que expire",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
@@ -220,7 +220,7 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Veja antes que desapareça:",
+    "text": "Visualize antes que desapareça:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
@@ -232,7 +232,7 @@
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Feedback do Usuário",
+    "text": "Feedback do usuário",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
@@ -252,23 +252,23 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Suporte Secret",
+    "text": "Secret Support",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Você foi convidado para se juntar a %{organization_name}",
+    "text": "Você foi convidado para participar de %{organization_name}",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Você foi convidado para se juntar a %{organization_name}!",
+    "text": "Você foi convidado para participar de %{organization_name}!",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} convidou você para se juntar a \"%{organization_name}\" como %{role_description}.",
+    "text": "%{inviter_email} convidou você para participar de \"%{organization_name}\" como %{role_description}.",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Aceitar Convite",
+    "text": "Aceitar convite",
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
@@ -276,11 +276,11 @@
     "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Este convite vai expirar em %{days} dias.",
+    "text": "Este convite expirará em %{days} dias.",
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Se você não quiser participar, pode simplesmente ignorar este e-mail ou recusar o convite.",
+    "text": "Se você não deseja participar, pode simplesmente ignorar este e-mail ou recusar o convite.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,15 +288,15 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Este e-mail foi enviado para %{invited_email}. Se você não estava esperando este convite, pode ignorar esta mensagem com segurança.",
+    "text": "P.S. Este e-mail foi enviado para %{invited_email}. Se você não esperava este convite, pode ignorar esta mensagem com segurança.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "um membro",
+    "text": "membro",
     "source_hash": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "um administrador",
+    "text": "administrador",
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
@@ -304,7 +304,7 @@
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Sua Senha Foi Alterada",
+    "text": "Sua senha foi alterada",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
@@ -312,7 +312,7 @@
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Se você não fez essa alteração, proteja sua conta imediatamente redefinindo sua senha e entrando em contato com o suporte.",
+    "text": "Se você não fez esta alteração, proteja sua conta imediatamente redefinindo sua senha e entrando em contato com o suporte.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -324,11 +324,11 @@
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Seu Endereço de E-mail Foi Alterado",
+    "text": "Seu endereço de e-mail foi alterado",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "O endereço de e-mail da sua conta %{product_name} foi alterado para %{new_email_masked} em %{date}.",
+    "text": "O endereço de e-mail da sua conta %{product_name} foi alterado para %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
@@ -348,11 +348,11 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Se você fez essa alteração, nenhuma ação adicional é necessária.",
+    "text": "Se você fez esta alteração, nenhuma ação adicional é necessária.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Se você não fez essa alteração, sua conta pode estar comprometida.",
+    "text": "Se você não fez esta alteração, sua conta pode estar comprometida.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -372,11 +372,11 @@
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Alteração de E-mail Solicitada",
+    "text": "Alteração de e-mail solicitada",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Uma solicitação foi feita para alterar o endereço de e-mail da sua conta %{product_name}.",
+    "text": "Foi feita uma solicitação para alterar o endereço de e-mail da sua conta %{product_name}.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
@@ -388,7 +388,7 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Se você fez esta solicitação, verifique seu novo e-mail para encontrar o link de confirmação. Nenhuma alteração foi feita ainda.",
+    "text": "Se você fez esta solicitação, verifique seu novo e-mail para um link de confirmação. Nenhuma alteração foi feita ainda.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -396,7 +396,7 @@
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contatar Suporte",
+    "text": "Contatar suporte",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -412,19 +412,19 @@
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Verifique Seu Novo Endereço de E-mail",
+    "text": "Verifique seu novo endereço de e-mail",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Por favor, verifique este endereço de e-mail para concluir a alteração em sua conta %{product_name}.",
+    "text": "Por favor, verifique este endereço de e-mail para concluir a alteração da sua conta %{product_name}.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Verificar Endereço de E-mail",
+    "text": "Verificar endereço de e-mail",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Uma solicitação foi feita para alterar o endereço de e-mail da sua conta %{product_name} para %{new_email}.",
+    "text": "Foi feita uma solicitação para alterar o endereço de e-mail da sua conta %{product_name} para %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Se você não solicitou essa alteração, pode ignorar este e-mail com segurança. Seu endereço de e-mail não será alterado.",
+    "text": "Se você não solicitou esta alteração, pode ignorar este e-mail com segurança. Seu endereço de e-mail não será alterado.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -456,7 +456,7 @@
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Autenticação de Dois Fatores Ativada",
+    "text": "Autenticação de dois fatores ativada",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
@@ -464,7 +464,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Sua conta agora está mais segura. Você precisará inserir um código de verificação do seu aplicativo autenticador ao entrar.",
+    "text": "Sua conta está agora mais segura. Você precisará inserir um código de verificação do seu aplicativo autenticador ao entrar.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -476,7 +476,7 @@
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Autenticação de Dois Fatores Desativada",
+    "text": "Autenticação de dois fatores desativada",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
@@ -484,7 +484,7 @@
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Sua conta agora está menos segura. Se você não fez esta alteração, proteja sua conta imediatamente.",
+    "text": "Sua conta está agora menos segura. Se você não fez esta alteração, proteja sua conta imediatamente.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -492,15 +492,15 @@
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Novo login em sua conta (%{display_domain})",
+    "text": "Novo login na sua conta (%{display_domain})",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Novo Login Detectado",
+    "text": "Novo login detectado",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Um novo login em sua conta %{product_name} foi detectado em %{date} às %{time}.",
+    "text": "Um novo login na sua conta %{product_name} foi detectado em %{date} às %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -520,7 +520,7 @@
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Proteger Sua Conta",
+    "text": "Proteger sua conta",
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
@@ -532,7 +532,7 @@
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Você Foi Removido de %{organization_name}",
+    "text": "Você foi removido de %{organization_name}",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
@@ -544,15 +544,15 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Sua função foi alterada em %{organization_name}",
+    "text": "Seu cargo foi alterado em %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Sua Função Foi Alterada",
+    "text": "Seu cargo foi alterado",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Sua função em \"%{organization_name}\" foi alterada de %{old_role} para %{new_role}.",
+    "text": "Seu cargo em \"%{organization_name}\" foi alterado de %{old_role} para %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -564,7 +564,7 @@
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Organização Excluída",
+    "text": "Organização excluída",
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
@@ -580,11 +580,11 @@
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Recibo de Pagamento",
+    "text": "Recibo de pagamento",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Obrigado pelo seu pagamento. Aqui estão os detalhes do pagamento:",
+    "text": "Obrigado pelo seu pagamento. Aqui estão os detalhes do seu pagamento:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
@@ -600,7 +600,7 @@
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Ver Fatura",
+    "text": "Ver fatura",
     "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
@@ -612,15 +612,15 @@
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Pagamento Falhou",
+    "text": "Pagamento falhou",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Não foi possível processar seu pagamento para o %{product_name}. Por favor, atualize seu método de pagamento para evitar interrupção do serviço.",
+    "text": "Não foi possível processar seu pagamento para o %{product_name}. Atualize seu método de pagamento para evitar interrupção do serviço.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Atualizar Método de Pagamento",
+    "text": "Atualizar método de pagamento",
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
@@ -628,19 +628,19 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Seu teste do %{product_name} expira em %{days_remaining} dias",
+    "text": "Seu período de teste do %{product_name} expira em %{days_remaining} dias",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Seu Período de Teste Está Terminando",
+    "text": "Seu período de teste está acabando",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Seu teste gratuito do %{product_name} expirará em %{days_remaining} dias. Faça o upgrade agora para manter acesso a todos os recursos.",
+    "text": "Seu período de teste gratuito do %{product_name} expirará em %{days_remaining} dias. Faça upgrade agora para manter o acesso a todos os recursos.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Fazer Upgrade Agora",
+    "text": "Fazer upgrade agora",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
@@ -652,7 +652,7 @@
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
-    "text": "Assinatura Alterada",
+    "text": "Assinatura alterada",
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
@@ -660,7 +660,7 @@
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Esta alteração entra em vigor em %{date}.",
+    "text": "Esta alteração é efetiva a partir de %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
