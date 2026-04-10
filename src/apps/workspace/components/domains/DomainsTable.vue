@@ -70,13 +70,8 @@ const { t } = useI18n();
   };
 
   const handleHomepageToggle = async (domain: CustomDomain) => {
-    // Use domainsStore.updateDomainBrand to update brand settings.
-    // This updates the store's records array, triggering reactive updates
-    // without directly mutating the prop-derived domain object.
-    const newValue = !domain.brand?.allow_public_homepage;
-    await domainsStore.updateDomainBrand(domain.extid, {
-      brand: { allow_public_homepage: newValue },
-    });
+    const newValue = !(domain.homepage_config?.enabled ?? false);
+    await domainsStore.putHomepageConfig(domain.extid, newValue);
 
     emit('toggle-homepage', domain);
   };
@@ -157,9 +152,8 @@ const { t } = useI18n();
               <!-- Homepage Access -->
               <td class="px-6 py-4 text-center">
                 <div>
-                  <!-- domain.brand?.allow_public_homepage -->
                   <ToggleWithIcon
-                    :enabled="domain.brand?.allow_public_homepage ?? false"
+                    :enabled="domain.homepage_config?.enabled ?? false"
                     :disabled="isLoading || !canAdmin"
                     @update:enabled="handleHomepageToggle(domain)" />
                 </div>

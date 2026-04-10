@@ -16,6 +16,10 @@ import {
   type ValidateEmailConfigResponse,
 } from '@/schemas/api/domains/responses/email-config';
 import {
+  homepageConfigResponseSchema,
+  type HomepageConfigResponse,
+} from '@/schemas/api/domains/responses/homepage-config';
+import {
   testEmailConfigResponseSchema,
   type TestEmailConfigResponse,
 } from '@/schemas/api/domains/responses/test-email-config';
@@ -80,6 +84,10 @@ export type DomainsStore = {
     brandUpdate: UpdateDomainBrandRequest
   ) => Promise<CustomDomain>;
   updateBrandSettings: (extid: string, settings: Partial<BrandSettings>) => Promise<BrandSettings>;
+
+  // Homepage config
+  getHomepageConfig: (extid: string) => Promise<HomepageConfigResponse>;
+  putHomepageConfig: (extid: string, enabled: boolean) => Promise<HomepageConfigResponse>;
 
   // Email config
   getEmailConfig: (extid: string) => Promise<CustomDomainEmailConfig | null>;
@@ -306,6 +314,48 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Homepage configuration
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Get homepage configuration for a domain.
+   */
+  async function getHomepageConfig(extid: string): Promise<HomepageConfigResponse> {
+    const response = await $api.get(`/api/domains/${extid}/homepage-config`);
+    const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load homepage configuration. Please try again.');
+    }
+    return result.data;
+  }
+
+  /**
+   * Create or update homepage configuration for a domain.
+   *
+   * Updates the store's records array to reflect the new homepage_config state.
+   */
+  async function putHomepageConfig(extid: string, enabled: boolean): Promise<HomepageConfigResponse> {
+    const response = await $api.put(`/api/domains/${extid}/homepage-config`, { enabled });
+    const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update homepage configuration. Please try again.');
+    }
+
+    // Update the domain record in the store to keep UI reactive
+    if (records.value && result.data.record) {
+      const domainIndex = records.value.findIndex((d) => d.extid === extid);
+      if (domainIndex !== -1) {
+        records.value[domainIndex] = {
+          ...records.value[domainIndex],
+          homepage_config: result.data.record,
+        };
+      }
+    }
+
+    return result.data;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Email configuration
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -437,6 +487,10 @@ export const useDomainsStore = defineStore('domains', () => {
     uploadLogo,
     fetchLogo,
     removeLogo,
+
+    // Homepage config
+    getHomepageConfig,
+    putHomepageConfig,
 
     // Email config
     getEmailConfig,

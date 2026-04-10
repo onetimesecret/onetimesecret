@@ -64,10 +64,8 @@ const domainsStore = useDomainsStore();
 const handleHomepageToggle = async () => {
   const domain = customDomainRecord.value;
   if (!domain) return;
-  const newValue = !domain.brand?.allow_public_homepage;
-  await domainsStore.updateDomainBrand(domain.extid, {
-    brand: { allow_public_homepage: newValue },
-  });
+  const newValue = !(domain.homepage_config?.enabled ?? false);
+  await domainsStore.putHomepageConfig(domain.extid, newValue);
   // Refresh domain data to reflect the change
   await initializeDomain();
 };
@@ -96,7 +94,7 @@ const sections = computed<Section[]>(() => [
     available: true,
     locked: false,
     toggleable: true,
-    enabled: customDomainRecord.value?.brand?.allow_public_homepage ?? false,
+    enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
   },
   {
     key: 'incoming',
@@ -172,7 +170,6 @@ aria-hidden="true" />
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
       <DomainHeader
-        v-if="!domainLoading"
         :domain="customDomainRecord"
         :has-unsaved-changes="false"
         :orgid="props.orgid" />
