@@ -4,7 +4,7 @@
     "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "Преглед на статуса на потвърждение на домейна",
+    "text": "Преглед на статуса на потвърждаване на домейна",
     "source_hash": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
@@ -16,7 +16,7 @@
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Домейнът е успешно потвърден и добавен към вашата организация",
+    "text": "Домейнът е успешно заявен и добавен към вашата организация",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
@@ -24,7 +24,7 @@
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Задайте опции за поверителност по подразбиране за тайни, създадени под този домейн. Тези настройки ще бъдат предварително попълнени при създаване на нови тайни.",
+    "text": "Задайте настройки за поверителност по подразбиране за тайни, създадени под този домейн. Тези настройки ще бъдат предварително попълнени при създаване на нови тайни.",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
@@ -36,7 +36,7 @@
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
-    "text": "Време за живот по подразбиране",
+    "text": "Продължителност по подразбиране",
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
@@ -44,7 +44,7 @@
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Изисквай ключова фраза",
+    "text": "Изискване на ключова фраза",
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
@@ -52,19 +52,19 @@
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
-    "text": "Активирай известия",
+    "text": "Активиране на известия",
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "Активирайте имейл известия по подразбиране, когато тайните са прегледани",
+    "text": "Активиране на имейл известия по подразбиране, когато тайни са прегледани",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "Използвай глобалната настройка по подразбиране",
+    "text": "Използване на глобална настройка по подразбиране",
     "source_hash": "a83c91e4"
   },
   "web.domains.global_default": {
-    "text": "Глобални",
+    "text": "Глобално",
     "source_hash": "a258b30f"
   },
   "web.domains.required": {
@@ -72,11 +72,11 @@
     "source_hash": "4850b174"
   },
   "web.domains.optional": {
-    "text": "Незадължително",
+    "text": "По избор",
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Активирано",
+    "text": "Активиране",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -84,11 +84,11 @@
     "source_hash": "75081b59"
   },
   "web.domains.custom": {
-    "text": "Персонализирани",
+    "text": "Персонално",
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Редактирай настройки по подразбиране",
+    "text": "Редактиране на настройки по подразбиране",
     "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
@@ -96,7 +96,7 @@
     "source_hash": "76f6014f"
   },
   "web.domains.passphrase_short": {
-    "text": "Защитна фраза",
+    "text": "Ключова фраза",
     "source_hash": "e7611f05"
   },
   "web.domains.notify_short": {
@@ -104,7 +104,7 @@
     "source_hash": "78801183"
   },
   "web.domains.scope_switch_label": {
-    "text": "Превключи обхвата на домейна",
+    "text": "Превключване на обхват на домейн",
     "source_hash": "c776f846"
   },
   "web.domains.switcher_locked": {
@@ -120,11 +120,11 @@
     "source_hash": "ced67718"
   },
   "web.domains.add_domain": {
-    "text": "Добави домейн",
+    "text": "Добавяне на домейн",
     "source_hash": "d86476ae"
   },
   "web.domains.domain_settings": {
-    "text": "Настройки на домейна",
+    "text": "Настройки на домейн",
     "source_hash": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
@@ -132,7 +132,7 @@
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Моля, въведете {0} име на домейн",
+    "text": "Моля, въведете име на {0} домейн",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -144,11 +144,11 @@
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Достъп до начална страница",
+    "text": "Достъп до началната страница",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "и статус",
+    "text": "и Статус",
     "source_hash": "fe871d2c"
   },
   "web.domains.domain": {
@@ -172,7 +172,7 @@
     "source_hash": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL се подновява",
+    "text": "SSL подновяване",
     "source_hash": "c49a8cff"
   },
   "web.domains.dns_record": {
@@ -184,31 +184,31 @@
     "source_hash": "5e812179"
   },
   "web.domains.domain_status": {
-    "text": "Статус на домейна",
+    "text": "Статус на домейн",
     "source_hash": "cd6b089b"
   },
   "web.domains.custom_domains_count": {
-    "text": "Брой персонализирани домейни",
+    "text": "Брой персонални домейни",
     "source_hash": "a9929be0"
   },
   "web.domains.custom_domain": {
-    "text": "Персонализиран домейн",
+    "text": "Персонален домейн",
     "source_hash": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Отвори домейна в нов раздел",
+    "text": "Отваряне на домейна в нов раздел",
     "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
-    "text": "Обратно към домейните",
+    "text": "Назад към домейните",
     "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Обратно към списъка с домейни",
+    "text": "Връщане към списъка с домейни",
     "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
-    "text": "Потвърди домейна",
+    "text": "Потвърждаване на домейн",
     "source_hash": "b416f537"
   },
   "web.domains.manage_brand": {
@@ -252,7 +252,7 @@
     "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", ще трябва да изпълните тези стъпки.",
+    "text": ", ще трябва да завършите тези стъпки.",
     "source_hash": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
@@ -260,7 +260,7 @@
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Моля, имайте предвид, че за apex домейни (напр.,",
+    "text": "Моля, имайте предвид, че за apex домейни (напр.",
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
@@ -272,7 +272,7 @@
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Персонализирайте брандирането на домейна",
+    "text": "Персонализирайте брандирането на вашия домейн",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -308,7 +308,7 @@
     "source_hash": "baaddf70"
   },
   "web.domains.2_create_the_cname_record": {
-    "text": "2. Създайте CNAME запис",
+    "text": "2. Създайте CNAME записа",
     "source_hash": "781e438b"
   },
   "web.domains.value_0": {
@@ -324,7 +324,7 @@
     "source_hash": "baaddf70"
   },
   "web.domains.2_create_the_a_record": {
-    "text": "2. Създайте A запис",
+    "text": "2. Създайте A записа",
     "source_hash": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
@@ -340,7 +340,7 @@
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Стъпки за потвърждение на домейна",
+    "text": "Стъпки за потвърждаване на домейн",
     "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
@@ -352,7 +352,7 @@
     "source_hash": "403c6d3b"
   },
   "web.domains.remove_domain": {
-    "text": "Премахни домейна",
+    "text": "Премахване на домейн",
     "source_hash": "07a1675d"
   },
   "web.domains.domain_removed_successfully": {
@@ -380,23 +380,443 @@
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
-    "text": "Редактирай настройката за време за живот",
+    "text": "Редактиране на настройката за продължителност",
     "source_hash": "ea8afd62"
   },
   "web.domains.edit_passphrase": {
-    "text": "Редактирай изискването за ключова фраза",
+    "text": "Редактиране на изискването за ключова фраза",
     "source_hash": "0b5555b5"
   },
   "web.domains.edit_notify": {
-    "text": "Редактирай настройката за известия",
+    "text": "Редактиране на настройката за известия",
     "source_hash": "2e9e1ea0"
   },
   "web.domains.configure_dns_records": {
-    "text": "Конфигурирай DNS записи",
+    "text": "Конфигуриране на DNS записи",
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Използвайте инструмента по-долу, за да откриете автоматично вашия DNS доставчик и да получите инструкции стъпка по стъпка за конфигуриране на вашия домейн.",
+    "text": "Използвайте инструмента по-долу за автоматично откриване на вашия DNS доставчик и получаване на стъпка по стъпка инструкции за конфигуриране на домейна ви.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "Публична начална страница"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Домейнът е потвърден и активен"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS не е конфигуриран - натиснете за поправка"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Домейнът не е потвърден - натиснете за потвърждаване"
+  },
+  "web.domains.click_to_verify": {
+    "text": "натиснете за потвърждаване"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Неуспешно зареждане на DNS инструмента"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS инструментът не е наличен"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Неуспешно инициализиране на DNS инструмента"
+  },
+  "web.domains.verified": {
+    "text": "Потвърден"
+  },
+  "web.domains.pending_verification": {
+    "text": "Чакащо потвърждаване"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Имате незапазени промени. Сигурни ли сте, че искате да напуснете?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Управление"
+  },
+  "web.domains.detail.features": {
+    "text": "Функции"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Тайни на началната страница"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Разрешаване на публичен достъп за създаване на тайни на началната страница на вашия домейн"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Лого, цветове и персонално брандиране"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Настройки на доставчика за единно влизане"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Конфигурация на персонален изпращач на имейл"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Настройки за получатели на входящи тайни"
+  },
+  "web.domains.email.title": {
+    "text": "Изпращане на имейл"
+  },
+  "web.domains.email.config_title": {
+    "text": "Конфигурация на имейл"
+  },
+  "web.domains.email.config_description": {
+    "text": "Конфигуриране на изпращането на имейл за този домейн"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Доставчик на имейл"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Изберете доставчик на имейл"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Име на изпращача"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "напр. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Адрес на изпращача"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "напр. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Адрес за отговор"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "напр. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Запазване на промените"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Отхвърляне на промените"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Използване на настройки по подразбиране на акаунта"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Изисква потвърждаване на домейн чрез DKIM и SPF записи"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Изисква настройка за удостоверяване на домейн"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Изисква потвърждаване на домейн"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Използва конфигурацията за изпращане на имейл по подразбиране на вашия акаунт"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS записи"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Добавете следните DNS записи, за да потвърдите вашия домейн за изпращане на имейл."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Тип"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Име"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Стойност"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Доставчик"
+  },
+  "web.domains.email.copy": {
+    "text": "Копиране"
+  },
+  "web.domains.email.copied": {
+    "text": "Копирано"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Потвърдено"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Чакащо"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Неуспешно"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Повторно валидиране"
+  },
+  "web.domains.email.validating": {
+    "text": "Валидиране..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Домейнът е потвърден"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Неуспешно валидиране"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Последно валидирано"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Надградете плана си, за да конфигурирате изпращането на имейл за този домейн."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Конфигуриране на имейл"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Достъпът е отказан"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Нямате разрешение да управлявате настройките за имейл на този домейн. Свържете се с администратора на вашата организация."
+  },
+  "web.domains.email.update_success": {
+    "text": "Конфигурацията на имейл е запазена успешно"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Конфигурацията на имейл е премахната успешно"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Имейлите за този домейн в момента се изпращат от глобалния изпращач. Завършете конфигурацията на имейл, за да използвате своята собствена идентичност на изпращач."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Персоналното изпращане на имейл е в момента деактивирано. Имейлите ще се изпращат от глобалния изпращач. Активирайте функцията по-долу, за да използвате своята персонална идентичност на изпращач."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Тестване на доставката на имейл"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Изпратете тестов имейл до себе си, като използвате запазената конфигурация. Работи дори когато функцията все още не е активирана."
+  },
+  "web.domains.email.send_test": {
+    "text": "Изпращане на тест"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Тестовият имейл е изпратен успешно"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Неуспешно изпращане на тестов имейл"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Изпратено до {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Доставено чрез {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Не е конфигурирано"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Използва се изпращач по подразбиране"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Потвърдено"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Чакащо потвърждение"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Деактивирано"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Няма конфигуриран изпращач на имейл - имейлите използват изпращача по подразбиране на платформата"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "Конфигурацията на изпращача на имейл чака потвърждение - имейлите използват изпращача по подразбиране на платформата"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Изпращачът на имейл е деактивиран - имейлите използват изпращача по подразбиране на платформата"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Изпращачът на имейл е потвърден - имейлите се изпращат от този домейн"
+  },
+  "web.domains.incoming.title": {
+    "text": "Входящи тайни"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Конфигурация на входящи тайни"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Разрешаване на външни потребители да изпращат тайни директно до определени получатели на този домейн"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Достъпът е отказан"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Нямате разрешение да управлявате настройките за входящи тайни на този домейн. Свържете се с администратора на вашата организация."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Надградете плана си, за да конфигурирате входящи тайни за този домейн."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Конфигуриране на входящи тайни"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Входящите тайни не са конфигурирани за този домейн. Добавете получатели, за да позволите на външни потребители да изпращат тайни до вашия екип."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Входящите тайни са в момента деактивирани. Външните потребители не могат да изпращат тайни до получатели на този домейн. Активирайте функцията по-долу, за да разрешите входящи тайни."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Получатели"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Определете кой може да получава входящи тайни на този домейн. Получателите ще получават имейл известия, когато тайна им бъде изпратена."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Добавяне на получател"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Премахване"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Имейл адрес"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "recipient{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Показвано име"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "напр. Екип по сигурност"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Няма конфигурирани получатели"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Добавете получатели, за да позволите на външни потребители да изпращат тайни до вашия екип."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Невалиден имейл адрес"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Този имейл адрес вече е добавен"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Максимум {max} получатели са разрешени"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Показваното име е задължително"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "Имейл адресът е задължителен"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Запазване на промените"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Отхвърляне на промените"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Конфигурацията на входящи тайни е запазена успешно"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Конфигурацията на входящи тайни е премахната успешно"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} получател | {count} получатели"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Не е конфигурирано"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Конфигурирано"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Деактивирано"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Входящите тайни не са конфигурирани - външните потребители не могат да изпращат тайни до този домейн"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Входящите тайни са активирани с {count} получател(и)"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Функцията за входящи тайни е деактивирана за този домейн"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Активиране на входящи тайни"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Разрешаване на външни потребители да изпращат тайни до получатели на този домейн"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Публичен URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Споделете този URL с външни потребители, за да им позволите да изпращат тайни"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Копиране на URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL е копиран в клипборда"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Сигурни ли сте, че искате да премахнете всички получатели? Външните потребители вече няма да могат да изпращат тайни до този домейн."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Достигнат е максималният брой получатели"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Този имейл адрес вече е бил добавен"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Запазването ще замени всички съществуващи получатели с вашите чакащи промени. Сигурни ли сте?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Изтриване на всички получатели"
+  },
+  "web.domains.sso.title": {
+    "text": "Единно влизане"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO конфигурация"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Конфигуриране на удостоверяване с единно влизане за този домейн"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Достъпът е отказан"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Нямате разрешение да управлявате SSO настройките на този домейн. Свържете се с администратора на вашата организация."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Надградете плана си, за да конфигурирате единно влизане за този домейн."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO конфигурацията е създадена успешно"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO конфигурацията е актуализирана успешно"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO конфигурацията е премахната успешно"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Тестът на връзката е успешен - доставчикът отговори правилно"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Тестът на връзката е неуспешен"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Конфигуриране на SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "SSO все още не е конфигурирано за този домейн. Активирайте единното влизане, за да позволите на членовете на екипа да се удостоверяват чрез доставчика на идентичност на вашата организация."
   }
 }

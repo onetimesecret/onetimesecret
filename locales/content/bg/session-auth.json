@@ -1,14 +1,14 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Нужен ви е акаунт?",
+    "text": "Нямате акаунт?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Регистрирай се.",
+    "text": "Регистрирайте се.",
     "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Забравихте паролата си?",
+    "text": "Забравили сте паролата си?",
     "source_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
@@ -24,11 +24,11 @@
     "source_hash": "f93267aa"
   },
   "web.login.send_sign_in_link": {
-    "text": "Изпрати връзка за вход",
+    "text": "Изпращане на връзка за вход",
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Сигурна връзка ще бъде изпратена до имейл кутията ви.",
+    "text": "Сигурна връзка ще бъде изпратена до вашата имейл кутия.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -36,19 +36,19 @@
     "source_hash": "7175517a"
   },
   "web.login.sign_in_with_password": {
-    "text": "Влез с парола",
+    "text": "Вход с парола",
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Използвай вход без парола",
+    "text": "Използвайте вход без парола",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
-    "text": "Създай акаунт",
+    "text": "Създаване на акаунт",
     "source_hash": "798ca2ce"
   },
   "web.login.return_home": {
-    "text": "Обратно към началната страница",
+    "text": "Връщане към началото",
     "source_hash": "bbcc935e"
   },
   "web.login.tab_password": {
@@ -72,11 +72,11 @@
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
-    "text": "Влезте чрез SSO",
+    "text": "Вход с SSO",
     "source_hash": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
-    "text": "Влезте с {provider}",
+    "text": "Вход с {provider}",
     "source_hash": "b8794f11"
   },
   "web.auth.sso.signing_in": {
@@ -84,27 +84,27 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "SSO влизането е неуспешно. Моля, опитайте отново.",
+    "text": "Неуспешен SSO вход. Моля, опитайте отново.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "SSO удостоверяването е неуспешно. Моля, опитайте отново или използвайте вход с парола.",
+    "text": "Неуспешно SSO удостоверяване. Моля, опитайте отново или използвайте вход с парола.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "Линкът за удостоверяване е непълен. Моля, заявете нов линк за вход.",
+    "text": "Връзката за удостоверяване е непълна. Моля, поискайте нова връзка за вход.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Този линк за вход е изтекъл. Моля, заявете нов.",
+    "text": "Тази връзка за вход е изтекла. Моля, поискайте нова.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Този линк за вход е невалиден. Моля, заявете нов.",
+    "text": "Тази връзка за вход е невалидна. Моля, поискайте нова.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Създайте акаунта си",
+    "text": "Създайте вашия акаунт",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
@@ -131,19 +131,19 @@
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Потвърдете акаунта си",
+    "text": "Потвърждаване на вашия акаунт",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "Акаунтът ви е потвърден успешно",
+    "text": "Вашият акаунт е потвърден успешно",
     "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "Невалиден или изтекъл ключ за потвърждение",
+    "text": "Невалиден или изтекъл ключ за потвърждаване",
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Тази връзка за потвърждение е изтекла. Моля, заявете нова.",
+    "text": "Тази връзка за потвърждаване е изтекла. Моля, поискайте нова.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
@@ -151,19 +151,19 @@
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Неуспешно потвърждение на акаунта. Моля, опитайте отново или се свържете с поддръжката.",
+    "text": "Не може да се потвърди акаунтът. Моля, опитайте отново или се свържете с поддръжката.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Моля, проверете имейла си за връзка за потвърждение",
+    "text": "Моля, проверете имейла си за връзка за потвърждаване",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Потвърждението на акаунта е неуспешно. Моля, проверете връзката си за потвърждение или заявете нова.",
+    "text": "Неуспешно потвърждаване на акаунта. Моля, проверете връзката за потвърждаване или поискайте нова.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "Потвърждението е неуспешно",
+    "text": "Неуспешно потвърждаване",
     "source_hash": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
@@ -171,7 +171,7 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Проверете имейла си за най-скорошната връзка за потвърждение",
+    "text": "Проверете имейла си за най-новата връзка за потвърждаване",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
@@ -183,15 +183,15 @@
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Изисква се връзка за потвърждение",
+    "text": "Необходима е връзка за потвърждаване",
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Моля, използвайте връзката за потвърждение, изпратена на имейл адреса ви, за да потвърдите акаунта си.",
+    "text": "Моля, използвайте връзката за потвърждаване, изпратена до вашия имейл адрес, за да потвърдите акаунта си.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "Създай нов акаунт",
+    "text": "Създаване на нов акаунт",
     "source_hash": "0e24ec84"
   },
   "web.auth.change_password.title": {
@@ -207,15 +207,15 @@
     "source_hash": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Потвърди новата парола",
+    "text": "Потвърждаване на новата парола",
     "source_hash": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "Паролата ви е променена успешно",
+    "text": "Вашата парола е променена успешно",
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Промяната на паролата е неуспешна. Моля, проверете текущата си парола и опитайте отново.",
+    "text": "Неуспешна промяна на паролата. Моля, проверете текущата си парола и опитайте отново.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -227,7 +227,7 @@
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "Разбирам, че това действие е перманентно",
+    "text": "Разбирам, че това действие е необратимо",
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
@@ -235,7 +235,7 @@
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Закрий акаунта перманентно",
+    "text": "Перманентно закриване на акаунта",
     "source_hash": "0713c012"
   },
   "web.auth.close_account.cancel": {
@@ -247,11 +247,11 @@
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Въведете имейл адреса си по-долу и ще ви изпратим връзка за нулиране на паролата",
+    "text": "Въведете имейл адреса си по-долу и ще ви изпратим връзка за нулиране на паролата ви",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Изпрати връзка за нулиране",
+    "text": "Изпращане на връзка за нулиране",
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
@@ -264,7 +264,7 @@
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Изпратен е имейл с връзка за нулиране на паролата за вашия акаунт",
+    "text": "Изпратен ви е имейл с връзка за нулиране на паролата за вашия акаунт",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -297,7 +297,7 @@
     "source_hash": "53955e0e"
   },
   "web.auth.account.verify_email": {
-    "text": "Потвърди имейл адрес",
+    "text": "Потвърждаване на имейл адрес",
     "source_hash": "d261b9df"
   },
   "web.auth.account.mfa_status": {
@@ -337,7 +337,7 @@
     "source_hash": "a949f462"
   },
   "web.auth.account.close_account": {
-    "text": "Закрий акаунта",
+    "text": "Закриване на акаунт",
     "source_hash": "e1513814"
   },
   "web.help.title": {
@@ -345,7 +345,7 @@
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Отстраняване на проблеми при влизане",
+    "text": "Отстраняване на проблеми при вход",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
@@ -357,35 +357,35 @@
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Проверете дали сте въвели имейл адреса си правилно",
+    "text": "Проверете дали сте въвели правилно имейл адреса си",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Изчакайте няколко минути - имейлите понякога закъсняват",
+    "text": "Изчакайте няколко минути - имейлите понякога се забавят",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Опитайте да заявите нова връзка, ако са минали повече от 10 минути",
+    "text": "Опитайте да поискате нова връзка, ако са минали повече от 10 минути",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "Забравихте паролата си?",
+    "text": "Забравили сте паролата си?",
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Използвайте опцията Магическа връзка, за да влезете без парола. След като влезете, можете да промените паролата си в Настройки на акаунта.",
+    "text": "Използвайте опцията за магическа връзка за вход без парола. След като влезете, можете да промените паролата си в настройките на акаунта.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
-    "text": "Акаунтът временно заключен?",
+    "text": "Акаунтът е временно заключен?",
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "След множество неуспешни опити за влизане акаунтите се заключват временно за сигурност. Изчакайте 15 минути и опитайте отново или използвайте Магическа връзка за влизане.",
+    "text": "След множество неуспешни опити за вход акаунтите се заключват временно от съображения за сигурност. Изчакайте 15 минути и опитайте отново или използвайте магическа връзка за вход.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Все още се нуждаете от помощ?",
+    "text": "Все още имате нужда от помощ?",
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
@@ -395,5 +395,17 @@
   "web.help.contact_support": {
     "text": "Свържете се с поддръжката",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO акаунт"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Единно влизане е налично за този домейн"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Администраторът на организацията може да активира SSO, за да позволи на членовете на екипа да влизат тук. Свържете се с администратора за достъп."
   }
 }

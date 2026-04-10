@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Научете за нашите мерки за сигурност",
+    "text": "Научете повече за мерките ни за сигурност",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Вижте нашите условия за ползване",
+    "text": "Вижте нашите Общи условия",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -44,11 +44,11 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Правни документи",
+    "text": "Правна информация",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Когато изпратите обратна връзка, ще видим:",
+    "text": "Когато изпратите отзив, ще видим:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
@@ -56,7 +56,7 @@
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Проверете статуса на услугата",
+    "text": "Проверете статуса на нашата услуга",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
@@ -72,7 +72,7 @@
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Вижте нашия изходен код в GitHub",
+    "text": "Вижте изходния ни код в GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -88,7 +88,7 @@
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Вижте цените на абонаментите",
+    "text": "Вижте цените на абонаментите ни",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
@@ -144,15 +144,15 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Какво гледам?",
+    "text": "Какво виждам?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Преглеждате защитено съобщение, което е било споделено с вас чрез Onetime Secret. Това съдържание се показва само веднъж и след това се изтрива перманентно от нашите сървъри.",
+    "text": "Виждате защитено съобщение, което е споделено с вас чрез Onetime Secret. Това съдържание се показва само веднъж и след това се изтрива перманентно от нашите сървъри.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Мога ли да прегледам тази тайна отново по-късно?",
+    "text": "Мога ли да видя тази тайна отново по-късно?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
@@ -164,23 +164,23 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Използвайте бутона \"Копирай в клипборда\", за да копирате цялата тайна. За по-дълги тайни се уверете, че сте копирали цялото съдържание, преди да напуснете тази страница.",
+    "text": "Използвайте бутона \"Копиране в клипборда\", за да копирате цялата тайна. При по-дълги тайни се уверете, че сте копирали цялото съдържание, преди да напуснете тази страница.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Проследява ли се прегледът ми на тази тайна?",
+    "text": "Прегледът ми на тази тайна проследява ли се?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Подателят ще бъде уведомен, че тайната му е била прегледана, но ние не проследяваме кой я е прегледал или от какво местоположение. Вашата поверителност е защитена.",
+    "text": "Изпращачът ще бъде уведомен, че тайната му е била прегледана, но ние не проследяваме кой я е прегледал или от къде. Вашата поверителност е защитена.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "След като напуснете или презаредите тази страница, тази тайна ще бъде перманентно изтрита и не може да бъде възстановена от никого.",
+    "text": "След като напуснете или опресните тази страница, тази тайна ще бъде перманентно изтрита и не може да бъде възстановена от никого.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Върни се към предишната страница",
+    "text": "Връщане към предишната страница",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
@@ -188,15 +188,15 @@
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Превключи тъмен режим",
+    "text": "Превключване на тъмен режим",
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Изпратете обратна връзка",
+    "text": "Изпращане на отзив",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
-    "text": "Фирмено лого",
+    "text": "Лого на компанията",
     "source_hash": "87a86135"
   },
   "web.layout.brand_logo": {
@@ -204,7 +204,7 @@
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Навигация в таблото",
+    "text": "Навигация на таблото",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
@@ -212,7 +212,7 @@
     "source_hash": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Основна навигация",
+    "text": "Главна навигация",
     "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
@@ -224,19 +224,19 @@
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Зареждане на съдържание на настройките...",
+    "text": "Зареждане на съдържанието на настройките...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Раздели с настройки",
+    "text": "Раздели на настройките",
     "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
-    "text": "Затвори настройките",
+    "text": "Затваряне на настройките",
     "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Раздели с настройки",
+    "text": "Раздели на настройките",
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
@@ -244,15 +244,15 @@
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Към началната страница",
+    "text": "Връщане към началото",
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Към началната страница",
+    "text": "Връщане към началната страница",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Към началната страница",
+    "text": "Връщане към началото",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
@@ -304,7 +304,7 @@
     "source_hash": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Преглед на кода в GitHub",
+    "text": "Преглед на изходния код в GitHub",
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
@@ -324,7 +324,7 @@
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Превключи към режим {0}",
+    "text": "Превключване към режим {0}",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Контекст на работното пространство",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Работно пространство"
   }
 }

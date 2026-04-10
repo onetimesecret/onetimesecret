@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Редактирайте системните конфигурационни настройки. Промените се прилагат незабавно след запазване.",
+    "text": "Редактиране на системните настройки за конфигурация. Промените се прилагат веднага след запазване.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -40,7 +40,7 @@
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
-    "text": "Грешка при валидация",
+    "text": "Грешка при валидиране",
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
@@ -60,11 +60,11 @@
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Няколко раздела имат грешки при валидация: {sections}",
+    "text": "Множество раздели имат грешки при валидиране: {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} има грешки при валидация: {error}",
+    "text": "{section} има грешки при валидиране: {error}",
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
@@ -72,11 +72,11 @@
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
-    "text": "Запази {section}",
+    "text": "Запазване на {section}",
     "source_hash": "4a379f10"
   },
   "web.colonel.saveAll": {
-    "text": "Запази всички",
+    "text": "Запазване на всички",
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
@@ -84,11 +84,11 @@
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Грешка при валидация на схема: {message} ({path})",
+    "text": "Грешка при валидиране на схемата: {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Неизвестна грешка при валидация: {error}",
+    "text": "Неизвестна грешка при валидиране: {error}",
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "Администратор",
+    "text": "Администрация",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -148,7 +148,7 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Виж всички",
+    "text": "Преглед на всички",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
@@ -212,7 +212,7 @@
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
-    "text": "Настройки на домейни и DNS",
+    "text": "Настройки за домейни и DNS",
     "source_hash": "1f712094"
   },
   "web.colonel.actions.systemSettings": {
@@ -252,11 +252,11 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Състояние на работниците",
+    "text": "Състояние на процесите",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "активни работници",
+    "text": "активни процеси",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Режим за тестване на план",
+    "text": "Тестов режим на план",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Нулиране до действителен план",
+    "text": "Нулиране до действителния план",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -296,19 +296,19 @@
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
-    "text": "Активирай тестов режим",
+    "text": "Активиране на тестов режим",
     "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
-    "text": "Тестов режим е активен",
+    "text": "Тестовият режим е активен",
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Тествайте приложението си с различни права на план. Промените са временни и засягат само вашата сесия.",
+    "text": "Тествайте приложението си с различни права на планове. Промените са временни и засягат само вашата сесия.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Тествате с права на {planName} (временно презаписване на сесията).",
+    "text": "Тествате с правата на {planName} (временно заместване на сесията).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Наблюдение на здравето на синхронизацията на фактурирането на организациите",
+    "text": "Наблюдение на здравето на синхронизацията на фактурирането на организации",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Монитор за здраве на фактурирането",
+    "text": "Монитор на здравето на фактурирането",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -368,7 +368,7 @@
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "В пробен период",
+    "text": "Пробен период",
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
@@ -400,7 +400,7 @@
     "source_hash": "d70b9e24"
   },
   "web.colonel.organizations.columns.details": {
-    "text": "Детайли",
+    "text": "Подробности",
     "source_hash": "45989de4"
   },
   "web.colonel.organizations.columns.owner": {
@@ -432,7 +432,7 @@
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Администриране на фактурирането на организации",
+    "text": "Администрация на фактурирането на организации",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
@@ -444,7 +444,7 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "потенциално остарели",
+    "text": "потенциално остаряла",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
@@ -476,7 +476,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID на организация",
+    "text": "ID на организацията",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
@@ -488,7 +488,7 @@
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Потвърдено синхронизирано",
+    "text": "Проверено и синхронизирано",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
@@ -500,7 +500,7 @@
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Детайли за абонамента в Stripe",
+    "text": "Подробности за абонамента в Stripe",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -516,7 +516,7 @@
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
-    "text": "ID на цена",
+    "text": "ID на цената",
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
@@ -532,7 +532,7 @@
     "source_hash": "201eb3d9"
   },
   "web.colonel.organizations.usage.domains": {
-    "text": "{count} домейна",
+    "text": "{count} домейни",
     "source_hash": "cf548c8c"
   },
   "web.colonel.secrets.title": {
@@ -552,11 +552,11 @@
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
-    "text": "Експорт на използване",
+    "text": "Износ на използване",
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "Експорт на данни за използване и статистики",
+    "text": "Износ на данни за използване и статистика",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -568,15 +568,15 @@
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
-    "text": "Персонализирани домейни",
+    "text": "Персонални домейни",
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "Управление на персонализирани домейни и брандиране",
+    "text": "Управление на персонални домейни и брандиране",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "Изпрати обратна връзка",
+    "text": "Изпращане на отзив",
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
@@ -596,7 +596,7 @@
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
-    "text": "Персонализирани домейни",
+    "text": "Персонални домейни",
     "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {
@@ -616,7 +616,7 @@
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
-    "text": "Експорт на използване",
+    "text": "Износ на използване",
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Когато изпратите обратна връзка, ще видим:",
+    "text": "Когато изпратите отзив, ще видим:",
     "source_hash": "fe77172e"
   }
 }

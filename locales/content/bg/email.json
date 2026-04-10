@@ -20,7 +20,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Тази връзка ще работи само веднъж. След преглеждане тайната ще бъде перманентно изтрита.",
+    "text": "Тази връзка ще работи само веднъж. След преглед тайната ще бъде перманентно изтрита.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -36,11 +36,11 @@
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Моля, потвърдете имейл адреса си като натиснете връзката по-долу:",
+    "text": "Моля, потвърдете имейл адреса си, като натиснете връзката по-долу:",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Потвърди имейл адрес",
+    "text": "Потвърждаване на имейл адрес",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
@@ -52,15 +52,15 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Този имейл беше изпратен до %{email_address}. Ако не сте създали акаунт, можете спокойно да игнорирате това съобщение.",
+    "text": "P.S. Този имейл е изпратен до %{email_address}. Ако не сте създали акаунт, можете спокойно да игнорирате това съобщение.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Нулирайте паролата си (%{display_domain})",
+    "text": "Нулиране на паролата ви (%{display_domain})",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Нулирайте паролата си",
+    "text": "Нулиране на паролата ви",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
@@ -68,7 +68,7 @@
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Нулиране на парола",
+    "text": "Нулиране на паролата",
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
@@ -84,11 +84,11 @@
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Този имейл беше изпратен до %{email_address}.",
+    "text": "P.S. Този имейл е изпратен до %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Вход в %{display_domain}",
+    "text": "Влизане в %{display_domain}",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
@@ -96,7 +96,7 @@
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Поискахте връзка за вход за вашия %{product_name} акаунт.",
+    "text": "Поискахте връзка за вход в акаунта си в %{product_name}.",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
@@ -120,7 +120,7 @@
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Този имейл беше изпратен до %{email_address}.",
+    "text": "P.S. Този имейл е изпратен до %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
@@ -140,7 +140,7 @@
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "За да прегледате тази тайна, натиснете връзката по-долу:",
+    "text": "За да видите тази тайна, натиснете връзката по-долу:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -148,11 +148,11 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Тази връзка ще работи само веднъж. След преглеждане тайната ще бъде перманентно изтрита.",
+    "text": "Тази връзка ще работи само веднъж. След преглед тайната ще бъде перманентно изтрита.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Тази тайна е защитена с ключова фраза. Подателят трябва да ви я предостави отделно.",
+    "text": "Тази тайна е защитена с ключова фраза. Изпращачът трябва да ви я предостави отделно.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -164,15 +164,15 @@
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Тайната ви беше прегледана",
+    "text": "Вашата тайна беше прегледана",
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Тайната ви беше прегледана",
+    "text": "Вашата тайна беше прегледана",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Тайната ви беше прегледана на %{date}.",
+    "text": "Вашата тайна беше прегледана на %{date}.",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
@@ -180,7 +180,7 @@
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Това е автоматично известие. Не се изисква действие.",
+    "text": "Това е автоматично известие. Не е необходимо действие.",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -192,7 +192,7 @@
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "За да управлявате предпочитанията си за известия:",
+    "text": "За управление на предпочитанията ви за известия:",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
@@ -204,7 +204,7 @@
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Прегледайте тайната си преди да изтече",
+    "text": "Вижте тайната си, преди да изтече",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
@@ -220,7 +220,7 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Прегледайте я, преди да изчезне:",
+    "text": "Вижте го, преди да изчезне:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
@@ -228,11 +228,11 @@
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Обратна връзка на %{date} чрез %{display_domain} (%{strategy})",
+    "text": "Отзив от %{date} чрез %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Потребителска обратна връзка",
+    "text": "Потребителски отзив",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
@@ -252,7 +252,7 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Поддръжка на тайни",
+    "text": "Secret Support",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -268,7 +268,7 @@
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Приеми поканата",
+    "text": "Приемане на поканата",
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Този имейл беше изпратен до %{invited_email}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение.",
+    "text": "P.S. Този имейл е изпратен до %{invited_email}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -300,19 +300,19 @@
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Паролата ви беше променена (%{display_domain})",
+    "text": "Вашата парола е променена (%{display_domain})",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Паролата ви беше променена",
+    "text": "Вашата парола е променена",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Паролата ви за %{product_name} беше променена на %{date} в %{time}.",
+    "text": "Вашата парола за %{product_name} е променена на %{date} в %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Ако не сте направили тази промяна, моля, защитете акаунта си незабавно като нулирате паролата и се свържете с поддръжката.",
+    "text": "Ако не сте направили тази промяна, моля защитете акаунта си незабавно, като нулирате паролата си и се свържете с поддръжката.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -320,23 +320,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Вашият имейл адрес беше променен (%{display_domain})",
+    "text": "Вашият имейл адрес е променен (%{display_domain})",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Вашият имейл адрес беше променен",
+    "text": "Вашият имейл адрес е променен",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Имейл адресът за вашия %{product_name} акаунт беше променен на %{new_email_masked}.",
+    "text": "Имейл адресът на вашия акаунт в %{product_name} е променен на %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Ако не сте направили тази промяна, моля, свържете се с поддръжката незабавно, тъй като акаунтът ви може да е компрометиран.",
+    "text": "Ако не сте направили тази промяна, моля свържете се незабавно с поддръжката, тъй като акаунтът ви може да е компрометиран.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "Имейл адресът на вашия %{product_name} акаунт беше променен.",
+    "text": "Имейл адресът на вашия акаунт в %{product_name} е променен.",
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
@@ -348,11 +348,11 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Ако вие направихте тази промяна, не е необходимо допълнително действие.",
+    "text": "Ако вие сте направили тази промяна, не е необходимо допълнително действие.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Ако не сте направили тази промяна, акаунтът ви може да е компрометиран.",
+    "text": "Ако не сте направили тази промяна, вашият акаунт може да е компрометиран.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -364,19 +364,19 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Този имейл беше изпратен до %{email_address}, за да ви уведоми за промяна на имейл адреса.",
+    "text": "P.S. Този имейл е изпратен до %{email_address}, за да ви уведомим за промяна на имейл адреса.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Заявка за промяна на имейл (%{display_domain})",
+    "text": "Заявена промяна на имейл (%{display_domain})",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Заявка за промяна на имейл",
+    "text": "Заявена промяна на имейл",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Беше подадена заявка за промяна на имейл адреса на вашия %{product_name} акаунт.",
+    "text": "Получена е заявка за промяна на имейл адреса на вашия акаунт в %{product_name}.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
@@ -388,11 +388,11 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Ако вие направихте тази заявка, проверете новия си имейл за линк за потвърждение. Все още не са направени промени.",
+    "text": "Ако вие сте направили тази заявка, проверете новия си имейл за връзка за потвърждение. Все още не са направени промени.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Ако не сте направили тази заявка, можете спокойно да игнорирате този имейл. Акаунтът ви не е бил променен.",
+    "text": "Ако не сте направили тази заявка, можете спокойно да игнорирате този имейл. Вашият акаунт не е бил променен.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Този имейл беше изпратен до %{email_address}, тъй като беше заявена промяна на имейла за вашия акаунт.",
+    "text": "P.S. Този имейл е изпратен до %{email_address}, защото е заявена промяна на имейла за вашия акаунт.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -416,19 +416,19 @@
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Моля, потвърдете този имейл адрес, за да завършите промяната за вашия %{product_name} акаунт.",
+    "text": "Моля, потвърдете този имейл адрес, за да завършите промяната за вашия акаунт в %{product_name}.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Потвърди имейл адрес",
+    "text": "Потвърждаване на имейл адрес",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Беше подадена заявка за промяна на имейл адреса на вашия %{product_name} акаунт на %{new_email}.",
+    "text": "Получена е заявка за промяна на имейл адреса на вашия акаунт в %{product_name} на %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Потвърдете промяната на имейла",
+    "text": "Потвърждаване на промяна на имейл",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -436,11 +436,11 @@
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "Този линк ще изтече след %{hours} часа.",
+    "text": "Тази връзка ще изтече след %{hours} часа.",
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Ако не сте заявили тази промяна, можете спокойно да игнорирате този имейл. Имейл адресът ви няма да бъде променен.",
+    "text": "Ако не сте поискали тази промяна, можете спокойно да игнорирате този имейл. Вашият имейл адрес няма да бъде променен.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Този имейл беше изпратен до %{email_address} за потвърждение на промяна на имейл адрес.",
+    "text": "P.S. Този имейл е изпратен до %{email_address} за потвърждаване на промяна на имейл адреса.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -460,11 +460,11 @@
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Двуфакторното удостоверяване беше активирано за вашия %{product_name} акаунт на %{date}.",
+    "text": "Двуфакторното удостоверяване е активирано за вашия акаунт в %{product_name} на %{date}.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Вашият акаунт вече е по-защитен. Ще трябва да въведете код за потвърждение от приложението за удостоверяване при влизане.",
+    "text": "Вашият акаунт вече е по-защитен. Ще трябва да въвеждате код за проверка от приложението за удостоверяване при влизане.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -480,7 +480,7 @@
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Двуфакторното удостоверяване беше деактивирано за вашия %{product_name} акаунт на %{date}.",
+    "text": "Двуфакторното удостоверяване е деактивирано за вашия акаунт в %{product_name} на %{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
@@ -492,15 +492,15 @@
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Нов вход във вашия акаунт (%{display_domain})",
+    "text": "Ново влизане в акаунта ви (%{display_domain})",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Засечен нов вход",
+    "text": "Открито е ново влизане",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Нов вход във вашия %{product_name} акаунт беше засечен на %{date} в %{time}.",
+    "text": "Открито е ново влизане в акаунта ви в %{product_name} на %{date} в %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -528,15 +528,15 @@
     "source_hash": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Бяхте премахнати от %{organization_name}",
+    "text": "Премахнати сте от %{organization_name}",
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Бяхте премахнати от %{organization_name}",
+    "text": "Премахнати сте от %{organization_name}",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Бяхте премахнати от организацията \"%{organization_name}\" в %{product_name}.",
+    "text": "Премахнати сте от организацията \"%{organization_name}\" в %{product_name}.",
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
@@ -544,15 +544,15 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Ролята ви беше променена в %{organization_name}",
+    "text": "Вашата роля е променена в %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Ролята ви беше променена",
+    "text": "Вашата роля е променена",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Ролята ви в \"%{organization_name}\" беше променена от %{old_role} на %{new_role}.",
+    "text": "Вашата роля в \"%{organization_name}\" е променена от %{old_role} на %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -560,7 +560,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Организацията \"%{organization_name}\" беше изтрита",
+    "text": "Организация \"%{organization_name}\" е изтрита",
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
@@ -568,7 +568,7 @@
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Организацията \"%{organization_name}\" беше изтрита от %{product_name}. Всички свързани данни бяха премахнати.",
+    "text": "Организацията \"%{organization_name}\" е изтрита от %{product_name}. Всички свързани данни са премахнати.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -584,7 +584,7 @@
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Благодарим за плащането. Ето детайлите за плащането ви:",
+    "text": "Благодарим ви за плащането. Ето подробностите за плащането ви:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
@@ -608,19 +608,19 @@
     "source_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Плащането за %{product_name} е неуспешно",
+    "text": "Неуспешно плащане за %{product_name}",
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Плащането е неуспешно",
+    "text": "Неуспешно плащане",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Не успяхме да обработим плащането ви за %{product_name}. Моля, актуализирайте метода си на плащане, за да избегнете прекъсване на услугата.",
+    "text": "Не успяхме да обработим плащането ви за %{product_name}. Моля, актуализирайте метода си за плащане, за да избегнете прекъсване на услугата.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Актуализирай метода на плащане",
+    "text": "Актуализиране на метода за плащане",
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
@@ -628,15 +628,15 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Вашият %{product_name} пробен период изтича след %{days_remaining} дни",
+    "text": "Вашият пробен период за %{product_name} изтича след %{days_remaining} дни",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Пробният ви период скоро изтича",
+    "text": "Вашият пробен период скоро изтича",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Безплатният ви пробен период на %{product_name} ще изтече след %{days_remaining} дни. Надградете сега, за да запазите достъпа до всички функции.",
+    "text": "Вашият безплатен пробен период за %{product_name} ще изтече след %{days_remaining} дни. Надградете сега, за да запазите достъпа до всички функции.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -648,7 +648,7 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Вашият %{product_name} абонамент беше променен",
+    "text": "Вашият абонамент за %{product_name} е променен",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
@@ -656,7 +656,7 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Вашият %{product_name} абонамент беше променен от %{old_plan} на %{new_plan}.",
+    "text": "Вашият абонамент за %{product_name} е променен от %{old_plan} на %{new_plan}.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
@@ -672,7 +672,7 @@
     "source_hash": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Благодаря,",
+    "text": "Благодарим,",
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
@@ -680,7 +680,7 @@
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Преглед в браузър",
+    "text": "Преглед в браузъра",
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {

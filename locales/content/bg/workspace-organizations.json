@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Управлявайте организациите си",
+    "text": "Управление на вашите организации",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Организациите осигуряват унифицирано фактуриране и администрация. Започнете, като създадете първата си организация.",
+    "text": "Организациите предоставят единно фактуриране и администрация. Започнете, като създадете първата си организация.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -44,19 +44,19 @@
     "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Създай организация",
+    "text": "Създаване на организация",
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Създайте първата организация",
+    "text": "Създаване на първа организация",
     "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Създайте нова организация",
+    "text": "Създаване на нова организация",
     "source_hash": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "Създай",
+    "text": "Създаване",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Актуализирайте името и описанието на организацията",
+    "text": "Актуализиране на името и описанието на вашата организация",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -144,7 +144,7 @@
     "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Запази промените",
+    "text": "Запазване на промените",
     "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
@@ -152,7 +152,7 @@
     "source_hash": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Неуспешна актуализация на организацията",
+    "text": "Неуспешно актуализиране на организация",
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
@@ -160,15 +160,15 @@
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Имейлът за фактуриране може да бъде променен на страницата Преглед на фактурирането",
+    "text": "Имейлът за фактуриране може да бъде променен на страницата за преглед на фактурирането",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Интеграцията с фактуриране идва скоро",
+    "text": "Интеграцията с фактурирането предстои",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Унифицираното управление на фактуриране и абонаменти ще бъде налично в бъдеща версия.",
+    "text": "Единното управление на фактурирането и абонаментите ще бъде налично в бъдеща версия.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,27 +176,27 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Организациите осигуряват унифицирано фактуриране и администрация за централизирано управление.",
+    "text": "Организациите предоставят единно фактуриране и администрация за централизирано управление.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Управлявайте организацията си",
+    "text": "Управление на вашата организация",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Актуализирайте името на компанията и детайлите за организацията тук. Тази информация помага за персонализиране на акаунта ви и може да се използва за функции за брандиране в бъдеще.",
+    "text": "Актуализирайте името на компанията си и подробностите за организацията тук. Тази информация помага за персонализиране на вашия акаунт и може да бъде използвана за функции за брандиране в бъдеще.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Започване с организации",
+    "text": "Начало с организации",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Създайте първата си организация, за да управлявате информацията за компанията и да се подготвите за бъдещи функции за брандиране.",
+    "text": "Създайте първата си организация, за да управлявате информацията за компанията си и да се подготвите за бъдещи функции за брандиране.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Управлявайте организациите и членовете на екипа си",
+    "text": "Управление на вашите организации и членове на екипа",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Брандиране на компанията",
+    "text": "Брандиране на компания",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Екип",
+    "text": "Членове",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -224,19 +224,19 @@
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Изтрий организацията",
+    "text": "Изтриване на организация",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Това ще изтрие организацията перманентно. Това действие не може да бъде отменено.",
+    "text": "Това ще изтрие перманентно организацията. Това действие не може да бъде отменено.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "Изтрий",
+    "text": "Изтриване",
     "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Изтрий организацията",
+    "text": "Изтриване на организация",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
@@ -244,7 +244,7 @@
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Неуспешно изтриване на организацията",
+    "text": "Неуспешно изтриване на организация",
     "source_hash": "a8e5bb28"
   },
   "web.organizations.members.title": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Управлявайте членовете на организацията и техните роли",
+    "text": "Управление на членовете на организацията и техните роли",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -268,7 +268,7 @@
     "source_hash": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "членове",
+    "text": "члена",
     "source_hash": "17373ca1"
   },
   "web.organizations.members.name": {
@@ -284,7 +284,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Присъединен",
+    "text": "Присъединил се",
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
@@ -304,7 +304,7 @@
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Неуспешна актуализация на ролята на члена",
+    "text": "Неуспешно актуализиране на ролята на члена",
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
@@ -312,11 +312,11 @@
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Неуспешно премахване на члена",
+    "text": "Неуспешно премахване на член",
     "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Премахни член",
+    "text": "Премахване на член",
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
@@ -364,15 +364,15 @@
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Покани за организацията",
+    "text": "Покани за организация",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Покани член",
+    "text": "Покана на член",
     "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Покани нов член",
+    "text": "Покана на нов член",
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
@@ -396,7 +396,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Изпрати покана",
+    "text": "Изпращане на покана",
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
@@ -404,15 +404,15 @@
     "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Неуспешно изпращане на поканата",
+    "text": "Неуспешно изпращане на покана",
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Изпрати отново",
+    "text": "Повторно изпращане",
     "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "Отмени",
+    "text": "Отмяна",
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
@@ -420,7 +420,7 @@
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Неуспешно повторно изпращане на поканата",
+    "text": "Неуспешно повторно изпращане на покана",
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
@@ -428,7 +428,7 @@
     "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Неуспешна отмяна на поканата",
+    "text": "Неуспешна отмяна на покана",
     "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Член",
+    "text": "Член на екипа",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -476,23 +476,23 @@
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Приеми поканата",
+    "text": "Приемане на покана",
     "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Откажи поканата",
+    "text": "Отказване на покана",
     "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Детайли за поканата",
+    "text": "Подробности за поканата",
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Бяхте поканени да се присъедините към",
+    "text": "Поканени сте да се присъедините към",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Бяхте поканени като",
+    "text": "Поканени сте като",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -500,7 +500,7 @@
     "source_hash": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Неуспешно приемане на поканата",
+    "text": "Неуспешно приемане на покана",
     "source_hash": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
@@ -508,7 +508,7 @@
     "source_hash": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Неуспешен отказ на поканата",
+    "text": "Неуспешно отказване на покана",
     "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
@@ -524,7 +524,7 @@
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
-    "text": "Зареждане на детайли за поканата",
+    "text": "Зареждане на подробности за поканата",
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
@@ -532,7 +532,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Каненето на членове на екипа изисква план с управление на екипи. Надградете, за да добавите сътрудници към организацията си.",
+    "text": "Поканите за членове на екипа изискват план с управление на екипи. Надградете, за да добавите сътрудници към вашата организация.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -544,7 +544,7 @@
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
-    "text": "{count} член | {count} членове",
+    "text": "{count} член | {count} члена",
     "source_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
@@ -556,7 +556,7 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Влезли сте с друг акаунт",
+    "text": "Влезли сте с различен акаунт",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
@@ -564,19 +564,205 @@
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
-    "text": "Продължи като {email}",
+    "text": "Продължаване като {email}",
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days}д оставащи",
+    "text": "{days}д остават",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours}ч оставащи",
+    "text": "{hours}ч остават",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Изтича скоро",
+    "text": "Скоро изтича",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Преглед и конфигуриране на вашите работни пространства"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "от {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "като {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Назад към началото"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Тази покана е изпратена до този имейл адрес"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Продължаване"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Вход и приемане на покана"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Към организациите"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Вече сте член на тази организация"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Присъединяване към {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Влезте, за да се присъедините към {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Отказване"
+  },
+  "web.organizations.sso.title": {
+    "text": "Единно влизане (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Конфигурирайте SSO, за да позволите на членовете да влизат с доставчика на идентичност на вашата организация"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Тип доставчик"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Изберете доставчика на идентичност на вашата организация"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Показвано име"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Приятелско име, показвано на потребителите при влизане"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "напр. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Client ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Вашият OAuth client ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Client Secret"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Вашият OAuth client secret"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Оставете празно, за да запазите съществуващата тайна"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Tenant ID"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Вашият Azure AD / Entra ID идентификатор на наемател"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "напр. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL на издателя"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "OIDC URL за откриване на вашия доставчик на идентичност"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "напр. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Разрешени имейл домейни"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Само потребители с имейл адреси от тези домейни могат да влизат. Оставете празно, за да разрешите всички домейни."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "напр. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Моля, въведете валиден домейн (напр. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Този домейн вече е в списъка"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Премахване на {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Активиране на SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Когато е активирано, членовете на организацията могат да влизат чрез този SSO доставчик"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Запазване на SSO конфигурацията"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Изтриване на конфигурацията"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Сигурни ли сте? Това ще деактивира SSO за вашата организация."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Неуспешно зареждане на SSO конфигурацията"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Неуспешно запазване на SSO конфигурацията"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO конфигурацията е създадена успешно"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO конфигурацията е актуализирана успешно"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO конфигурацията е изтрита успешно"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Неуспешно изтриване на SSO конфигурацията"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Тестване на връзката"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Проверка дали доставчикът на идентичност е достъпен (не валидира идентификационни данни)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Тестване на връзката"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Тестване..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Неуспешно тестване на връзката"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Крайна точка за оторизация"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Липсващи полета"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Активирано"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Конфигурирано"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO за домейн"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Конфигуриране на SSO за всеки потвърден домейн"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "За да промените доставчика, първо изтрийте тази конфигурация"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Не е конфигурирано"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Екип"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

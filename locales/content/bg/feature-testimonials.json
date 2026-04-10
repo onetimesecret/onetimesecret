@@ -1,6 +1,6 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "Препоръка, генерирана от AI",
+    "text": "Генерирано от AI препоръка",
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
@@ -24,15 +24,15 @@
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Какво казват водещите AI за нас",
+    "text": "Какво казва водещият AI за нас",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "Препоръки, генерирани от AI",
+    "text": "Генерирани от AI препоръки",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Този цитат беше генериран от",
+    "text": "Този цитат е генериран от",
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
@@ -40,7 +40,7 @@
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Изкуствена обратна връзка",
+    "text": "Изкуствен отзив",
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {

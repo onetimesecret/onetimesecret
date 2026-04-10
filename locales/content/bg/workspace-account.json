@@ -4,15 +4,15 @@
     "source_hash": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Промени паролата",
+    "text": "Промяна на парола",
     "source_hash": "a949f462"
   },
   "web.account.close_account": {
-    "text": "Закрий акаунта",
+    "text": "Закриване на акаунт",
     "source_hash": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Потвърди акаунта",
+    "text": "Потвърждаване на акаунт",
     "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
@@ -44,7 +44,7 @@
     "source_hash": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Метод на плащане по подразбиране",
+    "text": "Метод за плащане по подразбиране",
     "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
@@ -76,11 +76,11 @@
     "source_hash": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
-    "text": "Потвърди",
+    "text": "Потвърждаване",
     "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Актуализирай паролата",
+    "text": "Актуализиране на парола",
     "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
@@ -92,11 +92,11 @@
     "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "ID на клиент",
+    "text": "ID на клиента",
     "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "ID на акаунт",
+    "text": "ID на акаунта",
     "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
@@ -104,7 +104,7 @@
     "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Изтрий акаунта",
+    "text": "Изтриване на акаунт",
     "source_hash": "c031bf99"
   },
   "web.account.api_key": {
@@ -120,15 +120,15 @@
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Детайли за поддръжка",
+    "text": "Подробности за поддръжка",
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Обратно към детайлите",
+    "text": "Назад към подробностите",
     "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "ID на клиент: {0}",
+    "text": "ID на клиента: {0}",
     "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Потвърдете изтриването на акаунта",
+    "text": "Потвърждаване на изтриване на акаунт",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -160,7 +160,7 @@
     "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
-    "text": "Изтрий акаунта перманентно",
+    "text": "Перманентно изтриване на акаунт",
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
@@ -168,15 +168,15 @@
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Изтриването на акаунта ви е",
+    "text": "Изтриването на вашия акаунт е",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "изтрийте ги преди да продължите",
+    "text": "изгорете ги, преди да продължите",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Всички тайни, които искате да премахнете,",
+    "text": "Всички тайни, които желаете да премахнете,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
@@ -192,7 +192,7 @@
     "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
-    "text": "Деактивирай",
+    "text": "Деактивиране",
     "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
@@ -200,7 +200,7 @@
     "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
-    "text": "Деактивирай акаунта",
+    "text": "Деактивиране на акаунт",
     "source_hash": "5e31b73d"
   },
   "web.settings.title": {
@@ -208,7 +208,7 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Управление на настройките и предпочитанията на акаунта ви",
+    "text": "Управление на настройките и предпочитанията на вашия акаунт",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
@@ -216,7 +216,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Обратно към таблото",
+    "text": "Назад към таблото",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -240,7 +240,7 @@
     "source_hash": "66962f72"
   },
   "web.settings.appearance": {
-    "text": "Външен вид",
+    "text": "Визуален стил",
     "source_hash": "3907fa7f"
   },
   "web.settings.theme.title": {
@@ -260,11 +260,11 @@
     "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Изберете предпочитания език",
+    "text": "Изберете предпочитания си език",
     "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Изберете предпочитания език",
+    "text": "Изберете предпочитания си език",
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
@@ -272,7 +272,7 @@
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Управление на информацията за акаунта ви",
+    "text": "Управление на информацията за вашия акаунт",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,7 +280,7 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Промени имейла",
+    "text": "Промяна на имейл",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
@@ -300,19 +300,19 @@
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Паролата ви е необходима от съображения за сигурност",
+    "text": "Вашата парола е необходима от съображения за сигурност",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Имейл за потвърждение ще бъде изпратен на новия адрес",
+    "text": "Имейл за потвърждение ще бъде изпратен до новия адрес",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Актуализирай имейла",
+    "text": "Актуализиране на имейл",
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Актуализирайте имейл адреса, свързан с акаунта ви",
+    "text": "Актуализиране на имейл адреса, свързан с вашия акаунт",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -324,15 +324,15 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Новият имейл трябва да е различен от текущия",
+    "text": "Новият имейл трябва да се различава от текущия",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Имейлът е актуализиран успешно. Моля, проверете входящата си кутия, за да потвърдите новия имейл адрес.",
+    "text": "Имейл за потвърждение е изпратен. Моля, проверете новата си входяща кутия и натиснете връзката за потвърждение, за да завършите промяната.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Неуспешна актуализация на имейла. Моля, опитайте отново.",
+    "text": "Неуспешно актуализиране на имейла. Моля, опитайте отново.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -340,11 +340,11 @@
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Управлявайте активните си сесии",
+    "text": "Управление на активните ви сесии",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Управлявайте активните си сесии",
+    "text": "Управление на активните ви сесии",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,47 +352,47 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Актуализирайте паролата на акаунта",
+    "text": "Актуализиране на паролата на вашия акаунт",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Актуализирайте паролата на акаунта",
+    "text": "Актуализиране на паролата на вашия акаунт",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "Изтрий акаунта",
+    "text": "Изтриване на акаунт",
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Перманентно изтрий акаунта и всички данни",
+    "text": "Перманентно изтриване на вашия акаунт и всички данни",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Перманентно изтрий акаунта и всички данни",
+    "text": "Перманентно изтриване на вашия акаунт и всички данни",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Оценка на сигурността",
+    "text": "Оценка за сигурност",
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Цялостното здраве на сигурността на акаунта ви",
+    "text": "Цялостното здраве на сигурността на вашия акаунт",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
-    "text": "Отлично",
+    "text": "Отлична",
     "source_hash": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "Добро",
+    "text": "Добра",
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Задоволително",
+    "text": "Средна",
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
-    "text": "Слабо",
+    "text": "Слаба",
     "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
@@ -412,7 +412,7 @@
     "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
-    "text": "Промени",
+    "text": "Промяна",
     "source_hash": "c0bf75bd"
   },
   "web.settings.security.manage": {
@@ -420,11 +420,11 @@
     "source_hash": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "Активирай",
+    "text": "Активиране",
     "source_hash": "5342e09f"
   },
   "web.settings.security.codes_available": {
-    "text": "{0} кода налични",
+    "text": "{0} налични кода",
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
@@ -436,11 +436,11 @@
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Най-добри практики за сигурност",
+    "text": "Добри практики за сигурност",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Използвайте силна, уникална парола за акаунта си",
+    "text": "Използвайте силна, уникална парола за вашия акаунт",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
@@ -452,11 +452,11 @@
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Редовно преглеждайте и отменяйте неизползвани сесии",
+    "text": "Преглеждайте и отменяйте неизползваните сесии редовно",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Преглед на детайли",
+    "text": "Преглед на подробности",
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
@@ -476,11 +476,11 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Научете как да интегрирате Onetime Secret във вашите приложения",
+    "text": "Научете как да интегрирате Onetime Secret в приложенията си",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
-    "text": "REST API справка",
+    "text": "REST API справочник",
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
@@ -496,11 +496,11 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Най-добри практики за сигурност",
+    "text": "Добри практики за сигурност",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Никога не качвайте API ключове в контрол на версиите",
+    "text": "Никога не включвайте API ключове в контрол на версиите",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
@@ -508,11 +508,11 @@
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Редовно сменяйте API ключовете за сигурност",
+    "text": "Ротирайте API ключовете редовно за сигурност",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Винаги използвайте HTTPS при API заявки",
+    "text": "Винаги използвайте HTTPS при правене на API заявки",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
@@ -520,11 +520,11 @@
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Важно известие",
+    "text": "Важно съобщение",
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Регенерирането на API ключа ви ще анулира текущия ключ. Актуализирайте всички приложения, използващи стария ключ.",
+    "text": "Регенерирането на API ключа ще обезсили текущия ключ. Актуализирайте всички приложения, използващи стария ключ.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Управлявайте предпочитанията за поверителност",
+    "text": "Управление на вашите предпочитания за поверителност",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -552,7 +552,7 @@
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Това не е настройка, защото няма какво да включите или изключите. Поверителността ви е вградена в начина, по който работим.",
+    "text": "Това не е настройка, защото няма какво да се включва или изключва. Вашата поверителност е вградена в начина, по който работим.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,31 +560,31 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Управлявайте как получавате известия",
+    "text": "Управление на начина, по който получавате известия",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Неуспешна актуализация на предпочитанията за известия. Моля, опитайте отново.",
+    "text": "Неуспешно актуализиране на предпочитанието за известия. Моля, опитайте отново.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Известия при разкриване на тайна",
+    "text": "Известия за разкриване на тайни",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Получете имейл, когато някой прегледа тайната ви",
+    "text": "Получавайте имейл, когато някой прегледа вашата тайна",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Ще бъдете известени всеки път, когато получател разкрие някоя от тайните ви",
+    "text": "Ще бъдете уведомени всеки път, когато получател разкрие една от вашите тайни",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Имейлите с известия включват само времева отметка и ID на тайната. Информация за зрителя никога не се включва.",
+    "text": "Имейлите за известия включват само времева отметка и ID на тайната. Информация за преглеждащия никога не се включва.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Зона за внимание",
+    "text": "Зона за внимателно обмисляне",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -592,27 +592,27 @@
     "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Експорт на данни",
+    "text": "Износ на данни",
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Експортирай данните на акаунта",
+    "text": "Износ на данните от вашия акаунт",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Заявете пълно копие на данните на акаунта ви в машинночетим формат",
+    "text": "Заявете пълно копие на данните от вашия акаунт в машинно четим формат",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Заяви експорт на данни",
+    "text": "Заявка за износ на данни",
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Време за обработка на експорт",
+    "text": "Време за обработка на износа",
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Експортите се обработват в рамките на 24 часа и се изпращат на имейл адреса ви",
+    "text": "Износите се обработват в рамките на 24 часа и се изпращат до вашия имейл адрес",
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
@@ -620,15 +620,15 @@
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Перманентно изтрие всички тайни",
+    "text": "Перманентно изтриване на всички ваши тайни",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Премахне всички метаданни и история на тайни",
+    "text": "Премахване на всички метаданни и история на тайните",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Анулиране на всички API ключове",
+    "text": "Обезсилване на всички API ключове",
     "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
@@ -636,27 +636,27 @@
     "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "Имейл адресът е обновен",
+    "text": "Имейл адресът е актуализиран",
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Имейлът ви е обновен успешно. Моля, влезте с новия си имейл адрес.",
+    "text": "Вашият имейл е актуализиран успешно. Моля, влезте с новия си имейл адрес.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Потвърждаване на новия ви имейл адрес...",
+    "text": "Проверка на новия ви имейл адрес...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Промяната на имейла е неуспешна",
+    "text": "Неуспешна промяна на имейл",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "Този линк за потвърждение е невалиден или е изтекъл.",
+    "text": "Тази връзка за потвърждаване е невалидна или е изтекла.",
     "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Обратно към настройките на акаунта",
+    "text": "Назад към настройките на акаунта",
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
@@ -676,11 +676,11 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Изпратен е имейл за потвърждение. Проверете входящата си поща и кликнете върху линка за потвърждение.",
+    "text": "Имейл за потвърждение е изпратен. Проверете входящата си кутия и натиснете връзката за потвърждение.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Не получихте имейла?",
+    "text": "Не сте получили имейла?",
     "source_hash": "fe3ac3ad"
   }
 }

@@ -1,10 +1,10 @@
 {
   "incoming.page_title": {
-    "text": "Изпрати тайна",
+    "text": "Изпращане на тайна",
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Споделете чувствителна информация сигурно с нашия екип за поддръжка",
+    "text": "Споделяйте чувствителна информация сигурно с нашия екип за поддръжка",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Тази функция в момента е деактивирана. Моля, свържете се с поддръжката за помощ.",
+    "text": "Тази функция е в момента деактивирана. Моля, свържете се с поддръжката за помощ.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -36,7 +36,7 @@
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Изпрати до",
+    "text": "Изпращане до",
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
@@ -60,19 +60,19 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Поставете чувствителна информация тук (пароли, ключове и др.)",
+    "text": "Поставете чувствителна информация тук (пароли, ключове и т.н.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Тази информация ще бъде криптирана и може да бъде прегледана само веднъж",
+    "text": "Тази информация ще бъде криптирана и видима само веднъж",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Изпрати тайна",
+    "text": "Изпращане на тайна",
     "source_hash": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Изпрати тайна",
+    "text": "Изпращане на тайна",
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
@@ -84,11 +84,11 @@
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "Изчисти формуляра",
+    "text": "Изчистване на формуляра",
     "source_hash": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "Изчисти формуляра",
+    "text": "Изчистване на формуляра",
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
@@ -108,11 +108,11 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Получателят ще може да прегледа тази тайна само веднъж. След като я прегледа, тайната ще бъде перманентно изтрита.",
+    "text": "Получателят ще може да види тази тайна само веднъж. След като я прегледа, тайната ще бъде перманентно изтрита.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Изпрати друга тайна",
+    "text": "Изпращане на друга тайна",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
@@ -120,15 +120,36 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Пазете паролите и личните данни извън имейла и чат логовете",
+    "text": "Пазете пароли и лични данни далеч от имейл и чат логовете",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Запазете {receipt} за ваши записи.",
+    "text": "Запазете вашата {receipt} за вашите записи.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "разписка",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Необходима е надградка"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Тази функция изисква надградка на плана. Моля, свържете се със собственика на акаунта, за да активирате входящи тайни."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Бележката трябва да е {max} символа или по-малко"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Тайното съдържание е задължително"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Моля, изберете получател"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Функцията за входящи тайни не е активирана"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Моля, проверете формуляра за грешки"
   }
 }

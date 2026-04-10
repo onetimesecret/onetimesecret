@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Защо тази тайна не е налична?",
+    "text": "Защо тази тайна не е достъпна?",
     "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
@@ -20,7 +20,7 @@
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Отхвърли предупреждението за съкращаване",
+    "text": "Отхвърляне на предупреждение за съкращаване",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -36,11 +36,11 @@
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Отхвърли предупреждението",
+    "text": "Отхвърляне на предупреждение",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Отхвърли известието",
+    "text": "Отхвърляне на известие",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
@@ -60,7 +60,7 @@
     "source_hash": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Сподели тайна!",
+    "text": "Споделете тайна!",
     "source_hash": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {

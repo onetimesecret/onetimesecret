@@ -8,11 +8,11 @@
     "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
-    "text": "Използвай настройка",
+    "text": "Използване на настройка",
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Шрифт",
+    "text": "Шрифтово семейство",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -28,11 +28,11 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Преглед и персонализиране",
+    "text": "Визуализация и персонализиране",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Превключи към изглед на Safari браузър",
+    "text": "Превключване към Safari браузър изглед",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -40,15 +40,15 @@
     "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Максимизирай прозореца",
+    "text": "Максимизиране на прозореца",
     "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Минимизирай прозореца",
+    "text": "Минимизиране на прозореца",
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Превключи към изглед на Edge браузър",
+    "text": "Превключване към Edge браузър изглед",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -84,7 +84,7 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Контроли за лого",
+    "text": "Контроли за логото",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -92,11 +92,11 @@
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Качи лого",
+    "text": "Качване на лого",
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
-    "text": "Зареждане на преглед...",
+    "text": "Зареждане на визуализация...",
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
@@ -104,7 +104,7 @@
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Икона око",
+    "text": "Икона на око",
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
@@ -112,7 +112,7 @@
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
-    "text": "Икона изображение",
+    "text": "Икона на изображение",
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
@@ -128,11 +128,11 @@
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Неуспешно зареждане на настройките за марката",
+    "text": "Неуспешно зареждане на настройките на марката",
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Това е интерактивен преглед на това как получателите ще видят защитените ви съобщения. Можете да: - Персонализирате цветове и шрифтове с контролите по-горе - Качите лого (препоръчват се минимум 128x128 пиксела, максимум 1MB) - Тествате прегледа с бутона \"Виж тайната\"",
+    "text": "Това е интерактивна визуализация на начина, по който получателите ще виждат вашите защитени съобщения. Можете да: - Персонализирате цветове и шрифтове чрез контролите по-горе - Качите лого (препоръчително минимум 128x128 пиксела, максимум 1MB) - Тествате визуализацията чрез бутона \"Преглед на тайната\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,15 +140,15 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Японски йероглиф '秘' (himitsu), означаващ 'тайна' или 'поверително'",
+    "text": "Японски йероглиф '秘' (himitsu) означаващ 'тайна' или 'поверително'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Предоставено от Onetime Secret",
+    "text": "Задвижвано от Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Лого",
+    "text": "Лого на {0}",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -156,7 +156,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "Превключи към Edge преглед",
+    "text": "Превключване към Edge визуализация",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -164,11 +164,14 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "Превключи към Safari преглед",
+    "text": "Превключване към Safari визуализация",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
     "text": "Надградете плана си, за да персонализирате брандирането за този домейн.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Настройките на марката са запазени успешно"
   }
 }

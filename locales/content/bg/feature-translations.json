@@ -16,7 +16,7 @@
     "source_hash": "d629cc71"
   },
   "web.translations.25_contributors": {
-    "text": "25+ сътрудника",
+    "text": "25+ сътрудници",
     "source_hash": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
@@ -72,7 +72,7 @@
     "source_hash": "266a41b9"
   },
   "web.translations.fork_on_github_and_submit_a_pr": {
-    "text": "Направете Fork в GitHub и изпратете PR",
+    "text": "Направете форк в GitHub и изпратете PR",
     "source_hash": "bb60a45d"
   },
   "web.translations.your_language_skills_can_help_expand_access_to_s": {
@@ -88,7 +88,7 @@
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Помогнете защитената комуникация да стане глобална",
+    "text": "Помогнете на сигурната комуникация да стане глобална",
     "source_hash": "e94bdc8e"
   }
 }
