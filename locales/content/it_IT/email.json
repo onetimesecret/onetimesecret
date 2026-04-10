@@ -20,7 +20,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Questo link funzionerà una sola volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente.",
+    "text": "Questo link funzionerà solo una volta. Dopo la visualizzazione, il segreto verrà eliminato in modo permanente.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -64,7 +64,7 @@
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Abbiamo ricevuto una richiesta per reimpostare la tua password per %{product_name}.",
+    "text": "Abbiamo ricevuto una richiesta di reimpostazione della password per %{product_name}.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
@@ -92,7 +92,7 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Accedi con Magic Link",
+    "text": "Accedi con link magico",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
@@ -148,7 +148,7 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Questo link funzionerà una sola volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente.",
+    "text": "Questo link funzionerà solo una volta. Dopo la visualizzazione, il segreto verrà eliminato in modo permanente.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
@@ -212,7 +212,7 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Dopo la scadenza, il segreto verrà eliminato permanentemente e non potrà essere recuperato.",
+    "text": "Dopo la scadenza, il segreto verrà eliminato in modo permanente e non potrà essere recuperato.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -224,7 +224,7 @@
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Dopo la scadenza, il segreto verrà eliminato permanentemente.",
+    "text": "Dopo la scadenza, il segreto verrà eliminato in modo permanente.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Questa email è stata inviata a %{invited_email}. Se non aspettavi questo invito, puoi ignorare questo messaggio.",
+    "text": "P.S. Questa email è stata inviata a %{invited_email}. Se non ti aspettavi questo invito, puoi ignorare questo messaggio.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -332,7 +332,7 @@
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Se non hai effettuato questa modifica, contatta immediatamente il supporto poiché il tuo account potrebbe essere stato compromesso.",
+    "text": "Se non hai effettuato questa modifica, contatta immediatamente il supporto poiché il tuo account potrebbe essere compromesso.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -348,15 +348,15 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Se hai effettuato questa modifica, non è necessaria alcuna azione.",
+    "text": "Se hai effettuato questa modifica, non è richiesta alcuna azione.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Se non hai effettuato questa modifica, il tuo account potrebbe essere stato compromesso.",
+    "text": "Se non hai effettuato questa modifica, il tuo account potrebbe essere compromesso.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contatta l'assistenza",
+    "text": "Contatta il supporto",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,19 +364,19 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Questa email è stata inviata a %{email_address} per informarti di una modifica dell'indirizzo email.",
+    "text": "P.S. Questa email è stata inviata a %{email_address} per informarti di un cambio di indirizzo email.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Modifica email richiesta (%{display_domain})",
+    "text": "Cambio email richiesto (%{display_domain})",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Modifica email richiesta",
+    "text": "Cambio email richiesto",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "È stata effettuata una richiesta di modifica dell'indirizzo email del tuo account %{product_name}.",
+    "text": "È stata richiesta la modifica dell'indirizzo email del tuo account %{product_name}.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
@@ -388,7 +388,7 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Se hai effettuato questa richiesta, controlla la nuova casella email per il link di conferma. Non è stata ancora apportata alcuna modifica.",
+    "text": "Se hai effettuato questa richiesta, controlla la tua nuova email per un link di conferma. Non è stata ancora apportata alcuna modifica.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -396,7 +396,7 @@
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contatta l'assistenza",
+    "text": "Contatta il supporto",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Questa email è stata inviata a %{email_address} perché è stata richiesta una modifica dell'indirizzo email del tuo account.",
+    "text": "P.S. Questa email è stata inviata a %{email_address} perché è stato richiesto un cambio di email per il tuo account.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "È stata effettuata una richiesta di modifica dell'indirizzo email del tuo account %{product_name} in %{new_email}.",
+    "text": "È stata richiesta la modifica dell'indirizzo email del tuo account %{product_name} a %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Conferma modifica email",
+    "text": "Conferma cambio email",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -448,19 +448,19 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Questa email è stata inviata a %{email_address} per confermare una modifica dell'indirizzo email.",
+    "text": "P.S. Questa email è stata inviata a %{email_address} per confermare un cambio di indirizzo email.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
-    "text": "Autenticazione a due fattori attivata (%{display_domain})",
+    "text": "Autenticazione a due fattori abilitata (%{display_domain})",
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Autenticazione a due fattori attivata",
+    "text": "Autenticazione a due fattori abilitata",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "L'autenticazione a due fattori è stata attivata per il tuo account %{product_name} il %{date}.",
+    "text": "L'autenticazione a due fattori è stata abilitata per il tuo account %{product_name} il %{date}.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
@@ -472,15 +472,15 @@
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Autenticazione a due fattori disattivata (%{display_domain})",
+    "text": "Autenticazione a due fattori disabilitata (%{display_domain})",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Autenticazione a due fattori disattivata",
+    "text": "Autenticazione a due fattori disabilitata",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "L'autenticazione a due fattori è stata disattivata per il tuo account %{product_name} il %{date}.",
+    "text": "L'autenticazione a due fattori è stata disabilitata per il tuo account %{product_name} il %{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
@@ -500,7 +500,7 @@
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "È stato rilevato un nuovo accesso al tuo account %{product_name} il %{date} alle %{time}.",
+    "text": "Un nuovo accesso al tuo account %{product_name} è stato rilevato il %{date} alle %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Se non sei stato tu, il tuo account potrebbe essere stato compromesso.",
+    "text": "Se non sei stato tu, il tuo account potrebbe essere compromesso.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -616,7 +616,7 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Non siamo riusciti a elaborare il tuo pagamento per %{product_name}. Aggiorna il metodo di pagamento per evitare l'interruzione del servizio.",
+    "text": "Non siamo riusciti a elaborare il tuo pagamento per %{product_name}. Aggiorna il tuo metodo di pagamento per evitare interruzioni del servizio.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
@@ -632,15 +632,15 @@
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Il tuo periodo di prova sta per scadere",
+    "text": "Il tuo periodo di prova sta per terminare",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Il tuo periodo di prova gratuito di %{product_name} scadrà tra %{days_remaining} giorni. Effettua l'upgrade per mantenere l'accesso a tutte le funzionalità.",
+    "text": "Il tuo periodo di prova gratuito di %{product_name} scadrà tra %{days_remaining} giorni. Aggiorna ora per mantenere l'accesso a tutte le funzionalità.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Effettua l'upgrade",
+    "text": "Aggiorna ora",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {

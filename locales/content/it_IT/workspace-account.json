@@ -48,7 +48,7 @@
     "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "terminante in",
+    "text": "che termina con",
     "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
@@ -152,7 +152,7 @@
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
-    "text": "Eliminazione {0}",
+    "text": "Eliminazione di {0}",
     "source_hash": "81d21828"
   },
   "web.account.deleting_ellipsis": {
@@ -160,7 +160,7 @@
     "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
-    "text": "Elimina account permanentemente",
+    "text": "Elimina account in modo permanente",
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
@@ -176,7 +176,7 @@
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Eventuali segreti che desideri rimuovere,",
+    "text": "Qualsiasi segreto che desideri rimuovere,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
@@ -184,7 +184,7 @@
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Si prega di notare:",
+    "text": "Informazioni importanti:",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
@@ -216,7 +216,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Torna alla dashboard",
+    "text": "Torna al pannello",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -248,11 +248,11 @@
     "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Scegli tema chiaro o scuro",
+    "text": "Scegli il tema chiaro o scuro",
     "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Scegli tema chiaro o scuro",
+    "text": "Scegli il tema chiaro o scuro",
     "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
@@ -268,7 +268,7 @@
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Gestisci autenticazione e sicurezza account",
+    "text": "Gestisci autenticazione e sicurezza dell'account",
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
@@ -300,7 +300,7 @@
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "La password è richiesta per motivi di sicurezza",
+    "text": "La tua password è necessaria per motivi di sicurezza",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
@@ -328,7 +328,7 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Email aggiornata con successo. Controlla la tua casella di posta per verificare il nuovo indirizzo email.",
+    "text": "Email di verifica inviata. Controlla la tua nuova casella di posta e clicca il link di conferma per completare la modifica.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
@@ -384,11 +384,11 @@
     "source_hash": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "Buono",
+    "text": "Buona",
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Discreto",
+    "text": "Discreta",
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
@@ -436,11 +436,11 @@
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Best practice di sicurezza",
+    "text": "Buone pratiche di sicurezza",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Usa una password forte e unica per il tuo account",
+    "text": "Usa una password robusta e unica per il tuo account",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
@@ -448,11 +448,11 @@
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Salva i tuoi codici di recupero in un posto sicuro",
+    "text": "Salva i codici di recupero in un luogo sicuro",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Rivedi e revoca regolarmente le sessioni inutilizzate",
+    "text": "Controlla e revoca regolarmente le sessioni inutilizzate",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -484,7 +484,7 @@
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Documentazione API completa ed endpoint",
+    "text": "Documentazione API completa e endpoint",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
@@ -496,11 +496,11 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Best practice di sicurezza",
+    "text": "Buone pratiche di sicurezza",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Non eseguire mai il commit delle chiavi API nel controllo versione",
+    "text": "Non salvare mai le chiavi API nel controllo versione",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
@@ -516,7 +516,7 @@
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Monitora l'utilizzo delle API e configura gli avvisi",
+    "text": "Monitora il tuo utilizzo API e configura gli avvisi",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Rigenerare la chiave API invaliderà quella attuale. Aggiorna tutte le applicazioni che usano la vecchia chiave.",
+    "text": "La rigenerazione della chiave API invaliderà la chiave attuale. Aggiorna tutte le applicazioni che usano la vecchia chiave.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -576,11 +576,11 @@
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Riceverai una notifica ogni volta che un destinatario visualizza uno dei tuoi segreti",
+    "text": "Verrai notificato ogni volta che un destinatario rivela uno dei tuoi segreti",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Le email di notifica includono solo timestamp e ID segreto. Le informazioni sul visualizzatore non sono mai incluse.",
+    "text": "Le email di notifica includono solo il timestamp e l'ID del segreto. Le informazioni del visualizzatore non sono mai incluse.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -600,7 +600,7 @@
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Richiedi una copia completa dei dati del tuo account in formato leggibile",
+    "text": "Richiedi una copia completa dei dati del tuo account in formato leggibile da macchina",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -640,15 +640,15 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Il tuo indirizzo email è stato aggiornato con successo. Accedi con il nuovo indirizzo email.",
+    "text": "La tua email è stata aggiornata con successo. Accedi con il tuo nuovo indirizzo email.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Verifica del nuovo indirizzo email in corso...",
+    "text": "Verifica del tuo nuovo indirizzo email...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Modifica email non riuscita",
+    "text": "Cambio email fallito",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
@@ -656,7 +656,7 @@
     "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
-    "text": "Torna alle impostazioni dell'account",
+    "text": "Torna alle impostazioni account",
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
@@ -672,11 +672,11 @@
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
-    "text": "Invio in corso...",
+    "text": "Invio...",
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Un'email di verifica è stata inviata. Controlla la posta in arrivo e fai clic sul link di conferma.",
+    "text": "Un'email di verifica è stata inviata. Controlla la tua casella di posta e clicca il link di conferma.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {

@@ -12,27 +12,27 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Questo dominio è già registrato in un'altra organizzazione. Contatta il supporto se ritieni che sia un errore.",
+    "text": "Questo dominio è già registrato in un'altra organizzazione. Contatta il supporto se ritieni che si tratti di un errore.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "Dominio rivendicato con successo e aggiunto alla tua organizzazione",
+    "text": "Dominio rivendicato e aggiunto con successo alla tua organizzazione",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "Impostazioni privacy predefinite",
+    "text": "Predefiniti privacy",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "Imposta le opzioni di privacy predefinite per i segreti creati sotto questo dominio. Queste impostazioni saranno precompilate durante la creazione di nuovi segreti.",
+    "text": "Imposta le opzioni di privacy predefinite per i segreti creati sotto questo dominio. Queste impostazioni verranno precompilate quando crei nuovi segreti.",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "Impostazioni privacy predefinite",
+    "text": "Predefiniti privacy",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Icona impostazioni privacy predefinite",
+    "text": "Icona predefiniti privacy",
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
@@ -48,7 +48,7 @@
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Rendi obbligatoria la frase di sicurezza per tutti i segreti in questo dominio",
+    "text": "Rendi la frase di sicurezza obbligatoria per tutti i segreti in questo dominio",
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
@@ -60,7 +60,7 @@
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
-    "text": "Usa impostazione predefinita globale",
+    "text": "Usa predefinito globale",
     "source_hash": "a83c91e4"
   },
   "web.domains.global_default": {
@@ -72,11 +72,11 @@
     "source_hash": "4850b174"
   },
   "web.domains.optional": {
-    "text": "Opzionale",
+    "text": "Facoltativo",
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Abilitato",
+    "text": "Abilita",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -88,7 +88,7 @@
     "source_hash": "494ca78f"
   },
   "web.domains.edit_defaults": {
-    "text": "Modifica impostazioni predefinite",
+    "text": "Modifica predefiniti",
     "source_hash": "50f49b87"
   },
   "web.domains.ttl_short": {
@@ -128,7 +128,7 @@
     "source_hash": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Il dominio predefinito non ha pagina impostazioni",
+    "text": "Il dominio predefinito non ha una pagina di impostazioni",
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
@@ -144,7 +144,7 @@
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Accesso home page",
+    "text": "Accesso homepage",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
@@ -196,7 +196,7 @@
     "source_hash": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "Apri dominio in nuova scheda",
+    "text": "Apri dominio in una nuova scheda",
     "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
@@ -204,7 +204,7 @@
     "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "Torna all'elenco domini",
+    "text": "Torna alla lista dei domini",
     "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
@@ -260,7 +260,7 @@
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "text": "Si prega di notare che per i domini apex (es.",
+    "text": "Nota che per i domini apex (es.",
     "source_hash": "09a4b0ca"
   },
   "web.domains.verify_your_domain": {
@@ -340,7 +340,7 @@
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "Passaggi verifica dominio",
+    "text": "Passaggi di verifica del dominio",
     "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
@@ -376,7 +376,7 @@
     "source_hash": "36dd9781"
   },
   "web.domains.global_defaults": {
-    "text": "Impostazioni predefinite globali",
+    "text": "Predefiniti globali",
     "source_hash": "4526107f"
   },
   "web.domains.edit_ttl": {
@@ -396,7 +396,427 @@
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Usa lo strumento qui sotto per rilevare automaticamente il tuo provider DNS e ottenere istruzioni passo passo per configurare il tuo dominio.",
+    "text": "Usa lo strumento qui sotto per rilevare automaticamente il tuo provider DNS e ottenere istruzioni passo-passo per configurare il tuo dominio.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "Homepage pubblica"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Dominio verificato e attivo"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS non configurato — clicca per correggere"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Dominio non verificato — clicca per verificare"
+  },
+  "web.domains.click_to_verify": {
+    "text": "clicca per verificare"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "Impossibile caricare il widget DNS"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "Widget DNS non disponibile"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "Impossibile inizializzare il widget DNS"
+  },
+  "web.domains.verified": {
+    "text": "Verificato"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verifica in sospeso"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Hai modifiche non salvate. Sei sicuro di voler uscire?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Gestisci"
+  },
+  "web.domains.detail.features": {
+    "text": "Funzionalità"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Segreti nella homepage"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Consenti l'accesso pubblico per creare segreti nella homepage del tuo dominio"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, colori e branding personalizzato"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Impostazioni provider single sign-on"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Configurazione mittente email personalizzato"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Impostazioni destinatari segreti in arrivo"
+  },
+  "web.domains.email.title": {
+    "text": "Invio email"
+  },
+  "web.domains.email.config_title": {
+    "text": "Configurazione email"
+  },
+  "web.domains.email.config_description": {
+    "text": "Configura l'invio email per questo dominio"
+  },
+  "web.domains.email.provider_label": {
+    "text": "Provider email"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Seleziona un provider email"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Nome mittente"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "es. Acme Security"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Indirizzo mittente"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "es. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Indirizzo rispondi-a"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "es. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Salva modifiche"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Annulla modifiche"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Usa predefiniti account"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "Richiede verifica del dominio tramite record DKIM e SPF"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Richiede configurazione autenticazione dominio"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Richiede verifica del dominio"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Usa la configurazione predefinita di invio email del tuo account"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "Record DNS"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "Aggiungi i seguenti record DNS per verificare il tuo dominio per l'invio email."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tipo"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Nome"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Valore"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Provider"
+  },
+  "web.domains.email.copy": {
+    "text": "Copia"
+  },
+  "web.domains.email.copied": {
+    "text": "Copiato"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Verificato"
+  },
+  "web.domains.email.status_pending": {
+    "text": "In sospeso"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Fallito"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Riconvalida"
+  },
+  "web.domains.email.validating": {
+    "text": "Validazione..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Dominio verificato"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Validazione fallita"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Ultima validazione"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Aggiorna il tuo piano per configurare l'invio email per questo dominio."
+  },
+  "web.domains.email.configure_email": {
+    "text": "Configura email"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Accesso negato"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Non hai i permessi per gestire le impostazioni email per questo dominio. Contatta l'amministratore della tua organizzazione."
+  },
+  "web.domains.email.update_success": {
+    "text": "Configurazione email salvata con successo"
+  },
+  "web.domains.email.delete_success": {
+    "text": "Configurazione email rimossa con successo"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Le email per questo dominio vengono attualmente inviate dal mittente globale. Completa la configurazione email per usare la tua identità mittente."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "L'invio email personalizzato è attualmente disabilitato. Le email verranno inviate dal mittente globale. Abilita la funzionalità qui sotto per usare la tua identità mittente personalizzata."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "Test consegna email"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Invia un'email di test a te stesso usando la configurazione salvata. Funziona anche quando la funzionalità non è ancora abilitata."
+  },
+  "web.domains.email.send_test": {
+    "text": "Invia test"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Email di test inviata con successo"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Impossibile inviare email di test"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Inviato a {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Consegnato tramite {provider}"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Non configurato"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Usa mittente predefinito"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Verificato"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Verifica in sospeso"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Disabilitato"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "Nessun mittente email configurato — le email usano il mittente predefinito della piattaforma"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "La configurazione del mittente email è in attesa di verifica — le email usano il mittente predefinito della piattaforma"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "Mittente email disabilitato — le email usano il mittente predefinito della piattaforma"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "Mittente email verificato — le email vengono inviate da questo dominio"
+  },
+  "web.domains.incoming.title": {
+    "text": "Segreti in arrivo"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Configurazione segreti in arrivo"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Consenti agli utenti esterni di inviare segreti direttamente ai destinatari designati su questo dominio"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Accesso negato"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Non hai i permessi per gestire le impostazioni dei segreti in arrivo per questo dominio. Contatta l'amministratore della tua organizzazione."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Aggiorna il tuo piano per configurare i segreti in arrivo per questo dominio."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Configura segreti in arrivo"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "I segreti in arrivo non sono configurati per questo dominio. Aggiungi destinatari per consentire agli utenti esterni di inviare segreti al tuo team."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "I segreti in arrivo sono attualmente disabilitati. Gli utenti esterni non possono inviare segreti ai destinatari su questo dominio. Abilita la funzionalità qui sotto per consentire i segreti in arrivo."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Destinatari"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Definisci chi può ricevere segreti in arrivo su questo dominio. I destinatari riceveranno notifiche email quando un segreto viene inviato loro."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Aggiungi destinatario"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Rimuovi"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "Indirizzo email"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "destinatario{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Nome visualizzato"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "es. Team Sicurezza"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Nessun destinatario configurato"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Aggiungi destinatari per consentire agli utenti esterni di inviare segreti al tuo team."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Indirizzo email non valido"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Questo indirizzo email è già stato aggiunto"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "Massimo {max} destinatari consentiti"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Il nome visualizzato è obbligatorio"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "L'indirizzo email è obbligatorio"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Salva modifiche"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Annulla modifiche"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Configurazione segreti in arrivo salvata con successo"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Configurazione segreti in arrivo rimossa con successo"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} destinatario | {count} destinatari"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Non configurato"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Configurato"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Disabilitato"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Segreti in arrivo non configurati - gli utenti esterni non possono inviare segreti a questo dominio"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Segreti in arrivo abilitati con {count} destinatario/i"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "La funzionalità segreti in arrivo è disabilitata per questo dominio"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Abilita segreti in arrivo"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Consenti agli utenti esterni di inviare segreti ai destinatari su questo dominio"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "URL pubblico"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Condividi questo URL con utenti esterni per consentire loro di inviare segreti"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "Copia URL"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL copiato negli appunti"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Sei sicuro di voler rimuovere tutti i destinatari? Gli utenti esterni non potranno più inviare segreti a questo dominio."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Numero massimo di destinatari raggiunto"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Questo indirizzo email è già stato aggiunto"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Il salvataggio sostituirà tutti i destinatari esistenti con le modifiche in sospeso. Sei sicuro?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Elimina tutti i destinatari"
+  },
+  "web.domains.sso.title": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.sso.config_title": {
+    "text": "Configurazione SSO"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Configura l'autenticazione single sign-on per questo dominio"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Accesso negato"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Non hai i permessi per gestire le impostazioni SSO per questo dominio. Contatta l'amministratore della tua organizzazione."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Aggiorna il tuo piano per configurare il single sign-on per questo dominio."
+  },
+  "web.domains.sso.create_success": {
+    "text": "Configurazione SSO creata con successo"
+  },
+  "web.domains.sso.update_success": {
+    "text": "Configurazione SSO aggiornata con successo"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "Configurazione SSO rimossa con successo"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Test di connessione riuscito — il provider ha risposto correttamente"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Test di connessione fallito"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "Configura SSO"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "Il SSO non è ancora configurato per questo dominio. Abilita il single sign-on per consentire ai membri del team di autenticarsi usando il provider di identità della tua organizzazione."
   }
 }

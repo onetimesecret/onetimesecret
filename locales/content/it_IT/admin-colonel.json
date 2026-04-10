@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(attivo negli ultimi 5 minuti)",
+    "text": "(attivi negli ultimi 5 minuti)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Modifica le impostazioni di configurazione del sistema. Le modifiche vengono applicate immediatamente dopo il salvataggio.",
+    "text": "Modifica le impostazioni di configurazione del sistema. Le modifiche si applicano immediatamente dopo il salvataggio.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -68,7 +68,7 @@
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} salvato con successo",
+    "text": "{section} salvata con successo",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -84,7 +84,7 @@
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Errore di validazione schema: {message} ({path})",
+    "text": "Errore di validazione dello schema: {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
@@ -96,7 +96,7 @@
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
-    "text": "Dashboard",
+    "text": "Pannello",
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
@@ -116,7 +116,7 @@
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
-    "text": "Gestisci account utente e permessi",
+    "text": "Gestisci account utenti e permessi",
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
@@ -152,7 +152,7 @@
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "I dati dell'attività verranno visualizzati qui",
+    "text": "I dati di attività verranno mostrati qui",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
@@ -204,7 +204,7 @@
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
-    "text": "Amministrazione account utente",
+    "text": "Amministrazione account utenti",
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
@@ -220,7 +220,7 @@
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "Configurazione applicazione",
+    "text": "Configurazione dell'applicazione",
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
@@ -228,7 +228,7 @@
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
-    "text": "Stato coda",
+    "text": "Stato della coda",
     "source_hash": "3421ffa8"
   },
   "web.colonel.queueName": {
@@ -244,11 +244,11 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Freq/sec",
+    "text": "Velocità/sec",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
-    "text": "Stato connessione",
+    "text": "Stato della connessione",
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
@@ -260,7 +260,7 @@
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
-    "text": "Nessun dato coda disponibile",
+    "text": "Nessun dato sulla coda disponibile",
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Reimposta al piano attuale",
+    "text": "Reimposta al piano reale",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -304,7 +304,7 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testa la tua applicazione con diverse funzionalità dei piani. Le modifiche sono temporanee e influiscono solo sulla tua sessione.",
+    "text": "Testa la tua applicazione con le funzionalità di piani diversi. Le modifiche sono temporanee e influiscono solo sulla tua sessione.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
@@ -316,7 +316,7 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Monitora stato sincronizzazione fatturazione",
+    "text": "Monitora lo stato di sincronizzazione della fatturazione",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Gestisci organizzazioni e monitora lo stato di sincronizzazione della fatturazione ({total} totali)",
+    "text": "Gestisci le organizzazioni e monitora lo stato di sincronizzazione della fatturazione ({total} totali)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -460,11 +460,11 @@
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
-    "text": "Analizza",
+    "text": "Investiga",
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "Verifica...",
+    "text": "Verifica in corso...",
     "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.expanded.customer": {
@@ -476,15 +476,15 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID Org",
+    "text": "ID organizzazione",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Analisi fallita",
+    "text": "Investigazione fallita",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "Risultato analisi",
+    "text": "Risultato dell'investigazione",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
@@ -548,7 +548,7 @@
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Gestisci lista IP bannati",
+    "text": "Gestisci la lista degli IP bannati",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Quando invii un feedback, vedremo:",
+    "text": "Quando invii il feedback, vedremo:",
     "source_hash": "fe77172e"
   }
 }

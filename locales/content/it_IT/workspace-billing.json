@@ -8,7 +8,7 @@
     "source_hash": "a99b7a98"
   },
   "web.billing.upgrade.required": {
-    "text": "Upgrade richiesto",
+    "text": "Aggiornamento necessario",
     "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
@@ -28,11 +28,11 @@
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "I log di audit richiedono il piano Multi-Team o superiore",
+    "text": "I log di controllo richiedono il piano Multi-Team o superiore",
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
-    "text": "Gestisci abbonamento, organizzazioni e impostazioni di fatturazione",
+    "text": "Gestisci il tuo abbonamento, le organizzazioni e le impostazioni di fatturazione",
     "source_hash": "3995095c"
   },
   "web.billing.overview.title": {
@@ -40,7 +40,7 @@
     "source_hash": "479a3c4c"
   },
   "web.billing.overview.description": {
-    "text": "Visualizza e gestisci abbonamento e dettagli di pagamento",
+    "text": "Visualizza e gestisci il tuo abbonamento e i dettagli di pagamento",
     "source_hash": "60e5a00e"
   },
   "web.billing.overview.billing_for_organization": {
@@ -88,15 +88,15 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Hai un piano con tariffazione speciale acquisita.",
+    "text": "Sei su un piano con prezzi agevolati grandfathered.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
-    "text": "Identity Plus (Sostenitore iniziale)",
+    "text": "Identity Plus (Early Supporter)",
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Cambiare piano comporterà la perdita della tariffa speciale acquisita. Questa operazione non può essere annullata.",
+    "text": "Cambiare piano comporterà la perdita della tariffa agevolata. Questa azione non può essere annullata.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -104,7 +104,7 @@
     "source_hash": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
-    "text": "Nessuna fatturazione imminente",
+    "text": "Nessuna fatturazione in arrivo",
     "source_hash": "746314de"
   },
   "web.billing.overview.days_remaining": {
@@ -128,7 +128,7 @@
     "source_hash": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "Scarica storico",
+    "text": "Scarica la cronologia",
     "source_hash": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
@@ -136,7 +136,7 @@
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Aggiorna info pagamento",
+    "text": "Aggiorna informazioni di pagamento",
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
@@ -144,7 +144,7 @@
     "source_hash": "12420110"
   },
   "web.billing.overview.no_organizations_description": {
-    "text": "Crea un'organizzazione per gestire fatturazione e abbonamento",
+    "text": "Crea un'organizzazione per gestire la tua fatturazione e il tuo abbonamento",
     "source_hash": "41e922d2"
   },
   "web.billing.overview.load_error": {
@@ -156,7 +156,7 @@
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Il tuo nuovo piano è ora attivo. Grazie per l'acquisto.",
+    "text": "Il tuo nuovo piano è ora attivo. Grazie per il tuo acquisto.",
     "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -196,7 +196,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Segreti in home page",
+    "text": "Segreti nella homepage",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
@@ -216,7 +216,7 @@
     "source_hash": "af812b01"
   },
   "web.billing.overview.entitlements.audit_logs": {
-    "text": "Log di audit",
+    "text": "Log di controllo",
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
@@ -264,7 +264,7 @@
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Segreti in home page",
+    "text": "Segreti nella homepage",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
@@ -276,7 +276,7 @@
     "source_hash": "b38b89db"
   },
   "web.billing.features.audit_logs": {
-    "text": "Log di audit",
+    "text": "Log di controllo",
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
@@ -296,15 +296,15 @@
     "source_hash": "62042d3b"
   },
   "web.billing.features.audit_trail": {
-    "text": "Tracciamento audit",
+    "text": "Registro di controllo",
     "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "Stream attività",
+    "text": "Flusso attività",
     "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "Flussi di lavoro handoff",
+    "text": "Flussi di lavoro di consegna",
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
@@ -312,7 +312,7 @@
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Scegli il piano adatto alle tue esigenze",
+    "text": "Scegli il piano più adatto alle tue esigenze",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
@@ -332,7 +332,7 @@
     "source_hash": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "Riduci",
+    "text": "Declassa",
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
@@ -360,11 +360,11 @@
     "source_hash": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Singolo Team",
+    "text": "Team singolo",
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "Multi Team",
+    "text": "Multi team",
     "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -400,11 +400,11 @@
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
-    "text": "Contatta il commerciale",
+    "text": "Contatta le vendite",
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Hai domande o hai bisogno di qualcosa di personalizzato?",
+    "text": "Hai domande o esigenze personalizzate?",
     "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
@@ -460,7 +460,7 @@
     "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
-    "text": "Credito per tempo non utilizzato:",
+    "text": "Credito per tempo inutilizzato:",
     "source_hash": "001e4901"
   },
   "web.billing.plans.due_today": {
@@ -476,7 +476,7 @@
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "I limiti delle funzionalità verranno aggiornati immediatamente dopo il cambio di piano.",
+    "text": "I limiti delle funzionalità si aggiorneranno immediatamente dopo il cambio di piano.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
@@ -484,11 +484,11 @@
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "Conferma upgrade",
+    "text": "Conferma aggiornamento",
     "source_hash": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "Conferma riduzione",
+    "text": "Conferma declassamento",
     "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
@@ -496,11 +496,11 @@
     "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "Ridurre a {plan}?",
+    "text": "Declassare a {plan}?",
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
-    "text": "Come viene applicato il tuo credito:",
+    "text": "Come si applica il tuo credito:",
     "source_hash": "a0943c3b"
   },
   "web.billing.plans.next_bill_amount": {
@@ -524,11 +524,11 @@
     "source_hash": "5007add6"
   },
   "web.billing.invoices.title": {
-    "text": "Storico fatturazione",
+    "text": "Cronologia fatturazione",
     "source_hash": "5ade0861"
   },
   "web.billing.invoices.view_history": {
-    "text": "Visualizza lo storico di fatturazione e scarica le fatture",
+    "text": "Visualizza la cronologia di fatturazione e scarica le fatture",
     "source_hash": "eb72573c"
   },
   "web.billing.invoices.invoice_date": {
@@ -556,7 +556,7 @@
     "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "Le fatture appariranno qui dopo l'upgrade a un piano a pagamento",
+    "text": "Le tue fatture appariranno qui quando passerai a un piano a pagamento",
     "source_hash": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
@@ -564,15 +564,15 @@
     "source_hash": "a865d424"
   },
   "web.billing.invoices.paid": {
-    "text": "Pagato",
+    "text": "Pagata",
     "source_hash": "fb81b961"
   },
   "web.billing.invoices.pending": {
-    "text": "In attesa",
+    "text": "In sospeso",
     "source_hash": "331551b0"
   },
   "web.billing.invoices.failed": {
-    "text": "Fallito",
+    "text": "Fallita",
     "source_hash": "031a8f0f"
   },
   "web.billing.invoices.draft": {
@@ -584,7 +584,7 @@
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "Non esigibile",
+    "text": "Non riscuotibile",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
@@ -608,7 +608,7 @@
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
-    "text": "Effettua l'upgrade per aggiungere più membri",
+    "text": "Aggiorna per aggiungere più membri",
     "source_hash": "602bdef4"
   },
   "web.billing.subscription.title": {
@@ -652,7 +652,7 @@
     "source_hash": "9baaf69e"
   },
   "web.billing.portal.description": {
-    "text": "Gestisci abbonamento, metodi di pagamento e storico fatturazione",
+    "text": "Gestisci il tuo abbonamento, i metodi di pagamento e la cronologia di fatturazione",
     "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
@@ -704,7 +704,7 @@
     "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "Upgrade per i team",
+    "text": "Aggiorna per i team",
     "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
@@ -720,7 +720,7 @@
     "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Upgrade per secrets.tuodominio.com",
+    "text": "Aggiorna per secrets.tuodominio.com",
     "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
@@ -744,7 +744,7 @@
     "source_hash": "db458d30"
   },
   "web.billing.payment_frequency": {
-    "text": "Frequenza pagamento",
+    "text": "Frequenza di pagamento",
     "source_hash": "b2c87e39"
   },
   "web.billing.secure_your_brand_and_build_customer_trust_with_": {
@@ -786,11 +786,11 @@
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
-    "text": "Non ti verrà addebitato nulla",
+    "text": "Non ti verranno più addebitati costi",
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Il tuo account passerà al piano gratuito",
+    "text": "Il tuo account tornerà al piano gratuito",
     "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
@@ -812,12 +812,12 @@
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Annullamento abbonamento pianificato",
+    "text": "Annullamento abbonamento programmato",
     "context": "Alert banner heading shown when cancellation is pending",
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Il tuo abbonamento rimarrà attivo fino al {date}. Continuerai ad avere pieno accesso a tutte le funzionalità fino ad allora.",
+    "text": "Il tuo abbonamento rimarrà attivo fino al {date}. Continuerai ad avere accesso completo a tutte le funzionalità fino ad allora.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
@@ -831,7 +831,7 @@
     "source_hash": "04e0f1e9"
   },
   "web.billing.overview.entitlements.ip_access_rules": {
-    "text": "Regole accesso IP",
+    "text": "Regole di accesso IP",
     "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
@@ -871,7 +871,7 @@
     "source_hash": "04e0f1e9"
   },
   "web.billing.features.ip_access_rules": {
-    "text": "Regole accesso IP",
+    "text": "Regole di accesso IP",
     "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
@@ -887,12 +887,12 @@
     "source_hash": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Cambio di valuta necessario",
+    "text": "Cambio valuta necessario",
     "context": "Modal title when plan requires different currency than current subscription",
     "source_hash": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Il tuo abbonamento attuale utilizza {from}. Il piano selezionato viene fatturato in {to}. È necessario migrare l'abbonamento alla nuova valuta.",
+    "text": "Il tuo abbonamento attuale usa {from}. Il piano selezionato è fatturato in {to}. Questo richiede la migrazione del tuo abbonamento alla nuova valuta.",
     "source_hash": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -904,7 +904,7 @@
     "source_hash": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "Fine del periodo corrente:",
+    "text": "Il periodo attuale termina il:",
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
@@ -916,7 +916,7 @@
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Il tuo piano attuale rimane attivo fino al {date}. Dopo, completerai il checkout per il nuovo piano.",
+    "text": "Il tuo piano attuale resta attivo fino al {date}. Dopo, completerai il checkout per il nuovo piano.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,7 +924,7 @@
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Il tuo piano attuale viene annullato ora. Riceverai un rimborso per il tempo non utilizzato e completerai il checkout per il nuovo piano.",
+    "text": "Il tuo piano attuale viene annullato ora. Riceverai un rimborso per il tempo inutilizzato e completerai il checkout per il nuovo piano.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
@@ -932,15 +932,15 @@
     "source_hash": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "Migrazione della valuta non riuscita. Riprova.",
+    "text": "Migrazione valuta fallita. Riprova.",
     "source_hash": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
-    "text": "La valuta dell'abbonamento è stata aggiornata con successo.",
+    "text": "La valuta del tuo abbonamento è stata aggiornata con successo.",
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Il tuo piano attuale rimarrà attivo fino alla fine del periodo di fatturazione. Dopo, ti verrà chiesto di completare il checkout per il nuovo piano.",
+    "text": "Il tuo piano attuale rimarrà attivo fino alla fine del periodo di fatturazione. Ti verrà chiesto di completare il checkout per il nuovo piano dopo.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -948,7 +948,7 @@
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Hai voci di fatturazione in sospeso che devono essere risolte prima della migrazione.",
+    "text": "Hai elementi in sospeso nella fattura che devono essere risolti prima della migrazione.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
@@ -988,5 +988,26 @@
     "text": "Disponibile solo nella regione dell'abbonamento originale",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Sei già abbonato a questo piano."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Riattiva abbonamento"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Il tuo abbonamento è stato riattivato. Continuerai a ricevere la fatturazione normalmente."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Impossibile riattivare l'abbonamento. Riprova o contatta il supporto."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Dominio mittente email flessibile"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Riattiva"
   }
 }

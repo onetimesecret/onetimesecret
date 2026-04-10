@@ -8,7 +8,7 @@
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Ogni regione opera come un ambiente completamente indipendente con propria infrastruttura, chiavi di crittografia e archiviazione dati",
+    "text": "Ogni regione opera come un ambiente completamente indipendente con la propria infrastruttura, chiavi di crittografia e archiviazione dati",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Sappi esattamente dove risiedono i tuoi dati e quali leggi ne regolano la protezione.",
+    "text": "Sai esattamente dove risiedono i tuoi dati e quali leggi ne governano la protezione.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Assicurati che le tue informazioni personali siano gestite secondo le leggi sulla privacy del tuo paese, prevenendo accessi non autorizzati o usi impropri.",
+    "text": "Assicurati che le tue informazioni personali siano gestite secondo le leggi e le normative sulla privacy del tuo paese, prevenendo accessi non autorizzati o uso improprio.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "I dati archiviati più vicino a te significano minore latenza e migliori prestazioni.",
+    "text": "I dati conservati più vicino a te significano minore latenza e migliori prestazioni.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -140,23 +140,26 @@
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Cambio di regione",
+    "text": "Cambio regione",
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "La nostra politica è di non trasferire mai dati tra le regioni. Ogni regione opera come un ambiente completamente indipendente.",
+    "text": "La nostra politica è di non trasferire mai i dati tra regioni. Ogni regione opera come un ambiente completamente indipendente.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Per utilizzare una regione diversa, crea un nuovo account utilizzando lo stesso indirizzo email associato al tuo contatto di fatturazione.",
+    "text": "Per usare una regione diversa, crea un nuovo account utilizzando lo stesso indirizzo email associato al tuo contatto di fatturazione.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se l'email del contatto di fatturazione è diversa dall'email del tuo account Onetime Secret, utilizza l'email del contatto di fatturazione per il nuovo account regionale per mantenere i vantaggi dell'abbonamento.",
+    "text": "Se il tuo indirizzo email di fatturazione è diverso da quello del tuo account Onetime Secret, usa l'email di fatturazione per il nuovo account nella regione per mantenere i vantaggi dell'abbonamento.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "I vantaggi dell'abbonamento verranno applicati automaticamente a qualsiasi account creato con l'indirizzo email di fatturazione.",
+    "text": "I vantaggi del tuo abbonamento si applicheranno automaticamente a qualsiasi account creato con il tuo indirizzo email di fatturazione.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Nessuna informazione sulla regione è attualmente disponibile per il tuo account."
   }
 }

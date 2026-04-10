@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Famiglia font",
+    "text": "Famiglia di font",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -20,7 +20,7 @@
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Colore brand",
+    "text": "Colore del brand",
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
@@ -32,7 +32,7 @@
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Passa alla visualizzazione browser Safari",
+    "text": "Passa alla vista browser Safari",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -44,11 +44,11 @@
     "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Riduci finestra",
+    "text": "Minimizza finestra",
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Passa alla visualizzazione browser Edge",
+    "text": "Passa alla vista browser Edge",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Istruzioni pre-visualizzazione",
+    "text": "Istruzioni pre-rivelazione",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Istruzioni post-visualizzazione",
+    "text": "Istruzioni post-rivelazione",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i tuoi messaggi sicuri. Puoi: - Personalizzare colori e font usando i controlli sopra - Caricare un logo (dimensione minima consigliata 128x128 pixel, max 1MB) - Testare l'anteprima usando il pulsante \"Visualizza segreto\"",
+    "text": "Questa è un'anteprima interattiva di come i destinatari vedranno i tuoi messaggi sicuri. Puoi: - Personalizzare colori e font usando i controlli sopra - Caricare un logo (minimo 128x128 pixel consigliato, massimo 1MB) - Testare l'anteprima usando il pulsante \"Visualizza segreto\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -144,7 +144,7 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Realizzato con Onetime Secret",
+    "text": "Powered by Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Effettua l'upgrade del piano per personalizzare il branding di questo dominio.",
+    "text": "Aggiorna il tuo piano per personalizzare il branding di questo dominio.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Impostazioni del brand salvate con successo"
   }
 }

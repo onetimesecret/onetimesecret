@@ -1,10 +1,10 @@
 {
   "web.dashboard.title_received": {
-    "text": "Ricevuto",
+    "text": "Ricevuti",
     "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Non ricevuto",
+    "text": "Non ricevuti",
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {

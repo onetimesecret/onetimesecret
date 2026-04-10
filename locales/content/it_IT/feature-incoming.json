@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Breve descrizione (es. Richiesta reimpostazione password)",
+    "text": "Breve descrizione (es. Richiesta di reset password)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -100,7 +100,7 @@
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "ID riferimento",
+    "text": "ID di riferimento",
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
@@ -108,7 +108,7 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Il destinatario potrà visualizzare questo segreto una sola volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente.",
+    "text": "Il destinatario potrà visualizzare questo segreto solo una volta. Dopo la visualizzazione, il segreto verrà eliminato in modo permanente.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -120,7 +120,7 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Tieni password e dati privati fuori da email e log delle chat",
+    "text": "Tieni password e dati privati fuori dalle email e dai log delle chat",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "ricevuta",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Aggiornamento necessario"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Questa funzionalità richiede un aggiornamento del piano. Contatta il proprietario dell'account per abilitare i segreti in arrivo."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Il promemoria deve essere di {max} caratteri o meno"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Il contenuto segreto è obbligatorio"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Seleziona un destinatario"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "La funzionalità segreti in arrivo non è abilitata"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Controlla il modulo per eventuali errori"
   }
 }

@@ -24,7 +24,7 @@
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Visualizza i nostri Termini e condizioni",
+    "text": "Visualizza i nostri termini e condizioni",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -48,19 +48,19 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Quando invii un feedback, vedremo:",
+    "text": "Quando invii il feedback, vedremo:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Leggi la nostra Informativa sulla privacy",
+    "text": "Leggi la nostra informativa sulla privacy",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Controlla lo stato del servizio",
+    "text": "Controlla lo stato del nostro servizio",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Esplora la documentazione API",
+    "text": "Esplora la nostra documentazione API",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -68,11 +68,11 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Accedi alla documentazione",
+    "text": "Accedi alla nostra documentazione",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Visualizza il codice sorgente su GitHub",
+    "text": "Visualizza il nostro codice sorgente su GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -92,7 +92,7 @@
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Scopri la nostra azienda",
+    "text": "Scopri di più sulla nostra azienda",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -120,7 +120,7 @@
     "source_hash": "2730183d"
   },
   "web.site.website_version": {
-    "text": "Versione sito",
+    "text": "Versione del sito",
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Abbiamo recentemente aggiunto le traduzioni. Hai notato un errore? {send-feedback}",
+    "text": "Abbiamo aggiunto di recente le traduzioni. Hai notato un errore? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -144,19 +144,19 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Cosa sto visualizzando?",
+    "text": "Cosa sto guardando?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Stai visualizzando un messaggio sicuro che è stato condiviso con te tramite Onetime Secret. Questo contenuto viene mostrato una sola volta e poi eliminato permanentemente dai nostri server.",
+    "text": "Stai visualizzando un messaggio sicuro che è stato condiviso con te tramite Onetime Secret. Questo contenuto viene mostrato solo una volta e poi eliminato in modo permanente dai nostri server.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Posso visualizzare questo segreto di nuovo più tardi?",
+    "text": "Posso visualizzare di nuovo questo segreto più tardi?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "No. Per motivi di sicurezza, questo segreto può essere visualizzato una sola volta. Dopo aver chiuso questa pagina, il contenuto verrà eliminato permanentemente e non potrà essere recuperato da nessuno, inclusi noi.",
+    "text": "No. Per motivi di sicurezza, questo segreto è visualizzabile solo una volta. Dopo aver chiuso questa pagina, il contenuto verrà eliminato in modo permanente e non potrà essere recuperato da nessuno, inclusi noi.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,11 +164,11 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Usa il pulsante 'Copia negli appunti' per copiare l'intero segreto. Per segreti più lunghi, assicurati di verificare di aver copiato il contenuto completo prima di lasciare questa pagina.",
+    "text": "Usa il pulsante 'Copia negli appunti' per copiare l'intero segreto. Per segreti più lunghi, assicurati di aver copiato il contenuto completo prima di lasciare questa pagina.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "La visualizzazione di questo segreto viene tracciata?",
+    "text": "La mia visualizzazione di questo segreto viene tracciata?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
@@ -176,7 +176,7 @@
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Una volta che lasci o aggiorni questa pagina, questo segreto verrà eliminato permanentemente e non potrà essere recuperato da nessuno.",
+    "text": "Una volta che lasci o aggiorni questa pagina, questo segreto verrà eliminato in modo permanente e non potrà essere recuperato da nessuno.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -204,7 +204,7 @@
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Navigazione dashboard",
+    "text": "Navigazione pannello",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
@@ -248,7 +248,7 @@
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Torna alla home page",
+    "text": "Torna alla pagina iniziale",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
@@ -256,15 +256,15 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Visualizza Informativa sulla privacy",
+    "text": "Visualizza informativa sulla privacy",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Visualizza Termini di servizio",
+    "text": "Visualizza termini di servizio",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visita la home page di Onetime Secret",
+    "text": "Visita la homepage di Onetime Secret",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -304,15 +304,15 @@
     "source_hash": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Visualizza sorgente su GitHub",
+    "text": "Visualizza il codice sorgente su GitHub",
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Versione sito: v{0}",
+    "text": "Versione del sito: v{0}",
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Cambia lingua. Lingua attuale: {0}",
+    "text": "Cambia lingua. La lingua attuale è {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Contesto area di lavoro",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Area di lavoro"
   }
 }

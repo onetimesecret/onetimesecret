@@ -16,11 +16,11 @@
     "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Avviso chiuso",
+    "text": "Avviso ignorato",
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Chiudi avviso troncamento",
+    "text": "Ignora avviso di troncamento",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -36,11 +36,11 @@
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Chiudi avviso",
+    "text": "Ignora avviso",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Chiudi notifica",
+    "text": "Ignora notifica",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {

@@ -40,7 +40,7 @@
     "source_hash": "41183d01"
   },
   "web.organizations.default": {
-    "text": "Predefinita",
+    "text": "Predefinito",
     "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
@@ -84,11 +84,11 @@
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Email fatturazione",
+    "text": "Email di fatturazione",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Contatto principale per fatturazione e notifiche amministrative",
+    "text": "Contatto principale per notifiche di fatturazione e amministrative",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -120,7 +120,7 @@
     "source_hash": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Creata",
+    "text": "Creato",
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Aggiorna nome e descrizione della tua organizzazione",
+    "text": "Aggiorna il nome e la descrizione della tua organizzazione",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -156,7 +156,7 @@
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Email fatturazione aggiornata con successo",
+    "text": "Email di fatturazione aggiornata con successo",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
@@ -184,11 +184,11 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Aggiorna qui il nome della tua azienda e i dettagli dell'organizzazione. Queste informazioni aiutano a personalizzare il tuo account e possono essere usate per le funzionalità di branding in futuro.",
+    "text": "Aggiorna qui il nome della tua azienda e i dettagli dell'organizzazione. Queste informazioni aiutano a personalizzare il tuo account e possono essere usate per funzionalità di branding in futuro.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Iniziare con le organizzazioni",
+    "text": "Inizia con le organizzazioni",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
+    "text": "Membri",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Nessun membro ancora. Invita membri del team per iniziare.",
+    "text": "Nessun membro ancora. Invita i membri del team per iniziare.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -352,11 +352,11 @@
     "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "Accesso completo a tutte le impostazioni dell'organizzazione e ai membri",
+    "text": "Accesso completo a tutte le impostazioni e i membri dell'organizzazione",
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Può gestire membri e la maggior parte delle impostazioni dell'organizzazione",
+    "text": "Può gestire i membri e la maggior parte delle impostazioni dell'organizzazione",
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
@@ -408,7 +408,7 @@
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Reinvia",
+    "text": "Rinvia",
     "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
@@ -416,11 +416,11 @@
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Invito reinviato con successo",
+    "text": "Invito rinviato con successo",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Impossibile reinviare l'invito",
+    "text": "Impossibile rinviare l'invito",
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
@@ -444,11 +444,11 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Reinviato {count} volta",
+    "text": "Rinviato {count} volta",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Reinviato {count} volte",
+    "text": "Rinviato {count} volte",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro",
+    "text": "Membro del team",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -520,7 +520,7 @@
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Effettua l'accesso per accettare questo invito",
+    "text": "Accedi per accettare questo invito",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
@@ -532,7 +532,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Gli inviti ai membri del team richiedono un piano con gestione team. Aggiorna per aggiungere collaboratori alla tua organizzazione.",
+    "text": "Gli inviti per i membri del team richiedono un piano con gestione team. Aggiorna per aggiungere collaboratori alla tua organizzazione.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -540,7 +540,7 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "Sostenitore iniziale",
+    "text": "Early Supporter",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
@@ -556,7 +556,7 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Connesso con un altro account",
+    "text": "Account diverso connesso",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
@@ -578,5 +578,191 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Scade presto",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Visualizza e configura le tue aree di lavoro"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "da {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "come {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Torna alla home"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Questo invito è stato inviato a questo indirizzo email"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Continua"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Accedi e accetta l'invito"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Vai alle organizzazioni"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Sei già membro di questa organizzazione"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Unisciti a {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Accedi per unirti a {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Rifiuta"
+  },
+  "web.organizations.sso.title": {
+    "text": "Single Sign-On (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configura SSO per consentire ai membri di accedere con il provider di identità della tua organizzazione"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Tipo di provider"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Seleziona il provider di identità della tua organizzazione"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nome visualizzato"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Un nome amichevole mostrato agli utenti durante l'accesso"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "es. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID client"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Il tuo ID client OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Segreto client"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Il tuo segreto client OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Lascia vuoto per mantenere il segreto esistente"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID tenant"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Il tuo identificatore tenant Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "es. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL issuer"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "L'URL di discovery OIDC per il tuo provider di identità"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "es. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Domini email consentiti"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Solo gli utenti con indirizzi email da questi domini possono accedere. Lascia vuoto per consentire tutti i domini."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "es. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Inserisci un dominio valido (es. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Questo dominio è già nella lista"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Rimuovi {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Abilita SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Quando abilitato, i membri dell'organizzazione possono accedere usando questo provider SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Salva configurazione SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Elimina configurazione"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Sei sicuro? Questo disabiliterà il SSO per la tua organizzazione."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Impossibile caricare la configurazione SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Impossibile salvare la configurazione SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Configurazione SSO creata con successo"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Configurazione SSO aggiornata con successo"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Configurazione SSO eliminata con successo"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Impossibile eliminare la configurazione SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testa connessione"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifica che il provider di identità sia raggiungibile (non valida le credenziali)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testa connessione"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Test in corso..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Test di connessione fallito"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Endpoint di autorizzazione"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Campi mancanti"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Abilitato"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configurato"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO dominio"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configura SSO per ogni dominio verificato"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Per cambiare provider, elimina prima questa configurazione"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Non configurato"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

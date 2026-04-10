@@ -32,7 +32,7 @@
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
-    "text": "oppure",
+    "text": "o",
     "source_hash": "7175517a"
   },
   "web.login.sign_in_with_password": {
@@ -88,7 +88,7 @@
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "Autenticazione SSO non riuscita. Riprova o accedi con la password.",
+    "text": "Autenticazione SSO fallita. Riprova o usa l'accesso con password.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
@@ -147,7 +147,7 @@
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Questo account è già stato verificato. Puoi accedere adesso.",
+    "text": "Questo account è già stato verificato. Puoi accedere ora.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
@@ -175,7 +175,7 @@
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Controlla la cartella spam se non riesci a trovare l'email",
+    "text": "Controlla la cartella spam/posta indesiderata se non trovi l'email",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
@@ -183,7 +183,7 @@
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Link di verifica richiesto",
+    "text": "Link di verifica necessario",
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
@@ -211,11 +211,11 @@
     "source_hash": "642776c0"
   },
   "web.auth.change_password.success": {
-    "text": "La tua password è stata cambiata con successo",
+    "text": "La tua password è stata modificata con successo",
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Cambio password fallito. Verifica la password attuale e riprova.",
+    "text": "Cambio password fallito. Verifica la tua password attuale e riprova.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -223,7 +223,7 @@
     "source_hash": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "Questa azione non può essere annullata. Tutti i tuoi segreti verranno eliminati permanentemente.",
+    "text": "Questa azione non può essere annullata. Tutti i tuoi segreti verranno eliminati in modo permanente.",
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
@@ -231,11 +231,11 @@
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Inserisci la password per confermare",
+    "text": "Inserisci la tua password per confermare",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Chiudi account permanentemente",
+    "text": "Chiudi account in modo permanente",
     "source_hash": "0713c012"
   },
   "web.auth.close_account.cancel": {
@@ -260,7 +260,7 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Inserisci la tua nuova password qui sotto. Assicurati che sia forte e unica per proteggere il tuo account.",
+    "text": "Inserisci la tua nuova password qui sotto. Assicurati che sia robusta e unica per proteggere il tuo account.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
@@ -349,7 +349,7 @@
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Il magic link non arriva?",
+    "text": "Il link magico non arriva?",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
@@ -361,7 +361,7 @@
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Attendi qualche minuto - le email a volte possono subire ritardi",
+    "text": "Attendi qualche minuto - le email possono talvolta subire ritardi",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Usa l'opzione Magic Link per accedere senza password. Una volta effettuato l'accesso, puoi cambiare la password nelle Impostazioni account.",
+    "text": "Usa l'opzione Link magico per accedere senza password. Una volta effettuato l'accesso, puoi cambiare la password nelle Impostazioni account.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,7 +381,7 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Dopo più tentativi di accesso falliti, gli account vengono temporaneamente bloccati per sicurezza. Attendi 15 minuti e riprova, oppure usa il Magic Link per accedere.",
+    "text": "Dopo diversi tentativi di accesso falliti, gli account vengono temporaneamente bloccati per sicurezza. Attendi 15 minuti e riprova, oppure usa il Link magico per accedere.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -395,5 +395,17 @@
   "web.help.contact_support": {
     "text": "Contatta il supporto",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Account SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Flusso di verifica email dopo la registrazione"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Il single sign-on è disponibile per questo dominio"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "L'amministratore dell'organizzazione può abilitare il SSO per permettere ai membri del team di accedere qui. Contatta l'amministratore per l'accesso."
   }
 }

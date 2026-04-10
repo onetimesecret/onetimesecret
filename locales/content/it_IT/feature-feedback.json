@@ -28,11 +28,11 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Il contenuto della guida va qui.",
+    "text": "Il contenuto di aiuto va qui.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Leggo ogni feedback che arriva qui. È così che capisco su cosa vale la pena lavorare.",
+    "text": "Leggo ogni feedback che arriva qui. È così che capisco su cosa dedicare il mio tempo.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
@@ -52,11 +52,11 @@
     "source_hash": "8235980b"
   },
   "web.feedback.sending_ellipses": {
-    "text": "Invio in corso...",
+    "text": "Invio...",
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Sembra che tu stia segnalando una modifica non autorizzata dell'email del tuo account. Descrivi cosa è successo e indagheremo immediatamente.",
+    "text": "Sembra che tu stia segnalando un cambio email non autorizzato sul tuo account. Descrivi cosa è successo e indagheremo immediatamente.",
     "source_hash": "00e56551"
   }
 }
