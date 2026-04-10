@@ -1,6 +1,6 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Az Ön visszajelzése",
+    "text": "A visszajelzésed",
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
@@ -8,7 +8,7 @@
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Segítsen a fejlesztésben",
+    "text": "Segíts nekünk fejlődni",
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
@@ -16,7 +16,7 @@
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Ossza meg visszajelzését",
+    "text": "Oszd meg a visszajelzésedet",
     "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "A súgó tartalma ide kerül.",
+    "text": "A súgó tartalom ide kerül.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Minden itt beérkező visszajelzést elolvasok. Így döntöm el, mire érdemes időt szánni.",
+    "text": "Minden visszajelzést elolvasok, ami ide érkezik. Így döntöm el, mire érdemes időt szánni.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Ha valami nem stimmel, vagy vannak ötletei, hogyan kellene működnie, ez a megfelelő hely.",
+    "text": "Ha valami nem stimmel, vagy vannak ötleteid, hogyan kellene működnie, ez a megfelelő hely.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -44,7 +44,7 @@
     "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Írja be visszajelzését",
+    "text": "Írd be a visszajelzésedet",
     "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Úgy tűnik, hogy jogosulatlan e-mail módosítást jelent a fiókján. Kérjük, írja le, mi történt, és azonnal kivizsgáljuk.",
+    "text": "Úgy tűnik, jogosulatlan e-mail módosítást jelentesz a fiókodon. Kérjük, írd le, mi történt, és azonnal kivizsgáljuk.",
     "source_hash": "00e56551"
   }
 }

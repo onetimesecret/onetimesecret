@@ -24,11 +24,11 @@
     "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Ügyféladatok",
+    "text": "Ügyfélinformáció",
     "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "Ügyfél óta:",
+    "text": "Ügyfél ettől:",
     "source_hash": "0b37cff3"
   },
   "web.account.email": {
@@ -48,7 +48,7 @@
     "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "végződéssel",
+    "text": "végződik",
     "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
@@ -116,7 +116,7 @@
     "source_hash": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "Az Ön fiókja",
+    "text": "A fiókod",
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
@@ -132,7 +132,7 @@
     "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
-    "text": "Token létrehozva.",
+    "text": "Token generálva.",
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
@@ -140,7 +140,7 @@
     "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Erősítse meg jelszavával",
+    "text": "Erősítsd meg a jelszavaddal",
     "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
@@ -168,15 +168,15 @@
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "A fiókja törlése",
+    "text": "A fiókod törlése",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "törölje véglegesen őket a folytatás előtt",
+    "text": "töröld véglegesen őket a folytatás előtt",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Ha bármilyen titkot el szeretne távolítani,",
+    "text": "Ha vannak titkok, amelyeket el szeretnél távolítani,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
@@ -184,7 +184,7 @@
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Kérjük, vegye figyelembe:",
+    "text": "Felhívjuk a figyelmedet:",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
@@ -216,7 +216,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Vissza az irányítópulthoz",
+    "text": "Vissza a vezérlőpulthoz",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -236,7 +236,7 @@
     "source_hash": "c910d474"
   },
   "web.settings.preferences": {
-    "text": "Beállítások",
+    "text": "Preferenciák",
     "source_hash": "66962f72"
   },
   "web.settings.appearance": {
@@ -248,11 +248,11 @@
     "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Válasszon világos vagy sötét témát",
+    "text": "Válassz világos vagy sötét témát",
     "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Válasszon világos vagy sötét témát",
+    "text": "Válassz világos vagy sötét témát",
     "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
@@ -260,11 +260,11 @@
     "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Válassza ki a kívánt nyelvet",
+    "text": "Válaszd ki az előnyben részesített nyelvet",
     "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Válassza ki a kívánt nyelvet",
+    "text": "Válaszd ki az előnyben részesített nyelvet",
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
@@ -272,7 +272,7 @@
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Fiókadatok kezelése",
+    "text": "Fiókinformáció kezelése",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -296,15 +296,15 @@
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Adja meg jelenlegi jelszavát",
+    "text": "Add meg a jelenlegi jelszavadat",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "Jelszava biztonsági okokból szükséges",
+    "text": "A jelszavad biztonsági okokból szükséges",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Ellenőrző e-mailt küldünk az új címre",
+    "text": "Ellenőrző e-mail lesz elküldve az új címre",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
@@ -312,7 +312,7 @@
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Frissítse a fiókjához tartozó e-mail címet",
+    "text": "A fiókodhoz társított e-mail cím frissítése",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -320,7 +320,7 @@
     "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Kérjük, adjon meg érvényes e-mail címet",
+    "text": "Kérjük, adj meg érvényes e-mail címet",
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
@@ -328,11 +328,11 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "Az e-mail sikeresen frissítve. Kérjük, ellenőrizze postafiókját az új e-mail cím megerősítéséhez.",
+    "text": "Ellenőrző e-mail elküldve. Kérjük, nézd meg az új postaládádat és kattints a megerősítő hivatkozásra a módosítás befejezéséhez.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Az e-mail frissítése sikertelen. Kérjük, próbálja újra.",
+    "text": "Nem sikerült frissíteni az e-mailt. Kérjük, próbáld újra.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -364,11 +364,11 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Fiók és minden adat végleges törlése",
+    "text": "Fiókod és az összes adatod végleges törlése",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Fiók és minden adat végleges törlése",
+    "text": "Fiókod és az összes adatod végleges törlése",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -376,7 +376,7 @@
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "A fiókja általános biztonsági állapota",
+    "text": "A fiókod általános biztonsági állapota",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -388,7 +388,7 @@
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
-    "text": "Elfogadható",
+    "text": "Közepes",
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
@@ -396,11 +396,11 @@
     "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Javítsa a biztonságát",
+    "text": "Javítsd a biztonságodat",
     "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Engedélyezze a kétfaktoros hitelesítést az erősebb védelem érdekében",
+    "text": "Engedélyezd a kétlépcsős hitelesítést az erősebb védelemhez",
     "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
@@ -408,7 +408,7 @@
     "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "Konfigurálva",
+    "text": "Beállítva",
     "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
@@ -428,11 +428,11 @@
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Nincsenek kódok generálva",
+    "text": "Nincsenek generált kódok",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} aktív munkamenet",
+    "text": "{0} aktív munkamenet | {0} aktív munkamenet",
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
@@ -440,19 +440,19 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Használjon erős, egyedi jelszót a fiókjához",
+    "text": "Használj erős, egyedi jelszót a fiókodhoz",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Engedélyezze a kétfaktoros hitelesítést a további védelem érdekében",
+    "text": "Engedélyezd a kétlépcsős hitelesítést a további védelemhez",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Mentse el a helyreállítási kódokat biztonságos helyre",
+    "text": "Mentsd a helyreállítási kódjaidat biztonságos helyre",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Rendszeresen tekintse át és vonja vissza a nem használt munkameneteket",
+    "text": "Rendszeresen ellenőrizd és vond vissza a nem használt munkameneteket",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Ismerje meg, hogyan integrálhatja az Onetime Secret-et alkalmazásaiba",
+    "text": "Ismerd meg, hogyan integrálhatod az Onetime Secretet az alkalmazásaidba",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -492,7 +492,7 @@
     "source_hash": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Példakód és kliens könyvtárak",
+    "text": "Példakódok és klienskönyvtárak",
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
@@ -500,31 +500,31 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Soha ne tárolja az API kulcsokat verziókezelő rendszerben",
+    "text": "Soha ne commitolj API kulcsokat a verziókezelőbe",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Használjon környezeti változókat az API kulcsok tárolásához",
+    "text": "Használj környezeti változókat az API kulcsok tárolásához",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rendszeresen cserélje az API kulcsokat a biztonság érdekében",
+    "text": "Rendszeresen cseréld az API kulcsokat a biztonság érdekében",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Mindig használjon HTTPS-t az API kérésekhez",
+    "text": "Mindig használj HTTPS-t API kérések küldésekor",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Figyelje az API használatot és állítson be riasztásokat",
+    "text": "Figyeld az API használatodat és állíts be riasztásokat",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Fontos tudnivaló",
+    "text": "Fontos közlemény",
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Az API kulcs újragenerálása érvényteleníti a jelenlegi kulcsot. Frissítse az összes alkalmazást, amely a régi kulcsot használja.",
+    "text": "Az API kulcs újragenerálása érvényteleníti a jelenlegi kulcsot. Frissítsd az összes alkalmazást, amely a régi kulcsot használja.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,15 +532,15 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Adatvédelmi beállítások kezelése",
+    "text": "Adatvédelmi preferenciáid kezelése",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "Az Ön adatvédelme",
+    "text": "Az adatvédelmed",
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Nem alku tárgya",
+    "text": "Megalkuvás nélkül",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -548,11 +548,11 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Nincs analitika. Nincs nyomkövetés. Pont.",
+    "text": "Nincs analitika. Nincs nyomon követés. Pont.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Ez nem beállítás, mert nincs mit be- vagy kikapcsolni. Az Ön adatvédelme a működésünk alapja.",
+    "text": "Ez nem beállítás, mert nincs mit be- vagy kikapcsolni. Az adatvédelem be van építve a működésünkbe.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,31 +560,31 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Kezelje, hogyan kapja az értesítéseket",
+    "text": "Kezeld, hogyan kapod az értesítéseket",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Az értesítési beállítás frissítése sikertelen. Kérjük, próbálja újra.",
+    "text": "Nem sikerült frissíteni az értesítési beállítást. Kérjük, próbáld újra.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Titok megtekintési értesítések",
+    "text": "Titok felfedési értesítések",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Kapjon e-mailt, amikor valaki megtekinti a titkát",
+    "text": "E-mail értesítés, ha valaki megtekinti a titkodat",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Értesítést kap minden alkalommal, amikor egy címzett felfedi az egyik titkát",
+    "text": "Értesítést kapsz minden alkalommal, amikor egy címzett felfedi az egyik titkodat",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Az értesítési e-mailek csak az időbélyeget és a titok azonosítóját tartalmazzák. A megtekintő adatai soha nem szerepelnek.",
+    "text": "Az értesítő e-mailek csak az időbélyeget és a titok azonosítót tartalmazzák. A megtekintő adatai soha nem szerepelnek benne.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Körültekintést igénylő terület",
+    "text": "Óvatosságot igénylő terület",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -592,7 +592,7 @@
     "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Adatexport",
+    "text": "Adat export",
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
@@ -600,11 +600,11 @@
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Kérjen teljes másolatot a fiókadatairól géppel olvasható formátumban",
+    "text": "A fiókadataid teljes másolatának kérése géppel olvasható formátumban",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Adatexport kérése",
+    "text": "Adat export kérése",
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
@@ -612,15 +612,15 @@
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Az exportok 24 órán belül kerülnek feldolgozásra és az e-mail címére küldjük",
+    "text": "Az exportok 24 órán belül feldolgozásra kerülnek és az e-mail címedre lesznek elküldve",
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "A fiók törlésének következményei:",
+    "text": "A fiókod törlése a következőkkel jár:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Az összes titok végleges törlése",
+    "text": "Az összes titkod végleges törlése",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
@@ -640,11 +640,11 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Az e-mail címe sikeresen frissítve. Kérjük, jelentkezzen be az új e-mail címével.",
+    "text": "Az e-mail címed sikeresen frissítve. Kérjük, jelentkezz be az új e-mail címeddel.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Az új e-mail cím ellenőrzése...",
+    "text": "Új e-mail cím ellenőrzése...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
@@ -668,7 +668,7 @@
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "A megerősítő e-mail sikeresen újraküldve.",
+    "text": "Megerősítő e-mail sikeresen újraküldve.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
@@ -676,11 +676,11 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Ellenőrző e-mail elküldve. Ellenőrizze a bejövő üzeneteit, és kattintson a megerősítő hivatkozásra.",
+    "text": "Ellenőrző e-mail elküldve. Nézd meg a postaládádat és kattints a megerősítő hivatkozásra.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Nem kapta meg az e-mailt?",
+    "text": "Nem kaptad meg az e-mailt?",
     "source_hash": "fe3ac3ad"
   }
 }

@@ -4,7 +4,7 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Adatai kizárólag a választott régióban tárolódnak és soha nem kerülnek átvitelre régiók között",
+    "text": "Az adataid kizárólag a választott régiódban találhatók és soha nem kerülnek átvitelre régiók között",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -12,19 +12,19 @@
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Szigorú szabályzatot tartunk fenn: az ügyféladatok soha nem kerülnek átvitelre régiók között semmilyen körülmények között",
+    "text": "Szigorú szabályzatot tartunk fenn: az ügyféladatok semmilyen körülmények között nem kerülnek átvitelre régiók között",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Fontos: Másik régióra váltás új fiókot hoz létre. Adatai az eredeti régióban maradnak.",
+    "text": "Fontos: Másik régióra váltás új fiókot hoz létre. Az adataid az eredeti régiódban maradnak.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
-    "text": "Az Ön régiója",
+    "text": "A régiód",
     "source_hash": "cafa720f"
   },
   "web.regions.your_current_region": {
-    "text": "Jelenlegi régiója",
+    "text": "Jelenlegi régiód",
     "source_hash": "45e2a9d6"
   },
   "web.regions.active": {
@@ -32,7 +32,7 @@
     "source_hash": "92340695"
   },
   "web.regions.explore_other_regions": {
-    "text": "Fedezze fel a többi elérhető régiót",
+    "text": "Fedezd fel a többi elérhető régiót",
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Tudja pontosan, hol tárolják adatait és mely törvények védik azokat.",
+    "text": "Tudd pontosan, hol vannak az adataid és mely törvények védik azokat.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Biztosítsa, hogy személyes adatait az Ön országának adatvédelmi törvényeinek és előírásainak megfelelően kezelik, megakadályozva az illetéktelen hozzáférést vagy visszaélést.",
+    "text": "Biztosítsd, hogy a személyes adataidat az országod adatvédelmi törvényei és szabályozásai szerint kezeljék, megelőzve a jogosulatlan hozzáférést vagy visszaélést.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Feleljen meg a GDPR, HIPAA, CCPA és más regionális adatvédelmi követelményeknek",
+    "text": "Megfelelés a GDPR, HIPAA, CCPA és egyéb regionális adatvédelmi követelményeknek",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Az Önhöz közelebbi adattárolás alacsonyabb késleltetést és jobb teljesítményt jelent.",
+    "text": "A hozzád közelebb tárolt adatok alacsonyabb késleltetést és jobb teljesítményt jelentenek.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,11 +76,11 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "lépjen kapcsolatba megfelelőségi csapatunkkal",
+    "text": "keresd meg a megfelelőségi csapatunkat",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "tekintse meg dokumentációnkat",
+    "text": "tekintsd meg a dokumentációnkat",
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
@@ -144,19 +144,22 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Irányelveink szerint soha nem továbbítunk adatokat régiók között. Minden régió teljesen független környezetként működik.",
+    "text": "Szabályzatunk szerint soha nem viszünk át adatokat régiók között. Minden régió teljesen független környezetként működik.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Egy másik régió használatához hozzon létre ott egy új fiókot ugyanazzal az e-mail címmel, amely a számlázási kapcsolattartó e-mail címéhez van társítva.",
+    "text": "Másik régió használatához hozz létre ott egy új fiókot ugyanazzal az e-mail címmel, amely a számlázási kapcsolattartó e-maileddel van társítva.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Ha a számlázási kapcsolattartó e-mail címe eltér az Onetime Secret fiókjának e-mail címétől, használja a számlázási kapcsolattartó e-mail címét az új régiós fiókhoz az előfizetési előnyök megtartásához.",
+    "text": "Ha a számlázási kapcsolattartó e-mailed eltér az Onetime Secret fiók e-mailedtől, használd a számlázási kapcsolattartó e-mailt az új régiós fiókhoz az előfizetési előnyeid megtartásához.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Az előfizetési előnyök automatikusan érvényesek minden olyan fiókra, amelyet a számlázási e-mail címével hoztak létre.",
+    "text": "Az előfizetési előnyeid automatikusan érvényesek lesznek bármely, a számlázási e-mail címeddel létrehozott fiókra.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Jelenleg nem áll rendelkezésre régióinformáció a fiókodhoz."
   }
 }

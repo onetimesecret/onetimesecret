@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Betűcsalád",
+    "text": "Betűtípus család",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -56,11 +56,11 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Használja telefonját a QR-kód beolvasásához",
+    "text": "Használd a telefonodat a QR kód beolvasásához",
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kérdésekkel forduljon a onboarding{'@'}example.com címre",
+    "text": "Kérdésekkel fordulj az onboarding{'@'}example.com címhez",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,15 +72,15 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Felfedés előtti útmutatások",
+    "text": "Felfedés előtti utasítások",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Felfedés utáni útmutatások",
+    "text": "Felfedés utáni utasítások",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "Útmutatások",
+    "text": "Utasítások",
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
@@ -120,7 +120,7 @@
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Testreszabás ikon",
+    "text": "Testreszabási ikon",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
@@ -128,11 +128,11 @@
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "A márkabeállítások betöltése sikertelen",
+    "text": "Nem sikerült betölteni a márka beállításokat",
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Ez egy interaktív előnézet arról, hogyan látják majd a címzettek a biztonságos üzeneteit. Ön: - Testreszabhatja a színeket és betűtípusokat a fenti vezérlőkkel - Feltölthet logót (ajánlott minimum 128x128 pixel, maximum 1MB) - Tesztelheti az előnézetet a \"Titok megtekintése\" gombbal",
+    "text": "Ez egy interaktív előnézet arról, hogyan fogják a címzettek látni a biztonságos üzeneteidet. Lehetőségeid: - Színek és betűtípusok testreszabása a fenti vezérlőkkel - Logó feltöltése (ajánlott minimum 128x128 pixel, maximum 1MB) - Előnézet tesztelése a \"Titok megtekintése\" gombbal",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,11 +140,11 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japán kanji '秘' (himitsu) jelentése 'titok' vagy 'bizalmas'",
+    "text": "Japán kandzsi '秘' (himitsu) jelentése 'titok' vagy 'bizalmas'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Szolgáltatja az Onetime Secret",
+    "text": "Onetime Secret szolgáltatásával",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Frissítse csomagját a domén márkajelzésének testreszabásához.",
+    "text": "Frissítsd a csomagodat a domén márkajelzésének testreszabásához.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Márka beállítások sikeresen mentve"
   }
 }

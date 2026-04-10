@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Arculati útmutató",
+    "text": "Márkaútmutató",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,11 +20,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Ismerje meg biztonsági intézkedéseinket",
+    "text": "Tudj meg többet a biztonsági intézkedéseinkről",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Tekintse meg felhasználási feltételeinket",
+    "text": "Tekintsd meg a felhasználási feltételeinket",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -48,19 +48,19 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "A visszajelzés beküldésekor a következőket látjuk:",
+    "text": "Visszajelzés küldésekor a következőket látjuk:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Olvassa el adatvédelmi irányelveinket",
+    "text": "Olvasd el az adatvédelmi szabályzatunkat",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Ellenőrizze szolgáltatásunk állapotát",
+    "text": "Ellenőrizd a szolgáltatásunk állapotát",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Fedezze fel API dokumentációnkat",
+    "text": "Fedezd fel az API dokumentációnkat",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -68,15 +68,15 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Tekintse meg dokumentációnkat",
+    "text": "Nézd meg a dokumentációnkat",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Tekintse meg forráskódunkat a GitHubon",
+    "text": "Nézd meg a forráskódunkat a GitHubon",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
-    "text": "Források",
+    "text": "Erőforrások",
     "source_hash": "e89b30aa"
   },
   "web.footer.blog": {
@@ -84,15 +84,15 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Olvassa el legújabb blogbejegyzéseinket",
+    "text": "Olvasd el legújabb blogbejegyzéseinket",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Tekintse meg előfizetési árazásunkat",
+    "text": "Tekintsd meg az előfizetési árainkat",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Tudjon meg többet cégünkről",
+    "text": "Tudj meg többet a cégünkről",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Nemrég adtunk hozzá fordításokat. Hibát talált? {send-feedback}",
+    "text": "Nemrég adtuk hozzá a fordításokat. Hibát találtál? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -140,7 +140,7 @@
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Tudjon meg többet",
+    "text": "Tudj meg többet",
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
@@ -148,15 +148,15 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Egy biztonságos üzenetet tekint meg, amelyet az Onetime Secret-en keresztül osztottak meg Önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről.",
+    "text": "Egy biztonságos üzenetet tekintesz meg, amelyet az Onetime Secret segítségével osztottak meg veled. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik a szervereinkről.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Megtekinthető később ez a titok?",
+    "text": "Megnézhetem ezt a titkot később újra?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nem. Biztonsági okokból ez a titok csak egyszer tekinthető meg. Az oldal bezárása után a tartalom véglegesen törlődik, és senki sem tudja visszaállítani, még mi sem.",
+    "text": "Nem. Biztonsági okokból ez a titok csak egyszer tekinthető meg. Az oldal bezárása után a tartalom véglegesen törlődik, és senki sem tudja helyreállítani, beleértve minket sem.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,19 +164,19 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Használja a 'Másolás a vágólapra' gombot a teljes titok másolásához. Hosszabb titkoknál győződjön meg róla, hogy az egész tartalmat lemásolta, mielőtt elhagyja az oldalt.",
+    "text": "Használd a \"Másolás vágólapra\" gombot a teljes titok másolásához. Hosszabb titkok esetén győződj meg róla, hogy a teljes tartalmat kimásoltad, mielőtt elhagyod ezt az oldalt.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Nyomon követhető a titok megtekintése?",
+    "text": "Nyomon követhető, hogy megnéztem ezt a titkot?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "A küldő értesítést kap arról, hogy a titok meg lett tekintve, de nem követjük nyomon, hogy ki vagy honnan tekintette meg. Az Ön magánélete védett.",
+    "text": "A küldő értesítést kap arról, hogy a titkát megtekintették, de nem követjük nyomon, hogy ki és honnan nézte meg. A magánszférádat védjük.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Ha elhagyja vagy frissíti ezt az oldalt, ez a titok véglegesen törlődik, és senki sem tudja visszaállítani.",
+    "text": "Ha elhagyod vagy frissíted ezt az oldalt, ez a titok véglegesen törlődik, és senki sem tudja helyreállítani.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -204,7 +204,7 @@
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Irányítópult navigáció",
+    "text": "Vezérlőpult navigáció",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
@@ -220,7 +220,7 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Kiadási megjegyzések",
+    "text": "Kiadási jegyzetek",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
@@ -228,7 +228,7 @@
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Beállítási szakaszok",
+    "text": "Beállítások szakaszai",
     "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
@@ -236,7 +236,7 @@
     "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Beállítási szakaszok",
+    "text": "Beállítások szakaszai",
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
@@ -256,7 +256,7 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Adatvédelmi irányelvek megtekintése",
+    "text": "Adatvédelmi szabályzat megtekintése",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secret főoldal meglátogatása",
+    "text": "Onetime Secret főoldal megtekintése",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -276,7 +276,7 @@
     "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
-    "text": "Adatvédelmi irányelvek",
+    "text": "Adatvédelmi szabályzat",
     "source_hash": "506ff394"
   },
   "web.layout.icon_library": {
@@ -312,11 +312,11 @@
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Nyelv váltása. Jelenlegi nyelv: {0}",
+    "text": "Nyelv módosítása. Jelenlegi nyelv: {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Nyelv módosítva: {0}",
+    "text": "Nyelv megváltoztatva: {0}",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Munkaterület kontextus",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Munkaterület"
   }
 }

@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Szervezetek kezelése",
+    "text": "Szervezeteid kezelése",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak. Kezdje az első szervezetének létrehozásával.",
+    "text": "A szervezetek egységes számlázást és adminisztrációt biztosítanak. Kezdd el az első szervezeted létrehozásával.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -60,7 +60,7 @@
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "A szervezet létrehozása sikertelen",
+    "text": "Nem sikerült létrehozni a szervezetet",
     "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
@@ -68,7 +68,7 @@
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "pl. Acme Kft.",
+    "text": "pl. Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -88,11 +88,11 @@
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Elsődleges kapcsolattartó a számlázási és adminisztratív értesítésekhez",
+    "text": "Elsődleges kapcsolattartó számlázási és adminisztratív értesítésekhez",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Válasszon szervezetet",
+    "text": "Válassz szervezetet",
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
@@ -104,19 +104,19 @@
     "source_hash": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "A szervezet betöltése sikertelen",
+    "text": "Nem sikerült betölteni a szervezetet",
     "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "A szervezet betöltése sikertelen",
+    "text": "Nem sikerült betölteni a szervezetet",
     "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "A szervezetek betöltése sikertelen",
+    "text": "Nem sikerült betölteni a szervezeteket",
     "source_hash": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Szervezet információk",
+    "text": "Szervezeti információ",
     "source_hash": "85274cee"
   },
   "web.organizations.created": {
@@ -128,7 +128,7 @@
     "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Szervezet beállítások",
+    "text": "Szervezeti beállítások",
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
@@ -152,7 +152,7 @@
     "source_hash": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "A szervezet frissítése sikertelen",
+    "text": "Nem sikerült frissíteni a szervezetet",
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Az egységes számlázás és előfizetés kezelés egy későbbi kiadásban lesz elérhető.",
+    "text": "Az egységes számlázás és előfizetés kezelés egy jövőbeli kiadásban lesz elérhető.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -180,23 +180,23 @@
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Szervezet kezelése",
+    "text": "Szervezeted kezelése",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Frissítse cégnevét és szervezeti adatait itt. Ezek az információk segítenek személyre szabni fiókját és a jövőben felhasználhatók a márkajelzési funkciókhoz.",
+    "text": "Frissítsd a cég nevedet és szervezeti adataidat itt. Ez az információ segít személyre szabni a fiókodat és a jövőben használható lesz márkajelzési funkciókhoz.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Kezdés a szervezetekkel",
+    "text": "Kezdj el dolgozni a szervezetekkel",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Hozza létre első szervezetét a cégadatok kezeléséhez és a jövőbeli márkajelzési funkciókra való felkészüléshez.",
+    "text": "Hozd létre az első szervezetedet a céginformációid kezeléséhez és a jövőbeli márkajelzési funkciókra való felkészüléshez.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Szervezetek és csapattagok kezelése",
+    "text": "Szervezeteid és csapattagjaid kezelése",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Céges márkajelzés",
+    "text": "Cég márkajelzés",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Csapat",
+    "text": "Tagok",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -220,7 +220,7 @@
     "source_hash": "4999c6c6"
   },
   "web.organizations.danger_zone": {
-    "text": "Veszélyes zóna",
+    "text": "Veszélyzóna",
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
@@ -240,11 +240,11 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Biztosan törölni szeretné a(z) {name} szervezetet? Ez a művelet nem vonható vissza.",
+    "text": "Biztosan törölni szeretnéd a(z) {name} szervezetet? Ez a művelet nem vonható vissza.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "A szervezet törlése sikertelen",
+    "text": "Nem sikerült törölni a szervezetet",
     "source_hash": "a8e5bb28"
   },
   "web.organizations.members.title": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Szervezet tagok és szerepköreik kezelése",
+    "text": "Szervezeti tagok és szerepköreik kezelése",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -268,7 +268,7 @@
     "source_hash": "e31ab643"
   },
   "web.organizations.members.member_plural": {
-    "text": "tagok",
+    "text": "tag",
     "source_hash": "17373ca1"
   },
   "web.organizations.members.name": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Még nincsenek tagok. Hívjon meg csapattagokat a kezdéshez.",
+    "text": "Még nincsenek tagok. Hívj meg csapattagokat a kezdéshez.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -304,7 +304,7 @@
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "A tag szerepkörének frissítése sikertelen",
+    "text": "Nem sikerült frissíteni a tag szerepkörét",
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
@@ -312,7 +312,7 @@
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "A tag eltávolítása sikertelen",
+    "text": "Nem sikerült eltávolítani a tagot",
     "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
@@ -320,23 +320,23 @@
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Biztosan el szeretné távolítani {name} felhasználót ebből a szervezetből?",
+    "text": "Biztosan el akarod távolítani {name} személyt ebből a szervezetből?",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Nem módosíthatja saját szerepkörét",
+    "text": "Nem módosíthatod a saját szerepkörödet",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Nem távolíthatja el önmagát a szervezetből",
+    "text": "Nem távolíthatod el magadat a szervezetből",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "A szervezet tulajdonosát nem távolíthatja el",
+    "text": "A szervezet tulajdonosát nem lehet eltávolítani",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Nincs jogosultsága a tagok kezeléséhez",
+    "text": "Nincs jogosultságod a tagok kezeléséhez",
     "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
@@ -344,7 +344,7 @@
     "source_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Admin",
+    "text": "Adminisztrátor",
     "source_hash": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
@@ -360,7 +360,7 @@
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Alapvető hozzáférés a szervezet erőforrásaihoz",
+    "text": "Alapszintű hozzáférés a szervezeti erőforrásokhoz",
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
@@ -404,7 +404,7 @@
     "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "A meghívó küldése sikertelen",
+    "text": "Nem sikerült elküldeni a meghívót",
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
@@ -420,7 +420,7 @@
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "A meghívó újraküldése sikertelen",
+    "text": "Nem sikerült újraküldeni a meghívót",
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
@@ -428,11 +428,11 @@
     "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "A meghívó visszavonása sikertelen",
+    "text": "Nem sikerült visszavonni a meghívót",
     "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
-    "text": "Meghívó",
+    "text": "Meghívta",
     "source_hash": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
@@ -444,11 +444,11 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Újraküldve {count} alkalommal",
+    "text": "{count} alkalommal újraküldve",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Újraküldve {count} alkalommal",
+    "text": "{count} alkalommal újraküldve",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
@@ -468,11 +468,11 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Tag",
+    "text": "Csapattag",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Admin",
+    "text": "Adminisztrátor",
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
@@ -488,11 +488,11 @@
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Meghívást kapott a csatlakozásra:",
+    "text": "Meghívást kaptál, hogy csatlakozz ehhez:",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Ön meghívást kapott mint",
+    "text": "A következő szerepkörre kaptál meghívást:",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -500,7 +500,7 @@
     "source_hash": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "A meghívó elfogadása sikertelen",
+    "text": "Nem sikerült elfogadni a meghívót",
     "source_hash": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
@@ -508,7 +508,7 @@
     "source_hash": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "A meghívó elutasítása sikertelen",
+    "text": "Nem sikerült elutasítani a meghívót",
     "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
@@ -520,7 +520,7 @@
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Kérjük, jelentkezzen be a meghívó elfogadásához",
+    "text": "Kérjük, jelentkezz be a meghívó elfogadásához",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Frissítse csomagját a csapattagok meghívásához",
+    "text": "Frissítsd a csomagodat csapattagok meghívásához",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "A csapattag meghívásokhoz csapatkezeléssel rendelkező csomag szükséges. Frissítsen, hogy munkatársakat adhasson a szervezetéhez.",
+    "text": "Csapattag meghívásokhoz csapatkezelést tartalmazó csomag szükséges. Frissíts, hogy munkatársakat adhass a szervezetedhez.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -544,23 +544,23 @@
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
-    "text": "{count} tag",
+    "text": "{count} tag | {count} tag",
     "source_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count} domén",
+    "text": "{count} domén | {count} domén",
     "source_hash": "09f52efa"
   },
   "web.organizations.tabs.domains": {
-    "text": "Domének",
+    "text": "Doménok",
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Másik fiókkal van bejelentkezve",
+    "text": "Másik fiókkal vagy bejelentkezve",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Ez a meghívó a(z) {invitedEmail} címre szól. Jelenleg {currentEmail} fiókkal van bejelentkezve.",
+    "text": "Ez a meghívó a(z) {invitedEmail} címre szól. Jelenleg {currentEmail} fiókkal vagy bejelentkezve.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -578,5 +578,191 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Hamarosan lejár",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Munkaterületek megtekintése és konfigurálása"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "{email} által"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "mint {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Vissza a főoldalra"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Ez a meghívó erre az e-mail címre lett küldve"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Folytatás"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Bejelentkezés és meghívó elfogadása"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Tovább a szervezetekhez"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Már tagja vagy ennek a szervezetnek"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Csatlakozás: {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Jelentkezz be a(z) {orgName} szervezethez való csatlakozáshoz"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Elutasítás"
+  },
+  "web.organizations.sso.title": {
+    "text": "Egyszeri bejelentkezés (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "SSO konfigurálása, hogy a tagok a szervezeted identitás-szolgáltatójával jelentkezhessenek be"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Szolgáltató típusa"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Válaszd ki a szervezeted identitás-szolgáltatóját"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Megjelenítési név"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Barátságos név, amely a felhasználóknak jelenik meg bejelentkezéskor"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "pl. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Kliens azonosító"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Az OAuth kliens azonosítód"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Kliens titkos kulcs"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Az OAuth kliens titkos kulcsod"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Hagyd üresen a meglévő titkos kulcs megtartásához"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Bérlő azonosító"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Az Azure AD / Entra ID bérlő azonosítód"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "pl. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Kibocsátó URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "Az OIDC felderítési URL az identitás-szolgáltatódhoz"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "pl. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Engedélyezett e-mail doménok"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Csak az ezekről a doménekről származó e-mail címekkel rendelkező felhasználók jelentkezhetnek be. Hagyd üresen az összes domén engedélyezéséhez."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "pl. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Kérjük, adj meg érvényes domént (pl. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Ez a domén már szerepel a listában"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "{domain} eltávolítása"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "SSO engedélyezése"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Ha engedélyezve van, a szervezet tagjai bejelentkezhetnek ezzel az SSO szolgáltatóval"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "SSO konfiguráció mentése"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Konfiguráció törlése"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Biztosan folytatod? Ez letiltja az SSO-t a szervezetedben."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Nem sikerült betölteni az SSO konfigurációt"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Nem sikerült menteni az SSO konfigurációt"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO konfiguráció sikeresen létrehozva"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO konfiguráció sikeresen frissítve"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO konfiguráció sikeresen törölve"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Nem sikerült törölni az SSO konfigurációt"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Kapcsolat tesztelése"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Ellenőrizd, hogy az identitás-szolgáltató elérhető-e (nem érvényesíti a hitelesítő adatokat)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Kapcsolat tesztelése"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Tesztelés..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Nem sikerült tesztelni a kapcsolatot"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Hitelesítési végpont"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Hiányzó mezők"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Engedélyezve"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Beállítva"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domén SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "SSO konfigurálása minden ellenőrzött doménhez"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "A szolgáltató módosításához először töröld ezt a konfigurációt"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Nincs beállítva"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Csapat"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

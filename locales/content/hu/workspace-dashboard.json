@@ -20,7 +20,7 @@
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Probléma merült fel az adatok betöltése során. Kérjük, próbálja újra.",
+    "text": "Probléma történt az adataid betöltésekor. Kérjük, próbáld újra.",
     "source_hash": "ff0d904e"
   }
 }

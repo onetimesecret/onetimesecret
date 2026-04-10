@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Osszon meg érzékeny információkat biztonságosan támogatási csapatunkkal",
+    "text": "Oszd meg az érzékeny információkat biztonságosan a támogatási csapatunkkal",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -16,11 +16,11 @@
     "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "A funkció nem elérhető",
+    "text": "A funkció nem érhető el",
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ez a funkció jelenleg ki van kapcsolva. Kérjük, lépjen kapcsolatba az ügyfélszolgálattal segítségért.",
+    "text": "Ez a funkció jelenleg nem elérhető. Kérjük, vedd fel a kapcsolatot a támogatással segítségért.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,31 +28,31 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Rövid leírás (pl. Jelszó-visszaállítási kérés)",
+    "text": "Rövid leírás (pl. Jelszó-visszaállítási kérelem)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Segítsen nekünk a megfelelő személyhez irányítani az üzenetét",
+    "text": "Segíts nekünk a megfelelő személyhez irányítani az üzenetedet",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Küldés neki:",
+    "text": "Címzett",
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Válasszon címzettet",
+    "text": "Válassz címzettet",
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Válasszon címzettet ehhez a titokhoz",
+    "text": "Válassz címzettet ehhez a titokhoz",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "Válassza ki, ki kapja meg ezt a biztonságos üzenetet",
+    "text": "Válaszd ki, ki kapja meg ezt a biztonságos üzenetet",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Nincs elérhető címzett",
+    "text": "Nincsenek elérhető címzettek",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
@@ -60,11 +60,11 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Illessze be az érzékeny információkat ide (jelszavak, kulcsok stb.)",
+    "text": "Illeszd be ide az érzékeny információt (jelszavak, kulcsok stb.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Ez az információ titkosítva lesz és csak egyszer tekinthető meg",
+    "text": "Ez az információ titkosításra kerül és csak egyszer tekinthető meg",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -96,7 +96,7 @@
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
-    "text": "Biztonságos üzenete kézbesítve.",
+    "text": "A biztonságos üzeneted kézbesítésre került.",
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
@@ -108,27 +108,48 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "A címzett csak egyszer tekintheti meg ezt a titkot. Megtekintés után a titok véglegesen törlődik.",
+    "text": "A címzett csak egyszer tudja megtekinteni ezt a titkot. Megtekintés után a titok véglegesen törlődik.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "Újabb titok küldése",
+    "text": "Másik titok küldése",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Osszon meg érzékeny információkat biztonságosan",
+    "text": "Oszd meg az érzékeny információkat biztonságosan",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Tartsa távol a jelszavakat és privát adatokat az e-mail és csevegési naplóktól",
+    "text": "Tartsd távol a jelszavakat és a privát adatokat az e-mail és chat naplókból",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Mentse el a {receipt} a nyilvántartásához.",
+    "text": "Mentsd el a {receipt} dokumentumot a nyilvántartásodhoz.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "visszaigazolás",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Frissítés szükséges"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ez a funkció csomag frissítést igényel. Kérjük, keresd meg a fiók tulajdonost a bejövő titkok engedélyezéséhez."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Az emlékeztető legfeljebb {max} karakter lehet"
+  },
+  "incoming.validation_secret_required": {
+    "text": "A titok tartalma kötelező"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Kérjük, válassz címzettet"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "A bejövő titkok funkció nincs engedélyezve"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Kérjük, ellenőrizd az űrlap hibáit"
   }
 }

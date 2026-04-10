@@ -1,10 +1,10 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "MI által generált ajánlás",
+    "text": "MI által generált vélemény",
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "MI által generált tartalom bemutatás céljából. Nem valódi személytől vagy cégtől származik.",
+    "text": "MI által generált tartalom bemutatási célra. Nem valós személytől vagy cégtől származik.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -28,7 +28,7 @@
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "MI által generált ajánlások",
+    "text": "MI által generált vélemények",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {

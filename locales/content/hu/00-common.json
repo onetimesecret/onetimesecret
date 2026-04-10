@@ -673,11 +673,11 @@
     "source_hash": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Több mutatása",
+    "text": "Több megjelenítése",
     "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Kevesebb mutatása",
+    "text": "Kevesebb megjelenítése",
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
@@ -749,7 +749,7 @@
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Segítségre van szüksége?",
+    "text": "Segítségre van szükséged?",
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -765,7 +765,7 @@
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Másolás a vágólapra",
+    "text": "Másolás vágólapra",
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
@@ -777,7 +777,7 @@
     "source_hash": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Titkos link",
+    "text": "Titkos hivatkozás",
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
@@ -821,7 +821,7 @@
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Visszajelzés fogadva.",
+    "text": "Visszajelzés megérkezett.",
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
@@ -845,7 +845,7 @@
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "Szűrés",
+    "text": "Szűrő",
     "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
@@ -853,15 +853,15 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Ebben a munkamenetben létrehozott titkos linkek",
+    "text": "Ebben a munkamenetben létrehozott titkos hivatkozások",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Link létrehozása",
+    "text": "Hivatkozás létrehozása",
     "source_hash": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Titkos link létrehozása",
+    "text": "Titkos hivatkozás létrehozása",
     "source_hash": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
@@ -869,7 +869,7 @@
     "source_hash": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Kérés link létrehozása",
+    "text": "Kérés hivatkozás létrehozása",
     "source_hash": "190463dc"
   },
   "web.LABELS.related_settings": {
@@ -882,7 +882,7 @@
     "source_hash": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Linkek létrehozása ehhez:",
+    "text": "Hivatkozások létrehozása ehhez:",
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
@@ -898,11 +898,11 @@
     "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Link megnyitva",
+    "text": "Hivatkozás megnyitva",
     "source_hash": "66844573"
   },
   "web.STATUS.received": {
-    "text": "Fogadva",
+    "text": "Megkapva",
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
@@ -910,7 +910,7 @@
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
-    "text": "Megjelenítve",
+    "text": "Felfedve",
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
@@ -938,15 +938,15 @@
     "source_hash": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Árva",
+    "text": "Elárvult",
     "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Védett",
+    "text": "Biztosítva",
     "source_hash": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Védelem beállítása",
+    "text": "Biztosítás...",
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
@@ -958,35 +958,35 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "A titkos link létrejött és még nem tekintették meg",
+    "text": "A titkos hivatkozás létrejött és még nem tekintették meg",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "A titkos link létrejött és nem tekintették meg",
+    "text": "A titkos hivatkozás létrejött és még nem tekintették meg",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "A titkos linket megnyitották és készen áll a megtekintésre",
+    "text": "A titkos hivatkozás megnyitásra került és megtekintésre kész",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "A titkot megjelenítették a címzettnek",
+    "text": "A titok felfedésre került a címzett számára",
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "A titkos linket megnyitották és készen áll a megjelenítésre",
+    "text": "A titkos hivatkozás megnyitásra került és felfedésre kész",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "A titok tartalmát megjelenítették a címzettnek",
+    "text": "A titok tartalma felfedésre került a címzett számára",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "A titkot manuálisan törölték, mielőtt megtekintették volna",
+    "text": "A titok megtekintés előtt manuálisan törölve lett",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "A titok véglegesen megsemmisült",
+    "text": "A titok véglegesen megsemmisítésre került",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
@@ -994,11 +994,11 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "A titok árva lett és hamarosan megsemmisül",
+    "text": "A titok elárvult és hamarosan megsemmisítésre kerül",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "A titok lejárt, mielőtt megtekintették volna",
+    "text": "A titok megtekintés előtt lejárt",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1010,7 +1010,7 @@
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS hibás",
+    "text": "DNS helytelen",
     "source_hash": "7848d601"
   },
   "web.STATUS.active": {
@@ -1026,11 +1026,11 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Megbízható domain arculat",
+    "text": "Megbízható domén márkajelzés",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Titkosítva szállítás és tárolás közben",
+    "text": "Titkosítva átvitel és tárolás közben",
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
@@ -1058,7 +1058,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Még {count} {unit}",
+    "text": "{count} {unit} van hátra",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
@@ -1082,7 +1082,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} megtekintés limit",
+    "text": "{count} megtekintés korlát",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
@@ -1134,11 +1134,11 @@
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Kétfaktoros hitelesítés",
+    "text": "Kétlépcsős hitelesítés",
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "E-mail bejelentkezés",
+    "text": "Bejelentkezés e-maillel",
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
@@ -1154,7 +1154,7 @@
     "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "Titok visszaigazolás",
+    "text": "Titok visszaigazolása",
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
@@ -1162,7 +1162,7 @@
     "source_hash": "28785b83"
   },
   "web.TITLES.dashboard": {
-    "text": "Irányítópult",
+    "text": "Vezérlőpult",
     "source_hash": "67b69646"
   },
   "web.TITLES.recent": {
@@ -1170,19 +1170,19 @@
     "source_hash": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Egyéni domainek",
+    "text": "Egyéni doménok",
     "source_hash": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Domain hozzáadása",
+    "text": "Domén hozzáadása",
     "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Domain ellenőrzése",
+    "text": "Domén ellenőrzése",
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Domain arculat",
+    "text": "Márka domén",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1194,7 +1194,7 @@
     "source_hash": "a1c6039f"
   },
   "web.TITLES.current_region": {
-    "text": "Aktuális régió",
+    "text": "Jelenlegi régió",
     "source_hash": "b92e254d"
   },
   "web.TITLES.available_regions": {
@@ -1226,7 +1226,7 @@
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "E-mail cím módosításának megerősítése",
+    "text": "E-mail módosítás megerősítése",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1238,7 +1238,7 @@
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Kétfaktoros hitelesítés",
+    "text": "Kétlépcsős hitelesítés",
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
@@ -1250,7 +1250,7 @@
     "source_hash": "579c7f4e"
   },
   "web.TITLES.passkeys": {
-    "text": "Hozzáférési kulcsok",
+    "text": "Jelkulcsok",
     "context": "Page title for passkey management",
     "source_hash": "c87ccdb4"
   },
@@ -1291,19 +1291,19 @@
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Ossza meg a linket a címzettel",
+    "text": "Oszd meg a hivatkozást a kívánt címzettel",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "A hozzáférési mondatot külön, biztonságos csatornán ossza meg",
+    "text": "Oszd meg a hozzáférési mondatot külön, egy biztonságos csatornán",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Használjon másik biztonságos csatornát az érzékeny információk megosztásához",
+    "text": "Használj egy másik biztonságos csatornát az érzékeny információk megosztásához",
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a domain-t új linkek létrehozása előtt.",
+    "text": "Mindig ellenőrizd, hogy az Onetime Secret hivatalos weboldalán vagy. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az Onetime Secret, hogy ellopják a titkaidat. Az adathalász támadások elkerülése érdekében ellenőrizd a domént, mielőtt új hivatkozásokat hozol létre.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,19 +1311,19 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Válassza az igényeinek megfelelő csomagot. Minden csomag korlátlan titokmegosztást és adatvédelem-központú tervezést tartalmaz.",
+    "text": "Válaszd ki az igényeidnek megfelelő csomagot. Minden csomag korlátlan titokmegosztást és adatvédelem-központú tervezést tartalmaz.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
-    "text": "Ingyenes kezdés",
+    "text": "Kezdd el ingyen",
     "source_hash": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
-    "text": "Kezdés",
+    "text": "Kezdjük el",
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
-    "text": "Már van fiókja?",
+    "text": "Már van fiókod?",
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Önnek ajánlott",
+    "text": "Neked ajánljuk",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1355,7 +1355,7 @@
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
-    "text": "Hozzon létre és osszon meg titkokat alapfunkciókkal. Bankkártya nem szükséges.",
+    "text": "Hozz létre és ossz meg titkokat alapfunkciókkal. Bankkártya nem szükséges.",
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
@@ -1417,5 +1417,23 @@
   },
   "web.COMMON.or": {
     "text": "vagy"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Hozzáférési mondat megjelenítése"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Hozzáférési mondat elrejtése"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domén beállítások"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domén SSO"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-mail konfiguráció"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Bejövő titkok"
   }
 }

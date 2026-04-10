@@ -1,6 +1,6 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Jegy: %s]",
+    "text": "[Ticket: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
@@ -8,11 +8,11 @@
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} titkot küldött Önnek",
+    "text": "%{sender_email} titkot küldött neked",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "titkot küldött Önnek:",
+    "text": "titkot küldött neked:",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -20,23 +20,23 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Ez a link csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
+    "text": "Ez a hivatkozás csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Küldve ezen keresztül:",
+    "text": "Küldve a következőn keresztül:",
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Üdvözöljük a %{product_name} szolgáltatásban - Kérjük, erősítse meg e-mail címét",
+    "text": "Üdvözlünk a(z) %{product_name} szolgáltatásban - Kérjük, erősítsd meg az e-mail címedet",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Üdvözöljük a %{product_name} szolgáltatásban!",
+    "text": "Üdvözlünk a(z) %{product_name} szolgáltatásban!",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Kérjük, erősítse meg e-mail címét az alábbi linkre kattintva:",
+    "text": "Kérjük, erősítsd meg az e-mail címedet az alábbi hivatkozásra kattintva:",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
@@ -44,7 +44,7 @@
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másold ki és illeszd be ezt a hivatkozást:",
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
@@ -52,7 +52,7 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "U.i. Ezt az e-mailt a %{email_address} címre küldtük. Ha nem Ön hozta létre a fiókot, nyugodtan hagyja figyelmen kívül ezt az üzenetet.",
+    "text": "U.i. Ez az e-mail a(z) %{email_address} címre lett küldve. Ha nem hoztál létre fiókot, nyugodtan figyelmen kívül hagyhatod ezt az üzenetet.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
@@ -64,7 +64,7 @@
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Jelszó-visszaállítási kérést kaptunk a %{product_name} fiókjához.",
+    "text": "Jelszó-visszaállítási kérelmet kaptunk a(z) %{product_name} fiókodhoz.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
@@ -72,11 +72,11 @@
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másold ki és illeszd be ezt a hivatkozást:",
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Ha nem kért jelszó-visszaállítást, nyugodtan hagyja figyelmen kívül ezt az e-mailt.",
+    "text": "Ha nem kértél jelszó-visszaállítást, nyugodtan figyelmen kívül hagyhatod ezt az e-mailt.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -84,19 +84,19 @@
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "U.i. Ezt az e-mailt a %{email_address} címre küldtük.",
+    "text": "U.i. Ez az e-mail a(z) %{email_address} címre lett küldve.",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Bejelentkezés a %{display_domain} oldalra",
+    "text": "Bejelentkezés a(z) %{display_domain} oldalra",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Bejelentkezés Magic Link-kel",
+    "text": "Bejelentkezés mágikus hivatkozással",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Bejelentkezési linket kért a %{product_name} fiókjához.",
+    "text": "Bejelentkezési hivatkozást kértél a(z) %{product_name} fiókodhoz.",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
@@ -104,15 +104,15 @@
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másold ki és illeszd be ezt a hivatkozást:",
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Ez a link 15 perc múlva lejár.",
+    "text": "Ez a hivatkozás 15 perc múlva lejár.",
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Ha nem Ön kérte ezt a linket, nyugodtan hagyja figyelmen kívül ezt az e-mailt.",
+    "text": "Ha nem te kérted ezt a hivatkozást, nyugodtan figyelmen kívül hagyhatod ezt az e-mailt.",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -120,15 +120,15 @@
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "U.i. Ezt az e-mailt a %{email_address} címre küldtük.",
+    "text": "U.i. Ez az e-mail a(z) %{email_address} címre lett küldve.",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Titkos üzenetet kapott",
+    "text": "Titkos üzenetet kaptál",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Biztonságos üzenetet kapott:",
+    "text": "Biztonságos üzenetet kaptál:",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
@@ -136,11 +136,11 @@
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Valaki biztonságos üzenetet küldött Önnek a %{display_domain} oldalon keresztül.",
+    "text": "Valaki biztonságos üzenetet küldött neked a(z) %{display_domain} oldalon keresztül.",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "A titok megtekintéséhez kattintson az alábbi linkre:",
+    "text": "A titok megtekintéséhez kattints az alábbi hivatkozásra:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -148,11 +148,11 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Ez a link csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
+    "text": "Ez a hivatkozás csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Ez a titok hozzáférési mondattal van védve. A küldőnek külön kell megadnia Önnek.",
+    "text": "Ez a titok hozzáférési mondattal van védve. A küldőnek külön kell megadnia neked.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -160,23 +160,23 @@
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Küldve ezen keresztül:",
+    "text": "Küldve a következőn keresztül:",
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
-    "text": "Titkát megtekintették",
+    "text": "A titkodat megtekintették",
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
-    "text": "Titkát megtekintették",
+    "text": "A titkodat megtekintették",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "Titkát megtekintették %{date} dátummal.",
+    "text": "A titkodat %{date} napon tekintették meg.",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Titok azonosító:",
+    "text": "Titok ID:",
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
@@ -192,19 +192,19 @@
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Értesítési beállításainak kezeléséhez:",
+    "text": "Az értesítési beállításaid kezeléséhez:",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Titkos linkje hamarosan lejár",
+    "text": "A titkos hivatkozásod hamarosan lejár",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Titkos linkje %{time_remaining} múlva lejár",
+    "text": "A titkos hivatkozásod %{time_remaining} múlva lejár",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Tekintse meg titkát, mielőtt lejár",
+    "text": "Nézd meg a titkodat, mielőtt lejár",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
@@ -212,23 +212,23 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "A lejárat után a titok véglegesen törlődik és nem állítható vissza.",
+    "text": "Lejárat után a titok véglegesen törlődik és nem állítható helyre.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Küldve ezen keresztül:",
+    "text": "Küldve a következőn keresztül:",
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Tekintse meg, mielőtt eltűnik:",
+    "text": "Nézd meg, mielőtt eltűnik:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "A lejárat után a titok véglegesen törlődik.",
+    "text": "Lejárat után a titok véglegesen törlődik.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Visszajelzés %{date} dátummal %{display_domain}-ról (%{strategy})",
+    "text": "Visszajelzés %{date} napon a %{display_domain} oldalon (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
@@ -256,15 +256,15 @@
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Meghívták a(z) %{organization_name} szervezetbe",
+    "text": "Meghívást kaptál a(z) %{organization_name} szervezetbe",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Meghívták a(z) %{organization_name} szervezetbe!",
+    "text": "Meghívást kaptál a(z) %{organization_name} szervezetbe!",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} meghívta Önt a(z) \"%{organization_name}\" szervezetbe %{role_description} szerepkörben.",
+    "text": "%{inviter_email} meghívott, hogy csatlakozz a(z) \"%{organization_name}\" szervezethez mint %{role_description}.",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
@@ -272,7 +272,7 @@
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másold ki és illeszd be ezt a hivatkozást:",
     "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
@@ -280,7 +280,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Ha nem szeretne csatlakozni, egyszerűen hagyja figyelmen kívül ezt az e-mailt vagy utasítsa el a meghívót.",
+    "text": "Ha nem szeretnél csatlakozni, egyszerűen figyelmen kívül hagyhatod ezt az e-mailt, vagy elutasíthatod a meghívót.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "U.i. Ezt az e-mailt a %{invited_email} címre küldtük. Ha nem számított erre a meghívóra, nyugodtan hagyja figyelmen kívül ezt az üzenetet.",
+    "text": "U.i. Ez az e-mail a(z) %{invited_email} címre lett küldve. Ha nem vártad ezt a meghívót, nyugodtan figyelmen kívül hagyhatod ezt az üzenetet.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -300,19 +300,19 @@
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Jelszava megváltozott (%{display_domain})",
+    "text": "A jelszavad megváltozott (%{display_domain})",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Jelszava megváltozott",
+    "text": "A jelszavad megváltozott",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "A %{product_name} jelszava megváltozott %{date} dátummal, %{time} időpontban.",
+    "text": "A(z) %{product_name} jelszavad %{date} napon %{time} időpontban megváltozott.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Ha nem Ön kezdeményezte ezt a módosítást, kérjük, azonnal biztosítsa fiókját a jelszó visszaállításával és az ügyfélszolgálat megkeresésével.",
+    "text": "Ha nem te hajtottad végre ezt a módosítást, kérjük, azonnal biztosítsd a fiókodat a jelszavad visszaállításával és a támogatás elérésével.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -320,23 +320,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "E-mail címe megváltozott (%{display_domain})",
+    "text": "Az e-mail címed megváltozott (%{display_domain})",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "E-mail címe megváltozott",
+    "text": "Az e-mail címed megváltozott",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott erre: %{new_email_masked}.",
+    "text": "A(z) %{product_name} fiókodhoz tartozó e-mail cím a következőre módosult: %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Ha nem Ön kezdeményezte ezt a módosítást, kérjük, azonnal lépjen kapcsolatba az ügyfélszolgálattal, mert fiókja veszélybe kerülhetett.",
+    "text": "Ha nem te hajtottad végre ezt a módosítást, kérjük, azonnal vedd fel a kapcsolatot a támogatással, mert a fiókod kompromittálódhatott.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "A %{product_name} fiókjához tartozó e-mail cím megváltozott.",
+    "text": "A(z) %{product_name} fiókodhoz tartozó e-mail cím megváltozott.",
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
@@ -348,15 +348,15 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Ha Ön hajtotta végre ezt a módosítást, nincs további teendője.",
+    "text": "Ha te hajtottad végre ezt a módosítást, nincs további teendőd.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Ha nem Ön hajtotta végre ezt a módosítást, fiókja feltörésre kerülhetett.",
+    "text": "Ha nem te hajtottad végre ezt a módosítást, a fiókod kompromittálódhatott.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Kapcsolatfelvétel a támogatással",
+    "text": "Támogatás elérése",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,7 +364,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük, hogy értesítsük az e-mail cím változásáról.",
+    "text": "U.i. Ez az e-mail a(z) %{email_address} címre került küldésre az e-mail cím módosításáról szóló értesítésként.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -376,7 +376,7 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Kérelem érkezett a %{product_name} fiókjához tartozó e-mail cím módosítására.",
+    "text": "Kérés érkezett a(z) %{product_name} fiókodhoz tartozó e-mail cím módosítására.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
@@ -384,19 +384,19 @@
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Kérelmezve:",
+    "text": "Kérelem ideje:",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Ha Ön kezdeményezte ezt a kérelmet, ellenőrizze az új e-mail fiókját a megerősítő hivatkozásért. Még nem történt módosítás.",
+    "text": "Ha te kezdeményezted ezt a kérést, ellenőrizd az új e-mail fiókodat a megerősítő hivatkozásért. Még nem történt módosítás.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Ha nem Ön kezdeményezte ezt a kérelmet, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt. Fiókja nem változott.",
+    "text": "Ha nem te kezdeményezted ezt a kérést, nyugodtan figyelmen kívül hagyhatod ezt az e-mailt. A fiókod nem változott meg.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Kapcsolatfelvétel a támogatással",
+    "text": "Támogatás elérése",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük, mert e-mail módosítást kérelmeztek a fiókjához.",
+    "text": "U.i. Ez az e-mail a(z) %{email_address} címre került küldésre, mert e-mail módosítást kértek a fiókodhoz.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -416,7 +416,7 @@
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Kérjük, ellenőrizze ezt az e-mail címet a %{product_name} fiókjához tartozó módosítás befejezéséhez.",
+    "text": "Kérjük, erősítsd meg ezt az e-mail címet a(z) %{product_name} fiókod módosításának befejezéséhez.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
@@ -424,7 +424,7 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Kérelem érkezett a %{product_name} fiókjához tartozó e-mail cím módosítására a következőre: %{new_email}.",
+    "text": "Kérés érkezett a(z) %{product_name} fiókodhoz tartozó e-mail cím módosítására a következőre: %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -432,7 +432,7 @@
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másold ki és illeszd be ezt a hivatkozást:",
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Ha nem Ön kérte ezt a módosítást, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt. Az e-mail címe nem változik meg.",
+    "text": "Ha nem te kérted ezt a módosítást, nyugodtan figyelmen kívül hagyhatod ezt az e-mailt. Az e-mail címed nem fog megváltozni.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,23 +448,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "U.I. Ezt az e-mailt a %{email_address} címre küldtük az e-mail cím módosításának megerősítéséhez.",
+    "text": "U.i. Ez az e-mail a(z) %{email_address} címre került küldésre az e-mail cím módosításának megerősítéséhez.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
-    "text": "Kétfaktoros hitelesítés bekapcsolva (%{display_domain})",
+    "text": "Kétlépcsős hitelesítés bekapcsolva (%{display_domain})",
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Kétfaktoros hitelesítés bekapcsolva",
+    "text": "Kétlépcsős hitelesítés bekapcsolva",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "A kétfaktoros hitelesítést bekapcsolták a %{product_name} fiókjánál %{date} dátummal.",
+    "text": "A kétlépcsős hitelesítés bekapcsolásra került a(z) %{product_name} fiókodban %{date} napon.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Fiókja most biztonságosabb. Bejelentkezéskor meg kell adnia egy ellenőrző kódot a hitelesítő alkalmazásból.",
+    "text": "A fiókod most biztonságosabb. Bejelentkezéskor meg kell adnod egy ellenőrző kódot a hitelesítő alkalmazásodból.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -472,19 +472,19 @@
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Kétfaktoros hitelesítés kikapcsolva (%{display_domain})",
+    "text": "Kétlépcsős hitelesítés kikapcsolva (%{display_domain})",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Kétfaktoros hitelesítés kikapcsolva",
+    "text": "Kétlépcsős hitelesítés kikapcsolva",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "A kétfaktoros hitelesítést kikapcsolták a %{product_name} fiókjánál %{date} dátummal.",
+    "text": "A kétlépcsős hitelesítés kikapcsolásra került a(z) %{product_name} fiókodban %{date} napon.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Fiókja most kevésbé biztonságos. Ha nem Ön kezdeményezte ezt a módosítást, kérjük, azonnal biztosítsa fiókját.",
+    "text": "A fiókod most kevésbé biztonságos. Ha nem te hajtottad végre ezt a módosítást, kérjük, azonnal biztosítsd a fiókodat.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -492,7 +492,7 @@
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Új bejelentkezés a fiókjába (%{display_domain})",
+    "text": "Új bejelentkezés a fiókodba (%{display_domain})",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
@@ -500,7 +500,7 @@
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Új bejelentkezést észleltünk a %{product_name} fiókjába %{date} dátummal, %{time} időpontban.",
+    "text": "Új bejelentkezés történt a(z) %{product_name} fiókodba %{date} napon %{time} időpontban.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,11 +516,11 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Ha nem Ön volt, fiókja veszélybe kerülhetett.",
+    "text": "Ha nem te voltál, a fiókod kompromittálódhatott.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Fiók biztonságossá tétele",
+    "text": "Fiókod biztosítása",
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
@@ -528,15 +528,15 @@
     "source_hash": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Eltávolították a(z) %{organization_name} szervezetből",
+    "text": "Eltávolítottak a(z) %{organization_name} szervezetből",
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Eltávolították a(z) %{organization_name} szervezetből",
+    "text": "Eltávolítottak a(z) %{organization_name} szervezetből",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Eltávolították a \"%{organization_name}\" szervezetből a %{product_name} szolgáltatásban.",
+    "text": "Eltávolítottak a(z) \"%{organization_name}\" szervezetből a(z) %{product_name} szolgáltatásban.",
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
@@ -544,15 +544,15 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Szerepköre megváltozott a(z) %{organization_name} szervezetben",
+    "text": "A szerepköröd megváltozott a(z) %{organization_name} szervezetben",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Szerepköre megváltozott",
+    "text": "A szerepköröd megváltozott",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Szerepköre a(z) \"%{organization_name}\" szervezetben megváltozott %{old_role} szerepkörről %{new_role} szerepkörre.",
+    "text": "A szerepköröd a(z) \"%{organization_name}\" szervezetben a következőről módosult: %{old_role} a következőre: %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -560,7 +560,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "A(z) \"%{organization_name}\" szervezet törölve",
+    "text": "A(z) \"%{organization_name}\" szervezet törölve lett",
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
@@ -568,7 +568,7 @@
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "A(z) \"%{organization_name}\" szervezet törölve lett a %{product_name} szolgáltatásból. Minden kapcsolódó adat eltávolítva.",
+    "text": "A(z) \"%{organization_name}\" szervezet törölve lett a(z) %{product_name} szolgáltatásból. Minden kapcsolódó adat eltávolításra került.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -576,15 +576,15 @@
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Fizetési nyugta a %{product_name} szolgáltatásért",
+    "text": "Fizetési bizonylat a(z) %{product_name} szolgáltatáshoz",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Fizetési nyugta",
+    "text": "Fizetési bizonylat",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Köszönjük a fizetését. Íme a fizetési részletek:",
+    "text": "Köszönjük a fizetésedet. Íme a fizetési adataid:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
@@ -608,7 +608,7 @@
     "source_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "Sikertelen fizetés a %{product_name} szolgáltatásért",
+    "text": "Sikertelen fizetés a(z) %{product_name} szolgáltatáshoz",
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
@@ -616,7 +616,7 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Nem sikerült feldolgozni a fizetését a %{product_name} szolgáltatásért. Kérjük, frissítse fizetési módját a szolgáltatás megszakadásának elkerülése érdekében.",
+    "text": "Nem tudtuk feldolgozni a fizetésedet a(z) %{product_name} szolgáltatáshoz. Kérjük, frissítsd a fizetési módodat a szolgáltatás megszakadásának elkerülése érdekében.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
@@ -628,15 +628,15 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "A %{product_name} próbaidőszaka %{days_remaining} nap múlva lejár",
+    "text": "A(z) %{product_name} próbaidőszakod %{days_remaining} nap múlva lejár",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Próbaidőszaka hamarosan lejár",
+    "text": "A próbaidőszakod hamarosan véget ér",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "A %{product_name} ingyenes próbaidőszaka %{days_remaining} nap múlva lejár. Frissítsen most, hogy megtartsa az összes funkció elérését.",
+    "text": "A(z) %{product_name} ingyenes próbaidőszakod %{days_remaining} nap múlva lejár. Frissíts most, hogy megtartsd a hozzáférést az összes funkcióhoz.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -648,7 +648,7 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "A %{product_name} előfizetése módosult",
+    "text": "A(z) %{product_name} előfizetésed módosult",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
@@ -656,7 +656,7 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "A %{product_name} előfizetése módosult %{old_plan} csomagról %{new_plan} csomagra.",
+    "text": "A(z) %{product_name} előfizetésed a következőről módosult: %{old_plan} a következőre: %{new_plan}.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
@@ -668,11 +668,11 @@
     "source_hash": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Üdvözöljük,",
+    "text": "Üdvözlet!",
     "source_hash": "dafe7694"
   },
   "email.common.thanks": {
-    "text": "Köszönettel,",
+    "text": "Köszönjük,",
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
