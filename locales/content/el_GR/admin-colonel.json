@@ -32,7 +32,7 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Επεξεργασία ρυθμίσεων διαμόρφωσης συστήματος. Οι αλλαγές εφαρμόζονται αμέσως μετά την αποθήκευση.",
+    "text": "Επεξεργασία ρυθμίσεων συστήματος. Οι αλλαγές εφαρμόζονται αμέσως μετά την αποθήκευση.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
@@ -44,23 +44,23 @@
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Σφάλμα φόρτωσης διαμόρφωσης",
+    "text": "Σφάλμα φόρτωσης ρυθμίσεων",
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Σφάλμα αποθήκευσης διαμόρφωσης",
+    "text": "Σφάλμα αποθήκευσης ρυθμίσεων",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "Η διαμόρφωση αποθηκεύτηκε επιτυχώς",
+    "text": "Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "Η διαμόρφωση πρέπει να είναι αντικείμενο JSON",
+    "text": "Η ρύθμιση πρέπει να είναι αντικείμενο JSON",
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Πολλές ενότητες έχουν σφάλματα επικύρωσης: {sections}",
+    "text": "Πολλαπλές ενότητες έχουν σφάλματα επικύρωσης: {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
@@ -92,7 +92,7 @@
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "Η ενότητα {section} δεν έχει διαμορφωμένες τιμές",
+    "text": "Η ενότητα {section} δεν έχει ρυθμισμένες τιμές",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -100,7 +100,7 @@
     "source_hash": "67b69646"
   },
   "web.colonel.admin": {
-    "text": "Διαχειριστής",
+    "text": "Διαχείριση",
     "source_hash": "c1c224b0"
   },
   "web.colonel.activity": {
@@ -132,7 +132,7 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.welcome": {
-    "text": "Καλώς ήρθατε στο Colonel",
+    "text": "Καλώς ορίσατε στο Colonel",
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
@@ -156,7 +156,7 @@
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Συνολικά μυστικά",
+    "text": "Σύνολο μυστικών",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -176,11 +176,11 @@
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Συνολικοί χρήστες",
+    "text": "Σύνολο χρηστών",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Απεσταλμένα email",
+    "text": "Email που στάλθηκαν",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
@@ -208,7 +208,7 @@
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Διαμόρφωση τομέων",
+    "text": "Ρύθμιση τομέων",
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
@@ -220,7 +220,7 @@
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "Διαμόρφωση εφαρμογής",
+    "text": "Ρύθμιση εφαρμογής",
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
@@ -244,7 +244,7 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Ρυθμός/δευτ",
+    "text": "Ρυθμός/δευτ.",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Λειτουργία δοκιμαστικού πλάνου",
+    "text": "Δοκιμαστική λειτουργία πλάνου",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -276,7 +276,7 @@
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "Κλικ για επαναφορά",
+    "text": "Κάντε κλικ για επαναφορά",
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
@@ -296,11 +296,11 @@
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
-    "text": "Ενεργοποίηση λειτουργίας δοκιμής",
+    "text": "Ενεργοποίηση δοκιμαστικής λειτουργίας",
     "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
-    "text": "Λειτουργία δοκιμής ενεργή",
+    "text": "Δοκιμαστική λειτουργία ενεργή",
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
@@ -316,7 +316,7 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Παρακολούθηση υγείας συγχρονισμού χρεώσεων οργανισμών",
+    "text": "Παρακολούθηση υγείας συγχρονισμού χρεώσεων οργανισμού",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
@@ -356,7 +356,7 @@
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
-    "text": "Άγνωστο",
+    "text": "Άγνωστα",
     "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.filters.synced": {
@@ -368,7 +368,7 @@
     "source_hash": "92340695"
   },
   "web.colonel.organizations.filters.trialing": {
-    "text": "Δοκιμαστική περίοδος",
+    "text": "Δοκιμαστικά",
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
@@ -384,7 +384,7 @@
     "source_hash": "7e1b0d56"
   },
   "web.colonel.organizations.columns.billing": {
-    "text": "Χρεώσεις",
+    "text": "Χρέωση",
     "source_hash": "3ac8bbca"
   },
   "web.colonel.organizations.columns.status": {
@@ -428,7 +428,7 @@
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "Έχει χρεώσεις",
+    "text": "Έχει χρέωση",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
@@ -444,7 +444,7 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "πιθανώς παλιά",
+    "text": "πιθανώς παλιό",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
@@ -476,7 +476,7 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID οργανισμού",
+    "text": "Αναγν. οργανισμού",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
@@ -492,7 +492,7 @@
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "Βρέθηκε αναντιστοιχία",
+    "text": "Βρέθηκε ασυμφωνία",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
@@ -516,7 +516,7 @@
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
-    "text": "ID τιμής",
+    "text": "Αναγν. τιμής",
     "source_hash": "b39a8f3e"
   },
   "web.colonel.organizations.investigation.local": {
@@ -548,7 +548,7 @@
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Διαχείριση λίστας αποκλεισμένων IP",
+    "text": "Διαχείριση λίστας αποκλεισμού IP",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {

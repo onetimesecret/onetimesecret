@@ -28,11 +28,11 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Καλώς ήρθατε στο %{product_name} - Επαληθεύστε το email σας",
+    "text": "Καλώς ορίσατε στο %{product_name} - Επαληθεύστε το email σας",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Καλώς ήρθατε στο %{product_name}!",
+    "text": "Καλώς ορίσατε στο %{product_name}!",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
@@ -52,23 +52,23 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}. Εάν δεν δημιουργήσατε λογαριασμό, μπορείτε να αγνοήσετε με ασφάλεια αυτό το μήνυμα.",
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}. Εάν δεν δημιουργήσατε λογαριασμό, μπορείτε να αγνοήσετε αυτό το μήνυμα.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Επαναφορά του κωδικού σας (%{display_domain})",
+    "text": "Επαναφορά κωδικού πρόσβασης (%{display_domain})",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Επαναφορά του κωδικού σας",
+    "text": "Επαναφέρετε τον κωδικό πρόσβασής σας",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Λάβαμε αίτημα επαναφοράς του κωδικού σας για το %{product_name}.",
+    "text": "Λάβαμε αίτημα επαναφοράς του κωδικού πρόσβασής σας για το %{product_name}.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Επαναφορά κωδικού",
+    "text": "Επαναφορά κωδικού πρόσβασης",
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
@@ -76,7 +76,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Εάν δεν ζητήσατε επαναφορά κωδικού, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
+    "text": "Εάν δεν ζητήσατε επαναφορά κωδικού πρόσβασης, μπορείτε να αγνοήσετε αυτό το email.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -96,7 +96,7 @@
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Ζητήσατε έναν σύνδεσμο σύνδεσης για τον λογαριασμό σας στο %{product_name}.",
+    "text": "Ζητήσατε σύνδεσμο σύνδεσης για τον λογαριασμό σας %{product_name}.",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
@@ -112,7 +112,7 @@
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Εάν δεν ζητήσατε αυτόν τον σύνδεσμο, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
+    "text": "Εάν δεν ζητήσατε αυτόν τον σύνδεσμο, μπορείτε να αγνοήσετε αυτό το email.",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -132,7 +132,7 @@
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Υπόμνημα:",
+    "text": "Σημείωμα:",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -176,11 +176,11 @@
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "ID μυστικού:",
+    "text": "Αναγν. μυστικού:",
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Αυτή είναι μια αυτοματοποιημένη ειδοποίηση. Δεν απαιτείται καμία ενέργεια.",
+    "text": "Αυτή είναι μια αυτοματοποιημένη ειδοποίηση. Δεν απαιτείται ενέργεια.",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -192,15 +192,15 @@
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Για να διαχειριστείτε τις προτιμήσεις ειδοποιήσεών σας:",
+    "text": "Για διαχείριση των προτιμήσεων ειδοποιήσεών σας:",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Ο μυστικός σας σύνδεσμος θα λήξει σύντομα",
+    "text": "Ο σύνδεσμος μυστικού σας θα λήξει σύντομα",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Ο μυστικός σας σύνδεσμος θα λήξει σε %{time_remaining}",
+    "text": "Ο σύνδεσμος μυστικού σας θα λήξει σε %{time_remaining}",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
@@ -212,7 +212,7 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά και δεν μπορεί να ανακτηθεί.",
+    "text": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά και δεν θα μπορεί να ανακτηθεί.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -220,7 +220,7 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Δείτε το πριν χαθεί:",
+    "text": "Δείτε το πριν εξαφανιστεί:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
@@ -252,19 +252,19 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Υποστήριξη μυστικών",
+    "text": "Secret Support",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Σας προσκάλεσαν να συμμετάσχετε στο %{organization_name}",
+    "text": "Προσκληθήκατε να συμμετάσχετε στον οργανισμό %{organization_name}",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Σας προσκάλεσαν να συμμετάσχετε στο %{organization_name}!",
+    "text": "Προσκληθήκατε να συμμετάσχετε στον οργανισμό %{organization_name}",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "Ο/Η %{inviter_email} σας προσκάλεσε να συμμετάσχετε στο \"%{organization_name}\" ως %{role_description}.",
+    "text": "Ο/Η %{inviter_email} σας προσκάλεσε να συμμετάσχετε στον οργανισμό \"%{organization_name}\" ως %{role_description}.",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
@@ -280,7 +280,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Εάν δεν θέλετε να συμμετάσχετε, μπορείτε απλά να αγνοήσετε αυτό το email ή να απορρίψετε την πρόσκληση.",
+    "text": "Εάν δεν θέλετε να συμμετάσχετε, μπορείτε απλώς να αγνοήσετε αυτό το email ή να απορρίψετε την πρόσκληση.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{invited_email}. Εάν δεν περιμένατε αυτήν την πρόσκληση, μπορείτε να αγνοήσετε με ασφάλεια αυτό το μήνυμα.",
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{invited_email}. Εάν δεν περιμένατε αυτή την πρόσκληση, μπορείτε να αγνοήσετε αυτό το μήνυμα.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -312,7 +312,7 @@
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Εάν δεν κάνατε εσείς αυτήν την αλλαγή, ασφαλίστε τον λογαριασμό σας αμέσως επαναφέροντας τον κωδικό σας και επικοινωνώντας με την υποστήριξη.",
+    "text": "Εάν δεν κάνατε αυτή την αλλαγή, ασφαλίστε τον λογαριασμό σας αμέσως επαναφέροντας τον κωδικό πρόσβασής σας και επικοινωνώντας με την υποστήριξη.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -328,15 +328,15 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} άλλαξε σε %{new_email_masked}.",
+    "text": "Η διεύθυνση email του λογαριασμού σας %{product_name} άλλαξε σε %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Εάν δεν κάνατε εσείς αυτήν την αλλαγή, επικοινωνήστε αμέσως με την υποστήριξη καθώς ο λογαριασμός σας μπορεί να έχει παραβιαστεί.",
+    "text": "Εάν δεν κάνατε αυτή την αλλαγή, επικοινωνήστε αμέσως με την υποστήριξη καθώς ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
-    "text": "Η διεύθυνση email του λογαριασμού σας στο %{product_name} έχει αλλάξει.",
+    "text": "Η διεύθυνση email στον λογαριασμό σας %{product_name} άλλαξε.",
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
@@ -344,19 +344,19 @@
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Αλλάχθηκε στις:",
+    "text": "Αλλάχτηκε στις:",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Εάν πραγματοποιήσατε εσείς αυτή την αλλαγή, δεν απαιτείται περαιτέρω ενέργεια.",
+    "text": "Εάν κάνατε εσείς αυτή την αλλαγή, δεν απαιτείται περαιτέρω ενέργεια.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Εάν δεν πραγματοποιήσατε αυτή την αλλαγή, ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί.",
+    "text": "Εάν δεν κάνατε αυτή την αλλαγή, ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Επικοινωνία με την υποστήριξη",
+    "text": "Επικοινωνία με υποστήριξη",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,23 +364,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address} για να σας ενημερώσει για μια αλλαγή διεύθυνσης email.",
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address} για να σας ενημερώσει για αλλαγή διεύθυνσης email.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Ζητήθηκε αλλαγή email (%{display_domain})",
+    "text": "Αίτημα αλλαγής email (%{display_domain})",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Ζητήθηκε αλλαγή email",
+    "text": "Αίτημα αλλαγής email",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Υποβλήθηκε αίτημα αλλαγής της διεύθυνσης email του λογαριασμού σας στο %{product_name}.",
+    "text": "Υποβλήθηκε αίτημα αλλαγής της διεύθυνσης email στον λογαριασμό σας %{product_name}.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Ζητούμενο νέο email:",
+    "text": "Νέο email που ζητήθηκε:",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
@@ -388,15 +388,15 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Εάν υποβάλατε εσείς αυτό το αίτημα, ελέγξτε το νέο σας email για σύνδεσμο επιβεβαίωσης. Δεν έχουν γίνει αλλαγές ακόμα.",
+    "text": "Εάν κάνατε εσείς αυτό το αίτημα, ελέγξτε το νέο σας email για σύνδεσμο επιβεβαίωσης. Δεν έχουν γίνει ακόμη αλλαγές.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Εάν δεν υποβάλατε αυτό το αίτημα, μπορείτε να αγνοήσετε αυτό το email. Ο λογαριασμός σας δεν έχει αλλάξει.",
+    "text": "Εάν δεν κάνατε αυτό το αίτημα, μπορείτε να αγνοήσετε αυτό το email. Ο λογαριασμός σας δεν έχει αλλάξει.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Επικοινωνία με την υποστήριξη",
+    "text": "Επικοινωνία με υποστήριξη",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -416,7 +416,7 @@
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Επαληθεύστε αυτή τη διεύθυνση email για να ολοκληρώσετε την αλλαγή του λογαριασμού σας στο %{product_name}.",
+    "text": "Παρακαλούμε επαληθεύστε αυτή τη διεύθυνση email για να ολοκληρώσετε την αλλαγή στον λογαριασμό σας %{product_name}.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
@@ -424,7 +424,7 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Υποβλήθηκε αίτημα αλλαγής της διεύθυνσης email του λογαριασμού σας στο %{product_name} σε %{new_email}.",
+    "text": "Υποβλήθηκε αίτημα αλλαγής της διεύθυνσης email στον λογαριασμό σας %{product_name} σε %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -452,19 +452,19 @@
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
-    "text": "Η επαλήθευση δύο παραγόντων ενεργοποιήθηκε (%{display_domain})",
+    "text": "Ο έλεγχος ταυτότητας δύο παραγόντων ενεργοποιήθηκε (%{display_domain})",
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Η επαλήθευση δύο παραγόντων ενεργοποιήθηκε",
+    "text": "Ο έλεγχος ταυτότητας δύο παραγόντων ενεργοποιήθηκε",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Η επαλήθευση δύο παραγόντων ενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}.",
+    "text": "Ο έλεγχος ταυτότητας δύο παραγόντων ενεργοποιήθηκε για τον λογαριασμό σας %{product_name} στις %{date}.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Ο λογαριασμός σας είναι τώρα πιο ασφαλής. Θα χρειαστεί να εισάγετε έναν κωδικό επαλήθευσης από την εφαρμογή ταυτοποίησης κατά τη σύνδεση.",
+    "text": "Ο λογαριασμός σας είναι πλέον πιο ασφαλής. Θα χρειαστεί να εισάγετε κωδικό επαλήθευσης από την εφαρμογή ταυτοποίησης κατά τη σύνδεση.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -472,19 +472,19 @@
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Η επαλήθευση δύο παραγόντων απενεργοποιήθηκε (%{display_domain})",
+    "text": "Ο έλεγχος ταυτότητας δύο παραγόντων απενεργοποιήθηκε (%{display_domain})",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Η επαλήθευση δύο παραγόντων απενεργοποιήθηκε",
+    "text": "Ο έλεγχος ταυτότητας δύο παραγόντων απενεργοποιήθηκε",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Η επαλήθευση δύο παραγόντων απενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}.",
+    "text": "Ο έλεγχος ταυτότητας δύο παραγόντων απενεργοποιήθηκε για τον λογαριασμό σας %{product_name} στις %{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Ο λογαριασμός σας είναι τώρα λιγότερο ασφαλής. Εάν δεν κάνατε εσείς αυτήν την αλλαγή, ασφαλίστε τον λογαριασμό σας αμέσως.",
+    "text": "Ο λογαριασμός σας είναι πλέον λιγότερο ασφαλής. Εάν δεν κάνατε αυτή την αλλαγή, ασφαλίστε τον λογαριασμό σας αμέσως.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -500,7 +500,7 @@
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Εντοπίστηκε νέα σύνδεση στον λογαριασμό σας στο %{product_name} στις %{date} στις %{time}.",
+    "text": "Εντοπίστηκε νέα σύνδεση στον λογαριασμό σας %{product_name} στις %{date} στις %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Εάν δεν ήσασταν εσείς, ο λογαριασμός σας μπορεί να έχει παραβιαστεί.",
+    "text": "Εάν δεν ήσασταν εσείς, ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -544,7 +544,7 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Ο ρόλος σας άλλαξε στο %{organization_name}",
+    "text": "Ο ρόλος σας άλλαξε στον οργανισμό %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
@@ -552,7 +552,7 @@
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Ο ρόλος σας στο \"%{organization_name}\" άλλαξε από %{old_role} σε %{new_role}.",
+    "text": "Ο ρόλος σας στον οργανισμό \"%{organization_name}\" άλλαξε από %{old_role} σε %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -584,7 +584,7 @@
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Σας ευχαριστούμε για την πληρωμή σας. Ακολουθούν τα στοιχεία πληρωμής σας:",
+    "text": "Ευχαριστούμε για την πληρωμή σας. Ακολουθούν τα στοιχεία πληρωμής:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
@@ -628,15 +628,15 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Η δοκιμαστική σας περίοδος στο %{product_name} λήγει σε %{days_remaining} ημέρες",
+    "text": "Η δοκιμαστική περίοδος %{product_name} λήγει σε %{days_remaining} ημέρες",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Η δοκιμαστική περίοδος τελειώνει σύντομα",
+    "text": "Η δοκιμαστική περίοδος λήγει σύντομα",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Η δωρεάν δοκιμαστική σας περίοδος στο %{product_name} θα λήξει σε %{days_remaining} ημέρες. Αναβαθμίστε τώρα για να διατηρήσετε την πρόσβαση σε όλες τις λειτουργίες.",
+    "text": "Η δωρεάν δοκιμαστική περίοδος του %{product_name} θα λήξει σε %{days_remaining} ημέρες. Αναβαθμίστε τώρα για να διατηρήσετε πρόσβαση σε όλες τις λειτουργίες.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -660,7 +660,7 @@
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Αυτή η αλλαγή τίθεται σε ισχύ στις %{date}.",
+    "text": "Αυτή η αλλαγή ισχύει από %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {

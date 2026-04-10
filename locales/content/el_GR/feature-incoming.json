@@ -12,11 +12,11 @@
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Αποτυχία φόρτωσης διαμόρφωσης",
+    "text": "Αποτυχία φόρτωσης ρυθμίσεων",
     "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
-    "text": "Λειτουργία μη διαθέσιμη",
+    "text": "Η λειτουργία δεν είναι διαθέσιμη",
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
@@ -24,15 +24,15 @@
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "Υπόμνημα",
+    "text": "Σημείωμα",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Σύντομη περιγραφή (π.χ. Αίτημα επαναφοράς κωδικού)",
+    "text": "Σύντομη περιγραφή (π.χ., Αίτημα επαναφοράς κωδικού)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Βοηθήστε μας να δρομολογήσουμε το μήνυμά σας στο σωστό άτομο",
+    "text": "Βοηθήστε μας να δρομολογήσουμε το μήνυμά σας στο κατάλληλο άτομο",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -60,11 +60,11 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Επικολλήστε ευαίσθητες πληροφορίες εδώ (κωδικοί, κλειδιά κ.λπ.)",
+    "text": "Επικολλήστε ευαίσθητες πληροφορίες εδώ (κωδικοί, κλειδιά, κ.λπ.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Αυτές οι πληροφορίες θα κρυπτογραφηθούν και θα είναι προβάσιμες μόνο μία φορά",
+    "text": "Αυτές οι πληροφορίες θα κρυπτογραφηθούν και θα είναι δυνατή η προβολή τους μόνο μία φορά",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -104,11 +104,11 @@
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Τι γίνεται μετά;",
+    "text": "Τι γίνεται στη συνέχεια;",
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Ο παραλήπτης θα μπορεί να δει αυτό το μυστικό μόνο μία φορά. Αφού το δει, το μυστικό θα διαγραφεί οριστικά.",
+    "text": "Ο παραλήπτης θα μπορεί να δει αυτό το μυστικό μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -120,7 +120,7 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Κρατήστε τους κωδικούς και τα ιδιωτικά δεδομένα μακριά από email και αρχεία συνομιλιών",
+    "text": "Κρατήστε κωδικούς και ιδιωτικά δεδομένα εκτός email και αρχείων συνομιλίας",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "απόδειξη",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Απαιτείται αναβάθμιση"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Αυτή η λειτουργία απαιτεί αναβάθμιση πλάνου. Επικοινωνήστε με τον ιδιοκτήτη του λογαριασμού για να ενεργοποιήσετε τα εισερχόμενα μυστικά."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Το σημείωμα πρέπει να είναι {max} χαρακτήρες ή λιγότερο"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Απαιτείται περιεχόμενο μυστικού"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Επιλέξτε παραλήπτη"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Η λειτουργία εισερχόμενων μυστικών δεν είναι ενεργοποιημένη"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Ελέγξτε τη φόρμα για σφάλματα"
   }
 }

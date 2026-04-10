@@ -4,11 +4,11 @@
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Εγγραφή.",
+    "text": "Εγγραφείτε.",
     "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Ξεχάσατε τον κωδικό σας;",
+    "text": "Ξεχάσατε τον κωδικό πρόσβασής σας;",
     "source_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
@@ -28,7 +28,7 @@
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Θα σταλεί ασφαλής σύνδεσμος στο email σας.",
+    "text": "Ένας ασφαλής σύνδεσμος θα σταλεί στο email σας.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -40,7 +40,7 @@
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Χρήση σύνδεσης χωρίς κωδικό",
+    "text": "Χρήση σύνδεσης χωρίς κωδικό πρόσβασης",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
@@ -56,7 +56,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "Σύνδεσμος σύνδεσης",
+    "text": "Μαγικός σύνδεσμος",
     "source_hash": "7a9ba11a"
   },
   "web.login.tab_passkey": {
@@ -88,19 +88,19 @@
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "Η επαλήθευση SSO απέτυχε. Παρακαλώ δοκιμάστε ξανά ή χρησιμοποιήστε σύνδεση με κωδικό πρόσβασης.",
+    "text": "Η ταυτοποίηση SSO απέτυχε. Δοκιμάστε ξανά ή χρησιμοποιήστε σύνδεση με κωδικό πρόσβασης.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "Ο σύνδεσμος επαλήθευσης είναι ελλιπής. Παρακαλώ ζητήστε νέο σύνδεσμο σύνδεσης.",
+    "text": "Ο σύνδεσμος ταυτοποίησης είναι ελλιπής. Ζητήστε νέο σύνδεσμο σύνδεσης.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Αυτός ο σύνδεσμος σύνδεσης έχει λήξει. Παρακαλώ ζητήστε νέο.",
+    "text": "Αυτός ο σύνδεσμος σύνδεσης έχει λήξει. Ζητήστε νέο.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Αυτός ο σύνδεσμος σύνδεσης δεν είναι έγκυρος. Παρακαλώ ζητήστε νέο.",
+    "text": "Αυτός ο σύνδεσμος σύνδεσης δεν είναι έγκυρος. Ζητήστε νέο.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -112,7 +112,7 @@
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Σύνδεση.",
+    "text": "Συνδεθείτε.",
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
@@ -131,7 +131,7 @@
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Επαλήθευση του λογαριασμού σας",
+    "text": "Επαλήθευση λογαριασμού",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
@@ -143,7 +143,7 @@
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Αυτός ο σύνδεσμος επαλήθευσης έχει λήξει. Παρακαλώ ζητήστε νέο.",
+    "text": "Αυτός ο σύνδεσμος επαλήθευσης έχει λήξει. Ζητήστε νέο.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
@@ -151,15 +151,15 @@
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Αδύνατη η επαλήθευση λογαριασμού. Παρακαλώ προσπαθήστε ξανά ή επικοινωνήστε με την υποστήριξη.",
+    "text": "Αδυναμία επαλήθευσης λογαριασμού. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Παρακαλώ ελέγξτε το email σας για σύνδεσμο επαλήθευσης",
+    "text": "Ελέγξτε το email σας για σύνδεσμο επαλήθευσης",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Η επαλήθευση λογαριασμού απέτυχε. Παρακαλώ ελέγξτε τον σύνδεσμο επαλήθευσης ή ζητήστε νέο.",
+    "text": "Η επαλήθευση λογαριασμού απέτυχε. Ελέγξτε τον σύνδεσμο επαλήθευσης ή ζητήστε νέο.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -175,11 +175,11 @@
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Ελέγξτε τον φάκελο spam/ανεπιθύμητα αν δεν βρίσκετε το email",
+    "text": "Ελέγξτε τον φάκελο ανεπιθύμητης αλληλογραφίας εάν δεν βρίσκετε το email",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Επικοινωνήστε με την υποστήριξη αν συνεχίζετε να αντιμετωπίζετε προβλήματα",
+    "text": "Επικοινωνήστε με την υποστήριξη εάν συνεχίζετε να αντιμετωπίζετε προβλήματα",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
@@ -187,7 +187,7 @@
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Παρακαλώ χρησιμοποιήστε τον σύνδεσμο επαλήθευσης που στάλθηκε στη διεύθυνση email σας για να επαληθεύσετε τον λογαριασμό σας.",
+    "text": "Χρησιμοποιήστε τον σύνδεσμο επαλήθευσης που στάλθηκε στη διεύθυνση email σας για να επαληθεύσετε τον λογαριασμό σας.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Η αλλαγή κωδικού πρόσβασης απέτυχε. Παρακαλώ επαληθεύστε τον τρέχοντα κωδικό πρόσβασής σας και δοκιμάστε ξανά.",
+    "text": "Η αλλαγή κωδικού πρόσβασης απέτυχε. Επαληθεύστε τον τρέχοντα κωδικό πρόσβασής σας και δοκιμάστε ξανά.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -227,7 +227,7 @@
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
-    "text": "Κατανοώ ότι αυτή η ενέργεια είναι οριστική",
+    "text": "Κατανοώ ότι αυτή η ενέργεια είναι μόνιμη",
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
@@ -243,7 +243,7 @@
     "source_hash": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Αίτημα επαναφοράς κωδικού πρόσβασης",
+    "text": "Αίτηση επαναφοράς κωδικού πρόσβασης",
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
@@ -260,7 +260,7 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Παρακαλώ εισάγετε τον νέο σας κωδικό πρόσβασης παρακάτω. Βεβαιωθείτε ότι είναι ισχυρός και μοναδικός για να προστατεύσετε τον λογαριασμό σας.",
+    "text": "Εισάγετε τον νέο κωδικό πρόσβασής σας παρακάτω. Βεβαιωθείτε ότι είναι ισχυρός και μοναδικός για την προστασία του λογαριασμού σας.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
@@ -268,7 +268,7 @@
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
-    "text": "Συμφωνώ με",
+    "text": "Συμφωνώ με τους",
     "source_hash": "26a58d00"
   },
   "web.auth.account.title": {
@@ -301,15 +301,15 @@
     "source_hash": "d261b9df"
   },
   "web.auth.account.mfa_status": {
-    "text": "Ταυτοποίηση δύο παραγόντων",
+    "text": "Έλεγχος ταυτότητας δύο παραγόντων",
     "source_hash": "bc074b60"
   },
   "web.auth.account.mfa_enabled": {
-    "text": "Ενεργοποιημένη",
+    "text": "Ενεργοποιημένος",
     "source_hash": "92c1cdfd"
   },
   "web.auth.account.mfa_disabled": {
-    "text": "Απενεργοποιημένη",
+    "text": "Απενεργοποιημένος",
     "source_hash": "75081b59"
   },
   "web.auth.account.active_sessions": {
@@ -325,7 +325,7 @@
     "source_hash": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Διαχείριση ταυτοποίησης δύο παραγόντων",
+    "text": "Διαχείριση ελέγχου ταυτότητας δύο παραγόντων",
     "source_hash": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
@@ -341,7 +341,7 @@
     "source_hash": "e1513814"
   },
   "web.help.title": {
-    "text": "Βοήθεια & Υποστήριξη",
+    "text": "Βοήθεια και υποστήριξη",
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
@@ -349,15 +349,15 @@
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Δεν λαμβάνετε τον σύνδεσμο σύνδεσης;",
+    "text": "Ο μαγικός σύνδεσμος δεν φτάνει;",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Ελέγξτε τον φάκελο spam ή ανεπιθύμητα",
+    "text": "Ελέγξτε τον φάκελο ανεπιθύμητης αλληλογραφίας",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Επαληθεύστε ότι εισάγατε σωστά τη διεύθυνση email σας",
+    "text": "Βεβαιωθείτε ότι εισάγατε σωστά τη διεύθυνση email σας",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
@@ -365,7 +365,7 @@
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Δοκιμάστε να ζητήσετε νέο σύνδεσμο αν έχουν περάσει περισσότερα από 10 λεπτά",
+    "text": "Δοκιμάστε να ζητήσετε νέο σύνδεσμο εάν έχουν περάσει πάνω από 10 λεπτά",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Χρησιμοποιήστε την επιλογή Σύνδεσμος σύνδεσης για να συνδεθείτε χωρίς κωδικό πρόσβασης. Αφού συνδεθείτε, μπορείτε να αλλάξετε τον κωδικό πρόσβασής σας στις Ρυθμίσεις λογαριασμού.",
+    "text": "Χρησιμοποιήστε την επιλογή μαγικού συνδέσμου για σύνδεση χωρίς κωδικό πρόσβασης. Μόλις συνδεθείτε, μπορείτε να αλλάξετε τον κωδικό πρόσβασής σας στις ρυθμίσεις λογαριασμού.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,7 +381,7 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Μετά από πολλές αποτυχημένες προσπάθειες σύνδεσης, οι λογαριασμοί κλειδώνονται προσωρινά για λόγους ασφαλείας. Περιμένετε 15 λεπτά και δοκιμάστε ξανά, ή χρησιμοποιήστε τον σύνδεσμο σύνδεσης.",
+    "text": "Μετά από πολλαπλές αποτυχημένες προσπάθειες σύνδεσης, οι λογαριασμοί κλειδώνονται προσωρινά για ασφάλεια. Περιμένετε 15 λεπτά και δοκιμάστε ξανά ή χρησιμοποιήστε τον μαγικό σύνδεσμο για σύνδεση.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -389,11 +389,23 @@
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Αν εξακολουθείτε να αντιμετωπίζετε προβλήματα, είμαστε εδώ για να βοηθήσουμε. Στείλτε μας μήνυμα και θα σας απαντήσουμε το συντομότερο δυνατό.",
+    "text": "Εάν εξακολουθείτε να αντιμετωπίζετε πρόβλημα, είμαστε εδώ για να βοηθήσουμε. Στείλτε μας μήνυμα και θα σας απαντήσουμε το συντομότερο δυνατό.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "Επικοινωνία με την υποστήριξη",
+    "text": "Επικοινωνία με υποστήριξη",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Λογαριασμός SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Η ενιαία σύνδεση (SSO) είναι διαθέσιμη για αυτόν τον τομέα"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Ο διαχειριστής του οργανισμού μπορεί να ενεργοποιήσει SSO για να επιτρέψει στα μέλη της ομάδας να συνδέονται εδώ. Επικοινωνήστε με τον διαχειριστή για πρόσβαση."
   }
 }

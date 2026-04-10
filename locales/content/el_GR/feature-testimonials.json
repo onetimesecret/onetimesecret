@@ -4,7 +4,7 @@
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Περιεχόμενο δημιουργημένο από AI για επίδειξη. Δεν προέρχεται από πραγματικό άτομο ή εταιρεία.",
+    "text": "Περιεχόμενο δημιουργημένο από AI για επίδειξη. Δεν αντιπροσωπεύει πραγματικό πρόσωπο ή εταιρεία.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -16,7 +16,7 @@
     "source_hash": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "«{0}»",
+    "text": "\"{0}\"",
     "source_hash": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
@@ -24,7 +24,7 @@
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Τι λέει η κορυφαία AI για εμάς",
+    "text": "Τι λένε τα κορυφαία AI για εμάς",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
@@ -32,7 +32,7 @@
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Αυτή η αναφορά δημιουργήθηκε από",
+    "text": "Αυτό το απόσπασμα δημιουργήθηκε από",
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {

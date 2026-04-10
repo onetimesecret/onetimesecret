@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Διαχείριση οργανισμών σας",
+    "text": "Διαχείριση των οργανισμών σας",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -80,7 +80,7 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Για ποιο σκοπό είναι αυτός ο οργανισμός;",
+    "text": "Σε τι χρησιμεύει αυτός ο οργανισμός;",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
@@ -160,15 +160,15 @@
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Το email χρεώσεων μπορεί να αλλάξει στη σελίδα Επισκόπηση χρεώσεων",
+    "text": "Το email χρεώσεων μπορεί να αλλάξει στη σελίδα Επισκόπησης χρεώσεων",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Ενοποίηση χρεώσεων σύντομα διαθέσιμη",
+    "text": "Ενσωμάτωση χρεώσεων σύντομα διαθέσιμη",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Ενοποιημένη διαχείριση χρεώσεων και συνδρομών θα είναι διαθέσιμη σε μελλοντική έκδοση.",
+    "text": "Η ενοποιημένη διαχείριση χρεώσεων και συνδρομών θα είναι διαθέσιμη σε μελλοντική έκδοση.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -184,19 +184,19 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Ενημερώστε το όνομα εταιρείας και τα στοιχεία οργανισμού εδώ. Αυτές οι πληροφορίες βοηθούν στην εξατομίκευση του λογαριασμού σας και μπορούν να χρησιμοποιηθούν για λειτουργίες επωνυμίας στο μέλλον.",
+    "text": "Ενημερώστε το όνομα της εταιρείας σας και τα στοιχεία του οργανισμού εδώ. Αυτές οι πληροφορίες βοηθούν στην εξατομίκευση του λογαριασμού σας και μπορούν να χρησιμοποιηθούν για χαρακτηριστικά επωνυμίας στο μέλλον.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Ξεκινώντας με τους οργανισμούς",
+    "text": "Ξεκινήστε με τους οργανισμούς",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Δημιουργήστε τον πρώτο σας οργανισμό για διαχείριση πληροφοριών εταιρείας και προετοιμασία για μελλοντικές λειτουργίες επωνυμίας.",
+    "text": "Δημιουργήστε τον πρώτο σας οργανισμό για να διαχειριστείτε τις πληροφορίες της εταιρείας σας και να προετοιμαστείτε για μελλοντικά χαρακτηριστικά επωνυμίας.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Διαχείριση οργανισμών και μελών ομάδας",
+    "text": "Διαχείριση των οργανισμών και των μελών της ομάδας σας",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Επωνυμία εταιρείας",
+    "text": "Εταιρική επωνυμία",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Ομάδα",
+    "text": "Μέλη",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Αυτό θα διαγράψει οριστικά τον οργανισμό. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "text": "Αυτό θα διαγράψει μόνιμα τον οργανισμό. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -240,7 +240,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Είστε βέβαιοι ότι θέλετε να διαγράψετε τον {name}; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "text": "Είστε σίγουροι ότι θέλετε να διαγράψετε τον {name}; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Διαχείριση μελών οργανισμού και ρόλων τους",
+    "text": "Διαχείριση μελών οργανισμού και των ρόλων τους",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -284,7 +284,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Εντάχθηκε",
+    "text": "Εγγράφηκε",
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
@@ -292,11 +292,11 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Δεν υπάρχουν ακόμα μέλη. Προσκαλέστε μέλη ομάδας για να ξεκινήσετε.",
+    "text": "Δεν υπάρχουν μέλη ακόμα. Προσκαλέστε μέλη ομάδας για να ξεκινήσετε.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "Αυτός ο οργανισμός δεν έχει ακόμα μέλη.",
+    "text": "Αυτός ο οργανισμός δεν έχει μέλη ακόμα.",
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
@@ -320,7 +320,7 @@
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Είστε βέβαιοι ότι θέλετε να αφαιρέσετε τον/την {name} από αυτόν τον οργανισμό;",
+    "text": "Είστε σίγουροι ότι θέλετε να αφαιρέσετε τον/την {name} από αυτόν τον οργανισμό;",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
@@ -356,11 +356,11 @@
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "Μπορεί να διαχειρίζεται μέλη και τις περισσότερες ρυθμίσεις οργανισμού",
+    "text": "Μπορεί να διαχειριστεί μέλη και τις περισσότερες ρυθμίσεις οργανισμού",
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Βασική πρόσβαση σε πόρους οργανισμού",
+    "text": "Βασική πρόσβαση στους πόρους του οργανισμού",
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
@@ -400,7 +400,7 @@
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Η πρόσκληση στάλθηκε επιτυχώς",
+    "text": "Η πρόσκληση εστάλη επιτυχώς",
     "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
@@ -416,7 +416,7 @@
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Η πρόσκληση επαναποστάλθηκε επιτυχώς",
+    "text": "Η πρόσκληση εστάλη ξανά επιτυχώς",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
@@ -444,15 +444,15 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "Επαναποστάλθηκε {count} φορά",
+    "text": "Εστάλη ξανά {count} φορά",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "Επαναποστάλθηκε {count} φορές",
+    "text": "Εστάλη ξανά {count} φορές",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "Σε εκκρεμότητα",
+    "text": "Εκκρεμεί",
     "source_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Μέλος",
+    "text": "Μέλος ομάδας",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -488,7 +488,7 @@
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Έχετε προσκληθεί να συμμετάσχετε σε",
+    "text": "Έχετε προσκληθεί να εγγραφείτε στον",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Αναβαθμίστε το πακέτο σας για πρόσκληση μελών ομάδας",
+    "text": "Αναβαθμίστε το πλάνο σας για να προσκαλέσετε μέλη ομάδας",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Οι προσκλήσεις μελών ομάδας απαιτούν πακέτο με διαχείριση ομάδας. Αναβαθμίστε για να προσθέσετε συνεργάτες στον οργανισμό σας.",
+    "text": "Οι προσκλήσεις μελών ομάδας απαιτούν πλάνο με διαχείριση ομάδας. Αναβαθμίστε για να προσθέσετε συνεργάτες στον οργανισμό σας.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Συνδεδεμένοι με διαφορετικό λογαριασμό",
+    "text": "Συνδεδεμένος με διαφορετικό λογαριασμό",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Αυτή η πρόσκληση είναι για {invitedEmail}. Αυτή τη στιγμή είστε συνδεδεμένοι ως {currentEmail}.",
+    "text": "Αυτή η πρόσκληση είναι για {invitedEmail}. Αυτή τη στιγμή είστε συνδεδεμένος ως {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -568,15 +568,201 @@
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "Απομένουν {days}η",
+    "text": "{days}η απομένουν",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "Απομένουν {hours}ω",
+    "text": "{hours}ω απομένουν",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
     "text": "Λήγει σύντομα",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Προβολή και ρύθμιση των χώρων εργασίας σας"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "από {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "ως {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Πίσω στην αρχική"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Αυτή η πρόσκληση εστάλη σε αυτή τη διεύθυνση email"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Συνέχεια"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Σύνδεση & Αποδοχή πρόσκλησης"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Μετάβαση στους οργανισμούς"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Είστε ήδη μέλος αυτού του οργανισμού"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Εγγραφή στον {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Συνδεθείτε για να εγγραφείτε στον {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Απόρριψη"
+  },
+  "web.organizations.sso.title": {
+    "text": "Ενιαία σύνδεση (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Ρυθμίστε το SSO για να επιτρέψετε στα μέλη να συνδέονται με τον πάροχο ταυτότητας του οργανισμού σας"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Τύπος παρόχου"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Επιλέξτε τον πάροχο ταυτότητας του οργανισμού σας"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Εμφανιζόμενο όνομα"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Ένα φιλικό όνομα που εμφανίζεται στους χρήστες κατά τη σύνδεση"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "π.χ. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Αναγνωριστικό πελάτη"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Το αναγνωριστικό πελάτη OAuth σας"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Μυστικό πελάτη"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Το μυστικό πελάτη OAuth σας"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Αφήστε κενό για να διατηρήσετε το υπάρχον μυστικό"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Αναγνωριστικό μισθωτή"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Το αναγνωριστικό μισθωτή Azure AD / Entra ID σας"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "π.χ. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL εκδότη"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "Το URL ανακάλυψης OIDC του παρόχου ταυτότητάς σας"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "π.χ. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Επιτρεπόμενοι τομείς email"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Μόνο χρήστες με διευθύνσεις email από αυτούς τους τομείς μπορούν να συνδεθούν. Αφήστε κενό για να επιτρέψετε όλους τους τομείς."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "π.χ. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Παρακαλώ εισάγετε έγκυρο τομέα (π.χ. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Αυτός ο τομέας υπάρχει ήδη στη λίστα"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Αφαίρεση {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Ενεργοποίηση SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Όταν είναι ενεργοποιημένο, τα μέλη του οργανισμού μπορούν να συνδεθούν χρησιμοποιώντας αυτόν τον πάροχο SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Αποθήκευση ρύθμισης SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Διαγραφή ρύθμισης"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Είστε σίγουροι; Αυτό θα απενεργοποιήσει το SSO για τον οργανισμό σας."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Αποτυχία φόρτωσης ρύθμισης SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Αποτυχία αποθήκευσης ρύθμισης SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Η ρύθμιση SSO δημιουργήθηκε επιτυχώς"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Η ρύθμιση SSO ενημερώθηκε επιτυχώς"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Η ρύθμιση SSO διαγράφηκε επιτυχώς"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Αποτυχία διαγραφής ρύθμισης SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Δοκιμή σύνδεσης"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Επαλήθευση ότι ο πάροχος ταυτότητας είναι προσβάσιμος (δεν επαληθεύει τα διαπιστευτήρια)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Δοκιμή σύνδεσης"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Δοκιμή..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Αποτυχία δοκιμής σύνδεσης"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Τελικό σημείο εξουσιοδότησης"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Ελλιπή πεδία"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Ενεργοποιημένο"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Ρυθμισμένο"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO τομέα"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Ρύθμιση SSO για κάθε επαληθευμένο τομέα"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Για αλλαγή παρόχου, διαγράψτε πρώτα αυτή τη ρύθμιση"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Δεν έχει ρυθμιστεί"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Ομάδα"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

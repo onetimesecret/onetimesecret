@@ -673,11 +673,11 @@
     "source_hash": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Περισσότερα",
+    "text": "Εμφάνιση περισσότερων",
     "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Λιγότερα",
+    "text": "Εμφάνιση λιγότερων",
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
@@ -777,7 +777,7 @@
     "source_hash": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Μυστικός σύνδεσμος",
+    "text": "Σύνδεσμος μυστικού",
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
@@ -789,11 +789,11 @@
     "source_hash": "96d2098c"
   },
   "web.LABELS.items_count": {
-    "text": "{count} στοιχεία",
+    "text": "{count} Στοιχεία",
     "source_hash": "63e0dea7"
   },
   "web.LABELS.recipients_count": {
-    "text": "{count} παραλήπτες",
+    "text": "{count} Παραλήπτες",
     "source_hash": "48187543"
   },
   "web.LABELS.view": {
@@ -817,11 +817,11 @@
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Προστατεύεται με φράση πρόσβασης",
+    "text": "Προστασία με φράση πρόσβασης",
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "Τα σχόλια παραλήφθηκαν.",
+    "text": "Τα σχόλια ελήφθησαν.",
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
@@ -853,7 +853,7 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Μυστικοί σύνδεσμοι που δημιουργήθηκαν σε αυτή τη συνεδρία",
+    "text": "Σύνδεσμοι μυστικών που δημιουργήθηκαν σε αυτή τη συνεδρία",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -861,7 +861,7 @@
     "source_hash": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Δημιουργία μυστικού συνδέσμου",
+    "text": "Δημιουργία συνδέσμου μυστικού",
     "source_hash": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
@@ -877,7 +877,7 @@
     "source_hash": "68574b20"
   },
   "web.LABELS.benefits": {
-    "text": "Οφέλη",
+    "text": "Πλεονεκτήματα",
     "context": "Section header for listing benefits",
     "source_hash": "d5b67bc9"
   },
@@ -954,19 +954,19 @@
     "source_hash": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Χρόνος που απομένει",
+    "text": "Υπολειπόμενος χρόνος",
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει ακόμα προβληθεί",
+    "text": "Ο σύνδεσμος μυστικού δημιουργήθηκε και δεν έχει ακόμη προβληθεί",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει προβληθεί",
+    "text": "Ο σύνδεσμος μυστικού δημιουργήθηκε και δεν έχει προβληθεί",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για προβολή",
+    "text": "Ο σύνδεσμος μυστικού ανοίχτηκε και είναι έτοιμο για προβολή",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
@@ -974,7 +974,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Ο μυστικός σύνδεσμος ανοίχτηκε και είναι έτοιμος για αποκάλυψη",
+    "text": "Ο σύνδεσμος μυστικού ανοίχτηκε και είναι έτοιμο για αποκάλυψη",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -994,7 +994,7 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Το μυστικό έχει γίνει ορφανό και θα καταστραφεί σύντομα",
+    "text": "Το μυστικό έχει απομονωθεί και θα καταστραφεί σύντομα",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
@@ -1010,7 +1010,7 @@
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
-    "text": "DNS λανθασμένο",
+    "text": "Λανθασμένο DNS",
     "source_hash": "7848d601"
   },
   "web.STATUS.active": {
@@ -1118,11 +1118,11 @@
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
-    "text": "Ξεχάσατε τον κωδικό",
+    "text": "Ξεχάσατε τον κωδικό πρόσβασης",
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Επαναφορά κωδικού",
+    "text": "Επαναφορά κωδικού πρόσβασης",
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
@@ -1134,11 +1134,11 @@
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Επαλήθευση δύο παραγόντων",
+    "text": "Έλεγχος ταυτότητας δύο παραγόντων",
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
-    "text": "Σύνδεση με email",
+    "text": "Σύνδεση μέσω email",
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
@@ -1202,7 +1202,7 @@
     "source_hash": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
-    "text": "Γιατί έχει σημασία η κυριαρχία δεδομένων",
+    "text": "Γιατί η κυριαρχία δεδομένων είναι σημαντική",
     "source_hash": "67de6cf7"
   },
   "web.TITLES.profile_settings": {
@@ -1238,7 +1238,7 @@
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Επαλήθευση δύο παραγόντων",
+    "text": "Έλεγχος ταυτότητας δύο παραγόντων",
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
@@ -1250,7 +1250,7 @@
     "source_hash": "579c7f4e"
   },
   "web.TITLES.passkeys": {
-    "text": "Passkeys",
+    "text": "Κλειδιά πρόσβασης",
     "context": "Page title for passkey management",
     "source_hash": "c87ccdb4"
   },
@@ -1259,7 +1259,7 @@
     "source_hash": "6c2a9675"
   },
   "web.TITLES.advanced_settings": {
-    "text": "Προχωρημένες ρυθμίσεις",
+    "text": "Σύνθετες ρυθμίσεις",
     "source_hash": "22d4f608"
   },
   "web.TITLES.system_settings": {
@@ -1417,5 +1417,23 @@
   },
   "web.COMMON.or": {
     "text": "ή"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Εμφάνιση φράσης πρόσβασης"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Απόκρυψη φράσης πρόσβασης"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Ρυθμίσεις τομέα"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO τομέα"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Ρυθμίσεις email"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Εισερχόμενα μυστικά"
   }
 }
