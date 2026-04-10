@@ -32,7 +32,7 @@
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Organisaties bieden geünificeerde facturering en administratie. Begin met het aanmaken van je eerste organisatie.",
+    "text": "Organisaties bieden gecentraliseerde facturering en beheer. Begin door je eerste organisatie aan te maken.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
@@ -52,7 +52,7 @@
     "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
-    "text": "Maak een nieuwe organisatie aan",
+    "text": "Een nieuwe organisatie aanmaken",
     "source_hash": "67cd5950"
   },
   "web.organizations.create": {
@@ -80,7 +80,7 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Waarvoor is deze organisatie?",
+    "text": "Waar is deze organisatie voor?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
@@ -88,7 +88,7 @@
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Primair contact voor facturering en administratieve meldingen",
+    "text": "Primair contactadres voor facturerings- en beheersmeldingen",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -96,7 +96,7 @@
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organisatiewisseling niet beschikbaar op deze pagina",
+    "text": "Organisatie wisselen is niet beschikbaar op deze pagina",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Geünificeerd facturering- en abonnementsbeheer wordt beschikbaar in een toekomstige release.",
+    "text": "Gecentraliseerd facturerings- en abonnementsbeheer wordt beschikbaar in een toekomstige release.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,7 +176,7 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "Organisaties bieden geünificeerde facturering en administratie voor gecentraliseerd beheer.",
+    "text": "Organisaties bieden gecentraliseerde facturering en beheer.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
@@ -184,7 +184,7 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Werk hier je bedrijfsnaam en organisatiegegevens bij. Deze informatie helpt je account te personaliseren en kan worden gebruikt voor brandingfuncties in de toekomst.",
+    "text": "Werk hier je bedrijfsnaam en organisatiedetails bij. Deze informatie helpt je account te personaliseren en kan in de toekomst worden gebruikt voor brandingfuncties.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
+    "text": "Leden",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -332,7 +332,7 @@
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Je kunt de organisatie-eigenaar niet verwijderen",
+    "text": "Je kunt de eigenaar van de organisatie niet verwijderen",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
@@ -364,7 +364,7 @@
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Organisatie-uitnodigingen",
+    "text": "Organisatieuitnodigingen",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "lid{'@'}voorbeeld.com",
+    "text": "lid{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -452,7 +452,7 @@
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
-    "text": "In afwachting",
+    "text": "In behandeling",
     "source_hash": "331551b0"
   },
   "web.organizations.invitations.status.accepted": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Lid",
+    "text": "Teamlid",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -532,7 +532,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Teamleduitnodigingen vereisen een plan met teambeheer. Upgrade om medewerkers aan je organisatie toe te voegen.",
+    "text": "Uitnodigingen voor teamleden vereisen een plan met teambeheer. Upgrade om medewerkers aan je organisatie toe te voegen.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -540,7 +540,7 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "Vroege supporter",
+    "text": "Vroege ondersteuner",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
@@ -556,7 +556,7 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Ingelogd met een ander account",
+    "text": "Ander account ingelogd",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
@@ -584,7 +584,7 @@
     "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Configureer SSO om leden te laten inloggen met de identiteitsprovider van je organisatie",
+    "text": "Configureer SSO zodat leden kunnen inloggen met de identiteitsprovider van je organisatie",
     "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
@@ -616,11 +616,11 @@
     "source_hash": "830723da"
   },
   "web.organizations.sso.client_secret": {
-    "text": "Client Secret",
+    "text": "Client-secret",
     "source_hash": "ae21cf6d"
   },
   "web.organizations.sso.client_secret_placeholder": {
-    "text": "Je OAuth client secret",
+    "text": "Je OAuth client-secret",
     "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
@@ -644,7 +644,7 @@
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "De OIDC discovery-URL voor je identiteitsprovider",
+    "text": "De OIDC-discovery-URL voor je identiteitsprovider",
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
@@ -680,7 +680,7 @@
     "source_hash": "d10d0801"
   },
   "web.organizations.sso.enabled_hint": {
-    "text": "Wanneer ingeschakeld kunnen organisatieleden inloggen met deze SSO-provider",
+    "text": "Wanneer ingeschakeld, kunnen organisatieleden inloggen met deze SSO-provider",
     "source_hash": "d7da2fa2"
   },
   "web.organizations.sso.save_config": {
@@ -764,11 +764,53 @@
     "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
-    "text": "Verwijder eerst deze configuratie om van provider te wisselen",
+    "text": "Om van provider te wisselen, verwijder eerst deze configuratie",
     "source_hash": "0a1027ff"
   },
   "web.organizations.sso.status_not_configured": {
     "text": "Niet geconfigureerd",
     "source_hash": "bbea960e"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Bekijk en configureer je werkruimtes"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "door {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "als {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Terug naar home"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Deze uitnodiging is naar dit e-mailadres verzonden"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Doorgaan"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Inloggen en uitnodiging accepteren"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Naar organisaties"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Je bent al lid van deze organisatie"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Deelnemen aan {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Log in om deel te nemen aan {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Afwijzen"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

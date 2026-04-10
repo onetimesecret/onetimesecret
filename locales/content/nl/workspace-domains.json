@@ -12,7 +12,7 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Dit domein is al geregistreerd bij een andere organisatie. Neem contact op met de ondersteuning als je denkt dat dit een fout is.",
+    "text": "Dit domein is al geregistreerd bij een andere organisatie. Neem contact op met ondersteuning als je denkt dat dit een fout is.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
@@ -32,7 +32,7 @@
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
-    "text": "Privacystandaarden pictogram",
+    "text": "Privacystandaardenpictogram",
     "source_hash": "c6bef509"
   },
   "web.domains.default_ttl_label": {
@@ -48,7 +48,7 @@
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "Maak wachtwoordzin verplicht voor alle berichten in dit domein",
+    "text": "Maak een wachtwoordzin verplicht voor alle berichten in dit domein",
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Ingeschakeld",
+    "text": "Inschakelen",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -108,7 +108,7 @@
     "source_hash": "c776f846"
   },
   "web.domains.switcher_locked": {
-    "text": "Domeinwisseling niet beschikbaar op deze pagina",
+    "text": "Domein wisselen is niet beschikbaar op deze pagina",
     "source_hash": "ccd202fe"
   },
   "web.domains.scope_list_label": {
@@ -132,7 +132,7 @@
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
-    "text": "Voer een {0} domeinnaam in",
+    "text": "Voer een {0}-domeinnaam in",
     "source_hash": "167f2d19"
   },
   "web.domains.domain_name": {
@@ -144,11 +144,11 @@
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
-    "text": "Homepage-toegang",
+    "text": "Homepaginatoegang",
     "source_hash": "00c89609"
   },
   "web.domains.and_status": {
-    "text": "en status",
+    "text": "& Status",
     "source_hash": "fe871d2c"
   },
   "web.domains.domain": {
@@ -164,7 +164,7 @@
     "source_hash": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "Laatst gecontroleerd",
+    "text": "Laatst gemonitord",
     "source_hash": "8d39d1d0"
   },
   "web.domains.ssl_status": {
@@ -172,7 +172,7 @@
     "source_hash": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL vernieuwt",
+    "text": "SSL verlengt",
     "source_hash": "c49a8cff"
   },
   "web.domains.dns_record": {
@@ -268,7 +268,7 @@
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "secrets.voorbeeld.com",
+    "text": "secrets.example.com",
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
@@ -284,7 +284,7 @@
     "source_hash": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. Wacht op doorgifte",
+    "text": "3. Wacht op propagatie",
     "source_hash": "3e6cf4e1"
   },
   "web.domains.value_2": {
@@ -368,7 +368,7 @@
     "source_hash": "dd8180cf"
   },
   "web.domains.passphrase_set": {
-    "text": "Beveiligd",
+    "text": "Beschermd",
     "source_hash": "b0ed2633"
   },
   "web.domains.manage_domains": {
@@ -396,7 +396,7 @@
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "Gebruik de onderstaande tool om automatisch je DNS-provider te detecteren en stapsgewijze instructies te krijgen voor het configureren van je domein.",
+    "text": "Gebruik het onderstaande hulpmiddel om automatisch je DNS-provider te detecteren en stapsgewijze instructies te krijgen voor het configureren van je domein.",
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
@@ -436,7 +436,7 @@
     "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
-    "text": "Antwoordadres",
+    "text": "Antwoord-naar-adres",
     "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
@@ -448,7 +448,7 @@
     "source_hash": "35322b5b"
   },
   "web.domains.email.discard_changes": {
-    "text": "Wijzigingen annuleren",
+    "text": "Wijzigingen verwerpen",
     "source_hash": "e07e053c"
   },
   "web.domains.email.provider_ses": {
@@ -472,7 +472,7 @@
     "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
-    "text": "Vereist domeinauthenticatie-configuratie",
+    "text": "Vereist domeinauthenticatie-instelling",
     "source_hash": "71b53242"
   },
   "web.domains.email.provider_lettermint_description": {
@@ -568,11 +568,11 @@
     "source_hash": "2ba99a91"
   },
   "web.domains.email.default_sender_notice": {
-    "text": "E-mails voor dit domein worden momenteel verzonden vanaf de globale afzender. Voltooi de e-mailconfiguratie om je eigen afzenderidentiteit te gebruiken.",
+    "text": "E-mails voor dit domein worden momenteel verzonden vanaf de globale verzender. Voltooi de e-mailconfiguratie om je eigen verzenderidentiteit te gebruiken.",
     "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "Aangepaste e-mailverzending is momenteel uitgeschakeld. E-mails worden verzonden vanaf de globale afzender. Schakel de functie hieronder in om je aangepaste afzenderidentiteit te gebruiken.",
+    "text": "Aangepaste e-mailverzending is momenteel uitgeschakeld. E-mails worden verzonden vanaf de globale verzender. Schakel de functie hieronder in om je aangepaste verzenderidentiteit te gebruiken.",
     "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
@@ -580,7 +580,7 @@
     "source_hash": "dd1841d2"
   },
   "web.domains.email.badge_default_sender": {
-    "text": "Standaard afzender wordt gebruikt",
+    "text": "Gebruikt standaardverzender",
     "source_hash": "e1afb18f"
   },
   "web.domains.email.badge_verified": {
@@ -596,19 +596,19 @@
     "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "Geen e-mailafzender geconfigureerd — e-mails gebruiken de standaard platformafzender",
+    "text": "Geen e-mailverzender geconfigureerd — e-mails gebruiken de standaard platformverzender",
     "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "E-mailafzenderconfiguratie wacht op verificatie — e-mails gebruiken de standaard platformafzender",
+    "text": "E-mailverzenderconfiguratie wacht op verificatie — e-mails gebruiken de standaard platformverzender",
     "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "E-mailafzender is uitgeschakeld — e-mails gebruiken de standaard platformafzender",
+    "text": "E-mailverzender is uitgeschakeld — e-mails gebruiken de standaard platformverzender",
     "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "E-mailafzender geverifieerd — e-mails worden verzonden vanaf dit domein",
+    "text": "E-mailverzender geverifieerd — e-mails worden verzonden vanaf dit domein",
     "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
@@ -620,7 +620,7 @@
     "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "Sta externe gebruikers toe om berichten rechtstreeks naar aangewezen ontvangers op dit domein te sturen",
+    "text": "Sta externe gebruikers toe om berichten rechtstreeks te sturen naar aangewezen ontvangers op dit domein",
     "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
@@ -640,11 +640,11 @@
     "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Inkomende berichten is niet geconfigureerd voor dit domein. Voeg ontvangers toe om externe gebruikers berichten naar je team te laten sturen.",
+    "text": "Inkomende berichten is niet geconfigureerd voor dit domein. Voeg ontvangers toe zodat externe gebruikers berichten kunnen sturen naar je team.",
     "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "Inkomende berichten zijn momenteel uitgeschakeld. Externe gebruikers kunnen geen berichten naar ontvangers op dit domein sturen. Schakel de functie hieronder in om inkomende berichten toe te staan.",
+    "text": "Inkomende berichten zijn momenteel uitgeschakeld. Externe gebruikers kunnen geen berichten sturen naar ontvangers op dit domein. Schakel de functie hieronder in om inkomende berichten toe te staan.",
     "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
@@ -652,7 +652,7 @@
     "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "Bepaal wie inkomende berichten op dit domein kan ontvangen. Ontvangers ontvangen een e-mailmelding wanneer een bericht naar hen wordt gestuurd.",
+    "text": "Definieer wie inkomende berichten kan ontvangen op dit domein. Ontvangers ontvangen e-mailmeldingen wanneer een bericht naar hen wordt gestuurd.",
     "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
@@ -684,7 +684,7 @@
     "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Voeg ontvangers toe om externe gebruikers berichten naar je team te laten sturen.",
+    "text": "Voeg ontvangers toe zodat externe gebruikers berichten kunnen sturen naar je team.",
     "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
@@ -712,7 +712,7 @@
     "source_hash": "35322b5b"
   },
   "web.domains.incoming.discard_changes": {
-    "text": "Wijzigingen annuleren",
+    "text": "Wijzigingen verwerpen",
     "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
@@ -740,7 +740,7 @@
     "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "Inkomende berichten niet geconfigureerd - externe gebruikers kunnen geen berichten naar dit domein sturen",
+    "text": "Inkomende berichten niet geconfigureerd - externe gebruikers kunnen geen berichten sturen naar dit domein",
     "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
@@ -748,7 +748,7 @@
     "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "Inkomende berichten-functie is uitgeschakeld voor dit domein",
+    "text": "Functie inkomende berichten is uitgeschakeld voor dit domein",
     "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
@@ -756,7 +756,7 @@
     "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "Sta externe gebruikers toe om berichten naar ontvangers op dit domein te sturen",
+    "text": "Sta externe gebruikers toe om berichten te sturen naar ontvangers op dit domein",
     "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
@@ -764,7 +764,7 @@
     "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "Deel deze URL met externe gebruikers om hen berichten te laten versturen",
+    "text": "Deel deze URL met externe gebruikers zodat ze berichten kunnen verzenden",
     "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
@@ -776,7 +776,7 @@
     "source_hash": "2f396c3e"
   },
   "web.domains.incoming.remove_all_confirmation": {
-    "text": "Weet je zeker dat je alle ontvangers wilt verwijderen? Externe gebruikers kunnen dan geen berichten meer naar dit domein sturen.",
+    "text": "Weet je zeker dat je alle ontvangers wilt verwijderen? Externe gebruikers kunnen dan geen berichten meer sturen naar dit domein.",
     "source_hash": "06f9e551"
   },
   "web.domains.incoming.max_recipients_reached": {
@@ -788,7 +788,7 @@
     "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Opslaan vervangt alle bestaande ontvangers door je wijzigingen. Weet je het zeker?",
+    "text": "Opslaan vervangt alle bestaande ontvangers door je openstaande wijzigingen. Weet je het zeker?",
     "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
@@ -804,7 +804,7 @@
     "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Configureer single sign-on authenticatie voor dit domein",
+    "text": "Configureer single sign-on-authenticatie voor dit domein",
     "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
@@ -836,7 +836,97 @@
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO is nog niet geconfigureerd voor dit domein. Schakel single sign-on in om teamleden te laten authenticeren via de identiteitsprovider van je organisatie.",
+    "text": "SSO is nog niet geconfigureerd voor dit domein. Schakel single sign-on in zodat teamleden zich kunnen authenticeren via de identiteitsprovider van je organisatie.",
     "source_hash": "c439214b"
+  },
+  "web.domains.public_homepage": {
+    "text": "Publieke homepagina"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Domein geverifieerd en actief"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS niet geconfigureerd — klik om te herstellen"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Domein niet geverifieerd — klik om te verifiëren"
+  },
+  "web.domains.click_to_verify": {
+    "text": "klik om te verifiëren"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS-widget laden mislukt"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS-widget niet beschikbaar"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS-widget initialiseren mislukt"
+  },
+  "web.domains.verified": {
+    "text": "Geverifieerd"
+  },
+  "web.domains.pending_verification": {
+    "text": "Verificatie in behandeling"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Je hebt niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Beheren"
+  },
+  "web.domains.detail.features": {
+    "text": "Functies"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Berichten op homepagina"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Sta publieke toegang toe om berichten aan te maken op de homepagina van je domein"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, kleuren en aangepaste branding"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Instellingen voor single sign-on-provider"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Aangepaste configuratie voor e-mailverzender"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Instellingen voor inkomende berichtontvangers"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Provider"
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-mailbezorging testen"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Stuur een test-e-mail naar jezelf met de opgeslagen configuratie. Werkt ook als de functie nog niet is ingeschakeld."
+  },
+  "web.domains.email.send_test": {
+    "text": "Test verzenden"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test-e-mail succesvol verzonden"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test-e-mail verzenden mislukt"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "Verzonden naar {email}"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "Bezorgd via {provider}"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Verbindingstest geslaagd — provider heeft correct geantwoord"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Verbindingstest mislukt"
   }
 }

@@ -1,10 +1,10 @@
 {
   "web.testimonials.ai_generated_testimonial": {
-    "text": "AI-gegenereerde getuigenis",
+    "text": "Door AI gegenereerde aanbeveling",
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "AI-gegenereerde inhoud ter demonstratie. Niet van een echte persoon of bedrijf.",
+    "text": "Door AI gegenereerde inhoud ter demonstratie. Niet van een echt persoon of bedrijf.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -28,7 +28,7 @@
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
-    "text": "AI-gegenereerde getuigenissen",
+    "text": "Door AI gegenereerde aanbevelingen",
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {

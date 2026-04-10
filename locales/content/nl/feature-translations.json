@@ -20,7 +20,7 @@
     "source_hash": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
-    "text": "We zijn dankbaar voor de",
+    "text": "We zijn dankbaar aan de",
     "source_hash": "cf446287"
   },
   "web.translations.as_we_add_new_features_our_translations_graduall": {
@@ -48,7 +48,7 @@
     "source_hash": "1a843644"
   },
   "web.translations.start_a_new_translation_from_our": {
-    "text": "Start een nieuwe vertaling vanuit onze",
+    "text": "Start een nieuwe vertaling vanuit ons",
     "source_hash": "b963b7e9"
   },
   "web.translations.update_a_language_directly_through_our_github_pr": {
@@ -88,7 +88,7 @@
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Help beveiligde communicatie wereldwijd te verspreiden",
+    "text": "Help beveiligde communicatie wereldwijd beschikbaar te maken",
     "source_hash": "e94bdc8e"
   }
 }

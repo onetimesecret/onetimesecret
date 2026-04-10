@@ -16,7 +16,7 @@
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Belangrijk: Overschakelen naar een andere regio maakt een nieuw account aan. Je gegevens blijven in je oorspronkelijke regio.",
+    "text": "Belangrijk: Overstappen naar een andere regio maakt een nieuw account aan. Je gegevens blijven in je oorspronkelijke regio.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -52,15 +52,15 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Zorg ervoor dat je persoonlijke informatie wordt behandeld volgens de privacywetten en -regelgeving van je land, waardoor ongeautoriseerde toegang of misbruik wordt voorkomen.",
+    "text": "Zorg ervoor dat je persoonlijke informatie wordt behandeld volgens de privacywetten en -regelgeving van je land, en voorkom ongeoorloofde toegang of misbruik.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
-    "text": "Regelgevingsnaleving",
+    "text": "Wettelijke naleving",
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Voldoe aan AVG, HIPAA, CCPA en andere regionale gegevensbeschermingseisen",
+    "text": "Voldoe aan AVG, HIPAA, CCPA en andere regionale gegevensbeschermingsvereisten",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Gegevens die dichter bij je zijn opgeslagen betekenen lagere latentie en betere prestaties.",
+    "text": "Gegevens die dichter bij je worden opgeslagen betekenen lagere latentie en betere prestaties.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -112,7 +112,7 @@
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "Rechtsgebied",
+    "text": "Jurisdictie",
     "source_hash": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
@@ -124,11 +124,11 @@
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Onbekend rechtsgebied",
+    "text": "Onbekende jurisdictie",
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Je wordt bediend vanuit",
+    "text": "Bediend vanuit",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
@@ -136,11 +136,11 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Huidig rechtsgebied:",
+    "text": "Huidige jurisdictie:",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Regio wijzigen",
+    "text": "Van regio wisselen",
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
@@ -148,15 +148,18 @@
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Om een andere regio te gebruiken, maak je daar een nieuw account aan met hetzelfde e-mailadres dat is gekoppeld aan je factuurcontact.",
+    "text": "Om een andere regio te gebruiken, maak daar een nieuw account aan met hetzelfde e-mailadres dat gekoppeld is aan je factureringscontact.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Als je factuurcontact-e-mailadres verschilt van je Onetime Secret-account-e-mailadres, gebruik dan het factuurcontact-e-mailadres voor het nieuwe regio-account om je abonnementsvoordelen te behouden.",
+    "text": "Als je factureringscontact-e-mailadres verschilt van je Onetime Secret-account-e-mailadres, gebruik dan het factureringscontact-e-mailadres voor het nieuwe regio-account om je abonnementsvoordelen te behouden.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Je abonnementsvoordelen worden automatisch toegepast op elk account dat is aangemaakt met je factuur-e-mailadres.",
+    "text": "Je abonnementsvoordelen worden automatisch toegepast op elk account dat is aangemaakt met je facturerings-e-mailadres.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Er is momenteel geen regio-informatie beschikbaar voor je account."
   }
 }

@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Neem contact op met onboarding{'@'}voorbeeld.com met eventuele vragen",
+    "text": "Neem contact op met onboarding{'@'}example.com voor vragen",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,7 +72,7 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instructies vóór onthullen",
+    "text": "Instructies voor onthullen",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
@@ -84,7 +84,7 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Logo-bediening",
+    "text": "Logo-instellingen",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zullen zien. Je kunt: - Kleuren en lettertypen aanpassen met de bedieningselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, max 1MB) - Het voorbeeld testen met de \"Bericht bekijken\"-knop",
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers je beveiligde berichten zien. Je kunt: - Kleuren en lettertypen aanpassen met de bovenstaande instellingen - Een logo uploaden (minimaal 128x128 pixels aanbevolen, maximaal 1MB) - Het voorbeeld testen met de knop \"Bericht bekijken\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,7 +140,7 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japans kanji '秘' (himitsu) wat 'geheim' of 'vertrouwelijk' betekent",
+    "text": "Japans kanji '秘' (himitsu) met de betekenis 'geheim' of 'vertrouwelijk'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -170,5 +170,8 @@
   "web.branding.upgrade_to_customize": {
     "text": "Upgrade je plan om de branding voor dit domein aan te passen.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Merkinstellingen succesvol opgeslagen"
   }
 }

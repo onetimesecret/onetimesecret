@@ -60,7 +60,7 @@
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Volgende factuurdatum:",
+    "text": "Volgende factureringsdatum:",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -120,7 +120,7 @@
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Ondersteuningsgegevens",
+    "text": "Ondersteuningsdetails",
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Bevestig accountverwijdering",
+    "text": "Accountverwijdering bevestigen",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -168,7 +168,7 @@
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Je account verwijderen is",
+    "text": "Het verwijderen van je account is",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
@@ -304,7 +304,7 @@
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Er wordt een verificatie-e-mail verzonden naar het nieuwe adres",
+    "text": "Er wordt een verificatie-e-mail naar het nieuwe adres gestuurd",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
@@ -312,7 +312,7 @@
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Werk het e-mailadres bij dat is gekoppeld aan je account",
+    "text": "Werk het e-mailadres bij dat gekoppeld is aan je account",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -324,11 +324,11 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Nieuw e-mailadres moet anders zijn dan huidig e-mailadres",
+    "text": "Nieuw e-mailadres moet anders zijn dan het huidige e-mailadres",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail succesvol bijgewerkt. Controleer je inbox om je nieuwe e-mailadres te verifiëren.",
+    "text": "Verificatie-e-mail verzonden. Controleer je nieuwe inbox en klik op de bevestigingslink om de wijziging te voltooien.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
@@ -364,11 +364,11 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Je account en alle gegevens permanent verwijderen",
+    "text": "Verwijder je account en alle gegevens permanent",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Je account en alle gegevens permanent verwijderen",
+    "text": "Verwijder je account en alle gegevens permanent",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -376,7 +376,7 @@
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Je algehele accountbeveiligingsstatus",
+    "text": "De algehele beveiligingsstatus van je account",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -436,7 +436,7 @@
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Beste beveiligingspraktijken",
+    "text": "Best practices voor beveiliging",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
@@ -452,7 +452,7 @@
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Bekijk en trek ongebruikte sessies regelmatig in",
+    "text": "Controleer en trek ongebruikte sessies regelmatig in",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Leer hoe je Onetime Secret integreert in je applicaties",
+    "text": "Leer hoe je Onetime Secret in je applicaties kunt integreren",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -484,7 +484,7 @@
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Volledige API-documentatie en eindpunten",
+    "text": "Volledige API-documentatie en endpoints",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
@@ -496,11 +496,11 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Beste beveiligingspraktijken",
+    "text": "Best practices voor beveiliging",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Commit nooit API-sleutels naar versiebeheer",
+    "text": "Commit API-sleutels nooit naar versiebeheer",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
@@ -508,15 +508,15 @@
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Roteer API-sleutels regelmatig voor beveiliging",
+    "text": "Roteer API-sleutels regelmatig voor de veiligheid",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Gebruik altijd HTTPS bij API-verzoeken",
+    "text": "Gebruik altijd HTTPS bij het maken van API-verzoeken",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Monitor je API-gebruik en stel waarschuwingen in",
+    "text": "Monitor je API-gebruik en stel meldingen in",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -552,7 +552,7 @@
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Dit is geen instelling omdat er niets aan of uit te zetten is. Je privacy is ingebouwd in hoe wij werken.",
+    "text": "Dit is geen instelling omdat er niets is om in of uit te schakelen. Je privacy zit ingebouwd in hoe we werken.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -568,7 +568,7 @@
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Berichtonthullingsmeldingen",
+    "text": "Meldingen bij onthullen van berichten",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
@@ -576,11 +576,11 @@
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Je krijgt een melding telkens wanneer een ontvanger een van je berichten onthult",
+    "text": "Je wordt elke keer op de hoogte gesteld wanneer een ontvanger een van je berichten onthult",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Meldingse-mails bevatten alleen het tijdstempel en bericht-ID. Kijkerinformatie wordt nooit opgenomen.",
+    "text": "Meldingse-mails bevatten alleen het tijdstempel en bericht-ID. Informatie over de kijker wordt nooit opgenomen.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -592,11 +592,11 @@
     "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Gegevens exporteren",
+    "text": "Gegevensexport",
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Je accountgegevens exporteren",
+    "text": "Exporteer je accountgegevens",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
@@ -608,15 +608,15 @@
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Exportverwerkingstijd",
+    "text": "Verwerkingstijd export",
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "Exports worden binnen 24 uur verwerkt en naar je e-mailadres verzonden",
+    "text": "Exports worden binnen 24 uur verwerkt en naar je e-mailadres gestuurd",
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Je account verwijderen zal:",
+    "text": "Het verwijderen van je account zal:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
@@ -624,7 +624,7 @@
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Alle berichtmetadata en geschiedenis verwijderen",
+    "text": "Alle berichtmetadata en -geschiedenis verwijderen",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -644,11 +644,11 @@
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Je nieuwe e-mailadres wordt geverifieerd...",
+    "text": "Je nieuwe e-mailadres verifiëren...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "E-mailadres wijzigen mislukt",
+    "text": "E-mailwijziging mislukt",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
@@ -660,15 +660,15 @@
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Doorsturen naar inloggen...",
+    "text": "Doorverwijzen naar inloggen...",
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Bevestigingsmail opnieuw verzenden",
+    "text": "Bevestigingse-mail opnieuw verzenden",
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Bevestigingsmail succesvol opnieuw verzonden.",
+    "text": "Bevestigingse-mail succesvol opnieuw verzonden.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {

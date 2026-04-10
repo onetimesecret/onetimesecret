@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Merkrichtlijnen",
+    "text": "Brandinghandleiding",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,7 +20,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "Leer meer over onze beveiligingsmaatregelen",
+    "text": "Meer over onze beveiligingsmaatregelen",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
@@ -84,7 +84,7 @@
     "source_hash": "8c6bc099"
   },
   "web.footer.read_our_latest_blog_posts": {
-    "text": "Lees onze laatste blogposts",
+    "text": "Lees onze nieuwste blogberichten",
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
@@ -92,7 +92,7 @@
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Leer meer over ons bedrijf",
+    "text": "Meer over ons bedrijf",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -144,19 +144,19 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Waar kijk ik naar?",
+    "text": "Wat zie ik hier?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Je bekijkt een beveiligd bericht dat met je is gedeeld via Onetime Secret. Deze inhoud wordt slechts één keer getoond en daarna permanent van onze servers verwijderd.",
+    "text": "Je bekijkt een beveiligd bericht dat met je is gedeeld via Onetime Secret. Deze inhoud wordt maar één keer weergegeven en daarna permanent verwijderd van onze servers.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Kan ik dit bericht later opnieuw bekijken?",
+    "text": "Kan ik dit bericht later nog een keer bekijken?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nee. Om veiligheidsredenen is dit bericht slechts één keer te bekijken. Na het sluiten van deze pagina wordt de inhoud permanent verwijderd en kan deze door niemand meer worden hersteld, ook niet door ons.",
+    "text": "Nee. Om veiligheidsredenen is dit bericht maar één keer te bekijken. Nadat je deze pagina sluit, wordt de inhoud permanent verwijderd en kan deze door niemand meer worden hersteld, ook niet door ons.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -168,19 +168,19 @@
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Wordt het bekijken van dit bericht gevolgd?",
+    "text": "Wordt bijgehouden dat ik dit bericht bekijk?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "De afzender wordt op de hoogte gebracht dat het bericht is bekeken, maar we volgen niet wie het heeft bekeken of vanaf welke locatie. Je privacy is beschermd.",
+    "text": "De verzender wordt op de hoogte gesteld dat het bericht is bekeken, maar wij houden niet bij wie het heeft bekeken of vanaf welke locatie. Je privacy is beschermd.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Zodra je deze pagina verlaat of ververst, wordt dit bericht permanent verwijderd en kan het door niemand meer worden hersteld.",
+    "text": "Zodra je deze pagina verlaat of vernieuwt, wordt dit bericht permanent verwijderd en kan het door niemand meer worden hersteld.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Terug naar vorige pagina",
+    "text": "Terug naar de vorige pagina",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
@@ -224,11 +224,11 @@
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Instellingsinhoud laden...",
+    "text": "Instellingen laden...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Instellingssecties",
+    "text": "Instellingensecties",
     "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
@@ -236,7 +236,7 @@
     "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Instellingssecties",
+    "text": "Instellingensecties",
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
@@ -248,7 +248,7 @@
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Terug naar homepagina",
+    "text": "Terug naar de homepagina",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Bezoek de Onetime Secret-homepage",
+    "text": "Bezoek de Onetime Secret-homepagina",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
@@ -324,7 +324,7 @@
     "source_hash": "c0cfa9b2"
   },
   "web.layout.switch_to_blank_mode": {
-    "text": "Overschakelen naar {0}-modus",
+    "text": "Wisselen naar {0}-modus",
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Werkruimtecontext",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Werkruimte"
   }
 }

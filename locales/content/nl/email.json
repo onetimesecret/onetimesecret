@@ -4,15 +4,15 @@
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Een klant heeft de volgende informatie verzonden",
+    "text": "Een klant heeft de volgende informatie gestuurd",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} heeft je een bericht gestuurd",
+    "text": "%{sender_email} heeft je een beveiligd bericht gestuurd",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "heeft je een bericht gestuurd:",
+    "text": "heeft je een beveiligd bericht gestuurd:",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -28,7 +28,7 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Welkom bij %{product_name} - Verifieer alsjeblieft je e-mail",
+    "text": "Welkom bij %{product_name} - Verifieer je e-mailadres",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
@@ -56,19 +56,19 @@
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Reset je wachtwoord (%{display_domain})",
+    "text": "Herstel je wachtwoord (%{display_domain})",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Reset je wachtwoord",
+    "text": "Herstel je wachtwoord",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "We hebben een verzoek ontvangen om je wachtwoord te resetten voor %{product_name}.",
+    "text": "We hebben een verzoek ontvangen om je wachtwoord voor %{product_name} te herstellen.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Wachtwoord resetten",
+    "text": "Wachtwoord herstellen",
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
@@ -76,7 +76,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Als je geen wachtwoordreset hebt aangevraagd, kun je deze e-mail veilig negeren.",
+    "text": "Als je geen wachtwoordherstel hebt aangevraagd, kun je deze e-mail veilig negeren.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -152,7 +152,7 @@
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Dit bericht is beveiligd met een wachtwoordzin. De afzender moet deze apart aan je doorgeven.",
+    "text": "Dit bericht is beschermd met een wachtwoordzin. De verzender moet deze apart aan je doorgeven.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -212,7 +212,7 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Na verlopen wordt het bericht permanent verwijderd en kan het niet worden hersteld.",
+    "text": "Na het verlopen wordt het bericht permanent verwijderd en kan het niet meer worden hersteld.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -224,7 +224,7 @@
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Na verlopen wordt het bericht permanent verwijderd.",
+    "text": "Na het verlopen wordt het bericht permanent verwijderd.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
@@ -280,7 +280,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Als je niet wilt deelnemen, kun je deze e-mail gewoon negeren of de uitnodiging afwijzen.",
+    "text": "Als je niet wilt deelnemen, kun je deze e-mail negeren of de uitnodiging afwijzen.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -292,11 +292,11 @@
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
-    "text": "een lid",
+    "text": "lid",
     "source_hash": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
-    "text": "een beheerder",
+    "text": "beheerder",
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
@@ -312,7 +312,7 @@
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account door je wachtwoord te resetten en contact op te nemen met de ondersteuning.",
+    "text": "Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account door je wachtwoord te herstellen en contact op te nemen met ondersteuning.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -328,11 +328,11 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked} op %{date}.",
+    "text": "Het e-mailadres van je %{product_name}-account is gewijzigd naar %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met de ondersteuning, omdat je account mogelijk is gehackt.",
+    "text": "Als je deze wijziging niet hebt aangebracht, neem dan onmiddellijk contact op met ondersteuning, want je account is mogelijk gehackt.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -348,15 +348,15 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Als je deze wijziging hebt aangebracht, hoef je verder niets te doen.",
+    "text": "Als je deze wijziging hebt aangebracht, is er geen verdere actie nodig.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Als je deze wijziging niet hebt aangebracht, is je account mogelijk gecompromitteerd.",
+    "text": "Als je deze wijziging niet hebt aangebracht, is je account mogelijk gehackt.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contact opnemen met support",
+    "text": "Contact opnemen met ondersteuning",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,7 +364,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om je te informeren over een wijziging van je e-mailadres.",
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om je op de hoogte te stellen van een e-mailadreswijziging.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -388,7 +388,7 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Als je dit verzoek hebt gedaan, controleer dan je nieuwe e-mailadres voor een bevestigingslink. Er zijn nog geen wijzigingen doorgevoerd.",
+    "text": "Als je dit verzoek hebt gedaan, controleer dan je nieuwe e-mail voor een bevestigingslink. Er zijn nog geen wijzigingen aangebracht.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -396,7 +396,7 @@
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Neem contact op met support",
+    "text": "Contact opnemen met ondersteuning",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -424,11 +424,11 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Er is een verzoek gedaan om het e-mailadres van je %{product_name}-account te wijzigen naar %{new_email}.",
+    "text": "Er is een verzoek ingediend om het e-mailadres van je %{product_name}-account te wijzigen naar %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "E-mailadres wijzigen bevestigen",
+    "text": "E-mailwijziging bevestigen",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om een wijziging van je e-mailadres te bevestigen.",
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address} om een e-mailadreswijziging te bevestigen.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -464,7 +464,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Je account is nu veiliger. Je moet een verificatiecode van je authenticator-app invoeren bij het inloggen.",
+    "text": "Je account is nu beter beveiligd. Je moet bij het inloggen een verificatiecode invoeren vanuit je authenticator-app.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -484,7 +484,7 @@
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Je account is nu minder veilig. Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account.",
+    "text": "Je account is nu minder beveiligd. Als je deze wijziging niet hebt aangebracht, beveilig dan onmiddellijk je account.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -520,7 +520,7 @@
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Beveilig je account",
+    "text": "Je account beveiligen",
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
@@ -616,7 +616,7 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "We konden je betaling voor %{product_name} niet verwerken. Werk je betaalmethode bij om onderbreking van de dienst te voorkomen.",
+    "text": "We konden je betaling voor %{product_name} niet verwerken. Werk je betaalmethode bij om serviceonderbreking te voorkomen.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
@@ -676,11 +676,11 @@
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Uitschrijven",
+    "text": "Afmelden",
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Bekijk in browser",
+    "text": "Bekijken in browser",
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {
