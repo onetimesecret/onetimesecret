@@ -70,7 +70,7 @@ install_gems() {
   info "Installing gems..."
   bundle install --retry 3
 
-  $fresh && warn "Generated Gemfile.lock - consider committing"
+  $fresh && warn "Generated Gemfile.lock - consider committing" || true
 }
 
 install_node() {
@@ -87,6 +87,24 @@ install_node() {
   done
 
   [[ -f package.json ]] && warn "No lockfile, skipping node packages"
+}
+
+setup_configs() {
+  info "Setting up default configurations..."
+
+  for conf in auth config logging; do
+    if [[ ! -f "etc/${conf}.yaml" && -f "etc/defaults/${conf}.defaults.yaml" ]]; then
+      cp "etc/defaults/${conf}.defaults.yaml" "etc/${conf}.yaml"
+      info "Copied etc/defaults/${conf}.defaults.yaml -> etc/${conf}.yaml"
+    fi
+  done
+
+  # Ensure puma config exists for the instructions below
+  if [[ ! -e "etc/puma.rb" && -f "etc/examples/puma.example.rb" ]]; then
+    [[ -L "etc/puma.rb" ]] && rm "etc/puma.rb"
+    cp etc/examples/puma.example.rb etc/puma.rb
+    info "Copied etc/examples/puma.example.rb -> etc/puma.rb"
+  fi
 }
 
 is_initialized() {
@@ -130,6 +148,7 @@ cmd_reconcile() {
 
   install_gems
   install_node
+  setup_configs
 
   # Verify .env and SECRET exist before attempting derive
   if [[ ! -f .env ]]; then
@@ -163,6 +182,7 @@ cmd_init() {
   # Install dependencies first — bundle exec is needed for subsequent steps
   install_gems
   install_node
+  setup_configs
 
   bundle exec rake ots:env:setup
 
@@ -205,13 +225,6 @@ cmd_init() {
     fi
   else
     warn "Redis/Valkey not running — skipping install mark (run install.sh again after starting Valkey)"
-  fi
-
-  # Ensure puma config exists for the instructions below
-  if [[ ! -e "etc/puma.rb" && -f "etc/examples/puma.example.rb" ]]; then
-    [[ -L "etc/puma.rb" ]] && rm "etc/puma.rb"
-    cp etc/examples/puma.example.rb etc/puma.rb
-    info "Copied etc/examples/puma.example.rb -> etc/puma.rb"
   fi
 
   echo ""

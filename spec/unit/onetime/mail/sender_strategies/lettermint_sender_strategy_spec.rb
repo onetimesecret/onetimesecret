@@ -9,7 +9,7 @@ require 'onetime/mail/sender_strategies/lettermint_sender_strategy'
 RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
   let(:strategy) { described_class.new }
   # Team API uses Bearer auth (team_token), not x-lettermint-token (api_token)
-  let(:credentials) { { team_token: 'lm-team-token-example', base_url: 'https://api.lettermint.co/v1' } }
+  let(:credentials) { { 'team_token' => 'lm-team-token-example', 'base_url' => 'https://api.lettermint.co/v1' } }
   let(:mailer_config) do
     double('MailerConfig', from_address: 'sender@example.com')
   end
@@ -56,9 +56,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
         expect(result[:success]).to be true
         expect(result[:dns_records]).to eq([
-          { type: 'CNAME', name: 'lm1._domainkey.example.com', value: 'lm1.dkim.lettermint.com' },
-          { type: 'CNAME', name: 'lm2._domainkey.example.com', value: 'lm2.dkim.lettermint.com' },
-          { type: 'CNAME', name: 'lm-bounces.example.com', value: 'bounces.lmta.net' },
+          { 'type' => 'CNAME', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
+          { 'type' => 'CNAME', 'name' => 'lm2._domainkey.example.com', 'value' => 'lm2.dkim.lettermint.com' },
+          { 'type' => 'CNAME', 'name' => 'lm-bounces.example.com', 'value' => 'bounces.lmta.net' },
         ])
       end
 
@@ -66,24 +66,24 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
         expect(result[:dns_records].size).to eq(3)
-        expect(result[:dns_records].all? { |r| r[:type] == 'CNAME' }).to be true
+        expect(result[:dns_records].all? { |r| r['type'] == 'CNAME' }).to be true
       end
 
       it 'includes SPF bounce CNAME pointing to bounces.lmta.net' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
-        spf_record = result[:dns_records].find { |r| r[:name] == 'lm-bounces.example.com' }
+        spf_record = result[:dns_records].find { |r| r['name'] == 'lm-bounces.example.com' }
         expect(spf_record).not_to be_nil
-        expect(spf_record[:type]).to eq('CNAME')
-        expect(spf_record[:value]).to eq('bounces.lmta.net')
+        expect(spf_record['type']).to eq('CNAME')
+        expect(spf_record['value']).to eq('bounces.lmta.net')
       end
 
       it 'includes provider_data with domain info' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
 
-        expect(result[:provider_data][:domain]).to eq('example.com')
-        expect(result[:provider_data][:status]).to eq('pending_verification')
-        expect(result[:provider_data][:created_at]).to eq('2026-03-30T00:00:00Z')
+        expect(result[:provider_data]['domain']).to eq('example.com')
+        expect(result[:provider_data]['status']).to eq('pending_verification')
+        expect(result[:provider_data]['created_at']).to eq('2026-03-30T00:00:00Z')
       end
 
       it 'includes identity_id from response domain' do
@@ -125,7 +125,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
         expect(result[:success]).to be true
         expect(result[:dns_records].size).to eq(1)
-        expect(result[:provider_data][:status]).to eq('verified')
+        expect(result[:provider_data]['status']).to eq('verified')
       end
     end
 
@@ -225,7 +225,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
 
         expect(result[:success]).to be true
         expect(result[:dns_records].size).to eq(1)
-        expect(result[:provider_data][:status]).to eq('verified')
+        expect(result[:provider_data]['status']).to eq('verified')
       end
     end
 
@@ -550,7 +550,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
   end
 
   describe 'normalize_dns_records (private)' do
-    it 'normalizes string-keyed records to symbol keys' do
+    it 'normalizes records to string-keyed hashes with upcased type' do
       records = [
         { 'type' => 'cname', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
       ]
@@ -558,7 +558,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       normalized = strategy.send(:normalize_dns_records, records)
 
       expect(normalized).to eq([
-        { type: 'CNAME', name: 'lm1._domainkey.example.com', value: 'lm1.dkim.lettermint.com' },
+        { 'type' => 'CNAME', 'name' => 'lm1._domainkey.example.com', 'value' => 'lm1.dkim.lettermint.com' },
       ])
     end
 
@@ -580,7 +580,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       normalized = strategy.send(:normalize_dns_records, records)
 
       expect(normalized.size).to eq(1)
-      expect(normalized.first[:name]).to eq('valid.example.com')
+      expect(normalized.first['name']).to eq('valid.example.com')
     end
 
     it 'skips non-Hash entries' do
@@ -605,7 +605,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       normalized = strategy.send(:normalize_dns_records, records)
 
       expect(normalized.size).to eq(3)
-      expect(normalized.all? { |r| r[:type] == 'CNAME' }).to be true
+      expect(normalized.all? { |r| r['type'] == 'CNAME' }).to be true
     end
 
     it 'preserves SPF bounce CNAME record correctly' do
@@ -616,9 +616,9 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       normalized = strategy.send(:normalize_dns_records, records)
 
       expect(normalized.first).to eq({
-        type: 'CNAME',
-        name: 'lm-bounces.example.com',
-        value: 'bounces.lmta.net',
+        'type' => 'CNAME',
+        'name' => 'lm-bounces.example.com',
+        'value' => 'bounces.lmta.net',
       })
     end
   end

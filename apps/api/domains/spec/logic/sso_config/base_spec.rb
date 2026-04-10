@@ -2,6 +2,16 @@
 #
 # frozen_string_literal: true
 
+# Unit tests for SsoConfig::Base authorization logic.
+#
+# Authorization errors are raised via the DomainConfigAuthorization
+# concern using raise_form_error (FormError with error_type: :forbidden)
+# for feature flag and entitlement checks, and Onetime::Forbidden for
+# organization ownership checks (via verify_one_of_roles!).
+#
+# RUN:
+#   pnpm run test:rspec apps/api/domains/spec/logic/sso_config/base_spec.rb
+
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../../../../apps/api/domains/application'
 
@@ -35,6 +45,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
     instance_double(
       Onetime::Organization,
       objid: 'org123',
+      extid: 'ext-org123',
       display_name: 'Test Org',
     )
   end
@@ -76,6 +87,28 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
     allow(OT).to receive(:now).and_return(Time.now.to_i)
   end
 
+  describe 'concern integration' do
+    it 'includes DomainConfigAuthorization concern' do
+      expect(described_class).to be < DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+    end
+
+    it 'includes AuthorizationPolicies via the concern' do
+      expect(described_class).to be < Onetime::Application::AuthorizationPolicies
+    end
+
+    it 'returns manage_sso as config_entitlement' do
+      expect(logic.send(:config_entitlement)).to eq('manage_sso')
+    end
+
+    it 'returns sso_enabled as config_feature_flag' do
+      expect(logic.send(:config_feature_flag)).to eq('sso_enabled')
+    end
+
+    it 'returns SsoConfig as config_log_tag' do
+      expect(logic.send(:config_log_tag)).to eq('SsoConfig')
+    end
+  end
+
   describe '#authorize_domain_sso!' do
     context 'when ORGS_SSO_ENABLED feature flag is false' do
       before do
@@ -91,6 +124,14 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
           expect(error.message).to eq('Organization SSO is not enabled on this instance')
           expect(error.error_type).to eq(:forbidden)
         end
+      end
+
+      it 'logs feature flag denial with structured info' do
+        logic.send(:authorize_domain_sso!, 'ext-domain123') rescue nil
+        expect(OT).to have_received(:info).with(
+          a_string_matching(/\[SsoConfig\] Authorization denied: sso_enabled feature flag disabled/),
+          anything,
+        )
       end
     end
 
@@ -167,7 +208,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
         allow(non_owner).to receive(:role).and_return('customer')
       end
 
-      it 'raises forbidden error for non-owner' do
+      it 'raises Forbidden for non-owner (via verify_one_of_roles!)' do
         expect {
           logic.send(:authorize_domain_sso!, 'ext-domain123')
         }.to raise_error(Onetime::Forbidden) do |error|
@@ -198,6 +239,14 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
           expect(error.message).to include('manage_sso')
           expect(error.error_type).to eq(:forbidden)
         end
+      end
+
+      it 'logs entitlement denial with structured info' do
+        logic.send(:authorize_domain_sso!, 'ext-domain123') rescue nil
+        expect(OT).to have_received(:info).with(
+          a_string_matching(/\[SsoConfig\] Authorization denied: missing manage_sso entitlement/),
+          anything,
+        )
       end
     end
 
@@ -230,6 +279,13 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
       it 'sets @organization' do
         logic.send(:authorize_domain_sso!, 'ext-domain123')
         expect(logic.instance_variable_get(:@organization)).to eq(organization)
+      end
+
+      it 'logs authorization granted via structured debug log' do
+        logic.send(:authorize_domain_sso!, 'ext-domain123')
+        expect(OT).to have_received(:ld).with(
+          a_string_matching(/\[SsoConfig\] Authorization granted/),
+        )
       end
     end
 

@@ -91,7 +91,7 @@ const {
 // ---------------------------------------------------------------------------
 
 const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
+  router.push(`/org/${props.orgid}/domains`);
 };
 
 // Unsaved changes guard

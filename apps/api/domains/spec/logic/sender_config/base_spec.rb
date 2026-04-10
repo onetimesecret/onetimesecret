@@ -12,6 +12,11 @@
 #   3. Organization ownership (with colonel bypass)
 #   4. Organization entitlement: custom_mail_sender
 #
+# Authorization errors are raised via the DomainConfigAuthorization
+# concern using raise_form_error (FormError with error_type: :forbidden)
+# for feature flag and entitlement checks, and Onetime::Forbidden for
+# organization ownership checks (via verify_one_of_roles!).
+#
 # RUN:
 #   pnpm run test:rspec apps/api/domains/spec/logic/sender_config/base_spec.rb
 
@@ -48,6 +53,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
     instance_double(
       Onetime::Organization,
       objid: 'org123',
+      extid: 'ext-org123',
       display_name: 'Test Org',
     )
   end
@@ -89,6 +95,28 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
     allow(OT).to receive(:now).and_return(Time.now.to_i)
   end
 
+  describe 'concern integration' do
+    it 'includes DomainConfigAuthorization concern' do
+      expect(described_class).to be < DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+    end
+
+    it 'includes AuthorizationPolicies via the concern' do
+      expect(described_class).to be < Onetime::Application::AuthorizationPolicies
+    end
+
+    it 'returns custom_mail_sender as config_entitlement' do
+      expect(logic.send(:config_entitlement)).to eq('custom_mail_sender')
+    end
+
+    it 'returns custom_mail_enabled as config_feature_flag' do
+      expect(logic.send(:config_feature_flag)).to eq('custom_mail_enabled')
+    end
+
+    it 'returns SenderConfig as config_log_tag' do
+      expect(logic.send(:config_log_tag)).to eq('SenderConfig')
+    end
+  end
+
   describe '#authorize_sender_config!' do
     context 'when custom_mail_enabled feature flag is false' do
       before do
@@ -97,12 +125,21 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
         })
       end
 
-      it 'raises forbidden error' do
+      it 'raises FormError with forbidden error_type' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::Forbidden) do |error|
+        }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to eq('Custom mail sender is not enabled on this instance')
+          expect(error.error_type).to eq(:forbidden)
         end
+      end
+
+      it 'logs feature flag denial with structured info' do
+        logic.send(:authorize_sender_config!, 'ext-domain123') rescue nil
+        expect(OT).to have_received(:info).with(
+          a_string_matching(/\[SenderConfig\] Authorization denied: custom_mail_enabled feature flag disabled/),
+          anything,
+        )
       end
     end
 
@@ -113,11 +150,12 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
         })
       end
 
-      it 'raises forbidden error' do
+      it 'raises FormError with forbidden error_type' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::Forbidden) do |error|
+        }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to eq('Custom mail sender is not enabled on this instance')
+          expect(error.error_type).to eq(:forbidden)
         end
       end
     end
@@ -129,11 +167,12 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
         })
       end
 
-      it 'raises forbidden error' do
+      it 'raises FormError with forbidden error_type' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::Forbidden) do |error|
+        }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to eq('Custom mail sender is not enabled on this instance')
+          expect(error.error_type).to eq(:forbidden)
         end
       end
     end
@@ -178,7 +217,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
         allow(non_owner).to receive(:role).and_return('customer')
       end
 
-      it 'raises forbidden error for non-owner' do
+      it 'raises Forbidden for non-owner (via verify_one_of_roles!)' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
         }.to raise_error(Onetime::Forbidden) do |error|
@@ -202,12 +241,21 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
         allow(owner).to receive(:role).and_return('customer')
       end
 
-      it 'raises forbidden error for missing entitlement' do
+      it 'raises FormError with forbidden error_type for missing entitlement' do
         expect {
           logic.send(:authorize_sender_config!, 'ext-domain123')
-        }.to raise_error(Onetime::Forbidden) do |error|
+        }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to include('custom_mail_sender')
+          expect(error.error_type).to eq(:forbidden)
         end
+      end
+
+      it 'logs entitlement denial with structured info' do
+        logic.send(:authorize_sender_config!, 'ext-domain123') rescue nil
+        expect(OT).to have_received(:info).with(
+          a_string_matching(/\[SenderConfig\] Authorization denied: missing custom_mail_sender entitlement/),
+          anything,
+        )
       end
     end
 
@@ -240,6 +288,13 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::Base do
       it 'sets @organization' do
         logic.send(:authorize_sender_config!, 'ext-domain123')
         expect(logic.instance_variable_get(:@organization)).to eq(organization)
+      end
+
+      it 'logs authorization granted via structured debug log' do
+        logic.send(:authorize_sender_config!, 'ext-domain123')
+        expect(OT).to have_received(:ld).with(
+          a_string_matching(/\[SenderConfig\] Authorization granted/),
+        )
       end
     end
 

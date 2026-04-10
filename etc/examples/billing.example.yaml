@@ -164,15 +164,17 @@ plans:
 
     entitlements:
       - create_secrets
-      - view_receipt
       - custom_domains
+      - view_receipt
       - api_access
       - incoming_secrets
+      - homepage_secrets
 
     # Features for UI display (i18n locale keys)
     features:
       - web.billing.features.custom_domains
       - web.billing.features.create_secrets
+      - web.billing.features.homepage_secrets
       - web.billing.features.api_access
 
     limits:
