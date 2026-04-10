@@ -5,11 +5,11 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Biztonságos linkek, amelyek csak egyszer működnek",
+    "text": "Biztonságos hivatkozások, amelyek csak egyszer működnek",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Szolgáltató",
+    "text": "Szolgáltató:",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "A jelszógenerálás ki van kapcsolva, ha az űrlap érvényes",
+    "text": "A jelszó generálás le van tiltva, ha az űrlap érvényes",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -29,15 +29,15 @@
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
-    "text": "Adja meg jelszavát",
+    "text": "Add meg a jelszavad",
     "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Egyéni domainek",
+    "text": "Egyéni doménok",
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Erősítse kapcsolatait és építsen bizalmat saját márkázott titkos linkjeivel.",
+    "text": "Erősítsd meg kapcsolataidat és építs bizalmat saját márkás titkos hivatkozásokkal.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -45,7 +45,7 @@
     "source_hash": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
-    "text": "Erősítse meg jelszavát",
+    "text": "Erősítsd meg a jelszavad",
     "source_hash": "bfd8c343"
   },
   "web.COMMON.header_settings": {
@@ -53,11 +53,11 @@
     "source_hash": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Beküldés",
+    "text": "Küldés",
     "source_hash": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Beküldés...",
+    "text": "Küldés...",
     "source_hash": "64115d5b"
   },
   "web.COMMON.processing": {
@@ -65,23 +65,23 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Tartsa távol az érzékeny információkat a csevegési naplóktól és e-mailektől. Osszon meg egy titkos linket, amely csak egyszer érhető el.",
+    "text": "Tartsd távol az érzékeny információkat a csevegési naplókból és az e-mailekből. Oszd meg egy titkos hivatkozáson, amely csak egyszer érhető el.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Helytelen hozzáférési mondat",
+    "text": "Helytelen jelmondat",
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "titok,jelszógenerátor,titok megosztása,egyszer",
+    "text": "titok,jelszó generátor,titok megosztása,egyszeri",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Titkos link létrehozása",
+    "text": "Titkos hivatkozás létrehozása",
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "Vagy generáljon véletlenszerű jelszót",
+    "text": "Vagy generálj egy véletlenszerű jelszót",
     "source_hash": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
@@ -89,7 +89,7 @@
     "source_hash": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Hozzáférési mondat",
+    "text": "Jelmondat",
     "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
@@ -109,7 +109,7 @@
     "source_hash": "0dffe234"
   },
   "web.COMMON.header_about": {
-    "text": "Névjegy",
+    "text": "Rólunk",
     "source_hash": "4efca0d1"
   },
   "web.COMMON.header_sign_in": {
@@ -145,11 +145,11 @@
     "source_hash": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Végleges törlés",
+    "text": "Törlés",
     "source_hash": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Véglegesen törölve",
+    "text": "Törölve",
     "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
@@ -161,7 +161,7 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "A végleges törlés törli a titkot, mielőtt elolvasnák (kattintson a megerősítéshez)",
+    "text": "A végleges törlés eltávolítja a titkot, mielőtt azt elolvasták volna (kattints a megerősítéshez)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
@@ -169,27 +169,27 @@
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "Ellenőrizze e-mailjeit",
+    "text": "Ellenőrizd az e-mailjeidet",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Kattintson a megjelenítéshez →",
+    "text": "Kattints a felfedéshez →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Folytassa a fiók ellenőrzéséhez:",
+    "text": "Fiókod ellenőrzéséhez folytasd itt:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Nem adott meg semmit megosztásra",
+    "text": "Nem adtál meg semmit a megosztáshoz",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Ellenőrizze a hozzáférési mondatot",
+    "text": "Ellenőrizd a jelmondatot",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
-    "text": "Adja meg a hozzáférési mondatot",
+    "text": "Írd be ide a jelmondatot",
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Vigyázat: csak egyszer fogjuk megjeleníteni.",
+    "text": "Figyelem: csak egyszer fogjuk megjeleníteni.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -213,19 +213,19 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Váratlan hiba történt. Kérjük, próbálja újra.",
+    "text": "Váratlan hiba történt. Kérlek, próbáld újra.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Az üzenet le lett vágva",
+    "text": "Az üzenet csonkolva lett",
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Regisztráljon a többért",
+    "text": "Regisztrálj a továbbiakért",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
-    "text": "Jelentkezzen be fiókjába",
+    "text": "Jelentkezz be a fiókodba",
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
@@ -261,11 +261,11 @@
     "source_hash": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "véglegesen törölve",
+    "text": "törölve",
     "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
-    "text": "fogadva",
+    "text": "megkapva",
     "source_hash": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
@@ -289,7 +289,7 @@
     "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Ossza meg gondolatait, ötleteit vagy tapasztalatait...",
+    "text": "Oszd meg gondolataidat, ötleteidet vagy tapasztalataidat...",
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
@@ -297,15 +297,15 @@
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Megerősítő e-mail elküldve",
+    "text": "Ellenőrző e-mail elküldve",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Fiók létrehozva. Kérjük, jelentkezzen be.",
+    "text": "Fiók létrehozva. Kérlek, jelentkezz be.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Ha létezik fiók ezzel az e-mail címmel, megerősítő e-mailt fog kapni.",
+    "text": "Ha létezik fiók ezzel az e-mail címmel, ellenőrző e-mailt fogsz kapni.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -313,23 +313,23 @@
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "Kérjük, erősítse meg",
+    "text": "Kérlek, erősítsd meg",
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Biztosan véglegesen törölni szeretné ezt a titkot? Ez a művelet nem vonható vissza.",
+    "text": "Biztosan véglegesen törölni akarod ezt a titkot? Ez a művelet nem vonható vissza.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Igen, törlöm véglegesen",
+    "text": "Igen, titok végleges törlése",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "A végleges törlés a titok törlését jelenti, mielőtt fogadnák.",
+    "text": "A végleges törlés eltávolítja a titkot, mielőtt az megérkezett volna.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Biztonsági okokból ossza meg ezt a linket a többi adattól elkülönítve.",
+    "text": "Biztonsági okokból oszd meg ezt a hivatkozást más adatoktól elkülönítve.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -345,11 +345,11 @@
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Az ellenőrzés érvénytelen",
+    "text": "Az ellenőrzés nem érvényes",
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Nem ellenőrizheti a fiókot, ha már be van jelentkezve",
+    "text": "Nem lehet fiókot ellenőrizni, ha már be vagy jelentkezve",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -377,7 +377,7 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Kérés feldolgozása",
+    "text": "A kérésed feldolgozása folyamatban",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
@@ -393,15 +393,15 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "Biztos benne?",
+    "text": "Biztos vagy benne?",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
-    "text": "Veszélyzóna",
+    "text": "Veszélyes zóna",
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Körültekintést igénylő terület",
+    "text": "Körültekintést igénylő zóna",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -465,7 +465,7 @@
     "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
-    "text": "Nyomja meg az ESC-et a bezáráshoz",
+    "text": "Bezáráshoz nyomd meg az ESC-et",
     "source_hash": "5aa83883"
   },
   "web.COMMON.enter": {
@@ -493,7 +493,7 @@
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "Vége",
+    "text": "Befejezés",
     "source_hash": "f4db1e48"
   },
   "web.COMMON.general": {
@@ -593,7 +593,7 @@
     "source_hash": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "Gazdagép",
+    "text": "Kiszolgáló",
     "source_hash": "4a823118"
   },
   "web.COMMON.type": {
@@ -605,7 +605,7 @@
     "source_hash": "a57b08a4"
   },
   "web.COMMON.next": {
-    "text": "Következő",
+    "text": "Tovább",
     "source_hash": "1ff57a29"
   },
   "web.COMMON.password_strength": {
@@ -629,7 +629,7 @@
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
-    "text": "Nem túl jó",
+    "text": "Nem jó",
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
@@ -653,11 +653,11 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Ellenőrizze a hozzáférési mondatot",
+    "text": "Ellenőrizd a jelmondatot",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Nyomja meg a másolás gombot alább.",
+    "text": "Nyomd meg a másolás gombot lent.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -1335,7 +1335,7 @@
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
-    "text": "Fogadva",
+    "text": "Megkapva",
     "source_hash": "49f19bee"
   },
   "web.LABELS.add_note": {
@@ -1359,12 +1359,12 @@
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "A folytatáshoz adja meg jelszavát",
+    "text": "A folytatáshoz add meg a jelszavad",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "A művelet végrehajtásához meg kell adnia jelszavát",
+    "text": "A jelszavad szükséges a művelet befejezéséhez",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
@@ -1374,18 +1374,48 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "A szolgáltatás ideiglenesen nem elérhető. Kérjük, próbálja újra hamarosan.",
+    "text": "A szolgáltatás átmenetileg nem érhető el. Kérlek, próbáld újra rövid időn belül.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "Jelenleg nem tudjuk feldolgozni a kérését",
+    "text": "A kérés feldolgozása jelenleg nem lehetséges",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Frissítsen a további funkciók eléréséhez",
+    "text": "Frissíts további funkciók feloldásához",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Beállítás"
+  },
+  "web.COMMON.add": {
+    "text": "Hozzáadás"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Igen, törlés"
+  },
+  "web.COMMON.error_code": {
+    "text": "Hibakód"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP státusz"
+  },
+  "web.COMMON.details": {
+    "text": "Részletek"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Jelszó megerősítése"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "A jelszavaknak egyezniük kell"
+  },
+  "web.COMMON.and": {
+    "text": "és"
+  },
+  "web.COMMON.or": {
+    "text": "vagy"
   }
 }
