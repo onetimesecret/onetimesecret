@@ -527,10 +527,18 @@ module Onetime
     end
 
     def allow_public_homepage?
+      homepage_config = HomepageConfig.find_by_domain_id(identifier)
+      return homepage_config.enabled? if homepage_config
+
+      # Legacy fallback: read from brand_settings (remove in future release)
       brand_settings.allow_public_homepage?
     end
 
     def allow_public_api?
+      api_config = ApiConfig.find_by_domain_id(identifier)
+      return api_config.enabled? if api_config
+
+      # Legacy fallback: read from brand_settings (remove in future release)
       brand_settings.allow_public_api?
     end
 
@@ -1059,5 +1067,7 @@ module Onetime
 end
 
 # Load after class definition to avoid superclass mismatch
+require_relative 'custom_domain/api_config'
 require_relative 'custom_domain/brand_settings'
+require_relative 'custom_domain/homepage_config'
 require_relative 'custom_domain/incoming_secrets_config'

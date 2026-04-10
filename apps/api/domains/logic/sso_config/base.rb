@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/sso_config'
-require 'onetime/application/authorization_policies'
+require_relative '../concerns/domain_config_authorization'
 
 module DomainsAPI
   module Logic
@@ -11,69 +11,37 @@ module DomainsAPI
       # Base class for Domain SSO Configuration endpoints.
       #
       # Authorization model:
-      #   1. Load CustomDomain by domain_id (extid)
-      #   2. Load Organization via domain.org_id
-      #   3. Verify user is organization owner
-      #   4. Verify organization has manage_sso entitlement
-      #
-      # This ensures SSO config management requires both ownership
-      # and the appropriate plan entitlement.
+      #   1. Check sso_enabled feature flag
+      #   2. Load CustomDomain by domain_id (extid)
+      #   3. Load Organization via domain.org_id
+      #   4. Verify user is organization owner
+      #   5. Verify organization has manage_sso entitlement
       #
       class Base < DomainsAPI::Logic::Base
-        include Onetime::Application::AuthorizationPolicies
+        include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
 
         attr_reader :custom_domain, :organization
 
         protected
 
-        # Load and verify domain exists.
-        #
-        # @param domain_id [String] Domain extid
-        # @return [Onetime::CustomDomain] The loaded domain
-        # @raise [FormError] if domain not found
-        def load_custom_domain(domain_id)
-          domain = Onetime::CustomDomain.find_by_extid(domain_id)
-          raise_not_found("Domain not found: #{domain_id}") if domain.nil?
-          domain
+        # Entitlement required for SSO config operations.
+        def config_entitlement
+          'manage_sso'
         end
 
-        # Load organization from domain's org_id.
-        #
-        # @param domain [Onetime::CustomDomain] The domain
-        # @return [Onetime::Organization] The owning organization
-        # @raise [FormError] if organization not found
-        def load_organization_for_domain(domain)
-          org = Onetime::Organization.load(domain.org_id)
-          raise_not_found("Organization not found for domain: #{domain.display_domain}") if org.nil?
-          org
+        # Error message when manage_sso entitlement is missing.
+        def config_entitlement_error
+          'SSO management requires the manage_sso entitlement. Please upgrade your plan.'
         end
 
-        # Verify current user owns the organization.
-        #
-        # Colonels (site admins) have automatic superuser bypass.
-        # Otherwise, user must be organization owner.
-        #
-        # @param organization [Onetime::Organization]
-        # @raise [FormError] If user is not owner and not admin
-        def verify_organization_owner(organization)
-          verify_one_of_roles!(
-            colonel: true,
-            custom_check: -> { organization.owner?(cust) },
-            error_message: 'Only organization owner can perform this action',
-          )
+        # Feature flag under features.organizations config.
+        def config_feature_flag
+          'sso_enabled'
         end
 
-        # Verify organization has manage_sso entitlement.
-        #
-        # @param organization [Onetime::Organization]
-        # @raise [FormError] if entitlement not present
-        def verify_manage_sso_entitlement(organization)
-          return if organization.can?('manage_sso')
-
-          raise_form_error(
-            'SSO management requires the manage_sso entitlement. Please upgrade your plan.',
-            error_type: :forbidden,
-          )
+        # Error message when feature flag is disabled.
+        def config_feature_flag_error
+          'Organization SSO is not enabled on this instance'
         end
 
         # Full authorization check for domain SSO config operations.
@@ -82,15 +50,7 @@ module DomainsAPI
         # @param domain_id [String] Domain extid
         # @return [void]
         def authorize_domain_sso!(domain_id)
-          unless OT.conf.dig('features', 'organizations', 'sso_enabled')
-            raise_form_error('Organization SSO is not enabled on this instance', error_type: :forbidden)
-          end
-
-          @custom_domain = load_custom_domain(domain_id)
-          @organization  = load_organization_for_domain(@custom_domain)
-
-          verify_organization_owner(@organization)
-          verify_manage_sso_entitlement(@organization)
+          authorize_domain_config!(domain_id)
         end
 
         # Parse allowed domains from string or array input.
@@ -106,19 +66,6 @@ module DomainsAPI
             value.split(',').map { it.strip.downcase }.reject(&:empty?)
           else
             []
-          end
-        end
-
-        # Parse boolean from various input formats.
-        #
-        # @param value [Boolean, String, Integer, nil] Value to parse
-        # @return [Boolean] true if value represents truthy, false otherwise
-        def parse_boolean(value)
-          case value
-          when true, 'true', '1', 1
-            true
-          else
-            false
           end
         end
 

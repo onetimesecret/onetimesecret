@@ -23,7 +23,7 @@ module DomainsAPI
             from_address: config.from_address,
             reply_to: config.reply_to,
             enabled: config.enabled?,
-            validation_status: config.verification_status || 'pending',
+            verification_status: config.verification_status || 'pending',
             verified: config.verified?,
             sending_mode: config.sending_mode,
             dns_records: config.required_dns_records,

@@ -87,7 +87,7 @@ const { t } = useI18n();
   <div class="flex flex-col space-y-2">
     <div class="flex items-center space-x-2">
       <router-link
-        :to="{ name: 'DomainDetail', params: { orgid: props.orgid, extid: domain.extid } }"
+        :to="{ name: props.canBrand ? 'DomainBrand' : 'DomainVerify', params: { orgid: props.orgid, extid: domain.extid } }"
         class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         {{ domain.display_domain }}
       </router-link>
