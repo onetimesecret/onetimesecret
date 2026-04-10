@@ -1,10 +1,10 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Tu opinión",
+    "text": "Tus comentarios",
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "¡Toda opinión es bienvenida!",
+    "text": "Todos los comentarios son bienvenidos",
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
@@ -12,11 +12,11 @@
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Cerrar modal de opinión",
+    "text": "Cerrar ventana de comentarios",
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Comparte tu opinión",
+    "text": "Comparte tus comentarios",
     "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
@@ -32,23 +32,23 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Leo cada opinión que llega por aquí. Es como decido en qué invertir mi tiempo.",
+    "text": "Leo cada comentario que llega aquí. Es la forma en que decido en qué invertir tiempo.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Si algo no funciona bien, o tienes ideas sobre cómo debería funcionar, este es el lugar indicado.",
+    "text": "Si algo no funciona bien, o tienes ideas sobre cómo debería funcionar, este es el lugar adecuado.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Abrir formulario de opinión",
+    "text": "Abrir formulario de comentarios",
     "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Escribe tu opinión",
+    "text": "Escribe tus comentarios",
     "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Enviar opinión",
+    "text": "Enviar comentarios",
     "source_hash": "8235980b"
   },
   "web.feedback.sending_ellipses": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Parece que estás reportando un cambio de correo electrónico no autorizado en tu cuenta. Por favor, describe lo que ocurrió y lo investigaremos de inmediato.",
+    "text": "Parece que estás reportando un cambio de correo electrónico no autorizado en tu cuenta. Por favor, describe lo que sucedió y lo investigaremos de inmediato.",
     "source_hash": "00e56551"
   }
 }

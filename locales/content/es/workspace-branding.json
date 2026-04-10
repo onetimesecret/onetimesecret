@@ -28,7 +28,7 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Vista previa y personalizar",
+    "text": "Vista previa y personalización",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instrucciones previas a revelar",
+    "text": "Instrucciones previas a la revelación",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instrucciones posteriores a revelar",
+    "text": "Instrucciones posteriores a la revelación",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Esta es una vista previa interactiva de cómo los destinatarios verán tus mensajes seguros. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logo (se recomiendan mínimo 128x128 píxeles, máximo 1MB) - Probar la vista previa usando el botón \"Ver secreto\"",
+    "text": "Esta es una vista previa interactiva de cómo los destinatarios verán tus mensajes seguros. Puedes: - Personalizar colores y fuentes usando los controles de arriba - Subir un logo (mínimo 128x128 píxeles recomendado, 1MB máximo) - Probar la vista previa usando el botón \"Ver secreto\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -144,7 +144,7 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Impulsado por Onetime Secret",
+    "text": "Desarrollado por Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
@@ -170,5 +170,8 @@
   "web.branding.upgrade_to_customize": {
     "text": "Mejora tu plan para personalizar la marca de este dominio.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Configuración de marca guardada correctamente"
   }
 }

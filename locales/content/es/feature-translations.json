@@ -8,7 +8,7 @@
     "source_hash": "dabd28e2"
   },
   "web.translations.if_youre_interested_in_translation": {
-    "text": "Si te interesa traducir,",
+    "text": "Si te interesa la traducción,",
     "source_hash": "10056bff"
   },
   "web.translations.whove_helped_with_translations_as_we_continue_to": {
@@ -88,7 +88,7 @@
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {
-    "text": "Ayuda a que la comunicación segura llegue a todo el mundo",
+    "text": "Ayuda a que la comunicación segura sea global",
     "source_hash": "e94bdc8e"
   }
 }

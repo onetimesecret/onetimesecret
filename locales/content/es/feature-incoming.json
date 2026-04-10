@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Esta función está actualmente deshabilitada. Por favor contacta a soporte para asistencia.",
+    "text": "Esta función está actualmente deshabilitada. Por favor, contacta con soporte para obtener ayuda.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Descripción breve (ej., Solicitud de restablecimiento de contraseña)",
+    "text": "Breve descripción (p. ej., Solicitud de restablecimiento de contraseña)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -92,7 +92,7 @@
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Enviado exitosamente",
+    "text": "Enviado correctamente",
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
@@ -104,7 +104,7 @@
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "¿Qué pasa después?",
+    "text": "¿Qué pasa ahora?",
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
@@ -120,7 +120,7 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Mantén las contraseñas y datos privados fuera de correos y chats",
+    "text": "Mantén contraseñas y datos privados fuera de los registros de correo y chat",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "recibo",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Mejora requerida"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Esta función requiere una mejora de plan. Por favor, contacta con el propietario de la cuenta para habilitar los secretos entrantes."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "El memo debe tener {max} caracteres o menos"
+  },
+  "incoming.validation_secret_required": {
+    "text": "El contenido secreto es obligatorio"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Por favor, selecciona un destinatario"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "La función de secretos entrantes no está habilitada"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Por favor, revisa el formulario en busca de errores"
   }
 }

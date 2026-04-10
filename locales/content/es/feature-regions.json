@@ -4,7 +4,7 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Tus datos residen exclusivamente en tu región elegida y nunca se transfieren entre regiones",
+    "text": "Tus datos residen exclusivamente en la región que elegiste y nunca se transfieren entre regiones",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -12,11 +12,11 @@
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Mantenemos una política estricta: los datos de clientes nunca se transfieren entre regiones bajo ninguna circunstancia",
+    "text": "Mantenemos una política estricta: los datos de los clientes nunca se transfieren entre regiones bajo ninguna circunstancia",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Importante: Cambiar a una región diferente crea una cuenta nueva. Tus datos permanecen en tu región original.",
+    "text": "Importante: Cambiar a una región diferente crea una nueva cuenta. Tus datos permanecen en tu región original.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Asegura que tu información personal sea manejada según las leyes de privacidad de tu país, previniendo accesos no autorizados o mal uso.",
+    "text": "Asegura que tu información personal sea tratada según las leyes y regulaciones de privacidad de tu país, previniendo el acceso no autorizado o el uso indebido.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Cumple con GDPR, HIPAA, CCPA y otros requisitos regionales de protección de datos",
+    "text": "Cumple con los requisitos de GDPR, HIPAA, CCPA y otras regulaciones regionales de protección de datos",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Datos almacenados más cerca de ti significa menor latencia y mejor rendimiento.",
+    "text": "Los datos almacenados más cerca de ti significan menor latencia y mejor rendimiento.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -76,7 +76,7 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "contacta a nuestro equipo de cumplimiento",
+    "text": "contacta con nuestro equipo de cumplimiento",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
@@ -144,19 +144,22 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Nuestra política es no transferir nunca datos entre regiones. Cada región funciona como un entorno completamente independiente.",
+    "text": "Nuestra política es nunca transferir datos entre regiones. Cada región opera como un entorno completamente independiente.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Para usar una región diferente, crea una nueva cuenta allí usando la misma dirección de correo electrónico asociada a tu correo de contacto de facturación.",
+    "text": "Para usar una región diferente, crea una nueva cuenta allí usando la misma dirección de correo electrónico asociada con tu correo de contacto de facturación.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si tu correo de contacto de facturación difiere de tu correo de cuenta de Onetime Secret, usa el correo de contacto de facturación para la nueva cuenta regional y así mantener los beneficios de tu suscripción.",
+    "text": "Si tu correo de contacto de facturación es diferente al de tu cuenta de Onetime Secret, usa el correo de contacto de facturación para la cuenta de la nueva región para mantener los beneficios de tu suscripción.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
     "text": "Los beneficios de tu suscripción se aplicarán automáticamente a cualquier cuenta creada con tu dirección de correo de facturación.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Actualmente no hay información de región disponible para tu cuenta."
   }
 }

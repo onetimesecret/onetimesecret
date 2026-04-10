@@ -8,11 +8,11 @@
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} te envió un secreto",
+    "text": "%{sender_email} te ha enviado un secreto",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "te envió un secreto:",
+    "text": "te ha enviado un secreto:",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -28,7 +28,7 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Bienvenido a %{product_name} - Por favor verifica tu correo",
+    "text": "Bienvenido a %{product_name} - Por favor, verifica tu correo electrónico",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
@@ -36,11 +36,11 @@
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Por favor verifica tu correo electrónico haciendo clic en el enlace de abajo:",
+    "text": "Por favor, verifica tu dirección de correo electrónico haciendo clic en el enlace a continuación:",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Verificar correo electrónico",
+    "text": "Verificar dirección de correo electrónico",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
@@ -52,7 +52,7 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.D. Este correo fue enviado a %{email_address}. Si no creaste una cuenta, puedes ignorar este mensaje.",
+    "text": "P.D. Este correo fue enviado a %{email_address}. Si no creaste una cuenta, puedes ignorar este mensaje de forma segura.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
@@ -76,7 +76,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Si no solicitaste restablecer tu contraseña, puedes ignorar este correo.",
+    "text": "Si no solicitaste un restablecimiento de contraseña, puedes ignorar este correo electrónico de forma segura.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -92,7 +92,7 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Inicia sesión con enlace mágico",
+    "text": "Iniciar sesión con enlace mágico",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
@@ -112,7 +112,7 @@
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Si no solicitaste este enlace, puedes ignorar este correo de forma segura.",
+    "text": "Si no solicitaste este enlace, puedes ignorar este correo electrónico de forma segura.",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -132,7 +132,7 @@
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Nota:",
+    "text": "Memo:",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -160,7 +160,7 @@
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Enviado vía",
+    "text": "Enviado a través de",
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
@@ -188,11 +188,11 @@
     "source_hash": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Administrar preferencias de notificación",
+    "text": "Gestionar preferencias de notificaciones",
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Para administrar tus preferencias de notificación:",
+    "text": "Para gestionar tus preferencias de notificaciones:",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
@@ -212,11 +212,11 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Después de expirar, el secreto será eliminado permanentemente y no podrá ser recuperado.",
+    "text": "Después de la expiración, el secreto será eliminado permanentemente y no podrá ser recuperado.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Enviado vía",
+    "text": "Enviado a través de",
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
@@ -224,15 +224,15 @@
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Después de expirar, el secreto será eliminado permanentemente.",
+    "text": "Después de la expiración, el secreto será eliminado permanentemente.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Comentarios del %{date} vía %{display_domain} (%{strategy})",
+    "text": "Comentarios del %{date} a través de %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Comentarios del usuario",
+    "text": "Comentarios de usuario",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
@@ -252,7 +252,7 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Soporte Secreto",
+    "text": "Secret Support",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -260,7 +260,7 @@
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "¡Has sido invitado a unirte a %{organization_name}!",
+    "text": "Has sido invitado a unirte a %{organization_name}",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
@@ -280,7 +280,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Si no quieres unirte, simplemente puedes ignorar este correo o rechazar la invitación.",
+    "text": "Si no quieres unirte, simplemente puedes ignorar este correo electrónico o rechazar la invitación.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -300,19 +300,19 @@
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Tu contraseña fue cambiada (%{display_domain})",
+    "text": "Tu contraseña ha sido cambiada (%{display_domain})",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
-    "text": "Tu contraseña fue cambiada",
+    "text": "Tu contraseña ha sido cambiada",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Tu contraseña para %{product_name} fue cambiada el %{date} a las %{time}.",
+    "text": "Tu contraseña de %{product_name} fue cambiada el %{date} a las %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Si no realizaste este cambio, asegura tu cuenta inmediatamente restableciendo tu contraseña y contactando a soporte.",
+    "text": "Si no hiciste este cambio, por favor asegura tu cuenta inmediatamente restableciendo tu contraseña y contactando con soporte.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -320,19 +320,19 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
-    "text": "Tu dirección de correo fue cambiada (%{display_domain})",
+    "text": "Tu dirección de correo electrónico ha sido cambiada (%{display_domain})",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
-    "text": "Tu dirección de correo fue cambiada",
+    "text": "Tu dirección de correo electrónico ha sido cambiada",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "La dirección de correo de tu cuenta de %{product_name} fue cambiada a %{new_email_masked} el %{date}.",
+    "text": "La dirección de correo electrónico de tu cuenta de %{product_name} ha sido cambiada a %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Si no realizaste este cambio, contacta con soporte inmediatamente ya que tu cuenta puede estar comprometida.",
+    "text": "Si no hiciste este cambio, por favor contacta con soporte inmediatamente, ya que tu cuenta puede estar comprometida.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -340,19 +340,19 @@
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "Nuevo correo electrónico:",
+    "text": "Nuevo correo:",
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Cambiado el:",
+    "text": "Cambiado a las:",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Si realizaste este cambio, no se requiere ninguna acción adicional.",
+    "text": "Si hiciste este cambio, no se requiere ninguna acción adicional.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Si no realizaste este cambio, tu cuenta podría estar comprometida.",
+    "text": "Si no hiciste este cambio, tu cuenta puede estar comprometida.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -376,27 +376,27 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Se ha solicitado cambiar la dirección de correo electrónico de tu cuenta de %{product_name}.",
+    "text": "Se ha solicitado un cambio de dirección de correo electrónico en tu cuenta de %{product_name}.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Nuevo correo electrónico solicitado:",
+    "text": "Nuevo correo solicitado:",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Solicitado el:",
+    "text": "Solicitado a las:",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Si hiciste esta solicitud, revisa tu nuevo correo electrónico en busca de un enlace de confirmación. Aún no se han realizado cambios.",
+    "text": "Si hiciste esta solicitud, revisa tu nuevo correo electrónico para encontrar un enlace de confirmación. Aún no se han realizado cambios.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Si no hiciste esta solicitud, puedes ignorar este correo electrónico con tranquilidad. Tu cuenta no ha sido modificada.",
+    "text": "Si no hiciste esta solicitud, puedes ignorar este correo electrónico de forma segura. Tu cuenta no ha sido modificada.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contactar con Soporte",
+    "text": "Contactar soporte",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -404,23 +404,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.D. Este correo electrónico se envió a %{email_address} porque se solicitó un cambio de correo electrónico para tu cuenta.",
+    "text": "P.D. Este correo fue enviado a %{email_address} porque se solicitó un cambio de correo electrónico para tu cuenta.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Verifica tu nueva dirección de correo (%{display_domain})",
+    "text": "Verifica tu nueva dirección de correo electrónico (%{display_domain})",
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Verifica tu nueva dirección de correo",
+    "text": "Verifica tu nueva dirección de correo electrónico",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Por favor, verifica esta dirección de correo para completar el cambio de tu cuenta de %{product_name}.",
+    "text": "Por favor, verifica esta dirección de correo electrónico para completar el cambio en tu cuenta de %{product_name}.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Verificar dirección de correo",
+    "text": "Verificar dirección de correo electrónico",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Si no solicitaste este cambio, puedes ignorar este correo con seguridad. Tu dirección de correo electrónico no será modificada.",
+    "text": "Si no solicitaste este cambio, puedes ignorar este correo electrónico de forma segura. Tu dirección de correo electrónico no será modificada.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -484,7 +484,7 @@
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Tu cuenta ahora es menos segura. Si no realizaste este cambio, asegura tu cuenta inmediatamente.",
+    "text": "Tu cuenta ahora es menos segura. Si no hiciste este cambio, por favor asegura tu cuenta inmediatamente.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -544,11 +544,11 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Tu rol fue cambiado en %{organization_name}",
+    "text": "Tu rol ha sido cambiado en %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Tu rol fue cambiado",
+    "text": "Tu rol ha sido cambiado",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
@@ -576,7 +576,7 @@
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Recibo de pago para %{product_name}",
+    "text": "Recibo de pago de %{product_name}",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
@@ -588,7 +588,7 @@
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Monto:",
+    "text": "Importe:",
     "source_hash": "cdf45632"
   },
   "email.payment_receipt.date_label": {
@@ -632,15 +632,15 @@
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Tu prueba termina pronto",
+    "text": "Tu prueba está a punto de terminar",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Tu prueba gratuita de %{product_name} expirará en %{days_remaining} días. Actualiza ahora para mantener acceso a todas las funciones.",
+    "text": "Tu prueba gratuita de %{product_name} expirará en %{days_remaining} días. Mejora ahora para mantener el acceso a todas las características.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Actualizar ahora",
+    "text": "Mejorar ahora",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
@@ -648,7 +648,7 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Tu suscripción a %{product_name} fue cambiada",
+    "text": "Tu suscripción de %{product_name} fue cambiada",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
@@ -656,11 +656,11 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Tu suscripción a %{product_name} ha sido cambiada de %{old_plan} a %{new_plan}.",
+    "text": "Tu suscripción de %{product_name} ha sido cambiada de %{old_plan} a %{new_plan}.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Este cambio es efectivo el %{date}.",
+    "text": "Este cambio es efectivo a partir del %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {

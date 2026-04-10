@@ -56,7 +56,7 @@
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Consulta el estado del servicio",
+    "text": "Consulta el estado de nuestro servicio",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
@@ -88,7 +88,7 @@
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Consulta nuestros precios de suscripción",
+    "text": "Consulta los precios de suscripción",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Recientemente agregamos traducciones. ¿Encontraste un error? {send-feedback}",
+    "text": "Recientemente añadimos traducciones. ¿Has encontrado un error? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Estás viendo un mensaje seguro que alguien compartió contigo a través de Onetime Secret. Este contenido se muestra solo una vez y luego se elimina permanentemente de nuestros servidores.",
+    "text": "Estás viendo un mensaje seguro que fue compartido contigo a través de Onetime Secret. Este contenido se muestra solo una vez y luego se elimina permanentemente de nuestros servidores.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -156,7 +156,7 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "No. Por razones de seguridad, este secreto solo se puede ver una vez. Después de cerrar esta página, el contenido se eliminará permanentemente y nadie podrá recuperarlo, incluyéndonos a nosotros.",
+    "text": "No. Por razones de seguridad, este secreto solo se puede ver una vez. Después de cerrar esta página, el contenido será eliminado permanentemente y no podrá ser recuperado por nadie, incluidos nosotros.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,19 +164,19 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Usa el botón 'Copiar al portapapeles' para copiar todo el secreto. Para secretos más largos, asegúrate de verificar que has copiado el contenido completo antes de abandonar esta página.",
+    "text": "Usa el botón 'Copiar al portapapeles' para copiar el secreto completo. Para secretos más largos, asegúrate de verificar que has copiado el contenido completo antes de abandonar esta página.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "¿Se registra cuando veo este secreto?",
+    "text": "¿Se rastrea cuando veo este secreto?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Se notificará al remitente que su secreto fue visto, pero no registramos quién lo vio ni desde qué ubicación. Tu privacidad está protegida.",
+    "text": "El remitente será notificado de que su secreto fue visto, pero no rastreamos quién lo vio ni desde qué ubicación. Tu privacidad está protegida.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Una vez que abandones o actualices esta página, este secreto se eliminará permanentemente y nadie podrá recuperarlo.",
+    "text": "Una vez que abandones o actualices esta página, este secreto será eliminado permanentemente y no podrá ser recuperado por nadie.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -220,7 +220,7 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Notas de versión",
+    "text": "Notas de la versión",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
@@ -260,7 +260,7 @@
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Ver términos de servicio",
+    "text": "Ver términos del servicio",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
@@ -272,7 +272,7 @@
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
-    "text": "Términos de servicio",
+    "text": "Términos del servicio",
     "source_hash": "4afa55bf"
   },
   "web.layout.privacy_policy": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Contexto del espacio de trabajo",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Espacio de trabajo"
   }
 }
