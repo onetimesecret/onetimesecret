@@ -66,11 +66,11 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Autentisering misslyckades. Vänligen verifiera dina uppgifter och försök igen.",
+    "text": "Autentisering misslyckades. Kontrollera dina uppgifter och försök igen.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "För många försök. Vänligen försök igen senare.",
+    "text": "För många försök. Försök igen senare.",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
@@ -78,7 +78,7 @@
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Återställningskod hittades inte. Vänligen verifiera att du angav den korrekt.",
+    "text": "Återställningskod hittades inte. Kontrollera att du angav den korrekt.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
@@ -86,11 +86,11 @@
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Nätverksfel. Vänligen kontrollera din anslutning och försök igen.",
+    "text": "Nätverksfel. Kontrollera din anslutning och försök igen.",
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Ett fel uppstod. Vänligen försök igen.",
+    "text": "Ett fel uppstod. Försök igen.",
     "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
@@ -139,15 +139,15 @@
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Inget lösenord behövs — klicka bara på länken i din e-post",
+    "text": "Inget lösenord behövs - klicka bara på länken i din e-post",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Nätverksfel. Vänligen försök igen.",
+    "text": "Nätverksfel. Försök igen.",
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Det gick inte att skicka inloggningslänk. Vänligen försök igen.",
+    "text": "Det gick inte att skicka inloggningslänk. Försök igen.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
@@ -159,7 +159,7 @@
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Inloggningen misslyckades. Vänligen försök igen.",
+    "text": "Inloggning misslyckades. Försök igen.",
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
@@ -167,7 +167,7 @@
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Vänligen vänta medan vi verifierar din länk",
+    "text": "Vänta medan vi verifierar din länk",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -191,7 +191,7 @@
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Vänligen använd en modern webbläsare som stöder WebAuthn (Chrome, Safari, Firefox eller Edge)",
+    "text": "Använd en modern webbläsare som stöder WebAuthn (Chrome, Safari, Firefox eller Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -207,11 +207,11 @@
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Biometrisk autentisering misslyckades. Vänligen försök igen.",
+    "text": "Biometrisk autentisering misslyckades. Försök igen.",
     "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
-    "text": "Autentisering avbröts",
+    "text": "Autentiseringen avbröts",
     "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
@@ -267,17 +267,17 @@
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Är du säker på att du vill ta bort denna nyckel? Du kommer inte längre att kunna logga in med den.",
+    "text": "Är du säker på att du vill ta bort denna nyckel? Du kommer inte längre kunna logga in med den.",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "Nyckeln har tagits bort",
+    "text": "Nyckel borttagen",
     "context": "Success message after removing passkey",
     "source_hash": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "Nyckeln har registrerats",
+    "text": "Nyckel registrerad",
     "context": "Success message after registering passkey",
     "source_hash": "fbfb0713"
   },
@@ -312,17 +312,17 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Säkrare än lösenord – motståndskraftigt mot nätfiskeattacker",
+    "text": "Säkrare än lösenord - motståndskraftig mot nätfiskeattacker",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Snabbt och enkelt – använd bara ditt fingeravtryck, ansikte eller din säkerhetsnyckel",
+    "text": "Snabbt och enkelt - använd bara ditt fingeravtryck, ansikte eller din säkerhetsnyckel",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Synkroniseras mellan dina enheter vid användning av plattformsautentisering",
+    "text": "Synkroniseras mellan dina enheter vid användning av plattformsautentiserare",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -344,7 +344,7 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Kontakta supporten om du behöver omedelbar åtkomst",
+    "text": "Kontakta support om du behöver omedelbar åtkomst",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Detta kommer att logga ut dig från alla andra enheter. Är du säker?",
+    "text": "Detta loggar ut dig från alla andra enheter. Är du säker?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -484,7 +484,7 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Ogiltig kod. Koder går ut var 30:e sekund. Prova den senaste koden från din autentiseringsapp.",
+    "text": "Ogiltig kod. Koder upphör var 30:e sekund. Prova den senaste koden från din autentiseringsapp.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Bekräfta din identitet för att ändra inställningar för tvåfaktorsautentisering",
+    "text": "Bekräfta din identitet för att ändra tvåfaktorsautentiseringsinställningar",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -540,7 +540,7 @@
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Ditt konto är skyddat med tvåfaktorsautentisering",
+    "text": "Ditt konto skyddas med tvåfaktorsautentisering",
     "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
@@ -556,7 +556,7 @@
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Återställningskoder för nödåtkomst",
+    "text": "Säkerhetsåterställningskoder för nödåtkomst",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -576,7 +576,7 @@
     "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Använd Google Authenticator, Authy eller någon TOTP-app",
+    "text": "Använd Google Authenticator, Authy eller valfri TOTP-app",
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
@@ -636,7 +636,7 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Spara dessa koder på en säker plats. Varje kan användas en gång om du förlorar åtkomst till din autentiseringsapp.",
+    "text": "Spara dessa koder på en säker plats. Var och en kan användas en gång om du förlorar åtkomst till din autentiseringsapp.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -652,11 +652,11 @@
     "source_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "Regenerera koder",
+    "text": "Generera nya koder",
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Detta kommer att ogiltigförklara alla befintliga återställningskoder",
+    "text": "Detta ogiltigförklarar alla befintliga återställningskoder",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
@@ -696,7 +696,7 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Varje kod kan bara användas en gång. Regenerera koder om du har få kvar.",
+    "text": "Varje kod kan bara användas en gång. Generera nya koder om du har få kvar.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -710,5 +710,20 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Återställningskoder",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternativa autentiseringsalternativ"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SÄKERHETSKRITISKT: Meddelanden förhindrar informationsläckage. Se src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "session"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessioner"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Hanteringssida för användarens inloggade enheter/webbläsare"
   }
 }

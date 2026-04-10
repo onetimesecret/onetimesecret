@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "Varför är denna hemlighet inte tillgänglig?",
+    "text": "Varför är denna hemlighet otillgänglig?",
     "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
@@ -8,7 +8,7 @@
     "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Vad ska jag göra nu?",
+    "text": "Vad bör jag göra nu?",
     "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
@@ -16,11 +16,11 @@
     "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Varning avfärdad",
+    "text": "Varning stängd",
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Avfärda avkortningsvarning",
+    "text": "Stäng trunkingsvarning",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -36,11 +36,11 @@
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Avfärda varning",
+    "text": "Stäng varning",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Avfärda avisering",
+    "text": "Stäng avisering",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {

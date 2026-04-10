@@ -32,11 +32,11 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Redigera systemkonfigurationsinställningar. Ändringar tillämpas omedelbart efter sparning.",
+    "text": "Redigera systemkonfigurationsinställningar. Ändringar tillämpas omedelbart efter sparande.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "Ogiltig JSON i {section}-sektionen",
+    "text": "Ogiltig JSON i {section}-avsnittet",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
@@ -48,19 +48,19 @@
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Fel vid sparning av konfiguration",
+    "text": "Fel vid sparande av konfiguration",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "Konfiguration sparades",
+    "text": "Konfiguration sparad",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "Konfiguration måste vara ett JSON-objekt",
+    "text": "Konfigurationen måste vara ett JSON-objekt",
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Flera sektioner har valideringsfel: {sections}",
+    "text": "Flera avsnitt har valideringsfel: {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
@@ -68,7 +68,7 @@
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "{section} sparades",
+    "text": "{section} sparad",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -92,7 +92,7 @@
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "{section}-sektionen har inga konfigurerade värden",
+    "text": "{section}-avsnittet har inga konfigurerade värden",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -152,7 +152,7 @@
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Aktivitetsdata kommer att visas här",
+    "text": "Aktivitetsdata visas här",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
@@ -180,7 +180,7 @@
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "E-post skickade",
+    "text": "Skickade e-postmeddelanden",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
@@ -188,7 +188,7 @@
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "Felfri",
+    "text": "Frisk",
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
@@ -244,7 +244,7 @@
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Takt/sek",
+    "text": "Hastighet/sek",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
@@ -268,7 +268,7 @@
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Testplanläge",
+    "text": "Testabonnemangsläge",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -280,19 +280,19 @@
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Välj en plan att testa",
+    "text": "Välj ett abonnemang att testa",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Återställ till faktisk plan",
+    "text": "Återställ till faktiskt abonnemang",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Nuvarande plan",
+    "text": "Nuvarande abonnemang",
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "Tillgängliga planer",
+    "text": "Tillgängliga abonnemang",
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
@@ -304,7 +304,7 @@
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Testa din applikation med olika planrättigheter. Ändringar är tillfälliga och påverkar endast din session.",
+    "text": "Testa din applikation med olika abonnemangsrättigheter. Ändringar är tillfälliga och påverkar bara din session.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Övervaka synkroniseringshälsa för organisationsfakturering",
+    "text": "Övervaka organisationens faktureringssynkroniseringshälsa",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Faktureringshälsoövervakare",
+    "text": "Faktureringshälsomonitor",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -340,7 +340,7 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "Synkroniseringsstatus",
+    "text": "Synkstatus",
     "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
@@ -408,7 +408,7 @@
     "source_hash": "4b1b8aa3"
   },
   "web.colonel.organizations.columns.plan": {
-    "text": "Plan",
+    "text": "Abonnemang",
     "source_hash": "fa8ed0bd"
   },
   "web.colonel.organizations.columns.members": {
@@ -432,11 +432,11 @@
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Organisationers faktureringsadmin",
+    "text": "Faktureringsadministration för organisationer",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Hantera organisationer och övervaka faktureringsynkroniseringshälsa ({total} totalt)",
+    "text": "Hantera organisationer och övervaka faktureringssynkroniseringshälsa ({total} totalt)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -480,15 +480,15 @@
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Utredning misslyckades",
+    "text": "Undersökning misslyckades",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "Utredningsresultat",
+    "text": "Undersökningsresultat",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Verifierad synkroniserad",
+    "text": "Verifierat synkroniserad",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
@@ -500,7 +500,7 @@
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
-    "text": "Stripe prenumerationsdetaljer",
+    "text": "Stripe-prenumerationsdetaljer",
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
@@ -512,7 +512,7 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Bestämd plan",
+    "text": "Löst abonnemang",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {

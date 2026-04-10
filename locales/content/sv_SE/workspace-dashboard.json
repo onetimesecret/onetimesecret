@@ -1,10 +1,10 @@
 {
   "web.dashboard.title_received": {
-    "text": "Mottagen",
+    "text": "Mottagna",
     "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Ej mottagen",
+    "text": "Ej mottagna",
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
@@ -16,11 +16,11 @@
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Kunde inte ladda data",
+    "text": "Det gick inte att ladda data",
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "Det uppstod ett problem vid laddning av din data. Försök igen.",
+    "text": "Det uppstod ett problem vid laddning av dina data. Försök igen.",
     "source_hash": "ff0d904e"
   }
 }

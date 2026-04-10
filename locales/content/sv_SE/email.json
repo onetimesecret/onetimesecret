@@ -20,11 +20,11 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent.",
+    "text": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "Skickad via",
+    "text": "Skickat via",
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
@@ -124,11 +124,11 @@
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Du har mottagit ett hemligt meddelande",
+    "text": "Du har fått ett hemligt meddelande",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Du har mottagit ett säkert meddelande:",
+    "text": "Du har fått ett säkert meddelande:",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
@@ -148,7 +148,7 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Denna länk fungerar endast en gång. Efter visning kommer hemligheten att raderas permanent.",
+    "text": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
@@ -160,7 +160,7 @@
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
-    "text": "Skickad via",
+    "text": "Skickat via",
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
@@ -212,11 +212,11 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent och kan inte återställas.",
+    "text": "Efter utgången raderas hemligheten permanent och kan inte återställas.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "Skickad via",
+    "text": "Skickat via",
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
@@ -224,7 +224,7 @@
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Efter utgångsdatumet kommer hemligheten att raderas permanent.",
+    "text": "Efter utgången raderas hemligheten permanent.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
@@ -256,11 +256,11 @@
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Du har bjudits in att gå med i %{organization_name}",
+    "text": "Du har blivit inbjuden att gå med i %{organization_name}",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Du har bjudits in att gå med i %{organization_name}!",
+    "text": "Du har blivit inbjuden att gå med i %{organization_name}!",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
@@ -300,7 +300,7 @@
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
-    "text": "Ditt lösenord har ändrats (%{display_domain})",
+    "text": "Ditt lösenord ändrades (%{display_domain})",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
@@ -308,11 +308,11 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Ditt lösenord för %{product_name} ändrades den %{date} klockan %{time}.",
+    "text": "Ditt lösenord för %{product_name} ändrades den %{date} kl. %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta supporten.",
+    "text": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta support.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -328,11 +328,11 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked}.",
+    "text": "E-postadressen för ditt %{product_name}-konto har ändrats till %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan vara komprometterat.",
+    "text": "Om du inte gjorde denna ändring, vänligen kontakta support omedelbart eftersom ditt konto kan vara komprometterat.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -348,7 +348,7 @@
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Om du gjorde denna ändring behöver du inte göra något mer.",
+    "text": "Om du gjorde denna ändring behövs ingen ytterligare åtgärd.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
@@ -364,7 +364,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "PS. Detta e-postmeddelande skickades till %{email_address} för att meddela dig om en ändring av e-postadressen.",
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address} för att meddela dig om en ändring av e-postadress.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -376,7 +376,7 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "En begäran har gjorts om att ändra e-postadressen för ditt %{product_name}-konto.",
+    "text": "En begäran gjordes att ändra e-postadressen för ditt %{product_name}-konto.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
@@ -392,7 +392,7 @@
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Om du inte gjorde denna begäran kan du tryggt ignorera detta e-postmeddelande. Ditt konto har inte ändrats.",
+    "text": "Om du inte gjorde denna begäran kan du lugnt ignorera detta e-postmeddelande. Ditt konto har inte ändrats.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "PS. Detta e-postmeddelande skickades till %{email_address} eftersom en e-poständring begärdes för ditt konto.",
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address} eftersom en e-poständring begärdes för ditt konto.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -424,7 +424,7 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "En begäran har gjorts om att ändra e-postadressen för ditt %{product_name}-konto till %{new_email}.",
+    "text": "En begäran gjordes att ändra e-postadressen för ditt %{product_name}-konto till %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Om du inte begärde denna ändring kan du tryggt ignorera detta e-postmeddelande. Din e-postadress kommer inte att ändras.",
+    "text": "Om du inte begärde denna ändring kan du lugnt ignorera detta e-postmeddelande. Din e-postadress kommer inte att ändras.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "PS. Detta e-postmeddelande skickades till %{email_address} för att bekräfta en ändring av e-postadressen.",
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address} för att bekräfta en ändring av e-postadress.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -464,7 +464,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Ditt konto är nu säkrare. Du kommer att behöva ange en verifieringskod från din autentiseringsapp vid inloggning.",
+    "text": "Ditt konto är nu säkrare. Du behöver ange en verifieringskod från din autentiseringsapp vid inloggning.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -492,7 +492,7 @@
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Ny inloggning på ditt konto (%{display_domain})",
+    "text": "Ny inloggning till ditt konto (%{display_domain})",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
@@ -500,7 +500,7 @@
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "En ny inloggning på ditt %{product_name}-konto upptäcktes den %{date} klockan %{time}.",
+    "text": "En ny inloggning till ditt %{product_name}-konto upptäcktes den %{date} kl. %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Om detta inte var du kan ditt konto vara komprometterat.",
+    "text": "Om det inte var du kan ditt konto vara komprometterat.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -544,7 +544,7 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Din roll har ändrats i %{organization_name}",
+    "text": "Din roll ändrades i %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
@@ -596,7 +596,7 @@
     "source_hash": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Plan:",
+    "text": "Abonnemang:",
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
@@ -632,11 +632,11 @@
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Din provperiod avslutas snart",
+    "text": "Din provperiod närmar sig slutet",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Din kostnadsfria provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner.",
+    "text": "Din gratis provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -648,7 +648,7 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "Din %{product_name}-prenumeration har ändrats",
+    "text": "Din %{product_name}-prenumeration ändrades",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
@@ -680,7 +680,7 @@
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Visa i webbläsare",
+    "text": "Visa i webbläsaren",
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {

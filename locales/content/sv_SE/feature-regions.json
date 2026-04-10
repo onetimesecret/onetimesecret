@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Veta exakt var dina data finns och vilka lagar som styr dess skydd.",
+    "text": "Vet exakt var dina data finns och vilka lagar som styr deras skydd.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Uppfyll GDPR, HIPAA, CCPA och andra regionala dataskyddskrav",
+    "text": "Uppfyll kraven för GDPR, HIPAA, CCPA och andra regionala dataskyddsförordningar",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -152,11 +152,14 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Om din faktureringskontakts e-postadress skiljer sig från din Onetime Secret-kontos e-postadress, använd faktureringskontaktens e-postadress för det nya regionkontot för att behålla dina prenumerationsförmåner.",
+    "text": "Om din faktureringskontakt-e-post skiljer sig från din Onetime Secret-konto-e-post, använd faktureringskontakt-e-posten för det nya regionkontot för att behålla dina prenumerationsförmåner.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Dina prenumerationsförmåner gäller automatiskt för alla konton som skapas med din e-postadress för fakturering.",
+    "text": "Dina prenumerationsförmåner tillämpas automatiskt på alla konton som skapas med din fakturerings-e-postadress.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Ingen regioninformation är för närvarande tillgänglig för ditt konto."
   }
 }

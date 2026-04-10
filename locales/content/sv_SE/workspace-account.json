@@ -120,7 +120,7 @@
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Supportinformation",
+    "text": "Supportdetaljer",
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
@@ -172,7 +172,7 @@
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "radera dem permanent innan du fortsätter",
+    "text": "radera dem innan du fortsätter",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
@@ -188,7 +188,7 @@
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
-    "text": "Kontot har raderats.",
+    "text": "Konto raderat.",
     "source_hash": "afcfdd58"
   },
   "web.account.deactivate": {
@@ -236,7 +236,7 @@
     "source_hash": "c910d474"
   },
   "web.settings.preferences": {
-    "text": "Inställningar",
+    "text": "Preferenser",
     "source_hash": "66962f72"
   },
   "web.settings.appearance": {
@@ -304,7 +304,7 @@
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Ett verifieringsmejl skickas till den nya adressen",
+    "text": "Ett verifieringsmeddelande skickas till den nya adressen",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
@@ -316,11 +316,11 @@
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "Alla fält är obligatoriska",
+    "text": "Alla fält krävs",
     "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Ange en giltig e-postadress",
+    "text": "Vänligen ange en giltig e-postadress",
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
@@ -328,11 +328,11 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-post uppdaterad. Kontrollera din inkorg för att verifiera din nya e-postadress.",
+    "text": "Verifieringsmeddelande skickat. Kontrollera din nya inkorg och klicka på bekräftelselänken för att slutföra ändringen.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Kunde inte uppdatera e-post. Försök igen.",
+    "text": "Det gick inte att uppdatera e-posten. Försök igen.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
@@ -376,7 +376,7 @@
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Din övergripande kontosäkerhetsstatus",
+    "text": "Din övergripande kontosäkerhetshälsa",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -436,7 +436,7 @@
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Säkerhetsrekommendationer",
+    "text": "Bästa säkerhetspraxis",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Lär dig integrera Onetime Secret i dina applikationer",
+    "text": "Lär dig hur du integrerar Onetime Secret i dina applikationer",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -484,7 +484,7 @@
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Fullständig API-dokumentation och endpoints",
+    "text": "Fullständig API-dokumentation och slutpunkter",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
@@ -496,7 +496,7 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Säkerhetsrekommendationer",
+    "text": "Bästa säkerhetspraxis",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
@@ -508,7 +508,7 @@
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Rotera API-nycklar regelbundet för säkerhet",
+    "text": "Rotera API-nycklar regelbundet för säkerhetens skull",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
@@ -516,7 +516,7 @@
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Övervaka din API-användning och ställ in varningar",
+    "text": "Övervaka din API-användning och konfigurera aviseringar",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Att återskapa din API-nyckel ogiltigförklarar den nuvarande nyckeln. Uppdatera alla applikationer som använder den gamla nyckeln.",
+    "text": "Att generera om din API-nyckel ogiltigförklarar den nuvarande nyckeln. Uppdatera alla applikationer som använder den gamla nyckeln.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Hantera dina integritetsinställningar",
+    "text": "Hantera dina integritetspreferenser",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -540,7 +540,7 @@
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Icke-förhandlingsbar",
+    "text": "Icke förhandlingsbart",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -560,15 +560,15 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Hantera hur du får aviseringar",
+    "text": "Hantera hur du tar emot aviseringar",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Kunde inte uppdatera aviseringsinställning. Försök igen.",
+    "text": "Det gick inte att uppdatera aviseringsinställning. Försök igen.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Aviseringar vid visning av hemlighet",
+    "text": "Aviseringar vid visning av hemligheter",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
@@ -576,15 +576,15 @@
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Du får en avisering varje gång en mottagare visar en av dina hemligheter",
+    "text": "Du meddelas varje gång en mottagare avslöjar en av dina hemligheter",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Aviseringsmejl inkluderar endast tidsstämpel och hemlighets-ID. Information om läsare inkluderas aldrig.",
+    "text": "Aviseringsmeddelanden inkluderar bara tidsstämpel och hemlighets-ID. Information om vem som visat hemligheten inkluderas aldrig.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Zon för noggrann övervägning",
+    "text": "Zon för eftertanke",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -600,7 +600,7 @@
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Begär en komplett kopia av din kontodata i maskinläsbart format",
+    "text": "Begär en fullständig kopia av din kontodata i maskinläsbart format",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -624,11 +624,11 @@
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Ta bort all hemlighetsmetedata och historik",
+    "text": "Ta bort all hemlighetsmetadata och historik",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Ogiltigförklarar alla API-nycklar",
+    "text": "Ogiltigförklara alla API-nycklar",
     "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
@@ -636,11 +636,11 @@
     "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
-    "text": "E-postadressen har uppdaterats",
+    "text": "E-postadress uppdaterad",
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Din e-postadress har uppdaterats. Logga in med din nya e-postadress.",
+    "text": "Din e-post har uppdaterats. Vänligen logga in med din nya e-postadress.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
@@ -668,7 +668,7 @@
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Bekräftelsemeddelandet har skickats igen.",
+    "text": "Bekräftelsemeddelande skickat igen.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {

@@ -12,7 +12,7 @@
     "source_hash": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "Planer",
+    "text": "Abonnemang",
     "source_hash": "dfe8b2f0"
   },
   "web.footer.security": {
@@ -24,7 +24,7 @@
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Se våra allmänna villkor",
+    "text": "Visa våra villkor",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -72,7 +72,7 @@
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Se vår källkod på GitHub",
+    "text": "Visa vår källkod på GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -88,11 +88,11 @@
     "source_hash": "77468d43"
   },
   "web.footer.view_our_subscription_pricing": {
-    "text": "Se vår prenumerationsprissättning",
+    "text": "Visa vår prenumerationsprissättning",
     "source_hash": "55f1f590"
   },
   "web.footer.learn_about_our_company": {
-    "text": "Läs om vårt företag",
+    "text": "Läs mer om vårt företag",
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Vi har nyligen lagt till översättningar. Upptäckte du ett fel? {send-feedback}",
+    "text": "Vi har nyligen lagt till översättningar. Hittat ett fel? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser ett säkert meddelande som delades med dig via Onetime Secret. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar.",
+    "text": "Du visar ett säkert meddelande som delades med dig via Onetime Secret. Detta innehåll visas bara en gång och raderas sedan permanent från våra servrar.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -156,7 +156,7 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Nej. Av säkerhetsskäl kan denna hemlighet endast visas en gång. Efter att du stänger denna sida kommer innehållet att raderas permanent och kan inte återställas av någon, inklusive oss.",
+    "text": "Nej. Av säkerhetsskäl kan denna hemlighet bara visas en gång. Efter att du stänger denna sida raderas innehållet permanent och kan inte återställas av någon, inte ens av oss.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,19 +164,19 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Använd knappen 'Kopiera till urklipp' för att kopiera hela hemligheten. För längre hemligheter, se till att verifiera att du har kopierat hela innehållet innan du lämnar denna sida.",
+    "text": "Använd knappen 'Kopiera till urklipp' för att kopiera hela hemligheten. För längre hemligheter, kontrollera att du har kopierat hela innehållet innan du lämnar denna sida.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Spåras min visning av denna hemlighet?",
+    "text": "Spåras det att jag visar denna hemlighet?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Avsändaren kommer att meddelas att deras hemlighet visades, men vi spårar inte vem som visade den eller från vilken plats. Din integritet skyddas.",
+    "text": "Avsändaren meddelas att deras hemlighet har visats, men vi spårar inte vem som visade den eller från vilken plats. Din integritet skyddas.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "När du lämnar eller uppdaterar denna sida kommer hemligheten att raderas permanent och kan inte återställas av någon.",
+    "text": "När du lämnar eller uppdaterar denna sida raderas hemligheten permanent och kan inte återställas av någon.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -204,7 +204,7 @@
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Instrumentpanelnavigering",
+    "text": "Instrumentpanelsnavigering",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
@@ -220,7 +220,7 @@
     "source_hash": "f65216b3"
   },
   "web.layout.release_notes": {
-    "text": "Versionsanteckningar",
+    "text": "Versionsinformation",
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
@@ -228,7 +228,7 @@
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "Inställningssektioner",
+    "text": "Inställningsavsnitt",
     "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
@@ -236,7 +236,7 @@
     "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "Inställningssektioner",
+    "text": "Inställningsavsnitt",
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
@@ -264,11 +264,11 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Besök Onetime Secrets startsida",
+    "text": "Besök Onetime Secrets hemsida",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Sidfotnavigering",
+    "text": "Sidfotsnavigering",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
@@ -312,11 +312,11 @@
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Ändra språk. Nuvarande språk är {0}",
+    "text": "Byt språk. Nuvarande språk är {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Språket ändrades till {0}",
+    "text": "Språk ändrat till {0}",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Arbetsytekontext",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Arbetsyta"
   }
 }

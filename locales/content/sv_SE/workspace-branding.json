@@ -16,7 +16,7 @@
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Hörnstyling",
+    "text": "Hörnstil",
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontakta onboarding{'@'}example.com vid frågor",
+    "text": "Kontakta onboarding{'@'}example.com med eventuella frågor",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruktioner före visning",
+    "text": "Instruktioner före avslöjande",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruktioner efter visning",
+    "text": "Instruktioner efter avslöjande",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -128,7 +128,7 @@
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Kunde inte ladda varumärkesinställningar",
+    "text": "Det gick inte att ladda varumärkesinställningar",
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Uppgradera din plan för att anpassa varumärkesprofilen för denna domän.",
+    "text": "Uppgradera ditt abonnemang för att anpassa varumärkesprofileringen för denna domän.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Varumärkesinställningar sparade"
   }
 }

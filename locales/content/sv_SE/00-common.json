@@ -133,7 +133,7 @@
     "source_hash": "690dbe9d"
   },
   "web.COMMON.not_set": {
-    "text": "Ej inställt",
+    "text": "Ej angiven",
     "source_hash": "4895f731"
   },
   "web.COMMON.word_edit": {
@@ -145,11 +145,11 @@
     "source_hash": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Radera permanent",
+    "text": "Radera",
     "source_hash": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Raderad permanent",
+    "text": "Raderad",
     "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
@@ -157,15 +157,15 @@
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Radera denna hemlighet permanent",
+    "text": "Radera denna hemlighet",
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Permanent radering kommer att ta bort hemligheten innan den har lästs (klicka för att bekräfta)",
+    "text": "Att radera en hemlighet tar bort den innan den har lästs (klicka för att bekräfta)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Permanent radering kan inte ångras",
+    "text": "Att radera en hemlighet är permanent och kan inte ångras",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -181,7 +181,7 @@
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Du angav inget att dela",
+    "text": "Du har inte angett något att dela",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "Var försiktig: vi visar den bara en gång.",
+    "text": "Var försiktig: vi visar det bara en gång.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -213,11 +213,11 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Ett oväntat fel uppstod. Vänligen försök igen.",
+    "text": "Ett oväntat fel uppstod. Försök igen.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
-    "text": "Meddelandet blev avkortat",
+    "text": "Meddelandet kapades",
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
@@ -229,7 +229,7 @@
     "source_hash": "62f1fe13"
   },
   "web.COMMON.sent_to": {
-    "text": "Skickad till:",
+    "text": "Skickat till:",
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
@@ -261,7 +261,7 @@
     "source_hash": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "raderad permanent",
+    "text": "raderad",
     "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
@@ -281,7 +281,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Klar",
+    "text": "Klart",
     "source_hash": "11a6767d"
   },
   "web.COMMON.back": {
@@ -297,7 +297,7 @@
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "En verifiering skickades till",
+    "text": "En verifiering har skickats till",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
@@ -305,7 +305,7 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Om ett konto med denna e-postadress finns kommer du att få ett verifieringsmeddelande.",
+    "text": "Om ett konto med denna e-postadress finns får du ett verifieringsmeddelande.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -317,19 +317,19 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Är du säker på att du vill radera denna hemlighet permanent? Denna åtgärd kan inte ångras.",
+    "text": "Är du säker på att du vill radera denna hemlighet? Denna åtgärd kan inte ångras.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Ja, radera denna hemlighet permanent",
+    "text": "Ja, radera denna hemlighet",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Permanent radering kommer att ta bort hemligheten innan den har mottagits.",
+    "text": "Att radera en hemlighet tar bort den innan den har mottagits.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Dela denna länk separat från andra uppgifter av säkerhetsskäl.",
+    "text": "Av säkerhetsskäl, dela denna länk separat från andra uppgifter.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -349,7 +349,7 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Kan inte verifiera ett konto när du redan är inloggad",
+    "text": "Det går inte att verifiera ett konto när du redan är inloggad",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -377,7 +377,7 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Bearbetar din förfrågan",
+    "text": "Bearbetar din begäran",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
@@ -401,7 +401,7 @@
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Zon för noggrant övervägande",
+    "text": "Zon för eftertanke",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -457,7 +457,7 @@
     "source_hash": "92340695"
   },
   "web.COMMON.preview": {
-    "text": "Förhandsgranskning",
+    "text": "Förhandsgranska",
     "source_hash": "324b134f"
   },
   "web.COMMON.remove": {
@@ -489,7 +489,7 @@
     "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Klar",
+    "text": "Klart",
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
@@ -509,11 +509,11 @@
     "source_hash": "9b11f6b7"
   },
   "web.COMMON.yearly": {
-    "text": "Årlig",
+    "text": "Årsvis",
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Fortsätt då.",
+    "text": "Okej då.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -565,7 +565,7 @@
     "source_hash": "dd167905"
   },
   "web.COMMON.other": {
-    "text": "Annat",
+    "text": "Övrigt",
     "source_hash": "f97e9da0"
   },
   "web.COMMON.min_width_1024px": {
@@ -621,11 +621,11 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "Acceptabel",
+    "text": "Okej",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Sådär",
+    "text": "Nja",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
@@ -833,7 +833,7 @@
     "source_hash": "0b907f8b"
   },
   "web.LABELS.pricing": {
-    "text": "Prissättning",
+    "text": "Priser",
     "source_hash": "dfe95783"
   },
   "web.LABELS.refresh": {
@@ -906,7 +906,7 @@
     "source_hash": "49f19bee"
   },
   "web.STATUS.previewed": {
-    "text": "Förhandsgranskad",
+    "text": "Förhandsvisad",
     "source_hash": "3d391a9b"
   },
   "web.STATUS.revealed": {
@@ -914,7 +914,7 @@
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "Raderad permanent",
+    "text": "Raderad",
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
@@ -954,11 +954,11 @@
     "source_hash": "8d525e5f"
   },
   "web.STATUS.time_remaining": {
-    "text": "Återstående tid",
+    "text": "Tid kvar",
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Hemlig länk har skapats och ännu inte visats",
+    "text": "Hemlig länk har skapats och har inte visats ännu",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
@@ -978,15 +978,15 @@
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "Hemligt innehåll har avslöjats för mottagaren",
+    "text": "Hemlighetens innehåll har avslöjats för mottagaren",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Hemligheten raderades manuellt permanent innan den visades",
+    "text": "Hemligheten raderades manuellt innan den visades",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Hemligheten har förstörts permanent",
+    "text": "Hemligheten har raderats permanent",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
@@ -994,11 +994,11 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Hemligheten har övergivits och kommer snart att förstöras",
+    "text": "Hemligheten har övergivits och kommer att raderas snart",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Hemligheten har gått ut innan den visades",
+    "text": "Hemligheten gick ut innan den visades",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1026,7 +1026,7 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Varumärkning med betrodd domän",
+    "text": "Varumärkesprofilering med betrodd domän",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1158,7 +1158,7 @@
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Radera hemlighet permanent",
+    "text": "Radera hemlighet",
     "source_hash": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1279,7 +1279,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.TITLES.pricing": {
-    "text": "Prissättning",
+    "text": "Priser",
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifiera alltid att du är på den officiella Onetime Secret-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som Onetime Secret för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera regiondomänen innan du skapar nya länkar.",
+    "text": "Kontrollera alltid att du är på den officiella Onetime Secret-webbplatsen. Bedragare skapar ibland falska webbplatser som ser ut precis som Onetime Secret för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera domänen innan du skapar nya länkar.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Välj den plan som passar dina behov. Alla planer inkluderar obegränsad hemlighetsdelning och integritetsfokuserad design.",
+    "text": "Välj det abonnemang som passar dina behov. Alla abonnemang inkluderar obegränsad hemlighetsdelning och integritetsfokuserad design.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1369,7 +1369,7 @@
     "source_hash": "cc078766"
   },
   "api.errors.unexpected_error": {
-    "text": "Ett oväntat fel inträffade",
+    "text": "Ett oväntat fel uppstod",
     "context": "Generic error message for unhandled exceptions in API",
     "source_hash": "6615bf1c"
   },
@@ -1387,5 +1387,53 @@
     "text": "Uppgradera för att låsa upp fler funktioner",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Konfigurera"
+  },
+  "web.COMMON.add": {
+    "text": "Lägg till"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Ja, radera"
+  },
+  "web.COMMON.error_code": {
+    "text": "Felkod"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP-status"
+  },
+  "web.COMMON.details": {
+    "text": "Detaljer"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Bekräfta lösenord"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Lösenorden måste matcha"
+  },
+  "web.COMMON.and": {
+    "text": "och"
+  },
+  "web.COMMON.or": {
+    "text": "eller"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Visa lösenfras"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Dölj lösenfras"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Domäninställningar"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Domän-SSO"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-postkonfiguration"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Inkommande hemligheter"
   }
 }

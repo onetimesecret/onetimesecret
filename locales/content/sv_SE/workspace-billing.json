@@ -12,7 +12,7 @@
     "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "Visa planer",
+    "text": "Visa abonnemang",
     "source_hash": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
@@ -20,7 +20,7 @@
     "source_hash": "95bdda65"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Egna domäner kräver Identity Plus eller högre",
+    "text": "Anpassade domäner kräver Identity Plus eller högre",
     "source_hash": "e8af8484"
   },
   "web.billing.upgrade.needApiAccess": {
@@ -28,7 +28,7 @@
     "source_hash": "ab8be865"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Granskningsloggar kräver Multi-Team-plan eller högre",
+    "text": "Granskningsloggar kräver Multi-Team-abonnemang eller högre",
     "source_hash": "91df96b0"
   },
   "web.billing.manage_subscription_and_billing": {
@@ -48,11 +48,11 @@
     "source_hash": "21806992"
   },
   "web.billing.overview.current_plan": {
-    "text": "Nuvarande plan",
+    "text": "Nuvarande abonnemang",
     "source_hash": "5d856320"
   },
   "web.billing.overview.plan_features": {
-    "text": "Planfunktioner",
+    "text": "Abonnemangsfunktioner",
     "source_hash": "fbab9086"
   },
   "web.billing.overview.payment_method": {
@@ -76,11 +76,11 @@
     "source_hash": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "Uppgradera plan",
+    "text": "Uppgradera abonnemang",
     "source_hash": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "Ändra plan",
+    "text": "Ändra abonnemang",
     "source_hash": "2d0b195b"
   },
   "web.billing.overview.manage_subscription": {
@@ -88,7 +88,7 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "Du har en äldre plan med specialpriser.",
+    "text": "Du har ett äldre abonnemang med specialprissättning.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
@@ -96,7 +96,7 @@
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "Att byta plan innebär att du förlorar ditt äldre pris. Detta kan inte ångras.",
+    "text": "Att byta abonnemang innebär att du förlorar din äldre prissättning. Detta kan inte ångras.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
@@ -112,11 +112,11 @@
     "source_hash": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "Fakturering {date}",
+    "text": "Fakturering den {date}",
     "source_hash": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "Visa planer",
+    "text": "Visa abonnemang",
     "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
@@ -136,7 +136,7 @@
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "Uppdatera betalningsuppgifter",
+    "text": "Uppdatera betalningsinformation",
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
@@ -148,15 +148,15 @@
     "source_hash": "41e922d2"
   },
   "web.billing.overview.load_error": {
-    "text": "Det gick inte att läsa in faktureringsinformation",
+    "text": "Det gick inte att ladda faktureringsinformation",
     "source_hash": "3bc44882"
   },
   "web.billing.overview.upgrade_success": {
-    "text": "Din plan har uppgraderats",
+    "text": "Ditt abonnemang har uppgraderats",
     "source_hash": "00ac43f8"
   },
   "web.billing.overview.upgrade_success_description": {
-    "text": "Din nya plan är nu aktiv. Tack för ditt köp.",
+    "text": "Ditt nya abonnemang är nu aktivt. Tack för ditt köp.",
     "source_hash": "fd1caeb1"
   },
   "web.billing.overview.billing_contact": {
@@ -176,27 +176,27 @@
     "source_hash": "5f31cc2f"
   },
   "web.billing.overview.entitlements.custom_domains": {
-    "text": "Egna domäner",
+    "text": "Anpassade domäner",
     "source_hash": "6170ab94"
   },
   "web.billing.overview.entitlements.custom_privacy_defaults": {
-    "text": "Anpassade integritetsinställningar",
+    "text": "Anpassade integritetsstandarder",
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "Förlängd standardutgångstid",
+    "text": "Utökad standardutgångstid",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "Anpassade e-postinställningar",
+    "text": "Anpassade e-poststandarder",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
-    "text": "Egen varumärkesprofil",
+    "text": "Anpassad varumärkesprofilering",
     "source_hash": "237dabec"
   },
   "web.billing.overview.entitlements.homepage_secrets": {
-    "text": "Startsidehemligheter",
+    "text": "Hemligheter på startsidan",
     "source_hash": "6360f7ec"
   },
   "web.billing.overview.entitlements.incoming_secrets": {
@@ -232,7 +232,7 @@
     "source_hash": "436f2550"
   },
   "web.billing.overview.entitlements_load_error": {
-    "text": "Kunde inte ladda funktionsdetaljer",
+    "text": "Det gick inte att ladda funktionsdetaljer",
     "source_hash": "c350973c"
   },
   "web.billing.overview.no_entitlements": {
@@ -248,23 +248,23 @@
     "source_hash": "5f31cc2f"
   },
   "web.billing.features.custom_domains": {
-    "text": "Egna domäner",
+    "text": "Anpassade domäner",
     "source_hash": "6170ab94"
   },
   "web.billing.features.custom_domain": {
-    "text": "1 egen domän",
+    "text": "1 anpassad domän",
     "source_hash": "6a6be744"
   },
   "web.billing.features.unlimited_custom_domains": {
-    "text": "Obegränsade egna domäner",
+    "text": "Obegränsade anpassade domäner",
     "source_hash": "53eb7521"
   },
   "web.billing.features.custom_branding": {
-    "text": "Egen varumärkesprofil",
+    "text": "Anpassad varumärkesprofilering",
     "source_hash": "237dabec"
   },
   "web.billing.features.homepage_secrets": {
-    "text": "Startsidehemligheter",
+    "text": "Hemligheter på startsidan",
     "source_hash": "6360f7ec"
   },
   "web.billing.features.manage_teams": {
@@ -308,19 +308,19 @@
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
-    "text": "Välj en plan",
+    "text": "Välj ett abonnemang",
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "Välj den plan som passar dina behov",
+    "text": "Välj det abonnemang som passar dina behov",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
-    "text": "Välj den perfekta planen för din organisation",
+    "text": "Välj det perfekta abonnemanget för din organisation",
     "source_hash": "308076f2"
   },
   "web.billing.plans.current": {
-    "text": "Nuvarande plan",
+    "text": "Nuvarande abonnemang",
     "source_hash": "5d856320"
   },
   "web.billing.plans.current_badge": {
@@ -344,7 +344,7 @@
     "source_hash": "9b11f6b7"
   },
   "web.billing.plans.yearly": {
-    "text": "Årligen",
+    "text": "Årsvis",
     "source_hash": "6e69b59e"
   },
   "web.billing.plans.per_month": {
@@ -352,7 +352,7 @@
     "source_hash": "eec5d08b"
   },
   "web.billing.plans.save_yearly": {
-    "text": "Spara {percent}% med årlig fakturering",
+    "text": "Spara {percent}% med årsvis fakturering",
     "source_hash": "88c451f2"
   },
   "web.billing.plans.free_plan": {
@@ -360,7 +360,7 @@
     "source_hash": "f411a1fb"
   },
   "web.billing.plans.single_team_plan": {
-    "text": "Ett team",
+    "text": "Enskilt team",
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
@@ -396,7 +396,7 @@
     "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "Välj plan",
+    "text": "Välj abonnemang",
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
@@ -404,7 +404,7 @@
     "source_hash": "484aa053"
   },
   "web.billing.plans.custom_needs_title": {
-    "text": "Har du frågor eller behöver något anpassat?",
+    "text": "Har du frågor eller behöver du något anpassat?",
     "source_hash": "2f68484c"
   },
   "web.billing.plans.custom_needs_description": {
@@ -428,11 +428,11 @@
     "source_hash": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "Mest populär",
+    "text": "Mest populärt",
     "source_hash": "9e1006a4"
   },
   "web.billing.plans.suggested": {
-    "text": "Rekommenderad",
+    "text": "Föreslagen",
     "source_hash": "93b63bab"
   },
   "web.billing.plans.everything_in": {
@@ -440,23 +440,23 @@
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "Inga {interval}-planer tillgängliga just nu.",
+    "text": "Inga {interval}-abonnemang tillgängliga just nu.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
-    "text": "Det gick inte att läsa in planer",
+    "text": "Det gick inte att ladda abonnemang",
     "source_hash": "a37d4d9a"
   },
   "web.billing.plans.change_immediate": {
-    "text": "Din plan ändras omedelbart.",
+    "text": "Ditt abonnemang ändras omedelbart.",
     "source_hash": "889d13be"
   },
   "web.billing.plans.current_plan_label": {
-    "text": "Nuvarande plan:",
+    "text": "Nuvarande abonnemang:",
     "source_hash": "648a0ab2"
   },
   "web.billing.plans.new_plan_label": {
-    "text": "Ny plan:",
+    "text": "Nytt abonnemang:",
     "source_hash": "edb868c4"
   },
   "web.billing.plans.credit_label": {
@@ -476,11 +476,11 @@
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
-    "text": "Dina funktionsgränser uppdateras omedelbart efter planändringen.",
+    "text": "Dina funktionsgränser uppdateras omedelbart efter abonnemangsändringen.",
     "source_hash": "9cb09f73"
   },
   "web.billing.plans.change_failed": {
-    "text": "Planändring misslyckades. Försök igen.",
+    "text": "Abonnemangsändring misslyckades. Försök igen.",
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
@@ -508,7 +508,7 @@
     "source_hash": "526ad28f"
   },
   "web.billing.plans.credit_applied_to_bill": {
-    "text": "Tillgodokredit:",
+    "text": "Tillgodoräknad kredit:",
     "source_hash": "e5f2e81a"
   },
   "web.billing.plans.amount_due_next_billing": {
@@ -556,11 +556,11 @@
     "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "Dina fakturor visas här när du uppgraderar till en betald plan",
+    "text": "Dina fakturor visas här när du uppgraderar till ett betalt abonnemang",
     "source_hash": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
-    "text": "Visa planer",
+    "text": "Visa abonnemang",
     "source_hash": "a865d424"
   },
   "web.billing.invoices.paid": {
@@ -588,15 +588,15 @@
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
-    "text": "Makulerad",
+    "text": "Ogiltig",
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
-    "text": "Kunde inte ladda fakturor",
+    "text": "Det gick inte att ladda fakturor",
     "source_hash": "0b0cb3f7"
   },
   "web.billing.notices.org_managed": {
-    "text": "Fakturering hanteras av {orgName}",
+    "text": "Faktureringen hanteras av {orgName}",
     "source_hash": "6cfe0fb4"
   },
   "web.billing.notices.view_org_billing": {
@@ -632,11 +632,11 @@
     "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
-    "text": "Avslutad",
+    "text": "Avbruten",
     "source_hash": "13ca2ee2"
   },
   "web.billing.subscription.catalog_name": {
-    "text": "Plan",
+    "text": "Abonnemang",
     "source_hash": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
@@ -680,7 +680,7 @@
     "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "Integritet i första hand",
+    "text": "Integritetsfokuserad design",
     "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
@@ -720,7 +720,7 @@
     "source_hash": "2ecdd437"
   },
   "web.billing.upgrade_for_yourdomain": {
-    "text": "Uppgradera för secrets.dindomän.se",
+    "text": "Uppgradera för secrets.yourdomain.com",
     "source_hash": "8e4d766a"
   },
   "web.billing.includes_all_features_and_unlimited_sharing_capa": {
@@ -728,7 +728,7 @@
     "source_hash": "e728e4e1"
   },
   "web.billing.includes_all_data_locality_options": {
-    "text": "Alla planer inkluderar val av dataplacering: {0} regioner",
+    "text": "Alla abonnemang inkluderar val av datalokalitet: {0} regioner",
     "source_hash": "22a60b49"
   },
   "web.billing.get_started": {
@@ -760,29 +760,29 @@
     "source_hash": "d0204fc4"
   },
   "web.billing.cancel.link_text": {
-    "text": "Avsluta prenumeration",
+    "text": "Avbryt prenumeration",
     "context": "Link text shown below the plan selector for paid users",
     "source_hash": "3f85967f"
   },
   "web.billing.cancel.title": {
-    "text": "Avsluta prenumeration",
+    "text": "Avbryt prenumeration",
     "context": "Modal dialog heading/title",
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.confirmation": {
-    "text": "Är du säker på att du vill avsluta din {plan}-prenumeration?",
+    "text": "Är du säker på att du vill avbryta din {plan}-prenumeration?",
     "source_hash": "f4d1b6ee"
   },
   "web.billing.cancel.what_happens": {
-    "text": "Vad som händer när du avslutar:",
+    "text": "Vad händer när du avbryter:",
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "Du behåller åtkomst till alla funktioner till {date}",
+    "text": "Du behåller tillgång till alla funktioner till {date}",
     "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "Du behåller åtkomst till slutet av din nuvarande faktureringsperiod",
+    "text": "Du behåller tillgång till slutet av din nuvarande faktureringsperiod",
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
@@ -790,7 +790,7 @@
     "source_hash": "a01cdc16"
   },
   "web.billing.cancel.downgrade_to_free": {
-    "text": "Ditt konto återgår till gratisplanen",
+    "text": "Ditt konto återgår till det gratis abonnemanget",
     "source_hash": "e01b3fc3"
   },
   "web.billing.cancel.keep_subscription": {
@@ -799,30 +799,30 @@
     "source_hash": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "Avsluta prenumeration",
+    "text": "Avbryt prenumeration",
     "context": "Primary action button in modal - confirms the cancellation",
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "Din prenumeration har avslutats. Du behåller åtkomst till slutet av din faktureringsperiod.",
+    "text": "Din prenumeration har avbrutits. Du behåller tillgång till slutet av din faktureringsperiod.",
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
-    "text": "Kunde inte avsluta prenumeration. Försök igen.",
+    "text": "Det gick inte att avbryta prenumerationen. Försök igen.",
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "Avslutning av prenumeration schemalagd",
+    "text": "Avbrytning av prenumeration schemalagd",
     "context": "Alert banner heading shown when cancellation is pending",
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "Din prenumeration förblir aktiv till {date}. Du fortsätter ha full åtkomst till alla funktioner till dess.",
+    "text": "Din prenumeration förblir aktiv till {date}. Du har full tillgång till alla funktioner fram till dess.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "Ångrat dig? Du kan återaktivera din prenumeration när som helst innan avslutningsdatumet.",
+    "text": "Ändrat dig? Du kan återaktivera din prenumeration när som helst före avbrytningsdatumet.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -835,7 +835,7 @@
     "source_hash": "db966d47"
   },
   "web.billing.overview.entitlements.workspace_branding": {
-    "text": "Arbetsytans varumärkesprofil",
+    "text": "Arbetsytesvarumärke",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.extended_retention": {
@@ -875,7 +875,7 @@
     "source_hash": "db966d47"
   },
   "web.billing.features.workspace_branding": {
-    "text": "Arbetsytans varumärkesprofil",
+    "text": "Arbetsytesvarumärke",
     "source_hash": "e7acbf6f"
   },
   "web.billing.features.dedicated_infrastructure": {
@@ -887,20 +887,20 @@
     "source_hash": "158f558e"
   },
   "web.billing.currency_migration.title": {
-    "text": "Valutaändring krävs",
+    "text": "Valutabyte krävs",
     "context": "Modal title when plan requires different currency than current subscription",
     "source_hash": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "Din nuvarande prenumeration använder {from}. Den valda planen faktureras i {to}. Detta kräver att din prenumeration migreras till den nya valutan.",
+    "text": "Din nuvarande prenumeration använder {from}. Det valda abonnemanget faktureras i {to}. Detta kräver en migrering av din prenumeration till den nya valutan.",
     "source_hash": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
-    "text": "Nuvarande plan:",
+    "text": "Nuvarande abonnemang:",
     "source_hash": "648a0ab2"
   },
   "web.billing.currency_migration.new_plan": {
-    "text": "Ny plan:",
+    "text": "Nytt abonnemang:",
     "source_hash": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
@@ -916,7 +916,7 @@
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "Din nuvarande plan förblir aktiv till {date}. Därefter slutför du kassan för din nya plan.",
+    "text": "Ditt nuvarande abonnemang förblir aktivt till {date}. Därefter slutför du kassan för ditt nya abonnemang.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
@@ -924,11 +924,11 @@
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
-    "text": "Din nuvarande plan avbryts nu. Du får en återbetalning för oanvänd tid och slutför kassan för den nya planen.",
+    "text": "Ditt nuvarande abonnemang avbryts nu. Du får en återbetalning för oanvänd tid och slutför kassan för det nya abonnemanget.",
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "Bekräfta valutaändring",
+    "text": "Bekräfta valutabyte",
     "source_hash": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
@@ -940,15 +940,15 @@
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "Din nuvarande plan förblir aktiv till slutet av faktureringsperioden. Du uppmanas att slutföra kassan för din nya plan efter det.",
+    "text": "Ditt nuvarande abonnemang förblir aktivt till slutet av faktureringsperioden. Du uppmanas att slutföra kassan för ditt nya abonnemang efter det.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
-    "text": "Du har ett tillgodohavande i {currency} som inte kan överföras till den nya valutan.",
+    "text": "Du har ett kreditsaldo i {currency} som inte kan överföras till den nya valutan.",
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "Du har väntande fakturaposter som måste hanteras innan migrering.",
+    "text": "Du har väntande fakturaposter som behöver lösas före migreringen.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
@@ -956,12 +956,12 @@
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "Valutamigrering väntar",
+    "text": "Valutamigrering väntande",
     "context": "Banner heading when graceful migration is scheduled",
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "Din nuvarande plan slutar {date}. Slutför ditt byte till {plan} ({currency}).",
+    "text": "Ditt nuvarande abonnemang slutar den {date}. Slutför bytet till {plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
@@ -985,8 +985,29 @@
     "source_hash": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
-    "text": "Tillgänglig endast i din ursprungliga prenumerationsregion",
+    "text": "Tillgängligt i din ursprungliga prenumerationsregion",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "Du prenumererar redan på detta abonnemang."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "Återaktivera prenumeration"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "Din prenumeration har återaktiverats. Du fortsätter att debiteras som vanligt."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "Det gick inte att återaktivera prenumerationen. Försök igen eller kontakta support."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "Flexibel avsändardomän för e-post"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "Enkel inloggning (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "Återaktivera"
   }
 }

@@ -60,7 +60,7 @@
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
-    "text": "Kunde inte skapa organisation",
+    "text": "Det gick inte att skapa organisationen",
     "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
@@ -80,15 +80,15 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "Vad är denna organisation för?",
+    "text": "Vad är denna organisation till för?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "Faktureringsmejl",
+    "text": "Fakturerings-e-post",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Primär kontakt för fakturering och administrativa aviseringar",
+    "text": "Primär kontakt för fakturerings- och administrativa aviseringar",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -96,7 +96,7 @@
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Organisationsbyte ej tillgängligt på denna sida",
+    "text": "Organisationsväxling inte tillgänglig på denna sida",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -104,15 +104,15 @@
     "source_hash": "00c50f7a"
   },
   "web.organizations.load_error": {
-    "text": "Kunde inte ladda organisation",
+    "text": "Det gick inte att ladda organisationen",
     "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organization_error": {
-    "text": "Kunde inte ladda organisation",
+    "text": "Det gick inte att ladda organisationen",
     "source_hash": "6b5fa342"
   },
   "web.organizations.fetch_organizations_error": {
-    "text": "Kunde inte ladda organisationer",
+    "text": "Det gick inte att ladda organisationer",
     "source_hash": "03b30208"
   },
   "web.organizations.organization_information": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Uppdatera ditt organisationsnamn och beskrivning",
+    "text": "Uppdatera din organisations namn och beskrivning",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -152,15 +152,15 @@
     "source_hash": "af39d0f3"
   },
   "web.organizations.update_error": {
-    "text": "Kunde inte uppdatera organisation",
+    "text": "Det gick inte att uppdatera organisationen",
     "source_hash": "bc2b59b8"
   },
   "web.organizations.billing_email_updated": {
-    "text": "Faktureringsmejl uppdaterad",
+    "text": "Fakturerings-e-post uppdaterad",
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Faktureringsmejl kan ändras på sidan Faktureringsöversikt",
+    "text": "Fakturerings-e-post kan ändras på sidan Faktureringsöversikt",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Enhetlig fakturerings- och prenumerationshantering blir tillgänglig i en framtida version.",
+    "text": "Enhetlig fakturerings- och prenumerationshantering kommer att vara tillgänglig i en framtida version.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -184,7 +184,7 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Uppdatera ditt företagsnamn och organisationsdetaljer här. Denna information hjälper till att personalisera ditt konto och kan användas för varumärkesfunktioner i framtiden.",
+    "text": "Uppdatera ditt företagsnamn och organisationsdetaljer här. Denna information hjälper till att anpassa ditt konto och kan användas för varumärkesfunktioner i framtiden.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Team",
+    "text": "Medlemmar",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -220,7 +220,7 @@
     "source_hash": "4999c6c6"
   },
   "web.organizations.danger_zone": {
-    "text": "Farozon",
+    "text": "Riskzon",
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
@@ -244,7 +244,7 @@
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
-    "text": "Kunde inte radera organisation",
+    "text": "Det gick inte att radera organisationen",
     "source_hash": "a8e5bb28"
   },
   "web.organizations.members.title": {
@@ -304,15 +304,15 @@
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Kunde inte uppdatera medlemsroll",
+    "text": "Det gick inte att uppdatera medlemsroll",
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "Medlem borttagen från organisation",
+    "text": "Medlem borttagen från organisationen",
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
-    "text": "Kunde inte ta bort medlem",
+    "text": "Det gick inte att ta bort medlem",
     "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
@@ -332,7 +332,7 @@
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Du kan inte ta bort organisationsägaren",
+    "text": "Du kan inte ta bort organisationens ägare",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
@@ -344,7 +344,7 @@
     "source_hash": "4b1b8aa3"
   },
   "web.organizations.members.roles.admin": {
-    "text": "Administratör",
+    "text": "Admin",
     "source_hash": "c1c224b0"
   },
   "web.organizations.members.roles.member": {
@@ -360,7 +360,7 @@
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "Grundläggande åtkomst till organisationsresurser",
+    "text": "Grundläggande åtkomst till organisationens resurser",
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "medlem{'@'}example.com",
+    "text": "member{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -404,7 +404,7 @@
     "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Kunde inte skicka inbjudan",
+    "text": "Det gick inte att skicka inbjudan",
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
@@ -420,7 +420,7 @@
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Kunde inte skicka om inbjudan",
+    "text": "Det gick inte att skicka inbjudan igen",
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
@@ -428,7 +428,7 @@
     "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Kunde inte återkalla inbjudan",
+    "text": "Det gick inte att återkalla inbjudan",
     "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
@@ -468,11 +468,11 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Medlem",
+    "text": "Teammedlem",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
-    "text": "Administratör",
+    "text": "Admin",
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
@@ -500,7 +500,7 @@
     "source_hash": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
-    "text": "Kunde inte acceptera inbjudan",
+    "text": "Det gick inte att acceptera inbjudan",
     "source_hash": "3ecc8b0f"
   },
   "web.organizations.invitations.decline_success": {
@@ -508,7 +508,7 @@
     "source_hash": "31bffdcb"
   },
   "web.organizations.invitations.decline_error": {
-    "text": "Kunde inte avböja inbjudan",
+    "text": "Det gick inte att avböja inbjudan",
     "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Uppgradera din plan för att bjuda in teammedlemmar",
+    "text": "Uppgradera ditt abonnemang för att bjuda in teammedlemmar",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Inbjudningar av teammedlemmar kräver en plan med teamhantering. Uppgradera för att lägga till samarbetspartners i din organisation.",
+    "text": "Inbjudningar av teammedlemmar kräver ett abonnemang med teamhantering. Uppgradera för att lägga till medarbetare i din organisation.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Inloggad med ett annat konto",
+    "text": "Annat konto inloggat",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Denna inbjudan gäller {invitedEmail}. Du är för närvarande inloggad som {currentEmail}.",
+    "text": "Denna inbjudan är för {invitedEmail}. Du är för närvarande inloggad som {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -576,7 +576,193 @@
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
-    "text": "Går snart ut",
+    "text": "Går ut snart",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Visa och konfigurera dina arbetsytor"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "av {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "som {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Tillbaka till startsidan"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Denna inbjudan skickades till denna e-postadress"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Fortsätt"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Logga in och acceptera inbjudan"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Gå till organisationer"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Du är redan medlem i denna organisation"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Gå med i {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Logga in för att gå med i {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Avböj"
+  },
+  "web.organizations.sso.title": {
+    "text": "Enkel inloggning (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Konfigurera SSO för att låta medlemmar logga in med din organisations identitetsleverantör"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Leverantörstyp"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Välj din organisations identitetsleverantör"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Visningsnamn"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Ett vänligt namn som visas för användare vid inloggning"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "t.ex. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "Klient-ID"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "Ditt OAuth-klient-ID"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Klienthemlighet"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "Din OAuth-klienthemlighet"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Lämna tomt för att behålla den befintliga hemligheten"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Klient-ID (Tenant)"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Din Azure AD / Entra ID-klientidentifierare"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "t.ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Utfärdar-URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "OIDC-upptäckts-URL:en för din identitetsleverantör"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "t.ex. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Tillåtna e-postdomäner"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Bara användare med e-postadresser från dessa domäner kan logga in. Lämna tomt för att tillåta alla domäner."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "t.ex. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Vänligen ange en giltig domän (t.ex. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Denna domän finns redan i listan"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Ta bort {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Aktivera SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "När aktiverad kan organisationsmedlemmar logga in med denna SSO-leverantör"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Spara SSO-konfiguration"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Radera konfiguration"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Är du säker? Detta inaktiverar SSO för din organisation."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Det gick inte att ladda SSO-konfigurationen"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Det gick inte att spara SSO-konfigurationen"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO-konfiguration skapad"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO-konfiguration uppdaterad"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO-konfiguration raderad"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Det gick inte att radera SSO-konfigurationen"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testa anslutning"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifiera att identitetsleverantören kan nås (validerar inte inloggningsuppgifter)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testa anslutning"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Testar..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Det gick inte att testa anslutningen"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Auktoriseringsslutpunkt"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Saknade fält"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Aktiverad"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Konfigurerad"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Domän-SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Konfigurera SSO för varje verifierad domän"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "För att ändra leverantör, radera denna konfiguration först"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Ej konfigurerad"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }
