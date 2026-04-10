@@ -70,7 +70,7 @@ install_gems() {
   info "Installing gems..."
   bundle install --retry 3
 
-  $fresh && warn "Generated Gemfile.lock - consider committing"
+  $fresh && warn "Generated Gemfile.lock - consider committing" || true
 }
 
 install_node() {
