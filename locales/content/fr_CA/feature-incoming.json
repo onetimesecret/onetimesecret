@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Partagez des informations sensibles en toute sécurité avec notre équipe de soutien",
+    "text": "Partagez des informations sensibles de façon sécurisée avec notre équipe de soutien",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Cette fonctionnalité est actuellement désactivée. Veuillez contacter le soutien pour obtenir de l'aide.",
+    "text": "Cette fonctionnalité est actuellement désactivée. Veuillez contacter le soutien pour de l'aide.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Brève description (p. ex., Demande de réinitialisation de mot de passe)",
+    "text": "Brève description (p. ex., demande de réinitialisation de mot de passe)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -40,11 +40,11 @@
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
-    "text": "Sélectionnez un destinataire",
+    "text": "Sélectionner un destinataire",
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "Sélectionnez un destinataire pour ce secret",
+    "text": "Sélectionner un destinataire pour ce secret",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
@@ -64,7 +64,7 @@
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Ces informations seront chiffrées et consultables une seule fois",
+    "text": "Cette information sera chiffrée et ne pourra être consultée qu'une seule fois",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -76,11 +76,11 @@
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Envoi en cours...",
+    "text": "Envoi...",
     "source_hash": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Envoi en cours...",
+    "text": "Envoi...",
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
@@ -92,7 +92,7 @@
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
-    "text": "Envoi réussi",
+    "text": "Envoyé avec succès",
     "source_hash": "261e9a7e"
   },
   "incoming.success_description": {
@@ -100,15 +100,15 @@
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Identifiant de référence",
+    "text": "ID de référence",
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
-    "text": "Que se passe-t-il ensuite ?",
+    "text": "Et maintenant ?",
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Le destinataire pourra voir ce secret une seule fois. Après consultation, le secret sera définitivement supprimé.",
+    "text": "Le destinataire pourra consulter ce secret une seule fois. Après consultation, le secret sera supprimé de façon permanente.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -116,19 +116,40 @@
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Partagez des informations sensibles en toute sécurité",
+    "text": "Partagez des informations sensibles de façon sécurisée",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Gardez les mots de passe et données privées hors des courriels et historiques de clavardage",
+    "text": "Gardez les mots de passe et les données privées hors des courriels et des journaux de clavardage",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Conservez votre {receipt} pour vos dossiers.",
+    "text": "Enregistrez votre {receipt} pour vos dossiers.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "reçu",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Mise à niveau requise"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Cette fonctionnalité nécessite une mise à niveau de forfait. Veuillez contacter le propriétaire du compte pour activer les secrets entrants."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Le mémo doit contenir {max} caractères ou moins"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Le contenu secret est requis"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Veuillez sélectionner un destinataire"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "La fonctionnalité de secrets entrants n'est pas activée"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Veuillez vérifier le formulaire pour les erreurs"
   }
 }

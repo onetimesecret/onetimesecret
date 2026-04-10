@@ -16,11 +16,11 @@
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Style de coins",
+    "text": "Style des coins",
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Couleur de marque",
+    "text": "Couleur de la marque",
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
@@ -40,11 +40,11 @@
     "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "Maximiser la fenêtre",
+    "text": "Agrandir la fenêtre",
     "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "Minimiser la fenêtre",
+    "text": "Réduire la fenêtre",
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
@@ -56,7 +56,7 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Utilisez votre téléphone pour scanner le code QR",
+    "text": "Utilisez votre téléphone pour numériser le code QR",
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instructions avant révélation",
+    "text": "Instructions avant la révélation",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instructions après révélation",
+    "text": "Instructions après la révélation",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -92,7 +92,7 @@
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "Téléverser un logo",
+    "text": "Téléverser le logo",
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
@@ -104,7 +104,7 @@
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
-    "text": "Icône d'œil",
+    "text": "Icône d'oeil",
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et polices à l'aide des contrôles ci-dessus - Téléverser un logo (minimum 128x128 pixels recommandé, 1 Mo maximum) - Tester l'aperçu en utilisant le bouton « Voir le secret »",
+    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des contrôles ci-dessus - Téléverser un logo (minimum 128x128 pixels recommandé, 1 Mo max) - Tester l'aperçu à l'aide du bouton « Voir le secret »",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Mettez votre forfait à niveau pour personnaliser l'image de marque de ce domaine.",
+    "text": "Mettez à niveau votre forfait pour personnaliser l'image de marque de ce domaine.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Paramètres de marque enregistrés avec succès"
   }
 }

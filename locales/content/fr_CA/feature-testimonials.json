@@ -20,11 +20,11 @@
     "source_hash": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
-    "text": "{0} :",
+    "text": "{0} :",
     "source_hash": "14159dd9"
   },
   "web.testimonials.what_leading_ai_says_about_us": {
-    "text": "Ce que les principales IA disent de nous",
+    "text": "Ce que les IA de pointe disent de nous",
     "source_hash": "f46a8839"
   },
   "web.testimonials.ai_generated_testimonials": {
@@ -40,7 +40,7 @@
     "source_hash": "8b290e9a"
   },
   "web.testimonials.artificial_feedback": {
-    "text": "Commentaires artificiels",
+    "text": "Retour artificiel",
     "source_hash": "4c8d20ba"
   },
   "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {

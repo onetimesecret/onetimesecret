@@ -1,6 +1,6 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Ticket : %s]",
+    "text": "[Billet : %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
@@ -12,15 +12,15 @@
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "vous a envoyé un secret :",
+    "text": "vous a envoyé un secret :",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Important :",
+    "text": "Important :",
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Ce lien ne fonctionnera qu'une seule fois. Après consultation, le secret sera définitivement supprimé.",
+    "text": "Ce lien ne fonctionnera qu'une seule fois. Après consultation, le secret sera supprimé de façon permanente.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -32,11 +32,11 @@
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Bienvenue sur %{product_name} !",
+    "text": "Bienvenue sur %{product_name} !",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Veuillez vérifier votre adresse courriel en cliquant sur le lien ci-dessous :",
+    "text": "Veuillez vérifier votre adresse courriel en cliquant sur le lien ci-dessous :",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
@@ -44,7 +44,7 @@
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
@@ -72,7 +72,7 @@
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
@@ -88,7 +88,7 @@
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Connexion à %{display_domain}",
+    "text": "Se connecter à %{display_domain}",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
@@ -104,7 +104,7 @@
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
@@ -128,27 +128,27 @@
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Vous avez reçu un message sécurisé :",
+    "text": "Vous avez reçu un message sécurisé :",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Note :",
+    "text": "Mémo :",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Quelqu'un vous a envoyé un message sécurisé via %{display_domain}.",
+    "text": "Quelqu'un vous a envoyé un message sécurisé par l'entremise de %{display_domain}.",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Pour voir ce secret, cliquez sur le lien ci-dessous :",
+    "text": "Pour consulter ce secret, cliquez sur le lien ci-dessous :",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Important :",
+    "text": "Important :",
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Ce lien ne fonctionnera qu'une seule fois. Après consultation, le secret sera définitivement supprimé.",
+    "text": "Ce lien ne fonctionnera qu'une seule fois. Après consultation, le secret sera supprimé de façon permanente.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
@@ -156,7 +156,7 @@
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Phrase secrète requise :",
+    "text": "Phrase secrète requise :",
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
@@ -176,7 +176,7 @@
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "Identifiant du secret :",
+    "text": "ID du secret :",
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
@@ -192,11 +192,11 @@
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Pour gérer vos préférences de notification :",
+    "text": "Pour gérer vos préférences de notification :",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Votre lien secret va bientôt expirer",
+    "text": "Votre lien secret expirera bientôt",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
@@ -204,15 +204,15 @@
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Voir votre secret avant son expiration",
+    "text": "Consulter votre secret avant son expiration",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Rappel :",
+    "text": "Rappel :",
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Après l'expiration, le secret sera définitivement supprimé et ne pourra pas être récupéré.",
+    "text": "Après l'expiration, le secret sera supprimé de façon permanente et ne pourra être récupéré.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -220,39 +220,39 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Consultez-le avant qu'il ne disparaisse :",
+    "text": "Consultez-le avant qu'il ne disparaisse :",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Après l'expiration, le secret sera définitivement supprimé.",
+    "text": "Après l'expiration, le secret sera supprimé de façon permanente.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Commentaires du %{date} via %{display_domain} (%{strategy})",
+    "text": "Retour d'information le %{date} via %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Commentaires d'utilisateur",
+    "text": "Retour d'utilisateur",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "De :",
+    "text": "De :",
     "source_hash": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domaine :",
+    "text": "Domaine :",
     "source_hash": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Stratégie :",
+    "text": "Stratégie :",
     "source_hash": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Message :",
+    "text": "Message :",
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Soutien aux secrets",
+    "text": "Secret Support",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -260,7 +260,7 @@
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Vous avez été invité à rejoindre %{organization_name}",
+    "text": "Vous avez été invité à rejoindre %{organization_name} !",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
@@ -272,7 +272,7 @@
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
@@ -328,11 +328,11 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "L'adresse courriel de votre compte %{product_name} a été changée pour %{new_email_masked} le %{date}.",
+    "text": "L'adresse courriel de votre compte %{product_name} a été modifiée à %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Si vous n'avez pas effectué cette modification, veuillez contacter le soutien immédiatement, car votre compte pourrait être compromis.",
+    "text": "Si vous n'avez pas effectué ce changement, veuillez contacter le soutien immédiatement, car votre compte pourrait être compromis.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -340,11 +340,11 @@
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "Nouveau courriel :",
+    "text": "Nouveau courriel :",
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Modifié le :",
+    "text": "Modifié le :",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
@@ -356,7 +356,7 @@
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contacter le support",
+    "text": "Contacter le soutien",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -364,7 +364,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Ce courriel a été envoyé à %{email_address} pour vous informer d'un changement d'adresse courriel.",
+    "text": "P.-S. Ce courriel a été envoyé à %{email_address} pour vous informer d'un changement d'adresse courriel.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -376,19 +376,19 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Une demande de changement d'adresse courriel a été faite sur votre compte %{product_name}.",
+    "text": "Une demande a été faite pour modifier l'adresse courriel de votre compte %{product_name}.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Nouveau courriel demandé :",
+    "text": "Nouveau courriel demandé :",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Demandé le :",
+    "text": "Demandé à :",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Si vous avez fait cette demande, vérifiez votre nouveau courriel pour un lien de confirmation. Aucune modification n'a encore été effectuée.",
+    "text": "Si vous avez fait cette demande, vérifiez votre nouveau courriel pour un lien de confirmation. Aucune modification n'a encore été apportée.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
@@ -396,7 +396,7 @@
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contacter le support",
+    "text": "Contacter le soutien",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Ce courriel a été envoyé à %{email_address} car une demande de changement de courriel a été faite pour votre compte.",
+    "text": "P.-S. Ce courriel a été envoyé à %{email_address} parce qu'un changement de courriel a été demandé pour votre compte.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -412,11 +412,11 @@
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Vérifier votre nouvelle adresse courriel",
+    "text": "Vérifiez votre nouvelle adresse courriel",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Veuillez vérifier cette adresse courriel pour terminer le changement de votre compte %{product_name}.",
+    "text": "Veuillez vérifier cette adresse courriel pour compléter le changement de votre compte %{product_name}.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
@@ -424,7 +424,7 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Une demande a été effectuée pour changer l'adresse courriel de votre compte %{product_name} à %{new_email}.",
+    "text": "Une demande a été faite pour modifier l'adresse courriel de votre compte %{product_name} à %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
@@ -432,7 +432,7 @@
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
@@ -448,7 +448,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Ce courriel a été envoyé à %{email_address} pour confirmer un changement d'adresse courriel.",
+    "text": "P.-S. Ce courriel a été envoyé à %{email_address} pour confirmer un changement d'adresse courriel.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
@@ -464,7 +464,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Votre compte est maintenant plus sécurisé. Vous devrez entrer un code de vérification depuis votre application d'authentification lors de la connexion.",
+    "text": "Votre compte est maintenant plus sécurisé. Vous devrez entrer un code de vérification de votre application d'authentification lors de la connexion.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -504,15 +504,15 @@
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Appareil :",
+    "text": "Appareil :",
     "source_hash": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Emplacement :",
+    "text": "Emplacement :",
     "source_hash": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "Adresse IP :",
+    "text": "Adresse IP :",
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
@@ -552,7 +552,7 @@
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Votre rôle dans « %{organization_name} » a été modifié de %{old_role} à %{new_role}.",
+    "text": "Votre rôle dans « %{organization_name} » a été changé de %{old_role} à %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -568,7 +568,7 @@
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "L'organisation « %{organization_name} » a été supprimée de %{product_name}. Toutes les données associées ont été supprimées.",
+    "text": "L'organisation « %{organization_name} » a été supprimée de %{product_name}. Toutes les données associées ont été retirées.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -584,19 +584,19 @@
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Merci pour votre paiement. Voici les détails de votre paiement :",
+    "text": "Merci pour votre paiement. Voici les détails de votre paiement :",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Montant :",
+    "text": "Montant :",
     "source_hash": "cdf45632"
   },
   "email.payment_receipt.date_label": {
-    "text": "Date :",
+    "text": "Date :",
     "source_hash": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
-    "text": "Forfait :",
+    "text": "Forfait :",
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
@@ -628,7 +628,7 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Votre essai %{product_name} expire dans %{days_remaining} jours",
+    "text": "Votre période d'essai %{product_name} expire dans %{days_remaining} jours",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
@@ -636,7 +636,7 @@
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Votre essai gratuit de %{product_name} expire dans %{days_remaining} jours. Mettez à niveau maintenant pour conserver l'accès à toutes les fonctionnalités.",
+    "text": "Votre période d'essai gratuite de %{product_name} expirera dans %{days_remaining} jours. Mettez à niveau maintenant pour conserver l'accès à toutes les fonctionnalités.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
@@ -660,7 +660,7 @@
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ce changement est effectif à compter du %{date}.",
+    "text": "Ce changement est en vigueur à compter du %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {

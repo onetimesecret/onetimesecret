@@ -4,19 +4,19 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Vos données résident exclusivement dans la région choisie et ne sont jamais transférées entre régions",
+    "text": "Vos données résident exclusivement dans la région choisie et ne sont jamais transférées entre les régions",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, clés de chiffrement et stockage de données",
+    "text": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, ses propres clés de chiffrement et son propre stockage de données",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Nous maintenons une politique stricte : les données clients ne sont jamais transférées entre régions en aucune circonstance",
+    "text": "Nous maintenons une politique stricte : les données des clients ne sont jamais transférées entre les régions, en aucune circonstance",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Important : Passer à une région différente crée un nouveau compte. Vos données restent dans votre région d'origine.",
+    "text": "Important : passer à une région différente crée un nouveau compte. Vos données restent dans votre région d'origine.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Assurez-vous que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de vie privée, empêchant tout accès ou utilisation non autorisé.",
+    "text": "Assurez-vous que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de vie privée, empêchant tout accès non autorisé ou toute utilisation abusive.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Respectez les exigences du RGPD, de la HIPAA, du CCPA et d'autres réglementations régionales de protection des données",
+    "text": "Respectez les exigences du RGPD, HIPAA, CCPA et d'autres réglementations régionales en matière de protection des données",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -76,11 +76,11 @@
     "source_hash": "610c65d8"
   },
   "web.regions.contact_our_compliance_team": {
-    "text": "contacter notre équipe de conformité",
+    "text": "contactez notre équipe de conformité",
     "source_hash": "87e6746e"
   },
   "web.regions.review_our_documentation": {
-    "text": "consulter notre documentation",
+    "text": "consultez notre documentation",
     "source_hash": "9cbd03df"
   },
   "web.regions.your_account_and_data_are_protected_under_the_la": {
@@ -120,7 +120,7 @@
     "source_hash": "f1699c90"
   },
   "web.regions.data_region": {
-    "text": "Région de données",
+    "text": "Région des données",
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
@@ -136,7 +136,7 @@
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Juridiction actuelle :",
+    "text": "Juridiction actuelle :",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -148,15 +148,18 @@
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Pour utiliser une autre région, créez un nouveau compte en utilisant la même adresse courriel associée à votre courriel de contact de facturation.",
+    "text": "Pour utiliser une région différente, créez un nouveau compte en utilisant la même adresse courriel associée à votre courriel de contact de facturation.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si votre courriel de contact de facturation diffère de votre courriel de compte Onetime Secret, utilisez le courriel de contact de facturation pour le nouveau compte régional afin de conserver vos avantages d'abonnement.",
+    "text": "Si votre courriel de contact de facturation diffère de votre courriel de compte Onetime Secret, utilisez le courriel de contact de facturation pour le nouveau compte de région afin de conserver les avantages de votre abonnement.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Vos avantages d'abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse courriel de facturation.",
+    "text": "Les avantages de votre abonnement s'appliqueront automatiquement à tout compte créé avec votre adresse courriel de facturation.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Aucune information de région n'est actuellement disponible pour votre compte."
   }
 }

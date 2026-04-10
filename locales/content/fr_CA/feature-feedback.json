@@ -1,10 +1,10 @@
 {
   "web.feedback.your_feedback": {
-    "text": "Vos commentaires",
+    "text": "Votre retour d'information",
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Tous les commentaires sont les bienvenus !",
+    "text": "Tous les retours d'information sont les bienvenus !",
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
@@ -12,11 +12,11 @@
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Fermer la fenêtre de commentaires",
+    "text": "Fermer la fenêtre de retour d'information",
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
-    "text": "Partagez vos commentaires",
+    "text": "Partagez votre retour d'information",
     "source_hash": "6d62dfbd"
   },
   "web.feedback.delano_mandelbaum": {
@@ -32,31 +32,31 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Je lis chaque commentaire qui arrive ici. C'est comme ça que je décide sur quoi travailler.",
+    "text": "Je lis chaque retour d'information qui passe par ici. C'est comme ça que je détermine sur quoi consacrer mon temps.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Si quelque chose ne va pas, ou si vous avez des idées sur comment ça devrait fonctionner, c'est le bon endroit.",
+    "text": "Si quelque chose ne va pas, ou si vous avez des idées sur la façon dont ça devrait fonctionner, c'est le bon endroit.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
-    "text": "Ouvrir le formulaire de commentaires",
+    "text": "Ouvrir le formulaire de retour d'information",
     "source_hash": "acd8409b"
   },
   "web.feedback.enter_your_feedback": {
-    "text": "Entrez vos commentaires",
+    "text": "Entrez votre retour d'information",
     "source_hash": "1bb310f4"
   },
   "web.feedback.send_feedback": {
-    "text": "Envoyer des commentaires",
+    "text": "Envoyer un retour d'information",
     "source_hash": "8235980b"
   },
   "web.feedback.sending_ellipses": {
-    "text": "Envoi en cours...",
+    "text": "Envoi...",
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Il semble que vous signalez un changement de courriel non autorisé sur votre compte. Veuillez décrire ce qui s'est passé et nous enquêterons immédiatement.",
+    "text": "Il semble que vous signaliez un changement de courriel non autorisé sur votre compte. Veuillez décrire ce qui s'est passé et nous enquêterons immédiatement.",
     "source_hash": "00e56551"
   }
 }

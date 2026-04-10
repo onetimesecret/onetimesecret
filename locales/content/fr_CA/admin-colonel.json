@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(actif dans les 5 dernières minutes)",
+    "text": "(actifs au cours des 5 dernières minutes)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -60,11 +60,11 @@
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Plusieurs sections ont des erreurs de validation : {sections}",
+    "text": "Plusieurs sections contiennent des erreurs de validation : {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "{section} a des erreurs de validation : {error}",
+    "text": "{section} contient des erreurs de validation : {error}",
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
@@ -84,15 +84,15 @@
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Erreur de validation du schéma : {message} ({path})",
+    "text": "Erreur de validation du schéma : {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Erreur de validation inconnue : {error}",
+    "text": "Erreur de validation inconnue : {error}",
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "La section {section} n'a pas de valeurs configurées",
+    "text": "La section {section} n'a aucune valeur configurée",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -148,7 +148,7 @@
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Voir tout",
+    "text": "Tout voir",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
@@ -188,7 +188,7 @@
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
-    "text": "En bonne santé",
+    "text": "Sain",
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
@@ -252,11 +252,11 @@
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
-    "text": "Santé des workers",
+    "text": "Santé des processus",
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "workers actifs",
+    "text": "processus actifs",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
@@ -272,7 +272,7 @@
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
-    "text": "Test avec {planName}",
+    "text": "Test en tant que {planName}",
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
@@ -284,7 +284,7 @@
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
-    "text": "Réinitialiser au forfait actuel",
+    "text": "Réinitialiser au forfait réel",
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
@@ -308,7 +308,7 @@
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "Vous testez avec les droits {planName} (remplacement temporaire de session).",
+    "text": "Vous testez avec les droits du forfait {planName} (remplacement temporaire de session).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
@@ -316,11 +316,11 @@
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Surveiller la synchronisation de la facturation des organisations",
+    "text": "Surveiller la santé de la synchronisation de facturation des organisations",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Surveillance de la santé de facturation",
+    "text": "Moniteur de santé de la facturation",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -332,7 +332,7 @@
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
-    "text": "{count} inconnues",
+    "text": "{count} inconnus",
     "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
@@ -340,7 +340,7 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "État de synchronisation",
+    "text": "État de la synchronisation",
     "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
@@ -352,7 +352,7 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Potentiellement périmé",
+    "text": "Potentiellement obsolète",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
@@ -388,7 +388,7 @@
     "source_hash": "3ac8bbca"
   },
   "web.colonel.organizations.columns.status": {
-    "text": "État",
+    "text": "Statut",
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.columns.usage": {
@@ -436,7 +436,7 @@
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Gérer les organisations et surveiller l'état de synchronisation de la facturation ({total} au total)",
+    "text": "Gérer les organisations et surveiller la santé de la synchronisation de la facturation ({total} au total)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
@@ -444,11 +444,11 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "potentiellement périmé",
+    "text": "potentiellement obsolète",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "Périmé",
+    "text": "Obsolète",
     "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
@@ -464,7 +464,7 @@
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
-    "text": "Vérification en cours...",
+    "text": "Vérification...",
     "source_hash": "2e5f79bb"
   },
   "web.colonel.organizations.expanded.customer": {
@@ -476,11 +476,11 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID de l'org.",
+    "text": "ID de l'organisation",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "Enquête échouée",
+    "text": "L'enquête a échoué",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
@@ -492,11 +492,11 @@
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "Incohérence détectée",
+    "text": "Incohérence trouvée",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "Comparaison impossible",
+    "text": "Impossible de comparer",
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
@@ -504,7 +504,7 @@
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
-    "text": "État",
+    "text": "Statut",
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.investigation.product": {
@@ -544,19 +544,19 @@
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "IP bannies",
+    "text": "Adresses IP bannies",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Gérer la liste des IP bannies",
+    "text": "Gérer la liste d'adresses IP bannies",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
-    "text": "Exportation de l'utilisation",
+    "text": "Exportation d'utilisation",
     "source_hash": "10a0cb94"
   },
   "web.colonel.usageExport.description": {
-    "text": "Exporter les données et statistiques d'utilisation",
+    "text": "Exporter les données d'utilisation et les statistiques",
     "source_hash": "2fd0a2e2"
   },
   "web.colonel.systemSettings.title": {
@@ -576,11 +576,11 @@
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "Envoyer des commentaires",
+    "text": "Envoyer un retour d'information",
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
-    "text": "Envoi en cours...",
+    "text": "Envoi...",
     "source_hash": "286a3af7"
   },
   "web.colonel.titles.index": {
@@ -616,7 +616,7 @@
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
-    "text": "Exportation de l'utilisation",
+    "text": "Exportation d'utilisation",
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "Lorsque vous envoyez des commentaires, nous verrons :",
+    "text": "Lorsque vous soumettez un retour d'information, nous verrons :",
     "source_hash": "fe77172e"
   }
 }
