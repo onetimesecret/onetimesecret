@@ -32,11 +32,11 @@
     "source_hash": "74a883a0"
   },
   "web.colonel.configEditorDescription": {
-    "text": "Whakatika ngā tautuhinga whirihoranga pūnaha. Ka mahi ngā huringa i muri tonu i te tiakinga.",
+    "text": "Whakatika ngā tautuhinga pūnaha. Ka tīmata tonu ngā hurihanga i muri i te tiaki.",
     "source_hash": "6025d269"
   },
   "web.colonel.invalidJson": {
-    "text": "He muhu te JSON i te wāhanga {section}",
+    "text": "He JSON muhu i roto i te wāhanga {section}",
     "source_hash": "a75ac7a3"
   },
   "web.colonel.validationError": {
@@ -44,31 +44,31 @@
     "source_hash": "2aa2d0b4"
   },
   "web.colonel.errorFetchingConfig": {
-    "text": "Hapa i te wā e uta ana i te whirihoranga",
+    "text": "Hapa i te uta tautuhinga",
     "source_hash": "08baf6d2"
   },
   "web.colonel.errorSavingConfig": {
-    "text": "Hapa i te wā e tiaki ana i te whirihoranga",
+    "text": "Hapa i te tiaki tautuhinga",
     "source_hash": "48df54c7"
   },
   "web.colonel.configSaved": {
-    "text": "Kua tiakina te whirihoranga",
+    "text": "Kua tiakina te tautuhinga angitū",
     "source_hash": "93b3d3e4"
   },
   "web.colonel.mustBeObject": {
-    "text": "Me he ahanoa JSON te whirihoranga",
+    "text": "Me mea JSON te tautuhinga",
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "He hapa manatoko ō ngā wāhanga maha: {sections}",
+    "text": "He hapa manatoko kei ngā wāhanga maha: {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
-    "text": "He hapa manatoko tō {section}: {error}",
+    "text": "He hapa manatoko kei {section}: {error}",
     "source_hash": "e5e01aa0"
   },
   "web.colonel.sectionSaved": {
-    "text": "Kua tiakina {section}",
+    "text": "Kua tiakina {section} angitū",
     "source_hash": "7be1d5d2"
   },
   "web.colonel.saveSection": {
@@ -80,19 +80,19 @@
     "source_hash": "d3c54e39"
   },
   "web.colonel.unsavedChanges": {
-    "text": "Huringa kāore anō kia tiakina",
+    "text": "He hurihanga kāore i tiakina",
     "source_hash": "a710c2b9"
   },
   "web.colonel.schemaValidationError": {
-    "text": "Hapa manatoko kaupapa: {message} ({path})",
+    "text": "Hapa manatoko papanga: {message} ({path})",
     "source_hash": "5f838cb2"
   },
   "web.colonel.unknownValidationError": {
-    "text": "Hapa manatoko kāore e mōhiotia: {error}",
+    "text": "Hapa manatoko e kore nei i mōhiotia: {error}",
     "source_hash": "b6cf56ca"
   },
   "web.colonel.sectionEffectivelyEmpty": {
-    "text": "Kāore he uara i whirihorahia i te wāhanga {section}",
+    "text": "Kāore he uara i tautuhia i roto i te wāhanga {section}",
     "source_hash": "efb63b77"
   },
   "web.colonel.dashboard": {
@@ -108,11 +108,11 @@
     "source_hash": "38da1505"
   },
   "web.colonel.accounts": {
-    "text": "Pūkete",
+    "text": "Ngā Pūkete",
     "source_hash": "8a7c8b67"
   },
   "web.colonel.users": {
-    "text": "Kaiwhakamahi",
+    "text": "Ngā Kaiwhakamahi",
     "source_hash": "6b0cc904"
   },
   "web.colonel.usersDescription": {
@@ -120,7 +120,7 @@
     "source_hash": "6cfc012c"
   },
   "web.colonel.domains": {
-    "text": "Rohe",
+    "text": "Ngā Rohe",
     "source_hash": "ced67718"
   },
   "web.colonel.settings": {
@@ -136,51 +136,51 @@
     "source_hash": "7881ca9e"
   },
   "web.colonel.welcomeDesc": {
-    "text": "Papa whakahaere whakahaere mō OneTimeSecret",
+    "text": "Papa here whakahaere mō OneTimeSecret",
     "source_hash": "57c1e752"
   },
   "web.colonel.quickActions": {
-    "text": "Mahi Tere",
+    "text": "Ngā Mahi Tere",
     "source_hash": "2cc2b6f7"
   },
   "web.colonel.recentActivity": {
-    "text": "Mahi Tata",
+    "text": "Mahi Ōnamata Tata",
     "source_hash": "9ef7d438"
   },
   "web.colonel.viewAll": {
-    "text": "Tiro Katoa",
+    "text": "Titiro Katoa",
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Ka whakaatuhia ngā raraunga mahi ki konei",
+    "text": "Ka whakaaturia ngā raraunga mahi ki konei",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Tapeke Karere Huna",
+    "text": "Ngā Karere Huna Katoa",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
-    "text": "Kaiwhakamahi Hohe",
+    "text": "Ngā Kaiwhakamahi Hohe",
     "source_hash": "5639b9f1"
   },
   "web.colonel.stats.secretsToday": {
-    "text": "Karere Huna i Tēnei Rā",
+    "text": "Ngā Karere Huna Āianei",
     "source_hash": "aefbd2db"
   },
   "web.colonel.stats.secretsCreated": {
-    "text": "Karere Huna Kua Hangaia",
+    "text": "Ngā Karere Huna i Hangaia",
     "source_hash": "a97ee479"
   },
   "web.colonel.stats.secretsShared": {
-    "text": "Karere Huna Kua Tohatohahia",
+    "text": "Ngā Karere Huna i Tohatohahia",
     "source_hash": "5deb082c"
   },
   "web.colonel.stats.totalCustomers": {
-    "text": "Tapeke Kaiwhakamahi",
+    "text": "Ngā Kaiwhakamahi Katoa",
     "source_hash": "0ca3aa44"
   },
   "web.colonel.stats.emailsSent": {
-    "text": "Īmēra Kua Tukuna",
+    "text": "Ngā Īmēra i Tukuna",
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
@@ -192,15 +192,15 @@
     "source_hash": "7f1e323b"
   },
   "web.colonel.actions.viewActivity": {
-    "text": "Tiro Mahi",
+    "text": "Titiro ki te Mahi",
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Aroturuki mahi pūnaha me te whakamahinga",
+    "text": "Aroturuki mahi me te whakamahinga pūnaha",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
-    "text": "Whakahaere Pūkete",
+    "text": "Whakahaere Ngā Pūkete",
     "source_hash": "9d114268"
   },
   "web.colonel.actions.manageAccountsDesc": {
@@ -208,7 +208,7 @@
     "source_hash": "d73af927"
   },
   "web.colonel.actions.configureDomains": {
-    "text": "Whirihora Rohe",
+    "text": "Tautuhia Ngā Rohe",
     "source_hash": "74402af9"
   },
   "web.colonel.actions.configureDomainsDesc": {
@@ -220,19 +220,19 @@
     "source_hash": "1f87f883"
   },
   "web.colonel.actions.systemSettingsDesc": {
-    "text": "Whirihoranga taupānga",
+    "text": "Tautuhinga tono",
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Mahi Tuarā",
+    "text": "Ngā Mahi Tuarā",
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
-    "text": "Tūnga Rarangi",
+    "text": "Āhua Rārangi",
     "source_hash": "3421ffa8"
   },
   "web.colonel.queueName": {
-    "text": "Rarangi",
+    "text": "Rārangi",
     "source_hash": "3b2fe03e"
   },
   "web.colonel.pendingMessages": {
@@ -240,15 +240,15 @@
     "source_hash": "331551b0"
   },
   "web.colonel.consumers": {
-    "text": "Kaiwhakamahi",
+    "text": "Ngā Kaihoko",
     "source_hash": "212b350d"
   },
   "web.colonel.processingRate": {
-    "text": "Tere/hēk",
+    "text": "Tukanga/hēkona",
     "source_hash": "cfde439c"
   },
   "web.colonel.connectionStatus": {
-    "text": "Tūnga Hononga",
+    "text": "Āhua Hononga",
     "source_hash": "3693e288"
   },
   "web.colonel.workerHealth": {
@@ -256,19 +256,19 @@
     "source_hash": "52be3ac1"
   },
   "web.colonel.activeWorkers": {
-    "text": "kaimahi hohe",
+    "text": "ngā kaimahi hohe",
     "source_hash": "ea68cfee"
   },
   "web.colonel.noQueueData": {
-    "text": "Kāore he raraunga rarangi e wātea ana",
+    "text": "Kāore he raraunga rārangi e waatea ana",
     "source_hash": "331ffa6b"
   },
   "web.colonel.loadingQueueData": {
-    "text": "E uta ana ngā raraunga rarangi...",
+    "text": "E uta ana ngā raraunga rārangi...",
     "source_hash": "a3762a00"
   },
   "web.colonel.testPlanMode": {
-    "text": "Aratau Whakamātau Mahere",
+    "text": "Āhua Whakamātau Mahere",
     "source_hash": "eba59223"
   },
   "web.colonel.testingAsPlan": {
@@ -276,11 +276,11 @@
     "source_hash": "b3032f1a"
   },
   "web.colonel.clickToReset": {
-    "text": "Pāwhiri ki te tautuhi anō",
+    "text": "Pāwhiria hei tautuhi anō",
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Kōwhiria he mahere ki te whakamātau",
+    "text": "Kōwhiria tētahi mahere hei whakamātau",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
@@ -288,59 +288,59 @@
     "source_hash": "2cea3f92"
   },
   "web.colonel.currentActualPlan": {
-    "text": "Mahere o nāianei",
+    "text": "Mahere ināianei",
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "Ngā mahere wātea",
+    "text": "Ngā mahere waatea",
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
-    "text": "Whakahohe aratau whakamātau",
+    "text": "Whakahohea te āhua whakamātau",
     "source_hash": "0f469baa"
   },
   "web.colonel.testModeActive": {
-    "text": "Kua hohe te aratau whakamātau",
+    "text": "Kua hohe te āhua whakamātau",
     "source_hash": "ae2c8dd9"
   },
   "web.colonel.testModeDescription": {
-    "text": "Whakamātauria tō taupānga ki ngā tika mahere rerekē. He taupua ngā huringa, ka pā ki tō wāhanga anake.",
+    "text": "Whakamātaua tō tono mā ngā tōpūtanga mahere rerekē. He āmuri ngā hurihanga, ā, ka pā ki tō huihuinga anake.",
     "source_hash": "be03a409"
   },
   "web.colonel.warningTestMode": {
-    "text": "E whakamātau ana koe me ngā tika {planName} (whakakapi wāhanga taupua).",
+    "text": "E whakamātau ana koe mā ngā tōpūtanga {planName} (hurihanga huihuinga āmuri).",
     "source_hash": "1a8aecf1"
   },
   "web.colonel.organizations.title": {
-    "text": "Whakahaere",
+    "text": "Ngā Rōpū",
     "source_hash": "2730183d"
   },
   "web.colonel.organizations.description": {
-    "text": "Aroturuki hauora tukutahi nama whakahaere",
+    "text": "Aroturuki hauora tūhonotanga nama rōpū",
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Kaiaroturuki Hauora Nama",
+    "text": "Aroturuki Hauora Nama",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
-    "text": "{count} whakahaere",
+    "text": "{count} rōpū",
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count} e hiahia ana kia arotahitia",
+    "text": "{count} e hiahia ana ki te aro",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
-    "text": "{count} kāore e mōhiotia",
+    "text": "{count} e kore nei i mōhiotia",
     "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
-    "text": "Kāore i kitea he whakahaere",
+    "text": "Kāore he rōpū i kitea",
     "source_hash": "538995db"
   },
   "web.colonel.organizations.filters.syncStatus": {
-    "text": "Tūnga Tukutahi",
+    "text": "Āhua Tūhono",
     "source_hash": "b3998276"
   },
   "web.colonel.organizations.filters.subscription": {
@@ -352,15 +352,15 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Tērā pea kua tawhito",
+    "text": "Ka taea te tāheke",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
-    "text": "Kāore e mōhiotia",
+    "text": "Kāore i mōhiotia",
     "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.filters.synced": {
-    "text": "Kua tukutahihia",
+    "text": "Kua tūhonotia",
     "source_hash": "5da22fe4"
   },
   "web.colonel.organizations.filters.active": {
@@ -372,7 +372,7 @@
     "source_hash": "3792573d"
   },
   "web.colonel.organizations.filters.pastDue": {
-    "text": "Kua puta te wā",
+    "text": "Kua taha te rā utu",
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
@@ -388,7 +388,7 @@
     "source_hash": "3ac8bbca"
   },
   "web.colonel.organizations.columns.status": {
-    "text": "Tūnga",
+    "text": "Āhua",
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.columns.usage": {
@@ -396,7 +396,7 @@
     "source_hash": "8d59829c"
   },
   "web.colonel.organizations.columns.created": {
-    "text": "I hangaia",
+    "text": "Kua hangaia",
     "source_hash": "d70b9e24"
   },
   "web.colonel.organizations.columns.details": {
@@ -404,7 +404,7 @@
     "source_hash": "45989de4"
   },
   "web.colonel.organizations.columns.owner": {
-    "text": "Rangatira",
+    "text": "Kaipupuri",
     "source_hash": "4b1b8aa3"
   },
   "web.colonel.organizations.columns.plan": {
@@ -412,11 +412,11 @@
     "source_hash": "fa8ed0bd"
   },
   "web.colonel.organizations.columns.members": {
-    "text": "Mema",
+    "text": "Ngā Mema",
     "source_hash": "1044a4c0"
   },
   "web.colonel.organizations.columns.domains": {
-    "text": "Rohe",
+    "text": "Ngā Rohe",
     "source_hash": "ced67718"
   },
   "web.colonel.organizations.columns.subscription": {
@@ -424,35 +424,35 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.columns.default_workspace": {
-    "text": "Wāhi Mahi Taunoa",
+    "text": "Takiwā Mahi Taunoa",
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "He Nama Tōna",
+    "text": "He Nama",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
-    "text": "Whakahaere Nama Whakahaere",
+    "text": "Kaiwhakahaere Nama Rōpū",
     "source_hash": "5c7e07e7"
   },
   "web.colonel.organizations.legacy.description": {
-    "text": "Whakahaere whakahaere me te aroturuki hauora tukutahi nama ({total} tapeke)",
+    "text": "Whakahaere ngā rōpū me te aroturuki hauora tūhono nama ({total} katoa)",
     "source_hash": "996b446d"
   },
   "web.colonel.organizations.legacy.empty": {
-    "text": "Kāore i kitea he whakahaere",
+    "text": "Kāore he rōpū i kitea",
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "tērā pea kua tawhito",
+    "text": "ka taea te tāheke",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "Kua tawhito",
+    "text": "Tāheke",
     "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
-    "text": "Kāore e mōhiotia",
+    "text": "Kāore i mōhiotia",
     "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.status.active": {
@@ -460,7 +460,7 @@
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
-    "text": "Tūhura",
+    "text": "Tirotiro",
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
@@ -476,27 +476,27 @@
     "source_hash": "4999c6c6"
   },
   "web.colonel.organizations.expanded.orgId": {
-    "text": "ID Whakahaere",
+    "text": "ID Rōpū",
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "I rahua te tūhura",
+    "text": "I hapa te tirotiro",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "Hua Tūhura",
+    "text": "Hua Tirotiro",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Kua Manatokohia Kua Tukutahihia",
+    "text": "Kua Manatokohia me te Tūhono",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
-    "text": "Kua Kitea he Kore Ōrite",
+    "text": "I kitea he Rerekētanga",
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "Kāore e Taea te Whakataurite",
+    "text": "Kāore e Taea te Whakatairite",
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
@@ -504,7 +504,7 @@
     "source_hash": "53a7b0ea"
   },
   "web.colonel.organizations.investigation.statusLabel": {
-    "text": "Tūnga",
+    "text": "Āhua",
     "source_hash": "920e413c"
   },
   "web.colonel.organizations.investigation.product": {
@@ -512,7 +512,7 @@
     "source_hash": "fb9ef894"
   },
   "web.colonel.organizations.investigation.resolvedPlan": {
-    "text": "Mahere Kua Whakatauhia",
+    "text": "Mahere Whakaotia",
     "source_hash": "17c5b37a"
   },
   "web.colonel.organizations.investigation.priceId": {
@@ -540,15 +540,15 @@
     "source_hash": "d8707d41"
   },
   "web.colonel.secrets.description": {
-    "text": "Tiro me te whakahaere i ngā karere huna katoa",
+    "text": "Titiro me te whakahaere i ngā karere huna katoa",
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "Ngā IP Kua Aukatihia",
+    "text": "Ngā IP Aupēhia",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
-    "text": "Whakahaere rārangi aukati IP",
+    "text": "Whakahaere rārangi aupēhi IP",
     "source_hash": "dd0d2614"
   },
   "web.colonel.usageExport.title": {
@@ -564,19 +564,19 @@
     "source_hash": "6725e7bb"
   },
   "web.colonel.systemSettings.description": {
-    "text": "Tautuhinga pūnaha, pātengi raraunga, me te whirihoranga",
+    "text": "Tautuhinga pūnaha, pātengi raraunga, me te tautuhinga",
     "source_hash": "7690b296"
   },
   "web.colonel.customDomains.title": {
-    "text": "Rohe Ritenga",
+    "text": "Ngā Rohe Ritenga",
     "source_hash": "6170ab94"
   },
   "web.colonel.customDomains.description": {
-    "text": "Whakahaere rohe ritenga me te waitohu",
+    "text": "Whakahaere ngā rohe ritenga me te waitohu",
     "source_hash": "808ee2cb"
   },
   "web.colonel.feedback.send_feedback": {
-    "text": "Tuku urupare",
+    "text": "Tukuna urupare",
     "source_hash": "8235980b"
   },
   "web.colonel.feedback.sending_ellipses": {
@@ -596,7 +596,7 @@
     "source_hash": "af69773b"
   },
   "web.colonel.titles.domains": {
-    "text": "Rohe Ritenga",
+    "text": "Ngā Rohe Ritenga",
     "source_hash": "6170ab94"
   },
   "web.colonel.titles.system": {
@@ -608,11 +608,11 @@
     "source_hash": "c4545e98"
   },
   "web.colonel.titles.authdb": {
-    "text": "Pātengi Raraunga Manatoko",
+    "text": "Pātengi Raraunga Whakaaetanga",
     "source_hash": "c683c9a6"
   },
   "web.colonel.titles.bannedIps": {
-    "text": "Ngā IP Kua Aukatihia",
+    "text": "Ngā IP Aupēhia",
     "source_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
@@ -624,7 +624,7 @@
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {
-    "text": "Whakahaere",
+    "text": "Ngā Rōpū",
     "source_hash": "2730183d"
   },
   "web.colonel.titles.redis": {
@@ -632,7 +632,7 @@
     "source_hash": "a7f64157"
   },
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
-    "text": "I te wā e tuku urupare ana koe, ka kite mātou i:",
+    "text": "Ina tukua e koe he urupare, ka kite mātou i:",
     "source_hash": "fe77172e"
   }
 }

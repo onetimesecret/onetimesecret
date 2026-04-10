@@ -1,14 +1,14 @@
 {
   "web.dashboard.title_received": {
-    "text": "Kua Whiwhia",
+    "text": "Kua Tirohia",
     "source_hash": "49f19bee"
   },
   "web.dashboard.title_not_received": {
-    "text": "Kāore i Whiwhia",
+    "text": "Kāore i Tirohia",
     "source_hash": "a4cf12ca"
   },
   "web.dashboard.title_no_recent_secrets": {
-    "text": "Kāore he karere huna tata nei",
+    "text": "Kāore he karere huna ōnamata tata",
     "source_hash": "02b7b86b"
   },
   "web.dashboard.get_started_by_creating_your_first_secret": {
@@ -16,11 +16,11 @@
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Kāore e taea te uta i ngā raraunga",
+    "text": "Kāore e taea te uta raraunga",
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
-    "text": "I puta he raru i te utanga o ō raraunga. Tēnā whakamātauria anō.",
+    "text": "He raruraru ki te uta i ōu raraunga. Tēnā ngana anō.",
     "source_hash": "ff0d904e"
   }
 }

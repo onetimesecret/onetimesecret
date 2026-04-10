@@ -1,18 +1,18 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Tīkiti: %s]",
+    "text": "[Tikiti: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
-    "text": "Kua tukuna e te kiritaki ngā mōhiohio e whai ake nei",
+    "text": "He kiritaki kua tono i ēnei mōhiohio",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "I tuku a %{sender_email} i tētahi karere huna ki a koe",
+    "text": "Kua tono %{sender_email} i tētahi karere huna ki a koe",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "i tuku ki a koe he karere huna:",
+    "text": "kua tono i tētahi karere huna ki a koe:",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -20,7 +20,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Kotahi noa te wā e mahi ai tēnei hononga. Whai muri i te tirohanga, ka mukua pūmau te karere huna.",
+    "text": "Ka mahi kotahi-wā anō tēnei hononga. I muri i te tirohia, ka mukua mō ake tonu te karere huna.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -28,7 +28,7 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Nau mai ki %{product_name} - Tēnā manatoko i tō īmēra",
+    "text": "Nau mai ki %{product_name} - Tēnā manatokohia tō īmēra",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
@@ -36,7 +36,7 @@
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Tēnā manatoko i tō wāhitau īmēra mā te pāwhiri i te hononga i raro:",
+    "text": "Tēnā manatokohia tō wāhitau īmēra mā te pāwhiri i te hononga i raro nei:",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
@@ -44,7 +44,7 @@
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "text": "Tāruatia, ā, mototia tēnei hononga rānei:",
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
@@ -52,19 +52,19 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}. Mēnā kāore koe i waihanga pūkete, ka taea e koe te waiho i tēnei karere.",
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}. Ki te kore nāu i waihanga he pūkete, ka taea e koe te kore aro ki tēnei karere.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Tautuhi anō tō kupuhipa (%{display_domain})",
+    "text": "Tautuhia anō tō kupuhipa (%{display_domain})",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Tautuhi Anō Tō Kupuhipa",
+    "text": "Tautuhia Anō Tō Kupuhipa",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "Kua riro i a mātou tētahi tono ki te tautuhi anō i tō kupuhipa mō %{product_name}.",
+    "text": "I tīkina tētahi tono ki te tautuhi anō i tō kupuhipa mō %{product_name}.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
@@ -72,11 +72,11 @@
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "text": "Tāruatia, ā, mototia tēnei hononga rānei:",
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Mēnā kāore koe i tono i te tautuhi anō kupuhipa, ka taea e koe te waiho i tēnei īmēra.",
+    "text": "Ki te kore nāu i tono i te tautuhi anō kupuhipa, ka taea e koe te kore aro ki tēnei īmēra.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -92,11 +92,11 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Takiuru mā te Hononga Mana",
+    "text": "Takiuru mā te Hononga Makutu",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "I tono koe i tētahi hononga takiuru mō tō pūkete %{product_name}.",
+    "text": "I tonoa e koe tētahi hononga takiuru mō tō pūkete %{product_name}.",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
@@ -104,15 +104,15 @@
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "text": "Tāruatia, ā, mototia tēnei hononga rānei:",
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Ka pau tēnei hononga i roto i ngā meneti 15.",
+    "text": "Ka pau tēnei hononga i roto i 15 meneti.",
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Mēnā kāore koe i tono i tēnei hononga, ka taea e koe te waiho i tēnei īmēra.",
+    "text": "Ki te kore nāu i tono tēnei hononga, ka taea e koe te kore aro ki tēnei īmēra.",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -124,23 +124,23 @@
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
-    "text": "Kua riro i a koe he karere huna",
+    "text": "Kua riro he karere huna māu",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Kua riro i a koe he karere haumaru:",
+    "text": "Kua riro he karere haumaru māu:",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Tuhipoka:",
+    "text": "Memo:",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Kua tukuna e tētahi he karere haumaru ki a koe mā %{display_domain}.",
+    "text": "He tangata kua tono i tētahi karere haumaru ki a koe mā %{display_domain}.",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Ki te tiro i tēnei karere huna, pāwhiri i te hononga i raro:",
+    "text": "Hei titiro ki tēnei karere huna, pāwhiria te hononga i raro nei:",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
@@ -148,15 +148,15 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Kotahi noa te wā e mahi ai tēnei hononga. Whai muri i te tirohanga, ka mukua pūmau te karere huna.",
+    "text": "Ka mahi kotahi-wā anō tēnei hononga. I muri i te tirohia, ka mukua mō ake tonu te karere huna.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Kei raro tēnei karere huna i te tiaki kupu karapa. Me tuku motuhake te kaituku i te kupu karapa ki a koe.",
+    "text": "Kua tiakina tēnei karere huna mā tētahi kupu karapa. Me tuku tēnā ki a koe ā tōna ake wāhi e te kaihanga.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "E hiahiatia ana te kupu karapa:",
+    "text": "E hiahiatia ana kupu karapa:",
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
@@ -172,7 +172,7 @@
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "I tirohia tō karere huna i te %{date}.",
+    "text": "I tirohia tō karere huna i %{date}.",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
@@ -180,7 +180,7 @@
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "He whakamōhiotanga aunoa tēnei. Kāore he mahi e hiahiatia ana.",
+    "text": "He pānui aunoa tēnei. Kāore he mahi e hiahiatia ana.",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -188,31 +188,31 @@
     "source_hash": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
-    "text": "Whakahaere manakohanga whakamōhiotanga",
+    "text": "Whakahaere ngā hiahia pānuitanga",
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Ki te whakahaere i ō manakohanga whakamōhiotanga:",
+    "text": "Hei whakahaere i ōu hiahia pānuitanga:",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Ka pau tata tō hononga huna",
+    "text": "Ka pau ā tōna wā tō hononga karere huna",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Ka pau tō hononga huna i roto i %{time_remaining}",
+    "text": "Ka pau tō hononga karere huna i roto i %{time_remaining}",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Tirohia tō karere huna i mua i te paunga",
+    "text": "Tirohia tō karere huna i mua i tōna paunga",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Whakamahara:",
+    "text": "Ārai:",
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "Whai muri i te paunga, ka mukua pūmau te karere huna, kāore e taea te whakahoki.",
+    "text": "I muri i te paunga, ka mukua mō ake tonu te karere huna, ā, kāore e taea te whakahoki mai.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
@@ -220,15 +220,15 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Tirohia i mua i te ngaro:",
+    "text": "Tirohia i mua i tōna ngaro:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "Whai muri i te paunga, ka mukua pūmau te karere huna.",
+    "text": "I muri i te paunga, ka mukua mō ake tonu te karere huna.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Urupare i te %{date} mā %{display_domain} (%{strategy})",
+    "text": "Urupare i %{date} mā %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
@@ -236,7 +236,7 @@
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "Mai i:",
+    "text": "Nā:",
     "source_hash": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
@@ -252,35 +252,35 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Tautoko Huna",
+    "text": "Tautoko Karere Huna",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
-    "text": "Kua pōhiritia koe ki te hono atu ki %{organization_name}",
+    "text": "Kua pōwhiritia koe ki te hono ki %{organization_name}",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Kua pōhiritia koe ki te hono atu ki %{organization_name}!",
+    "text": "Kua pōwhiritia koe ki te hono ki %{organization_name}!",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "Kua pōhiri a %{inviter_email} i a koe ki te hono atu ki \"%{organization_name}\" hei %{role_description}.",
+    "text": "Kua pōwhiri %{inviter_email} ki a koe ki te hono ki \"%{organization_name}\" hei %{role_description}.",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Whakaae Pōhiri",
+    "text": "Whakaaetia te Pōwhiri",
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "text": "Tāruatia, ā, mototia tēnei hononga rānei:",
     "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
-    "text": "Ka pau tēnei pōhiri i roto i ngā rā %{days}.",
+    "text": "Ka pau tēnei pōwhiri i roto i %{days} rā.",
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Mēnā kāore koe e hiahia ki te hono atu, ka taea e koe te waiho i tēnei īmēra, te whakakāhore rānei i te pōhiri.",
+    "text": "Ki te kore e hiahia ana koe ki te hono, ka taea e koe te kore aro ki tēnei īmēra, te whakakore rānei i te pōwhiri.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Mēnā kāore koe i te tūmanako ki tēnei pōhiri, ka taea e koe te waiho i tēnei karere.",
+    "text": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Ki te kore i tūmanakohia tēnei pōwhiri, ka taea e koe te kore aro ki tēnei karere.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -308,11 +308,11 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "Kua hurihia tō kupuhipa mō %{product_name} i te %{date} i te %{time}.",
+    "text": "Kua hurihia tō kupuhipa mō %{product_name} i %{date} i %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Mēnā ehara i a koe i huri i tēnei, tēnā haumarutia tō pūkete ināianei tonu mā te tautuhi anō i tō kupuhipa me te whakapā atu ki te tautoko.",
+    "text": "Ki te kore nāu i huri tēnei, tēnā haumaru tūturu tō pūkete mā te tautuhi anō i tō kupuhipa me te whakapā ki te tautoko.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -328,11 +328,11 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "Kua hurihia te wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email_masked}.",
+    "text": "Kua hurihia te wāhitau īmēra o tō pūkete %{product_name} ki %{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Mēnā ehara i a koe i huri i tēnei, tēnā whakapā tere ki te tautoko nā te mea tērā pea kua whakaekea tō pūkete.",
+    "text": "Ki te kore nāu i huri tēnei, tēnā whakapā tūturu ki te tautoko nā te mea ka taea te mōrearea tō pūkete.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -340,19 +340,19 @@
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
-    "text": "Īmēra hou:",
+    "text": "Īmēra hōu:",
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "I hurihia i:",
+    "text": "I hurihia ā:",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Mēnā nāu tēnei huringa, kāore he mahi anō e hiahiatia ana.",
+    "text": "Ki nāu i huri tēnei, kāore he mahi anō e hiahiatia ana.",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Mēnā ehara i a koe nāna tēnei huringa, kua taea pea tō pūkete te whakahē.",
+    "text": "Ki te kore nāu i huri tēnei, ka taea te mōrearea tō pūkete.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -364,35 +364,35 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address} hei whakamōhio i a koe mō te huringa wāhitau īmēra.",
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address} hei pānui i a koe mō tētahi hurihanga wāhitau īmēra.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Kua tonoa te huringa īmēra (%{display_domain})",
+    "text": "Kua tonoa te hurihanga īmēra (%{display_domain})",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Kua Tonoa te Huringa Īmēra",
+    "text": "Kua Tonoa te Hurihanga Īmēra",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Kua tonoa he huringa wāhitau īmēra mō tō pūkete %{product_name}.",
+    "text": "I tonoa te hurihanga o te wāhitau īmēra o tō pūkete %{product_name}.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Īmēra hou i tonoa:",
+    "text": "Īmēra hōu i tonoa:",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "I tonoa i:",
+    "text": "I tonoa ā:",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Mēnā nāu tēnei tono, tirohia tō īmēra hou mō te hononga whakaū. Kāore anō kia whakarerekētia.",
+    "text": "Ki nāu i tono tēnei, tirohia tō īmēra hōu mō tētahi hononga whakaū. Kāore anō i hurihia.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Mēnā ehara i a koe nāna tēnei tono, ka taea e koe te karo i tēnei īmēra. Kāore tō pūkete i hurihia.",
+    "text": "Ki te kore nāu i tono tēnei, ka taea e koe te kore aro ki tēnei īmēra. Kāore i hurihia tō pūkete.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,19 +404,19 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address} nā te mea i tonoa he huringa īmēra mō tō pūkete.",
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address} nā te mea i tonoa tētahi hurihanga īmēra mō tō pūkete.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
-    "text": "Manatoko tō wāhitau īmēra hou (%{display_domain})",
+    "text": "Manatokohia tō wāhitau īmēra hōu (%{display_domain})",
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "Manatoko Tō Wāhitau Īmēra Hou",
+    "text": "Manatokohia Tō Wāhitau Īmēra Hōu",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
-    "text": "Tēnā manatoko i tēnei wāhitau īmēra hei whakaoti i te huringa mō tō pūkete %{product_name}.",
+    "text": "Manatokohia tēnei wāhitau īmēra hei whakaoti i te hurihanga mō tō pūkete %{product_name}.",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
@@ -424,23 +424,23 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Kua tonoa he huringa wāhitau īmēra mō tō pūkete %{product_name} ki %{new_email}.",
+    "text": "I tonoa te hurihanga o te wāhitau īmēra o tō pūkete %{product_name} ki %{new_email}.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Whakaū te Huringa Īmēra",
+    "text": "Whakaū Hurihanga Īmēra",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Rānei tāruatia, ka whakapiri i tēnei hononga:",
+    "text": "Tāruatia, ā, mototia ēnei tūhono rānei:",
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
-    "text": "Ka pau tēnei hononga i roto i ngā hāora %{hours}.",
+    "text": "Ka pau tēnei hononga i roto i %{hours} hāora.",
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Mēnā kāore koe i tono i tēnei huringa, ka taea e koe te karo i tēnei īmēra. E kore tō wāhitau īmēra e hurihia.",
+    "text": "Ki te kore koe i tono i tēnei hurihanga, ka taea e koe te kore aro ki tēnei īmēra. Kāore e hurihia tō wāhitau īmēra.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -448,23 +448,23 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address} hei whakaū i te huringa wāhitau īmēra.",
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address} hei whakaū i te hurihanga wāhitau īmēra.",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
-    "text": "Kua whakahohea te manatoko rua-āhuatanga (%{display_domain})",
+    "text": "Kua whakahohea te manatoko rua-ahurea (%{display_domain})",
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
-    "text": "Kua Whakahohea te Manatoko Rua-Āhuatanga",
+    "text": "Kua Whakahohea te Manatoko Rua-Ahurea",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "Kua whakahohea te manatoko rua-āhuatanga mō tō pūkete %{product_name} i te %{date}.",
+    "text": "Kua whakahohea te manatoko rua-ahurea mō tō pūkete %{product_name} i %{date}.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Kua haumaru ake tō pūkete ināianei. Me whakauru koe i tētahi waehere manatoko mai i tō taupānga manatoko i te wā e takiuru ana.",
+    "text": "He haumaru ake ināianei tō pūkete. Me tāuru koe i tētahi waehere manatoko mai i tō tono manatoko ina takiuru ana.",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
@@ -472,19 +472,19 @@
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
-    "text": "Kua monokia te manatoko rua-āhuatanga (%{display_domain})",
+    "text": "Kua monokia te manatoko rua-ahurea (%{display_domain})",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
-    "text": "Kua Monokia te Manatoko Rua-Āhuatanga",
+    "text": "Kua Monokia te Manatoko Rua-Ahurea",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "Kua monokia te manatoko rua-āhuatanga mō tō pūkete %{product_name} i te %{date}.",
+    "text": "Kua monokia te manatoko rua-ahurea mō tō pūkete %{product_name} i %{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Kua iti iho te haumaru o tō pūkete ināianei. Mēnā ehara i a koe i huri i tēnei, tēnā haumarutia tō pūkete ināianei tonu.",
+    "text": "He iti ake ināianei te haumaru o tō pūkete. Ki te kore nāu i huri tēnei, tēnā haumaru tūturu tō pūkete.",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
@@ -492,15 +492,15 @@
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
-    "text": "Takiuru hou ki tō pūkete (%{display_domain})",
+    "text": "He takiuru hōu ki tō pūkete (%{display_domain})",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Kua Kitea He Takiuru Hou",
+    "text": "Kua Kitea Tētahi Takiuru Hōu",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Kua kitea he takiuru hou ki tō pūkete %{product_name} i te %{date} i te %{time}.",
+    "text": "I kitea tētahi takiuru hōu ki tō pūkete %{product_name} i %{date} i %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Mēnā ehara tēnei i a koe, tērā pea kua whakaekea tō pūkete.",
+    "text": "Ki te kore nāu tēnā, ka taea te mōrearea tō pūkete.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -528,15 +528,15 @@
     "source_hash": "f58154f7"
   },
   "email.member_removed.subject": {
-    "text": "Kua tangohia koe mai i %{organization_name}",
+    "text": "Kua tangohia koe i %{organization_name}",
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
-    "text": "Kua Tangohia Koe Mai i %{organization_name}",
+    "text": "Kua Tangohia Koe i %{organization_name}",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
-    "text": "Kua tangohia koe mai i te whakahaere \"%{organization_name}\" i runga i %{product_name}.",
+    "text": "Kua tangohia koe i te rōpū \"%{organization_name}\" i runga %{product_name}.",
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
@@ -544,15 +544,15 @@
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
-    "text": "Kua hurihia tō tūranga i %{organization_name}",
+    "text": "Kua hurihia tō tūnga i roto i %{organization_name}",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
-    "text": "Kua Hurihia Tō Tūranga",
+    "text": "Kua Hurihia Tō Tūnga",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Kua hurihia tō tūranga i \"%{organization_name}\" mai i %{old_role} ki %{new_role}.",
+    "text": "Kua hurihia tō tūnga i roto i \"%{organization_name}\" mai i %{old_role} ki %{new_role}.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -560,15 +560,15 @@
     "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
-    "text": "Kua mukua te whakahaere \"%{organization_name}\"",
+    "text": "Kua mukua te rōpū \"%{organization_name}\"",
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
-    "text": "Kua Mukua te Whakahaere",
+    "text": "Kua Mukua te Rōpū",
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
-    "text": "Kua mukua te whakahaere \"%{organization_name}\" mai i %{product_name}. Kua tangohia ngā raraunga katoa e pā ana.",
+    "text": "Kua mukua te rōpū \"%{organization_name}\" i %{product_name}. Kua tangohia ngā raraunga katoa e hono ana.",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
@@ -576,19 +576,19 @@
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "Rihīti utu mō %{product_name}",
+    "text": "Rīhi utu mō %{product_name}",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "Rihīti Utu",
+    "text": "Rīhi Utu",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Ngā mihi mō tō utu. Anei ngā taipitopito utu:",
+    "text": "Ngā mihi mō tō utu. Ko ēnei ngā taipitopito o tō utu:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
-    "text": "Tapeke:",
+    "text": "Nui:",
     "source_hash": "cdf45632"
   },
   "email.payment_receipt.date_label": {
@@ -600,7 +600,7 @@
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "Tiro Pire",
+    "text": "Titiro ki te Nama",
     "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
@@ -608,19 +608,19 @@
     "source_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
-    "text": "I rahua te utu mō %{product_name}",
+    "text": "I hapa te utu mō %{product_name}",
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "I Rahua te Utu",
+    "text": "I Hapa te Utu",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "Kāore i taea e mātou te tukatuka tō utu mō %{product_name}. Tēnā whakahōu tō tikanga utu kia karo i te whakatarunga ratonga.",
+    "text": "Kāore i taea e mātou te mahi i tō utu mō %{product_name}. Tēnā whakahōu tō ara utu hei ārai i te whakakore ratonga.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "Whakahōu Tikanga Utu",
+    "text": "Whakahōu Ara Utu",
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
@@ -628,19 +628,19 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "Ka pau tō whakamātautau %{product_name} i roto i ngā rā %{days_remaining}",
+    "text": "Ka pau tō whakamātauranga %{product_name} i roto i %{days_remaining} rā",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Ka Pau Tata Tō Whakamātautau",
+    "text": "Ka Mutu Ā Tōna Wā Tō Whakamātauranga",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Ka pau tō whakamātautau utukore o %{product_name} i roto i ngā rā %{days_remaining}. Whakapikia ināianei kia pupuri i te uru ki ngā āhuatanga katoa.",
+    "text": "Ka pau tō whakamātauranga kore-utu o %{product_name} i roto i %{days_remaining} rā. Whakahounga ināianei hei tiaki i tō urunga ki ngā āhuatanga katoa.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Whakapiki Ināianei",
+    "text": "Whakahounga Ināianei",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
@@ -660,7 +660,7 @@
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Ka mahi tēnei huringa mai i te %{date}.",
+    "text": "Ka tīmata tēnei hurihanga ā %{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
@@ -668,7 +668,7 @@
     "source_hash": "f58154f7"
   },
   "email.common.greeting": {
-    "text": "Kia ora,",
+    "text": "Tēnā koe,",
     "source_hash": "dafe7694"
   },
   "email.common.thanks": {
@@ -676,11 +676,11 @@
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "Whakakorea ohaurunga",
+    "text": "Whakakore ohaurunga",
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Tiro i te pūtirotiro",
+    "text": "Titiro i roto i te pūtirotiro",
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {

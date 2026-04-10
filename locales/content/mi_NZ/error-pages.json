@@ -1,6 +1,6 @@
 {
   "web.errors.why_is_this_secret_unavailable": {
-    "text": "He aha tēnei karere huna i kore ai e wātea?",
+    "text": "He aha tēnei karere huna e kore ana e waatea?",
     "source_hash": "bd545472"
   },
   "web.errors.secrets_are_designed_to_be_viewed_only_once": {
@@ -8,7 +8,7 @@
     "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "Me aha au ināianei?",
+    "text": "He aha tāku e mahi ai ināianei?",
     "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
@@ -16,11 +16,11 @@
     "source_hash": "d9f4f41a"
   },
   "web.errors.warning_dismissed": {
-    "text": "Kua whakakorehia te whakatūpato",
+    "text": "Kua whakakōrea te whakatūpato",
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "Whakakore whakatūpato poronga",
+    "text": "Whakakōrea whakatūpato tapahi",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -36,11 +36,11 @@
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "Whakakore whakatūpato",
+    "text": "Whakakōrea whakatūpato",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "Whakakore whakamōhiotanga",
+    "text": "Whakakōrea pānuitanga",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
@@ -60,7 +60,7 @@
     "source_hash": "93529f24"
   },
   "web.errors.go_share_a_secret": {
-    "text": "Haere tohatoha karere huna!",
+    "text": "Haere ki te tohatoha karere huna!",
     "source_hash": "04c04b1a"
   },
   "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
