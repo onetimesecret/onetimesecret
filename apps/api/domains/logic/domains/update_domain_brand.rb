@@ -22,8 +22,9 @@ module DomainsAPI::Logic
       def process_params
         @extid = sanitize_identifier(params['extid'])
 
-        # Use BrandSettings.members as the single source of truth for valid keys
-        valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s)
+        # Use BrandSettings.members as the single source of truth for valid keys.
+        # Exclude feature toggles — managed via dedicated config endpoints.
+        valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s) - %w[allow_public_homepage allow_public_api]
 
         # Filter to valid keys and normalize to strings (HTTP params have string keys)
         @brand_settings = params['brand']&.transform_keys(&:to_s)&.slice(*valid_keys) || {}
@@ -40,7 +41,6 @@ module DomainsAPI::Logic
         validate_brand_settings
 
         validate_brand_values
-        validate_homepage_entitlement
 
         # Disabled while we figure out whether we want this entitlement at all
         # validate_privacy_defaults_entitlement
@@ -173,15 +173,6 @@ module DomainsAPI::Logic
         return unless privacy_keys.any? { |k| @brand_settings.key?(k) }
 
         require_entitlement!('custom_privacy_defaults')
-      end
-
-      def validate_homepage_entitlement
-        allow_homepage = Onetime::CustomDomain::BrandSettings.coerce_boolean(
-          @brand_settings['allow_public_homepage'],
-        )
-        return unless allow_homepage
-
-        require_entitlement!('homepage_secrets')
       end
 
       def validate_default_ttl
