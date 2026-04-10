@@ -5,7 +5,7 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "קישורים מאובטחים שפועלים רק פעם אחת",
+    "text": "קישורים מאובטחים שעובדים רק פעם אחת",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
@@ -21,7 +21,7 @@
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
-    "text": "יצירת סיסמה מושבתת כאשר הטופס תקין",
+    "text": "יצירת סיסמה מושבתת כשהטופס תקין",
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
@@ -37,11 +37,11 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "חזק קשרים ובנה אמון עם קישורים סודיים ממותגים משלך.",
+    "text": "חזק קשרים ובנה אמון עם קישורי סודות ממותגים משלך.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
-    "text": "התחל",
+    "text": "התחלה",
     "source_hash": "983f3110"
   },
   "web.COMMON.confirm_password_placeholder": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "הרחק מידע רגיש מיומני הצ׳אט והדוא״ל שלך. שתף קישור סודי שזמין רק פעם אחת.",
+    "text": "שמור על מידע רגיש מחוץ ליומני הצ׳אט והדואר האלקטרוני שלך. שתף קישור סודי שזמין רק פעם אחת.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -73,7 +73,7 @@
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "סוד,מחולל סיסמאות,שיתוף סוד,חד פעמי",
+    "text": "secret,password generator,share a secret,onetime",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
@@ -81,7 +81,7 @@
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
-    "text": "או צור סיסמה אקראית",
+    "text": "או יצירת סיסמה אקראית",
     "source_hash": "8c1c764b"
   },
   "web.COMMON.secret_privacy_options": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "תוכן הסוד מוזן כאן...",
+    "text": "תוכן הסוד נכנס כאן...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -157,19 +157,19 @@
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "מחיקת הסוד סופית",
+    "text": "מחיקת הסוד הזה",
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "מחיקת הסוד תמחק אותו לפני שנקרא (לחץ לאישור)",
+    "text": "מחיקת סוד תמחק אותו לפני שנקרא (לחץ לאישור)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "מחיקת סוד היא סופית ולא ניתן לבטלה",
+    "text": "מחיקת סוד היא לצמיתות ולא ניתן לבטלה",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
-    "text": "בדוק את הדוא״ל שלך",
+    "text": "בדוק את הדואר האלקטרוני שלך",
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
@@ -177,11 +177,11 @@
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "המשך לאימות החשבון שלך:",
+    "text": "המשך כדי לאמת את החשבון שלך:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "לא סיפקת דבר לשיתוף",
+    "text": "לא סיפקת שום דבר לשיתוף",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
@@ -197,7 +197,7 @@
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
-    "text": "זהירות: נציג זאת רק פעם אחת.",
+    "text": "שים לב: נציג את זה רק פעם אחת.",
     "source_hash": "d29e2820"
   },
   "web.COMMON.warning": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "אירעה שגיאה בלתי צפויה. אנא נסה שוב.",
+    "text": "אירעה שגיאה בלתי צפויה. נסה שוב.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -221,7 +221,7 @@
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "הירשם לעוד",
+    "text": "הרשמה לעוד",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
@@ -233,7 +233,7 @@
     "source_hash": "e79c8bcb"
   },
   "web.COMMON.field_email": {
-    "text": "דוא״ל",
+    "text": "דואר אלקטרוני",
     "source_hash": "969ccbd3"
   },
   "web.COMMON.field_password": {
@@ -241,7 +241,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.COMMON.field_password2": {
-    "text": "אישור סיסמה",
+    "text": "אימות סיסמה",
     "source_hash": "c292210c"
   },
   "web.COMMON.button_create_account": {
@@ -253,7 +253,7 @@
     "source_hash": "5384461b"
   },
   "web.COMMON.title_home": {
-    "text": "בית",
+    "text": "דף הבית",
     "source_hash": "3a786953"
   },
   "web.COMMON.word_none": {
@@ -301,35 +301,35 @@
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "החשבון נוצר. אנא התחבר.",
+    "text": "החשבון נוצר. התחבר.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "אם קיים חשבון עם דוא״ל זה, תקבל הודעת אימות.",
+    "text": "אם קיים חשבון עם דואר אלקטרוני זה, תקבל הודעת אימות.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "מחיקת הסוד לצמיתות",
+    "text": "מחיקת הסוד הזה לצמיתות",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
-    "text": "אנא אשר",
+    "text": "אישור נדרש",
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "האם אתה בטוח שברצונך למחוק סוד זה סופית? פעולה זו לא ניתנת לביטול.",
+    "text": "בטוח שברצונך למחוק סוד זה? פעולה זו לא ניתנת לביטול.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "כן, מחק את הסוד סופית",
+    "text": "כן, מחק סוד זה לצמיתות",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "מחיקת הסוד תמחק אותו לפני שהתקבל.",
+    "text": "מחיקת סוד תמחק אותו לפני שהתקבל.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "לאבטחה, שתף קישור זה בנפרד מפרטים אחרים.",
+    "text": "לצורך אבטחה, שתף קישור זה בנפרד מפרטים אחרים.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -337,7 +337,7 @@
     "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "יצירת נכנסים",
+    "text": "יצירת נכנס",
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
@@ -349,15 +349,15 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "לא ניתן לאמת חשבון כאשר אתה כבר מחובר",
+    "text": "לא ניתן לאמת חשבון כשאתה כבר מחובר",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "הצג סיסמה",
+    "text": "הצגת סיסמה",
     "source_hash": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "הסתר סיסמה",
+    "text": "הסתרת סיסמה",
     "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
@@ -377,11 +377,11 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "מעבד את הבקשה שלך",
+    "text": "הבקשה שלך מעובדת",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "השאר אותי מחובר למשך 30 יום",
+    "text": "השאר אותי מחובר ל-30 יום",
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
@@ -393,7 +393,7 @@
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
-    "text": "האם אתה בטוח?",
+    "text": "בטוח?",
     "source_hash": "f0762c4f"
   },
   "web.COMMON.danger_zone": {
@@ -401,7 +401,7 @@
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "אזור לשיקול זהיר",
+    "text": "אזור זהירות",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -445,7 +445,7 @@
     "source_hash": "d833339d"
   },
   "web.COMMON.status": {
-    "text": "סטטוס",
+    "text": "מצב",
     "source_hash": "920e413c"
   },
   "web.COMMON.escape": {
@@ -493,7 +493,7 @@
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
-    "text": "סוף",
+    "text": "סיום",
     "source_hash": "f4db1e48"
   },
   "web.COMMON.general": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "בסדר, קדימה.",
+    "text": "קדימה.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -525,7 +525,7 @@
     "source_hash": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "אישור סיסמה",
+    "text": "אימות סיסמה",
     "source_hash": "5ac265f3"
   },
   "web.COMMON.new_password": {
@@ -533,7 +533,7 @@
     "source_hash": "3dd9df44"
   },
   "web.COMMON.email_address": {
-    "text": "כתובת דוא״ל",
+    "text": "כתובת דואר אלקטרוני",
     "source_hash": "f2488fd4"
   },
   "web.COMMON.switch": {
@@ -585,7 +585,7 @@
     "source_hash": "8b3795aa"
   },
   "web.COMMON.email_address_copied_to_clipboard": {
-    "text": "כתובת הדוא״ל הועתקה ללוח!",
+    "text": "כתובת הדואר האלקטרוני הועתקה ללוח!",
     "source_hash": "23238b4e"
   },
   "web.COMMON.value": {
@@ -593,7 +593,7 @@
     "source_hash": "8e37953d"
   },
   "web.COMMON.host": {
-    "text": "מארח",
+    "text": "שרת",
     "source_hash": "4a823118"
   },
   "web.COMMON.type": {
@@ -609,7 +609,7 @@
     "source_hash": "1ff57a29"
   },
   "web.COMMON.password_strength": {
-    "text": "חוזק הסיסמה:",
+    "text": "חוזק סיסמה:",
     "source_hash": "663d6499"
   },
   "web.COMMON.great": {
@@ -645,7 +645,7 @@
     "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "העתק סוד ללוח",
+    "text": "העתקת הסוד ללוח",
     "source_hash": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
@@ -1364,7 +1364,7 @@
     "source_hash": "09055357"
   },
   "web.COMMON.password_required_for_action": {
-    "text": "נדרשת הסיסמה שלך להשלמת פעולה זו",
+    "text": "הסיסמה שלך נדרשת להשלמת פעולה זו",
     "context": "Description for password confirmation modal",
     "source_hash": "cc078766"
   },
@@ -1379,7 +1379,7 @@
     "source_hash": "343ccdcb"
   },
   "api.errors.request_processing_error": {
-    "text": "לא ניתן לעבד את הבקשה שלך כעת",
+    "text": "לא ניתן לעבד את הבקשה שלך כרגע",
     "context": "Error message for recoverable server errors",
     "source_hash": "fb961f3f"
   },
@@ -1387,5 +1387,35 @@
     "text": "שדרג כדי לפתוח תכונות נוספות",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "הגדרה"
+  },
+  "web.COMMON.add": {
+    "text": "הוספה"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "כן, מחק"
+  },
+  "web.COMMON.error_code": {
+    "text": "קוד שגיאה"
+  },
+  "web.COMMON.http_status": {
+    "text": "סטטוס HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "פרטים"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "אימות סיסמה"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "הסיסמאות חייבות להתאים"
+  },
+  "web.COMMON.and": {
+    "text": "ו"
+  },
+  "web.COMMON.or": {
+    "text": "או"
   }
 }
