@@ -4,17 +4,19 @@
 
 # Tests for shared domain config authorization logic
 #
-# Both ApiConfig::Base and HomepageConfig::Base implement the same
-# authorization model:
-#   1. load_custom_domain - find domain by extid
-#   2. load_organization_for_domain - find org from domain's org_id
-#   3. verify_organization_owner - check user is org owner (or colonel)
-#   4. verify entitlement - check org has the required feature
-#   5. authorize wrapper - full chain (load domain, org, verify, entitle)
-#   6. parse_boolean - coerce various inputs to boolean
+# All four config types (ApiConfig, HomepageConfig, SenderConfig,
+# SsoConfig) use the DomainConfigAuthorization concern:
+#   1. verify_feature_flag! - check feature flag (if defined)
+#   2. load_custom_domain - find domain by extid
+#   3. load_organization_for_domain - find org from domain's org_id
+#   4. verify_organization_owner - check user is org owner (or colonel)
+#   5. verify_config_entitlement - check org has the required entitlement
+#   6. authorize_domain_config! - full chain (flag, load, verify, entitle)
+#   7. parse_boolean - coerce various inputs to boolean
 #
-# The only differences are the entitlement names (api_access vs
-# homepage_secrets) and the authorize method names.
+# ApiConfig and HomepageConfig have no feature flag (config_feature_flag
+# returns nil). SenderConfig requires custom_mail_enabled and SsoConfig
+# requires sso_enabled.
 
 require_relative '../../../../../try/support/test_helpers'
 
@@ -22,9 +24,13 @@ OT.boot! :test
 
 require 'onetime/models/custom_domain/api_config'
 require 'onetime/models/custom_domain/homepage_config'
+require 'onetime/models/custom_domain/mailer_config'
+require 'onetime/models/custom_domain/sso_config'
 require 'apps/api/domains/logic/base'
 require 'apps/api/domains/logic/api_config/base'
 require 'apps/api/domains/logic/homepage_config/base'
+require 'apps/api/domains/logic/sender_config/base'
+require 'apps/api/domains/logic/sso_config/base'
 
 Familia.dbclient.flushdb
 OT.info "Cleaned Redis for domain config authorization tests"
@@ -47,11 +53,15 @@ def make_logic(klass, customer)
   klass.new(strategy_result, {}, 'en')
 end
 
-# Build logic instances for both config types, as both owner and non-owner
+# Build logic instances for all config types, as both owner and non-owner
 @api_logic_owner = make_logic(DomainsAPI::Logic::ApiConfig::Base, @owner)
 @api_logic_non_owner = make_logic(DomainsAPI::Logic::ApiConfig::Base, @non_owner)
 @homepage_logic_owner = make_logic(DomainsAPI::Logic::HomepageConfig::Base, @owner)
 @homepage_logic_non_owner = make_logic(DomainsAPI::Logic::HomepageConfig::Base, @non_owner)
+@sender_logic_owner = make_logic(DomainsAPI::Logic::SenderConfig::Base, @owner)
+@sender_logic_non_owner = make_logic(DomainsAPI::Logic::SenderConfig::Base, @non_owner)
+@sso_logic_owner = make_logic(DomainsAPI::Logic::SsoConfig::Base, @owner)
+@sso_logic_non_owner = make_logic(DomainsAPI::Logic::SsoConfig::Base, @non_owner)
 
 # ============================================================
 # parse_boolean
@@ -97,10 +107,12 @@ end
 @api_logic_owner.send(:parse_boolean, '')
 #=> false
 
-## parse_boolean is consistent across ApiConfig and HomepageConfig
+## parse_boolean is consistent across all four config types
 api_results = [true, 'true', '1', 1, false, nil, 'false', '0', 0].map { |v| @api_logic_owner.send(:parse_boolean, v) }
 hp_results = [true, 'true', '1', 1, false, nil, 'false', '0', 0].map { |v| @homepage_logic_owner.send(:parse_boolean, v) }
-api_results == hp_results
+sender_results = [true, 'true', '1', 1, false, nil, 'false', '0', 0].map { |v| @sender_logic_owner.send(:parse_boolean, v) }
+sso_results = [true, 'true', '1', 1, false, nil, 'false', '0', 0].map { |v| @sso_logic_owner.send(:parse_boolean, v) }
+api_results == hp_results && hp_results == sender_results && sender_results == sso_results
 #=> true
 
 # ============================================================
@@ -175,8 +187,24 @@ DomainsAPI::Logic::ApiConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainC
 DomainsAPI::Logic::HomepageConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainConfigAuthorization)
 #=> true
 
+## SenderConfig::Base includes DomainConfigAuthorization concern
+DomainsAPI::Logic::SenderConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainConfigAuthorization)
+#=> true
+
+## SsoConfig::Base includes DomainConfigAuthorization concern
+DomainsAPI::Logic::SsoConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainConfigAuthorization)
+#=> true
+
 ## ApiConfig::Base includes AuthorizationPolicies via concern
 DomainsAPI::Logic::ApiConfig::Base.include?(Onetime::Application::AuthorizationPolicies)
+#=> true
+
+## SenderConfig::Base includes AuthorizationPolicies via concern
+DomainsAPI::Logic::SenderConfig::Base.include?(Onetime::Application::AuthorizationPolicies)
+#=> true
+
+## SsoConfig::Base includes AuthorizationPolicies via concern
+DomainsAPI::Logic::SsoConfig::Base.include?(Onetime::Application::AuthorizationPolicies)
 #=> true
 
 # ============================================================
@@ -191,6 +219,14 @@ DomainsAPI::Logic::ApiConfig::Base.include?(Onetime::Application::AuthorizationP
 @homepage_logic_owner.send(:config_entitlement)
 #=> 'homepage_secrets'
 
+## SenderConfig Base returns 'custom_mail_sender' as config_entitlement
+@sender_logic_owner.send(:config_entitlement)
+#=> 'custom_mail_sender'
+
+## SsoConfig Base returns 'manage_sso' as config_entitlement
+@sso_logic_owner.send(:config_entitlement)
+#=> 'manage_sso'
+
 ## ApiConfig Base returns correct error message
 @api_logic_owner.send(:config_entitlement_error)
 #=> 'API configuration requires the api_access entitlement. Please upgrade your plan.'
@@ -198,6 +234,54 @@ DomainsAPI::Logic::ApiConfig::Base.include?(Onetime::Application::AuthorizationP
 ## HomepageConfig Base returns correct error message
 @homepage_logic_owner.send(:config_entitlement_error)
 #=> 'Homepage secrets management requires the homepage_secrets entitlement. Please upgrade your plan.'
+
+## SenderConfig Base returns correct error message
+@sender_logic_owner.send(:config_entitlement_error)
+#=> 'Custom mail sender requires the custom_mail_sender entitlement. Please upgrade your plan.'
+
+## SsoConfig Base returns correct error message
+@sso_logic_owner.send(:config_entitlement_error)
+#=> 'SSO management requires the manage_sso entitlement. Please upgrade your plan.'
+
+# ============================================================
+# config_feature_flag
+# ============================================================
+
+## ApiConfig returns nil as config_feature_flag (no flag required)
+@api_logic_owner.send(:config_feature_flag)
+#=> nil
+
+## HomepageConfig returns nil as config_feature_flag (no flag required)
+@homepage_logic_owner.send(:config_feature_flag)
+#=> nil
+
+## SenderConfig returns 'custom_mail_enabled' as config_feature_flag
+@sender_logic_owner.send(:config_feature_flag)
+#=> 'custom_mail_enabled'
+
+## SsoConfig returns 'sso_enabled' as config_feature_flag
+@sso_logic_owner.send(:config_feature_flag)
+#=> 'sso_enabled'
+
+# ============================================================
+# config_log_tag
+# ============================================================
+
+## ApiConfig returns 'ApiConfig' as config_log_tag
+@api_logic_owner.send(:config_log_tag)
+#=> 'ApiConfig'
+
+## HomepageConfig returns 'HomepageConfig' as config_log_tag
+@homepage_logic_owner.send(:config_log_tag)
+#=> 'HomepageConfig'
+
+## SenderConfig returns 'SenderConfig' as config_log_tag
+@sender_logic_owner.send(:config_log_tag)
+#=> 'SenderConfig'
+
+## SsoConfig returns 'SsoConfig' as config_log_tag
+@sso_logic_owner.send(:config_log_tag)
+#=> 'SsoConfig'
 
 # ============================================================
 # verify_config_entitlement
@@ -228,6 +312,66 @@ end
 ## Both config types have the shared verify_config_entitlement method
 [@api_logic_owner.respond_to?(:verify_config_entitlement, true), @homepage_logic_owner.respond_to?(:verify_config_entitlement, true)]
 #=> [true, true]
+
+## SenderConfig and SsoConfig also have verify_config_entitlement
+[@sender_logic_owner.respond_to?(:verify_config_entitlement, true), @sso_logic_owner.respond_to?(:verify_config_entitlement, true)]
+#=> [true, true]
+
+# ============================================================
+# verify_feature_flag! for configs with and without feature flags
+# ============================================================
+
+## verify_feature_flag! passes for ApiConfig (no feature flag)
+begin
+  @api_flag_check = make_logic(DomainsAPI::Logic::ApiConfig::Base, @owner)
+  @api_flag_check.send(:verify_feature_flag!, @domain.extid)
+  'passed'
+rescue OT::FormError
+  'forbidden'
+end
+#=> 'passed'
+
+## verify_feature_flag! passes for HomepageConfig (no feature flag)
+begin
+  @hp_flag_check = make_logic(DomainsAPI::Logic::HomepageConfig::Base, @owner)
+  @hp_flag_check.send(:verify_feature_flag!, @domain.extid)
+  'passed'
+rescue OT::FormError
+  'forbidden'
+end
+#=> 'passed'
+
+## verify_feature_flag! raises FormError for SenderConfig when flag is disabled
+begin
+  original_conf = OT.conf.dup
+  test_conf = original_conf.dup
+  test_conf['features'] = { 'organizations' => { 'custom_mail_enabled' => false } }
+  OT.instance_variable_set(:@conf, test_conf)
+  @sender_flag_check = make_logic(DomainsAPI::Logic::SenderConfig::Base, @owner)
+  @sender_flag_check.send(:verify_feature_flag!, @domain.extid)
+  'unexpected_success'
+rescue OT::FormError => ex
+  ex.error_type
+ensure
+  OT.instance_variable_set(:@conf, original_conf)
+end
+#=> :forbidden
+
+## verify_feature_flag! raises FormError for SsoConfig when flag is disabled
+begin
+  original_conf = OT.conf.dup
+  test_conf = original_conf.dup
+  test_conf['features'] = { 'organizations' => { 'sso_enabled' => false } }
+  OT.instance_variable_set(:@conf, test_conf)
+  @sso_flag_check = make_logic(DomainsAPI::Logic::SsoConfig::Base, @owner)
+  @sso_flag_check.send(:verify_feature_flag!, @domain.extid)
+  'unexpected_success'
+rescue OT::FormError => ex
+  ex.error_type
+ensure
+  OT.instance_variable_set(:@conf, original_conf)
+end
+#=> :forbidden
 
 # ============================================================
 # authorize_domain_config! (shared concern method)

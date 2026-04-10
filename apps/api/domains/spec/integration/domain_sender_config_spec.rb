@@ -410,13 +410,14 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'returns 403 when sender feature flag is disabled' do
+      it 'returns 422 when sender feature flag is disabled' do
         disable_sender_feature_flag
         login_as(test_owner)
 
         csrf_put api_path(test_custom_domain.extid), valid_ses_params
 
-        expect(last_response.status).to eq(403)
+        # Feature flag check uses raise_form_error -> FormError -> 422
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('not enabled')
       end
@@ -427,12 +428,13 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         csrf_put api_path(test_custom_domain.extid), valid_ses_params
 
+        # Non-owner check uses verify_one_of_roles! -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
         body = json_body
         expect(body['message']).to include('owner')
       end
 
-      it 'returns 403 when organization lacks custom_mail_sender entitlement' do
+      it 'returns 422 when organization lacks custom_mail_sender entitlement' do
         enable_sender_feature_flag
         # In integration tests with billing disabled, all orgs get STANDALONE_ENTITLEMENTS.
         # We stub can? on any org instance to test this code path.
@@ -441,7 +443,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         login_as(test_owner)
         csrf_put api_path(test_custom_domain.extid), valid_ses_params
 
-        expect(last_response.status).to eq(403)
+        # Entitlement check uses raise_form_error -> FormError -> 422
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('custom_mail_sender')
       end
@@ -916,13 +919,14 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(body['message']).to include('owner')
       end
 
-      it 'returns 403 when organization lacks custom_mail_sender entitlement' do
+      it 'returns 422 when organization lacks custom_mail_sender entitlement' do
         allow_any_instance_of(Onetime::Organization).to receive(:can?).with('custom_mail_sender').and_return(false)
 
         login_as(test_owner)
         csrf_post provision_path(test_custom_domain.extid), {}
 
-        expect(last_response.status).to eq(403)
+        # Entitlement check uses raise_form_error -> FormError -> 422
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('custom_mail_sender')
       end
