@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Sorularınız için destek{'@'}ornek.com ile iletişime geçin",
+    "text": "Sorularınız için onboarding{'@'}example.com ile iletişime geçin",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Gösterilmeden Önce Talimatlar",
+    "text": "Gösterim Öncesi Talimatlar",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Gösterildikten Sonra Talimatlar",
+    "text": "Gösterim Sonrası Talimatlar",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Yapabilecekleriniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Logo yükleyin (önerilen minimum 128x128 piksel, maksimum 1MB) - \"Gizli Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin",
+    "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Logo yükleyin (minimum 128x128 piksel önerilir, en fazla 1MB) - \"Gizli Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,15 +140,15 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Japonca kanji '秘' (himitsu) anlamı 'gizli' veya 'gizlilik'",
+    "text": "Japonca kanji '秘' (himitsu) anlamı 'gizli' veya 'gizli'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Onetime Secret tarafından desteklenmektedir",
+    "text": "Altyapı: Onetime Secret",
     "source_hash": "935442d0"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Logosu",
+    "text": "{0} Logo",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Bu alan adı için markalamayı özelleştirmek üzere planınızı yükseltin.",
+    "text": "Bu alan adı için markalaşmayı özelleştirmek üzere planınızı yükseltin.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Marka ayarları başarıyla kaydedildi"
   }
 }

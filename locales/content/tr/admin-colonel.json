@@ -24,7 +24,7 @@
     "source_hash": "dd1c471a"
   },
   "web.colonel.active_in_the_past_5_minutes_0": {
-    "text": "(son 5 dakika içinde aktif)",
+    "text": "(son 5 dakikada aktif)",
     "source_hash": "a2b19058"
   },
   "web.colonel.configEditorTitle": {
@@ -60,7 +60,7 @@
     "source_hash": "74e8897e"
   },
   "web.colonel.multipleSectionsInvalid": {
-    "text": "Birden fazla bölümde doğrulama hatası var: {sections}",
+    "text": "Birden fazla bölümde doğrulama hataları var: {sections}",
     "source_hash": "71fdaea1"
   },
   "web.colonel.sectionHasError": {
@@ -152,11 +152,11 @@
     "source_hash": "ff5573a6"
   },
   "web.colonel.activityPlaceholder": {
-    "text": "Etkinlik verileri burada görüntülenecek",
+    "text": "Etkinlik verileri burada gösterilecektir",
     "source_hash": "aaf9e948"
   },
   "web.colonel.stats.totalSecrets": {
-    "text": "Toplam Gizli Mesajlar",
+    "text": "Toplam Gizli Mesaj",
     "source_hash": "e17a5459"
   },
   "web.colonel.stats.activeUsers": {
@@ -184,7 +184,7 @@
     "source_hash": "87cfb3ab"
   },
   "web.colonel.stats.systemHealth": {
-    "text": "Sistem Durumu",
+    "text": "Sistem Sağlığı",
     "source_hash": "c3d66242"
   },
   "web.colonel.stats.healthy": {
@@ -196,7 +196,7 @@
     "source_hash": "9c28f55c"
   },
   "web.colonel.actions.viewActivityDesc": {
-    "text": "Sistem etkinliğini ve kullanımı izleyin",
+    "text": "Sistem etkinliğini ve kullanımını izleyin",
     "source_hash": "f88e9eda"
   },
   "web.colonel.actions.manageAccounts": {
@@ -224,7 +224,7 @@
     "source_hash": "923dc672"
   },
   "web.colonel.backgroundJobs": {
-    "text": "Arka Plan İşleri",
+    "text": "Arka Plan Görevleri",
     "source_hash": "48937049"
   },
   "web.colonel.queueStatus": {
@@ -280,7 +280,7 @@
     "source_hash": "4b25034d"
   },
   "web.colonel.selectTestPlan": {
-    "text": "Test etmek için bir plan seçin",
+    "text": "Test edilecek bir plan seçin",
     "source_hash": "9e6e12fe"
   },
   "web.colonel.resetToActual": {
@@ -292,7 +292,7 @@
     "source_hash": "37ca715f"
   },
   "web.colonel.availablePlans": {
-    "text": "Mevcut planlar",
+    "text": "Kullanılabilir planlar",
     "source_hash": "20efa44d"
   },
   "web.colonel.activateTestMode": {
@@ -320,7 +320,7 @@
     "source_hash": "d8f4398b"
   },
   "web.colonel.organizations.pageTitle": {
-    "text": "Faturalandırma Durum İzleyicisi",
+    "text": "Faturalandırma Sağlık İzleyicisi",
     "source_hash": "9ef57da4"
   },
   "web.colonel.organizations.organizationsCount": {
@@ -328,11 +328,11 @@
     "source_hash": "bc2feb56"
   },
   "web.colonel.organizations.needAttention": {
-    "text": "{count} dikkat gerektiriyor",
+    "text": "{count} ilgilenilmesi gerekiyor",
     "source_hash": "1c8e5840"
   },
   "web.colonel.organizations.unknownCount": {
-    "text": "{count} bilinmiyor",
+    "text": "{count} bilinmeyen",
     "source_hash": "b7bf2cf1"
   },
   "web.colonel.organizations.noOrganizations": {
@@ -352,11 +352,11 @@
     "source_hash": "a52ace42"
   },
   "web.colonel.organizations.filters.potentiallyStale": {
-    "text": "Potansiyel Olarak Eski",
+    "text": "Güncel Olmayabilir",
     "source_hash": "40137b37"
   },
   "web.colonel.organizations.filters.unknown": {
-    "text": "Bilinmiyor",
+    "text": "Bilinmeyen",
     "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.filters.synced": {
@@ -376,7 +376,7 @@
     "source_hash": "2bda1c7b"
   },
   "web.colonel.organizations.filters.canceled": {
-    "text": "İptal Edildi",
+    "text": "İptal Edilmiş",
     "source_hash": "13ca2ee2"
   },
   "web.colonel.organizations.columns.account": {
@@ -428,7 +428,7 @@
     "source_hash": "53aa279e"
   },
   "web.colonel.organizations.columns.has_billing": {
-    "text": "Faturalandırması Var",
+    "text": "Faturalandırma Var",
     "source_hash": "db0628ed"
   },
   "web.colonel.organizations.legacy.title": {
@@ -444,15 +444,15 @@
     "source_hash": "538995db"
   },
   "web.colonel.organizations.legacy.potentially_stale": {
-    "text": "potansiyel olarak eski",
+    "text": "güncel olmayabilir",
     "source_hash": "3ddfec45"
   },
   "web.colonel.organizations.status.stale": {
-    "text": "Eski",
+    "text": "Güncel Değil",
     "source_hash": "40c9e59c"
   },
   "web.colonel.organizations.status.unknown": {
-    "text": "Bilinmiyor",
+    "text": "Bilinmeyen",
     "source_hash": "b764cdc0"
   },
   "web.colonel.organizations.status.active": {
@@ -460,7 +460,7 @@
     "source_hash": "96879611"
   },
   "web.colonel.organizations.actions.investigate": {
-    "text": "İncele",
+    "text": "Araştır",
     "source_hash": "e2641093"
   },
   "web.colonel.organizations.actions.checking": {
@@ -480,15 +480,15 @@
     "source_hash": "5e6b9932"
   },
   "web.colonel.organizations.investigation.failed": {
-    "text": "İnceleme başarısız",
+    "text": "Araştırma başarısız oldu",
     "source_hash": "193aa900"
   },
   "web.colonel.organizations.investigation.result": {
-    "text": "İnceleme Sonucu",
+    "text": "Araştırma Sonucu",
     "source_hash": "2dbc5cc3"
   },
   "web.colonel.organizations.investigation.verifiedSynced": {
-    "text": "Doğrulanmış Senkronize",
+    "text": "Senkronize Doğrulandı",
     "source_hash": "d92625c2"
   },
   "web.colonel.organizations.investigation.mismatchFound": {
@@ -496,7 +496,7 @@
     "source_hash": "361d22f3"
   },
   "web.colonel.organizations.investigation.unableToCompare": {
-    "text": "Karşılaştırılamadı",
+    "text": "Karşılaştırılamıyor",
     "source_hash": "64c822ee"
   },
   "web.colonel.organizations.investigation.stripeDetails": {
@@ -544,7 +544,7 @@
     "source_hash": "48f8052e"
   },
   "web.colonel.bannedIps.title": {
-    "text": "Yasaklı IP'ler",
+    "text": "Yasaklı IP Adresleri",
     "source_hash": "0ece5643"
   },
   "web.colonel.bannedIps.description": {
@@ -620,7 +620,7 @@
     "source_hash": "10a0cb94"
   },
   "web.colonel.titles.info": {
-    "text": "Sistem Bilgileri",
+    "text": "Sistem Bilgisi",
     "source_hash": "8ad54ec1"
   },
   "web.colonel.titles.organizations": {

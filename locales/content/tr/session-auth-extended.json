@@ -48,17 +48,17 @@
     }
   },
   "web.auth.mfa_required": {
-    "text": "MFA doğrulaması gerekli",
+    "text": "Çok faktörlü doğrulama gerekli",
     "context": "Page heading shown when user must complete MFA to proceed",
     "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Hesabınıza erişmek için MFA doğrulaması gerekli",
+    "text": "Hesabınıza erişmek için çok faktörlü doğrulama gereklidir",
     "context": "Explanatory text below the heading",
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "MFA Doğrulamasını Tamamlayın",
+    "text": "Çok Faktörlü Doğrulamayı Tamamlayın",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -66,7 +66,7 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Kimlik doğrulama başarısız. Lütfen kimlik bilgilerinizi doğrulayıp tekrar deneyin.",
+    "text": "Kimlik doğrulama başarısız oldu. Lütfen bilgilerinizi doğrulayıp tekrar deneyin.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
@@ -78,11 +78,11 @@
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Kurtarma kodu bulunamadı. Lütfen doğru girdiğinizi doğrulayın.",
+    "text": "Kurtarma kodu bulunamadı. Lütfen doğru girdiğinizden emin olun.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Bu kurtarma kodu zaten kullanıldı. Her kod yalnızca bir kez kullanılabilir.",
+    "text": "Bu kurtarma kodu zaten kullanılmış. Her kod yalnızca bir kez kullanılabilir.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
@@ -107,7 +107,7 @@
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "E-posta ile Giriş Yap",
+    "text": "E-posta ile giriş yapın",
     "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
@@ -115,7 +115,7 @@
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "E-posta adresinizi girin",
+    "text": "E-postanızı girin",
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
@@ -127,11 +127,11 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "{email} adresine bir giriş bağlantısı gönderdik",
+    "text": "{email} adresine giriş bağlantısı gönderdik",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Bu bağlantının süresi 15 dakika içinde dolacak",
+    "text": "Bu bağlantının süresi 15 dakika içinde dolacaktır",
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
@@ -139,7 +139,7 @@
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Parola gerekmez — sadece e-postanızdaki bağlantıya tıklayın",
+    "text": "Parola gerekmez — e-postanızdaki bağlantıya tıklamanız yeterli",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -155,11 +155,11 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Oturumunuzun süresi doldu. Lütfen sayfayı yenileyip tekrar deneyin.",
+    "text": "Oturumunuz sona erdi. Lütfen sayfayı yenileyip tekrar deneyin.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Giriş başarısız. Lütfen tekrar deneyin.",
+    "text": "Giriş başarısız oldu. Lütfen tekrar deneyin.",
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
@@ -175,7 +175,7 @@
     "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Giriş Sayfasına Dön",
+    "text": "Girişe Geri Dön",
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
@@ -187,11 +187,11 @@
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "Biyometrik kimlik doğrulama bu tarayıcıda desteklenmiyor",
+    "text": "Bu tarayıcıda biyometrik kimlik doğrulama desteklenmiyor",
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Lütfen WebAuthn'u destekleyen modern bir tarayıcı kullanın (Chrome, Safari, Firefox veya Edge)",
+    "text": "Lütfen WebAuthn destekleyen modern bir tarayıcı kullanın (Chrome, Safari, Firefox veya Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -203,11 +203,11 @@
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "Geçiş anahtarı oluşturmak için parola gereklidir",
+    "text": "Geçiş anahtarı ayarlamak için parola gereklidir",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "Biyometrik kimlik doğrulama başarısız. Lütfen tekrar deneyin.",
+    "text": "Biyometrik kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin.",
     "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
@@ -232,12 +232,12 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Face ID, Touch ID, Windows Hello veya güvenlik anahtarı ile giriş yapın",
+    "text": "Face ID, Touch ID, Windows Hello veya güvenlik anahtarıyla giriş yapın",
     "context": "Description of passkey authentication",
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Geçiş anahtarları, parola olmadan güvenli bir şekilde giriş yapmanızı sağlar",
+    "text": "Geçiş anahtarları parola olmadan güvenli giriş yapmanızı sağlar",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -267,7 +267,7 @@
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Bu geçiş anahtarını kaldırmak istediğinizden emin misiniz? Artık bu anahtarla giriş yapamayacaksınız.",
+    "text": "Bu geçiş anahtarını kaldırmak istediğinizden emin misiniz? Artık bununla giriş yapamayacaksınız.",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
@@ -312,17 +312,17 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Parolalardan daha güvenli - kimlik avı saldırılarına karşı dirençli",
+    "text": "Parolalardan daha güvenli - oltalama saldırılarına karşı dayanıklı",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Hızlı ve kolay - parmak izinizi, yüzünüzü veya güvenlik anahtarınızı kullanın",
+    "text": "Hızlı ve kolay - sadece parmak izinizi, yüzünüzü veya güvenlik anahtarınızı kullanın",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Platform kimlik doğrulayıcıları kullanıldığında cihazlarınız arasında senkronize edilir",
+    "text": "Platform doğrulayıcıları kullanırken cihazlarınız arasında senkronize",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -340,11 +340,11 @@
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
-    "text": "Hesabınız {time} tarihine kadar kilitli",
+    "text": "Hesabınız {time} tarihine kadar kilitlidir",
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Acil erişime ihtiyacınız varsa destekle iletişime geçin",
+    "text": "Acil erişime ihtiyacınız varsa destek ile iletişime geçin",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
@@ -384,7 +384,7 @@
     "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "Oluşturuldu",
+    "text": "Oluşturulma",
     "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Bu, diğer tüm cihazlardan çıkış yapmanıza neden olacaktır. Emin misiniz?",
+    "text": "Bu işlem diğer tüm cihazlardan çıkış yapacaktır. Emin misiniz?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -412,7 +412,7 @@
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "Diğer tüm oturumlardan çıkış yapıldı",
+    "text": "Diğer tüm oturumlar kapatıldı",
     "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
@@ -440,15 +440,15 @@
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "İki Faktörlü Kimlik Doğrulamayı Kur",
+    "text": "İki Faktörlü Kimlik Doğrulamayı Ayarlayın",
     "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Hesabınıza ekstra bir güvenlik katmanı ekleyin",
+    "text": "Hesabınıza ek bir güvenlik katmanı ekleyin",
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. QR Kodu Tarayın",
+    "text": "1. QR Kodunu Tarayın",
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
@@ -456,15 +456,15 @@
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Bu QR kodunu kimlik doğrulama uygulamanızla tarayın",
+    "text": "Bu QR kodu kimlik doğrulama uygulamanızla tarayın",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "Veya bu kodu manuel olarak girin",
+    "text": "Veya bu kodu elle girin",
     "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Uygulamanızdan 6 haneli kodu girin",
+    "text": "Uygulamanızdaki 6 haneli kodu girin",
     "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
@@ -484,7 +484,7 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Geçersiz kod. Kodlar her 30 saniyede bir sona erer. Kimlik doğrulama uygulamanızdan en son kodu deneyin.",
+    "text": "Geçersiz kod. Kodların süresi her 30 saniyede dolar. Kimlik doğrulama uygulamanızdaki en son kodu deneyin.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -528,7 +528,7 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "İptal et ve giriş sayfasına dön",
+    "text": "İptal et ve girişe dön",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
@@ -536,7 +536,7 @@
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "MFA durumu yükleniyor...",
+    "text": "Çok faktörlü doğrulama durumu yükleniyor...",
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
@@ -584,11 +584,11 @@
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Kimlik doğrulama uygulamanızdan 6 haneli kodu girin",
+    "text": "Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "MFA'yı Etkinleştir",
+    "text": "Çok Faktörlü Doğrulamayı Etkinleştir",
     "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
@@ -624,11 +624,11 @@
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Devam etmek için lütfen 6 rakamın tümünü girin",
+    "text": "Devam etmek için lütfen 6 haneli kodun tamamını girin",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
-    "text": "Rakam {current} / {total}",
+    "text": "{total} basamaktan {current}. basamak",
     "source_hash": "879df41a"
   },
   "web.auth.recovery_codes.title": {
@@ -644,7 +644,7 @@
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Kurulumu tamamlamadan önce kurtarma kodlarınızı indirmeli veya kopyalamalısınız.",
+    "text": "Kurulumu tamamlamadan önce kurtarma kodlarınızı indirmeniz veya kopyalamanız gerekir.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
@@ -656,7 +656,7 @@
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "Bu, mevcut tüm kurtarma kodlarını geçersiz kılacaktır",
+    "text": "Bu işlem mevcut tüm kurtarma kodlarını geçersiz kılacaktır",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
@@ -696,7 +696,7 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Her kod yalnızca bir kez kullanılabilir. Azaldığında kodları yeniden oluşturun.",
+    "text": "Her kod yalnızca bir kez kullanılabilir. Kodlarınız azaldığında yeniden oluşturun.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -710,5 +710,20 @@
   "web.auth.recovery_codes.link_title": {
     "text": "Kurtarma Kodları",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternatif kimlik doğrulama seçenekleri"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ GÜVENLİK AÇISINDAN KRİTİK: Mesajlar bilgi ifşasını önler. Bkz. src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "oturum"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "oturum"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Kullanıcının oturum açtığı cihazlar/tarayıcılar yönetim sayfası"
   }
 }

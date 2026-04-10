@@ -16,7 +16,7 @@
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "Veriler yüklenemedi",
+    "text": "Veriler yüklenemiyor",
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {

@@ -4,15 +4,15 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Verileriniz yalnızca seçtiğiniz bölgede bulunur ve asla bölgeler arasında aktarılmaz",
+    "text": "Verileriniz yalnızca seçtiğiniz bölgede bulunur ve hiçbir zaman bölgeler arasında aktarılmaz",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
-    "text": "Her bölge, kendi altyapısı, şifreleme anahtarları ve veri depolaması ile tamamen bağımsız bir ortam olarak çalışır",
+    "text": "Her bölge, kendi altyapısı, şifreleme anahtarları ve veri depolama alanıyla tamamen bağımsız bir ortam olarak çalışır",
     "source_hash": "cd996732"
   },
   "web.regions.no_data_transfer_policy": {
-    "text": "Katı bir politikamız var: müşteri verileri hiçbir koşulda bölgeler arasında aktarılmaz",
+    "text": "Katı bir politika uyguluyoruz: müşteri verileri hiçbir koşulda bölgeler arasında aktarılmaz",
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Verilerinizin tam olarak nerede bulunduğunu ve hangi yasaların korumasını düzenlediğini bilin.",
+    "text": "Verilerinizin tam olarak nerede bulunduğunu ve hangi yasaların korumasını yönettiğini bilin.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -56,7 +56,7 @@
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
-    "text": "Yasal Uyumluluk",
+    "text": "Mevzuat Uyumluluğu",
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
@@ -68,7 +68,7 @@
     "source_hash": "504b7b49"
   },
   "web.regions.performance_description": {
-    "text": "Verilerinizin size daha yakın depolanması, daha düşük gecikme ve daha iyi performans anlamına gelir.",
+    "text": "Verilerinizin size yakın depolanması, daha düşük gecikme ve daha iyi performans anlamına gelir.",
     "source_hash": "e133ef1d"
   },
   "web.regions.regions": {
@@ -112,7 +112,7 @@
     "source_hash": "ee788590"
   },
   "web.regions.jurisdiction": {
-    "text": "Yargı Alanı",
+    "text": "Yetki Alanı",
     "source_hash": "d69b9ac7"
   },
   "web.regions.data_center_location_currentjurisdiction_identif": {
@@ -124,19 +124,19 @@
     "source_hash": "a1c6039f"
   },
   "web.regions.unknown_jurisdiction": {
-    "text": "Bilinmeyen Yargı Alanı",
+    "text": "Bilinmeyen Yetki Alanı",
     "source_hash": "eae2e122"
   },
   "web.regions.serving_you_from_the": {
-    "text": "Hizmet sağlanan konum:",
+    "text": "Hizmet bölgesi:",
     "source_hash": "25db17aa"
   },
   "web.regions.continue_to_jurisdiction_domain": {
-    "text": "{0} adresine devam et",
+    "text": "{0} bölgesine devam et",
     "source_hash": "dd1a44e4"
   },
   "web.regions.current_jurisdiction": {
-    "text": "Mevcut yargı alanı:",
+    "text": "Mevcut yetki alanı:",
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
@@ -144,19 +144,22 @@
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
-    "text": "Politikamız, bölgeler arasında asla veri aktarmamaktır. Her bölge tamamen bağımsız bir ortam olarak çalışır.",
+    "text": "Politikamız bölgeler arasında asla veri aktarmamaktır. Her bölge tamamen bağımsız bir ortam olarak çalışır.",
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Farklı bir bölge kullanmak için, fatura iletişim e-postanızla ilişkili aynı e-posta adresini kullanarak orada yeni bir hesap oluşturun.",
+    "text": "Farklı bir bölge kullanmak için, faturalandırma iletişim e-postanızla ilişkili aynı e-posta adresini kullanarak orada yeni bir hesap oluşturun.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Fatura iletişim e-postanız Onetime Secret hesap e-postanızdan farklıysa, abonelik avantajlarınızı korumak için yeni bölge hesabında fatura iletişim e-postanızı kullanın.",
+    "text": "Faturalandırma iletişim e-postanız Onetime Secret hesap e-postanızdan farklıysa, abonelik avantajlarınızı korumak için yeni bölge hesabında faturalandırma iletişim e-postasını kullanın.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Abonelik avantajlarınız, fatura e-posta adresinizle oluşturulan tüm hesaplara otomatik olarak uygulanır.",
+    "text": "Abonelik avantajlarınız, faturalandırma e-posta adresinizle oluşturulan herhangi bir hesaba otomatik olarak uygulanacaktır.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Hesabınız için şu anda bölge bilgisi mevcut değil."
   }
 }

@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Hassas bilgileri destek ekibimizle güvenli bir şekilde paylaşın",
+    "text": "Destek ekibimizle hassas bilgileri güvenle paylaşın",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Bu özellik şu anda devre dışıdır. Yardım için lütfen destekle iletişime geçin.",
+    "text": "Bu özellik şu anda devre dışıdır. Yardım için lütfen destek ile iletişime geçin.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Kısa açıklama (örn., Parola sıfırlama isteği)",
+    "text": "Kısa açıklama (örn. Parola sıfırlama talebi)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -36,7 +36,7 @@
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
-    "text": "Gönderilecek Kişi",
+    "text": "Gönderilecek kişi",
     "source_hash": "9bcbb3bc"
   },
   "incoming.recipient_placeholder": {
@@ -60,7 +60,7 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Hassas bilgileri buraya yapıştırın (parolalar, anahtarlar, vb.)",
+    "text": "Hassas bilgileri buraya yapıştırın (parolalar, anahtarlar vb.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
@@ -116,7 +116,7 @@
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Hassas bilgileri güvenli bir şekilde paylaşın",
+    "text": "Hassas bilgileri güvenle paylaşın",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
@@ -124,11 +124,32 @@
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Kayıtlarınız için {receipt} dosyanızı saklayın.",
+    "text": "Kayıtlarınız için {receipt} belgenizi saklayın.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
     "text": "makbuz",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Yükseltme Gerekli"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Bu özellik plan yükseltmesi gerektirmektedir. Gelen gizli mesajları etkinleştirmek için lütfen hesap sahibiyle iletişime geçin."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Not en fazla {max} karakter olmalıdır"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Gizli içerik gereklidir"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Lütfen bir alıcı seçin"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Gelen gizli mesajlar özelliği etkin değil"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Lütfen formdaki hataları kontrol edin"
   }
 }

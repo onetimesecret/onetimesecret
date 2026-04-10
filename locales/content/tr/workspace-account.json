@@ -4,7 +4,7 @@
     "source_hash": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Parola Değiştir",
+    "text": "Parolayı Değiştir",
     "source_hash": "a949f462"
   },
   "web.account.close_account": {
@@ -28,7 +28,7 @@
     "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
-    "text": "Müşteri olma tarihi:",
+    "text": "Müşteri tarihi:",
     "source_hash": "0b37cff3"
   },
   "web.account.email": {
@@ -60,7 +60,7 @@
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Sonraki fatura tarihi:",
+    "text": "Sonraki faturalandırma tarihi:",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -124,7 +124,7 @@
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Ayrıntılara Geri Dön",
+    "text": "Ayrıntılara Dön",
     "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Hesap Silme Onayı",
+    "text": "Hesap Silmeyi Onaylayın",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -164,7 +164,7 @@
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "kalıcı ve geri alınamaz.",
+    "text": "kalıcı ve geri alınamaz bir işlemdir.",
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
@@ -280,7 +280,7 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "E-posta Değiştir",
+    "text": "E-postayı Değiştir",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
@@ -328,7 +328,7 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-posta başarıyla güncellendi. Yeni e-posta adresinizi doğrulamak için lütfen gelen kutunuzu kontrol edin.",
+    "text": "Doğrulama e-postası gönderildi. Lütfen yeni gelen kutunuzu kontrol edin ve değişikliği tamamlamak için onay bağlantısına tıklayın.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
@@ -364,11 +364,11 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin",
+    "text": "Hesabınızı ve tüm verilerinizi kalıcı olarak silin",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Hesabınızı ve tüm verileri kalıcı olarak silin",
+    "text": "Hesabınızı ve tüm verilerinizi kalıcı olarak silin",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -408,7 +408,7 @@
     "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "Yapılandırıldı",
+    "text": "Yapılandırılmış",
     "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
@@ -428,7 +428,7 @@
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Kod oluşturulmadı",
+    "text": "Kod oluşturulmamış",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
@@ -440,7 +440,7 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Hesabınız için güçlü, benzersiz bir parola kullanın",
+    "text": "Hesabınız için güçlü ve benzersiz bir parola kullanın",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
@@ -452,7 +452,7 @@
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Kullanılmayan oturumları düzenli olarak inceleyin ve iptal edin",
+    "text": "Kullanılmayan oturumları düzenli olarak gözden geçirin ve iptal edin",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -484,7 +484,7 @@
     "source_hash": "26a5af61"
   },
   "web.settings.api.complete_api_documentation": {
-    "text": "Tam API belgeleri ve uç noktalar",
+    "text": "Tam API belgeleri ve uç noktaları",
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
@@ -492,7 +492,7 @@
     "source_hash": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
-    "text": "Örnek kod ve istemci kütüphaneleri",
+    "text": "Örnek kodlar ve istemci kütüphaneleri",
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
@@ -500,11 +500,11 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "API anahtarlarını asla sürüm kontrolüne işlemeyin",
+    "text": "API anahtarlarını asla sürüm kontrolüne kaydetmeyin",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "API anahtarlarını saklamak için ortam değişkenleri kullanın",
+    "text": "API anahtarlarını saklamak için ortam değişkenlerini kullanın",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
@@ -512,7 +512,7 @@
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "API istekleri yaparken her zaman HTTPS kullanın",
+    "text": "API isteklerinde her zaman HTTPS kullanın",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "API anahtarınızı yeniden oluşturmak mevcut anahtarı geçersiz kılacaktır. Eski anahtarı kullanan tüm uygulamaları güncelleyin.",
+    "text": "API anahtarınızı yenilemek mevcut anahtarı geçersiz kılacaktır. Eski anahtarı kullanan tüm uygulamaları güncelleyin.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -540,7 +540,7 @@
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Pazarlık Edilemez",
+    "text": "Pazarlığa Kapalı",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -548,11 +548,11 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Analitik yok. İzleme yok. Nokta.",
+    "text": "Analitik yok. Takip yok. Nokta.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Bu bir ayar değil çünkü açılıp kapanacak bir şey yok. Gizliliğiniz çalışma şeklimizin bir parçası.",
+    "text": "Bu bir ayar değil çünkü açılacak veya kapatılacak bir şey yok. Gizliliğiniz çalışma şeklimize yerleşiktir.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -568,7 +568,7 @@
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Gizli Mesaj Görüntüleme Bildirimleri",
+    "text": "Gizli Mesaj Gösterilme Bildirimleri",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
@@ -576,15 +576,15 @@
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Bir alıcı gizli mesajlarınızdan birini görüntülediğinde her seferinde bilgilendirileceksiniz",
+    "text": "Bir alıcı gizli mesajlarınızdan birini her gösterdiğinde bilgilendirileceksiniz",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Bildirim e-postaları yalnızca zaman damgası ve gizli mesaj kimliğini içerir. Görüntüleyen bilgileri asla dahil edilmez.",
+    "text": "Bildirim e-postaları yalnızca zaman damgası ve gizli mesaj kimliğini içerir. Görüntüleyen bilgisi asla dahil edilmez.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Dikkatli Değerlendirme Alanı",
+    "text": "Dikkatli Değerlendirme Bölgesi",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -600,7 +600,7 @@
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Hesap verilerinizin makine tarafından okunabilir formatta tam bir kopyasını talep edin",
+    "text": "Hesap verilerinizin tam bir kopyasını makine tarafından okunabilir biçimde talep edin",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -608,7 +608,7 @@
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Dışa Aktarma İşlem Süresi",
+    "text": "Dışa Aktarım İşlem Süresi",
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
@@ -616,15 +616,15 @@
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Hesabınızı silmek şunlara neden olacaktır:",
+    "text": "Hesabınızı silmek şunları yapacaktır:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Tüm gizli mesajlarınızı kalıcı olarak sil",
+    "text": "Tüm gizli mesajlarınızı kalıcı olarak siler",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Tüm gizli mesaj meta verilerini ve geçmişini kaldır",
+    "text": "Tüm gizli mesaj meta verilerini ve geçmişini kaldırır",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -664,11 +664,11 @@
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
-    "text": "Onay e-postasını yeniden gönder",
+    "text": "Onay e-postasını tekrar gönder",
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Onay e-postası başarıyla yeniden gönderildi.",
+    "text": "Onay e-postası başarıyla tekrar gönderildi.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
@@ -676,7 +676,7 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Bir doğrulama e-postası gönderildi. Gelen kutunuzu kontrol edin ve onay bağlantısına tıklayın.",
+    "text": "Doğrulama e-postası gönderildi. Gelen kutunuzu kontrol edin ve onay bağlantısına tıklayın.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {

@@ -36,7 +36,7 @@
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Açıklama sağlanmadı",
+    "text": "Açıklama belirtilmedi",
     "source_hash": "41183d01"
   },
   "web.organizations.default": {
@@ -48,7 +48,7 @@
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "İlk Kuruluşu Oluşturun",
+    "text": "İlk Kuruluşunuzu Oluşturun",
     "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
@@ -68,7 +68,7 @@
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "örn. ABC Şirketi",
+    "text": "örn. Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -160,7 +160,7 @@
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "Faturalandırma e-postası Faturalandırma Genel Bakış sayfasında değiştirilebilir",
+    "text": "Faturalandırma e-postası Faturalandırma Genel Bakışı sayfasından değiştirilebilir",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
@@ -168,7 +168,7 @@
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "Birleşik faturalandırma ve abonelik yönetimi gelecekteki bir sürümde kullanılabilir olacaktır.",
+    "text": "Birleşik faturalandırma ve abonelik yönetimi gelecek bir sürümde sunulacaktır.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -184,7 +184,7 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Şirket adınızı ve kuruluş ayrıntılarınızı buradan güncelleyin. Bu bilgiler hesabınızı kişiselleştirmeye yardımcı olur ve gelecekte markalama özellikleri için kullanılabilir.",
+    "text": "Şirket adınızı ve kuruluş ayrıntılarınızı burada güncelleyin. Bu bilgiler hesabınızı kişiselleştirmeye yardımcı olur ve gelecekte markalama özellikleri için kullanılabilir.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -192,11 +192,11 @@
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Şirket bilgilerinizi yönetmek ve gelecekteki markalama özellikleri için hazırlanmak üzere ilk kuruluşunuzu oluşturun.",
+    "text": "Şirket bilgilerinizi yönetmek ve gelecekteki markalama özelliklerine hazırlanmak için ilk kuruluşunuzu oluşturun.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Kuruluşlarınızı ve takım üyelerinizi yönetin",
+    "text": "Kuruluşlarınızı ve ekip üyelerinizi yönetin",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Takım",
+    "text": "Üyeler",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -284,7 +284,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
-    "text": "Katıldı",
+    "text": "Katılma",
     "source_hash": "69318b0c"
   },
   "web.organizations.members.actions": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Henüz üye yok. Başlamak için takım üyelerini davet edin.",
+    "text": "Henüz üye yok. Başlamak için ekip üyelerini davet edin.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -320,7 +320,7 @@
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "{name} adlı üyeyi bu kuruluştan kaldırmak istediğinizden emin misiniz?",
+    "text": "{name} adlı kişiyi bu kuruluştan kaldırmak istediğinizden emin misiniz?",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "uye{'@'}ornek.com",
+    "text": "uye{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -396,19 +396,19 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Davet Gönder",
+    "text": "Davetiye Gönder",
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "Davet başarıyla gönderildi",
+    "text": "Davetiye başarıyla gönderildi",
     "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
-    "text": "Davet gönderilemedi",
+    "text": "Davetiye gönderilemedi",
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "Yeniden Gönder",
+    "text": "Tekrar Gönder",
     "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
@@ -416,19 +416,19 @@
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "Davet başarıyla yeniden gönderildi",
+    "text": "Davetiye başarıyla tekrar gönderildi",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
-    "text": "Davet yeniden gönderilemedi",
+    "text": "Davetiye tekrar gönderilemedi",
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "Davet başarıyla iptal edildi",
+    "text": "Davetiye başarıyla iptal edildi",
     "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
-    "text": "Davet iptal edilemedi",
+    "text": "Davetiye iptal edilemedi",
     "source_hash": "9dbd2a60"
   },
   "web.organizations.invitations.invited_by": {
@@ -436,7 +436,7 @@
     "source_hash": "c7a6f156"
   },
   "web.organizations.invitations.invited_at": {
-    "text": "Davet Tarihi",
+    "text": "Davet Edilme",
     "source_hash": "63b17bec"
   },
   "web.organizations.invitations.expires_at": {
@@ -444,11 +444,11 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "{count} kez yeniden gönderildi",
+    "text": "{count} kez tekrar gönderildi",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "{count} kez yeniden gönderildi",
+    "text": "{count} kez tekrar gönderildi",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Üye",
+    "text": "Ekip Üyesi",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Takım üyelerini davet etmek için planınızı yükseltin",
+    "text": "Ekip üyelerini davet etmek için planınızı yükseltin",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Takım üyesi davetleri, takım yönetimi içeren bir plan gerektirir. Kuruluşunuza işbirlikçiler eklemek için yükseltin.",
+    "text": "Ekip üyesi davetleri, ekip yönetimi içeren bir plan gerektirir. Kuruluşunuza iş birlikçi eklemek için yükseltin.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -560,7 +560,7 @@
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Bu davet {invitedEmail} için. Şu anda {currentEmail} olarak giriş yapmış durumdasınız.",
+    "text": "Bu davet {invitedEmail} için gönderildi. Şu anda {currentEmail} olarak giriş yapmış durumdasınız.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -568,15 +568,201 @@
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
-    "text": "{days}g kaldı",
+    "text": "{days} gün kaldı",
     "source_hash": "50ff6f2b"
   },
   "web.organizations.invitations.expires_in_hours": {
-    "text": "{hours}s kaldı",
+    "text": "{hours} saat kaldı",
     "source_hash": "ff56d105"
   },
   "web.organizations.invitations.expires_soon": {
     "text": "Yakında sona erecek",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Çalışma alanlarınızı görüntüleyin ve yapılandırın"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "{email} tarafından"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "{role} olarak"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Ana sayfaya dön"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Bu davet bu e-posta adresine gönderildi"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Devam Et"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Giriş Yap ve Daveti Kabul Et"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Kuruluşlara Git"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Bu kuruluşun zaten bir üyesisiniz"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "{orgName} Kuruluşuna Katıl"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "{orgName} kuruluşuna katılmak için giriş yapın"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Reddet"
+  },
+  "web.organizations.sso.title": {
+    "text": "Tek Oturum Açma (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Üyelerin kuruluşunuzun kimlik sağlayıcısıyla giriş yapabilmesi için SSO'yu yapılandırın"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Sağlayıcı Türü"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Kuruluşunuzun kimlik sağlayıcısını seçin"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Görünen Ad"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Giriş yaparken kullanıcılara gösterilen kolay ad"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "örn. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "İstemci Kimliği"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "OAuth istemci kimliğiniz"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "İstemci Gizli Anahtarı"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "OAuth istemci gizli anahtarınız"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Mevcut anahtarı korumak için boş bırakın"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "Kiracı Kimliği"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "Azure AD / Entra ID kiracı tanımlayıcınız"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "örn. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "Sağlayıcı URL"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "Kimlik sağlayıcınız için OIDC keşif URL'si"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "örn. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "İzin Verilen E-posta Alan Adları"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Yalnızca bu alan adlarından e-posta adresine sahip kullanıcılar giriş yapabilir. Tüm alan adlarına izin vermek için boş bırakın."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "örn. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Lütfen geçerli bir alan adı girin (örn. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Bu alan adı zaten listede"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "{domain} alan adını kaldır"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "SSO'yu Etkinleştir"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Etkinleştirildiğinde kuruluş üyeleri bu SSO sağlayıcısını kullanarak giriş yapabilir"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "SSO Yapılandırmasını Kaydet"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Yapılandırmayı Sil"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Emin misiniz? Bu, kuruluşunuz için SSO'yu devre dışı bırakacaktır."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "SSO yapılandırması yüklenemedi"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "SSO yapılandırması kaydedilemedi"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "SSO yapılandırması başarıyla oluşturuldu"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "SSO yapılandırması başarıyla güncellendi"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "SSO yapılandırması başarıyla silindi"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "SSO yapılandırması silinemedi"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Bağlantıyı Test Et"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Kimlik sağlayıcısına erişilebilir olduğunu doğrulayın (kimlik bilgilerini doğrulamaz)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Bağlantıyı Test Et"
+  },
+  "web.organizations.sso.testing": {
+    "text": "Test ediliyor..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Bağlantı testi başarısız oldu"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Yetkilendirme Uç Noktası"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Eksik Alanlar"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Etkin"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Yapılandırılmış"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "Alan Adı SSO"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Doğrulanmış her alan adı için SSO yapılandırın"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Sağlayıcıyı değiştirmek için önce bu yapılandırmayı silin"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Yapılandırılmadı"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Ekip"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

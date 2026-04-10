@@ -4,7 +4,7 @@
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Markalama Kılavuzu",
+    "text": "Marka Rehberi",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -24,7 +24,7 @@
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "Hüküm ve Koşullarımızı görüntüleyin",
+    "text": "Hüküm ve koşullarımızı görüntüleyin",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -44,7 +44,7 @@
     "source_hash": "be91940b"
   },
   "web.footer.legals": {
-    "text": "Yasal Bilgiler",
+    "text": "Yasal",
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
@@ -52,7 +52,7 @@
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
-    "text": "Gizlilik Politikamızı okuyun",
+    "text": "Gizlilik politikamızı okuyun",
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
@@ -140,7 +140,7 @@
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Daha fazla bilgi edinin",
+    "text": "Daha fazla bilgi",
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
@@ -156,7 +156,7 @@
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Hayır. Güvenlik nedeniyle, bu gizli mesaj yalnızca bir kez görüntülenebilir. Bu sayfayı kapattıktan sonra içerik kalıcı olarak silinecek ve biz dahil kimse tarafından kurtarılamayacaktır.",
+    "text": "Hayır. Güvenlik nedeniyle bu gizli mesaj yalnızca bir kez görüntülenebilir. Bu sayfayı kapattıktan sonra içerik kalıcı olarak silinecek ve biz dahil hiç kimse tarafından kurtarılamayacaktır.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
@@ -164,35 +164,35 @@
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Tüm gizli mesajı kopyalamak için 'Panoya Kopyala' düğmesini kullanın. Daha uzun gizli mesajlar için bu sayfadan ayrılmadan önce içeriğin tamamını kopyaladığınızı doğrulayın.",
+    "text": "Gizli mesajın tamamını kopyalamak için 'Panoya Kopyala' düğmesini kullanın. Daha uzun gizli mesajlar için bu sayfadan ayrılmadan önce içeriğin tamamını kopyaladığınızdan emin olun.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Bu gizli mesajı görüntülemem takip ediliyor mu?",
+    "text": "Bu gizli mesajı görüntülediğim takip ediliyor mu?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Gönderene gizli mesajının görüntülendiği bildirilecektir, ancak kimin veya hangi konumdan görüntülediğini takip etmiyoruz. Gizliliğiniz korunmaktadır.",
+    "text": "Gönderen, gizli mesajının görüntülendiği konusunda bilgilendirilecektir, ancak kim tarafından veya nereden görüntülendiği takip edilmez. Gizliliğiniz korunmaktadır.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Bu sayfadan ayrıldığınızda veya sayfayı yenilediğinizde, bu gizli mesaj kalıcı olarak silinecek ve kimse tarafından kurtarılamayacaktır.",
+    "text": "Bu sayfadan ayrıldığınızda veya sayfayı yenilediğinizde, bu gizli mesaj kalıcı olarak silinecek ve hiç kimse tarafından kurtarılamayacaktır.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Önceki sayfaya geri dön",
+    "text": "Önceki sayfaya dön",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "Site altbilgisi",
+    "text": "Site alt bilgisi",
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Karanlık modu aç/kapat",
+    "text": "Karanlık modu değiştir",
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Geri bildirim sağlayın",
+    "text": "Geri bildirim gönderin",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -204,15 +204,15 @@
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "Kontrol Paneli Navigasyonu",
+    "text": "Kontrol Paneli Gezinmesi",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
-    "text": "Mobil Navigasyon",
+    "text": "Mobil Gezinme",
     "source_hash": "ccea1730"
   },
   "web.layout.main_navigation": {
-    "text": "Ana Navigasyon",
+    "text": "Ana Gezinme",
     "source_hash": "56ea852a"
   },
   "web.layout.mobile_nav_item_count": {
@@ -264,11 +264,11 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secret ana sayfasını ziyaret et",
+    "text": "Onetime Secret ana sayfasını ziyaret edin",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "Altbilgi navigasyonu",
+    "text": "Alt bilgi gezinmesi",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
@@ -288,7 +288,7 @@
     "source_hash": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Material Design Simgeleri",
+    "text": "Material Design Icons",
     "source_hash": "0fb27437"
   },
   "web.layout.heroicons": {
@@ -338,5 +338,8 @@
   "web.layout.workspace_context": {
     "text": "Çalışma alanı bağlamı",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Çalışma Alanı"
   }
 }

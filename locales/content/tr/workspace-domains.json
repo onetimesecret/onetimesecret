@@ -1,6 +1,6 @@
 {
   "web.domains.learn_more_dns": {
-    "text": "DNS yapılandırması hakkında daha fazla bilgi edinin",
+    "text": "DNS yapılandırması hakkında daha fazla bilgi",
     "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
@@ -12,7 +12,7 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "Bu alan adı başka bir kuruluşa zaten kayıtlı. Bunun bir hata olduğunu düşünüyorsanız lütfen destekle iletişime geçin.",
+    "text": "Bu alan adı başka bir kuruluşa zaten kayıtlı. Bunun bir hata olduğunu düşünüyorsanız lütfen destek ile iletişime geçin.",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
@@ -40,11 +40,11 @@
     "source_hash": "ce3c65fe"
   },
   "web.domains.default_ttl_hint": {
-    "text": "Gizli mesajların varsayılan olarak ne kadar süre erişilebilir kalacağı",
+    "text": "Gizli mesajların varsayılan olarak ne kadar süre erişilebilir olacağı",
     "source_hash": "777b978d"
   },
   "web.domains.passphrase_required_label": {
-    "text": "Güvenlik ifadesi zorunlu",
+    "text": "Güvenlik ifadesi zorunlu kıl",
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "Etkinleştirildi",
+    "text": "Etkinleştir",
     "source_hash": "92c1cdfd"
   },
   "web.domains.disabled": {
@@ -128,7 +128,7 @@
     "source_hash": "3dedc533"
   },
   "web.domains.canonical_no_settings": {
-    "text": "Varsayılan alan adının ayarlar sayfası yok",
+    "text": "Varsayılan alan adının ayarlar sayfası yoktur",
     "source_hash": "59b8806e"
   },
   "web.domains.please_enter_a_domain_name": {
@@ -252,11 +252,11 @@
     "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "text": ", bu adımları tamamlamanız gerekecek.",
+    "text": ", bu adımları tamamlamanız gerekecektir.",
     "source_hash": "1d81c53e"
   },
   "web.domains.before_we_can_activate_links_for": {
-    "text": "Bağlantıları etkinleştirmeden önce",
+    "text": "Bağlantıları etkinleştirebilmemiz için",
     "source_hash": "aae43a00"
   },
   "web.domains.please_note_that_for_apex_domains": {
@@ -268,11 +268,11 @@
     "source_hash": "afa10517"
   },
   "web.domains.secrets_example_dot_com": {
-    "text": "gizli.ornek.com",
+    "text": "secrets.example.com",
     "source_hash": "9ea4d0d6"
   },
   "web.domains.customize_your_domain_branding": {
-    "text": "Alan adı markalamanızı özelleştirin",
+    "text": "Alan adınızın markalaşmasını özelleştirin",
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
@@ -398,5 +398,425 @@
   "web.domains.dns_widget_description": {
     "text": "DNS sağlayıcınızı otomatik olarak algılamak ve alan adınızı yapılandırmak için adım adım talimatlar almak üzere aşağıdaki aracı kullanın.",
     "source_hash": "91c1af2e"
+  },
+  "web.domains.public_homepage": {
+    "text": "Herkese Açık Ana Sayfa"
+  },
+  "web.domains.status_tooltip_active": {
+    "text": "Alan adı doğrulandı ve aktif"
+  },
+  "web.domains.status_tooltip_dns_incorrect": {
+    "text": "DNS yapılandırılmadı — düzeltmek için tıklayın"
+  },
+  "web.domains.status_tooltip_not_verified": {
+    "text": "Alan adı doğrulanmadı — doğrulamak için tıklayın"
+  },
+  "web.domains.click_to_verify": {
+    "text": "doğrulamak için tıklayın"
+  },
+  "web.domains.dns_widget_load_failed": {
+    "text": "DNS aracı yüklenemedi"
+  },
+  "web.domains.dns_widget_not_available": {
+    "text": "DNS aracı kullanılamıyor"
+  },
+  "web.domains.dns_widget_init_failed": {
+    "text": "DNS aracı başlatılamadı"
+  },
+  "web.domains.verified": {
+    "text": "Doğrulanmış"
+  },
+  "web.domains.pending_verification": {
+    "text": "Doğrulama Bekliyor"
+  },
+  "web.domains.unsaved_changes_confirmation": {
+    "text": "Kaydedilmemiş değişiklikleriniz var. Ayrılmak istediğinizden emin misiniz?"
+  },
+  "web.domains.detail.manage": {
+    "text": "Yönet"
+  },
+  "web.domains.detail.features": {
+    "text": "Özellikler"
+  },
+  "web.domains.detail.homepage_title": {
+    "text": "Ana Sayfa Gizli Mesajları"
+  },
+  "web.domains.detail.homepage_description": {
+    "text": "Alan adınızın ana sayfasında gizli mesaj oluşturmak için herkese açık erişime izin verin"
+  },
+  "web.domains.detail.brand_description": {
+    "text": "Logo, renkler ve özel markalama"
+  },
+  "web.domains.detail.sso_description": {
+    "text": "Tek oturum açma sağlayıcı ayarları"
+  },
+  "web.domains.detail.email_description": {
+    "text": "Özel e-posta gönderen yapılandırması"
+  },
+  "web.domains.detail.incoming_description": {
+    "text": "Gelen gizli mesaj alıcı ayarları"
+  },
+  "web.domains.email.title": {
+    "text": "E-posta Gönderimi"
+  },
+  "web.domains.email.config_title": {
+    "text": "E-posta Yapılandırması"
+  },
+  "web.domains.email.config_description": {
+    "text": "Bu alan adı için e-posta gönderimini yapılandırın"
+  },
+  "web.domains.email.provider_label": {
+    "text": "E-posta Sağlayıcısı"
+  },
+  "web.domains.email.provider_placeholder": {
+    "text": "Bir e-posta sağlayıcısı seçin"
+  },
+  "web.domains.email.from_name_label": {
+    "text": "Gönderen Adı"
+  },
+  "web.domains.email.from_name_placeholder": {
+    "text": "örn. Acme Güvenlik"
+  },
+  "web.domains.email.from_address_label": {
+    "text": "Gönderen Adresi"
+  },
+  "web.domains.email.from_address_placeholder": {
+    "text": "örn. secrets{'@'}example.com"
+  },
+  "web.domains.email.reply_to_label": {
+    "text": "Yanıt Adresi"
+  },
+  "web.domains.email.reply_to_placeholder": {
+    "text": "örn. support{'@'}example.com"
+  },
+  "web.domains.email.save_changes": {
+    "text": "Değişiklikleri Kaydet"
+  },
+  "web.domains.email.discard_changes": {
+    "text": "Değişiklikleri İptal Et"
+  },
+  "web.domains.email.provider_ses": {
+    "text": "Amazon SES"
+  },
+  "web.domains.email.provider_sendgrid": {
+    "text": "SendGrid"
+  },
+  "web.domains.email.provider_lettermint": {
+    "text": "Lettermint"
+  },
+  "web.domains.email.provider_inherit": {
+    "text": "Hesap varsayılanlarını kullan"
+  },
+  "web.domains.email.provider_ses_description": {
+    "text": "DKIM ve SPF kayıtları aracılığıyla alan adı doğrulaması gerektirir"
+  },
+  "web.domains.email.provider_sendgrid_description": {
+    "text": "Alan adı kimlik doğrulama kurulumu gerektirir"
+  },
+  "web.domains.email.provider_lettermint_description": {
+    "text": "Alan adı doğrulaması gerektirir"
+  },
+  "web.domains.email.provider_inherit_description": {
+    "text": "Hesabınızın varsayılan e-posta gönderim yapılandırmasını kullanır"
+  },
+  "web.domains.email.dns_records_title": {
+    "text": "DNS Kayıtları"
+  },
+  "web.domains.email.dns_records_description": {
+    "text": "E-posta gönderimi için alan adınızı doğrulamak üzere aşağıdaki DNS kayıtlarını ekleyin."
+  },
+  "web.domains.email.dns_column_type": {
+    "text": "Tür"
+  },
+  "web.domains.email.dns_column_name": {
+    "text": "Ad"
+  },
+  "web.domains.email.dns_column_value": {
+    "text": "Değer"
+  },
+  "web.domains.email.dns_check_label": {
+    "text": "DNS"
+  },
+  "web.domains.email.provider_check_label": {
+    "text": "Sağlayıcı"
+  },
+  "web.domains.email.copy": {
+    "text": "Kopyala"
+  },
+  "web.domains.email.copied": {
+    "text": "Kopyalandı"
+  },
+  "web.domains.email.status_verified": {
+    "text": "Doğrulanmış"
+  },
+  "web.domains.email.status_pending": {
+    "text": "Beklemede"
+  },
+  "web.domains.email.status_failed": {
+    "text": "Başarısız"
+  },
+  "web.domains.email.revalidate": {
+    "text": "Yeniden doğrula"
+  },
+  "web.domains.email.validating": {
+    "text": "Doğrulanıyor..."
+  },
+  "web.domains.email.domain_verified": {
+    "text": "Alan adı doğrulandı"
+  },
+  "web.domains.email.validation_failed": {
+    "text": "Doğrulama başarısız"
+  },
+  "web.domains.email.last_validated": {
+    "text": "Son doğrulama"
+  },
+  "web.domains.email.upgrade_to_configure": {
+    "text": "Bu alan adı için e-posta gönderimini yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.email.configure_email": {
+    "text": "E-postayı Yapılandır"
+  },
+  "web.domains.email.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.email.access_denied_description": {
+    "text": "Bu alan adının e-posta ayarlarını yönetme izniniz yok. Kuruluş yöneticinize başvurun."
+  },
+  "web.domains.email.update_success": {
+    "text": "E-posta yapılandırması başarıyla kaydedildi"
+  },
+  "web.domains.email.delete_success": {
+    "text": "E-posta yapılandırması başarıyla kaldırıldı"
+  },
+  "web.domains.email.default_sender_notice": {
+    "text": "Bu alan adı için e-postalar şu anda genel göndericiden gönderilmektedir. Kendi gönderen kimliğinizi kullanmak için e-posta yapılandırmasını tamamlayın."
+  },
+  "web.domains.email.disabled_notice": {
+    "text": "Özel e-posta gönderimi şu anda devre dışıdır. E-postalar genel göndericiden gönderilecektir. Özel gönderen kimliğinizi kullanmak için aşağıdaki özelliği etkinleştirin."
+  },
+  "web.domains.email.test_email_title": {
+    "text": "E-posta teslimini test et"
+  },
+  "web.domains.email.test_email_hint": {
+    "text": "Kaydedilen yapılandırmayı kullanarak kendinize bir test e-postası gönderin. Özellik henüz etkinleştirilmemiş olsa bile çalışır."
+  },
+  "web.domains.email.send_test": {
+    "text": "Test gönder"
+  },
+  "web.domains.email.test_email_sent": {
+    "text": "Test e-postası başarıyla gönderildi"
+  },
+  "web.domains.email.test_email_failed": {
+    "text": "Test e-postası gönderilemedi"
+  },
+  "web.domains.email.test_email_sent_to": {
+    "text": "{email} adresine gönderildi"
+  },
+  "web.domains.email.delivered_via": {
+    "text": "{provider} ile teslim edildi"
+  },
+  "web.domains.email.badge_not_configured": {
+    "text": "Yapılandırılmadı"
+  },
+  "web.domains.email.badge_default_sender": {
+    "text": "Varsayılan gönderen kullanılıyor"
+  },
+  "web.domains.email.badge_verified": {
+    "text": "Doğrulanmış"
+  },
+  "web.domains.email.badge_pending": {
+    "text": "Doğrulama bekleniyor"
+  },
+  "web.domains.email.badge_disabled": {
+    "text": "Devre Dışı"
+  },
+  "web.domains.email.tooltip_not_configured": {
+    "text": "E-posta göndereni yapılandırılmadı — e-postalar platform varsayılan göndericisini kullanır"
+  },
+  "web.domains.email.tooltip_pending": {
+    "text": "E-posta gönderen yapılandırması doğrulama bekliyor — e-postalar platform varsayılan göndericisini kullanır"
+  },
+  "web.domains.email.tooltip_disabled": {
+    "text": "E-posta göndereni devre dışı — e-postalar platform varsayılan göndericisini kullanır"
+  },
+  "web.domains.email.tooltip_verified": {
+    "text": "E-posta göndereni doğrulandı — e-postalar bu alan adından gönderilir"
+  },
+  "web.domains.incoming.title": {
+    "text": "Gelen Gizli Mesajlar"
+  },
+  "web.domains.incoming.config_title": {
+    "text": "Gelen Gizli Mesajlar Yapılandırması"
+  },
+  "web.domains.incoming.config_description": {
+    "text": "Harici kullanıcıların bu alan adındaki belirlenmiş alıcılara doğrudan gizli mesaj göndermesine izin verin"
+  },
+  "web.domains.incoming.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.incoming.access_denied_description": {
+    "text": "Bu alan adının gelen gizli mesaj ayarlarını yönetme izniniz yok. Kuruluş yöneticinize başvurun."
+  },
+  "web.domains.incoming.upgrade_to_configure": {
+    "text": "Bu alan adı için gelen gizli mesajları yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.incoming.configure_incoming": {
+    "text": "Gelen Gizli Mesajları Yapılandır"
+  },
+  "web.domains.incoming.not_configured_notice": {
+    "text": "Bu alan adı için gelen gizli mesajlar yapılandırılmadı. Harici kullanıcıların ekibinize gizli mesaj göndermesine izin vermek için alıcılar ekleyin."
+  },
+  "web.domains.incoming.disabled_notice": {
+    "text": "Gelen gizli mesajlar şu anda devre dışıdır. Harici kullanıcılar bu alan adındaki alıcılara gizli mesaj gönderemez. Gelen gizli mesajlara izin vermek için aşağıdaki özelliği etkinleştirin."
+  },
+  "web.domains.incoming.recipients_title": {
+    "text": "Alıcılar"
+  },
+  "web.domains.incoming.recipients_description": {
+    "text": "Bu alan adında kimlerin gelen gizli mesaj alabileceğini tanımlayın. Bir gizli mesaj gönderildiğinde alıcılar e-posta bildirimi alacaktır."
+  },
+  "web.domains.incoming.add_recipient": {
+    "text": "Alıcı Ekle"
+  },
+  "web.domains.incoming.remove_recipient": {
+    "text": "Kaldır"
+  },
+  "web.domains.incoming.email_label": {
+    "text": "E-posta Adresi"
+  },
+  "web.domains.incoming.email_placeholder": {
+    "text": "alici{'@'}example.com"
+  },
+  "web.domains.incoming.name_label": {
+    "text": "Görünen Ad"
+  },
+  "web.domains.incoming.name_placeholder": {
+    "text": "örn. Güvenlik Ekibi"
+  },
+  "web.domains.incoming.empty_state": {
+    "text": "Yapılandırılmış alıcı yok"
+  },
+  "web.domains.incoming.empty_state_description": {
+    "text": "Harici kullanıcıların ekibinize gizli mesaj göndermesine izin vermek için alıcılar ekleyin."
+  },
+  "web.domains.incoming.validation_invalid_email": {
+    "text": "Geçersiz e-posta adresi"
+  },
+  "web.domains.incoming.validation_duplicate_email": {
+    "text": "Bu e-posta adresi zaten eklenmiş"
+  },
+  "web.domains.incoming.validation_max_recipients": {
+    "text": "En fazla {max} alıcıya izin verilir"
+  },
+  "web.domains.incoming.validation_name_required": {
+    "text": "Görünen ad gereklidir"
+  },
+  "web.domains.incoming.validation_email_required": {
+    "text": "E-posta adresi gereklidir"
+  },
+  "web.domains.incoming.save_changes": {
+    "text": "Değişiklikleri Kaydet"
+  },
+  "web.domains.incoming.discard_changes": {
+    "text": "Değişiklikleri İptal Et"
+  },
+  "web.domains.incoming.update_success": {
+    "text": "Gelen gizli mesajlar yapılandırması başarıyla kaydedildi"
+  },
+  "web.domains.incoming.delete_success": {
+    "text": "Gelen gizli mesajlar yapılandırması başarıyla kaldırıldı"
+  },
+  "web.domains.incoming.recipient_count": {
+    "text": "{count} alıcı | {count} alıcı"
+  },
+  "web.domains.incoming.badge_not_configured": {
+    "text": "Yapılandırılmadı"
+  },
+  "web.domains.incoming.badge_configured": {
+    "text": "Yapılandırılmış"
+  },
+  "web.domains.incoming.badge_disabled": {
+    "text": "Devre Dışı"
+  },
+  "web.domains.incoming.tooltip_not_configured": {
+    "text": "Gelen gizli mesajlar yapılandırılmadı - harici kullanıcılar bu alan adına gizli mesaj gönderemez"
+  },
+  "web.domains.incoming.tooltip_configured": {
+    "text": "Gelen gizli mesajlar {count} alıcı ile etkinleştirildi"
+  },
+  "web.domains.incoming.tooltip_disabled": {
+    "text": "Bu alan adı için gelen gizli mesajlar özelliği devre dışı"
+  },
+  "web.domains.incoming.enabled_label": {
+    "text": "Gelen Gizli Mesajları Etkinleştir"
+  },
+  "web.domains.incoming.enabled_hint": {
+    "text": "Harici kullanıcıların bu alan adındaki alıcılara gizli mesaj göndermesine izin ver"
+  },
+  "web.domains.incoming.public_url_label": {
+    "text": "Herkese Açık URL"
+  },
+  "web.domains.incoming.public_url_description": {
+    "text": "Harici kullanıcıların gizli mesaj göndermesine izin vermek için bu URL'yi paylaşın"
+  },
+  "web.domains.incoming.copy_url": {
+    "text": "URL'yi Kopyala"
+  },
+  "web.domains.incoming.url_copied": {
+    "text": "URL panoya kopyalandı"
+  },
+  "web.domains.incoming.remove_all_confirmation": {
+    "text": "Tüm alıcıları kaldırmak istediğinizden emin misiniz? Harici kullanıcılar artık bu alan adına gizli mesaj gönderemeyecektir."
+  },
+  "web.domains.incoming.max_recipients_reached": {
+    "text": "Maksimum alıcı sayısına ulaşıldı"
+  },
+  "web.domains.incoming.duplicate_recipient": {
+    "text": "Bu e-posta adresi zaten eklenmiş"
+  },
+  "web.domains.incoming.save_will_replace_confirmation": {
+    "text": "Kaydetme işlemi mevcut tüm alıcıları bekleyen değişikliklerinizle değiştirecektir. Emin misiniz?"
+  },
+  "web.domains.incoming.delete_all_recipients": {
+    "text": "Tüm Alıcıları Sil"
+  },
+  "web.domains.sso.title": {
+    "text": "Tek Oturum Açma"
+  },
+  "web.domains.sso.config_title": {
+    "text": "SSO Yapılandırması"
+  },
+  "web.domains.sso.config_description": {
+    "text": "Bu alan adı için tek oturum açma kimlik doğrulamasını yapılandırın"
+  },
+  "web.domains.sso.access_denied": {
+    "text": "Erişim Reddedildi"
+  },
+  "web.domains.sso.access_denied_description": {
+    "text": "Bu alan adının SSO ayarlarını yönetme izniniz yok. Kuruluş yöneticinize başvurun."
+  },
+  "web.domains.sso.upgrade_to_configure": {
+    "text": "Bu alan adı için tek oturum açmayı yapılandırmak üzere planınızı yükseltin."
+  },
+  "web.domains.sso.create_success": {
+    "text": "SSO yapılandırması başarıyla oluşturuldu"
+  },
+  "web.domains.sso.update_success": {
+    "text": "SSO yapılandırması başarıyla güncellendi"
+  },
+  "web.domains.sso.delete_success": {
+    "text": "SSO yapılandırması başarıyla kaldırıldı"
+  },
+  "web.domains.sso.test_success": {
+    "text": "Bağlantı testi başarılı — sağlayıcı doğru yanıt verdi"
+  },
+  "web.domains.sso.test_failed": {
+    "text": "Bağlantı testi başarısız oldu"
+  },
+  "web.domains.sso.configure_sso": {
+    "text": "SSO'yu Yapılandır"
+  },
+  "web.domains.sso.not_configured_notice": {
+    "text": "Bu alan adı için SSO henüz yapılandırılmadı. Ekip üyelerinin kuruluşunuzun kimlik sağlayıcısını kullanarak kimlik doğrulaması yapmasına izin vermek için tek oturum açmayı etkinleştirin."
   }
 }

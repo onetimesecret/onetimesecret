@@ -9,11 +9,11 @@
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
-    "text": "Tarafından desteklenmektedir",
+    "text": "Altyapı",
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/tr",
+    "text": "https://onetimesecret.com/en",
     "source_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
@@ -25,7 +25,7 @@
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "örn. ahmet{'@'}eposta.com",
+    "text": "örn. tom{'@'}myspace.com",
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Kendi markalı gizli bağlantılarınızla bağlantıları güçlendirin ve güven oluşturun.",
+    "text": "Kendi markalı gizli mesaj bağlantılarınızla bağlantılarınızı güçlendirin ve güven oluşturun.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -65,19 +65,19 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Hassas bilgileri sohbet günlüklerinizden ve e-postalarınızdan uzak tutun. Yalnızca bir kez kullanılabilen gizli bir bağlantı paylaşın.",
+    "text": "Hassas bilgilerinizi sohbet günlüklerinizden ve e-postalarınızdan uzak tutun. Yalnızca bir kez kullanılabilen gizli bir bağlantı paylaşın.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Yanlış güvenlik ifadesi",
+    "text": "Güvenlik ifadesi hatalı",
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
-    "text": "gizli,parola oluşturucu,gizli mesaj paylaş,tek kullanımlık",
+    "text": "gizli mesaj,parola oluşturucu,gizli mesaj paylaş,tek kullanımlık",
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Gizli bağlantı oluştur",
+    "text": "Gizli mesaj bağlantısı oluştur",
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
@@ -89,7 +89,7 @@
     "source_hash": "643a6921"
   },
   "web.COMMON.secret_passphrase": {
-    "text": "Güvenlik ifadesi",
+    "text": "Güvenlik İfadesi",
     "source_hash": "e7611f05"
   },
   "web.COMMON.secret_passphrase_hint": {
@@ -101,7 +101,7 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Gizli içerik buraya yazılır...",
+    "text": "Gizli içerik buraya gelecek...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
@@ -121,7 +121,7 @@
     "source_hash": "7e1b0d56"
   },
   "web.COMMON.header_logout": {
-    "text": "Çıkış yap",
+    "text": "Çıkış",
     "source_hash": "d0527e4b"
   },
   "web.COMMON.secret": {
@@ -161,7 +161,7 @@
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Gizli mesajı yakmak, okunmadan önce silinmesine neden olur (onaylamak için tıklayın)",
+    "text": "Gizli mesajı yakmak, okunmadan önce silinmesini sağlar (onaylamak için tıklayın)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
@@ -173,7 +173,7 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Göstermek için tıklayın →",
+    "text": "Görmek için tıklayın →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
@@ -181,7 +181,7 @@
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Paylaşılacak herhangi bir şey girmediniz",
+    "text": "Paylaşılacak bir içerik belirtmediniz",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
@@ -205,7 +205,7 @@
     "source_hash": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Hata!",
+    "text": "Hay aksi!",
     "source_hash": "8344947a"
   },
   "web.COMMON.error": {
@@ -221,7 +221,7 @@
     "source_hash": "1d1730d4"
   },
   "web.COMMON.signup_for_more": {
-    "text": "Daha fazlası için kayıt olun",
+    "text": "Daha fazlası için kaydolun",
     "source_hash": "cc1421d0"
   },
   "web.COMMON.login_to_your_account": {
@@ -277,11 +277,11 @@
     "source_hash": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Devam et",
+    "text": "Devam Et",
     "source_hash": "31fbef16"
   },
   "web.COMMON.word_done": {
-    "text": "Tamamlandı",
+    "text": "Tamam",
     "source_hash": "11a6767d"
   },
   "web.COMMON.back": {
@@ -297,7 +297,7 @@
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Doğrulama e-postası gönderildi",
+    "text": "Doğrulama gönderildi:",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
@@ -305,7 +305,7 @@
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Bu e-posta ile bir hesap varsa, doğrulama e-postası alacaksınız.",
+    "text": "Bu e-posta adresine ait bir hesap varsa, doğrulama e-postası alacaksınız.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
@@ -325,11 +325,11 @@
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Gizli mesajı yakmak, alınmadan önce silinmesine neden olur.",
+    "text": "Gizli mesajı yakmak, alınmadan önce silinmesini sağlar.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Güvenlik için bu bağlantıyı diğer bilgilerden ayrı paylaşın.",
+    "text": "Güvenlik için bu bağlantıyı diğer bilgilerden ayrı olarak paylaşın.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -349,7 +349,7 @@
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Zaten giriş yapmışken hesap doğrulanamaz",
+    "text": "Zaten giriş yapmışken hesap doğrulaması yapılamaz",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
@@ -389,7 +389,7 @@
     "source_hash": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Devam et",
+    "text": "Devam Et",
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
@@ -401,7 +401,7 @@
     "source_hash": "3c1c01b4"
   },
   "web.COMMON.caution_zone": {
-    "text": "Dikkatli Değerlendirme Alanı",
+    "text": "Dikkatli Değerlendirme Bölgesi",
     "source_hash": "fe27a3a8"
   },
   "web.COMMON.user_menu": {
@@ -489,7 +489,7 @@
     "source_hash": "3907fa7f"
   },
   "web.COMMON.done": {
-    "text": "Tamamlandı",
+    "text": "Tamam",
     "source_hash": "11a6767d"
   },
   "web.COMMON.end": {
@@ -513,7 +513,7 @@
     "source_hash": "6e69b59e"
   },
   "web.COMMON.go_on_then": {
-    "text": "Peki, devam edin.",
+    "text": "Devam edin.",
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
@@ -525,7 +525,7 @@
     "source_hash": "d84ee92c"
   },
   "web.COMMON.confirm_password": {
-    "text": "Parolayı onayla",
+    "text": "Parolayı onaylayın",
     "source_hash": "5ac265f3"
   },
   "web.COMMON.new_password": {
@@ -621,11 +621,11 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "İdare eder",
+    "text": "Orta",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Vasat",
+    "text": "Fena değil",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
@@ -749,7 +749,7 @@
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
-    "text": "Yardım mı gerekiyor?",
+    "text": "Yardıma mı ihtiyacınız var?",
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
@@ -757,7 +757,7 @@
     "source_hash": "311d266c"
   },
   "web.LABELS.actions": {
-    "text": "Eylemler",
+    "text": "İşlemler",
     "source_hash": "ff8059dc"
   },
   "web.LABELS.no_passphrase": {
@@ -801,7 +801,7 @@
     "source_hash": "dcc839a4"
   },
   "web.LABELS.views": {
-    "text": "Görüntüleme",
+    "text": "Görüntülenme",
     "source_hash": "69c40459"
   },
   "web.LABELS.times_viewed": {
@@ -817,7 +817,7 @@
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
-    "text": "Güvenlik ifadesi ile korumalı",
+    "text": "Güvenlik ifadesi ile korunuyor",
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
@@ -853,7 +853,7 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Bu oturumda oluşturulan gizli bağlantılar",
+    "text": "Bu oturumda oluşturulan gizli mesaj bağlantıları",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -886,7 +886,7 @@
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
-    "text": "{domain} içinde gizli mesajlar oluşturuluyor",
+    "text": "{domain} üzerinde gizli mesaj oluşturuluyor",
     "source_hash": "3bbed96b"
   },
   "web.STATUS.new": {
@@ -894,7 +894,7 @@
     "source_hash": "18fdd549"
   },
   "web.STATUS.unread": {
-    "text": "Okunmamış",
+    "text": "Okunmadı",
     "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
@@ -918,7 +918,7 @@
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
-    "text": "Silindi",
+    "text": "Yok Edildi",
     "source_hash": "ff49630c"
   },
   "web.STATUS.expiring_soon": {
@@ -930,11 +930,11 @@
     "source_hash": "d70b9e24"
   },
   "web.STATUS.expires": {
-    "text": "Sona eriyor",
+    "text": "Sona Eriyor",
     "source_hash": "f6725f3a"
   },
   "web.STATUS.expired": {
-    "text": "Süresi doldu",
+    "text": "Süresi Doldu",
     "source_hash": "424a2551"
   },
   "web.STATUS.orphaned": {
@@ -942,11 +942,11 @@
     "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Güvence altına alındı",
+    "text": "Güvende",
     "source_hash": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Güvenli hale getiriliyor",
+    "text": "Güvenli Hale Getiriliyor",
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
@@ -958,15 +958,15 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "Gizli bağlantı oluşturuldu ve henüz görüntülenmedi",
+    "text": "Gizli mesaj bağlantısı oluşturuldu ve henüz görüntülenmedi",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "Gizli bağlantı oluşturuldu ve henüz görüntülenmedi",
+    "text": "Gizli mesaj bağlantısı oluşturuldu ve henüz görüntülenmedi",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "Gizli bağlantı açıldı ve görüntülenmeye hazır",
+    "text": "Gizli mesaj bağlantısı açıldı ve görüntülenmeye hazır",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
@@ -974,7 +974,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "Gizli bağlantı açıldı ve gösterilmeye hazır",
+    "text": "Gizli mesaj bağlantısı açıldı ve gösterilmeye hazır",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -982,11 +982,11 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Gizli mesaj görüntülenmeden önce manuel olarak yakıldı",
+    "text": "Gizli mesaj görüntülenmeden elle yakıldı",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
-    "text": "Gizli mesaj kalıcı olarak silindi",
+    "text": "Gizli mesaj kalıcı olarak yok edildi",
     "source_hash": "9bcb9949"
   },
   "web.STATUS.expiring_soon_description": {
@@ -994,11 +994,11 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Gizli mesaj sahipsiz kaldı ve yakında silinecek",
+    "text": "Gizli mesaj sahipsiz kaldı ve yakında yok edilecek",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "Gizli mesajın süresi görüntülenmeden önce doldu",
+    "text": "Gizli mesaj görüntülenmeden süresi doldu",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1006,7 +1006,7 @@
     "source_hash": "c88a0b90"
   },
   "web.STATUS.delivered": {
-    "text": "Teslim edildi",
+    "text": "Teslim Edildi",
     "source_hash": "90611565"
   },
   "web.STATUS.dns_incorrect": {
@@ -1082,7 +1082,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "{count} görüntüleme limiti",
+    "text": "{count} görüntüleme sınırı",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
@@ -1182,7 +1182,7 @@
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Marka Alan Adı",
+    "text": "Markalı Alan Adı",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1198,7 +1198,7 @@
     "source_hash": "b92e254d"
   },
   "web.TITLES.available_regions": {
-    "text": "Mevcut Bölgeler",
+    "text": "Kullanılabilir Bölgeler",
     "source_hash": "ee788590"
   },
   "web.TITLES.why_data_sovereignty": {
@@ -1222,11 +1222,11 @@
     "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "E-posta Değiştir",
+    "text": "E-postayı Değiştir",
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "E-posta Değişikliğini Onaylayın",
+    "text": "E-posta Değişikliğini Onayla",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1234,7 +1234,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Parola Değiştir",
+    "text": "Parolayı Değiştir",
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
@@ -1283,7 +1283,7 @@
     "source_hash": "dfe95783"
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
-    "text": "Odak artık ana metin alanında",
+    "text": "Odak şimdi ana metin alanında",
     "source_hash": "e00dd260"
   },
   "web.INSTRUCTION.sharing_instructions": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Her zaman resmi Onetime Secret web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için Onetime Secret'a tıpatıp benzeyen sahte web siteleri oluştururlar. Kimlik avı saldırılarından kaçınmak için yeni bağlantılar oluşturmadan önce alan adını kontrol edin.",
+    "text": "Her zaman resmi Onetime Secret web sitesinde olduğunuzu doğrulayın. Dolandırıcılar bazen gizli mesajlarınızı çalmak için Onetime Secret'a tıpatıp benzeyen sahte web siteleri oluşturur. Oltalama saldırılarından korunmak için yeni bağlantılar oluşturmadan önce alan adını kontrol edin.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "İhtiyaçlarınıza uygun planı seçin. Tüm planlar sınırsız gizli mesaj paylaşımı ve gizlilik odaklı tasarım içerir.",
+    "text": "İhtiyaçlarınıza uygun planı seçin. Tüm planlarda sınırsız gizli mesaj paylaşımı ve gizlilik odaklı tasarım bulunur.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1331,7 +1331,7 @@
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
-    "text": "Size Önerilen",
+    "text": "Sizin İçin Önerilen",
     "source_hash": "00093fbd"
   },
   "web.COMMON.received": {
@@ -1387,5 +1387,53 @@
     "text": "Daha fazla özelliğin kilidini açmak için yükseltin",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Yapılandır"
+  },
+  "web.COMMON.add": {
+    "text": "Ekle"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Evet, sil"
+  },
+  "web.COMMON.error_code": {
+    "text": "Hata Kodu"
+  },
+  "web.COMMON.http_status": {
+    "text": "HTTP Durumu"
+  },
+  "web.COMMON.details": {
+    "text": "Ayrıntılar"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Parolayı Onayla"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Parolalar eşleşmelidir"
+  },
+  "web.COMMON.and": {
+    "text": "ve"
+  },
+  "web.COMMON.or": {
+    "text": "veya"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Güvenlik ifadesini göster"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Güvenlik ifadesini gizle"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Alan Adı Ayarları"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "Alan Adı SSO"
+  },
+  "web.TITLES.domain_email": {
+    "text": "E-posta Yapılandırması"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Gelen Gizli Mesajlar"
   }
 }

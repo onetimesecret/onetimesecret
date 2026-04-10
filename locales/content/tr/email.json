@@ -1,6 +1,6 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Talep: %s]",
+    "text": "[Bilet: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
@@ -8,11 +8,11 @@
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
-    "text": "%{sender_email} size gizli bir mesaj gönderdi",
+    "text": "%{sender_email} size bir gizli mesaj gönderdi",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "size gizli bir mesaj gönderdi:",
+    "text": "size bir gizli mesaj gönderdi:",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
@@ -20,7 +20,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Bu bağlantı yalnızca bir kez çalışacaktır. Görüntüledikten sonra gizli mesaj kalıcı olarak silinecektir.",
+    "text": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
@@ -32,7 +32,7 @@
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
-    "text": "%{product_name} hizmetine hoş geldiniz!",
+    "text": "%{product_name} Hizmetine Hoş Geldiniz!",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
@@ -52,7 +52,7 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "Not: Bu e-posta %{email_address} adresine gönderildi. Bir hesap oluşturmadıysanız, bu mesajı güvenle görmezden gelebilirsiniz.",
+    "text": "Not: Bu e-posta %{email_address} adresine gönderilmiştir. Bir hesap oluşturmadıysanız, bu mesajı güvenle görmezden gelebilirsiniz.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
@@ -64,7 +64,7 @@
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "%{product_name} parolanızı sıfırlamak için bir istek aldık.",
+    "text": "%{product_name} için parolanızı sıfırlama talebinizi aldık.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
@@ -76,7 +76,7 @@
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Parola sıfırlama isteğinde bulunmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz.",
+    "text": "Parola sıfırlama talebinde bulunmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -84,15 +84,15 @@
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "Not: Bu e-posta %{email_address} adresine gönderildi.",
+    "text": "Not: Bu e-posta %{email_address} adresine gönderilmiştir.",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "%{display_domain} sitesine giriş yap",
+    "text": "%{display_domain} üzerinde giriş yapın",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Sihirli Bağlantı ile Giriş Yap",
+    "text": "Sihirli Bağlantı ile Giriş Yapın",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
@@ -120,7 +120,7 @@
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "Not: Bu e-posta %{email_address} adresine gönderildi.",
+    "text": "Not: Bu e-posta %{email_address} adresine gönderilmiştir.",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
@@ -136,7 +136,7 @@
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
-    "text": "Birisi size %{display_domain} aracılığıyla güvenli bir mesaj gönderdi.",
+    "text": "Birisi size %{display_domain} üzerinden güvenli bir mesaj gönderdi.",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
@@ -148,11 +148,11 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Bu bağlantı yalnızca bir kez çalışacaktır. Görüntüledikten sonra gizli mesaj kalıcı olarak silinecektir.",
+    "text": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "Bu gizli mesaj bir güvenlik ifadesi ile korunmaktadır. Gönderenin bunu size ayrıca iletmesi gerekmektedir.",
+    "text": "Bu gizli mesaj bir güvenlik ifadesi ile korunmaktadır. Gönderenin bunu size ayrıca iletmesi gerekir.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -180,7 +180,7 @@
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "Bu otomatik bir bildirimdir. Herhangi bir işlem yapmanız gerekmemektedir.",
+    "text": "Bu otomatik bir bildirimdir. Herhangi bir işlem yapmanız gerekmez.",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -196,15 +196,15 @@
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Gizli bağlantınızın süresi yakında dolacak",
+    "text": "Gizli mesaj bağlantınızın süresi yakında dolacak",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Gizli bağlantınızın süresi %{time_remaining} içinde dolacak",
+    "text": "Gizli mesaj bağlantınızın süresi %{time_remaining} içinde dolacak",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Süresi dolmadan önce gizli mesajınızı görüntüleyin",
+    "text": "Süresi dolmadan gizli mesajınızı görüntüleyin",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
@@ -220,7 +220,7 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Gitmeden önce görüntüleyin:",
+    "text": "Kaybolmadan önce görüntüleyin:",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
@@ -252,7 +252,7 @@
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
-    "text": "Secret Destek",
+    "text": "Secret Support",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "Not: Bu e-posta %{invited_email} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz.",
+    "text": "Not: Bu e-posta %{invited_email} adresine gönderilmiştir. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -308,11 +308,11 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "%{product_name} parolanız %{date} tarihinde saat %{time}'de değiştirildi.",
+    "text": "%{product_name} parolanız %{date} tarihinde %{time} saatinde değiştirildi.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Bu değişikliği siz yapmadıysanız, lütfen parolanızı sıfırlayarak ve destekle iletişime geçerek hesabınızı derhal güvence altına alın.",
+    "text": "Bu değişikliği siz yapmadıysanız, lütfen parolanızı sıfırlayarak ve destek ile iletişime geçerek hesabınızı derhal güvence altına alın.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -332,7 +332,7 @@
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabileceğinden lütfen derhal destekle iletişime geçin.",
+    "text": "Bu değişikliği siz yapmadıysanız, hesabınız ele geçirilmiş olabileceğinden lütfen derhal destek ile iletişime geçin.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -352,7 +352,7 @@
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabilir.",
+    "text": "Bu değişikliği siz yapmadıysanız, hesabınız ele geçirilmiş olabilir.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
@@ -364,7 +364,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
-    "text": "Not: Bu e-posta, e-posta adresi değişikliği hakkında sizi bilgilendirmek için %{email_address} adresine gönderilmiştir.",
+    "text": "Not: Bu e-posta, e-posta adresi değişikliğini bildirmek için %{email_address} adresine gönderilmiştir.",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
@@ -376,7 +376,7 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "%{product_name} hesabınızdaki e-posta adresini değiştirmek için bir talep yapıldı.",
+    "text": "%{product_name} hesabınızdaki e-posta adresinin değiştirilmesi talep edildi.",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
@@ -392,7 +392,7 @@
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Bu talebi siz yapmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz. Hesabınızda herhangi bir değişiklik yapılmamıştır.",
+    "text": "Bu talebi siz yapmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz. Hesabınızda herhangi bir değişiklik yapılmadı.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "Not: Bu e-posta, hesabınız için bir e-posta değişikliği talep edildiğinden %{email_address} adresine gönderilmiştir.",
+    "text": "Not: Bu e-posta, hesabınız için e-posta değişikliği talep edildiğinden %{email_address} adresine gönderilmiştir.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -424,11 +424,11 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "%{product_name} hesabınızdaki e-posta adresini %{new_email} olarak değiştirmek için bir talep yapıldı.",
+    "text": "%{product_name} hesabınızdaki e-posta adresinin %{new_email} olarak değiştirilmesi talep edildi.",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "E-posta Değişikliğini Onaylayın",
+    "text": "E-posta Değişikliğini Onayla",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Bu değişikliği talep etmediyseniz, bu e-postayı güvenle görmezden gelebilirsiniz. E-posta adresiniz değiştirilmeyecektir.",
+    "text": "Bu değişikliği siz talep etmediyseniz bu e-postayı güvenle görmezden gelebilirsiniz. E-posta adresiniz değiştirilmeyecektir.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -496,11 +496,11 @@
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Yeni Giriş Tespit Edildi",
+    "text": "Yeni Giriş Algılandı",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "%{product_name} hesabınıza %{date} tarihinde saat %{time}'de yeni bir giriş tespit edildi.",
+    "text": "%{product_name} hesabınıza %{date} tarihinde %{time} saatinde yeni bir giriş algılandı.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "Bu siz değilseniz, hesabınız tehlikede olabilir.",
+    "text": "Bu siz değilseniz, hesabınız ele geçirilmiş olabilir.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -552,7 +552,7 @@
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "\"%{organization_name}\" kuruluşundaki rolünüz %{old_role} konumundan %{new_role} konumuna değiştirildi.",
+    "text": "\"%{organization_name}\" kuruluşundaki rolünüz %{old_role} yetkisinden %{new_role} yetkisine değiştirildi.",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
@@ -584,7 +584,7 @@
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "Ödemeniz için teşekkür ederiz. İşte ödeme ayrıntılarınız:",
+    "text": "Ödemeniz için teşekkür ederiz. Ödeme ayrıntılarınız aşağıdadır:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
@@ -612,11 +612,11 @@
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
-    "text": "Ödeme Başarısız",
+    "text": "Ödeme Başarısız Oldu",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "%{product_name} için ödemenizi işleyemedik. Hizmet kesintisinden kaçınmak için lütfen ödeme yönteminizi güncelleyin.",
+    "text": "%{product_name} ödemenizi işleyemedik. Hizmet kesintisini önlemek için lütfen ödeme yönteminizi güncelleyin.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
@@ -628,19 +628,19 @@
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
-    "text": "%{product_name} deneme süreniz %{days_remaining} gün içinde sona eriyor",
+    "text": "%{product_name} deneme süreniz %{days_remaining} gün içinde doluyor",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
-    "text": "Deneme Süreniz Yakında Bitiyor",
+    "text": "Deneme Süreniz Yakında Sona Eriyor",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "%{product_name} ücretsiz deneme süreniz %{days_remaining} gün içinde sona erecek. Tüm özelliklere erişiminizi sürdürmek için şimdi yükseltin.",
+    "text": "%{product_name} ücretsiz deneme süreniz %{days_remaining} gün içinde dolacak. Tüm özelliklere erişmeye devam etmek için şimdi yükseltin.",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Şimdi Yükselt",
+    "text": "Şimdi Yükseltin",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {

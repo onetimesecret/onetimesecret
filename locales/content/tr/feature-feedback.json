@@ -4,7 +4,7 @@
     "source_hash": "cdb1c0a5"
   },
   "web.feedback.all_feedback_welcome": {
-    "text": "Her türlü geri bildirime açığız!",
+    "text": "Her türlü geri bildirim memnuniyetle karşılanır!",
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Yardım içeriği burada görüntülenir.",
+    "text": "Yardım içeriği burada yer alacak.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Buraya gelen her geri bildirimi okurum. Zamanımı neye harcayacağımı bu şekilde belirliyorum.",
+    "text": "Buradan gelen her geri bildirimi okuyorum. Zamanımı neye harcayacağımı bu şekilde belirliyorum.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Bir şeyler yolunda gitmiyorsa veya nasıl çalışması gerektiği hakkında fikirleriniz varsa, doğru yerdesiniz.",
+    "text": "Bir şeyler yolunda gitmiyorsa veya nasıl çalışması gerektiğine dair fikirleriniz varsa, burası doğru yer.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Hesabınızda yetkisiz bir e-posta değişikliği bildirdiğiniz anlaşılıyor. Lütfen ne olduğunu açıklayın, hemen araştıracağız.",
+    "text": "Hesabınızda yetkisiz bir e-posta değişikliği bildiriyorsunuz gibi görünüyor. Lütfen ne olduğunu açıklayın, derhal araştıracağız.",
     "source_hash": "00e56551"
   }
 }
