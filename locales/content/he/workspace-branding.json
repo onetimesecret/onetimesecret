@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "משפחת גופן",
+    "text": "משפחת גופנים",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -32,7 +32,7 @@
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "עבור לתצוגת דפדפן Safari",
+    "text": "מעבר לתצוגת דפדפן Safari",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -40,15 +40,15 @@
     "source_hash": "951e7f89"
   },
   "web.branding.maximize_window": {
-    "text": "הגדל חלון",
+    "text": "הגדלת חלון",
     "source_hash": "45d23969"
   },
   "web.branding.minimize_window": {
-    "text": "מזער חלון",
+    "text": "הקטנת חלון",
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "עבור לתצוגת דפדפן Edge",
+    "text": "מעבר לתצוגת דפדפן Edge",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -60,7 +60,7 @@
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "צור קשר עם onboarding{'@'}example.com לכל שאלה",
+    "text": "פנה אל onboarding{'@'}example.com עם כל שאלה",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -92,7 +92,7 @@
     "source_hash": "a35452bf"
   },
   "web.branding.upload_logo": {
-    "text": "העלה לוגו",
+    "text": "העלאת לוגו",
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "זוהי תצוגה מקדימה אינטראקטיבית של איך נמענים יראו את ההודעות המאובטחות שלך. ניתן: - להתאים אישית צבעים וגופנים באמצעות הפקדים למעלה - להעלות לוגו (מומלץ מינימום 128x128 פיקסלים, מקסימום 1MB) - לבדוק את התצוגה המקדימה באמצעות כפתור \"צפה בסוד\"",
+    "text": "זוהי תצוגה מקדימה אינטראקטיבית של איך הנמענים יראו את ההודעות המאובטחות שלך. תוכל: - להתאים אישית צבעים וגופנים באמצעות הפקדים למעלה - להעלות לוגו (מומלץ מינימום 128x128 פיקסלים, מקסימום 1MB) - לבדוק את התצוגה המקדימה באמצעות כפתור \"צפה בסוד\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -140,7 +140,7 @@
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "הקאנג'י היפני '秘' (himitsu) שמשמעותו 'סוד' או 'חסוי'",
+    "text": "קנג'י יפני '秘' (himitsu) שמשמעותו 'סוד' או 'סודי'",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -156,7 +156,7 @@
     "source_hash": "0f82fe72"
   },
   "web.branding.switch_to_edge_preview": {
-    "text": "עבור לתצוגה מקדימה של Edge",
+    "text": "מעבר לתצוגה מקדימה ב-Edge",
     "source_hash": "83883d84"
   },
   "web.branding.safari": {
@@ -164,11 +164,14 @@
     "source_hash": "5f033039"
   },
   "web.branding.switch_to_safari_preview": {
-    "text": "עבור לתצוגה מקדימה של Safari",
+    "text": "מעבר לתצוגה מקדימה ב-Safari",
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "שדרג את התוכנית שלך כדי להתאים אישית את המיתוג לדומיין זה.",
+    "text": "שדרג את התוכנית שלך כדי להתאים אישית את המיתוג עבור דומיין זה.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "הגדרות המותג נשמרו בהצלחה"
   }
 }

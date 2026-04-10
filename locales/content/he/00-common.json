@@ -665,11 +665,11 @@
     "source_hash": "be6f6527"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "הצג",
+    "text": "הצגה",
     "source_hash": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "הסתר",
+    "text": "הסתרה",
     "source_hash": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
@@ -681,15 +681,15 @@
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "הפעל",
+    "text": "הפעלה",
     "source_hash": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "השבת",
+    "text": "השבתה",
     "source_hash": "b7e3e4aa"
   },
   "web.LABELS.stats": {
-    "text": "סטטיסטיקות",
+    "text": "סטטיסטיקה",
     "source_hash": "b4a73657"
   },
   "web.LABELS.timeline": {
@@ -701,7 +701,7 @@
     "source_hash": "58994285"
   },
   "web.LABELS.expiration_time": {
-    "text": "זמן פקיעה",
+    "text": "זמן תפוגה",
     "source_hash": "c5db84a8"
   },
   "web.LABELS.secret_ttl": {
@@ -709,7 +709,7 @@
     "source_hash": "de996752"
   },
   "web.LABELS.close": {
-    "text": "סגור",
+    "text": "סגירה",
     "source_hash": "7d9eb7ac"
   },
   "web.LABELS.loading": {
@@ -717,7 +717,7 @@
     "source_hash": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "בטל",
+    "text": "ביטול",
     "source_hash": "19766ed6"
   },
   "web.LABELS.saving": {
@@ -729,11 +729,11 @@
     "source_hash": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "שמור",
+    "text": "שמירה",
     "source_hash": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "שמור הכל",
+    "text": "שמירת הכל",
     "source_hash": "d3c54e39"
   },
   "web.LABELS.details": {
@@ -745,7 +745,7 @@
     "source_hash": "f45aef6e"
   },
   "web.LABELS.secret_status": {
-    "text": "סטטוס הסוד",
+    "text": "מצב הסוד",
     "source_hash": "57330d93"
   },
   "web.LABELS.need_help": {
@@ -765,15 +765,15 @@
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "העתק ללוח",
+    "text": "העתקה ללוח",
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
-    "text": "קבלות",
+    "text": "אישורי קבלה",
     "source_hash": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "שתף",
+    "text": "שיתוף",
     "source_hash": "29887a5f"
   },
   "web.LABELS.secret_link": {
@@ -781,7 +781,7 @@
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "סגור",
+    "text": "סגירה",
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
@@ -797,7 +797,7 @@
     "source_hash": "48187543"
   },
   "web.LABELS.view": {
-    "text": "צפה",
+    "text": "צפייה",
     "source_hash": "dcc839a4"
   },
   "web.LABELS.views": {
@@ -809,7 +809,7 @@
     "source_hash": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "צפה בהתקדמות",
+    "text": "צפייה בהתקדמות",
     "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
@@ -821,7 +821,7 @@
     "source_hash": "a52b9edf"
   },
   "web.LABELS.feedback_received": {
-    "text": "המשוב התקבל.",
+    "text": "משוב התקבל.",
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
@@ -837,23 +837,23 @@
     "source_hash": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "רענן",
+    "text": "רענון",
     "source_hash": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "טען מחדש",
+    "text": "טעינה מחדש",
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "סנן",
+    "text": "סינון",
     "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
-    "text": "נקה",
+    "text": "ניקוי",
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "קישורים סודיים שנוצרו בסשן זה",
+    "text": "קישורי סודות שנוצרו בהפעלה זו",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
@@ -970,7 +970,7 @@
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
-    "text": "הסוד נחשף לנמען",
+    "text": "הסוד נחשף בפני הנמען",
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
@@ -978,11 +978,11 @@
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
-    "text": "תוכן הסוד נחשף לנמען",
+    "text": "תוכן הסוד נחשף בפני הנמען",
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "הסוד נמחק ידנית לפני שנצפה",
+    "text": "הסוד נמחק סופית באופן ידני לפני שנצפה",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -994,11 +994,11 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "הסוד הפך ליתום ויושמד בקרוב",
+    "text": "הסוד ננטש ויושמד בקרוב",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
-    "text": "הסוד פג תוקף לפני שנצפה",
+    "text": "תוקף הסוד פג לפני שנצפה",
     "source_hash": "f527de55"
   },
   "web.STATUS.success": {
@@ -1026,7 +1026,7 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "מיתוג דומיין אמין",
+    "text": "מיתוג בדומיין מהימן",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
@@ -1154,7 +1154,7 @@
     "source_hash": "c11bd410"
   },
   "web.TITLES.receipt": {
-    "text": "קבלת סוד",
+    "text": "אישור קבלת סוד",
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
@@ -1182,7 +1182,7 @@
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "מיתוג דומיין",
+    "text": "דומיין ממותג",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1226,7 +1226,7 @@
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "אישור שינוי דואר אלקטרוני",
+    "text": "אישור שינוי דוא״ל",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1242,7 +1242,7 @@
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
-    "text": "סשנים פעילים",
+    "text": "הפעלות פעילות",
     "source_hash": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
@@ -1303,7 +1303,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "תמיד ודא שאתה באתר הרשמי של Onetime Secret. נוכלים לפעמים יוצרים אתרים מזויפים שנראים בדיוק כמו Onetime Secret כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות פישינג, בדוק את הדומיין לפני יצירת קישורים חדשים.",
+    "text": "ודא תמיד שאתה נמצא באתר הרשמי של Onetime Secret. נוכלים יוצרים לעיתים אתרים מזויפים שנראים בדיוק כמו Onetime Secret כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות דיוג, בדוק את הדומיין לפני יצירת קישורים חדשים.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
@@ -1311,7 +1311,7 @@
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "בחר את התוכנית שמתאימה לצרכים שלך. כל התוכניות כוללות שיתוף סודות ללא הגבלה ועיצוב בעדיפות לפרטיות.",
+    "text": "בחר את התוכנית המתאימה לצרכיך. כל התוכניות כוללות שיתוף סודות ללא הגבלה ועיצוב בעדיפות פרטיות.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1319,7 +1319,7 @@
     "source_hash": "6bb5a4a7"
   },
   "web.pricing.start_trial": {
-    "text": "התחל",
+    "text": "התחל עכשיו",
     "source_hash": "983f3110"
   },
   "web.pricing.already_have_account": {
@@ -1327,7 +1327,7 @@
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
-    "text": "התחבר",
+    "text": "התחברות",
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
@@ -1347,11 +1347,11 @@
     "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "הוסף תזכורת...",
+    "text": "הוסף תזכיר...",
     "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "עריכת תזכורת",
+    "text": "עריכת תזכיר",
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
@@ -1417,5 +1417,23 @@
   },
   "web.COMMON.or": {
     "text": "או"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "הצגת ביטוי סיסמה"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "הסתרת ביטוי סיסמה"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "הגדרות דומיין"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO דומיין"
+  },
+  "web.TITLES.domain_email": {
+    "text": "תצורת דוא״ל"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "סודות נכנסים"
   }
 }

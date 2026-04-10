@@ -8,7 +8,7 @@
     "source_hash": "44c54ed2"
   },
   "web.errors.what_should_i_do_now": {
-    "text": "מה עליי לעשות עכשיו?",
+    "text": "מה עלי לעשות עכשיו?",
     "source_hash": "fbf3e67f"
   },
   "web.errors.contact_the_person_who_sent_you_this_link": {
@@ -20,7 +20,7 @@
     "source_hash": "e6d67409"
   },
   "web.errors.dismiss_truncation_warning": {
-    "text": "סגור אזהרת קיצור",
+    "text": "סגירת אזהרת קיצוץ",
     "source_hash": "79e02fe6"
   },
   "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
@@ -36,11 +36,11 @@
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {
-    "text": "סגור אזהרה",
+    "text": "סגירת אזהרה",
     "source_hash": "9f6e4da3"
   },
   "web.errors.dismiss_notification": {
-    "text": "סגור התראה",
+    "text": "סגירת התראה",
     "source_hash": "b7bb3f34"
   },
   "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {

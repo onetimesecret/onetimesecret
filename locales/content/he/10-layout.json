@@ -1,6 +1,6 @@
 {
   "web.footer.api_docs": {
-    "text": "תיעוד API",
+    "text": "מסמכי API",
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
@@ -24,7 +24,7 @@
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
-    "text": "צפה בתנאים וההגבלות שלנו",
+    "text": "צפה בתנאים וההתניות שלנו",
     "source_hash": "0dde60b7"
   },
   "web.footer.terms": {
@@ -48,7 +48,7 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "כאשר תשלח משוב, נראה:",
+    "text": "כשתשלח משוב, נראה:",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
@@ -56,7 +56,7 @@
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "בדוק את סטטוס השירות שלנו",
+    "text": "בדוק את מצב השירות שלנו",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
@@ -64,7 +64,7 @@
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
-    "text": "תיעוד",
+    "text": "מסמכים",
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
@@ -96,7 +96,7 @@
     "source_hash": "780e18cd"
   },
   "web.footer.company": {
-    "text": "החברה",
+    "text": "חברה",
     "source_hash": "de4743c8"
   },
   "web.footer.product": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "הוספנו לאחרונה תרגומים. מצאת שגיאה? {send-feedback}",
+    "text": "הוספנו לאחרונה תרגומים. זיהית שגיאה? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -152,31 +152,31 @@
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "האם אוכל לצפות בסוד זה שוב מאוחר יותר?",
+    "text": "האם אוכל לצפות בסוד הזה שוב מאוחר יותר?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "לא. מסיבות אבטחה, סוד זה ניתן לצפייה פעם אחת בלבד. לאחר סגירת דף זה, התוכן יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד, כולל אנחנו.",
+    "text": "לא. מטעמי אבטחה, ניתן לצפות בסוד זה פעם אחת בלבד. לאחר סגירת הדף, התוכן יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד, כולל אנחנו.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "כיצד אני שומר מידע זה?",
+    "text": "כיצד אוכל לשמור את המידע הזה?",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "השתמש בכפתור 'העתק ללוח' כדי להעתיק את כל הסוד. עבור סודות ארוכים יותר, ודא שהעתקת את התוכן המלא לפני עזיבת הדף.",
+    "text": "השתמש בלחצן 'העתקה ללוח' כדי להעתיק את הסוד כולו. עבור סודות ארוכים, ודא שהעתקת את כל התוכן לפני שתעזוב את הדף.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "האם הצפייה שלי בסוד זה מנוטרת?",
+    "text": "האם הצפייה שלי בסוד הזה נרשמת?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "השולח יקבל הודעה שהסוד שלו נצפה, אך אנחנו לא עוקבים אחר מי צפה בו או מאיזה מיקום. הפרטיות שלך מוגנת.",
+    "text": "השולח יקבל הודעה שהסוד שלו נצפה, אבל איננו עוקבים אחר מי צפה בו או מאיזה מיקום. הפרטיות שלך מוגנת.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "ברגע שתעזוב או תרענן דף זה, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד.",
+    "text": "ברגע שתעזוב או תרענן את הדף הזה, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו על ידי אף אחד.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -184,7 +184,7 @@
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
-    "text": "תחתית האתר",
+    "text": "כותרת תחתית האתר",
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
@@ -192,7 +192,7 @@
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "ספק משוב",
+    "text": "שלח משוב",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -200,11 +200,11 @@
     "source_hash": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "לוגו המותג",
+    "text": "לוגו מותג",
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
-    "text": "ניווט לוח הבקרה",
+    "text": "ניווט לוח בקרה",
     "source_hash": "da5c1c43"
   },
   "web.layout.mobile_navigation": {
@@ -228,7 +228,7 @@
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
-    "text": "מדורי הגדרות",
+    "text": "מקטעי הגדרות",
     "source_hash": "e26d51d3"
   },
   "web.layout.close_settings": {
@@ -236,7 +236,7 @@
     "source_hash": "0ccfef82"
   },
   "web.layout.settings_sections": {
-    "text": "מדורי הגדרות",
+    "text": "מקטעי הגדרות",
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
@@ -256,11 +256,11 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "צפייה במדיניות הפרטיות",
+    "text": "צפייה במדיניות פרטיות",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "צפייה בתנאי השימוש",
+    "text": "צפייה בתנאי שימוש",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
@@ -268,7 +268,7 @@
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {
-    "text": "ניווט תחתון",
+    "text": "ניווט כותרת תחתית",
     "source_hash": "76363a64"
   },
   "web.layout.terms_of_service": {
@@ -328,7 +328,7 @@
     "source_hash": "c8b909e0"
   },
   "web.layout.blank_mode_enabled": {
-    "text": "מצב {0} מופעל",
+    "text": "מצב {0} הופעל",
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
@@ -336,7 +336,10 @@
     "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "הקשר סביבת העבודה",
+    "text": "הקשר סביבת עבודה",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "סביבת עבודה"
   }
 }

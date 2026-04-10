@@ -1,6 +1,6 @@
 {
   "incoming.page_title": {
-    "text": "שלח סוד",
+    "text": "שליחת סוד",
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
@@ -12,7 +12,7 @@
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "נכשל בטעינת התצורה",
+    "text": "טעינת התצורה נכשלה",
     "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
@@ -20,19 +20,19 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "תכונה זו מושבתת כרגע. אנא צור קשר עם התמיכה לקבלת סיוע.",
+    "text": "תכונה זו מושבתת כעת. אנא פנה לתמיכה לקבלת סיוע.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
-    "text": "תזכורת",
+    "text": "תזכיר",
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "תיאור קצר (לדוגמה, בקשת איפוס סיסמה)",
+    "text": "תיאור קצר (למשל, בקשת איפוס סיסמה)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "עזור לנו לנתב את ההודעה שלך לאדם הנכון",
+    "text": "עזור לנו להפנות את ההודעה שלך לאדם הנכון",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -44,11 +44,11 @@
     "source_hash": "4eb1ed54"
   },
   "incoming.recipient_aria_label": {
-    "text": "בחר נמען לסוד זה",
+    "text": "בחר נמען עבור סוד זה",
     "source_hash": "c98ac75f"
   },
   "incoming.recipient_hint": {
-    "text": "בחר מי יקבל את ההודעה המאובטחת הזו",
+    "text": "בחר מי יקבל הודעה מאובטחת זו",
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
@@ -60,19 +60,19 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "הדבק מידע רגיש כאן (סיסמאות, מפתחות וכו׳)",
+    "text": "הדבק כאן מידע רגיש (סיסמאות, מפתחות וכו')",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "מידע זה יוצפן וניתן יהיה לצפות בו רק פעם אחת",
+    "text": "מידע זה יוצפן ויהיה ניתן לצפייה פעם אחת בלבד",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "שלח סוד",
+    "text": "שליחת סוד",
     "source_hash": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "שלח סוד",
+    "text": "שליחת סוד",
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
@@ -84,11 +84,11 @@
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
-    "text": "נקה טופס",
+    "text": "ניקוי טופס",
     "source_hash": "f6c2bb83"
   },
   "incoming.reset_form": {
-    "text": "נקה טופס",
+    "text": "ניקוי טופס",
     "source_hash": "f6c2bb83"
   },
   "incoming.success_title": {
@@ -100,7 +100,7 @@
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "מספר אסמכתא",
+    "text": "מזהה ייחוס",
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
@@ -108,11 +108,11 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "הנמען יוכל לצפות בסוד זה רק פעם אחת. לאחר שיצפה בו, הסוד יימחק לצמיתות.",
+    "text": "הנמען יוכל לצפות בסוד זה פעם אחת בלבד. לאחר שיצפה בו, הסוד יימחק לצמיתות.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
-    "text": "שלח סוד נוסף",
+    "text": "שליחת סוד נוסף",
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
@@ -120,15 +120,36 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "הרחק סיסמאות ונתונים פרטיים מיומני הדוא״ל והצ׳אט",
+    "text": "הרחק סיסמאות ונתונים פרטיים מדוא״ל ויומני צ'אט",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "שמור את ה{receipt} שלך לרישומיך.",
+    "text": "שמור את {receipt} לרשומות שלך.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
-    "text": "קבלה",
+    "text": "אישור קבלה",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "נדרש שדרוג"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "תכונה זו דורשת שדרוג תוכנית. אנא פנה לבעל החשבון כדי לאפשר סודות נכנסים."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "התזכיר חייב להיות {max} תווים או פחות"
+  },
+  "incoming.validation_secret_required": {
+    "text": "נדרש תוכן סודי"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "אנא בחר נמען"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "תכונת הסודות הנכנסים אינה מופעלת"
+  },
+  "incoming.validation_form_errors": {
+    "text": "אנא בדוק את הטופס לאיתור שגיאות"
   }
 }

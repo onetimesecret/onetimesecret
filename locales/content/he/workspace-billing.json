@@ -12,7 +12,7 @@
     "source_hash": "16487236"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "צפה בתוכניות",
+    "text": "צפייה בתוכניות",
     "source_hash": "a865d424"
   },
   "web.billing.upgrade.needTeams": {
@@ -60,7 +60,7 @@
     "source_hash": "f89a4e17"
   },
   "web.billing.overview.next_billing_date": {
-    "text": "תאריך החיוב הבא",
+    "text": "תאריך חיוב הבא",
     "source_hash": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
@@ -72,15 +72,15 @@
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.view_invoices": {
-    "text": "צפה בחשבוניות",
+    "text": "צפייה בחשבוניות",
     "source_hash": "cfc0404e"
   },
   "web.billing.overview.upgrade_plan": {
-    "text": "שדרג תוכנית",
+    "text": "שדרוג תוכנית",
     "source_hash": "17787ab7"
   },
   "web.billing.overview.change_plan": {
-    "text": "שנה תוכנית",
+    "text": "שינוי תוכנית",
     "source_hash": "2d0b195b"
   },
   "web.billing.overview.manage_subscription": {
@@ -88,7 +88,7 @@
     "source_hash": "cbc4ef92"
   },
   "web.billing.plans.legacy_plan_info": {
-    "text": "אתה נמצא בתוכנית מוגנת עם תמחור מיוחד.",
+    "text": "אתה בתוכנית מוגנת עם תמחור מיוחד.",
     "source_hash": "e9aa8bf0"
   },
   "web.billing.plans.early_supporter_plan": {
@@ -96,11 +96,11 @@
     "source_hash": "f37cd0d9"
   },
   "web.billing.plans.legacy_plan_warning": {
-    "text": "החלפת תוכנית תגרום לאיבוד התעריף המוגן שלך. לא ניתן לבטל פעולה זו.",
+    "text": "החלפת תוכניות תגרום לאובדן המחיר המוגן שלך. לא ניתן לבטל פעולה זו.",
     "source_hash": "eda13d64"
   },
   "web.billing.overview.no_payment_method": {
-    "text": "אין אמצעי תשלום בקובץ",
+    "text": "אין אמצעי תשלום רשום",
     "source_hash": "77f71037"
   },
   "web.billing.overview.no_upcoming_billing": {
@@ -112,23 +112,23 @@
     "source_hash": "385438a3"
   },
   "web.billing.overview.billing_on": {
-    "text": "חיוב בתאריך {date}",
+    "text": "חיוב ב-{date}",
     "source_hash": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "צפה בתוכניות",
+    "text": "צפייה בתוכניות",
     "source_hash": "a865d424"
   },
   "web.billing.overview.view_plans_description": {
-    "text": "השווה ושדרג",
+    "text": "השוואה ושדרוג",
     "source_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "צפה בחשבוניות",
+    "text": "צפייה בחשבוניות",
     "source_hash": "cfc0404e"
   },
   "web.billing.overview.view_invoices_description": {
-    "text": "היסטוריית הורדות",
+    "text": "הורדת היסטוריה",
     "source_hash": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
@@ -136,7 +136,7 @@
     "source_hash": "6d3a16f5"
   },
   "web.billing.overview.manage_billing_description": {
-    "text": "עדכן פרטי תשלום",
+    "text": "עדכון פרטי תשלום",
     "source_hash": "1f981aaf"
   },
   "web.billing.overview.no_organizations_title": {
@@ -168,7 +168,7 @@
     "source_hash": "0320541d"
   },
   "web.billing.overview.entitlements.view_receipt": {
-    "text": "צפייה בקבלות",
+    "text": "צפייה באישורי קבלה",
     "source_hash": "6c664c31"
   },
   "web.billing.overview.entitlements.api_access": {
@@ -184,11 +184,11 @@
     "source_hash": "e677e27d"
   },
   "web.billing.overview.entitlements.extended_default_expiration": {
-    "text": "פקיעת ברירת מחדל מורחבת",
+    "text": "תפוגת ברירת מחדל מורחבת",
     "source_hash": "19b19637"
   },
   "web.billing.overview.entitlements.custom_mail_sender": {
-    "text": "ברירות מחדל מותאמות לדואר",
+    "text": "ברירות מחדל לדואר מותאם",
     "source_hash": "95aebfb9"
   },
   "web.billing.overview.entitlements.custom_branding": {
@@ -220,7 +220,7 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "התחברות יחידה",
+    "text": "כניסה יחידה",
     "source_hash": "cf7cd744"
   },
   "web.billing.overview.entitlements.priority_support": {
@@ -280,7 +280,7 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.features.sso": {
-    "text": "התחברות יחידה (SSO)",
+    "text": "כניסה יחידה (SSO)",
     "source_hash": "5db5c812"
   },
   "web.billing.features.priority_support": {
@@ -300,19 +300,19 @@
     "source_hash": "d52b4039"
   },
   "web.billing.features.activity_stream": {
-    "text": "זרימת פעילות",
+    "text": "זרם פעילות",
     "source_hash": "b9c6cba7"
   },
   "web.billing.features.handoff_workflows": {
-    "text": "תהליכי מסירה",
+    "text": "תהליכי העברה",
     "source_hash": "07202af3"
   },
   "web.billing.plans.title": {
-    "text": "בחר תוכנית",
+    "text": "בחירת תוכנית",
     "source_hash": "79506c82"
   },
   "web.billing.plans.choose_plan": {
-    "text": "בחר את התוכנית שמתאימה לצרכים שלך",
+    "text": "בחר את התוכנית המתאימה לצרכיך",
     "source_hash": "5f039cb9"
   },
   "web.billing.plans.subtitle": {
@@ -328,11 +328,11 @@
     "source_hash": "e0d1b682"
   },
   "web.billing.plans.upgrade": {
-    "text": "שדרג",
+    "text": "שדרוג",
     "source_hash": "7ec0261b"
   },
   "web.billing.plans.downgrade": {
-    "text": "שנמך",
+    "text": "הורדת דרגה",
     "source_hash": "d955b7e8"
   },
   "web.billing.plans.cancel_to_downgrade": {
@@ -364,7 +364,7 @@
     "source_hash": "267ad4cf"
   },
   "web.billing.plans.multi_team_plan": {
-    "text": "ריבוי צוותים",
+    "text": "מרובה צוותים",
     "source_hash": "ffc73d2c"
   },
   "web.billing.plans.individual_account": {
@@ -396,7 +396,7 @@
     "source_hash": "acea4b40"
   },
   "web.billing.plans.select_plan": {
-    "text": "בחר תוכנית",
+    "text": "בחירת תוכנית",
     "source_hash": "8709f894"
   },
   "web.billing.plans.contact_sales": {
@@ -416,7 +416,7 @@
     "source_hash": "a83641bc"
   },
   "web.billing.plans.members_limit": {
-    "text": "{count} חבר לצוות | {count} חברים לצוות",
+    "text": "{count} חבר לכל צוות | {count} חברים לכל צוות",
     "source_hash": "54fb2b4b"
   },
   "web.billing.plans.unlimited_teams": {
@@ -428,7 +428,7 @@
     "source_hash": "728ecef0"
   },
   "web.billing.plans.most_popular": {
-    "text": "הכי פופולרי",
+    "text": "הפופולרי ביותר",
     "source_hash": "9e1006a4"
   },
   "web.billing.plans.suggested": {
@@ -440,7 +440,7 @@
     "source_hash": "1c73c298"
   },
   "web.billing.plans.no_plans_available": {
-    "text": "אין תוכניות {interval} זמינות כרגע.",
+    "text": "אין תוכניות {interval} זמינות כעת.",
     "source_hash": "d8454436"
   },
   "web.billing.plans.load_error": {
@@ -468,11 +468,11 @@
     "source_hash": "e370e3aa"
   },
   "web.billing.plans.next_billing": {
-    "text": "החיוב הבא ({date}):",
+    "text": "חיוב הבא ({date}):",
     "source_hash": "a6846a85"
   },
   "web.billing.plans.next_invoice": {
-    "text": "החשבונית הבאה",
+    "text": "חשבונית הבאה",
     "source_hash": "5670e027"
   },
   "web.billing.plans.limits_update_notice": {
@@ -484,11 +484,11 @@
     "source_hash": "a4e86372"
   },
   "web.billing.plans.confirm_upgrade": {
-    "text": "אשר שדרוג",
+    "text": "אישור שדרוג",
     "source_hash": "71a4ab02"
   },
   "web.billing.plans.confirm_downgrade": {
-    "text": "אשר שנמוך",
+    "text": "אישור הורדת דרגה",
     "source_hash": "deaf8189"
   },
   "web.billing.plans.upgrade_to": {
@@ -496,7 +496,7 @@
     "source_hash": "b1e4e88c"
   },
   "web.billing.plans.downgrade_to": {
-    "text": "לשנמך ל-{plan}?",
+    "text": "להוריד דרגה ל-{plan}?",
     "source_hash": "8eb8ea81"
   },
   "web.billing.plans.credit_applies_heading": {
@@ -540,7 +540,7 @@
     "source_hash": "49e96d7c"
   },
   "web.billing.invoices.invoice_status": {
-    "text": "סטטוס",
+    "text": "מצב",
     "source_hash": "920e413c"
   },
   "web.billing.invoices.invoice_download": {
@@ -548,19 +548,19 @@
     "source_hash": "d6eafe82"
   },
   "web.billing.invoices.invoice_number": {
-    "text": "חשבונית מס׳",
+    "text": "חשבונית מס'",
     "source_hash": "48a67cac"
   },
   "web.billing.invoices.no_invoices": {
-    "text": "אין עדיין חשבוניות",
+    "text": "אין חשבוניות עדיין",
     "source_hash": "92d2d0ce"
   },
   "web.billing.invoices.no_invoices_description": {
-    "text": "החשבוניות שלך יופיעו כאן לאחר שדרוג לתוכנית בתשלום",
+    "text": "החשבוניות שלך יופיעו כאן לאחר שתשדרג לתוכנית בתשלום",
     "source_hash": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
-    "text": "צפה בתוכניות",
+    "text": "צפייה בתוכניות",
     "source_hash": "a865d424"
   },
   "web.billing.invoices.paid": {
@@ -584,11 +584,11 @@
     "source_hash": "ed077f3d"
   },
   "web.billing.invoices.uncollectible": {
-    "text": "בלתי ניתן לגבייה",
+    "text": "לא ניתן לגבייה",
     "source_hash": "c8d3b241"
   },
   "web.billing.invoices.void": {
-    "text": "מבוטל",
+    "text": "בטל",
     "source_hash": "4e7ba403"
   },
   "web.billing.invoices.load_error": {
@@ -604,7 +604,7 @@
     "source_hash": "2ae16262"
   },
   "web.billing.limits.members_reached": {
-    "text": "הגעת למגבלת החברים לצוות זה",
+    "text": "הגעת למגבלת החברים עבור צוות זה",
     "source_hash": "ce8f2a24"
   },
   "web.billing.limits.members_upgrade": {
@@ -616,7 +616,7 @@
     "source_hash": "4999c6c6"
   },
   "web.billing.subscription.status": {
-    "text": "סטטוס מנוי",
+    "text": "מצב מנוי",
     "source_hash": "c7a08e1d"
   },
   "web.billing.subscription.active": {
@@ -628,7 +628,7 @@
     "source_hash": "ac7c949f"
   },
   "web.billing.subscription.past_due": {
-    "text": "באיחור",
+    "text": "באיחור תשלום",
     "source_hash": "2bda1c7b"
   },
   "web.billing.subscription.canceled": {
@@ -640,7 +640,7 @@
     "source_hash": "fa8ed0bd"
   },
   "web.billing.subscription.team_usage": {
-    "text": "שימוש בצוותים",
+    "text": "שימוש צוות",
     "source_hash": "f9989642"
   },
   "web.billing.subscription.teams_used": {
@@ -656,7 +656,7 @@
     "source_hash": "1a8f3c19"
   },
   "web.billing.portal.open_portal": {
-    "text": "פתח פורטל חיוב",
+    "text": "פתיחת פורטל חיוב",
     "source_hash": "23fbfa2b"
   },
   "web.billing.portal.redirecting": {
@@ -680,7 +680,7 @@
     "source_hash": "f5bedf1c"
   },
   "web.billing.privacy_first_design": {
-    "text": "עיצוב בעדיפות לפרטיות",
+    "text": "עיצוב בעדיפות פרטיות",
     "source_hash": "587d738c"
   },
   "web.billing.identity_plus": {
@@ -696,7 +696,7 @@
     "source_hash": "166b26ab"
   },
   "web.billing.upgrade_account": {
-    "text": "שדרג חשבון",
+    "text": "שדרוג חשבון",
     "source_hash": "4799b02e"
   },
   "web.billing.upgrade_to_identity_plus": {
@@ -704,7 +704,7 @@
     "source_hash": "272d3c80"
   },
   "web.billing.upgrade_for_teams": {
-    "text": "שדרג לצוותים",
+    "text": "שדרוג לצוותים",
     "source_hash": "90dfb533"
   },
   "web.billing.benefits_of": {
@@ -778,11 +778,11 @@
     "source_hash": "4d8f5751"
   },
   "web.billing.cancel.access_until": {
-    "text": "תישמר לך גישה לכל התכונות עד {date}",
+    "text": "תשמור על גישה לכל התכונות עד {date}",
     "source_hash": "eab1efe3"
   },
   "web.billing.cancel.access_until_period_end": {
-    "text": "תישמר לך גישה עד סוף תקופת החיוב הנוכחית",
+    "text": "תשמור על גישה עד סוף תקופת החיוב הנוכחית",
     "source_hash": "1b07a54a"
   },
   "web.billing.cancel.no_future_charges": {
@@ -799,12 +799,12 @@
     "source_hash": "31e80c41"
   },
   "web.billing.cancel.confirm_cancel": {
-    "text": "בטל מנוי",
+    "text": "ביטול מנוי",
     "context": "Primary action button in modal - confirms the cancellation",
     "source_hash": "882e0c83"
   },
   "web.billing.cancel.success": {
-    "text": "המנוי שלך בוטל. תישמר לך גישה עד סוף תקופת החיוב.",
+    "text": "המנוי שלך בוטל. תשמור על גישה עד סוף תקופת החיוב שלך.",
     "source_hash": "e18fd9d5"
   },
   "web.billing.cancel.error": {
@@ -812,17 +812,17 @@
     "source_hash": "68e8bdde"
   },
   "web.billing.cancel.scheduled_title": {
-    "text": "ביטול המנוי תוזמן",
+    "text": "ביטול מנוי תוזמן",
     "context": "Alert banner heading shown when cancellation is pending",
     "source_hash": "1427d139"
   },
   "web.billing.cancel.scheduled_description": {
-    "text": "המנוי שלך יישאר פעיל עד {date}. תמשיך ליהנות מגישה מלאה לכל התכונות עד אז.",
+    "text": "המנוי שלך יישאר פעיל עד {date}. תמשיך לקבל גישה מלאה לכל התכונות עד אז.",
     "context": "Alert banner description explaining continued access",
     "source_hash": "aab4b1dc"
   },
   "web.billing.cancel.scheduled_note": {
-    "text": "שינית את דעתך? ניתן להפעיל מחדש את המנוי שלך בכל עת לפני תאריך הביטול.",
+    "text": "שינית את דעתך? תוכל להפעיל את המנוי מחדש בכל עת לפני תאריך הביטול.",
     "context": "Alert banner note encouraging reactivation",
     "source_hash": "c94d5527"
   },
@@ -892,7 +892,7 @@
     "source_hash": "2cd800c5"
   },
   "web.billing.currency_migration.description": {
-    "text": "המנוי הנוכחי שלך משתמש ב-{from}. התוכנית הנבחרת מחויבת ב-{to}. נדרשת העברת המנוי שלך למטבע החדש.",
+    "text": "המנוי הנוכחי שלך משתמש ב-{from}. התוכנית שנבחרה מחויבת ב-{to}. נדרש מעבר המנוי שלך למטבע החדש.",
     "source_hash": "f0cdf727"
   },
   "web.billing.currency_migration.current_plan": {
@@ -904,23 +904,23 @@
     "source_hash": "edb868c4"
   },
   "web.billing.currency_migration.current_period_ends": {
-    "text": "תקופה נוכחית מסתיימת:",
+    "text": "התקופה הנוכחית מסתיימת:",
     "source_hash": "2e20e596"
   },
   "web.billing.currency_migration.choose_timing": {
-    "text": "מתי צריכה ההחלפה להתבצע?",
+    "text": "מתי המעבר צריך לקרות?",
     "source_hash": "f4aabb13"
   },
   "web.billing.currency_migration.graceful_title": {
-    "text": "החלפה בסוף תקופת החיוב",
+    "text": "מעבר בסוף תקופת החיוב",
     "source_hash": "55cd980b"
   },
   "web.billing.currency_migration.graceful_description": {
-    "text": "התוכנית הנוכחית שלך תישאר פעילה עד {date}. לאחר מכן, תשלים את התשלום עבור התוכנית החדשה שלך.",
+    "text": "התוכנית הנוכחית שלך נשארת פעילה עד {date}. לאחר מכן, תשלים את התשלום עבור התוכנית החדשה שלך.",
     "source_hash": "b8661418"
   },
   "web.billing.currency_migration.immediate_title": {
-    "text": "החלפה מיידית",
+    "text": "מעבר מיידי",
     "source_hash": "e9d0ba59"
   },
   "web.billing.currency_migration.immediate_description": {
@@ -928,11 +928,11 @@
     "source_hash": "b08de0ca"
   },
   "web.billing.currency_migration.confirm": {
-    "text": "אשר שינוי מטבע",
+    "text": "אישור שינוי מטבע",
     "source_hash": "1edc1c78"
   },
   "web.billing.currency_migration.error": {
-    "text": "העברת המטבע נכשלה. נסה שוב.",
+    "text": "מעבר המטבע נכשל. אנא נסה שוב.",
     "source_hash": "4a6e1ced"
   },
   "web.billing.currency_migration.success": {
@@ -940,7 +940,7 @@
     "source_hash": "a8bf437e"
   },
   "web.billing.currency_migration.graceful_success": {
-    "text": "התוכנית הנוכחית שלך תישאר פעילה עד סוף תקופת החיוב. תתבקש להשלים את התשלום עבור התוכנית החדשה שלך לאחר מכן.",
+    "text": "התוכנית הנוכחית שלך תישאר פעילה עד סוף תקופת החיוב. תתבקש להשלים את התשלום עבור התוכנית החדשה לאחר מכן.",
     "source_hash": "15d41483"
   },
   "web.billing.currency_migration.warning_credit_balance": {
@@ -948,24 +948,24 @@
     "source_hash": "aa15be91"
   },
   "web.billing.currency_migration.warning_pending_items": {
-    "text": "יש לך פריטי חשבונית ממתינים שיש לטפל בהם לפני ההעברה.",
+    "text": "יש לך פריטי חשבונית ממתינים שצריך לפתור לפני המעבר.",
     "source_hash": "7b4c5e10"
   },
   "web.billing.currency_migration.warning_coupons": {
-    "text": "קופונים פעילים בחשבונך עשויים שלא להיות תואמים למטבע החדש.",
+    "text": "קופונים פעילים בחשבון שלך עשויים שלא להיות תואמים למטבע החדש.",
     "source_hash": "f572ee81"
   },
   "web.billing.currency_migration.pending_title": {
-    "text": "העברת מטבע ממתינה",
+    "text": "מעבר מטבע ממתין",
     "context": "Banner heading when graceful migration is scheduled",
     "source_hash": "018ae653"
   },
   "web.billing.currency_migration.pending_description": {
-    "text": "התוכנית הנוכחית שלך מסתיימת ב-{date}. השלם את ההחלפה ל-{plan} ({currency}).",
+    "text": "התוכנית הנוכחית שלך מסתיימת ב-{date}. השלם את המעבר ל-{plan} ({currency}).",
     "source_hash": "998ba4ab"
   },
   "web.billing.currency_migration.complete_migration": {
-    "text": "השלם העברה",
+    "text": "השלמת מעבר",
     "context": "Button to start checkout for the new currency plan",
     "source_hash": "fa794e0c"
   },
@@ -975,18 +975,39 @@
     "source_hash": "a53f6fa3"
   },
   "web.billing.checkout_initiate_failed": {
-    "text": "התחלת תשלום נכשלה",
+    "text": "התחלת התשלום נכשלה",
     "context": "Fallback error for checkout failures",
     "source_hash": "3ff06e41"
   },
   "web.billing.plan_switch_success": {
-    "text": "הועבר בהצלחה ל-{plan}",
+    "text": "עברת בהצלחה ל-{plan}",
     "context": "Success message after plan change",
     "source_hash": "ab7c715c"
   },
   "web.billing.plan_unavailable_region_mismatch": {
-    "text": "זמין באזור המנוי המקורי שלך בלבד",
+    "text": "זמין רק באזור המנוי המקורי שלך",
     "context": "Hint shown on plan cards when currency does not match active subscription",
     "source_hash": "10de32e5"
+  },
+  "web.billing.already_subscribed": {
+    "text": "אתה כבר מנוי לתוכנית זו."
+  },
+  "web.billing.cancel.reactivate_button": {
+    "text": "הפעלת מנוי מחדש"
+  },
+  "web.billing.cancel.reactivate_success": {
+    "text": "המנוי שלך הופעל מחדש. תמשיך להיות מחויב כרגיל."
+  },
+  "web.billing.cancel.reactivate_error": {
+    "text": "הפעלת המנוי מחדש נכשלה. אנא נסה שוב או פנה לתמיכה."
+  },
+  "web.billing.overview.entitlements.flexible_from_domain": {
+    "text": "דומיין שולח דוא״ל גמיש"
+  },
+  "web.billing.overview.entitlements.manage_sso": {
+    "text": "כניסה יחידה (SSO)"
+  },
+  "web.billing.plans.reactivate": {
+    "text": "הפעלה מחדש"
   }
 }

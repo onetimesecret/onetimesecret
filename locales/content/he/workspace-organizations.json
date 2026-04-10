@@ -28,7 +28,7 @@
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "אין עדיין ארגונים",
+    "text": "אין ארגונים עדיין",
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
@@ -56,7 +56,7 @@
     "source_hash": "67cd5950"
   },
   "web.organizations.create": {
-    "text": "צור",
+    "text": "יצירה",
     "source_hash": "4759498a"
   },
   "web.organizations.create_error": {
@@ -64,15 +64,15 @@
     "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "שם הארגון",
+    "text": "שם ארגון",
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "לדוגמה Acme Corporation",
+    "text": "למשל Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "שם הארגון",
+    "text": "שם ארגון",
     "source_hash": "4cbd9073"
   },
   "web.organizations.description": {
@@ -80,15 +80,15 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "מהי מטרת הארגון הזה?",
+    "text": "למה מיועד ארגון זה?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "דוא״ל לחיוב",
+    "text": "דוא״ל חיוב",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "איש קשר ראשי להתראות חיוב ומנהליות",
+    "text": "איש קשר ראשי עבור התראות חיוב וניהול",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -96,7 +96,7 @@
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "החלפת ארגון לא זמינה בדף זה",
+    "text": "החלפת ארגון אינה זמינה בדף זה",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -124,7 +124,7 @@
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "עודכן לאחרונה",
+    "text": "עדכון אחרון",
     "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "עדכן את שם הארגון והתיאור שלו",
+    "text": "עדכון שם הארגון והתיאור שלו",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -144,7 +144,7 @@
     "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "שמור שינויים",
+    "text": "שמירת שינויים",
     "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
@@ -164,11 +164,11 @@
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "אינטגרציית חיוב בקרוב",
+    "text": "שילוב חיוב בקרוב",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "ניהול חיוב ומנויים מאוחד יהיה זמין בגרסה עתידית.",
+    "text": "ניהול חיוב ומנוי מאוחד יהיה זמין בגרסה עתידית.",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -184,15 +184,15 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "עדכן את שם החברה ופרטי הארגון שלך כאן. מידע זה עוזר להתאים אישית את החשבון שלך וניתן להשתמש בו לתכונות מיתוג בעתיד.",
+    "text": "עדכן כאן את שם החברה ופרטי הארגון שלך. מידע זה עוזר להתאים אישית את החשבון שלך וניתן להשתמש בו עבור תכונות מיתוג בעתיד.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "תחילת העבודה עם ארגונים",
+    "text": "התחלת עבודה עם ארגונים",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "צור את הארגון הראשון שלך כדי לנהל את מידע החברה שלך ולהתכונן לתכונות מיתוג עתידיות.",
+    "text": "צור את הארגון הראשון שלך כדי לנהל את פרטי החברה שלך ולהתכונן לתכונות מיתוג עתידיות.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
@@ -208,7 +208,7 @@
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "צוות",
+    "text": "חברים",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -232,7 +232,7 @@
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
-    "text": "מחק",
+    "text": "מחיקה",
     "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
@@ -292,11 +292,11 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "אין עדיין חברים. הזמן חברי צוות להתחיל.",
+    "text": "אין חברים עדיין. הזמן חברי צוות כדי להתחיל.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
-    "text": "לארגון זה אין עדיין חברים.",
+    "text": "לארגון זה אין חברים עדיין.",
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
@@ -324,7 +324,7 @@
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "לא ניתן לשנות את התפקיד של עצמך",
+    "text": "לא ניתן לשנות את התפקיד שלך",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
@@ -364,15 +364,15 @@
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "הזמנות לארגון",
+    "text": "הזמנות ארגון",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "הזמן חבר",
+    "text": "הזמנת חבר",
     "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "הזמן חבר חדש",
+    "text": "הזמנת חבר חדש",
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
@@ -396,7 +396,7 @@
     "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "שלח הזמנה",
+    "text": "שליחת הזמנה",
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
@@ -408,15 +408,15 @@
     "source_hash": "cedbf507"
   },
   "web.organizations.invitations.resend": {
-    "text": "שלח שוב",
+    "text": "שליחה מחדש",
     "source_hash": "1f948437"
   },
   "web.organizations.invitations.revoke": {
-    "text": "בטל",
+    "text": "ביטול",
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "ההזמנה נשלחה שוב בהצלחה",
+    "text": "ההזמנה נשלחה מחדש בהצלחה",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
@@ -444,11 +444,11 @@
     "source_hash": "f6725f3a"
   },
   "web.organizations.invitations.resent_count": {
-    "text": "נשלח שוב {count} פעם",
+    "text": "נשלח מחדש {count} פעם",
     "source_hash": "e71d1c6d"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "text": "נשלח שוב {count} פעמים",
+    "text": "נשלח מחדש {count} פעמים",
     "source_hash": "e58d803d"
   },
   "web.organizations.invitations.status.pending": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "חבר",
+    "text": "חבר צוות",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -476,15 +476,15 @@
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "קבל הזמנה",
+    "text": "קבלת הזמנה",
     "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "דחה הזמנה",
+    "text": "דחיית הזמנה",
     "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "פרטי ההזמנה",
+    "text": "פרטי הזמנה",
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
@@ -492,7 +492,7 @@
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "הוזמנת בתפקיד",
+    "text": "הוזמנת כ-",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -512,11 +512,11 @@
     "source_hash": "2bccbd56"
   },
   "web.organizations.invitations.expired_message": {
-    "text": "הזמנה זו פגה תוקף",
+    "text": "הזמנה זו פגה תוקפה",
     "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "הזמנה לא תקינה או שפגה תוקף",
+    "text": "הזמנה לא תקינה או שפג תוקפה",
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
@@ -532,7 +532,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "הזמנות לחברי צוות דורשות תוכנית עם ניהול צוותים. שדרג כדי להוסיף משתפי פעולה לארגון שלך.",
+    "text": "הזמנת חברי צוות דורשת תוכנית עם ניהול צוותים. שדרג כדי להוסיף שותפים לארגון שלך.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,15 +556,15 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "מחובר עם חשבון אחר",
+    "text": "חשבון אחר מחובר",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "הזמנה זו מיועדת ל-{invitedEmail}. אתה מחובר כרגע כ-{currentEmail}.",
+    "text": "הזמנה זו מיועדת ל-{invitedEmail}. אתה מחובר כעת כ-{currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
-    "text": "המשך בתור {email}",
+    "text": "המשך כ-{email}",
     "source_hash": "6c9a1d4e"
   },
   "web.organizations.invitations.expires_in_days": {
@@ -578,5 +578,191 @@
   "web.organizations.invitations.expires_soon": {
     "text": "פג תוקף בקרוב",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "צפייה והגדרת סביבות העבודה שלך"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "על ידי {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "כ-{role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "חזרה לדף הבית"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "הזמנה זו נשלחה לכתובת דוא״ל זו"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "המשך"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "התחבר וקבל הזמנה"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "מעבר לארגונים"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "אתה כבר חבר בארגון זה"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "הצטרף ל-{orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "התחבר כדי להצטרף ל-{orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "דחייה"
+  },
+  "web.organizations.sso.title": {
+    "text": "כניסה יחידה (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "הגדר SSO כדי לאפשר לחברים להתחבר באמצעות ספק הזהות של הארגון שלך"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "סוג ספק"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "בחר את ספק הזהות של הארגון שלך"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "שם תצוגה"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "שם ידידותי המוצג למשתמשים בעת ההתחברות"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "למשל Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "מזהה לקוח"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "מזהה לקוח OAuth שלך"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "סוד לקוח"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "סוד לקוח OAuth שלך"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "השאר ריק כדי לשמור על הסוד הקיים"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "מזהה דייר"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "מזהה הדייר שלך ב-Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "למשל 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "כתובת URL של המנפיק"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "כתובת ה-OIDC discovery URL של ספק הזהות שלך"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "למשל https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "דומייני דוא״ל מותרים"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "רק משתמשים עם כתובות דוא״ל מדומיינים אלה יכולים להתחבר. השאר ריק כדי לאפשר את כל הדומיינים."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "למשל acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "אנא הזן דומיין תקין (למשל example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "דומיין זה כבר ברשימה"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "הסרת {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "הפעלת SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "כשמופעל, חברי הארגון יכולים להתחבר באמצעות ספק SSO זה"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "שמירת תצורת SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "מחיקת תצורה"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "האם אתה בטוח? פעולה זו תשבית SSO עבור הארגון שלך."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "טעינת תצורת SSO נכשלה"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "שמירת תצורת SSO נכשלה"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "תצורת SSO נוצרה בהצלחה"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "תצורת SSO עודכנה בהצלחה"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "תצורת SSO נמחקה בהצלחה"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "מחיקת תצורת SSO נכשלה"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "בדיקת חיבור"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "ודא שספק הזהות נגיש (לא מאמת פרטי התחברות)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "בדיקת חיבור"
+  },
+  "web.organizations.sso.testing": {
+    "text": "בודק..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "בדיקת החיבור נכשלה"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "נקודת קצה לאימות"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "שדות חסרים"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "מופעל"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "מוגדר"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO דומיין"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "הגדרת SSO עבור כל דומיין מאומת"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "כדי לשנות ספק, מחק תחילה תצורה זו"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "לא מוגדר"
+  },
+  "web.organizations.tabs.team": {
+    "text": "צוות"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

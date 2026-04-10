@@ -16,7 +16,7 @@
     "source_hash": "d629cc71"
   },
   "web.translations.25_contributors": {
-    "text": "יותר מ-25 תורמים",
+    "text": "25+ תורמים",
     "source_hash": "080aa720"
   },
   "web.translations.were_grateful_to_the": {
@@ -32,7 +32,7 @@
     "source_hash": "1a8ccc7d"
   },
   "web.translations.reach_out_to_us": {
-    "text": "צור איתנו קשר",
+    "text": "פנה אלינו",
     "source_hash": "fee7dd79"
   },
   "web.translations.have_questions": {
@@ -40,11 +40,11 @@
     "source_hash": "75e4b61a"
   },
   "web.translations.send_translations_by_email_to": {
-    "text": "שלח תרגומים בדוא״ל ל-",
+    "text": "שלח תרגומים בדוא״ל אל",
     "source_hash": "f96a59a1"
   },
   "web.translations.english_template": {
-    "text": "תבנית אנגלית",
+    "text": "תבנית באנגלית",
     "source_hash": "1a843644"
   },
   "web.translations.start_a_new_translation_from_our": {

@@ -1,6 +1,6 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[פנייה: %s]",
+    "text": "[Ticket: %s]",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
@@ -20,11 +20,11 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות.",
+    "text": "קישור זה יעבוד פעם אחת בלבד. לאחר הצפייה, הסוד יימחק לצמיתות.",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
-    "text": "נשלח באמצעות",
+    "text": "נשלח דרך",
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
@@ -40,11 +40,11 @@
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "אמת כתובת דוא״ל",
+    "text": "אימות כתובת דוא״ל",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:",
+    "text": "או העתק והדבק את הקישור הזה:",
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
@@ -52,7 +52,7 @@
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}. אם לא יצרת חשבון, ניתן להתעלם מהודעה זו בבטחה.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address}. אם לא יצרת חשבון, תוכל להתעלם מהודעה זו בבטחה.",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
@@ -64,7 +64,7 @@
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
-    "text": "קיבלנו בקשה לאיפוס הסיסמה שלך עבור %{product_name}.",
+    "text": "קיבלנו בקשה לאפס את הסיסמה שלך ב-%{product_name}.",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
@@ -72,11 +72,11 @@
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:",
+    "text": "או העתק והדבק את הקישור הזה:",
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "אם לא ביקשת איפוס סיסמה, ניתן להתעלם מהודעה זו בבטחה.",
+    "text": "אם לא ביקשת איפוס סיסמה, תוכל להתעלם מדוא״ל זה בבטחה.",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
@@ -84,27 +84,27 @@
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "התחבר ל-%{display_domain}",
+    "text": "התחברות ל-%{display_domain}",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "התחבר עם קישור קסם",
+    "text": "התחברות עם קישור קסם",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "ביקשת קישור התחברות לחשבון %{product_name} שלך.",
+    "text": "ביקשת קישור התחברות עבור חשבון %{product_name} שלך.",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "התחבר",
+    "text": "התחברות",
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:",
+    "text": "או העתק והדבק את הקישור הזה:",
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
@@ -112,7 +112,7 @@
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "אם לא ביקשת קישור זה, ניתן להתעלם מהודעה זו בבטחה.",
+    "text": "אם לא ביקשת קישור זה, תוכל להתעלם מדוא״ל זה בבטחה.",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
@@ -120,7 +120,7 @@
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{email_address}.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address}.",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
@@ -132,7 +132,7 @@
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "תזכורת:",
+    "text": "תזכיר:",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
@@ -148,11 +148,11 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "קישור זה יעבוד רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות.",
+    "text": "קישור זה יעבוד פעם אחת בלבד. לאחר הצפייה, הסוד יימחק לצמיתות.",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
-    "text": "סוד זה מוגן באמצעות ביטוי סיסמה. השולח צריך לספק לך אותו בנפרד.",
+    "text": "סוד זה מוגן בביטוי סיסמה. השולח צריך לספק אותו לך בנפרד.",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
@@ -160,7 +160,7 @@
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
-    "text": "נשלח באמצעות",
+    "text": "נשלח דרך",
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
@@ -172,15 +172,15 @@
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
-    "text": "הסוד שלך נצפה בתאריך %{date}.",
+    "text": "הסוד שלך נצפה ב-%{date}.",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "מזהה הסוד:",
+    "text": "מזהה סוד:",
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
-    "text": "זוהי התראה אוטומטית. לא נדרשת פעולה.",
+    "text": "זוהי התראה אוטומטית. אין צורך בפעולה.",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
@@ -196,11 +196,11 @@
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "הקישור הסודי שלך יפוג בקרוב",
+    "text": "קישור הסוד שלך עומד לפוג",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "הקישור הסודי שלך יפוג בעוד %{time_remaining}",
+    "text": "קישור הסוד שלך יפוג בעוד %{time_remaining}",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
@@ -212,11 +212,11 @@
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
-    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו.",
+    "text": "לאחר התפוגה, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזר אותו.",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
-    "text": "נשלח באמצעות",
+    "text": "נשלח דרך",
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
@@ -224,11 +224,11 @@
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
-    "text": "לאחר פקיעת התוקף, הסוד יימחק לצמיתות.",
+    "text": "לאחר התפוגה, הסוד יימחק לצמיתות.",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "משוב מתאריך %{date} באמצעות %{display_domain} (%{strategy})",
+    "text": "משוב ב-%{date} דרך %{display_domain} (%{strategy})",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
@@ -264,15 +264,15 @@
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
-    "text": "%{inviter_email} הזמין אותך להצטרף ל-\"%{organization_name}\" כ-%{role_description}.",
+    "text": "%{inviter_email} הזמין אותך להצטרף ל-\"%{organization_name}\" כ%{role_description}.",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "קבל הזמנה",
+    "text": "קבלת הזמנה",
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "או העתק והדבק קישור זה:",
+    "text": "או העתק והדבק את הקישור הזה:",
     "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
@@ -280,7 +280,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "אם אינך רוצה להצטרף, ניתן פשוט להתעלם מהודעה זו או לדחות את ההזמנה.",
+    "text": "אם אינך רוצה להצטרף, תוכל פשוט להתעלם מדוא״ל זה או לדחות את ההזמנה.",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
@@ -288,7 +288,7 @@
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
-    "text": "נ.ב. הודעה זו נשלחה ל-%{invited_email}. אם לא ציפית להזמנה זו, ניתן להתעלם מהודעה זו בבטחה.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{invited_email}. אם לא ציפית להזמנה זו, תוכל להתעלם מהודעה זו בבטחה.",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
@@ -308,11 +308,11 @@
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
-    "text": "הסיסמה שלך עבור %{product_name} שונתה בתאריך %{date} בשעה %{time}.",
+    "text": "הסיסמה שלך ב-%{product_name} שונתה ב-%{date} בשעה %{time}.",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד על ידי איפוס הסיסמה ויצירת קשר עם התמיכה.",
+    "text": "אם לא ביצעת שינוי זה, אנא אבטח את החשבון שלך מיד על ידי איפוס הסיסמה ופנייה לתמיכה.",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
@@ -328,11 +328,11 @@
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
-    "text": "כתובת הדוא״ל עבור חשבון %{product_name} שלך שונתה ל-%{new_email_masked}.",
+    "text": "כתובת הדוא״ל של חשבון %{product_name} שלך שונתה ל-%{new_email_masked}.",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
-    "text": "אם לא ביצעת שינוי זה, אנא צור קשר עם התמיכה מיד מכיוון שהחשבון שלך עשוי להיות פרוץ.",
+    "text": "אם לא ביצעת שינוי זה, אנא פנה לתמיכה מיד כי ייתכן שהחשבון שלך נפרץ.",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
@@ -344,7 +344,7 @@
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "שונה בתאריך:",
+    "text": "שונה ב:",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
@@ -352,11 +352,11 @@
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "אם לא ביצעת שינוי זה, ייתכן שחשבונך נפרץ.",
+    "text": "אם לא ביצעת שינוי זה, ייתכן שהחשבון שלך נפרץ.",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "פנה לתמיכה",
+    "text": "פנייה לתמיכה",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
@@ -380,23 +380,23 @@
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "דוא״ל חדש מבוקש:",
+    "text": "דוא״ל חדש שהתבקש:",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "הוגש בתאריך:",
+    "text": "התבקש ב:",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "אם הגשת בקשה זו, בדוק את הדוא״ל החדש שלך לקישור אישור. טרם בוצעו שינויים.",
+    "text": "אם ביצעת בקשה זו, בדוק את הדוא״ל החדש שלך לקבלת קישור אישור. טרם בוצעו שינויים.",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "אם לא הגשת בקשה זו, באפשרותך להתעלם מדוא״ל זה. חשבונך לא שונה.",
+    "text": "אם לא ביצעת בקשה זו, תוכל להתעלם מדוא״ל זה בבטחה. החשבון שלך לא שונה.",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "פנה לתמיכה",
+    "text": "פנייה לתמיכה",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
@@ -404,7 +404,7 @@
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
-    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address} כי התבקש שינוי דוא״ל לחשבונך.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address} כי התבקש שינוי דוא״ל עבור החשבון שלך.",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
@@ -412,7 +412,7 @@
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
-    "text": "אמת את כתובת הדוא״ל החדשה שלך",
+    "text": "אימות כתובת הדוא״ל החדשה שלך",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
@@ -420,7 +420,7 @@
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "אמת כתובת דוא״ל",
+    "text": "אימות כתובת דוא״ל",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
@@ -432,7 +432,7 @@
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "או העתק והדבק קישור זה:",
+    "text": "או העתק והדבק את הקישור הזה:",
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
@@ -440,7 +440,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "אם לא ביקשת שינוי זה, באפשרותך להתעלם מדוא״ל זה. כתובת הדוא״ל שלך לא תשתנה.",
+    "text": "אם לא ביקשת שינוי זה, תוכל להתעלם מדוא״ל זה בבטחה. כתובת הדוא״ל שלך לא תשתנה.",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
@@ -460,7 +460,7 @@
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
-    "text": "אימות דו-שלבי הופעל עבור חשבון %{product_name} שלך בתאריך %{date}.",
+    "text": "אימות דו-שלבי הופעל עבור חשבון %{product_name} שלך ב-%{date}.",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
@@ -480,7 +480,7 @@
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
-    "text": "אימות דו-שלבי הושבת עבור חשבון %{product_name} שלך בתאריך %{date}.",
+    "text": "אימות דו-שלבי הושבת עבור חשבון %{product_name} שלך ב-%{date}.",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
@@ -500,7 +500,7 @@
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "זוהתה התחברות חדשה לחשבון %{product_name} שלך בתאריך %{date} בשעה %{time}.",
+    "text": "זוהתה התחברות חדשה לחשבון %{product_name} שלך ב-%{date} בשעה %{time}.",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
@@ -516,7 +516,7 @@
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
-    "text": "אם זה לא היית אתה, החשבון שלך עשוי להיות פרוץ.",
+    "text": "אם זה לא היית אתה, ייתכן שהחשבון שלך נפרץ.",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
@@ -576,15 +576,15 @@
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
-    "text": "קבלת תשלום עבור %{product_name}",
+    "text": "קבלה על תשלום עבור %{product_name}",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
-    "text": "קבלת תשלום",
+    "text": "קבלה על תשלום",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
-    "text": "תודה על התשלום שלך. הנה פרטי התשלום:",
+    "text": "תודה על התשלום. הנה פרטי התשלום שלך:",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
@@ -600,7 +600,7 @@
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
-    "text": "צפה בחשבונית",
+    "text": "צפייה בחשבונית",
     "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
@@ -616,11 +616,11 @@
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
-    "text": "לא הצלחנו לעבד את התשלום שלך עבור %{product_name}. אנא עדכן את אמצעי התשלום שלך כדי למנוע הפסקת שירות.",
+    "text": "לא הצלחנו לעבד את התשלום שלך עבור %{product_name}. אנא עדכן את אמצעי התשלום שלך כדי למנוע הפרעה בשירות.",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
-    "text": "עדכן אמצעי תשלום",
+    "text": "עדכון אמצעי תשלום",
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
@@ -640,7 +640,7 @@
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "שדרג עכשיו",
+    "text": "שדרוג עכשיו",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
@@ -648,7 +648,7 @@
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
-    "text": "המנוי שלך ל-%{product_name} שונה",
+    "text": "המנוי שלך ב-%{product_name} שונה",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
@@ -656,11 +656,11 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "המנוי שלך ל-%{product_name} שונה מ-%{old_plan} ל-%{new_plan}.",
+    "text": "המנוי שלך ב-%{product_name} שונה מ-%{old_plan} ל-%{new_plan}.",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "שינוי זה ייכנס לתוקף ב-%{date}.",
+    "text": "שינוי זה נכנס לתוקף ב-%{date}.",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
@@ -676,11 +676,11 @@
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
-    "text": "הסרה מרשימת התפוצה",
+    "text": "ביטול מנוי",
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "צפה בדפדפן",
+    "text": "צפייה בדפדפן",
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {

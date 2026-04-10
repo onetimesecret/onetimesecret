@@ -53,7 +53,7 @@
     "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "נדרש אימות דו-שלבי כדי לגשת לחשבון שלך",
+    "text": "נדרש אימות דו-שלבי לגישה לחשבון שלך",
     "context": "Explanatory text below the heading",
     "source_hash": "3cff3311"
   },
@@ -70,11 +70,11 @@
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "יותר מדי ניסיונות. אנא נסה שוב מאוחר יותר.",
+    "text": "ניסיונות רבים מדי. אנא נסה שוב מאוחר יותר.",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "הסשן פג תוקף. אנא התחבר שוב.",
+    "text": "ההפעלה פגה. אנא התחבר שוב.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
@@ -82,7 +82,7 @@
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "קוד שחזור זה כבר נוצל. כל קוד ניתן לשימוש פעם אחת בלבד.",
+    "text": "קוד שחזור זה כבר נוצל. ניתן להשתמש בכל קוד פעם אחת בלבד.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
@@ -107,7 +107,7 @@
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "התחבר עם דוא״ל",
+    "text": "התחברות עם דוא״ל",
     "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
@@ -127,7 +127,7 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "שלחנו קישור התחברות ל-{email}",
+    "text": "שלחנו קישור התחברות אל {email}",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
@@ -135,11 +135,11 @@
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "נסה דוא״ל אחר",
+    "text": "נסה כתובת דוא״ל אחרת",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "לא צריך סיסמה — פשוט לחץ על הקישור בדוא״ל שלך",
+    "text": "לא צריך סיסמה - פשוט לחץ על הקישור בדוא״ל שלך",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -155,7 +155,7 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "פג תוקף ההפעלה שלך. רענן את הדף ונסה שוב.",
+    "text": "ההפעלה שלך פגה. אנא רענן את הדף ונסה שוב.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
@@ -179,19 +179,19 @@
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "התחבר עם Face ID / Touch ID",
+    "text": "התחברות עם Face ID / Touch ID",
     "source_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "הגדר התחברות ביומטרית",
+    "text": "הגדרת התחברות ביומטרית",
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "אימות ביומטרי לא נתמך בדפדפן זה",
+    "text": "אימות ביומטרי אינו נתמך בדפדפן זה",
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "אנא השתמש בדפדפן מודרני שתומך ב-WebAuthn (Chrome, Safari, Firefox או Edge)",
+    "text": "אנא השתמש בדפדפן מודרני התומך ב-WebAuthn (Chrome, Safari, Firefox או Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -232,7 +232,7 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "התחבר באמצעות Face ID, Touch ID, Windows Hello או מפתח אבטחה",
+    "text": "התחבר עם Face ID, Touch ID, Windows Hello או מפתח אבטחה",
     "context": "Description of passkey authentication",
     "source_hash": "a513ed5c"
   },
@@ -242,7 +242,7 @@
     "source_hash": "85630bef"
   },
   "web.auth.passkeys.not_configured": {
-    "text": "לא הוגדר",
+    "text": "לא מוגדר",
     "context": "Status when no passkeys are registered",
     "source_hash": "dd1841d2"
   },
@@ -252,17 +252,17 @@
     "source_hash": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "הוסף מפתח גישה",
+    "text": "הוספת מפתח גישה",
     "context": "Button to add a new passkey",
     "source_hash": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "רשום מפתח גישה",
+    "text": "רישום מפתח גישה",
     "context": "Button to register a new passkey",
     "source_hash": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "הסר מפתח גישה",
+    "text": "הסרת מפתח גישה",
     "context": "Button to remove a passkey",
     "source_hash": "67b1d47c"
   },
@@ -307,17 +307,17 @@
     "source_hash": "e1af94fe"
   },
   "web.auth.passkeys.never_used": {
-    "text": "לא נעשה שימוש",
+    "text": "מעולם לא נעשה שימוש",
     "context": "Status when passkey has not been used",
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "מאובטח יותר מסיסמאות - עמיד בפני התקפות פישינג",
+    "text": "מאובטח יותר מסיסמאות - עמיד בפני התקפות דיוג",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "מהיר וקל - פשוט השתמש בטביעת אצבע, זיהוי פנים או מפתח אבטחה",
+    "text": "מהיר וקל - פשוט השתמש בטביעת אצבע, פנים או מפתח אבטחה",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
@@ -336,7 +336,7 @@
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "החשבון ננעל עקב יותר מדי ניסיונות התחברות כושלים",
+    "text": "החשבון נעול עקב ניסיונות התחברות כושלים רבים מדי",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -344,11 +344,11 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "צור קשר עם התמיכה אם אתה צריך גישה מיידית",
+    "text": "פנה לתמיכה אם אתה צריך גישה מיידית",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "ניתן לאפס את הסיסמה שלך במקום",
+    "text": "תוכל לאפס את הסיסמה שלך במקום",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -356,15 +356,15 @@
     "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
-    "text": "סשנים פעילים",
+    "text": "הפעלות פעילות",
     "source_hash": "b58fa4e0"
   },
   "web.auth.sessions.current": {
-    "text": "סשן נוכחי",
+    "text": "הפעלה נוכחית",
     "source_hash": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "סשנים אחרים",
+    "text": "הפעלות אחרות",
     "source_hash": "8409f445"
   },
   "web.auth.sessions.device": {
@@ -388,15 +388,15 @@
     "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
-    "text": "הסר",
+    "text": "הסרה",
     "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "התנתק מכל הסשנים האחרים",
+    "text": "התנתקות מכל ההפעלות האחרות",
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "האם אתה בטוח שברצונך להסיר סשן זה?",
+    "text": "האם אתה בטוח שברצונך להסיר הפעלה זו?",
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
@@ -404,19 +404,19 @@
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
-    "text": "אין סשנים פעילים אחרים",
+    "text": "אין הפעלות פעילות אחרות",
     "source_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "הסשן הוסר בהצלחה",
+    "text": "ההפעלה הוסרה בהצלחה",
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "כל הסשנים האחרים נותקו",
+    "text": "כל ההפעלות האחרות נותקו",
     "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "סשנים פעילים",
+    "text": "הפעלות פעילות",
     "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
@@ -432,11 +432,11 @@
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "הפעל אימות דו-שלבי",
+    "text": "הפעלת אימות דו-שלבי",
     "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "השבת אימות דו-שלבי",
+    "text": "השבתת אימות דו-שלבי",
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
@@ -456,7 +456,7 @@
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "סרוק קוד QR זה עם אפליקציית האימות שלך",
+    "text": "סרוק את קוד ה-QR הזה עם אפליקציית האימות שלך",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
@@ -476,7 +476,7 @@
     "source_hash": "7c08f68d"
   },
   "web.auth.mfa.verify_login": {
-    "text": "אמת",
+    "text": "אימות",
     "source_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
@@ -484,7 +484,7 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "קוד לא תקין. הקודים פוקעים כל 30 שניות. נסה את הקוד האחרון מאפליקציית האימות שלך.",
+    "text": "קוד לא תקין. קודים פגים כל 30 שניות. נסה את הקוד העדכני ביותר מאפליקציית האימות שלך.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -496,7 +496,7 @@
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "הזן את הסיסמה שלך כדי להשבית אימות דו-שלבי",
+    "text": "הזן את הסיסמה שלך כדי להשבית 2FA",
     "source_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "אשר את הזהות שלך כדי לשנות הגדרות אימות דו-שלבי",
+    "text": "אשר את זהותך כדי לשנות הגדרות אימות דו-שלבי",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -512,7 +512,7 @@
     "source_hash": "e1af94fe"
   },
   "web.auth.mfa.never_used": {
-    "text": "לא נעשה שימוש",
+    "text": "מעולם לא נעשה שימוש",
     "source_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
@@ -528,15 +528,15 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "בטל וחזור להתחברות",
+    "text": "ביטול וחזרה להתחברות",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
-    "text": "בטל התחברות",
+    "text": "ביטול התחברות",
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "טוען סטטוס אימות דו-שלבי...",
+    "text": "טוען מצב MFA...",
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
@@ -544,11 +544,11 @@
     "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "הגן על החשבון שלך עם שכבת אבטחה נוספת",
+    "text": "הגן על החשבון שלך בשכבת אבטחה נוספת",
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "מנע גישה לא מורשית גם אם הסיסמה שלך נפרצה",
+    "text": "מניעת גישה בלתי מורשית גם אם הסיסמה שלך נחשפה",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -556,7 +556,7 @@
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "קודי שחזור לגישת חירום",
+    "text": "קודי שחזור גיבוי לגישת חירום",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -568,7 +568,7 @@
     "source_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "השבת אימות דו-שלבי",
+    "text": "השבתת 2FA",
     "source_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
@@ -588,11 +588,11 @@
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "הפעל אימות דו-שלבי",
+    "text": "הפעלת MFA",
     "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "השלם הגדרה",
+    "text": "השלמת הגדרה",
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
@@ -608,7 +608,7 @@
     "source_hash": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "אמת קוד שחזור",
+    "text": "אימות קוד שחזור",
     "source_hash": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
@@ -636,11 +636,11 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "שמור קודים אלה במקום בטוח. כל אחד יכול לשמש פעם אחת אם תאבד גישה לאפליקציית האימות שלך.",
+    "text": "שמור קודים אלה במקום בטוח. ניתן להשתמש בכל אחד מהם פעם אחת אם תאבד גישה לאפליקציית האימות שלך.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "קודים אלה יוצגו רק פעם אחת",
+    "text": "קודים אלה יוצגו פעם אחת בלבד",
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
@@ -648,11 +648,11 @@
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
-    "text": "צור קודים חדשים",
+    "text": "יצירת קודים חדשים",
     "source_hash": "4025779e"
   },
   "web.auth.recovery_codes.regenerate": {
-    "text": "צור קודים מחדש",
+    "text": "יצירת קודים מחדש",
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
@@ -660,7 +660,7 @@
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "הורד קודים",
+    "text": "הורדת קודים",
     "source_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
@@ -668,11 +668,11 @@
     "source_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
-    "text": "הדפס קודים",
+    "text": "הדפסת קודים",
     "source_hash": "ff940182"
   },
   "web.auth.recovery_codes.copy": {
-    "text": "העתק את כל הקודים",
+    "text": "העתקת כל הקודים",
     "source_hash": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
@@ -692,11 +692,11 @@
     "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} מתוך {limit} קודי שחזור נותרו",
+    "text": "נותרו {count} מתוך {limit} קודי שחזור",
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "כל קוד ניתן לשימוש פעם אחת בלבד. צור קודים מחדש אם נגמרים לך.",
+    "text": "ניתן להשתמש בכל קוד פעם אחת בלבד. צור קודים מחדש כשהם עומדים להיגמר.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -710,5 +710,20 @@
   "web.auth.recovery_codes.link_title": {
     "text": "קודי שחזור",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "אפשרויות אימות חלופיות"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "הפעלה"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "הפעלות"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }
