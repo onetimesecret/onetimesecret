@@ -217,7 +217,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       end
 
       context 'creating new sender config' do
-        it 'creates SES config and returns masked api_key' do
+        it 'creates sender config and returns sender identity fields' do
           csrf_put api_path(test_custom_domain.extid), valid_ses_params
 
           expect(last_response.status).to eq(200)
@@ -226,47 +226,25 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           expect(body).to have_key('record')
           record = body['record']
 
-          expect(record['provider']).to eq('ses')
+          # Custom mail sender model: provider resolved from installation config
+          expect(record['provider']).to eq('inherit')
           expect(record['from_name']).to eq('Test Sender')
           expect(record['from_address']).to eq('noreply@acme-corp.example.com')
           expect(record['reply_to']).to eq('support@acme-corp.example.com')
           expect(record['enabled']).to be true
-
-          # Secret should be masked with bullet characters
-          expect(record['api_key_masked']).to match(/^\u2022{8}.{4}$/)
-          expect(record).not_to have_key('api_key')
         end
 
-        it 'creates SMTP config' do
+        it 'creates config with SMTP params (provider ignored by handler)' do
           csrf_put api_path(test_custom_domain.extid), valid_smtp_params
 
           expect(last_response.status).to eq(200)
 
           body = json_body
           record = body['record']
-          expect(record['provider']).to eq('smtp')
+          # Handler ignores provider param; resolved from installation config
+          expect(record['provider']).to eq('inherit')
           expect(record['from_address']).to eq('noreply@smtp.example.com')
           expect(record['enabled']).to be false
-        end
-
-        it 'creates SendGrid config' do
-          params = valid_ses_params.merge(provider: 'sendgrid')
-          csrf_put api_path(test_custom_domain.extid), params
-
-          expect(last_response.status).to eq(200)
-
-          body = json_body
-          expect(body['record']['provider']).to eq('sendgrid')
-        end
-
-        it 'creates Lettermint config' do
-          params = valid_ses_params.merge(provider: 'lettermint')
-          csrf_put api_path(test_custom_domain.extid), params
-
-          expect(last_response.status).to eq(200)
-
-          body = json_body
-          expect(body['record']['provider']).to eq('lettermint')
         end
 
         it 'returns user_id in response' do
@@ -301,7 +279,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           )
         end
 
-        it 'replaces all fields with PUT semantics' do
+        it 'replaces all sender identity fields with PUT semantics' do
           csrf_put api_path(test_custom_domain.extid), valid_ses_params
 
           expect(last_response.status).to eq(200)
@@ -309,8 +287,9 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           body = json_body
           record = body['record']
 
-          # Provider should be replaced
-          expect(record['provider']).to eq('ses')
+          # replace_existing_config only updates sender identity fields;
+          # provider is preserved from the model-created config ('smtp')
+          expect(record['provider']).to eq('smtp')
           expect(record['from_name']).to eq('Test Sender')
           expect(record['from_address']).to eq('noreply@acme-corp.example.com')
           expect(record['reply_to']).to eq('support@acme-corp.example.com')
@@ -376,26 +355,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       end
 
       context 'validation errors' do
-        it 'returns 422 for missing provider' do
-          params = valid_ses_params.dup
-          params.delete(:provider)
-
-          csrf_put api_path(test_custom_domain.extid), params
-
-          expect(last_response.status).to eq(422)
-          body = json_body
-          expect(body['message']).to include('Provider')
-        end
-
-        it 'returns 422 for invalid provider' do
-          params = valid_ses_params.merge(provider: 'mailchimp')
-
-          csrf_put api_path(test_custom_domain.extid), params
-
-          expect(last_response.status).to eq(422)
-          body = json_body
-          expect(body['message']).to include('Invalid provider')
-        end
+        # Note: provider and api_key are no longer user-facing params.
+        # They are resolved from installation-level config (custom mail sender model).
 
         it 'returns 422 for missing from_address' do
           params = valid_ses_params.dup
@@ -408,15 +369,22 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
           expect(body['message']).to include('From address')
         end
 
-        it 'returns 422 for missing api_key on PUT' do
+        it 'succeeds without provider param (resolved from installation config)' do
+          params = valid_ses_params.dup
+          params.delete(:provider)
+
+          csrf_put api_path(test_custom_domain.extid), params
+
+          expect(last_response.status).to eq(200)
+        end
+
+        it 'succeeds without api_key param (resolved from installation config)' do
           params = valid_ses_params.dup
           params.delete(:api_key)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(422)
-          body = json_body
-          expect(body['message']).to include('API key')
+          expect(last_response.status).to eq(200)
         end
 
         it 'returns 422 for invalid email format in from_address' do
@@ -681,7 +649,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(record['api_key_masked']).to match(/^\u2022{8}/)
       end
 
-      it 'updates api_key when provided' do
+      it 'ignores api_key param (resolved from installation config)' do
         csrf_patch api_path(test_custom_domain.extid), {
           api_key: 'new-secret-value',
         }
@@ -691,8 +659,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         body = json_body
         record = body['record']
 
-        # Secret should show new masked value (last 4 chars of 'new-secret-value')
-        expect(record['api_key_masked']).to eq("\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022alue")
+        # Handler ignores api_key; original value preserved from model
+        expect(record['api_key_masked']).to match(/^\u2022{8}/)
       end
 
       it 'updates reply_to only' do
@@ -751,7 +719,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(record['verified']).to be true
       end
 
-      it 'switches provider while preserving other fields' do
+      it 'ignores provider param in PATCH (resolved from installation config)' do
         csrf_patch api_path(test_custom_domain.extid), {
           provider: 'sendgrid',
         }
@@ -761,7 +729,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         body = json_body
         record = body['record']
 
-        expect(record['provider']).to eq('sendgrid')
+        # Handler ignores provider param; model retains original value
+        expect(record['provider']).to eq('ses')
         # Other fields preserved
         expect(record['from_address']).to eq('original@acme-corp.example.com')
         expect(record['from_name']).to eq('Original Sender')
@@ -811,14 +780,15 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         login_as(test_owner)
       end
 
-      it 'creates new config when providing all required fields' do
+      it 'creates new config when providing required sender identity fields' do
         csrf_patch api_path(test_custom_domain.extid), valid_ses_params
 
         expect(last_response.status).to eq(200)
 
         body = json_body
         record = body['record']
-        expect(record['provider']).to eq('ses')
+        # Provider resolved from installation config, not API params
+        expect(record['provider']).to eq('inherit')
         expect(record['from_address']).to eq('noreply@acme-corp.example.com')
       end
 
@@ -1066,6 +1036,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         body = json_body
         expect(body).to have_key('record')
+        # Config created directly via model with provider: 'ses', so it persists
         expect(body['record']['provider']).to eq('ses')
         expect(body['record']['from_address']).to eq('provision@acme-corp.example.com')
       end

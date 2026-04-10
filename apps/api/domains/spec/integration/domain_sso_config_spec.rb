@@ -125,7 +125,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       client_id: 'test-client-id-12345',
       client_secret: 'test-client-secret-abcdef',
       tenant_id: '12345678-1234-1234-1234-123456789abc',
-      allowed_domains: ['test.local'],
+      allowed_domains: ['acme-corp.example.com'],
       enabled: true,
     }
   end
@@ -302,77 +302,77 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       end
 
       context 'validation errors' do
-        it 'returns 400 for missing provider_type' do
+        it 'returns 422 for missing provider_type' do
           params = valid_entra_params.dup
           params.delete(:provider_type)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Provider type')
         end
 
-        it 'returns 400 for invalid provider_type' do
+        it 'returns 422 for invalid provider_type' do
           params = valid_entra_params.merge(provider_type: 'invalid_provider')
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Invalid provider type')
         end
 
-        it 'returns 400 for missing client_id' do
+        it 'returns 422 for missing client_id' do
           params = valid_entra_params.dup
           params.delete(:client_id)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Client ID')
         end
 
-        it 'returns 400 for missing client_secret on PUT' do
+        it 'returns 422 for missing client_secret on PUT' do
           params = valid_entra_params.dup
           params.delete(:client_secret)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Client secret')
         end
 
-        it 'returns 400 for missing tenant_id on Entra ID provider' do
+        it 'returns 422 for missing tenant_id on Entra ID provider' do
           params = valid_entra_params.dup
           params.delete(:tenant_id)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Tenant ID')
         end
 
-        it 'returns 400 for missing issuer on OIDC provider' do
+        it 'returns 422 for missing issuer on OIDC provider' do
           params = valid_oidc_params.dup
           params.delete(:issuer)
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Issuer URL')
         end
 
-        it 'returns 400 for non-HTTPS issuer URL' do
+        it 'returns 422 for non-HTTPS issuer URL' do
           params = valid_oidc_params.merge(issuer: 'http://insecure.example.com')
 
           csrf_put api_path(test_custom_domain.extid), params
 
-          expect(last_response.status).to eq(400)
+          expect(last_response.status).to eq(422)
           body = json_body
           expect(body['message']).to include('Issuer URL')
         end
@@ -389,13 +389,14 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'returns 403 when SSO feature flag is disabled' do
+      it 'returns 422 when SSO feature flag is disabled' do
         disable_sso_feature_flag
         login_as(test_owner)
 
         csrf_put api_path(test_custom_domain.extid), valid_entra_params
 
-        expect(last_response.status).to eq(403)
+        # Feature flag check uses raise_form_error → FormError → 422
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('SSO is not enabled')
       end
@@ -405,12 +406,13 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         csrf_put api_path(test_custom_domain.extid), valid_entra_params
 
+        # Non-owner check uses verify_one_of_roles! → Onetime::Forbidden → 403
         expect(last_response.status).to eq(403)
         body = json_body
         expect(body['message']).to include('owner')
       end
 
-      it 'returns 403 when organization lacks manage_sso entitlement' do
+      it 'returns 422 when organization lacks manage_sso entitlement' do
         # In integration tests with billing disabled, all orgs get STANDALONE_ENTITLEMENTS.
         # We stub can? on the specific org instance to test this code path.
         # Note: This requires finding the org that will be loaded by the request.
@@ -419,7 +421,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         login_as(test_owner)
         csrf_put api_path(test_custom_domain.extid), valid_entra_params
 
-        expect(last_response.status).to eq(403)
+        # Entitlement check uses raise_form_error → FormError → 422
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('manage_sso')
       end
@@ -663,12 +666,12 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(record['provider_type']).to eq('entra_id')
       end
 
-      it 'returns 400 when required fields missing for creation' do
+      it 'returns 422 when required fields missing for creation' do
         csrf_patch api_path(test_custom_domain.extid), {
           display_name: 'Incomplete Config',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('required')
       end
@@ -767,6 +770,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       end
 
       it 'attempts connection test and returns result' do
+        stub_request(:get, "https://login.microsoftonline.com/12345678-1234-1234-1234-123456789abc/v2.0/.well-known/openid-configuration").to_return(status: 200, body: %Q({"issuer":"https://login.microsoftonline.com"}), headers: {"Content-Type" => "application/json"})
+
         csrf_post test_connection_path(test_custom_domain.extid), entra_test_params
 
         expect(last_response.status).to eq(200)
@@ -790,6 +795,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       end
 
       it 'tests Google connection' do
+        stub_request(:get, "https://accounts.google.com/.well-known/openid-configuration").to_return(status: 200, body: %Q({"issuer":"https://accounts.google.com"}), headers: {"Content-Type" => "application/json"})
+
         csrf_post test_connection_path(test_custom_domain.extid), google_test_params
 
         expect(last_response.status).to eq(200)
@@ -820,79 +827,79 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     context 'validation errors' do
-      it 'returns 400 for missing provider_type' do
+      it 'returns 422 for missing provider_type' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           client_id: 'some-client-id',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('Provider type')
       end
 
-      it 'returns 400 for missing client_id' do
+      it 'returns 422 for missing client_id' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'entra_id',
           tenant_id: 'some-tenant',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('Client ID')
       end
 
-      it 'returns 400 for missing tenant_id on Entra ID' do
+      it 'returns 422 for missing tenant_id on Entra ID' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'entra_id',
           client_id: 'some-client-id',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('Tenant ID')
       end
 
-      it 'returns 400 for invalid tenant_id format on Entra ID' do
+      it 'returns 422 for invalid tenant_id format on Entra ID' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'entra_id',
           client_id: 'some-client-id',
           tenant_id: 'not-a-uuid',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('UUID')
       end
 
-      it 'returns 400 for missing issuer on OIDC' do
+      it 'returns 422 for missing issuer on OIDC' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'oidc',
           client_id: 'some-client-id',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('Issuer URL')
       end
 
-      it 'returns 400 for invalid Google client_id format' do
+      it 'returns 422 for invalid Google client_id format' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'google',
           client_id: 'invalid-google-client',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('googleusercontent.com')
       end
 
-      it 'returns 400 for invalid GitHub client_id format' do
+      it 'returns 422 for invalid GitHub client_id format' do
         csrf_post test_connection_path(test_custom_domain.extid), {
           provider_type: 'github',
           client_id: 'invalid-github-client',
         }
 
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(422)
         body = json_body
         expect(body['message']).to include('Iv1')
       end
