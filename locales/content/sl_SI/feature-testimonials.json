@@ -4,7 +4,7 @@
     "source_hash": "ff4d6634"
   },
   "web.testimonials.ai_generated_content_disclaimer": {
-    "text": "Z UI ustvarjena vsebina za demonstracijo. Ni od dejanske osebe ali podjetja.",
+    "text": "Z UI ustvarjena vsebina za predstavitev. Ne prihaja od dejanske osebe ali podjetja.",
     "source_hash": "d7093de7"
   },
   "web.testimonials.randomtestimonial_stars_5": {
@@ -16,7 +16,7 @@
     "source_hash": "a06d9daa"
   },
   "web.testimonials.randomtestimonial_quote": {
-    "text": "„{0}“",
+    "text": "\"{0}\"",
     "source_hash": "7a27d02b"
   },
   "web.testimonials.t_ai_generated_testimonial": {
@@ -32,7 +32,7 @@
     "source_hash": "947cd6b4"
   },
   "web.testimonials.this_quote_was_generated_by": {
-    "text": "Ta citat je ustvaril/-a",
+    "text": "Ta citat je bil ustvarjen z",
     "source_hash": "7879a747"
   },
   "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {

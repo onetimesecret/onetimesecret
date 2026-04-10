@@ -28,7 +28,7 @@
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Na vaš e-poštni naslov bo poslana varna povezava.",
+    "text": "Varna povezava bo poslana v vaš e-poštni nabiralnik.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -36,19 +36,19 @@
     "source_hash": "7175517a"
   },
   "web.login.sign_in_with_password": {
-    "text": "Prijava z geslom",
+    "text": "Prijavite se z geslom",
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Uporabi prijavo brez gesla",
+    "text": "Uporabite prijavo brez gesla",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
-    "text": "Ustvari račun",
+    "text": "Ustvarite račun",
     "source_hash": "798ca2ce"
   },
   "web.login.return_home": {
-    "text": "Nazaj na začetno stran",
+    "text": "Nazaj na domov",
     "source_hash": "bbcc935e"
   },
   "web.login.tab_password": {
@@ -56,11 +56,11 @@
     "source_hash": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "Čarobna povezava",
+    "text": "Magična povezava",
     "source_hash": "7a9ba11a"
   },
   "web.login.tab_passkey": {
-    "text": "Dostopni ključ",
+    "text": "Ključ za dostop",
     "source_hash": "904c9aa9"
   },
   "web.login.need_help": {
@@ -72,7 +72,7 @@
     "source_hash": "eb4e8d3b"
   },
   "web.login.sign_in_with_sso": {
-    "text": "Prijava z SSO",
+    "text": "Prijavite se s SSO",
     "source_hash": "73e984e9"
   },
   "web.login.sign_in_with_provider": {
@@ -80,7 +80,7 @@
     "source_hash": "b8794f11"
   },
   "web.auth.sso.signing_in": {
-    "text": "Preusmerjanje k ponudniku identitete...",
+    "text": "Preusmerjanje na ponudnika identitete ...",
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
@@ -88,11 +88,11 @@
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "SSO-avtentikacija ni uspela. Poskusite znova ali se prijavite z geslom.",
+    "text": "Avtentikacija SSO ni uspela. Poskusite znova ali uporabite prijavo z geslom.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "Avtentikacijska povezava je nepopolna. Zahtevajte novo prijavno povezavo.",
+    "text": "Potrditvena povezava je nepopolna. Zahtevajte novo prijavno povezavo.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
@@ -100,7 +100,7 @@
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Ta prijavna povezava ni veljavna. Zahtevajte novo.",
+    "text": "Ta prijavna povezava je neveljavna. Zahtevajte novo.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
@@ -131,35 +131,35 @@
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Potrdite svoj račun",
+    "text": "Preverite svoj račun",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "Vaš račun je bil uspešno potrjen",
+    "text": "Vaš račun je bil uspešno preverjen",
     "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
-    "text": "Neveljaven ali potekel ključ za preverjanje",
+    "text": "Neveljaven ali potekel potrditveni ključ",
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Ta povezava za preverjanje je potekla. Zahtevajte novo.",
+    "text": "Ta potrditvena povezava je potekla. Zahtevajte novo.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Ta račun je že potrjen. Zdaj se lahko prijavite.",
+    "text": "Ta račun je že bil preverjen. Zdaj se lahko prijavite.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Računa ni mogoče potrditi. Poskusite znova ali se obrnite na podporo.",
+    "text": "Računa ni mogoče preveriti. Poskusite znova ali se obrnite na podporo.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Preverite svoj e-poštni predal za povezavo za preverjanje",
+    "text": "Preverite svojo e-pošto za potrditveno povezavo",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "Preverjanje računa ni uspelo. Preverite povezavo za preverjanje ali zahtevajte novo.",
+    "text": "Preverjanje računa ni uspelo. Preverite svojo potrditveno povezavo ali zahtevajte novo.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
@@ -171,31 +171,31 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Preverite svoj e-poštni predal za najnovejšo povezavo za preverjanje",
+    "text": "V e-pošti poiščite najnovejšo potrditveno povezavo",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Preverite mapo z neželeno pošto, če ne najdete e-pošte",
+    "text": "Če e-sporočila ne najdete, preverite mapo z neželeno pošto",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Obrnite se na podporo, če imate še naprej težave",
+    "text": "Če imate še naprej težave, se obrnite na podporo",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Potrebna je povezava za preverjanje",
+    "text": "Potrebna je potrditvena povezava",
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Za potrditev računa uporabite povezavo za preverjanje, ki smo jo poslali na vaš e-poštni naslov.",
+    "text": "Za preverjanje računa uporabite potrditveno povezavo, ki je bila poslana na vaš e-poštni naslov.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "Ustvari nov račun",
+    "text": "Ustvarite nov račun",
     "source_hash": "0e24ec84"
   },
   "web.auth.change_password.title": {
-    "text": "Spremeni geslo",
+    "text": "Spremenite geslo",
     "source_hash": "a949f462"
   },
   "web.auth.change_password.current_password": {
@@ -207,7 +207,7 @@
     "source_hash": "7c451e0f"
   },
   "web.auth.change_password.confirm_password": {
-    "text": "Potrdi novo geslo",
+    "text": "Potrdite novo geslo",
     "source_hash": "642776c0"
   },
   "web.auth.change_password.success": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Sprememba gesla ni uspela. Preverite trenutno geslo in poskusite znova.",
+    "text": "Sprememba gesla ni uspela. Preverite svoje trenutno geslo in poskusite znova.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -231,7 +231,7 @@
     "source_hash": "b44b1366"
   },
   "web.auth.close_account.password": {
-    "text": "Vnesite geslo za potrditev",
+    "text": "Za potrditev vnesite geslo",
     "source_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
@@ -260,11 +260,11 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Spodaj vnesite novo geslo. Poskrbite, da bo močno in edinstveno za zaščito vašega računa.",
+    "text": "Spodaj vnesite novo geslo. Prepričajte se, da je močno in edinstveno za zaščito vašega računa.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Na vaš e-poštni naslov smo poslali povezavo za ponastavitev gesla vašega računa",
+    "text": "Poslano vam je bilo e-sporočilo s povezavo za ponastavitev gesla za vaš račun",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -285,7 +285,7 @@
     "source_hash": "9966be40"
   },
   "web.auth.account.verified": {
-    "text": "E-pošta potrjena",
+    "text": "E-pošta preverjena",
     "source_hash": "bc512ab0"
   },
   "web.auth.account.region": {
@@ -293,11 +293,11 @@
     "source_hash": "d3a008ef"
   },
   "web.auth.account.not_verified": {
-    "text": "E-pošta ni potrjena",
+    "text": "E-pošta ni preverjena",
     "source_hash": "53955e0e"
   },
   "web.auth.account.verify_email": {
-    "text": "Potrdi e-poštni naslov",
+    "text": "Preveri e-poštni naslov",
     "source_hash": "d261b9df"
   },
   "web.auth.account.mfa_status": {
@@ -317,7 +317,7 @@
     "source_hash": "b58fa4e0"
   },
   "web.auth.account.session_count": {
-    "text": "{count} aktivna seja | {count} aktivni seji | {count} aktivne seje | {count} aktivnih sej",
+    "text": "{count} aktivnih sej",
     "source_hash": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
@@ -325,15 +325,15 @@
     "source_hash": "2cc2b6f7"
   },
   "web.auth.account.manage_mfa": {
-    "text": "Upravljaj dvofaktorsko avtentikacijo",
+    "text": "Upravljajte dvofaktorsko avtentikacijo",
     "source_hash": "06fc8f72"
   },
   "web.auth.account.manage_sessions": {
-    "text": "Upravljaj aktivne seje",
+    "text": "Upravljajte aktivne seje",
     "source_hash": "c5d54d87"
   },
   "web.auth.account.change_password": {
-    "text": "Spremeni geslo",
+    "text": "Spremenite geslo",
     "source_hash": "a949f462"
   },
   "web.auth.account.close_account": {
@@ -345,11 +345,11 @@
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Odpravljanje težav s prijavo",
+    "text": "Odpravljanje težav pri prijavi",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
-    "text": "Čarobna povezava ne prihaja?",
+    "text": "Magična povezava ne prihaja?",
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
@@ -357,15 +357,15 @@
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Preverite, ali ste pravilno vnesli e-poštni naslov",
+    "text": "Preverite, da ste pravilno vnesli e-poštni naslov",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Počakajte nekaj minut – e-pošta ima lahko zamudo",
+    "text": "Počakajte nekaj minut – e-sporočila so lahko včasih zakasnjena",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Zahtevajte novo povezavo, če je minilo več kot 10 minut",
+    "text": "Če je minilo več kot 10 minut, zahtevajte novo povezavo",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
@@ -373,7 +373,7 @@
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Uporabite možnost Čarobna povezava za prijavo brez gesla. Ko se prijavite, lahko spremenite geslo v nastavitvah računa.",
+    "text": "Uporabite možnost magične povezave za prijavo brez gesla. Ko ste prijavljeni, lahko geslo spremenite v nastavitvah računa.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,7 +381,7 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Po več neuspelih poskusih prijave se računi iz varnostnih razlogov začasno zaklenejo. Počakajte 15 minut in poskusite znova ali uporabite Čarobno povezavo za prijavo.",
+    "text": "Po več neuspelih poskusih prijave so računi iz varnostnih razlogov začasno zaklenjeni. Počakajte 15 minut in poskusite znova ali uporabite magično povezavo za prijavo.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
@@ -389,11 +389,23 @@
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Če imate še vedno težave, smo tu, da vam pomagamo. Pošljite nam sporočilo in odgovorili vam bomo v najkrajšem možnem času.",
+    "text": "Če imate še vedno težave, smo tu, da vam pomagamo. Pošljite nam sporočilo in odgovorili vam bomo čim prej.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
     "text": "Obrnite se na podporo",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "SSO račun"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Potek preverjanja e-pošte po registraciji"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "Za to domeno je na voljo enotna prijava"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "Skrbnik organizacije lahko omogoči SSO, da se člani ekipe prijavijo tukaj. Za dostop se obrnite na skrbnika."
   }
 }

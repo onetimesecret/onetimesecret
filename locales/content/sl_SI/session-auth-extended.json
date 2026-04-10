@@ -48,17 +48,17 @@
     }
   },
   "web.auth.mfa_required": {
-    "text": "Zahtevano preverjanje MFA",
+    "text": "Zahtevano je preverjanje MFA",
     "context": "Page heading shown when user must complete MFA to proceed",
     "source_hash": "e93fd3a4"
   },
   "web.auth.mfa_verification_required": {
-    "text": "Za dostop do računa je zahtevano preverjanje MFA",
+    "text": "Za dostop do vašega računa je potrebno preverjanje MFA",
     "context": "Explanatory text below the heading",
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Dokončaj preverjanje MFA",
+    "text": "Dokončajte preverjanje MFA",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -66,31 +66,31 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Avtentikacija ni uspela. Prosimo, preverite svoje poverilnice in poskusite znova.",
+    "text": "Avtentikacija ni uspela. Preverite svoje poverilnice in poskusite znova.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Preveč poskusov. Prosimo, poskusite znova pozneje.",
+    "text": "Preveč poskusov. Poskusite znova pozneje.",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Seja je potekla. Prosimo, prijavite se znova.",
+    "text": "Seja je potekla. Prijavite se znova.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Obnovitvena koda ni najdena. Prosimo, preverite, da ste jo vnesli pravilno.",
+    "text": "Koda za obnovitev ni najdena. Preverite, da ste jo vnesli pravilno.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Ta obnovitvena koda je že bila uporabljena. Vsako kodo je mogoče uporabiti samo enkrat.",
+    "text": "Ta koda za obnovitev je že bila uporabljena. Vsako kodo je mogoče uporabiti samo enkrat.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Omrežna napaka. Prosimo, preverite svojo povezavo in poskusite znova.",
+    "text": "Omrežna napaka. Preverite svojo povezavo in poskusite znova.",
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Prišlo je do napake. Prosimo, poskusite znova.",
+    "text": "Prišlo je do napake. Poskusite znova.",
     "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
@@ -103,7 +103,7 @@
     "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "Biometrično",
+    "text": "Biometrija",
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
@@ -127,27 +127,27 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Poslali smo prijavno povezavo na {email}",
+    "text": "Prijavno povezavo smo poslali na {email}",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Ta povezava bo potekla čez 15 minut",
+    "text": "Ta povezava poteče čez 15 minut",
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Poskusite z drugo e-pošto",
+    "text": "Poskusite z drugim e-poštnim naslovom",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Geslo ni potrebno — samo kliknite povezavo v vaši e-pošti",
+    "text": "Geslo ni potrebno – samo kliknite povezavo v svoji e-pošti",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Omrežna napaka. Prosimo, poskusite znova.",
+    "text": "Omrežna napaka. Poskusite znova.",
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Pošiljanje prijavne povezave ni uspelo. Prosimo, poskusite znova.",
+    "text": "Pošiljanje prijavne povezave ni uspelo. Poskusite znova.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
@@ -159,15 +159,15 @@
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Prijava ni uspela. Prosimo, poskusite znova.",
+    "text": "Prijava ni uspela. Poskusite znova.",
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "Prijavljamo vas...",
+    "text": "Prijavljamo vas ...",
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Prosimo, počakajte, medtem ko preverjamo vašo povezavo",
+    "text": "Počakajte, medtem ko preverjamo vašo povezavo",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -183,7 +183,7 @@
     "source_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "Nastavite biometrično prijavo",
+    "text": "Nastavi biometrično prijavo",
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
@@ -215,11 +215,11 @@
     "source_hash": "57461b04"
   },
   "web.auth.webauthn.processing": {
-    "text": "Avtentikacija...",
+    "text": "Avtentikacija ...",
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Uporabite svoj prstni odtis, obraz ali varnostni ključ za prijavo",
+    "text": "Za prijavo uporabite prstni odtis, obraz ali varnostni ključ",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
@@ -237,7 +237,7 @@
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Ključi za dostop omogočajo varno prijavo brez gesla",
+    "text": "Ključi za dostop vam omogočajo varno prijavo brez gesla",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -247,7 +247,7 @@
     "source_hash": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count} ključ za dostop registriran | {count} ključa za dostop registrirana | {count} ključev za dostop registriranih",
+    "text": "{count} ključ za dostop registriran | {count} ključev za dostop registriranih",
     "context": "Number of registered passkeys",
     "source_hash": "82e6681f"
   },
@@ -282,12 +282,12 @@
     "source_hash": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "Ni registriranih ključev za dostop",
+    "text": "Noben ključ za dostop ni registriran",
     "context": "Empty state when no passkeys exist",
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Dodajte ključ za dostop za varnejšo prijavo brez vnosa gesla",
+    "text": "Dodajte ključ za dostop za varnejšo prijavo brez vnašanja gesla",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
@@ -312,12 +312,12 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Varnejši od gesel – odporni proti lažnim napadom",
+    "text": "Varnejše od gesel – odporno proti lažnemu predstavljanju",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Hitro in enostavno – uporabite prstni odtis, obraz ali varnostni ključ",
+    "text": "Hitro in enostavno – samo uporabite prstni odtis, obraz ali varnostni ključ",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
@@ -332,11 +332,11 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "Opozorilo: preostalo še {count} poskusov prijave",
+    "text": "Opozorilo: še {count} poskusov prijave",
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Račun zaklenjen zaradi preveč neuspelih poskusov prijave",
+    "text": "Račun je zaklenjen zaradi preveč neuspelih poskusov prijave",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -344,7 +344,7 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Kontaktirajte podporo, če potrebujete takojšen dostop",
+    "text": "Za takojšen dostop se obrnite na podporo",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
@@ -392,7 +392,7 @@
     "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "Odjavi vse druge seje",
+    "text": "Odjavite vse druge seje",
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "To vas bo odjavilo z vseh drugih naprav. Ali ste prepričani?",
+    "text": "To vas bo odjavilo iz vseh drugih naprav. Ali ste prepričani?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -420,43 +420,43 @@
     "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
-    "text": "Dvostopenjska avtentikacija",
+    "text": "Dvofaktorska avtentikacija",
     "source_hash": "bc074b60"
   },
   "web.auth.mfa.enabled": {
-    "text": "Dvostopenjska avtentikacija je omogočena",
+    "text": "Dvofaktorska avtentikacija je omogočena",
     "source_hash": "d27a70c6"
   },
   "web.auth.mfa.disabled": {
-    "text": "Dvostopenjska avtentikacija je onemogočena",
+    "text": "Dvofaktorska avtentikacija je onemogočena",
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "Omogoči dvostopenjsko avtentikacijo",
+    "text": "Omogoči dvofaktorsko avtentikacijo",
     "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "Onemogoči dvostopenjsko avtentikacijo",
+    "text": "Onemogoči dvofaktorsko avtentikacijo",
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "Nastavi dvostopenjsko avtentikacijo",
+    "text": "Nastavite dvofaktorsko avtentikacijo",
     "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
-    "text": "Dodajte dodatno plast varnosti svojemu računu",
+    "text": "Dodajte dodatno raven varnosti svojemu računu",
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Skeniraj QR kodo",
+    "text": "1. Skenirajte QR-kodo",
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Preveri nastavitev",
+    "text": "2. Preverite nastavitev",
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Skenirajte to QR kodo s svojo aplikacijo za avtentikacijo",
+    "text": "Skenirajte to QR-kodo z aplikacijo za avtentikacijo",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
@@ -468,7 +468,7 @@
     "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
-    "text": "Vnesite avtentikacijsko kodo",
+    "text": "Vnesite kodo za avtentikacijo",
     "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
@@ -480,23 +480,23 @@
     "source_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
-    "text": "Avtentikacijska koda je zahtevana",
+    "text": "Koda za avtentikacijo je obvezna",
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Neveljavna koda. Kode potečejo vsakih 30 sekund. Poskusite najnovejšo kodo iz svoje aplikacije za avtentikacijo.",
+    "text": "Neveljavna koda. Kode potečejo vsakih 30 sekund. Poskusite z najnovejšo kodo iz aplikacije za avtentikacijo.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
-    "text": "Dvostopenjska avtentikacija je bila omogočena",
+    "text": "Dvofaktorska avtentikacija je bila omogočena",
     "source_hash": "e5aff73d"
   },
   "web.auth.mfa.success_disabled": {
-    "text": "Dvostopenjska avtentikacija je bila onemogočena",
+    "text": "Dvofaktorska avtentikacija je bila onemogočena",
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Vnesite geslo za onemogočenje 2FA",
+    "text": "Za onemogočanje 2FA vnesite geslo",
     "source_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "Potrdite svojo identiteto za spremembo nastavitev dvostopenjske avtentikacije",
+    "text": "Potrdite svojo identiteto za spreminjanje nastavitev dvofaktorske avtentikacije",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -516,19 +516,19 @@
     "source_hash": "24d3236c"
   },
   "web.auth.mfa.use_recovery_code": {
-    "text": "Namesto tega uporabite obnovitveno kodo",
+    "text": "Namesto tega uporabite kodo za obnovitev",
     "source_hash": "23d3441a"
   },
   "web.auth.mfa.use_recovery_code_short": {
-    "text": "Uporabi obnovitveno kodo",
+    "text": "Uporabi kodo za obnovitev",
     "source_hash": "50d5790d"
   },
   "web.auth.mfa.back_to_code": {
-    "text": "Nazaj na avtentikacijsko kodo",
+    "text": "Nazaj na kodo za avtentikacijo",
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Prekliči in vrni se na prijavo",
+    "text": "Prekliči in se vrni na prijavo",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
@@ -536,27 +536,27 @@
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
-    "text": "Nalaganje stanja MFA...",
+    "text": "Nalaganje stanja MFA ...",
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Vaš račun je zaščiten z dvostopenjsko avtentikacijo",
+    "text": "Vaš račun je zaščiten z dvofaktorsko avtentikacijo",
     "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Zaščitite svoj račun z dodatno plastjo varnosti",
+    "text": "Zaščitite svoj račun z dodatno ravnjo varnosti",
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Preprečite nepooblaščen dostop tudi če je vaše geslo ogroženo",
+    "text": "Preprečite nepooblaščen dostop, tudi če je vaše geslo ogroženo",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
-    "text": "Deluje z Google Authenticator, Authy in drugimi TOTP aplikacijami",
+    "text": "Deluje z Google Authenticator, Authy in drugimi aplikacijami TOTP",
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Rezervne obnovitvene kode za nujni dostop",
+    "text": "Varnostne kode za obnovitev za dostop v sili",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -564,7 +564,7 @@
     "source_hash": "c06bf967"
   },
   "web.auth.mfa.disabling": {
-    "text": "Onemogočanje...",
+    "text": "Onemogočanje ...",
     "source_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
@@ -572,11 +572,11 @@
     "source_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
-    "text": "Ustvarjanje QR kode...",
+    "text": "Ustvarjanje QR-kode ...",
     "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Uporabite Google Authenticator, Authy ali katero koli TOTP aplikacijo",
+    "text": "Uporabite Google Authenticator, Authy ali katero koli aplikacijo TOTP",
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
@@ -584,7 +584,7 @@
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Vnesite 6-mestno kodo iz svoje aplikacije za avtentikacijo",
+    "text": "Vnesite 6-mestno kodo iz aplikacije za avtentikacijo",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -596,35 +596,35 @@
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "Vnesite eno od svojih obnovitvenih kod",
+    "text": "Vnesite eno od svojih kod za obnovitev",
     "source_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
-    "text": "Obnovitvena koda",
+    "text": "Koda za obnovitev",
     "source_hash": "cf25d0fc"
   },
   "web.auth.mfa.recovery_code_placeholder": {
-    "text": "Vnesite obnovitveno kodo",
+    "text": "Vnesite kodo za obnovitev",
     "source_hash": "586d719c"
   },
   "web.auth.mfa.verify_recovery_code": {
-    "text": "Preveri obnovitveno kodo",
+    "text": "Preveri kodo za obnovitev",
     "source_hash": "c244c7bd"
   },
   "web.auth.mfa.six_digit_code": {
-    "text": "Vnesite 6-mestno avtentikacijsko kodo",
+    "text": "Vnesite 6-mestno kodo za avtentikacijo",
     "source_hash": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Način obnovitvene kode aktiven",
+    "text": "Način kode za obnovitev aktiven",
     "source_hash": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Način avtentikacijske kode aktiven",
+    "text": "Način kode za avtentikacijo aktiven",
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Za nadaljevanje prosimo vnesite vseh 6 števk",
+    "text": "Za nadaljevanje vnesite vseh 6 števk",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -632,11 +632,11 @@
     "source_hash": "879df41a"
   },
   "web.auth.recovery_codes.title": {
-    "text": "Obnovitvene kode",
+    "text": "Kode za obnovitev",
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Shranite te kode na varnem mestu. Vsako je mogoče uporabiti enkrat, če izgubite dostop do svoje aplikacije za avtentikacijo.",
+    "text": "Shranite te kode na varno mesto. Vsako je mogoče uporabiti enkrat, če izgubite dostop do aplikacije za avtentikacijo.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -644,7 +644,7 @@
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Pred dokončanjem nastavitve morate prenesti ali kopirati svoje obnovitvene kode.",
+    "text": "Pred dokončanjem nastavitve morate prenesti ali kopirati svoje kode za obnovitev.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
@@ -656,7 +656,7 @@
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "To bo razveljavilo vse obstoječe obnovitvene kode",
+    "text": "To bo razveljavilo vse obstoječe kode za obnovitev",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
@@ -664,7 +664,7 @@
     "source_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Obnovitvene kode prenesene",
+    "text": "Kode za obnovitev prenesene",
     "source_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
@@ -692,23 +692,38 @@
     "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} od {limit} obnovitvenih kod preostane",
+    "text": "{count} od {limit} kod za obnovitev preostalih",
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Vsako kodo je mogoče uporabiti samo enkrat. Ponovno ustvarite kode, če vam zmanjkuje.",
+    "text": "Vsako kodo je mogoče uporabiti samo enkrat. Če vam zmanjkuje, jih ponovno ustvarite.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Ni preostalih obnovitvenih kod",
+    "text": "Kod za obnovitev ni več",
     "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Nove obnovitvene kode so bile ustvarjene",
+    "text": "Nove kode za obnovitev so bile ustvarjene",
     "source_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
-    "text": "Obnovitvene kode",
+    "text": "Kode za obnovitev",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Alternativne možnosti avtentikacije"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ VARNOSTNO KRITIČNO: Sporočila preprečujejo razkritje podatkov. Glejte src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "seja"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sej"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "Stran za upravljanje prijavljenih naprav/brskalnikov uporabnika"
   }
 }

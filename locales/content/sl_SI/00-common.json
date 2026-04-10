@@ -13,11 +13,11 @@
     "source_hash": "fdc5d2e9"
   },
   "web.COMMON.website_url": {
-    "text": "https://onetimesecret.com/sl",
+    "text": "https://onetimesecret.com/en",
     "source_hash": "440f5303"
   },
   "web.COMMON.button_generate_secret_short": {
-    "text": "Ustvarite geslo",
+    "text": "Ustvari geslo",
     "source_hash": "fdcbfcc7"
   },
   "web.COMMON.generate_password_disabled": {
@@ -25,7 +25,7 @@
     "source_hash": "dc0e2b8c"
   },
   "web.COMMON.email_placeholder": {
-    "text": "npr. janez{'@'}email.si",
+    "text": "npr. tom{'@'}myspace.com",
     "source_hash": "f2350739"
   },
   "web.COMMON.password_placeholder": {
@@ -33,11 +33,11 @@
     "source_hash": "c06bf967"
   },
   "web.COMMON.custom_domains_title": {
-    "text": "Lastne domene",
+    "text": "Domene po meri",
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Okrepite povezave in zgradite zaupanje z lastnimi blagovnimi skrivnimi povezavami.",
+    "text": "Okrepite povezave in zgradite zaupanje z lastnimi skrivnostnimi povezavami z blagovno znamko.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -53,23 +53,23 @@
     "source_hash": "74a883a0"
   },
   "web.COMMON.submit_with": {
-    "text": "Pošljite",
+    "text": "Pošlji",
     "source_hash": "155f816c"
   },
   "web.COMMON.submitting": {
-    "text": "Pošiljanje...",
+    "text": "Pošiljanje ...",
     "source_hash": "64115d5b"
   },
   "web.COMMON.processing": {
-    "text": "Obdelava...",
+    "text": "Obdelovanje ...",
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Ohranite občutljive podatke zunaj dnevnikov klepetov in e-pošte. Delite skrivno povezavo, ki je na voljo samo enkrat.",
+    "text": "Občutljive podatke hranite stran od klepetov in e-pošte. Delite skrivno povezavo, ki je na voljo samo enkrat.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
-    "text": "Nepravilna pristopna fraza",
+    "text": "Napačna pristopna fraza",
     "source_hash": "a55f9636"
   },
   "web.COMMON.keywords": {
@@ -77,7 +77,7 @@
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Ustvarite skrivno povezavo",
+    "text": "Ustvari skrivno povezavo",
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
@@ -101,11 +101,11 @@
     "source_hash": "f6f6311d"
   },
   "web.COMMON.secret_placeholder": {
-    "text": "Vsebina skrivnosti gre sem...",
+    "text": "Vnesite skrivno vsebino tukaj ...",
     "source_hash": "54630bab"
   },
   "web.COMMON.header_create_account": {
-    "text": "Ustvarite račun",
+    "text": "Ustvari račun",
     "source_hash": "0dffe234"
   },
   "web.COMMON.header_about": {
@@ -137,19 +137,19 @@
     "source_hash": "4895f731"
   },
   "web.COMMON.word_edit": {
-    "text": "Uredite",
+    "text": "Uredi",
     "source_hash": "464c4ffd"
   },
   "web.COMMON.word_save": {
-    "text": "Shranite",
+    "text": "Shrani",
     "source_hash": "1509f561"
   },
   "web.COMMON.burn": {
-    "text": "Trajno izbriši",
+    "text": "Uniči",
     "source_hash": "926c5b43"
   },
   "web.COMMON.burned": {
-    "text": "Trajno izbrisano",
+    "text": "Uničeno",
     "source_hash": "6d747b33"
   },
   "web.COMMON.expires_in": {
@@ -157,15 +157,15 @@
     "source_hash": "de996752"
   },
   "web.COMMON.burn_this_secret": {
-    "text": "Trajno izbrišite to skrivnost",
+    "text": "Uniči to skrivnost",
     "source_hash": "ffff30e8"
   },
   "web.COMMON.burn_this_secret_hint": {
-    "text": "Trajno brisanje skrivnosti jo bo izbrisalo, preden bo prebrana (kliknite za potrditev)",
+    "text": "Uničenje skrivnosti jo bo izbrisalo, preden jo bo kdo prebral (kliknite za potrditev)",
     "source_hash": "c6a8b145"
   },
   "web.COMMON.burn_this_secret_confirm_hint": {
-    "text": "Trajno brisanje skrivnosti je dokončno in ga ni mogoče razveljaviti",
+    "text": "Uničenje skrivnosti je trajno in ga ni mogoče razveljaviti",
     "source_hash": "ab774967"
   },
   "web.COMMON.msg_check_email": {
@@ -173,19 +173,19 @@
     "source_hash": "77322879"
   },
   "web.COMMON.click_to_continue": {
-    "text": "Kliknite za prikaz →",
+    "text": "Kliknite za razkritje →",
     "source_hash": "41658f99"
   },
   "web.COMMON.click_to_verify": {
-    "text": "Nadaljujte za potrditev računa:",
+    "text": "Nadaljujte za preverjanje svojega računa:",
     "source_hash": "954d6fc9"
   },
   "web.COMMON.error_secret": {
-    "text": "Niste podali ničesar za deljenje",
+    "text": "Niste posredovali ničesar za deljenje",
     "source_hash": "9ac6488f"
   },
   "web.COMMON.error_passphrase": {
-    "text": "Dvakrat preverite pristopno frazo",
+    "text": "Ponovno preverite pristopno frazo",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.enter_passphrase_here": {
@@ -193,7 +193,7 @@
     "source_hash": "ee855dad"
   },
   "web.COMMON.view_secret": {
-    "text": "Prikažite skrivnost",
+    "text": "Ogled skrivnosti",
     "source_hash": "01835e7c"
   },
   "web.COMMON.careful_only_see_once": {
@@ -205,7 +205,7 @@
     "source_hash": "e981ddae"
   },
   "web.COMMON.oops": {
-    "text": "Ojoj!",
+    "text": "Ups!",
     "source_hash": "8344947a"
   },
   "web.COMMON.error": {
@@ -213,7 +213,7 @@
     "source_hash": "54a0e8c1"
   },
   "web.COMMON.unexpected_error": {
-    "text": "Prišlo je do nepričakovane napake. Prosimo, poskusite znova.",
+    "text": "Prišlo je do nepričakovane napake. Poskusite znova.",
     "source_hash": "e198269c"
   },
   "web.COMMON.secret_was_truncated": {
@@ -245,11 +245,11 @@
     "source_hash": "c292210c"
   },
   "web.COMMON.button_create_account": {
-    "text": "Ustvarite račun",
+    "text": "Ustvari račun",
     "source_hash": "0dffe234"
   },
   "web.COMMON.share_a_secret": {
-    "text": "Delite skrivnost",
+    "text": "Deli skrivnost",
     "source_hash": "5384461b"
   },
   "web.COMMON.title_home": {
@@ -261,7 +261,7 @@
     "source_hash": "dc937b59"
   },
   "web.COMMON.word_burned": {
-    "text": "trajno izbrisano",
+    "text": "uničeno",
     "source_hash": "2f79ea62"
   },
   "web.COMMON.word_received": {
@@ -269,15 +269,15 @@
     "source_hash": "318c5ad5"
   },
   "web.COMMON.word_confirm": {
-    "text": "Potrdite",
+    "text": "Potrdi",
     "source_hash": "eebdd24a"
   },
   "web.COMMON.word_cancel": {
-    "text": "Prekličite",
+    "text": "Prekliči",
     "source_hash": "19766ed6"
   },
   "web.COMMON.word_continue": {
-    "text": "Nadaljujte",
+    "text": "Nadaljuj",
     "source_hash": "31fbef16"
   },
   "web.COMMON.word_done": {
@@ -289,27 +289,27 @@
     "source_hash": "76900f1b"
   },
   "web.COMMON.feedback_text": {
-    "text": "Delite svoje misli, ideje ali izkušnje...",
+    "text": "Delite svoje misli, ideje ali izkušnje ...",
     "source_hash": "6bd0351a"
   },
   "web.COMMON.button_send_feedback": {
-    "text": "Pošljite povratne informacije",
+    "text": "Pošlji povratne informacije",
     "source_hash": "84195de9"
   },
   "web.COMMON.verification_sent_to": {
-    "text": "Potrditev je bila poslana na",
+    "text": "Potrditveno sporočilo je bilo poslano na",
     "source_hash": "62da29c0"
   },
   "web.COMMON.autoverified_success": {
-    "text": "Račun ustvarjen. Prosimo, prijavite se.",
+    "text": "Račun je ustvarjen. Prijavite se.",
     "source_hash": "fd3610bf"
   },
   "web.COMMON.signup_success_generic": {
-    "text": "Če račun s tem e-poštnim naslovom obstaja, boste prejeli potrditveno e-pošto.",
+    "text": "Če račun s tem e-poštnim naslovom obstaja, boste prejeli potrditveno e-sporočilo.",
     "source_hash": "f596cdd0"
   },
   "web.COMMON.burn_this_secret_aria": {
-    "text": "Trajno izbrišite to skrivnost",
+    "text": "Trajno uniči to skrivnost",
     "source_hash": "0a7afc29"
   },
   "web.COMMON.burn_confirmation_title": {
@@ -317,19 +317,19 @@
     "source_hash": "dcd78dfb"
   },
   "web.COMMON.burn_confirmation_message": {
-    "text": "Ali ste prepričani, da želite trajno izbrisati to skrivnost? Tega dejanja ni mogoče razveljaviti.",
+    "text": "Ali ste prepričani, da želite uničiti to skrivnost? Tega dejanja ni mogoče razveljaviti.",
     "source_hash": "5dde5dd9"
   },
   "web.COMMON.confirm_burn": {
-    "text": "Da, trajno izbrišite to skrivnost",
+    "text": "Da, uniči to skrivnost",
     "source_hash": "6e5b02a7"
   },
   "web.COMMON.burn_security_notice": {
-    "text": "Trajno brisanje skrivnosti jo bo izbrisalo, preden bo prejeta.",
+    "text": "Uničenje skrivnosti jo bo izbrisalo, preden jo bo kdo prejel.",
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Zaradi varnosti delite to povezavo ločeno od drugih podatkov.",
+    "text": "Zaradi varnosti to povezavo delite ločeno od drugih podrobnosti.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -337,7 +337,7 @@
     "source_hash": "d37078fe"
   },
   "web.COMMON.button_create_incoming": {
-    "text": "Ustvarite dohodno",
+    "text": "Ustvari prejemnik",
     "source_hash": "5bb95106"
   },
   "web.COMMON.faq_title": {
@@ -345,23 +345,23 @@
     "source_hash": "bd7394ac"
   },
   "web.COMMON.verification_not_valid": {
-    "text": "Potrditev ni veljavna",
+    "text": "Preverjanje ni veljavno",
     "source_hash": "abf07ced"
   },
   "web.COMMON.verification_already_logged_in": {
-    "text": "Ni mogoče potrditi računa, ko ste že prijavljeni",
+    "text": "Računa ni mogoče preveriti, ko ste že prijavljeni",
     "source_hash": "f0a17c5f"
   },
   "web.COMMON.show_password": {
-    "text": "Prikažite geslo",
+    "text": "Prikaži geslo",
     "source_hash": "6aeaa6a5"
   },
   "web.COMMON.hide_password": {
-    "text": "Skrijte geslo",
+    "text": "Skrij geslo",
     "source_hash": "a60a56c5"
   },
   "web.COMMON.minimum_8_characters": {
-    "text": "Geslo mora imeti vsaj 8 znakov",
+    "text": "Geslo mora vsebovati vsaj 8 znakov",
     "source_hash": "e3b8d09d"
   },
   "web.COMMON.password_requirements": {
@@ -377,19 +377,19 @@
     "source_hash": "6876f12e"
   },
   "web.COMMON.form_processing": {
-    "text": "Obdelava vaše zahteve",
+    "text": "Obdelovanje vaše zahteve",
     "source_hash": "a512a73b"
   },
   "web.COMMON.remember_me_description": {
-    "text": "Ostanite prijavljeni 30 dni",
+    "text": "Ostani prijavljen 30 dni",
     "source_hash": "6e069c11"
   },
   "web.COMMON.redirecting": {
-    "text": "Preusmerjanje...",
+    "text": "Preusmerjanje ...",
     "source_hash": "cd23991b"
   },
   "web.COMMON.continue": {
-    "text": "Nadaljujte",
+    "text": "Nadaljuj",
     "source_hash": "31fbef16"
   },
   "web.COMMON.are_you_sure": {
@@ -413,19 +413,19 @@
     "source_hash": "8f6fb4eb"
   },
   "web.COMMON.manage": {
-    "text": "Upravljajte",
+    "text": "Upravljaj",
     "source_hash": "5a234448"
   },
   "web.COMMON.loading": {
-    "text": "Nalaganje...",
+    "text": "Nalaganje ...",
     "source_hash": "47d2a515"
   },
   "web.COMMON.save_changes": {
-    "text": "Shranite spremembe",
+    "text": "Shrani spremembe",
     "source_hash": "35322b5b"
   },
   "web.COMMON.saving": {
-    "text": "Shranjevanje...",
+    "text": "Shranjevanje ...",
     "source_hash": "dc85af8f"
   },
   "web.COMMON.adding_ellipses": {
@@ -441,7 +441,7 @@
     "source_hash": "cc921aaa"
   },
   "web.COMMON.about": {
-    "text": "O projektu",
+    "text": "O nas",
     "source_hash": "d833339d"
   },
   "web.COMMON.status": {
@@ -461,7 +461,7 @@
     "source_hash": "324b134f"
   },
   "web.COMMON.remove": {
-    "text": "Odstranite",
+    "text": "Odstrani",
     "source_hash": "c3812fc4"
   },
   "web.COMMON.press_esc_to_close": {
@@ -517,7 +517,7 @@
     "source_hash": "fb697cc7"
   },
   "web.COMMON.loading_ellipses": {
-    "text": "Nalaganje...",
+    "text": "Nalaganje ...",
     "source_hash": "47d2a515"
   },
   "web.COMMON.not_received": {
@@ -601,7 +601,7 @@
     "source_hash": "baaddf70"
   },
   "web.COMMON.previous": {
-    "text": "Prejšnje",
+    "text": "Nazaj",
     "source_hash": "a57b08a4"
   },
   "web.COMMON.next": {
@@ -621,11 +621,11 @@
     "source_hash": "521a41b6"
   },
   "web.COMMON.fair": {
-    "text": "V redu",
+    "text": "Zadovoljivo",
     "source_hash": "f7b19afc"
   },
   "web.COMMON.meh": {
-    "text": "Tako tako",
+    "text": "Nič posebnega",
     "source_hash": "8b0d6190"
   },
   "web.COMMON.not_great": {
@@ -633,7 +633,7 @@
     "source_hash": "00561207"
   },
   "web.COMMON.open_options": {
-    "text": "Odprite možnosti",
+    "text": "Odpri možnosti",
     "source_hash": "3dc08503"
   },
   "web.COMMON.inactive": {
@@ -645,7 +645,7 @@
     "source_hash": "ddf785b7"
   },
   "web.COMMON.copy_secret_to_clipboard": {
-    "text": "Kopirajte skrivnost v odložišče",
+    "text": "Kopiraj skrivnost v odložišče",
     "source_hash": "a2ceff6d"
   },
   "web.COMMON.secret_copied_to_clipboard": {
@@ -653,11 +653,11 @@
     "source_hash": "da84ff02"
   },
   "web.COMMON.double_check_that_passphrase": {
-    "text": "Dvakrat preverite pristopno frazo",
+    "text": "Ponovno preverite pristopno frazo",
     "source_hash": "b582f3a6"
   },
   "web.COMMON.press_copy_button_below": {
-    "text": "Pritisnite gumb za kopiranje spodaj.",
+    "text": "Pritisnite spodnji gumb za kopiranje.",
     "source_hash": "77fcf6fb"
   },
   "web.COMMON.external_link": {
@@ -665,27 +665,27 @@
     "source_hash": "be6f6527"
   },
   "web.LABELS.view_toggle.show": {
-    "text": "Prikažite",
+    "text": "Prikaži",
     "source_hash": "0df6f1ca"
   },
   "web.LABELS.view_toggle.hide": {
-    "text": "Skrijte",
+    "text": "Skrij",
     "source_hash": "ac20a57b"
   },
   "web.LABELS.view_toggle.show_more": {
-    "text": "Prikažite več",
+    "text": "Prikaži več",
     "source_hash": "ba8a80fd"
   },
   "web.LABELS.view_toggle.show_less": {
-    "text": "Prikažite manj",
+    "text": "Prikaži manj",
     "source_hash": "0264d7b0"
   },
   "web.LABELS.enable": {
-    "text": "Omogočite",
+    "text": "Omogoči",
     "source_hash": "5342e09f"
   },
   "web.LABELS.disable": {
-    "text": "Onemogočite",
+    "text": "Onemogoči",
     "source_hash": "b7e3e4aa"
   },
   "web.LABELS.stats": {
@@ -709,19 +709,19 @@
     "source_hash": "de996752"
   },
   "web.LABELS.close": {
-    "text": "Zaprite",
+    "text": "Zapri",
     "source_hash": "7d9eb7ac"
   },
   "web.LABELS.loading": {
-    "text": "Nalaganje...",
+    "text": "Nalaganje ...",
     "source_hash": "47d2a515"
   },
   "web.LABELS.cancel": {
-    "text": "Prekličite",
+    "text": "Prekliči",
     "source_hash": "19766ed6"
   },
   "web.LABELS.saving": {
-    "text": "Shranjevanje...",
+    "text": "Shranjevanje ...",
     "source_hash": "dc85af8f"
   },
   "web.LABELS.saved": {
@@ -729,11 +729,11 @@
     "source_hash": "b5c120b3"
   },
   "web.LABELS.save": {
-    "text": "Shranite",
+    "text": "Shrani",
     "source_hash": "1509f561"
   },
   "web.LABELS.save_all": {
-    "text": "Shranite vse",
+    "text": "Shrani vse",
     "source_hash": "d3c54e39"
   },
   "web.LABELS.details": {
@@ -753,7 +753,7 @@
     "source_hash": "c225cdfb"
   },
   "web.LABELS.create_new_secret": {
-    "text": "Ustvarite novo skrivnost",
+    "text": "Ustvari novo skrivnost",
     "source_hash": "311d266c"
   },
   "web.LABELS.actions": {
@@ -765,7 +765,7 @@
     "source_hash": "6b43174d"
   },
   "web.LABELS.copy_to_clipboard": {
-    "text": "Kopirajte v odložišče",
+    "text": "Kopiraj v odložišče",
     "source_hash": "b749e205"
   },
   "web.LABELS.receipts": {
@@ -773,7 +773,7 @@
     "source_hash": "60a627df"
   },
   "web.LABELS.share": {
-    "text": "Delite",
+    "text": "Deli",
     "source_hash": "29887a5f"
   },
   "web.LABELS.secret_link": {
@@ -781,7 +781,7 @@
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
-    "text": "Opustite",
+    "text": "Opusti",
     "source_hash": "48845bff"
   },
   "web.LABELS.security_details": {
@@ -797,7 +797,7 @@
     "source_hash": "48187543"
   },
   "web.LABELS.view": {
-    "text": "Prikažite",
+    "text": "Ogled",
     "source_hash": "dcc839a4"
   },
   "web.LABELS.views": {
@@ -805,15 +805,15 @@
     "source_hash": "69c40459"
   },
   "web.LABELS.times_viewed": {
-    "text": "krat ogledano",
+    "text": "ogledov",
     "source_hash": "73758343"
   },
   "web.LABELS.view_progress": {
-    "text": "Prikažite napredek",
+    "text": "Prikaži napredek",
     "source_hash": "6c072c1f"
   },
   "web.LABELS.help_section": {
-    "text": "Razdelek pomoči",
+    "text": "Pomoč",
     "source_hash": "614e14f0"
   },
   "web.LABELS.passphrase_protected": {
@@ -825,7 +825,7 @@
     "source_hash": "3fa595ef"
   },
   "web.LABELS.sending_ellipses": {
-    "text": "Pošiljanje...",
+    "text": "Pošiljanje ...",
     "source_hash": "286a3af7"
   },
   "web.LABELS.title_recent_secrets": {
@@ -837,39 +837,39 @@
     "source_hash": "dfe95783"
   },
   "web.LABELS.refresh": {
-    "text": "Osvežite",
+    "text": "Osveži",
     "source_hash": "0e916101"
   },
   "web.LABELS.reload": {
-    "text": "Ponovno naložite",
+    "text": "Ponovno naloži",
     "source_hash": "bdc090ec"
   },
   "web.LABELS.filter": {
-    "text": "Filtrirajte",
+    "text": "Filter",
     "source_hash": "638e249f"
   },
   "web.LABELS.clear": {
-    "text": "Počistite",
+    "text": "Počisti",
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Skrivne povezave ustvarjene v tej seji",
+    "text": "Skrivnostne povezave, ustvarjene v tej seji",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Ustvarite povezavo",
+    "text": "Ustvari povezavo",
     "source_hash": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Ustvarite skrivno povezavo",
+    "text": "Ustvari skrivno povezavo",
     "source_hash": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
-    "text": "Ustvarite zahtevo",
+    "text": "Ustvari zahtevo",
     "source_hash": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Ustvarite povezavo za zahtevo",
+    "text": "Ustvari povezavo za zahtevo",
     "source_hash": "190463dc"
   },
   "web.LABELS.related_settings": {
@@ -914,7 +914,7 @@
     "source_hash": "17376ee4"
   },
   "web.STATUS.burned": {
-    "text": "Trajno izbrisano",
+    "text": "Uničeno",
     "source_hash": "6d747b33"
   },
   "web.STATUS.destroyed": {
@@ -938,15 +938,15 @@
     "source_hash": "424a2551"
   },
   "web.STATUS.orphaned": {
-    "text": "Osiroteleno",
+    "text": "Osirotelо",
     "source_hash": "8d827807"
   },
   "web.STATUS.secured": {
-    "text": "Zavarovano",
+    "text": "Zaščiteno",
     "source_hash": "b0cbaa5b"
   },
   "web.STATUS.securing": {
-    "text": "Zavarovanje",
+    "text": "Zaščitevanje",
     "source_hash": "37c84053"
   },
   "web.STATUS.copied": {
@@ -982,7 +982,7 @@
     "source_hash": "39b32f80"
   },
   "web.STATUS.burned_description": {
-    "text": "Skrivnost je bila ročno trajno izbrisana, preden je bila ogledana",
+    "text": "Skrivnost je bila ročno uničena, preden je bila ogledana",
     "source_hash": "e7aa1ec1"
   },
   "web.STATUS.destroyed_description": {
@@ -994,7 +994,7 @@
     "source_hash": "e182e8f4"
   },
   "web.STATUS.orphaned_description": {
-    "text": "Skrivnost je bila osirotelena in bo kmalu uničena",
+    "text": "Skrivnost je bila osirotela in bo kmalu uničena",
     "source_hash": "49b87422"
   },
   "web.STATUS.expired_description": {
@@ -1026,11 +1026,11 @@
     "source_hash": "3f6859b0"
   },
   "web.FEATURES.custom_domain_protected": {
-    "text": "Zaupanja vredna blagovna znamka domene",
+    "text": "Blagovna znamka z zaupanja vredno domeno",
     "source_hash": "5e39b05c"
   },
   "web.FEATURES.encrypted_in_transit": {
-    "text": "Šifrirano med prenosom in v mirovanju",
+    "text": "Šifrirano med prenosom in pri shranjevanju",
     "source_hash": "314c7974"
   },
   "web.UNITS.ttl.duration": {
@@ -1038,19 +1038,19 @@
     "source_hash": "e6c9e0e6"
   },
   "web.UNITS.ttl.time.day": {
-    "text": "dan | dni | dni",
+    "text": "dan | dni",
     "source_hash": "6ac0d345"
   },
   "web.UNITS.ttl.time.hour": {
-    "text": "ura | uri | ur",
+    "text": "ura | ur",
     "source_hash": "f4fef91b"
   },
   "web.UNITS.ttl.time.minute": {
-    "text": "minuta | minuti | minut",
+    "text": "minuta | minut",
     "source_hash": "08d71a9f"
   },
   "web.UNITS.ttl.time.second": {
-    "text": "sekunda | sekundi | sekund",
+    "text": "sekunda | sekund",
     "source_hash": "e655e068"
   },
   "web.UNITS.ttl.noOptionsAvailable": {
@@ -1058,23 +1058,23 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.ttl_remaining.duration": {
-    "text": "Še {count} {unit}",
+    "text": "še {count} {unit}",
     "source_hash": "18f6c6e8"
   },
   "web.UNITS.ttl_remaining.time.day": {
-    "text": "dan preostane | dni preostaneta | dni preostane",
+    "text": "še dan | še dni",
     "source_hash": "6702855e"
   },
   "web.UNITS.ttl_remaining.time.hour": {
-    "text": "ura preostane | uri preostaneta | ur preostane",
+    "text": "še ura | še ur",
     "source_hash": "2eaebd6f"
   },
   "web.UNITS.ttl_remaining.time.minute": {
-    "text": "minuta preostane | minuti preostaneta | minut preostane",
+    "text": "še minuta | še minut",
     "source_hash": "26c80140"
   },
   "web.UNITS.ttl_remaining.time.second": {
-    "text": "sekunda preostane | sekundi preostaneta | sekund preostane",
+    "text": "še sekunda | še sekund",
     "source_hash": "01159ce3"
   },
   "web.UNITS.ttl_remaining.noOptionsAvailable": {
@@ -1082,7 +1082,7 @@
     "source_hash": "cb3f91d5"
   },
   "web.UNITS.limited_views": {
-    "text": "Omejitev {count} ogledov",
+    "text": "Omejitev na {count} ogledov",
     "source_hash": "8db0e228"
   },
   "web.UNITS.days_remaining": {
@@ -1098,7 +1098,7 @@
     "source_hash": "d322f4c5"
   },
   "web.TITLES.incoming": {
-    "text": "Dohodne skrivnosti",
+    "text": "Prejete skrivnosti",
     "source_hash": "883dbca9"
   },
   "web.TITLES.feedback": {
@@ -1114,7 +1114,7 @@
     "source_hash": "bcc0bcc9"
   },
   "web.TITLES.signup": {
-    "text": "Ustvarite račun",
+    "text": "Ustvari račun",
     "source_hash": "0dffe234"
   },
   "web.TITLES.forgot_password": {
@@ -1122,7 +1122,7 @@
     "source_hash": "fdfd41de"
   },
   "web.TITLES.reset_password": {
-    "text": "Ponastavite geslo",
+    "text": "Ponastavi geslo",
     "source_hash": "4e70f1fd"
   },
   "web.TITLES.logout": {
@@ -1130,11 +1130,11 @@
     "source_hash": "afbce8a6"
   },
   "web.TITLES.verify_account": {
-    "text": "Preverite račun",
+    "text": "Preveri račun",
     "source_hash": "2f3ea760"
   },
   "web.TITLES.mfa_verify": {
-    "text": "Dvostopenjska avtentikacija",
+    "text": "Dvofaktorska avtentikacija",
     "source_hash": "bc074b60"
   },
   "web.TITLES.email_login": {
@@ -1142,7 +1142,7 @@
     "source_hash": "c316e3d7"
   },
   "web.TITLES.accept_invitation": {
-    "text": "Sprejmite povabilo",
+    "text": "Sprejmi povabilo",
     "source_hash": "ce7cfeaf"
   },
   "web.TITLES.secret": {
@@ -1158,7 +1158,7 @@
     "source_hash": "fe0c79e9"
   },
   "web.TITLES.burn_secret": {
-    "text": "Trajno izbrišite skrivnost",
+    "text": "Uniči skrivnost",
     "source_hash": "28785b83"
   },
   "web.TITLES.dashboard": {
@@ -1170,19 +1170,19 @@
     "source_hash": "0b907f8b"
   },
   "web.TITLES.domains": {
-    "text": "Lastne domene",
+    "text": "Domene po meri",
     "source_hash": "6170ab94"
   },
   "web.TITLES.domain_add": {
-    "text": "Dodajte domeno",
+    "text": "Dodaj domeno",
     "source_hash": "0f09df73"
   },
   "web.TITLES.domain_verify": {
-    "text": "Preverite domeno",
+    "text": "Preveri domeno",
     "source_hash": "b416f537"
   },
   "web.TITLES.domain_brand": {
-    "text": "Blagovna znamka domene",
+    "text": "Domena blagovne znamke",
     "source_hash": "35e4dfbe"
   },
   "web.TITLES.account": {
@@ -1222,11 +1222,11 @@
     "source_hash": "78801183"
   },
   "web.TITLES.change_email": {
-    "text": "Spremenite e-pošto",
+    "text": "Sprememba e-pošte",
     "source_hash": "18c3f2d5"
   },
   "web.TITLES.confirm_email_change": {
-    "text": "Potrdite spremembo e-pošte",
+    "text": "Potrdi spremembo e-pošte",
     "source_hash": "c2736949"
   },
   "web.TITLES.security_overview": {
@@ -1234,11 +1234,11 @@
     "source_hash": "8f6fb4eb"
   },
   "web.TITLES.change_password": {
-    "text": "Spremenite geslo",
+    "text": "Sprememba gesla",
     "source_hash": "a949f462"
   },
   "web.TITLES.mfa_settings": {
-    "text": "Dvostopenjska avtentikacija",
+    "text": "Dvofaktorska avtentikacija",
     "source_hash": "bc074b60"
   },
   "web.TITLES.active_sessions": {
@@ -1246,7 +1246,7 @@
     "source_hash": "b58fa4e0"
   },
   "web.TITLES.recovery_codes": {
-    "text": "Obnovitvene kode",
+    "text": "Kode za obnovitev",
     "source_hash": "579c7f4e"
   },
   "web.TITLES.passkeys": {
@@ -1295,23 +1295,23 @@
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
-    "text": "Delite pristopno frazo ločeno prek varnega kanala",
+    "text": "Pristopno frazo delite ločeno prek varnega kanala",
     "source_hash": "c348d386"
   },
   "web.INSTRUCTION.secure_channel_instruction": {
-    "text": "Uporabite drug varen kanal za deljenje občutljivih podatkov",
+    "text": "Za deljenje občutljivih podatkov uporabite drug varen kanal",
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vedno preverite, da ste na uradni spletni strani Onetime Secret. Goljufi včasih ustvarijo lažne spletne strani, ki izgledajo točno kot Onetime Secret, da vam ukradejo skrivnosti. Da se izognete phishing napadom, pred ustvarjanjem novih povezav preverite regionalno domeno.",
+    "text": "Vedno preverite, da ste na uradni spletni strani Onetime Secret. Goljufi včasih ustvarijo lažne spletne strani, ki so videti natanko kot Onetime Secret, da bi ukradli vaše skrivnosti. Da bi se izognili lažnemu predstavljanju, pred ustvarjanjem novih povezav preverite domeno.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
-    "text": "Preprosto, transparentno oblikovanje cen",
+    "text": "Preprosto in pregledno oblikovanje cen",
     "source_hash": "97e283c7"
   },
   "web.pricing.subtitle": {
-    "text": "Izberite načrt, ki ustreza vašim potrebam. Vsi načrti vključujejo neomejeno deljenje skrivnosti in zasnovo, ki daje prednost zasebnosti.",
+    "text": "Izberite paket, ki ustreza vašim potrebam. Vsi paketi vključujejo neomejeno deljenje skrivnosti in zasnovo s poudarkom na zasebnosti.",
     "source_hash": "9204dff4"
   },
   "web.pricing.get_started_free": {
@@ -1327,7 +1327,7 @@
     "source_hash": "e77fea93"
   },
   "web.pricing.sign_in": {
-    "text": "Prijava",
+    "text": "Prijavite se",
     "source_hash": "bfd402b2"
   },
   "web.pricing.recommended_for_you": {
@@ -1339,19 +1339,19 @@
     "source_hash": "49f19bee"
   },
   "web.LABELS.add_note": {
-    "text": "Dodajte opombo...",
+    "text": "Dodaj opombo ...",
     "source_hash": "32738894"
   },
   "web.LABELS.edit_note": {
-    "text": "Uredite opombo",
+    "text": "Uredi opombo",
     "source_hash": "299e604c"
   },
   "web.LABELS.add_memo": {
-    "text": "Dodajte memo...",
+    "text": "Dodaj zaznamek ...",
     "source_hash": "02384c53"
   },
   "web.LABELS.edit_memo": {
-    "text": "Uredite memo",
+    "text": "Uredi zaznamek",
     "source_hash": "0ec1a5db"
   },
   "web.pricing.free_tier_description": {
@@ -1359,7 +1359,7 @@
     "source_hash": "3a4f2bc0"
   },
   "web.COMMON.enter_password_to_continue": {
-    "text": "Za nadaljevanje vnesite svoje geslo",
+    "text": "Za nadaljevanje vnesite geslo",
     "context": "Prompt for password confirmation modal",
     "source_hash": "09055357"
   },
@@ -1384,8 +1384,56 @@
     "source_hash": "fb961f3f"
   },
   "web.COMMON.upgrade_description": {
-    "text": "Nadgradite za odklepanje več funkcij",
+    "text": "Nadgradite za več funkcij",
     "context": "Description shown for free plan users encouraging upgrade",
     "source_hash": "783f174c"
+  },
+  "web.COMMON.configure": {
+    "text": "Nastavi"
+  },
+  "web.COMMON.add": {
+    "text": "Dodaj"
+  },
+  "web.COMMON.yes_delete": {
+    "text": "Da, izbriši"
+  },
+  "web.COMMON.error_code": {
+    "text": "Koda napake"
+  },
+  "web.COMMON.http_status": {
+    "text": "Stanje HTTP"
+  },
+  "web.COMMON.details": {
+    "text": "Podrobnosti"
+  },
+  "web.COMMON.field_confirm_password": {
+    "text": "Potrdite geslo"
+  },
+  "web.COMMON.passwords_must_match": {
+    "text": "Gesli se morata ujemati"
+  },
+  "web.COMMON.and": {
+    "text": "in"
+  },
+  "web.COMMON.or": {
+    "text": "ali"
+  },
+  "web.LABELS.show_passphrase": {
+    "text": "Prikaži pristopno frazo"
+  },
+  "web.LABELS.hide_passphrase": {
+    "text": "Skrij pristopno frazo"
+  },
+  "web.TITLES.domain_detail": {
+    "text": "Nastavitve domene"
+  },
+  "web.TITLES.domain_sso": {
+    "text": "SSO domene"
+  },
+  "web.TITLES.domain_email": {
+    "text": "Nastavitve e-pošte"
+  },
+  "web.TITLES.domain_incoming": {
+    "text": "Prejete skrivnosti"
   }
 }

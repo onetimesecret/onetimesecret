@@ -4,11 +4,11 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Varno delite občutljive informacije z našo ekipo za podporo",
+    "text": "Varno delite občutljive podatke z našo ekipo za podporo",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
-    "text": "Nalaganje...",
+    "text": "Nalaganje ...",
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Ta funkcija je trenutno onemogočena. Prosimo, kontaktirajte podporo za pomoč.",
+    "text": "Ta funkcija je trenutno onemogočena. Za pomoč se obrnite na podporo.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -32,7 +32,7 @@
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
-    "text": "Pomagajte nam usmeriti vaše sporočilo pravi osebi",
+    "text": "Pomagajte nam usmeriti vaše sporočilo na pravo osebo",
     "source_hash": "185a207e"
   },
   "incoming.recipient_label": {
@@ -52,19 +52,19 @@
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Nobeni prejemniki niso na voljo",
+    "text": "Noben prejemnik ni na voljo",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Skrivne informacije",
+    "text": "Skrivni podatki",
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Prilepite občutljive informacije tukaj (gesla, ključe itd.)",
+    "text": "Prilepite občutljive podatke tukaj (gesla, ključe ipd.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Te informacije bodo šifrirane in jih bo mogoče ogledati samo enkrat",
+    "text": "Ti podatki bodo šifrirani in vidni samo enkrat",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -76,11 +76,11 @@
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
-    "text": "Pošiljanje...",
+    "text": "Pošiljanje ...",
     "source_hash": "286a3af7"
   },
   "incoming.submitting": {
-    "text": "Pošiljanje...",
+    "text": "Pošiljanje ...",
     "source_hash": "286a3af7"
   },
   "incoming.reset_button": {
@@ -100,7 +100,7 @@
     "source_hash": "e1538e3e"
   },
   "incoming.reference_id": {
-    "text": "Referenčni ID",
+    "text": "Referenčna oznaka",
     "source_hash": "293aba9f"
   },
   "incoming.success_info_title": {
@@ -108,7 +108,7 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "Prejemnik si bo to skrivnost lahko ogledal samo enkrat. Ko si jo ogleda, bo skrivnost trajno izbrisana.",
+    "text": "Prejemnik si bo to skrivnost lahko ogledal samo enkrat. Po ogledu bo skrivnost trajno izbrisana.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -116,11 +116,11 @@
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Varno delite občutljive informacije",
+    "text": "Varno delite občutljive podatke",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Ohranite gesla in zasebne podatke zunaj e-pošte in dnevnikov klepetov",
+    "text": "Hranite gesla in zasebne podatke stran od e-pošte in klepetov",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "potrdilo",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Potrebna je nadgradnja"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Ta funkcija zahteva nadgradnjo paketa. Za omogočanje prejemanja skrivnosti se obrnite na lastnika računa."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "Zaznamek mora imeti {max} znakov ali manj"
+  },
+  "incoming.validation_secret_required": {
+    "text": "Skrivna vsebina je obvezna"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Prosimo, izberite prejemnika"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "Funkcija prejemanja skrivnosti ni omogočena"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Prosimo, preverite obrazec za napake"
   }
 }

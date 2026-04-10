@@ -8,11 +8,11 @@
     "source_hash": "c57d3006"
   },
   "web.feedback.help_us_improve": {
-    "text": "Pomagajte nam izboljšati",
+    "text": "Pomagajte nam izboljšati storitev",
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Zapri modalno okno povratnih informacij",
+    "text": "Zapri okno za povratne informacije",
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
@@ -28,15 +28,15 @@
     "source_hash": "f58154f7"
   },
   "web.feedback.help_content_goes_here": {
-    "text": "Vsebina pomoči gre sem.",
+    "text": "Vsebina pomoči se nahaja tukaj.",
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Preberem vsak kos povratnih informacij, ki pride prek tukaj. Tako ugotovim, na kaj porabiti čas.",
+    "text": "Preberem vsak kos povratnih informacij, ki prispejo sem. Tako ugotovim, čemu posvetiti čas.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Če je kaj narobe ali imate ideje, kako bi moralo delovati, je to pravo mesto.",
+    "text": "Če nekaj ne deluje prav ali imate ideje o tem, kako bi moralo delovati, je to pravo mesto.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -52,11 +52,11 @@
     "source_hash": "8235980b"
   },
   "web.feedback.sending_ellipses": {
-    "text": "Pošiljanje...",
+    "text": "Pošiljanje ...",
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Videti je, da prijavljate nepooblaščeno spremembo e-pošte na vašem računu. Prosimo, opišite, kaj se je zgodilo, in takoj bomo preiskali zadevo.",
+    "text": "Videti je, da prijavljate nepooblaščeno spremembo e-pošte na vašem računu. Prosimo, opišite, kaj se je zgodilo, in takoj bomo preiskali.",
     "source_hash": "00e56551"
   }
 }

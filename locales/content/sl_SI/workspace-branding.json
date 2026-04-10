@@ -16,7 +16,7 @@
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Slog vogalov",
+    "text": "Slog robov",
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
@@ -56,11 +56,11 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "S telefonom skenirajte QR kodo",
+    "text": "S telefonom skenirajte QR-kodo",
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Za vprašanja se obrnite na uvajanje{'@'}primer.si",
+    "text": "Za vprašanja se obrnite na onboarding{'@'}example.com",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -84,7 +84,7 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Kontrole logotipa",
+    "text": "Upravljanje logotipa",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
@@ -120,7 +120,7 @@
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
-    "text": "Ikona prilagoditve",
+    "text": "Ikona prilagajanja",
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
@@ -132,7 +132,7 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "To je interaktivni predogled, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z uporabo zgornjih kontrol - Naložite logotip (priporočeno najmanj 128x128 slikovnih pik, največ 1 MB) - Testirate predogled z gumbom \"Ogled skrivnosti\"",
+    "text": "To je interaktiven predogled, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočena najmanjša velikost 128x128 pikslov, največja 1 MB) - Preizkusite predogled z gumbom »Ogled skrivnosti«",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Nadgradite svoj načrt, da prilagodite blagovno znamko za to domeno.",
+    "text": "Nadgradite svoj paket za prilagoditev blagovne znamke za to domeno.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Nastavitve blagovne znamke uspešno shranjene"
   }
 }

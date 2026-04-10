@@ -28,11 +28,11 @@
     "source_hash": "78207a09"
   },
   "web.errors.404_page_not_found_0": {
-    "text": "404 - Stran ni najdena",
+    "text": "404 – Stran ni najdena",
     "source_hash": "27595daa"
   },
   "web.errors.404_page_not_found": {
-    "text": "404 - Stran ni najdena",
+    "text": "404 – Stran ni najdena",
     "source_hash": "27595daa"
   },
   "web.errors.dismiss_warning": {

@@ -8,11 +8,11 @@
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
-    "text": "Prilagodi",
+    "text": "Prilagodite",
     "source_hash": "c5276e27"
   },
   "web.footer.plans": {
-    "text": "Načrti",
+    "text": "Paketi",
     "source_hash": "dfe8b2f0"
   },
   "web.footer.security": {
@@ -56,7 +56,7 @@
     "source_hash": "eb443229"
   },
   "web.footer.check_our_service_status": {
-    "text": "Preverite stanje naših storitev",
+    "text": "Preverite stanje naše storitve",
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
@@ -68,11 +68,11 @@
     "source_hash": "7af023c4"
   },
   "web.footer.access_our_documentation": {
-    "text": "Dostopite do naše dokumentacije",
+    "text": "Dostopajte do naše dokumentacije",
     "source_hash": "37686da2"
   },
   "web.footer.view_our_source_code_on_github": {
-    "text": "Oglejte si našo izvorno kodo na GitHubu",
+    "text": "Oglejte si našo izvorno kodo na GitHub",
     "source_hash": "d5def0ab"
   },
   "web.footer.resources": {
@@ -108,7 +108,7 @@
     "source_hash": "29c5c68f"
   },
   "web.navigation.billing": {
-    "text": "Obračun",
+    "text": "Obračunavanje",
     "source_hash": "3ac8bbca"
   },
   "web.navigation.billingOverview": {
@@ -132,7 +132,7 @@
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Pred kratkim smo dodali prevode. Opazili napako? {send-feedback}",
+    "text": "Nedavno smo dodali prevode. Ste opazili napako? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
@@ -140,7 +140,7 @@
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
-    "text": "Več informacij",
+    "text": "Več o tem",
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
@@ -148,35 +148,35 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Gledate varno sporočilo, ki vam je bilo posredovano prek Onetime Secret. Ta vsebina se prikaže samo enkrat in je nato trajno izbrisana z naših strežnikov.",
+    "text": "Gledate varno sporočilo, ki vam je bilo deljeno prek Onetime Secret. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Ali si lahko to skrivnost ogledam še kdaj?",
+    "text": "Ali lahko to skrivnost vidim še kdaj pozneje?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Ne. Iz varnostnih razlogov si lahko to skrivnost ogledate samo enkrat. Ko zaprete to stran, bo vsebina trajno izbrisana in je nihče ne bo mogel obnoviti, niti mi.",
+    "text": "Ne. Iz varnostnih razlogov je ta skrivnost vidna samo enkrat. Po zaprtju te strani bo vsebina trajno izbrisana in je nihče ne bo mogel obnoviti, niti mi.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Kako shranim te informacije?",
+    "text": "Kako shranim te podatke?",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
-    "text": "Uporabite gumb 'Kopiraj v odložišče' za kopiranje celotne skrivnosti. Pri daljših skrivnostih se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran.",
+    "text": "Uporabite gumb »Kopiraj v odložišče«, da kopirate celotno skrivnost. Pri daljših skrivnostih se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran.",
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Ali se moj ogled te skrivnosti beleži?",
+    "text": "Ali je moj ogled te skrivnosti sledljiv?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne beležimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena.",
+    "text": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne sledimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče več ne bo mogel obnoviti.",
+    "text": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče ne bo mogel obnoviti.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
@@ -224,7 +224,7 @@
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Nalaganje vsebine nastavitev...",
+    "text": "Nalaganje vsebine nastavitev ...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
@@ -244,7 +244,7 @@
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
-    "text": "Nazaj domov",
+    "text": "Nazaj na domov",
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
@@ -252,7 +252,7 @@
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
-    "text": "Nazaj na domačo stran",
+    "text": "Nazaj na domov",
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
@@ -304,7 +304,7 @@
     "source_hash": "d4eedb15"
   },
   "web.layout.view_source_on_github": {
-    "text": "Oglejte si izvorno kodo na GitHubu",
+    "text": "Oglejte si izvorno kodo na GitHub",
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
@@ -312,11 +312,11 @@
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Spremeni jezik. Trenutni jezik je {0}",
+    "text": "Spremenite jezik. Trenutni jezik je {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Jezik spremenjen na {0}",
+    "text": "Jezik spremenjen v {0}",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
@@ -332,11 +332,14 @@
     "source_hash": "e1d200cb"
   },
   "web.layout.workspace": {
-    "text": "Delovni prostor",
+    "text": "Delovno okolje",
     "source_hash": "87bb59ba"
   },
   "web.layout.workspace_context": {
-    "text": "Kontekst delovnega prostora",
+    "text": "Kontekst delovnega okolja",
     "source_hash": "dc6fa4f5"
+  },
+  "web.footer.workspace": {
+    "text": "Delovno okolje"
   }
 }

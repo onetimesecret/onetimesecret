@@ -4,7 +4,7 @@
     "source_hash": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Spremeni geslo",
+    "text": "Spremenite geslo",
     "source_hash": "a949f462"
   },
   "web.account.close_account": {
@@ -12,7 +12,7 @@
     "source_hash": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Potrdi račun",
+    "text": "Preveri račun",
     "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
@@ -44,11 +44,11 @@
     "source_hash": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Privzeti način plačila",
+    "text": "Privzeto plačilno sredstvo",
     "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "ki se končuje z",
+    "text": "ki se konča na",
     "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
@@ -60,7 +60,7 @@
     "source_hash": "d4b2cb96"
   },
   "web.account.next_billing_date": {
-    "text": "Naslednji datum obračuna:",
+    "text": "Naslednji datum obračunavanja:",
     "source_hash": "8e6f9cfe"
   },
   "web.account.changePassword.username": {
@@ -140,7 +140,7 @@
     "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Potrdite z vašim geslom",
+    "text": "Potrdite s svojim geslom",
     "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Potrdite izbris računa",
+    "text": "Potrdite brisanje računa",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -164,15 +164,15 @@
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "trajen in nepovraten.",
+    "text": "trajno in nepreklicno.",
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "Izbris vašega računa je",
+    "text": "Brisanje vašega računa je",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "jih trajno izbrišite, preden nadaljujete",
+    "text": "jih uničite pred nadaljevanjem",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
@@ -184,7 +184,7 @@
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Upoštevajte naslednje:",
+    "text": "Prosimo, upoštevajte:",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
@@ -208,7 +208,7 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Upravljajte nastavitve in preference svojega računa",
+    "text": "Upravljajte nastavitve in možnosti svojega računa",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
@@ -272,7 +272,7 @@
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Upravljajte podatke o vašem računu",
+    "text": "Upravljajte podatke o svojem računu",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,7 +280,7 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Spremeni e-pošto",
+    "text": "Spremenite e-pošto",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
@@ -296,7 +296,7 @@
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Vnesite trenutno geslo",
+    "text": "Vnesite svoje trenutno geslo",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
@@ -304,7 +304,7 @@
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Na nov naslov bo poslana potrditvena e-pošta",
+    "text": "Potrditveno e-sporočilo bo poslano na nov naslov",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
@@ -324,11 +324,11 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "Nova e-pošta mora biti drugačna od trenutne",
+    "text": "Nova e-pošta se mora razlikovati od trenutne",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-pošta uspešno posodobljena. Preverite nabiralnik, da potrdite nov e-poštni naslov.",
+    "text": "Potrditveno e-sporočilo poslano. Preverite nov nabiralnik in kliknite potrditveno povezavo za dokončanje spremembe.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
@@ -372,11 +372,11 @@
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Ocena varnosti",
+    "text": "Varnostna ocena",
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "Skupna ocena varnosti vašega računa",
+    "text": "Splošno zdravje varnosti vašega računa",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -428,11 +428,11 @@
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Ni ustvarjenih kod",
+    "text": "Kode niso ustvarjene",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0} aktivna seja | {0} aktivni seji | {0} aktivne seje | {0} aktivnih sej",
+    "text": "{0} aktivna seja | {0} aktivnih sej",
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
@@ -440,7 +440,7 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Uporabite močno, edinstveno geslo za svoj račun",
+    "text": "Za svoj račun uporabite močno in edinstveno geslo",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
@@ -448,7 +448,7 @@
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Shranite obnovitvene kode na varno mesto",
+    "text": "Shranite kode za obnovitev na varno mesto",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
@@ -456,7 +456,7 @@
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
-    "text": "Ogled podrobnosti",
+    "text": "Prikaži podrobnosti",
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Naučite se, kako integrirati Onetime Secret v svoje aplikacije",
+    "text": "Spoznajte, kako integrirati Onetime Secret v svoje aplikacije",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -500,15 +500,15 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Nikoli ne shranjujte API ključev v nadzor različic",
+    "text": "Nikoli ne potrjujte API ključev v nadzor različic",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Za shranjevanje API ključev uporabljajte okoljske spremenljivke",
+    "text": "Za shranjevanje API ključev uporabite okoljske spremenljivke",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Redno menjajte API ključe za večjo varnost",
+    "text": "Redno menjajte API ključe za varnost",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
@@ -516,7 +516,7 @@
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Spremljajte uporabo API-ja in nastavite opozorila",
+    "text": "Spremljajte svojo uporabo API in nastavite opozorila",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Z regeneracijo API ključa bo trenutni ključ razveljavljen. Posodobite vse aplikacije, ki uporabljajo stari ključ.",
+    "text": "Ponovna ustvaritev API ključa bo razveljavila trenutni ključ. Posodobite vse aplikacije, ki uporabljajo stari ključ.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,7 +532,7 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Upravljajte nastavitve zasebnosti",
+    "text": "Upravljajte svoje nastavitve zasebnosti",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
@@ -540,7 +540,7 @@
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "Brez kompromisov",
+    "text": "Neizpogojljivo",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -552,7 +552,7 @@
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "To ni nastavitev, ker ni ničesar za vklopiti ali izklopiti. Vaša zasebnost je vgrajena v naš način delovanja.",
+    "text": "To ni nastavitev, ker ni ničesar za vklop ali izklop. Vaša zasebnost je vgrajena v naš način delovanja.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,7 +560,7 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Upravljajte, kako prejemate obvestila",
+    "text": "Upravljajte način prejemanja obvestil",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
@@ -572,15 +572,15 @@
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Prejmite e-pošto, ko nekdo ogleda vašo skrivnost",
+    "text": "Prejmite e-sporočilo, ko si nekdo ogleda vašo skrivnost",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Obveščeni boste vsakič, ko prejemnik razkrije eno od vaših skrivnosti",
+    "text": "Obveščeni boste vsakič, ko prejemnik razkrije eno vaših skrivnosti",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "E-poštna obvestila vključujejo samo časovni žig in ID skrivnosti. Podatki o gledalcu niso nikoli vključeni.",
+    "text": "E-poštna obvestila vključujejo samo časovni žig in ID skrivnosti. Podatki o ogledu niso nikoli vključeni.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
@@ -600,7 +600,7 @@
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Zahtevajte popolno kopijo podatkov vašega računa v strojno berljivem formatu",
+    "text": "Zahtevajte popolno kopijo podatkov svojega računa v strojno berljivi obliki",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -616,19 +616,19 @@
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Z izbrisom računa boste:",
+    "text": "Brisanje vašega računa bo:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Trajno izbrisali vse svoje skrivnosti",
+    "text": "Trajno izbrisalo vse vaše skrivnosti",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Odstranili vse metapodatke in zgodovino skrivnosti",
+    "text": "Odstranilo vse metapodatke in zgodovino skrivnosti",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "Razveljavite vse API ključe",
+    "text": "Razveljavi vse API ključe",
     "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
@@ -640,11 +640,11 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "Vaša e-pošta je bila uspešno posodobljena. Prijavite se z novim e-poštnim naslovom.",
+    "text": "Vaša e-pošta je bila uspešno posodobljena. Prijavite se s svojim novim e-poštnim naslovom.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "Preverjanje vašega novega e-poštnega naslova...",
+    "text": "Preverjanje vašega novega e-poštnega naslova ...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
@@ -652,7 +652,7 @@
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "Ta potrditvena povezava ni veljavna ali je potekla.",
+    "text": "Ta potrditvena povezava je neveljavna ali je potekla.",
     "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
@@ -660,7 +660,7 @@
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Preusmeritev na prijavo...",
+    "text": "Preusmerjanje na prijavo ...",
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
@@ -668,11 +668,11 @@
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "Potrditveno e-sporočilo uspešno ponovno poslano.",
+    "text": "Potrditveno e-sporočilo uspešno znova poslano.",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
-    "text": "Pošiljanje...",
+    "text": "Pošiljanje ...",
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
