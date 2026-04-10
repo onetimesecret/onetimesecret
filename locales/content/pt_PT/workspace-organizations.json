@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "Gerir as suas organizações",
+    "text": "Gere as tuas organizações",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -20,23 +20,23 @@
     "source_hash": "2730183d"
   },
   "web.organizations.manage_organizations": {
-    "text": "Gerir Organizações",
+    "text": "Gerir organizações",
     "source_hash": "be0fe4c3"
   },
   "web.organizations.new_organization": {
-    "text": "Nova Organização",
+    "text": "Nova organização",
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "Ainda sem organizações",
+    "text": "Sem organizações ainda",
     "source_hash": "5b7a7cbd"
   },
   "web.organizations.no_organizations_description": {
-    "text": "As organizações fornecem faturação e administração unificadas. Comece por criar a sua primeira organização.",
+    "text": "As organizações proporcionam faturação e administração unificadas. Começa por criar a tua primeira organização.",
     "source_hash": "deab4304"
   },
   "web.organizations.no_description": {
-    "text": "Nenhuma descrição fornecida",
+    "text": "Sem descrição fornecida",
     "source_hash": "41183d01"
   },
   "web.organizations.default": {
@@ -44,11 +44,11 @@
     "source_hash": "21b111cb"
   },
   "web.organizations.create_organization": {
-    "text": "Criar Organização",
+    "text": "Criar organização",
     "source_hash": "e27f4540"
   },
   "web.organizations.create_first_organization": {
-    "text": "Criar Primeira Organização",
+    "text": "Criar primeira organização",
     "source_hash": "27bae486"
   },
   "web.organizations.create_organization_description": {
@@ -64,15 +64,15 @@
     "source_hash": "f2204373"
   },
   "web.organizations.organization_name": {
-    "text": "Nome da Organização",
+    "text": "Nome da organização",
     "source_hash": "4cbd9073"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "ex. Empresa Exemplo",
+    "text": "p. ex. Acme Corporation",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
-    "text": "Nome da Organização",
+    "text": "Nome da organização",
     "source_hash": "4cbd9073"
   },
   "web.organizations.description": {
@@ -84,19 +84,19 @@
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
-    "text": "E-mail de Faturação",
+    "text": "E-mail de faturação",
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "Contacto principal para notificações de faturação e administrativas",
+    "text": "Contacto principal para notificações de faturação e administração",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
-    "text": "Selecionar uma organização",
+    "text": "Seleciona uma organização",
     "source_hash": "48326f52"
   },
   "web.organizations.switcher_locked": {
-    "text": "Mudança de organização não disponível nesta página",
+    "text": "A mudança de organização não está disponível nesta página",
     "source_hash": "da0cf810"
   },
   "web.organizations.not_found": {
@@ -116,35 +116,35 @@
     "source_hash": "03b30208"
   },
   "web.organizations.organization_information": {
-    "text": "Informação da Organização",
+    "text": "Informações da organização",
     "source_hash": "85274cee"
   },
   "web.organizations.created": {
-    "text": "Criada",
+    "text": "Criado",
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "Última Atualização",
+    "text": "Última atualização",
     "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
-    "text": "Definições da Organização",
+    "text": "Definições da organização",
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "Atualizar o nome e descrição da sua organização",
+    "text": "Atualiza o nome e descrição da tua organização",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
-    "text": "Definições Gerais",
+    "text": "Definições gerais",
     "source_hash": "de322f87"
   },
   "web.organizations.billing_settings": {
-    "text": "Faturação e Subscrição",
+    "text": "Faturação e subscrição",
     "source_hash": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Guardar Alterações",
+    "text": "Guardar alterações",
     "source_hash": "35322b5b"
   },
   "web.organizations.update_success": {
@@ -160,11 +160,11 @@
     "source_hash": "080a7f11"
   },
   "web.organizations.billing_email_managed_on_billing": {
-    "text": "O e-mail de faturação pode ser alterado na página Visão Geral da Faturação",
+    "text": "O e-mail de faturação pode ser alterado na página de resumo de faturação",
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "Integração de Faturação Em Breve",
+    "text": "Integração de faturação em breve",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
@@ -172,31 +172,31 @@
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
-    "text": "Sobre Organizações",
+    "text": "Sobre organizações",
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "As organizações fornecem faturação e administração unificadas para gestão centralizada.",
+    "text": "As organizações proporcionam faturação e administração unificadas para gestão centralizada.",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
-    "text": "Gerir a Sua Organização",
+    "text": "Gere a tua organização",
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "Atualize aqui o nome da sua empresa e detalhes da organização. Esta informação ajuda a personalizar a sua conta e pode ser usada para funcionalidades de marca no futuro.",
+    "text": "Atualiza aqui o nome da tua empresa e os detalhes da organização. Esta informação ajuda a personalizar a tua conta e pode ser utilizada para funcionalidades de marca no futuro.",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
-    "text": "Começar com Organizações",
+    "text": "Começar com organizações",
     "source_hash": "2871e738"
   },
   "web.organizations.getting_started_description": {
-    "text": "Crie a sua primeira organização para gerir as informações da sua empresa e preparar-se para futuras funcionalidades de marca.",
+    "text": "Cria a tua primeira organização para gerir as informações da tua empresa e preparar-te para futuras funcionalidades de marca.",
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "Gerir as suas organizações e membros da equipa",
+    "text": "Gere as tuas organizações e membros de equipa",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,11 +204,11 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "Marca da Empresa",
+    "text": "Marca da empresa",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
-    "text": "Equipa",
+    "text": "Membros",
     "source_hash": "5985039f"
   },
   "web.organizations.tabs.billing": {
@@ -220,15 +220,15 @@
     "source_hash": "4999c6c6"
   },
   "web.organizations.danger_zone": {
-    "text": "Zona de Perigo",
+    "text": "Zona de perigo",
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
-    "text": "Eliminar Organização",
+    "text": "Eliminar organização",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "Isto eliminará permanentemente a organização. Esta ação não pode ser desfeita.",
+    "text": "Isto vai eliminar permanentemente a organização. Esta ação não pode ser revertida.",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -236,11 +236,11 @@
     "source_hash": "e2d0a549"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "text": "Eliminar Organização",
+    "text": "Eliminar organização",
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "Tem a certeza de que deseja eliminar {name}? Esta ação não pode ser desfeita.",
+    "text": "Tens a certeza de que queres eliminar {name}? Esta ação não pode ser revertida.",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -252,11 +252,11 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "Gerir membros da organização e as suas funções",
+    "text": "Gere os membros da organização e os seus papéis",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
-    "text": "Membros Atuais",
+    "text": "Membros atuais",
     "source_hash": "cfc156ae"
   },
   "web.organizations.members.member": {
@@ -280,7 +280,7 @@
     "source_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "Função",
+    "text": "Papel",
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "Ainda sem membros. Convide membros da equipa para começar.",
+    "text": "Sem membros ainda. Convida membros de equipa para começar.",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -300,11 +300,11 @@
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "Função do membro atualizada com sucesso",
+    "text": "Papel do membro atualizado com sucesso",
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "Falha ao atualizar função do membro",
+    "text": "Falha ao atualizar papel do membro",
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
@@ -316,27 +316,27 @@
     "source_hash": "1cff79b7"
   },
   "web.organizations.members.remove_member_title": {
-    "text": "Remover Membro",
+    "text": "Remover membro",
     "source_hash": "2b98b194"
   },
   "web.organizations.members.remove_member_confirm": {
-    "text": "Tem a certeza de que deseja remover {name} desta organização?",
+    "text": "Tens a certeza de que queres remover {name} desta organização?",
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "Não pode alterar a sua própria função",
+    "text": "Não podes alterar o teu próprio papel",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "Não pode remover-se a si próprio da organização",
+    "text": "Não te podes remover a ti próprio da organização",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "text": "Não pode remover o proprietário da organização",
+    "text": "Não podes remover o proprietário da organização",
     "source_hash": "c92ed0f4"
   },
   "web.organizations.members.insufficient_permissions": {
-    "text": "Não tem permissão para gerir membros",
+    "text": "Não tens permissão para gerir membros",
     "source_hash": "d6239f33"
   },
   "web.organizations.members.roles.owner": {
@@ -364,19 +364,19 @@
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "Convites da Organização",
+    "text": "Convites da organização",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
-    "text": "Convidar Membro",
+    "text": "Convidar membro",
     "source_hash": "8e8a0b88"
   },
   "web.organizations.invitations.invite_new_member": {
-    "text": "Convidar Novo Membro",
+    "text": "Convidar novo membro",
     "source_hash": "0bfb50ed"
   },
   "web.organizations.invitations.pending_invitations": {
-    "text": "Convites Pendentes",
+    "text": "Convites pendentes",
     "source_hash": "b327e8a8"
   },
   "web.organizations.invitations.no_pending_invitations": {
@@ -384,19 +384,19 @@
     "source_hash": "275814da"
   },
   "web.organizations.invitations.email_address": {
-    "text": "Endereço de E-mail",
+    "text": "Endereço de e-mail",
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "membro{'@'}exemplo.com",
+    "text": "membro{'@'}example.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "Função",
+    "text": "Papel",
     "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
-    "text": "Enviar Convite",
+    "text": "Enviar convite",
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
@@ -468,7 +468,7 @@
     "source_hash": "424a2551"
   },
   "web.organizations.invitations.roles.member": {
-    "text": "Membro",
+    "text": "Membro da equipa",
     "source_hash": "7c968fb7"
   },
   "web.organizations.invitations.roles.admin": {
@@ -476,23 +476,23 @@
     "source_hash": "c1c224b0"
   },
   "web.organizations.invitations.accept_invitation": {
-    "text": "Aceitar Convite",
+    "text": "Aceitar convite",
     "source_hash": "ce7cfeaf"
   },
   "web.organizations.invitations.decline_invitation": {
-    "text": "Recusar Convite",
+    "text": "Recusar convite",
     "source_hash": "f6e06ada"
   },
   "web.organizations.invitations.invitation_details": {
-    "text": "Detalhes do Convite",
+    "text": "Detalhes do convite",
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "Foi convidado a juntar-se a",
+    "text": "Foste convidado para te juntares a",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "Foi convidado como",
+    "text": "Foste convidado como",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
@@ -520,7 +520,7 @@
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "Por favor, inicie sessão para aceitar este convite",
+    "text": "Inicia sessão para aceitar este convite",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
@@ -528,11 +528,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "Atualize o seu plano para convidar membros da equipa",
+    "text": "Faz upgrade do teu plano para convidar membros de equipa",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Os convites para membros da equipa requerem um plano com gestão de equipas. Atualize para adicionar colaboradores à sua organização.",
+    "text": "Os convites de membros de equipa requerem um plano com gestão de equipas. Faz upgrade para adicionar colaboradores à tua organização.",
     "source_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -556,11 +556,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "Sessão iniciada com outra conta",
+    "text": "Conta diferente com sessão iniciada",
     "source_hash": "4a2f91c3"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "Este convite é para {invitedEmail}. Tem sessão iniciada como {currentEmail}.",
+    "text": "Este convite é para {invitedEmail}. Estás atualmente com sessão iniciada como {currentEmail}.",
     "source_hash": "b8d3e5f7"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -578,5 +578,191 @@
   "web.organizations.invitations.expires_soon": {
     "text": "Expira em breve",
     "source_hash": "a5dcfef9"
+  },
+  "web.organizations.page_description_short": {
+    "text": "Ver e configurar as tuas áreas de trabalho"
+  },
+  "web.organizations.invitations.invited_by_inline": {
+    "text": "por {email}"
+  },
+  "web.organizations.invitations.invited_as_inline": {
+    "text": "como {role}"
+  },
+  "web.organizations.invitations.back_to_home": {
+    "text": "Voltar ao início"
+  },
+  "web.organizations.invitations.email_locked_hint": {
+    "text": "Este convite foi enviado para este endereço de e-mail"
+  },
+  "web.organizations.invitations.create_account_and_join": {
+    "text": "Continuar"
+  },
+  "web.organizations.invitations.sign_in_and_accept": {
+    "text": "Iniciar sessão e aceitar convite"
+  },
+  "web.organizations.invitations.go_to_organizations": {
+    "text": "Ir para organizações"
+  },
+  "web.organizations.invitations.already_member": {
+    "text": "Já és membro desta organização"
+  },
+  "web.organizations.invitations.join_organization": {
+    "text": "Aderir a {orgName}"
+  },
+  "web.organizations.invitations.sign_in_to_join": {
+    "text": "Inicia sessão para aderir a {orgName}"
+  },
+  "web.organizations.invitations.decline": {
+    "text": "Recusar"
+  },
+  "web.organizations.sso.title": {
+    "text": "Início de sessão único (SSO)"
+  },
+  "web.organizations.sso.description": {
+    "text": "Configura o SSO para permitir que os membros iniciem sessão com o fornecedor de identidade da tua organização"
+  },
+  "web.organizations.sso.provider_type": {
+    "text": "Tipo de fornecedor"
+  },
+  "web.organizations.sso.provider_type_description": {
+    "text": "Seleciona o fornecedor de identidade da tua organização"
+  },
+  "web.organizations.sso.display_name": {
+    "text": "Nome de apresentação"
+  },
+  "web.organizations.sso.display_name_hint": {
+    "text": "Um nome amigável mostrado aos utilizadores ao iniciar sessão"
+  },
+  "web.organizations.sso.display_name_placeholder": {
+    "text": "p. ex. Acme Corp SSO"
+  },
+  "web.organizations.sso.client_id": {
+    "text": "ID do cliente"
+  },
+  "web.organizations.sso.client_id_placeholder": {
+    "text": "O teu ID de cliente OAuth"
+  },
+  "web.organizations.sso.client_secret": {
+    "text": "Segredo do cliente"
+  },
+  "web.organizations.sso.client_secret_placeholder": {
+    "text": "O teu segredo de cliente OAuth"
+  },
+  "web.organizations.sso.client_secret_update_hint": {
+    "text": "Deixa em branco para manter o segredo existente"
+  },
+  "web.organizations.sso.tenant_id": {
+    "text": "ID do inquilino"
+  },
+  "web.organizations.sso.tenant_id_hint": {
+    "text": "O identificador do teu inquilino Azure AD / Entra ID"
+  },
+  "web.organizations.sso.tenant_id_placeholder": {
+    "text": "p. ex. 12345678-1234-1234-1234-123456789abc"
+  },
+  "web.organizations.sso.issuer": {
+    "text": "URL do emissor"
+  },
+  "web.organizations.sso.issuer_hint": {
+    "text": "O URL de descoberta OIDC do teu fornecedor de identidade"
+  },
+  "web.organizations.sso.issuer_placeholder": {
+    "text": "p. ex. https://login.example.com"
+  },
+  "web.organizations.sso.allowed_domains": {
+    "text": "Domínios de e-mail permitidos"
+  },
+  "web.organizations.sso.allowed_domains_hint": {
+    "text": "Apenas utilizadores com endereços de e-mail destes domínios podem iniciar sessão. Deixa em branco para permitir todos os domínios."
+  },
+  "web.organizations.sso.domain_placeholder": {
+    "text": "p. ex. acme.com"
+  },
+  "web.organizations.sso.invalid_domain": {
+    "text": "Introduz um domínio válido (p. ex. example.com)"
+  },
+  "web.organizations.sso.domain_exists": {
+    "text": "Este domínio já está na lista"
+  },
+  "web.organizations.sso.remove_domain": {
+    "text": "Remover {domain}"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Ativar SSO"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "Quando ativado, os membros da organização podem iniciar sessão usando este fornecedor SSO"
+  },
+  "web.organizations.sso.save_config": {
+    "text": "Guardar configuração SSO"
+  },
+  "web.organizations.sso.delete_config": {
+    "text": "Eliminar configuração"
+  },
+  "web.organizations.sso.delete_confirm": {
+    "text": "Tens a certeza? Isto vai desativar o SSO para a tua organização."
+  },
+  "web.organizations.sso.load_error": {
+    "text": "Falha ao carregar configuração SSO"
+  },
+  "web.organizations.sso.save_error": {
+    "text": "Falha ao guardar configuração SSO"
+  },
+  "web.organizations.sso.create_success": {
+    "text": "Configuração SSO criada com sucesso"
+  },
+  "web.organizations.sso.update_success": {
+    "text": "Configuração SSO atualizada com sucesso"
+  },
+  "web.organizations.sso.delete_success": {
+    "text": "Configuração SSO eliminada com sucesso"
+  },
+  "web.organizations.sso.delete_error": {
+    "text": "Falha ao eliminar configuração SSO"
+  },
+  "web.organizations.sso.test_connection": {
+    "text": "Testar ligação"
+  },
+  "web.organizations.sso.test_connection_hint": {
+    "text": "Verifica se o fornecedor de identidade está acessível (não valida credenciais)"
+  },
+  "web.organizations.sso.test_button": {
+    "text": "Testar ligação"
+  },
+  "web.organizations.sso.testing": {
+    "text": "A testar..."
+  },
+  "web.organizations.sso.test_error": {
+    "text": "Falha ao testar ligação"
+  },
+  "web.organizations.sso.auth_endpoint": {
+    "text": "Endpoint de autorização"
+  },
+  "web.organizations.sso.missing_fields": {
+    "text": "Campos em falta"
+  },
+  "web.organizations.sso.status_enabled": {
+    "text": "Ativado"
+  },
+  "web.organizations.sso.status_configured": {
+    "text": "Configurado"
+  },
+  "web.organizations.sso.domain_sso_title": {
+    "text": "SSO do domínio"
+  },
+  "web.organizations.sso.domain_sso_description": {
+    "text": "Configura o SSO para cada domínio verificado"
+  },
+  "web.organizations.sso.provider_type_locked_hint": {
+    "text": "Para alterar o fornecedor, elimina primeiro esta configuração"
+  },
+  "web.organizations.sso.status_not_configured": {
+    "text": "Não configurado"
+  },
+  "web.organizations.tabs.team": {
+    "text": "Equipa"
+  },
+  "web.organizations.tabs.sso": {
+    "text": "SSO"
   }
 }

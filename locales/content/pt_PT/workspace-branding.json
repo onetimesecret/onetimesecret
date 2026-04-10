@@ -1,6 +1,6 @@
 {
   "web.branding.color_picker": {
-    "text": "Seletor de Cores",
+    "text": "Seletor de cor",
     "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
@@ -12,15 +12,15 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Família de Tipos de Letra",
+    "text": "Família de tipo de letra",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
-    "text": "Estilo dos Cantos",
+    "text": "Estilo de cantos",
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Cor da Marca",
+    "text": "Cor da marca",
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
@@ -28,7 +28,7 @@
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
-    "text": "Pré-visualizar e Personalizar",
+    "text": "Pré-visualizar e personalizar",
     "source_hash": "215d3659"
   },
   "web.branding.switch_to_safari_browser_view": {
@@ -56,11 +56,11 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Use o seu telefone para digitalizar o código QR",
+    "text": "Utiliza o teu telemóvel para ler o código QR",
     "source_hash": "99ecf59f"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contacte onboarding{'@'}exemplo.com para quaisquer questões",
+    "text": "Contacta onboarding{'@'}example.com com quaisquer perguntas",
     "source_hash": "bee120a7"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
@@ -72,11 +72,11 @@
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instruções Pré-visualização",
+    "text": "Instruções pré-revelação",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instruções Pós-visualização",
+    "text": "Instruções pós-revelação",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -128,11 +128,11 @@
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
-    "text": "Falha ao carregar definições da marca",
+    "text": "Falha ao carregar definições de marca",
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Esta é uma pré-visualização interativa de como os destinatários verão as suas mensagens seguras. Pode: - Personalizar cores e tipos de letra usando os controlos acima - Carregar um logótipo (mínimo recomendado 128x128 pixéis, máximo 1MB) - Testar a pré-visualização usando o botão \"Ver Mensagem Confidencial\"",
+    "text": "Esta é uma pré-visualização interativa de como os destinatários verão as tuas mensagens seguras. Podes: - Personalizar cores e tipos de letra usando os controlos acima - Carregar um logótipo (mínimo recomendado de 128x128 pixels, máximo 1MB) - Testar a pré-visualização usando o botão \"Ver mensagem confidencial\"",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
@@ -168,7 +168,10 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Faça upgrade do seu plano para personalizar a marca deste domínio.",
+    "text": "Faz upgrade do teu plano para personalizar a marca deste domínio.",
     "source_hash": "9077bf79"
+  },
+  "web.branding.saved_successfully": {
+    "text": "Definições de marca guardadas com sucesso"
   }
 }

@@ -58,7 +58,7 @@
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "Completar verificação MFA",
+    "text": "Concluir verificação MFA",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -66,31 +66,31 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Autenticação falhou. Por favor verifica as tuas credenciais e tenta novamente.",
+    "text": "Autenticação falhada. Verifica as tuas credenciais e tenta novamente.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "Demasiadas tentativas. Por favor tenta novamente mais tarde.",
+    "text": "Demasiadas tentativas. Tenta novamente mais tarde.",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "Sessão expirada. Por favor inicia sessão novamente.",
+    "text": "A sessão expirou. Inicia sessão novamente.",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
-    "text": "Código de recuperação não encontrado. Por favor verifica se o introduziste corretamente.",
+    "text": "Código de recuperação não encontrado. Verifica se o introduziste corretamente.",
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Este código de recuperação já foi usado. Cada código só pode ser usado uma vez.",
+    "text": "Este código de recuperação já foi utilizado. Cada código só pode ser utilizado uma vez.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
-    "text": "Erro de rede. Por favor verifica a tua ligação e tenta novamente.",
+    "text": "Erro de rede. Verifica a tua ligação e tenta novamente.",
     "source_hash": "31f2678d"
   },
   "web.auth.security.internal_error": {
-    "text": "Ocorreu um erro. Por favor tenta novamente.",
+    "text": "Ocorreu um erro. Tenta novamente.",
     "source_hash": "9c170dda"
   },
   "web.auth.methods.password": {
@@ -111,7 +111,7 @@
     "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "Vamos enviar-te um link de início de sessão seguro",
+    "text": "Vamos enviar-te um link seguro de início de sessão",
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
@@ -131,23 +131,23 @@
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Este link vai expirar em 15 minutos",
+    "text": "Este link expira em 15 minutos",
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "Tentar outro e-mail",
+    "text": "Tentar um e-mail diferente",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Sem necessidade de palavra-passe — basta clicar no link no teu e-mail",
+    "text": "Não é necessária palavra-passe — basta clicar no link no teu e-mail",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
-    "text": "Erro de rede. Por favor tenta novamente.",
+    "text": "Erro de rede. Tenta novamente.",
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Falha ao enviar link de início de sessão. Por favor tenta novamente.",
+    "text": "Falha ao enviar o link de início de sessão. Tenta novamente.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
@@ -155,19 +155,19 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "A sua sessão expirou. Atualize a página e tente novamente.",
+    "text": "A tua sessão expirou. Atualiza a página e tenta novamente.",
     "source_hash": "a7c3e901"
   },
   "web.auth.magicLink.loginFailed": {
-    "text": "Início de sessão falhou. Por favor tenta novamente.",
+    "text": "O início de sessão falhou. Tenta novamente.",
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "A iniciar sessão...",
+    "text": "A iniciar a tua sessão...",
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Por favor aguarda enquanto verificamos o teu link",
+    "text": "Aguarda enquanto verificamos o teu link",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
@@ -191,7 +191,7 @@
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "Por favor usa um navegador moderno que suporte WebAuthn (Chrome, Safari, Firefox ou Edge)",
+    "text": "Utiliza um navegador moderno que suporte WebAuthn (Chrome, Safari, Firefox ou Edge)",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -199,15 +199,15 @@
     "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "Falha ao configurar início de sessão biométrico",
+    "text": "Falha ao configurar o início de sessão biométrico",
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "A palavra-passe é necessária para configurar uma passkey",
+    "text": "A palavra-passe é necessária para configurar uma chave de acesso",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
-    "text": "A autenticação biométrica falhou. Por favor tenta novamente.",
+    "text": "A autenticação biométrica falhou. Tenta novamente.",
     "source_hash": "626b9ece"
   },
   "web.auth.webauthn.cancelled": {
@@ -219,7 +219,7 @@
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "Usa a tua impressão digital, rosto ou chave de segurança para iniciar sessão",
+    "text": "Utiliza a tua impressão digital, rosto ou chave de segurança para iniciar sessão",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
@@ -227,17 +227,17 @@
     "source_hash": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
-    "text": "Passkeys",
+    "text": "Chaves de acesso",
     "context": "Title for passkey management section",
     "source_hash": "c87ccdb4"
   },
   "web.auth.passkeys.description": {
-    "text": "Inicie sessão com Face ID, Touch ID, Windows Hello ou chave de segurança",
+    "text": "Inicia sessão com Face ID, Touch ID, Windows Hello ou chave de segurança",
     "context": "Description of passkey authentication",
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "As passkeys permitem iniciar sessão de forma segura sem palavra-passe",
+    "text": "As chaves de acesso permitem-te iniciar sessão de forma segura sem palavra-passe",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -247,52 +247,52 @@
     "source_hash": "dd1841d2"
   },
   "web.auth.passkeys.count": {
-    "text": "{count} passkey registada | {count} passkeys registadas",
+    "text": "{count} chave de acesso registada | {count} chaves de acesso registadas",
     "context": "Number of registered passkeys",
     "source_hash": "82e6681f"
   },
   "web.auth.passkeys.add_passkey": {
-    "text": "Adicionar passkey",
+    "text": "Adicionar chave de acesso",
     "context": "Button to add a new passkey",
     "source_hash": "93713ad7"
   },
   "web.auth.passkeys.register_passkey": {
-    "text": "Registar passkey",
+    "text": "Registar chave de acesso",
     "context": "Button to register a new passkey",
     "source_hash": "26db6968"
   },
   "web.auth.passkeys.remove_passkey": {
-    "text": "Remover passkey",
+    "text": "Remover chave de acesso",
     "context": "Button to remove a passkey",
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "Tem a certeza de que pretende remover esta passkey? Deixará de poder iniciar sessão com ela.",
+    "text": "Tens a certeza de que queres remover esta chave de acesso? Já não poderás iniciar sessão com ela.",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
   "web.auth.passkeys.removed_success": {
-    "text": "Passkey removida com sucesso",
+    "text": "Chave de acesso removida com sucesso",
     "context": "Success message after removing passkey",
     "source_hash": "436c1050"
   },
   "web.auth.passkeys.registered_success": {
-    "text": "Passkey registada com sucesso",
+    "text": "Chave de acesso registada com sucesso",
     "context": "Success message after registering passkey",
     "source_hash": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "Nenhuma passkey registada",
+    "text": "Nenhuma chave de acesso registada",
     "context": "Empty state when no passkeys exist",
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "Adicione uma passkey para iniciar sessão de forma mais segura sem introduzir uma palavra-passe",
+    "text": "Adiciona uma chave de acesso para iniciar sessão de forma mais segura sem introduzir uma palavra-passe",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Nome da passkey",
+    "text": "Nome da chave de acesso",
     "context": "Label for passkey name field",
     "source_hash": "22eefa67"
   },
@@ -312,22 +312,22 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Mais segura do que palavras-passe - resistente a ataques de phishing",
+    "text": "Mais segura do que palavras-passe — resistente a ataques de phishing",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Rápida e fácil - basta utilizar a sua impressão digital, rosto ou chave de segurança",
+    "text": "Rápida e fácil — basta usar a tua impressão digital, rosto ou chave de segurança",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Sincronizada entre os seus dispositivos ao utilizar autenticadores de plataforma",
+    "text": "Sincronizada entre os teus dispositivos quando utilizas autenticadores de plataforma",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
   "web.auth.passkeys.link_title": {
-    "text": "Passkeys",
+    "text": "Chaves de acesso",
     "context": "Navigation link title",
     "source_hash": "c87ccdb4"
   },
@@ -336,7 +336,7 @@
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Conta bloqueada devido a demasiadas tentativas falhadas de início de sessão",
+    "text": "Conta bloqueada devido a demasiadas tentativas de início de sessão falhadas",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -348,7 +348,7 @@
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Podes redefinir a tua palavra-passe em alternativa",
+    "text": "Podes repor a tua palavra-passe em alternativa",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -384,7 +384,7 @@
     "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "Criado",
+    "text": "Criada",
     "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Isto vai terminar a sessão em todos os outros dispositivos. Tens a certeza?",
+    "text": "Isto vai terminar a tua sessão em todos os outros dispositivos. Tens a certeza?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -448,7 +448,7 @@
     "source_hash": "d47240b9"
   },
   "web.auth.mfa.step_scan": {
-    "text": "1. Digitalizar código QR",
+    "text": "1. Ler código QR",
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
@@ -456,7 +456,7 @@
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "Digitaliza este código QR com a tua aplicação de autenticação",
+    "text": "Lê este código QR com a tua aplicação de autenticação",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
@@ -496,7 +496,7 @@
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "Introduz a tua palavra-passe para desativar 2FA",
+    "text": "Introduz a tua palavra-passe para desativar a 2FA",
     "source_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
@@ -548,7 +548,7 @@
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Previne acesso não autorizado mesmo se a tua palavra-passe for comprometida",
+    "text": "Previne acessos não autorizados mesmo que a tua palavra-passe seja comprometida",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -556,7 +556,7 @@
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "Códigos de recuperação de backup para acesso de emergência",
+    "text": "Códigos de recuperação de emergência como backup",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -576,7 +576,7 @@
     "source_hash": "8eab9da9"
   },
   "web.auth.mfa.supported_apps": {
-    "text": "Usa Google Authenticator, Authy ou qualquer aplicação TOTP",
+    "text": "Utiliza o Google Authenticator, Authy ou qualquer aplicação TOTP",
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
@@ -592,7 +592,7 @@
     "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Completar configuração",
+    "text": "Concluir configuração",
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
@@ -624,7 +624,7 @@
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
-    "text": "Por favor introduz todos os 6 dígitos para continuar",
+    "text": "Introduz todos os 6 dígitos para continuar",
     "source_hash": "7914f7b2"
   },
   "web.auth.mfa.digit_of_count": {
@@ -636,7 +636,7 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Guarda estes códigos num local seguro. Cada um pode ser usado uma vez se perderes acesso à tua aplicação de autenticação.",
+    "text": "Guarda estes códigos num local seguro. Cada um pode ser utilizado uma vez se perderes acesso à tua aplicação de autenticação.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
@@ -644,7 +644,7 @@
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Deves transferir ou copiar os teus códigos de recuperação antes de completar a configuração.",
+    "text": "Deves descarregar ou copiar os teus códigos de recuperação antes de concluir a configuração.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
@@ -660,11 +660,11 @@
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
-    "text": "Transferir códigos",
+    "text": "Descarregar códigos",
     "source_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "Códigos de recuperação transferidos",
+    "text": "Códigos de recuperação descarregados",
     "source_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
@@ -680,7 +680,7 @@
     "source_hash": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Falha ao copiar códigos para a área de transferência",
+    "text": "Falha ao copiar os códigos para a área de transferência",
     "source_hash": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
@@ -696,19 +696,34 @@
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Cada código só pode ser usado uma vez. Regenera os códigos se estiveres a ficar sem.",
+    "text": "Cada código só pode ser utilizado uma vez. Regenera os códigos se estiveres a ficar com poucos.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
-    "text": "Não restam códigos de recuperação",
+    "text": "Sem códigos de recuperação restantes",
     "source_hash": "9ae26d68"
   },
   "web.auth.recovery_codes.generate_success": {
-    "text": "Novos códigos de recuperação foram gerados",
+    "text": "Foram gerados novos códigos de recuperação",
     "source_hash": "831cb1aa"
   },
   "web.auth.recovery_codes.link_title": {
     "text": "Códigos de recuperação",
     "source_hash": "579c7f4e"
+  },
+  "web.auth.mfa.alternative_auth_options": {
+    "text": "Opções de autenticação alternativas"
+  },
+  "web.auth.security._guidance.context": {
+    "text": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
+  },
+  "web.auth.sessions.session_singular": {
+    "text": "sessão"
+  },
+  "web.auth.sessions.session_plural": {
+    "text": "sessões"
+  },
+  "web.auth.sessions._guidance.context": {
+    "text": "User's logged-in devices/browsers management page"
   }
 }

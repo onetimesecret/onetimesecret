@@ -4,15 +4,15 @@
     "source_hash": "74a883a0"
   },
   "web.account.change_password": {
-    "text": "Alterar Palavra-passe",
+    "text": "Alterar palavra-passe",
     "source_hash": "a949f462"
   },
   "web.account.close_account": {
-    "text": "Fechar Conta",
+    "text": "Fechar conta",
     "source_hash": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "Verificar Conta",
+    "text": "Verificar conta",
     "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
@@ -20,11 +20,11 @@
     "source_hash": "4999c6c6"
   },
   "web.account.manage_subscription": {
-    "text": "Gerir Subscrição",
+    "text": "Gerir subscrição",
     "source_hash": "cbc4ef92"
   },
   "web.account.customer_information": {
-    "text": "Informação do Cliente",
+    "text": "Informações do cliente",
     "source_hash": "8258db6d"
   },
   "web.account.customer_since": {
@@ -44,11 +44,11 @@
     "source_hash": "e0351221"
   },
   "web.account.default_payment_method": {
-    "text": "Método de Pagamento Predefinido",
+    "text": "Método de pagamento predefinido",
     "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "terminando em",
+    "text": "terminado em",
     "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
@@ -68,11 +68,11 @@
     "source_hash": "e3b89e9d"
   },
   "web.account.changePassword.currentPassword": {
-    "text": "Palavra-passe Atual",
+    "text": "Palavra-passe atual",
     "source_hash": "8ac76099"
   },
   "web.account.changePassword.newPassword": {
-    "text": "Nova Palavra-passe",
+    "text": "Nova palavra-passe",
     "source_hash": "7c451e0f"
   },
   "web.account.changePassword.confirmPassword": {
@@ -80,7 +80,7 @@
     "source_hash": "eebdd24a"
   },
   "web.account.changePassword.updatePassword": {
-    "text": "Atualizar Palavra-passe",
+    "text": "Atualizar palavra-passe",
     "source_hash": "557be0da"
   },
   "web.account.changePassword.updating": {
@@ -92,11 +92,11 @@
     "source_hash": "4ceca1d5"
   },
   "web.account.customer_id": {
-    "text": "ID do Cliente",
+    "text": "ID do cliente",
     "source_hash": "62566c64"
   },
   "web.account.account_id_customerid": {
-    "text": "ID da Conta",
+    "text": "ID da conta",
     "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
@@ -104,7 +104,7 @@
     "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
-    "text": "Eliminar Conta",
+    "text": "Eliminar conta",
     "source_hash": "c031bf99"
   },
   "web.account.api_key": {
@@ -116,19 +116,19 @@
     "source_hash": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "A Sua Conta",
+    "text": "A tua conta",
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
-    "text": "Detalhes de Suporte",
+    "text": "Detalhes de suporte",
     "source_hash": "cbad8751"
   },
   "web.account.back_to_details": {
-    "text": "Voltar aos Detalhes",
+    "text": "Voltar aos detalhes",
     "source_hash": "f6f841b9"
   },
   "web.account.customer_id_cust_custid": {
-    "text": "ID do Cliente: {0}",
+    "text": "ID do cliente: {0}",
     "source_hash": "7e2d4201"
   },
   "web.account.token_generated": {
@@ -140,7 +140,7 @@
     "source_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
-    "text": "Confirme com a sua palavra-passe",
+    "text": "Confirma com a tua palavra-passe",
     "source_hash": "ff2147fd"
   },
   "web.account.are_you_sure_you_want_to_permanently_delete_your": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "Confirmar Eliminação da Conta",
+    "text": "Confirmar eliminação da conta",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -160,7 +160,7 @@
     "source_hash": "685ecb98"
   },
   "web.account.permanently_delete_account": {
-    "text": "Eliminar Conta Permanentemente",
+    "text": "Eliminar conta permanentemente",
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
@@ -168,15 +168,15 @@
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
-    "text": "A eliminação da sua conta é",
+    "text": "A eliminação da tua conta é",
     "source_hash": "ec31577b"
   },
   "web.account.burn_them_before_continuing": {
-    "text": "queime-as antes de continuar",
+    "text": "queima-as antes de continuar",
     "source_hash": "f89a5794"
   },
   "web.account.any_secrets_you_wish_to_remove": {
-    "text": "Quaisquer mensagens confidenciais que deseje remover,",
+    "text": "Quaisquer mensagens confidenciais que pretendas remover,",
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
@@ -184,7 +184,7 @@
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
-    "text": "Por favor, tenha em atenção:",
+    "text": "Aviso importante:",
     "source_hash": "086020fd"
   },
   "web.account.account_deleted_successfully": {
@@ -208,7 +208,7 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "Gerir as definições e preferências da sua conta",
+    "text": "Gere as definições e preferências da tua conta",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
@@ -216,7 +216,7 @@
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
-    "text": "Voltar ao Painel",
+    "text": "Voltar ao painel",
     "source_hash": "97ba1d39"
   },
   "web.settings.sections.account": {
@@ -248,11 +248,11 @@
     "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "Escolha o tema claro ou escuro",
+    "text": "Escolhe tema claro ou escuro",
     "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "Escolha o tema claro ou escuro",
+    "text": "Escolhe tema claro ou escuro",
     "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
@@ -260,19 +260,19 @@
     "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "Selecione o seu idioma preferido",
+    "text": "Seleciona o teu idioma preferido",
     "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "Selecione o seu idioma preferido",
+    "text": "Seleciona o teu idioma preferido",
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "Gerir autenticação e segurança da conta",
+    "text": "Gere a autenticação e segurança da conta",
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "Gerir a informação da sua conta",
+    "text": "Gere as informações da tua conta",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,39 +280,39 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "Alterar E-mail",
+    "text": "Alterar e-mail",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "E-mail Atual",
+    "text": "E-mail atual",
     "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
-    "text": "Palavra-passe Atual",
+    "text": "Palavra-passe atual",
     "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "Novo E-mail",
+    "text": "Novo e-mail",
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "Introduza a sua palavra-passe atual",
+    "text": "Introduz a tua palavra-passe atual",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "A sua palavra-passe é necessária por razões de segurança",
+    "text": "A tua palavra-passe é necessária por razões de segurança",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "Será enviado um e-mail de verificação para o novo endereço",
+    "text": "Um e-mail de verificação será enviado para o novo endereço",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "Atualizar E-mail",
+    "text": "Atualizar e-mail",
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "Atualizar o endereço de e-mail associado à sua conta",
+    "text": "Atualiza o endereço de e-mail associado à tua conta",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
@@ -320,7 +320,7 @@
     "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
-    "text": "Por favor, introduza um endereço de e-mail válido",
+    "text": "Introduz um endereço de e-mail válido",
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
@@ -328,23 +328,23 @@
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
-    "text": "E-mail atualizado com sucesso. Por favor, verifique a sua caixa de entrada para verificar o seu novo endereço de e-mail.",
+    "text": "E-mail de verificação enviado. Verifica a tua nova caixa de entrada e clica no link de confirmação para concluir a alteração.",
     "source_hash": "58de2536"
   },
   "web.settings.profile.email_change_error": {
-    "text": "Falha ao atualizar e-mail. Por favor, tente novamente.",
+    "text": "Falha ao atualizar o e-mail. Tenta novamente.",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "Sessões Ativas",
+    "text": "Sessões ativas",
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "Gerir as suas sessões ativas",
+    "text": "Gere as tuas sessões ativas",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "Gerir as suas sessões ativas",
+    "text": "Gere as tuas sessões ativas",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,31 +352,31 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "Atualizar a palavra-passe da sua conta",
+    "text": "Atualiza a tua palavra-passe da conta",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "Atualizar a palavra-passe da sua conta",
+    "text": "Atualiza a tua palavra-passe da conta",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
-    "text": "Eliminar Conta",
+    "text": "Eliminar conta",
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "Eliminar permanentemente a sua conta e todos os dados",
+    "text": "Eliminar permanentemente a tua conta e todos os dados",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "Eliminar permanentemente a sua conta e todos os dados",
+    "text": "Eliminar permanentemente a tua conta e todos os dados",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
-    "text": "Pontuação de Segurança",
+    "text": "Pontuação de segurança",
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "A saúde geral da segurança da sua conta",
+    "text": "A saúde geral da segurança da tua conta",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -384,7 +384,7 @@
     "source_hash": "0dc8ee55"
   },
   "web.settings.security.good": {
-    "text": "Boa",
+    "text": "Bom",
     "source_hash": "c939327c"
   },
   "web.settings.security.fair": {
@@ -392,15 +392,15 @@
     "source_hash": "f7b19afc"
   },
   "web.settings.security.weak": {
-    "text": "Fraca",
+    "text": "Fraco",
     "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "Melhore a sua segurança",
+    "text": "Melhora a tua segurança",
     "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "Ative a autenticação de dois fatores para maior proteção",
+    "text": "Ativa a autenticação de dois fatores para proteção mais forte",
     "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
@@ -408,7 +408,7 @@
     "source_hash": "eb5f3ebd"
   },
   "web.settings.security.configured": {
-    "text": "Configurada",
+    "text": "Configurado",
     "source_hash": "84aebc69"
   },
   "web.settings.security.change": {
@@ -428,7 +428,7 @@
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "Nenhum código gerado",
+    "text": "Sem códigos gerados",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
@@ -436,23 +436,23 @@
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
-    "text": "Melhores Práticas de Segurança",
+    "text": "Melhores práticas de segurança",
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "Utilize uma palavra-passe forte e única para a sua conta",
+    "text": "Utiliza uma palavra-passe forte e única para a tua conta",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "Ative a autenticação de dois fatores para proteção adicional",
+    "text": "Ativa a autenticação de dois fatores para proteção adicional",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "Guarde os seus códigos de recuperação num local seguro",
+    "text": "Guarda os teus códigos de recuperação num local seguro",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "Reveja e revogue sessões não utilizadas regularmente",
+    "text": "Revê e revoga sessões não utilizadas regularmente",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -460,7 +460,7 @@
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "API e Integrações",
+    "text": "API e integrações",
     "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
@@ -472,11 +472,11 @@
     "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
-    "text": "Documentação API",
+    "text": "Documentação da API",
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Saiba como integrar o Onetime Secret nas suas aplicações",
+    "text": "Aprende a integrar o Onetime Secret nas tuas aplicações",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {
@@ -488,7 +488,7 @@
     "source_hash": "c1c87ad8"
   },
   "web.settings.api.code_examples": {
-    "text": "Exemplos de Código",
+    "text": "Exemplos de código",
     "source_hash": "216d28e4"
   },
   "web.settings.api.example_code_and_libraries": {
@@ -496,47 +496,47 @@
     "source_hash": "61c5956f"
   },
   "web.settings.api.security_best_practices": {
-    "text": "Melhores Práticas de Segurança",
+    "text": "Melhores práticas de segurança",
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "Nunca faça commit de chaves API no controlo de versões",
+    "text": "Nunca submetas chaves API para controlo de versões",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "Utilize variáveis de ambiente para guardar chaves API",
+    "text": "Utiliza variáveis de ambiente para armazenar chaves API",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "Altere as chaves API regularmente para maior segurança",
+    "text": "Roda as chaves API regularmente por segurança",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "Utilize sempre HTTPS ao fazer pedidos à API",
+    "text": "Utiliza sempre HTTPS ao fazer pedidos à API",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "Monitorize a utilização da sua API e configure alertas",
+    "text": "Monitoriza a utilização da tua API e configura alertas",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
-    "text": "Aviso Importante",
+    "text": "Aviso importante",
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "Regenerar a sua chave API invalidará a chave atual. Atualize todas as aplicações que utilizam a chave antiga.",
+    "text": "Regenerar a tua chave API vai invalidar a chave atual. Atualiza todas as aplicações que utilizam a chave antiga.",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
-    "text": "Definições de Privacidade",
+    "text": "Definições de privacidade",
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "Gerir as suas preferências de privacidade",
+    "text": "Gere as tuas preferências de privacidade",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "A Sua Privacidade",
+    "text": "A tua privacidade",
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
@@ -548,43 +548,43 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "Sem análises. Sem rastreio. Ponto final.",
+    "text": "Sem análises. Sem rastreamento. Ponto final.",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "Isto não é uma definição porque não há nada para ativar ou desativar. A sua privacidade está integrada na forma como operamos.",
+    "text": "Isto não é uma definição porque não há nada para ativar ou desativar. A tua privacidade está integrada na forma como operamos.",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
-    "text": "Definições de Notificações",
+    "text": "Definições de notificação",
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "Gerir como recebe notificações",
+    "text": "Gere como recebes notificações",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
-    "text": "Falha ao atualizar preferência de notificação. Por favor, tente novamente.",
+    "text": "Falha ao atualizar a preferência de notificação. Tenta novamente.",
     "source_hash": "c08abc04"
   },
   "web.settings.notifications.reveal_notifications.title": {
-    "text": "Notificações de Visualização de Mensagens Confidenciais",
+    "text": "Notificações de revelação de mensagens confidenciais",
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "Receber um e-mail quando alguém visualiza a sua mensagem confidencial",
+    "text": "Recebe um e-mail quando alguém visualizar a tua mensagem confidencial",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "Será notificado sempre que um destinatário visualizar uma das suas mensagens confidenciais",
+    "text": "Serás notificado cada vez que um destinatário revelar uma das tuas mensagens confidenciais",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "Os e-mails de notificação incluem apenas a data/hora e o ID da mensagem confidencial. A informação do visualizador nunca é incluída.",
+    "text": "Os e-mails de notificação incluem apenas o carimbo temporal e o ID da mensagem confidencial. A informação do visualizador nunca é incluída.",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "Zona de Consideração Cuidadosa",
+    "text": "Zona de consideração cuidadosa",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
@@ -592,39 +592,39 @@
     "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
-    "text": "Exportação de Dados",
+    "text": "Exportação de dados",
     "source_hash": "bdcea052"
   },
   "web.settings.caution.export_your_data": {
-    "text": "Exportar os dados da sua conta",
+    "text": "Exportar os dados da tua conta",
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "Solicite uma cópia completa dos dados da sua conta em formato legível por máquina",
+    "text": "Solicita uma cópia completa dos dados da tua conta em formato legível por máquina",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
-    "text": "Solicitar Exportação de Dados",
+    "text": "Pedir exportação de dados",
     "source_hash": "902394be"
   },
   "web.settings.caution.export_info": {
-    "text": "Tempo de Processamento da Exportação",
+    "text": "Tempo de processamento da exportação",
     "source_hash": "2ebb2d44"
   },
   "web.settings.caution.export_info_description": {
-    "text": "As exportações são processadas dentro de 24 horas e enviadas para o seu endereço de e-mail",
+    "text": "As exportações são processadas em 24 horas e enviadas para o teu endereço de e-mail",
     "source_hash": "a2f81e3b"
   },
   "web.settings.caution.deletion_warning_title": {
-    "text": "Eliminar a sua conta irá:",
+    "text": "Eliminar a tua conta vai:",
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "Eliminar permanentemente todas as suas mensagens confidenciais",
+    "text": "Eliminar permanentemente todas as tuas mensagens confidenciais",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "Remover todos os metadados e histórico de mensagens confidenciais",
+    "text": "Remover todos os metadados e histórico das mensagens confidenciais",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
@@ -632,7 +632,7 @@
     "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
-    "text": "Esta ação não pode ser desfeita",
+    "text": "Esta ação não pode ser revertida",
     "source_hash": "02ccc074"
   },
   "web.settings.profile.confirm_email_change_title": {
@@ -640,19 +640,19 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "O seu e-mail foi atualizado com sucesso. Inicie sessão com o seu novo endereço de e-mail.",
+    "text": "O teu e-mail foi atualizado com sucesso. Inicia sessão com o teu novo endereço de e-mail.",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "A verificar o seu novo endereço de e-mail...",
+    "text": "A verificar o teu novo endereço de e-mail...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
-    "text": "Falha na alteração de e-mail",
+    "text": "A alteração de e-mail falhou",
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "Esta ligação de verificação é inválida ou expirou.",
+    "text": "Este link de verificação é inválido ou expirou.",
     "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
@@ -676,11 +676,11 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "Foi enviado um e-mail de verificação. Verifique a sua caixa de entrada e clique na ligação de confirmação.",
+    "text": "Foi enviado um e-mail de verificação. Verifica a tua caixa de entrada e clica no link de confirmação.",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "Não recebeu o e-mail?",
+    "text": "Não recebeste o e-mail?",
     "source_hash": "fe3ac3ad"
   }
 }

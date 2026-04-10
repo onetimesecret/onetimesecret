@@ -12,7 +12,7 @@
     "source_hash": "f35439c4"
   },
   "web.feedback.close_feedback_modal": {
-    "text": "Fechar modal de feedback",
+    "text": "Fechar janela de feedback",
     "source_hash": "41689bb4"
   },
   "web.feedback.share_your_feedback": {
@@ -32,11 +32,11 @@
     "source_hash": "796979ea"
   },
   "web.feedback.founder_note_line1": {
-    "text": "Eu leio cada feedback que chega aqui. É assim que descubro em que devo investir tempo.",
+    "text": "Eu leio cada feedback que chega aqui. É assim que descubro no que investir o meu tempo.",
     "source_hash": "8b430d93"
   },
   "web.feedback.founder_note_line2": {
-    "text": "Se algo está mal, ou tens ideias sobre como deveria funcionar, este é o sítio certo.",
+    "text": "Se algo não está bem, ou se tens ideias sobre como deveria funcionar, este é o sítio certo.",
     "source_hash": "d4b8f073"
   },
   "web.feedback.open_feedback_form": {
@@ -56,7 +56,7 @@
     "source_hash": "286a3af7"
   },
   "web.feedback.reason_email_change_unauthorized": {
-    "text": "Parece que está a reportar uma alteração de e-mail não autorizada na sua conta. Descreva o que aconteceu e iremos investigar de imediato.",
+    "text": "Parece que estás a reportar uma alteração de e-mail não autorizada na tua conta. Descreve o que aconteceu e vamos investigar de imediato.",
     "source_hash": "00e56551"
   }
 }

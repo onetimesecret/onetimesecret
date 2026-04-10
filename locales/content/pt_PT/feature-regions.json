@@ -4,7 +4,7 @@
     "source_hash": "1e6287f1"
   },
   "web.regions.data_sovereignty_description": {
-    "text": "Os teus dados residem exclusivamente na tua região escolhida e nunca são transferidos entre regiões",
+    "text": "Os teus dados residem exclusivamente na região escolhida e nunca são transferidos entre regiões",
     "source_hash": "5e904993"
   },
   "web.regions.separate_environments_explanation": {
@@ -16,7 +16,7 @@
     "source_hash": "33b74be3"
   },
   "web.regions.switching_creates_new_account": {
-    "text": "Importante: Mudar para uma região diferente cria uma nova conta. Os teus dados permanecem na tua região original.",
+    "text": "Importante: Mudar para uma região diferente cria uma nova conta. Os teus dados permanecem na região original.",
     "source_hash": "40e3ee34"
   },
   "web.regions.your_region": {
@@ -36,7 +36,7 @@
     "source_hash": "953d0057"
   },
   "web.regions.why_it_matters": {
-    "text": "Por que a soberania de dados é importante",
+    "text": "Porque é que a soberania de dados importa",
     "source_hash": "67de6cf7"
   },
   "web.regions.trust_title": {
@@ -44,7 +44,7 @@
     "source_hash": "6170c9b0"
   },
   "web.regions.trust_description": {
-    "text": "Sabe exatamente onde os teus dados residem e quais leis governam a sua proteção.",
+    "text": "Sabe exatamente onde os teus dados residem e que leis governam a sua proteção.",
     "source_hash": "97fd57ab"
   },
   "web.regions.privacy_title": {
@@ -52,7 +52,7 @@
     "source_hash": "d13d2931"
   },
   "web.regions.privacy_description": {
-    "text": "Garante que a tua informação pessoal é tratada de acordo com as leis e regulamentos de privacidade do teu país, prevenindo acesso não autorizado ou uso indevido.",
+    "text": "Garante que as tuas informações pessoais são tratadas de acordo com as leis e regulamentos de privacidade do teu país, prevenindo acessos não autorizados ou utilização indevida.",
     "source_hash": "28d9d42e"
   },
   "web.regions.compliance_title": {
@@ -60,7 +60,7 @@
     "source_hash": "8aa0df2a"
   },
   "web.regions.compliance_description": {
-    "text": "Cumpre requisitos de proteção de dados RGPD, HIPAA, CCPA e outros regionais",
+    "text": "Cumpre os requisitos do RGPD, HIPAA, CCPA e outros regulamentos regionais de proteção de dados",
     "source_hash": "c3b2ee43"
   },
   "web.regions.performance_title": {
@@ -140,7 +140,7 @@
     "source_hash": "d0f2192d"
   },
   "web.regions.changing_regions_title": {
-    "text": "Alteração de região",
+    "text": "Alterar regiões",
     "source_hash": "189d6685"
   },
   "web.regions.changing_regions_description": {
@@ -148,15 +148,18 @@
     "source_hash": "cf45b8be"
   },
   "web.regions.changing_regions_how_to": {
-    "text": "Para utilizar uma região diferente, crie uma nova conta utilizando o mesmo endereço de e-mail associado ao seu e-mail de contacto de faturação.",
+    "text": "Para utilizar uma região diferente, cria uma nova conta lá utilizando o mesmo endereço de e-mail associado ao teu e-mail de contacto de faturação.",
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se o seu e-mail de contacto de faturação for diferente do e-mail da sua conta Onetime Secret, utilize o e-mail de contacto de faturação para a conta na nova região para manter os benefícios da sua subscrição.",
+    "text": "Se o teu e-mail de contacto de faturação for diferente do teu e-mail de conta Onetime Secret, utiliza o e-mail de contacto de faturação para a nova conta de região para manter os benefícios da tua subscrição.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
-    "text": "Os benefícios da sua subscrição serão aplicados automaticamente a qualquer conta criada com o seu endereço de e-mail de faturação.",
+    "text": "Os benefícios da tua subscrição serão automaticamente aplicados a qualquer conta criada com o teu endereço de e-mail de faturação.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.no_region_configured": {
+    "text": "Nenhuma informação de região está atualmente disponível para a tua conta."
   }
 }

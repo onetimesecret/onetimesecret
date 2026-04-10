@@ -4,7 +4,7 @@
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
-    "text": "Partilha informação sensível de forma segura com a nossa equipa de suporte",
+    "text": "Partilha informações sensíveis de forma segura com a nossa equipa de suporte",
     "source_hash": "08beca74"
   },
   "incoming.loading_config": {
@@ -12,7 +12,7 @@
     "source_hash": "47d2a515"
   },
   "incoming.config_error_title": {
-    "text": "Falha ao carregar configuração",
+    "text": "Falha ao carregar a configuração",
     "source_hash": "6410ad42"
   },
   "incoming.feature_disabled_title": {
@@ -20,7 +20,7 @@
     "source_hash": "bfd624f7"
   },
   "incoming.feature_disabled_description": {
-    "text": "Esta funcionalidade está atualmente desativada. Por favor contacta o suporte para assistência.",
+    "text": "Esta funcionalidade está atualmente desativada. Contacta o suporte para assistência.",
     "source_hash": "f13fbf2b"
   },
   "incoming.memo_label": {
@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Descrição breve (p. ex. Pedido de redefinição de palavra-passe)",
+    "text": "Descrição breve (p. ex., Pedido de reposição de palavra-passe)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -60,11 +60,11 @@
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
-    "text": "Cola aqui informação sensível (palavras-passe, chaves, etc.)",
+    "text": "Cola aqui informações sensíveis (palavras-passe, chaves, etc.)",
     "source_hash": "7d7abb48"
   },
   "incoming.secret_content_hint": {
-    "text": "Esta informação será encriptada e só poderá ser visualizada uma vez",
+    "text": "Esta informação será encriptada e visualizável apenas uma vez",
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
@@ -108,7 +108,7 @@
     "source_hash": "c72895ba"
   },
   "incoming.success_info_description": {
-    "text": "O destinatário poderá ver esta mensagem confidencial apenas uma vez. Depois de a visualizar, a mensagem confidencial será permanentemente eliminada.",
+    "text": "O destinatário poderá ver esta mensagem confidencial apenas uma vez. Após a visualização, a mensagem confidencial será permanentemente eliminada.",
     "source_hash": "8120bd40"
   },
   "incoming.create_another": {
@@ -116,11 +116,11 @@
     "source_hash": "8a61d95c"
   },
   "incoming.tagline1": {
-    "text": "Partilha informação sensível de forma segura",
+    "text": "Partilha informações sensíveis de forma segura",
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Mantém palavras-passe e dados privados fora dos registos de e-mail e chat",
+    "text": "Mantém palavras-passe e dados privados fora dos registos de e-mail e conversas",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
@@ -130,5 +130,26 @@
   "incoming.receipt_link_text": {
     "text": "recibo",
     "source_hash": "6f328609"
+  },
+  "incoming.upgrade_required_title": {
+    "text": "Upgrade necessário"
+  },
+  "incoming.upgrade_required_description": {
+    "text": "Esta funcionalidade requer um upgrade de plano. Contacta o proprietário da conta para ativar as mensagens confidenciais recebidas."
+  },
+  "incoming.validation_memo_too_long": {
+    "text": "O memorando deve ter {max} caracteres ou menos"
+  },
+  "incoming.validation_secret_required": {
+    "text": "O conteúdo confidencial é obrigatório"
+  },
+  "incoming.validation_recipient_required": {
+    "text": "Seleciona um destinatário"
+  },
+  "incoming.validation_feature_disabled": {
+    "text": "A funcionalidade de mensagens confidenciais recebidas não está ativada"
+  },
+  "incoming.validation_form_errors": {
+    "text": "Verifica o formulário para erros"
   }
 }

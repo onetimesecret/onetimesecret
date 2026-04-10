@@ -1,22 +1,22 @@
 {
   "web.login.alternate_prefix": {
-    "text": "Precisa de uma Conta?",
+    "text": "Precisas de uma conta?",
     "source_hash": "8b827e19"
   },
   "web.login.need_an_account": {
-    "text": "Registe-se.",
+    "text": "Regista-te.",
     "source_hash": "10647723"
   },
   "web.login.forgot_your_password": {
-    "text": "Esqueceu-se da sua palavra-passe?",
+    "text": "Esqueceste-te da tua palavra-passe?",
     "source_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
-    "text": "Iniciar Sessão",
+    "text": "Iniciar sessão",
     "source_hash": "bcc0bcc9"
   },
   "web.login.enter_your_credentials": {
-    "text": "Introduza as suas credenciais",
+    "text": "Introduz as tuas credenciais",
     "source_hash": "07e1c44e"
   },
   "web.login.remember_me": {
@@ -28,7 +28,7 @@
     "source_hash": "b1402b67"
   },
   "web.login.secure_link_helper": {
-    "text": "Será enviado um link seguro para a sua caixa de e-mail.",
+    "text": "Um link seguro será enviado para a tua caixa de e-mail.",
     "source_hash": "d31d20cf"
   },
   "web.login.or_divider": {
@@ -40,7 +40,7 @@
     "source_hash": "bedac809"
   },
   "web.login.use_passwordless": {
-    "text": "Utilizar início de sessão sem palavra-passe",
+    "text": "Usar início de sessão sem palavra-passe",
     "source_hash": "dddc0097"
   },
   "web.login.create_account": {
@@ -56,7 +56,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.login.tab_magic_link": {
-    "text": "Link Mágico",
+    "text": "Link mágico",
     "source_hash": "7a9ba11a"
   },
   "web.login.tab_passkey": {
@@ -64,7 +64,7 @@
     "source_hash": "904c9aa9"
   },
   "web.login.need_help": {
-    "text": "Precisa de ajuda?",
+    "text": "Precisas de ajuda?",
     "source_hash": "c225cdfb"
   },
   "web.login.or_continue_with": {
@@ -84,39 +84,39 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "Falha no início de sessão SSO. Por favor, tente novamente.",
+    "text": "O início de sessão SSO falhou. Tenta novamente.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {
-    "text": "A autenticação SSO falhou. Tente novamente ou utilize o início de sessão com palavra-passe.",
+    "text": "A autenticação SSO falhou. Tenta novamente ou utiliza o início de sessão com palavra-passe.",
     "source_hash": "13a2210a"
   },
   "web.login.errors.token_missing": {
-    "text": "A ligação de autenticação está incompleta. Solicite uma nova ligação de início de sessão.",
+    "text": "O link de autenticação está incompleto. Solicita um novo link de início de sessão.",
     "source_hash": "f4a10652"
   },
   "web.login.errors.token_expired": {
-    "text": "Esta ligação de início de sessão expirou. Solicite uma nova.",
+    "text": "Este link de início de sessão expirou. Solicita um novo.",
     "source_hash": "f0de42ec"
   },
   "web.login.errors.token_invalid": {
-    "text": "Esta ligação de início de sessão é inválida. Solicite uma nova.",
+    "text": "Este link de início de sessão é inválido. Solicita um novo.",
     "source_hash": "270c6401"
   },
   "web.signup.create_your_account": {
-    "text": "Crie a Sua Conta",
+    "text": "Cria a tua conta",
     "source_hash": "5f4c33d7"
   },
   "web.signup.alternate_prefix": {
-    "text": "Já tem uma Conta?",
+    "text": "Já tens uma conta?",
     "source_hash": "f5dcb5d5"
   },
   "web.signup.have_an_account": {
-    "text": "Inicie sessão.",
+    "text": "Inicia sessão.",
     "source_hash": "6c52846f"
   },
   "web.signup.error_title": {
-    "text": "Erro na Criação da Conta",
+    "text": "Erro na criação da conta",
     "source_hash": "e380a0b6"
   },
   "web.signup.password_error": {
@@ -131,11 +131,11 @@
     "context": "Email verification flow after signup"
   },
   "web.auth.verify.title": {
-    "text": "Verifique a Sua Conta",
+    "text": "Verifica a tua conta",
     "source_hash": "3e2303ab"
   },
   "web.auth.verify.success": {
-    "text": "A sua conta foi verificada com sucesso",
+    "text": "A tua conta foi verificada com sucesso",
     "source_hash": "902d0f47"
   },
   "web.auth.verify.invalid_key": {
@@ -143,27 +143,27 @@
     "source_hash": "70fe7dfe"
   },
   "web.auth.verify.expired_key": {
-    "text": "Este link de verificação expirou. Por favor, solicite um novo.",
+    "text": "Este link de verificação expirou. Solicita um novo.",
     "source_hash": "ee3ed5d2"
   },
   "web.auth.verify.already_verified": {
-    "text": "Esta conta já foi verificada. Pode iniciar sessão agora.",
+    "text": "Esta conta já foi verificada. Podes iniciar sessão agora.",
     "source_hash": "cec1312b"
   },
   "web.auth.verify.unable_to_verify": {
-    "text": "Não foi possível verificar a conta. Por favor, tente novamente ou contacte o suporte.",
+    "text": "Não foi possível verificar a conta. Tenta novamente ou contacta o suporte.",
     "source_hash": "c0df463f"
   },
   "web.auth.verify.check_email": {
-    "text": "Por favor, verifique o seu e-mail para um link de verificação",
+    "text": "Verifica o teu e-mail para encontrar um link de verificação",
     "source_hash": "79ffefd8"
   },
   "web.auth.verify.error": {
-    "text": "A verificação da conta falhou. Por favor, verifique o seu link de verificação ou solicite um novo.",
+    "text": "A verificação da conta falhou. Verifica o teu link de verificação ou solicita um novo.",
     "source_hash": "7aac4a45"
   },
   "web.auth.verify.error_title": {
-    "text": "Verificação Falhou",
+    "text": "A verificação falhou",
     "source_hash": "cb3a722b"
   },
   "web.auth.verify.what_to_do": {
@@ -171,27 +171,27 @@
     "source_hash": "00eeea79"
   },
   "web.auth.verify.check_email_help": {
-    "text": "Verifique o seu e-mail para o link de verificação mais recente",
+    "text": "Verifica o teu e-mail para encontrar o link de verificação mais recente",
     "source_hash": "1c4a5748"
   },
   "web.auth.verify.check_spam": {
-    "text": "Verifique a sua pasta de spam/lixo se não conseguir encontrar o e-mail",
+    "text": "Verifica a tua pasta de spam/lixo se não conseguires encontrar o e-mail",
     "source_hash": "ae481e5e"
   },
   "web.auth.verify.contact_support": {
-    "text": "Contacte o suporte se continuar a ter problemas",
+    "text": "Contacta o suporte se continuares a ter problemas",
     "source_hash": "c0067275"
   },
   "web.auth.verify.missing_key_title": {
-    "text": "Link de Verificação Necessário",
+    "text": "Link de verificação necessário",
     "source_hash": "e0b448ac"
   },
   "web.auth.verify.missing_key_message": {
-    "text": "Por favor, use o link de verificação enviado para o seu endereço de e-mail para verificar a sua conta.",
+    "text": "Utiliza o link de verificação enviado para o teu endereço de e-mail para verificar a tua conta.",
     "source_hash": "b1a8cfc6"
   },
   "web.auth.verify.create_new_account": {
-    "text": "Criar Nova Conta",
+    "text": "Criar nova conta",
     "source_hash": "0e24ec84"
   },
   "web.auth.change_password.title": {
@@ -215,7 +215,7 @@
     "source_hash": "01103d45"
   },
   "web.auth.change_password.error": {
-    "text": "Falha na alteração de palavra-passe. Por favor verifica a tua palavra-passe atual e tenta novamente.",
+    "text": "A alteração de palavra-passe falhou. Verifica a tua palavra-passe atual e tenta novamente.",
     "source_hash": "1aa11b3f"
   },
   "web.auth.close_account.title": {
@@ -223,7 +223,7 @@
     "source_hash": "e1513814"
   },
   "web.auth.close_account.warning": {
-    "text": "Esta ação não pode ser desfeita. Todas as tuas mensagens confidenciais serão permanentemente eliminadas.",
+    "text": "Esta ação não pode ser revertida. Todas as tuas mensagens confidenciais serão permanentemente eliminadas.",
     "source_hash": "f12de64e"
   },
   "web.auth.close_account.confirm": {
@@ -243,15 +243,15 @@
     "source_hash": "19766ed6"
   },
   "web.auth.password_reset_request.title": {
-    "text": "Solicitar redefinição de palavra-passe",
+    "text": "Pedir reposição de palavra-passe",
     "source_hash": "456d421c"
   },
   "web.auth.password_reset_request.description": {
-    "text": "Introduz o teu endereço de e-mail abaixo e enviar-te-emos um link para redefinir a tua palavra-passe",
+    "text": "Introduz o teu endereço de e-mail abaixo e enviaremos um link para repor a tua palavra-passe",
     "source_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Enviar link de redefinição",
+    "text": "Enviar link de reposição",
     "source_hash": "7d5f16d4"
   },
   "web.auth.password_reset.title": {
@@ -260,11 +260,11 @@
     "source_hash": "3dfdf7c4"
   },
   "web.auth.password_reset.description": {
-    "text": "Por favor introduz a tua nova palavra-passe abaixo. Certifica-te de que é forte e única para proteger a tua conta.",
+    "text": "Introduz a tua nova palavra-passe abaixo. Certifica-te de que é forte e única para proteger a tua conta.",
     "source_hash": "5c789083"
   },
   "web.auth.passwordReset.emailSent": {
-    "text": "Foi enviado um e-mail com um link para redefinir a palavra-passe da tua conta",
+    "text": "Foi-te enviado um e-mail com um link para repor a palavra-passe da tua conta",
     "source_hash": "63a6af45"
   },
   "web.auth.terms.agree_prefix": {
@@ -272,7 +272,7 @@
     "source_hash": "26a58d00"
   },
   "web.auth.account.title": {
-    "text": "Informação da conta",
+    "text": "Informações da conta",
     "context": "User account overview/dashboard section",
     "source_hash": "4e59b6c7"
   },
@@ -341,11 +341,11 @@
     "source_hash": "e1513814"
   },
   "web.help.title": {
-    "text": "Ajuda e Suporte",
+    "text": "Ajuda e suporte",
     "source_hash": "1f8ecc24"
   },
   "web.help.signin_troubleshooting": {
-    "text": "Resolução de Problemas de Início de Sessão",
+    "text": "Resolução de problemas de início de sessão",
     "source_hash": "a9a88a01"
   },
   "web.help.magic_link_not_arriving": {
@@ -353,27 +353,27 @@
     "source_hash": "6919ce70"
   },
   "web.help.check_spam_folder": {
-    "text": "Verifique a sua pasta de spam ou lixo",
+    "text": "Verifica a tua pasta de spam ou lixo",
     "source_hash": "813fe2d8"
   },
   "web.help.check_email_spelling": {
-    "text": "Verifique se introduziu o seu endereço de e-mail corretamente",
+    "text": "Verifica se introduziste o teu endereço de e-mail corretamente",
     "source_hash": "5f319557"
   },
   "web.help.wait_few_minutes": {
-    "text": "Aguarde alguns minutos - os e-mails podem por vezes sofrer atrasos",
+    "text": "Aguarda alguns minutos — os e-mails podem por vezes atrasar-se",
     "source_hash": "884fc272"
   },
   "web.help.try_again": {
-    "text": "Tente solicitar um novo link se já passaram mais de 10 minutos",
+    "text": "Tenta solicitar um novo link se já passaram mais de 10 minutos",
     "source_hash": "68109f96"
   },
   "web.help.forgot_password": {
-    "text": "Esqueceu-se da palavra-passe?",
+    "text": "Esqueceste-te da tua palavra-passe?",
     "source_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Utilize a opção Link Mágico para iniciar sessão sem palavra-passe. Após iniciar sessão, pode alterar a sua palavra-passe nas Definições da Conta.",
+    "text": "Utiliza a opção Link Mágico para iniciar sessão sem palavra-passe. Depois de iniciar sessão, podes alterar a tua palavra-passe nas Definições da conta.",
     "source_hash": "2a058600"
   },
   "web.help.account_locked": {
@@ -381,19 +381,31 @@
     "source_hash": "ef1251c1"
   },
   "web.help.account_locked_explanation": {
-    "text": "Após várias tentativas falhadas de início de sessão, as contas são temporariamente bloqueadas por segurança. Aguarde 15 minutos e tente novamente, ou utilize o Link Mágico para iniciar sessão.",
+    "text": "Após várias tentativas de início de sessão falhadas, as contas são temporariamente bloqueadas por segurança. Aguarda 15 minutos e tenta novamente, ou utiliza o Link Mágico para iniciar sessão.",
     "source_hash": "4b2cf891"
   },
   "web.help.still_need_help": {
-    "text": "Ainda precisa de ajuda?",
+    "text": "Ainda precisas de ajuda?",
     "source_hash": "5ff7d19e"
   },
   "web.help.contact_us_description": {
-    "text": "Se continua a ter problemas, estamos aqui para ajudar. Envie-nos uma mensagem e responderemos o mais rapidamente possível.",
+    "text": "Se ainda estiveres com dificuldades, estamos cá para ajudar. Envia-nos uma mensagem e responderemos assim que possível.",
     "source_hash": "d97c90fe"
   },
   "web.help.contact_support": {
-    "text": "Contactar Suporte",
+    "text": "Contactar suporte",
     "source_hash": "f8d47b82"
+  },
+  "web.auth.account.sso_linked": {
+    "text": "Conta SSO"
+  },
+  "web.auth.verify._guidance.context": {
+    "text": "Email verification flow after signup"
+  },
+  "web.login.custom_domain_sso_title": {
+    "text": "O início de sessão único está disponível para este domínio"
+  },
+  "web.login.custom_domain_sso_description": {
+    "text": "O administrador da organização pode ativar o SSO para permitir que os membros da equipa iniciem sessão aqui. Contacta o administrador para acesso."
   }
 }
