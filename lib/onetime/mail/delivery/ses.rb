@@ -59,8 +59,8 @@ module Onetime
         protected
 
         def validate_config!
-          access_key = config[:access_key_id] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
-          secret_key = config[:secret_access_key] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
+          access_key = config['access_key_id'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
+          secret_key = config['secret_access_key'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
 
           if access_key.nil? || access_key.empty? || secret_key.nil? || secret_key.empty?
             raise ArgumentError, 'AWS credentials must be configured for SES'
@@ -114,9 +114,9 @@ module Onetime
             require 'aws-sdk-sesv2'
 
             # Configure with explicit credentials
-            region     = config[:region] || ENV['AWS_REGION'] || 'us-east-1'
-            access_key = config[:access_key_id] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
-            secret_key = config[:secret_access_key] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
+            region     = config['region'] || ENV['AWS_REGION'] || 'us-east-1'
+            access_key = config['access_key_id'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
+            secret_key = config['secret_access_key'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
 
             Aws::SESV2::Client.new(
               region: region,

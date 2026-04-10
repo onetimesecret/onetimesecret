@@ -51,7 +51,7 @@ module Onetime
             dns_records: build_dkim_records(dkim_tokens),
             provider_data: {
               dkim_tokens: dkim_tokens,
-              region: credentials[:region] || 'us-east-1',
+              region: credentials['region'] || 'us-east-1',
               identity: domain,
               dkim_status: response.dkim_attributes&.status,
             },
@@ -157,18 +157,18 @@ module Onetime
 
         # Builds an SES v2 client with the provided credentials.
         #
-        # @param credentials [Hash] Must include :access_key_id and :secret_access_key
-        # @option credentials [String] :region AWS region (default: 'us-east-1')
+        # @param credentials [Hash] Must include 'access_key_id' and 'secret_access_key'
+        # @option credentials [String] 'region' AWS region (default: 'us-east-1')
         # @return [Aws::SESV2::Client]
         #
         def build_ses_client(credentials)
           require 'aws-sdk-sesv2'
 
           Aws::SESV2::Client.new(
-            region: credentials[:region] || 'us-east-1',
+            region: credentials['region'] || 'us-east-1',
             credentials: Aws::Credentials.new(
-              credentials[:access_key_id],
-              credentials[:secret_access_key],
+              credentials['access_key_id'],
+              credentials['secret_access_key'],
             ),
           )
         end
