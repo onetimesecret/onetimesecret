@@ -4,25 +4,28 @@ import type { CustomDomain } from '@/schemas/shapes/v3';
 import { computed, type MaybeRefOrGetter, toValue } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain>) {
+export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain | null>) {
   const { t } = useI18n(); // Must be called at setup time, not in computed callbacks
 
   const isActive = computed(() => {
-    const status = toValue(domain).vhost?.status;
+    const d = toValue(domain);
+    if (!d) return false;
+    const status = d.vhost?.status;
     const decision =
       status === 'ACTIVE' || status === 'ACTIVE_SSL' || status === 'ACTIVE_SSL_PROXIED';
     return decision;
   });
 
   const displayStatus = computed(() => {
+    if (!toValue(domain)) return '';
     if (isActive.value) return t('web.STATUS.active');
     if (isWarning.value) return t('web.STATUS.dns_incorrect');
     return t('web.STATUS.inactive');
   });
 
-  const isWarning = computed(() => toValue(domain).vhost?.status === 'DNS_INCORRECT');
+  const isWarning = computed(() => toValue(domain)?.vhost?.status === 'DNS_INCORRECT');
 
-  const isError = computed(() => !isActive.value && !isWarning.value);
+  const isError = computed(() => !!toValue(domain) && !isActive.value && !isWarning.value);
 
   const statusIcon = computed(() => {
     if (isActive.value) return 'check-circle';

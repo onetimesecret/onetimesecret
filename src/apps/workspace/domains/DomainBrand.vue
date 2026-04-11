@@ -147,7 +147,6 @@ aria-hidden="true" />
       <!-- Header Section -->
       <div class="sticky top-0 z-30">
         <DomainHeader
-          v-if="!domainLoading"
           :domain="customDomainRecord"
           :has-unsaved-changes="hasUnsavedChanges"
           :orgid="props.orgid" />

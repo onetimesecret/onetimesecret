@@ -10,7 +10,7 @@
 const { t } = useI18n();
 
   const props = defineProps<{
-    domain: CustomDomain;
+    domain: CustomDomain | null;
     hasUnsavedChanges: boolean;
     orgid: string;
   }>();
@@ -18,7 +18,7 @@ const { t } = useI18n();
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
   const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
-    props.domain
+    () => props.domain
   );
 </script>
 

@@ -179,7 +179,6 @@
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
       <DomainHeader
-        v-if="domain"
         :domain="domain"
         :has-unsaved-changes="false"
         :orgid="(route.params.orgid as string)" />
