@@ -3,7 +3,7 @@
 #
 # frozen_string_literal: true
 
-# Validates that all Ruby, TypeScript, and Vue files have correct header format
+# Validates that all Ruby, Python, TypeScript, and Vue files have correct header format
 #
 # Usage:
 #   ruby scripts/update-file-headers.rb
@@ -21,6 +21,9 @@
 #
 # TypeScript files:
 #   // path/to/file.ts
+#
+# Python files:
+#   # path/to/file.py
 #
 # Vue files:
 #   <!-- path/to/file.vue -->
@@ -46,6 +49,7 @@ class HeaderValidator
     puts
 
     validate_ruby_files
+    validate_python_files
     validate_typescript_files
     validate_vue_files
 
@@ -62,7 +66,7 @@ class HeaderValidator
         full_path = REPO_ROOT / path
         if full_path.directory?
           # Path is a directory - search within it
-          Dir.glob(File.join(path, '**/*.{rb,ts,vue}'), base: REPO_ROOT)
+          Dir.glob(File.join(path, '**/*.{rb,py,ts,vue}'), base: REPO_ROOT)
              .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
         else
           # Path is a glob or file pattern
@@ -84,6 +88,20 @@ class HeaderValidator
 
       @files_found += 1
       validate_ruby_header(full_path, file_path)
+    end
+  end
+
+  def validate_python_files
+    puts 'Checking Python files...'
+
+    files_for_glob('**/*.py').each do |file_path|
+      next if skip_file?(file_path)
+
+      full_path = REPO_ROOT / file_path
+      next unless full_path.file?
+
+      @files_found += 1
+      validate_python_header(full_path, file_path)
     end
   end
 
@@ -119,35 +137,31 @@ class HeaderValidator
     lines = File.readlines(full_path)
     return if lines.empty?
 
-    # Skip files with shebangs
-    return if lines[0].start_with?('#!')
+    # Shebang files have the header after the shebang line
+    offset = lines[0].start_with?('#!') ? 1 : 0
 
-    # Expected header:
-    # Line 1: # path/to/file.rb
-    # Line 2: #
-    # Line 3: # frozen_string_literal: true
-    # Line 4: (blank)
+    # Expected header (at offset):
+    # # path/to/file.rb
+    # #
+    # # frozen_string_literal: true
+    # (blank)
 
     errors = []
 
-    # Check line 1: filename comment
-    unless lines[0]&.strip == "# #{relative_path}"
-      errors << "Line 1: Expected '# #{relative_path}', got: #{lines[0]&.strip.inspect}"
+    unless lines[offset]&.strip == "# #{relative_path}"
+      errors << "Line #{offset + 1}: Expected '# #{relative_path}', got: #{lines[offset]&.strip.inspect}"
     end
 
-    # Check line 2: empty comment
-    unless lines[1]&.strip == '#'
-      errors << "Line 2: Expected '#', got: #{lines[1]&.strip.inspect}"
+    unless lines[offset + 1]&.strip == '#'
+      errors << "Line #{offset + 2}: Expected '#', got: #{lines[offset + 1]&.strip.inspect}"
     end
 
-    # Check line 3: frozen pragma
-    unless lines[2]&.strip == '# frozen_string_literal: true'
-      errors << "Line 3: Expected '# frozen_string_literal: true', got: #{lines[2]&.strip.inspect}"
+    unless lines[offset + 2]&.strip == '# frozen_string_literal: true'
+      errors << "Line #{offset + 3}: Expected '# frozen_string_literal: true', got: #{lines[offset + 2]&.strip.inspect}"
     end
 
-    # Check line 4: blank line
-    unless lines[3]&.strip == ''
-      errors << "Line 4: Expected blank line, got: #{lines[3]&.strip.inspect}"
+    unless lines[offset + 3]&.strip == ''
+      errors << "Line #{offset + 4}: Expected blank line, got: #{lines[offset + 3]&.strip.inspect}"
     end
 
     if errors.any?
@@ -160,24 +174,75 @@ class HeaderValidator
   end
 
   def fix_ruby_header(full_path, relative_path, lines)
-    # Find where original content starts (skip existing header attempts)
-    content_start = find_ruby_content_start(lines)
+    has_shebang = lines[0]&.start_with?('#!')
+    content_start = find_ruby_content_start(lines, has_shebang ? 1 : 0)
     content = lines[content_start..].join
 
+    prefix = has_shebang ? lines[0] : ''
     new_header = "# #{relative_path}\n#\n# frozen_string_literal: true\n\n"
-    File.write(full_path, new_header + content)
+    File.write(full_path, prefix + new_header + content)
     @fixed << relative_path
   end
 
-  def find_ruby_content_start(lines)
-    # Skip lines that look like header comments or frozen_string_literal
-    idx = 0
+  def find_ruby_content_start(lines, start = 0)
+    idx = start
     while idx < lines.length
       line = lines[idx].strip
       break unless line.empty? ||
                    line == '#' ||
                    line.start_with?('# frozen_string_literal') ||
-                   (line.start_with?('#') && !line.start_with?('##') && idx < 4)
+                   (line.start_with?('#') && !line.start_with?('##') && idx < start + 4)
+
+      idx += 1
+    end
+    idx
+  end
+
+  def validate_python_header(full_path, relative_path)
+    lines = File.readlines(full_path)
+    return if lines.empty?
+
+    offset = lines[0].start_with?('#!') ? 1 : 0
+
+    # Expected header (at offset):
+    # # path/to/file.py
+    # (blank)
+
+    errors = []
+
+    unless lines[offset]&.strip == "# #{relative_path}"
+      errors << "Line #{offset + 1}: Expected '# #{relative_path}', got: #{lines[offset]&.strip.inspect}"
+    end
+
+    unless lines[offset + 1]&.strip == ''
+      errors << "Line #{offset + 2}: Expected blank line, got: #{lines[offset + 1]&.strip.inspect}"
+    end
+
+    if errors.any?
+      if @fix
+        fix_python_header(full_path, relative_path, lines)
+      else
+        @errors << { file: relative_path, issues: errors }
+      end
+    end
+  end
+
+  def fix_python_header(full_path, relative_path, lines)
+    has_shebang = lines[0]&.start_with?('#!')
+    content_start = find_python_content_start(lines, has_shebang ? 1 : 0)
+    content = lines[content_start..].join
+
+    prefix = has_shebang ? lines[0] : ''
+    new_header = "# #{relative_path}\n\n"
+    File.write(full_path, prefix + new_header + content)
+    @fixed << relative_path
+  end
+
+  def find_python_content_start(lines, start = 0)
+    idx = start
+    while idx < lines.length
+      line = lines[idx].strip
+      break unless line.empty? || (line.start_with?('#') && !line.start_with?('#!') && idx == start)
 
       idx += 1
     end
@@ -188,23 +253,20 @@ class HeaderValidator
     lines = File.readlines(full_path)
     return if lines.empty?
 
-    # Skip files with shebangs (executable scripts)
-    return if lines[0].start_with?('#!')
+    offset = lines[0].start_with?('#!') ? 1 : 0
 
-    # Expected header:
-    # Line 1: // path/to/file.ts
-    # Line 2: (blank)
+    # Expected header (at offset):
+    # // path/to/file.ts
+    # (blank)
 
     errors = []
 
-    # Check line 1: filename comment
-    unless lines[0]&.strip == "// #{relative_path}"
-      errors << "Line 1: Expected '// #{relative_path}', got: #{lines[0]&.strip.inspect}"
+    unless lines[offset]&.strip == "// #{relative_path}"
+      errors << "Line #{offset + 1}: Expected '// #{relative_path}', got: #{lines[offset]&.strip.inspect}"
     end
 
-    # Check line 2: blank line
-    unless lines[1]&.strip == ''
-      errors << "Line 2: Expected blank line, got: #{lines[1]&.strip.inspect}"
+    unless lines[offset + 1]&.strip == ''
+      errors << "Line #{offset + 2}: Expected blank line, got: #{lines[offset + 1]&.strip.inspect}"
     end
 
     if errors.any?
@@ -217,20 +279,21 @@ class HeaderValidator
   end
 
   def fix_typescript_header(full_path, relative_path, lines)
-    content_start = find_typescript_content_start(lines)
+    has_shebang = lines[0]&.start_with?('#!')
+    content_start = find_typescript_content_start(lines, has_shebang ? 1 : 0)
     content = lines[content_start..].join
 
+    prefix = has_shebang ? lines[0] : ''
     new_header = "// #{relative_path}\n\n"
-    File.write(full_path, new_header + content)
+    File.write(full_path, prefix + new_header + content)
     @fixed << relative_path
   end
 
-  def find_typescript_content_start(lines)
-    idx = 0
+  def find_typescript_content_start(lines, start = 0)
+    idx = start
     while idx < lines.length
       line = lines[idx].strip
-      # Skip empty lines and single-line path comments at the start
-      break unless line.empty? || (line.start_with?('//') && idx == 0)
+      break unless line.empty? || (line.start_with?('//') && idx == start)
 
       idx += 1
     end
@@ -241,20 +304,20 @@ class HeaderValidator
     lines = File.readlines(full_path)
     return if lines.empty?
 
-    # Expected header:
-    # Line 1: <!-- path/to/file.vue -->
-    # Line 2: (blank)
+    offset = lines[0].start_with?('#!') ? 1 : 0
+
+    # Expected header (at offset):
+    # <!-- path/to/file.vue -->
+    # (blank)
 
     errors = []
 
-    # Check line 1: filename comment
-    unless lines[0]&.strip == "<!-- #{relative_path} -->"
-      errors << "Line 1: Expected '<!-- #{relative_path} -->', got: #{lines[0]&.strip.inspect}"
+    unless lines[offset]&.strip == "<!-- #{relative_path} -->"
+      errors << "Line #{offset + 1}: Expected '<!-- #{relative_path} -->', got: #{lines[offset]&.strip.inspect}"
     end
 
-    # Check line 2: blank line
-    unless lines[1]&.strip == ''
-      errors << "Line 2: Expected blank line, got: #{lines[1]&.strip.inspect}"
+    unless lines[offset + 1]&.strip == ''
+      errors << "Line #{offset + 2}: Expected blank line, got: #{lines[offset + 1]&.strip.inspect}"
     end
 
     if errors.any?
@@ -267,20 +330,21 @@ class HeaderValidator
   end
 
   def fix_vue_header(full_path, relative_path, lines)
-    content_start = find_vue_content_start(lines)
+    has_shebang = lines[0]&.start_with?('#!')
+    content_start = find_vue_content_start(lines, has_shebang ? 1 : 0)
     content = lines[content_start..].join
 
+    prefix = has_shebang ? lines[0] : ''
     new_header = "<!-- #{relative_path} -->\n\n"
-    File.write(full_path, new_header + content)
+    File.write(full_path, prefix + new_header + content)
     @fixed << relative_path
   end
 
-  def find_vue_content_start(lines)
-    idx = 0
+  def find_vue_content_start(lines, start = 0)
+    idx = start
     while idx < lines.length
       line = lines[idx].strip
-      # Skip empty lines and HTML comment headers at the start
-      break unless line.empty? || (line.start_with?('<!--') && line.end_with?('-->') && idx == 0)
+      break unless line.empty? || (line.start_with?('<!--') && line.end_with?('-->') && idx == start)
 
       idx += 1
     end
@@ -291,7 +355,9 @@ class HeaderValidator
     path.include?('node_modules/') ||
       path.include?('.git/') ||
       path.include?('vendor/') ||
-      path.include?('tmp/')
+      path.include?('tmp/') ||
+      path.include?('__pycache__/') ||
+      path.include?('.venv/')
   end
 
   def report_results
