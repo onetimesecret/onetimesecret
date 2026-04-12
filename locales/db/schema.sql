@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS translation_issues (
     locale TEXT NOT NULL,             -- 'de', 'ja', 'ar', etc.
     file TEXT,                        -- 'secret-manage.json' or NULL for locale-wide issues
     key_path TEXT,                    -- 'web.COMMON.broadcast' or NULL for file/locale-wide
+    title TEXT NOT NULL,              -- Short display label (summary of the issue)
+    exec_order INTEGER NOT NULL DEFAULT 0, -- Ordering within a locale/batch (lower = fix first)
     issue_type TEXT NOT NULL
         CHECK(issue_type IN (
             'terminology',            -- Inconsistent or incorrect term usage
@@ -87,6 +89,7 @@ CREATE TABLE IF NOT EXISTS translation_issues (
         CHECK(severity IN ('critical', 'high', 'medium', 'low')),
     status TEXT NOT NULL DEFAULT 'open'
         CHECK(status IN ('open', 'in_review', 'resolved', 'wontfix')),
+    assigned_to TEXT,                 -- Agent/user currently working this issue
     source_text TEXT,                 -- Original English text (for reference)
     current_text TEXT,                -- Current translation with issue
     suggested_text TEXT,              -- Suggested fix (if any)
