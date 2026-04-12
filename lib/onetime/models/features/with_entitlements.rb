@@ -193,24 +193,28 @@ module Onetime
               return WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
             end
 
-            # Try loading from Redis cache first
-            plan = ::Billing::Plan.load(planid)
-            if plan
-              return plan.entitlements.to_a
+            # Guard: Billing module may not be loaded (e.g. app built without
+            # the billing feature). Fall through to FREE tier below.
+            if defined?(::Billing::Plan)
+              # Try loading from Redis cache first
+              plan = ::Billing::Plan.load(planid)
+              if plan
+                return plan.entitlements.to_a
+              end
+
+              # Plan not in cache - try billing.yaml config fallback
+              config_plan = ::Billing::Plan.load_from_config(planid)
+              if config_plan && config_plan[:entitlements]
+                OT.ld "[WithEntitlements] Using config fallback for plan: #{planid}"
+                return config_plan[:entitlements].dup
+              end
             end
 
-            # Plan not in cache - try billing.yaml config fallback
-            config_plan = ::Billing::Plan.load_from_config(planid)
-            if config_plan && config_plan[:entitlements]
-              OT.ld "[WithEntitlements] Using config fallback for plan: #{planid}"
-              return config_plan[:entitlements].dup
-            end
-
-            # Final fallback: FREE tier to avoid "No features available"
-            OT.lw '[WithEntitlements] Plan cache miss, using FREE tier fallback',
-              {
-                planid: planid,
-              }
+            # Final fallback: FREE tier to avoid "No features available". Log
+            # at warn so misconfigured planids surface in dashboards instead
+            # of silently degrading.
+            OT.lw '[WithEntitlements] Plan cache miss for entitlements, using FREE tier fallback',
+              planid: planid
             WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
           end
 
@@ -249,21 +253,28 @@ module Onetime
               return free_tier_limit_for(key)
             end
 
-            # Try loading from Redis cache first
-            plan = ::Billing::Plan.load(planid)
-            if plan
-              val = plan.limits[key]
-              return parse_limit_value(val)
+            # Guard: Billing module may not be loaded. Fall through to FREE tier.
+            if defined?(::Billing::Plan)
+              # Try loading from Redis cache first
+              plan = ::Billing::Plan.load(planid)
+              if plan
+                val = plan.limits[key]
+                return parse_limit_value(val)
+              end
+
+              # Plan not in cache - try billing.yaml config fallback
+              config_plan = ::Billing::Plan.load_from_config(planid)
+              if config_plan && config_plan[:limits]
+                val = config_plan[:limits][key]
+                return parse_limit_value(val) unless val.nil?
+              end
             end
 
-            # Plan not in cache - try billing.yaml config fallback
-            config_plan = ::Billing::Plan.load_from_config(planid)
-            if config_plan && config_plan[:limits]
-              val = config_plan[:limits][key]
-              return parse_limit_value(val) unless val.nil?
-            end
-
-            # Final fallback: FREE tier limits
+            # Final fallback: FREE tier limits. Log at warn so misconfigured
+            # planids surface in dashboards instead of silently degrading.
+            OT.lw '[WithEntitlements] Plan cache miss for limit_for, using FREE tier fallback',
+              planid: planid,
+              resource: key
             free_tier_limit_for(key)
           end
 

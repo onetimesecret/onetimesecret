@@ -47,6 +47,7 @@ class Onetime::Mail::Mailer
         'pass' => 'smtp_pass',
         'domain' => 'example.com',
         'tls' => true,
+        'allow_unauthenticated_fallback' => true,
         # SES
         'region' => 'us-east-1',
         # SendGrid
@@ -94,6 +95,10 @@ end
 
 ## SMTP config has string key 'tls'
 @smtp_config.key?('tls')
+#=> true
+
+## SMTP config forwards 'allow_unauthenticated_fallback' from emailer config
+@smtp_config.key?('allow_unauthenticated_fallback') && @smtp_config['allow_unauthenticated_fallback'] == true
 #=> true
 
 ## SMTP config contains NO symbol keys

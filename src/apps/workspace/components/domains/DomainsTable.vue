@@ -145,7 +145,6 @@ const { t } = useI18n();
                 <DomainsTableDomainCell
                   :domain="domain"
                   :orgid="props.orgid"
-                  :can-brand="canBrand"
                   :can-email-config="canEmailConfig" />
               </td>
 

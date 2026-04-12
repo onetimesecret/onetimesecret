@@ -36,6 +36,14 @@
     notify: false,
   });
 
+  // Delay before redirecting so the success message is visible and the
+  // background authStore sync (fire-and-forget from useInviteAuth) has time
+  // to settle before /orgs mounts and queries the store.
+  const ACCEPT_SUCCESS_REDIRECT_DELAY_MS = 1500;
+  // Longer delay for the direct accept/decline paths where the server has
+  // already confirmed and no background auth sync is pending.
+  const DIRECT_ACTION_REDIRECT_DELAY_MS = 2000;
+
   const invitationToken = ref<string>(route.params.token as string);
   const invitation = ref<ShowInviteResponse | null>(null);
 
@@ -170,7 +178,7 @@
 
       setTimeout(() => {
         router.push('/orgs');
-      }, 2000);
+      }, DIRECT_ACTION_REDIRECT_DELAY_MS);
     } catch (err) {
       const classified = classifyError(err);
       error.value = classified.message || t('web.organizations.invitations.accept_error');
@@ -194,7 +202,7 @@
 
       setTimeout(() => {
         router.push('/');
-      }, 2000);
+      }, DIRECT_ACTION_REDIRECT_DELAY_MS);
     } catch (err) {
       const classified = classifyError(err);
       error.value = classified.message || t('web.organizations.invitations.decline_error');
@@ -215,7 +223,7 @@
     organizationStore.$reset();
     setTimeout(() => {
       router.push('/orgs');
-    }, 1500);
+    }, ACCEPT_SUCCESS_REDIRECT_DELAY_MS);
   }
 
   /**

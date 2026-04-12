@@ -126,8 +126,8 @@ export function useInviteAuth() {
       // Fire-and-forget: awaiting would yield to the microtask queue, letting Vue
       // flush a re-render that unmounts InviteSignUpForm (inviteState transitions
       // from signup_required → direct_accept) before emit('success') reaches the
-      // parent. The 1.5s redirect delay in onAcceptSuccess gives the background
-      // refresh ample time to complete.
+      // parent. The ACCEPT_SUCCESS_REDIRECT_DELAY_MS in AcceptInvite.vue gives
+      // the background refresh ample time to complete before navigation.
       authStore.setAuthenticated(true).catch((err) => {
         console.warn('[useInviteAuth] Background auth sync failed after signup:', err);
       });

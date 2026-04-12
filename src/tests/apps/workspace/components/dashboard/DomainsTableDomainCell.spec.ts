@@ -61,12 +61,11 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent(options: { canBrand?: boolean; canEmailConfig?: boolean; domainOverrides?: object } = {}) {
+function mountComponent(options: { canEmailConfig?: boolean; domainOverrides?: object } = {}) {
   return mount(DomainsTableDomainCell, {
     props: {
       domain: { ...mockDomain, ...(options.domainOverrides || {}) },
       orgid: 'org_ext_123',
-      canBrand: options.canBrand ?? false,
       canEmailConfig: options.canEmailConfig ?? false,
     },
     global: {
@@ -95,39 +94,19 @@ describe('DomainsTableDomainCell', () => {
     vi.clearAllMocks();
   });
 
-  describe('canBrand routing', () => {
-    it('links to DomainVerify when canBrand is false', () => {
-      const wrapper = mountComponent({ canBrand: false });
+  describe('domain name link', () => {
+    it('always routes the display-domain link to DomainDetail', () => {
+      const wrapper = mountComponent();
 
       const link = wrapper.find('a[data-to]');
       const to = JSON.parse(link.attributes('data-to')!);
 
-      expect(to.name).toBe('DomainVerify');
+      expect(to.name).toBe('DomainDetail');
       expect(to.params).toEqual({
         orgid: 'org_ext_123',
         extid: 'dm-test-extid',
       });
-    });
-
-    it('links to DomainBrand when canBrand is true', () => {
-      const wrapper = mountComponent({ canBrand: true });
-
-      const link = wrapper.find('a[data-to]');
-      const to = JSON.parse(link.attributes('data-to')!);
-
-      expect(to.name).toBe('DomainBrand');
-      expect(to.params).toEqual({
-        orgid: 'org_ext_123',
-        extid: 'dm-test-extid',
-      });
-    });
-
-    it('displays the domain name regardless of canBrand', () => {
-      const withoutBrand = mountComponent({ canBrand: false });
-      const withBrand = mountComponent({ canBrand: true });
-
-      expect(withoutBrand.find('a[data-to]').text()).toBe('test.example.com');
-      expect(withBrand.find('a[data-to]').text()).toBe('test.example.com');
+      expect(link.text()).toBe('test.example.com');
     });
   });
 

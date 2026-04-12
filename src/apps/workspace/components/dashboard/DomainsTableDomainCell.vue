@@ -14,12 +14,10 @@ const { t } = useI18n();
   interface Props {
     domain: CustomDomain;
     orgid: string;
-    canBrand?: boolean;
     canEmailConfig?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
-    canBrand: false,
     canEmailConfig: false,
   });
 

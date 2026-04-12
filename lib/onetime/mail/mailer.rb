@@ -253,6 +253,7 @@ module Onetime
               'password' => conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
               'domain' => conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
               'tls' => conf['tls'],
+              'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
             }
           when 'ses'
             {

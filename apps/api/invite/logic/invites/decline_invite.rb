@@ -55,7 +55,12 @@ module InviteAPI::Logic
         organization = @invitation.organization
         @invitation.decline!
 
-        OT.info "[DeclineInvite] Invitation for #{OT::Utils.obscure_email(@invitation.invited_email)} to #{organization&.extid} declined"
+        OT.info '[DeclineInvite] Invitation declined',
+          event: 'invite.declined',
+          invitation_id: @invitation.objid,
+          organization_id: organization&.extid,
+          invited_email: OT::Utils.obscure_email(@invitation.invited_email),
+          result: :success
 
         success_data
       end

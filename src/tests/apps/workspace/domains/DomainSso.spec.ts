@@ -294,10 +294,12 @@ describe('DomainSso', () => {
       mockDomain.value = null;
       wrapper = await mountComponent();
 
-      // The domain name text should not be present in the header area
-      // since domain is null during loading
-      const headerArea = wrapper.find('.border-b');
-      expect(headerArea.exists()).toBe(false);
+      // Header wrapper stays mounted (see DomainHeader fix 89397e08c) and
+      // shows a skeleton placeholder while domain is null — the domain name
+      // text itself must be absent.
+      expect(wrapper.find('.border-b').exists()).toBe(true);
+      expect(wrapper.find('.animate-pulse').exists()).toBe(true);
+      expect(wrapper.text()).not.toContain('secure.example.com');
     });
   });
 
