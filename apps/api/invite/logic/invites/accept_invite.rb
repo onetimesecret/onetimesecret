@@ -72,7 +72,13 @@ module InviteAPI::Logic
         # Accept the invitation (updates membership status and adds to org)
         @invitation.accept!(cust)
 
-        OT.info "[AcceptInvite] User #{cust.obscure_email} joined organization #{@organization.extid}"
+        OT.info '[AcceptInvite] User joined organization',
+          event: 'invite.accepted',
+          invitation_id: @invitation.objid,
+          organization_id: @organization.extid,
+          user: cust.obscure_email,
+          role: @invitation.role,
+          result: :success
 
         success_data
       end

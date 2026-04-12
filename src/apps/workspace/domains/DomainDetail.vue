@@ -64,10 +64,8 @@ const domainsStore = useDomainsStore();
 const handleHomepageToggle = async () => {
   const domain = customDomainRecord.value;
   if (!domain) return;
-  const newValue = !domain.brand?.allow_public_homepage;
-  await domainsStore.updateDomainBrand(domain.extid, {
-    brand: { allow_public_homepage: newValue },
-  });
+  const newValue = !(domain.homepage_config?.enabled ?? false);
+  await domainsStore.putHomepageConfig(domain.extid, newValue);
   // Refresh domain data to reflect the change
   await initializeDomain();
 };
@@ -96,29 +94,7 @@ const sections = computed<Section[]>(() => [
     available: true,
     locked: false,
     toggleable: true,
-    enabled: customDomainRecord.value?.brand?.allow_public_homepage ?? false,
-  },
-  {
-    key: 'brand',
-    route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'paint-brush' },
-    titleKey: 'web.domains.manage_brand',
-    descriptionKey: 'web.domains.detail.brand_description',
-    available: true,
-    locked: !canBrand.value,
-    toggleable: false,
-    enabled: false,
-  },
-  {
-    key: 'sso',
-    route: { name: 'DomainSso', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'key' },
-    titleKey: 'web.domains.sso.configure_sso',
-    descriptionKey: 'web.domains.detail.sso_description',
-    available: isOrgsSsoEnabled(),
-    locked: !canManageSso.value,
-    toggleable: false,
-    enabled: false,
+    enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
   },
   {
     key: 'incoming',
@@ -132,6 +108,17 @@ const sections = computed<Section[]>(() => [
     enabled: false,
   },
   {
+    key: 'brand',
+    route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
+    icon: { collection: 'heroicons', name: 'paint-brush' },
+    titleKey: 'web.domains.manage_brand',
+    descriptionKey: 'web.domains.detail.brand_description',
+    available: true,
+    locked: !canBrand.value,
+    toggleable: false,
+    enabled: false,
+  },
+  {
     key: 'email',
     route: { name: 'DomainEmail', params: { orgid: props.orgid, extid: props.extid } },
     icon: { collection: 'heroicons', name: 'envelope' },
@@ -139,6 +126,17 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.email_description',
     available: isOrgsCustomMailEnabled(),
     locked: !canEmailConfig.value,
+    toggleable: false,
+    enabled: false,
+  },
+  {
+    key: 'sso',
+    route: { name: 'DomainSso', params: { orgid: props.orgid, extid: props.extid } },
+    icon: { collection: 'heroicons', name: 'key' },
+    titleKey: 'web.domains.sso.configure_sso',
+    descriptionKey: 'web.domains.detail.sso_description',
+    available: isOrgsSsoEnabled(),
+    locked: !canManageSso.value,
     toggleable: false,
     enabled: false,
   },
@@ -172,7 +170,6 @@ aria-hidden="true" />
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
       <DomainHeader
-        v-if="!domainLoading"
         :domain="customDomainRecord"
         :has-unsaved-changes="false"
         :orgid="props.orgid" />

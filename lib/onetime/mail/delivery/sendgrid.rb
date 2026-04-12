@@ -62,7 +62,7 @@ module Onetime
         protected
 
         def validate_config!
-          api_key = config[:api_key] || ENV.fetch('SENDGRID_API_KEY', nil)
+          api_key = config['api_key'] || ENV.fetch('SENDGRID_API_KEY', nil)
           raise ArgumentError, 'SendGrid API key must be configured' if api_key.nil? || api_key.empty?
         end
 
@@ -119,7 +119,7 @@ module Onetime
         end
 
         def api_key
-          @api_key ||= config[:api_key] || ENV.fetch('SENDGRID_API_KEY', nil)
+          @api_key ||= config['api_key'] || ENV.fetch('SENDGRID_API_KEY', nil)
         end
       end
     end

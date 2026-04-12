@@ -54,6 +54,30 @@ module Onetime::CustomDomain::Features
           obj.instance_variable_get(:@_sso_config_cache)&.enabled? || false
         }
 
+      # Homepage config - computed from CustomDomain::HomepageConfig lookup
+      # Cache is per-object (cleared on GC when the CustomDomain instance
+      # is discarded, typically at end of request) to match the SSO/mailer
+      # caching pattern above and avoid a second Redis hit when
+      # allow_public_homepage? runs against the same instance.
+      base.safe_dump_field :homepage_config,
+        ->(obj) {
+          unless obj.instance_variable_defined?(:@_homepage_config_cache)
+            obj.instance_variable_set(
+              :@_homepage_config_cache,
+              Onetime::CustomDomain::HomepageConfig.find_by_domain_id(obj.identifier),
+            )
+          end
+          config = obj.instance_variable_get(:@_homepage_config_cache)
+          next nil unless config
+
+          {
+            domain_id: config.domain_id,
+            enabled: config.enabled?,
+            created_at: config.created&.to_i,
+            updated_at: config.updated&.to_i,
+          }
+        }
+
       # Mail config status fields - computed from CustomDomain::MailerConfig lookup
       # Single lookup for both fields to avoid N+1 pattern on domain lists
       base.safe_dump_field :mail_configured,

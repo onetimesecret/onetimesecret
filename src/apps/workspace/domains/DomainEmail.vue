@@ -76,7 +76,6 @@ const {
   emailConfig,
   formState,
   isConfigured,
-  usesFallbackSender,
   dnsRecords,
   validationStatus,
   lastValidatedAt,
@@ -165,7 +164,6 @@ watch(hasEntitlement, async (entitled) => {
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
       <DomainHeader
-        v-if="!domainLoading"
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
         :orgid="props.orgid" />
@@ -256,19 +254,6 @@ watch(hasEntitlement, async (entitled) => {
             </div>
 
             <template v-else>
-              <!-- Fallback sender notice -->
-              <div
-                v-if="usesFallbackSender"
-                class="flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
-                <OIcon
-                  collection="heroicons"
-                  name="information-circle"
-                  class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
-                  aria-hidden="true" />
-                <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
-                  {{ t('web.domains.email.default_sender_notice') }}
-                </p>
-              </div>
 
               <!-- Email Configuration Form -->
               <DomainEmailConfigForm

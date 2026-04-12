@@ -284,12 +284,12 @@ RSpec.describe Onetime::Mail::Mailer do
         }
       end
 
-      it 'returns SES credentials hash' do
+      it 'returns SES credentials hash with string keys' do
         result = described_class.provider_credentials('ses')
         expect(result).to eq(
-          region: 'us-east-1',
-          access_key_id: 'AKIAEXAMPLE',
-          secret_access_key: 'secretkey123'
+          'region' => 'us-east-1',
+          'access_key_id' => 'AKIAEXAMPLE',
+          'secret_access_key' => 'secretkey123'
         )
       end
     end
@@ -297,9 +297,9 @@ RSpec.describe Onetime::Mail::Mailer do
     context 'with SendGrid config' do
       let(:config) { { 'sendgrid_api_key' => 'SG.testkey' } }
 
-      it 'returns SendGrid credentials hash' do
+      it 'returns SendGrid credentials hash with string keys' do
         result = described_class.provider_credentials('sendgrid')
-        expect(result).to eq(api_key: 'SG.testkey')
+        expect(result).to eq('api_key' => 'SG.testkey')
       end
     end
 

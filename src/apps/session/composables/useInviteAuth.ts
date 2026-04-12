@@ -122,8 +122,15 @@ export function useInviteAuth() {
         return { success: false, error: info.message };
       }
 
-      // Server set session cookie via create_account_autologin — sync frontend state
-      await authStore.setAuthenticated(true);
+      // Server set session cookie via create_account_autologin — sync frontend state.
+      // Fire-and-forget: awaiting would yield to the microtask queue, letting Vue
+      // flush a re-render that unmounts InviteSignUpForm (inviteState transitions
+      // from signup_required → direct_accept) before emit('success') reaches the
+      // parent. The ACCEPT_SUCCESS_REDIRECT_DELAY_MS in AcceptInvite.vue gives
+      // the background refresh ample time to complete before navigation.
+      authStore.setAuthenticated(true).catch((err) => {
+        console.warn('[useInviteAuth] Background auth sync failed after signup:', err);
+      });
       return { success: true };
     } catch (e) {
       const info = extractErrorInfo(undefined, e as AxiosLikeError);
@@ -174,8 +181,12 @@ export function useInviteAuth() {
         return { success: false, requiresMfa: true, redirect: `/invite/${inviteToken}` };
       }
 
-      // Login successful - membership already created by after_login hook
-      await authStore.setAuthenticated(true);
+      // Login successful - membership already created by after_login hook.
+      // Fire-and-forget: same reasoning as signupAndAccept — awaiting triggers
+      // a reactive cascade that unmounts the form before emit('success') fires.
+      authStore.setAuthenticated(true).catch((err) => {
+        console.warn('[useInviteAuth] Background auth sync failed after login:', err);
+      });
 
       return { success: true };
     } catch (e) {

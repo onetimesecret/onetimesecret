@@ -61,12 +61,11 @@ const mockDomain = {
   updated: new Date('2024-01-01'),
 };
 
-function mountComponent(options: { canBrand?: boolean; canEmailConfig?: boolean; domainOverrides?: object } = {}) {
+function mountComponent(options: { canEmailConfig?: boolean; domainOverrides?: object } = {}) {
   return mount(DomainsTableDomainCell, {
     props: {
       domain: { ...mockDomain, ...(options.domainOverrides || {}) },
       orgid: 'org_ext_123',
-      canBrand: options.canBrand ?? false,
       canEmailConfig: options.canEmailConfig ?? false,
     },
     global: {
@@ -95,39 +94,19 @@ describe('DomainsTableDomainCell', () => {
     vi.clearAllMocks();
   });
 
-  describe('canBrand routing', () => {
-    it('links to DomainVerify when canBrand is false', () => {
-      const wrapper = mountComponent({ canBrand: false });
+  describe('domain name link', () => {
+    it('always routes the display-domain link to DomainDetail', () => {
+      const wrapper = mountComponent();
 
       const link = wrapper.find('a[data-to]');
       const to = JSON.parse(link.attributes('data-to')!);
 
-      expect(to.name).toBe('DomainVerify');
+      expect(to.name).toBe('DomainDetail');
       expect(to.params).toEqual({
         orgid: 'org_ext_123',
         extid: 'dm-test-extid',
       });
-    });
-
-    it('links to DomainBrand when canBrand is true', () => {
-      const wrapper = mountComponent({ canBrand: true });
-
-      const link = wrapper.find('a[data-to]');
-      const to = JSON.parse(link.attributes('data-to')!);
-
-      expect(to.name).toBe('DomainBrand');
-      expect(to.params).toEqual({
-        orgid: 'org_ext_123',
-        extid: 'dm-test-extid',
-      });
-    });
-
-    it('displays the domain name regardless of canBrand', () => {
-      const withoutBrand = mountComponent({ canBrand: false });
-      const withBrand = mountComponent({ canBrand: true });
-
-      expect(withoutBrand.find('a[data-to]').text()).toBe('test.example.com');
-      expect(withBrand.find('a[data-to]').text()).toBe('test.example.com');
+      expect(link.text()).toBe('test.example.com');
     });
   });
 
@@ -242,6 +221,126 @@ describe('DomainsTableDomainCell', () => {
       // Should show the i18n key for age (which contains formatDistanceToNow)
       // The actual rendered text will use i18n interpolation with the mocked date-fns
       expect(wrapper.text()).toContain('web.domains.added_formatdistancetonow_domain_created_addsuffix_true');
+    });
+  });
+
+  describe('canEmailConfig', () => {
+    /**
+     * Find the email-config router-link by looking for an <a data-to> whose
+     * parsed `to` object has name === 'DomainEmail'. The DomainDetail link
+     * (display-domain) is also an <a data-to>, so we can't use a bare selector.
+     */
+    function findEmailConfigLink(wrapper: ReturnType<typeof mountComponent>) {
+      return wrapper.findAll('a[data-to]').find((el) => {
+        const raw = el.attributes('data-to');
+        if (!raw) return false;
+        try {
+          const to = JSON.parse(raw);
+          return to && typeof to === 'object' && to.name === 'DomainEmail';
+        } catch {
+          return false;
+        }
+      });
+    }
+
+    it('does not render the email-config link when canEmailConfig is false', () => {
+      const wrapper = mountComponent({ canEmailConfig: false });
+      expect(findEmailConfigLink(wrapper)).toBeUndefined();
+    });
+
+    it('renders envelope icon for not_configured state (email_config null)', () => {
+      const wrapper = mountComponent({
+        canEmailConfig: true,
+        domainOverrides: { email_config: null },
+      });
+
+      const link = findEmailConfigLink(wrapper);
+      expect(link).toBeDefined();
+      expect(link!.find('[data-icon-name="envelope"]').exists()).toBe(true);
+    });
+
+    it('renders envelope icon for not_configured state (email_config undefined)', () => {
+      // No override at all — mockDomain has no email_config key.
+      const wrapper = mountComponent({ canEmailConfig: true });
+
+      const link = findEmailConfigLink(wrapper);
+      expect(link).toBeDefined();
+      expect(link!.find('[data-icon-name="envelope"]').exists()).toBe(true);
+    });
+
+    it('renders check-circle icon for verified state', () => {
+      const wrapper = mountComponent({
+        canEmailConfig: true,
+        domainOverrides: {
+          email_config: { verification_status: 'verified', enabled: true },
+        },
+      });
+
+      const link = findEmailConfigLink(wrapper);
+      expect(link).toBeDefined();
+      expect(link!.find('[data-icon-name="check-circle"]').exists()).toBe(true);
+    });
+
+    it('renders clock icon for pending state (config exists, not yet verified)', () => {
+      const wrapper = mountComponent({
+        canEmailConfig: true,
+        domainOverrides: {
+          email_config: { verification_status: 'pending', enabled: true },
+        },
+      });
+
+      const link = findEmailConfigLink(wrapper);
+      expect(link).toBeDefined();
+      expect(link!.find('[data-icon-name="clock"]').exists()).toBe(true);
+    });
+
+    it('renders minus-circle icon for disabled state (enabled === false)', () => {
+      // Disabled takes precedence over verification_status in emailState computed.
+      const wrapper = mountComponent({
+        canEmailConfig: true,
+        domainOverrides: {
+          email_config: { verification_status: 'verified', enabled: false },
+        },
+      });
+
+      const link = findEmailConfigLink(wrapper);
+      expect(link).toBeDefined();
+      expect(link!.find('[data-icon-name="minus-circle"]').exists()).toBe(true);
+    });
+
+    it('does not render the email-config link in warning state even when canEmailConfig is true', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: true,
+        isError: false,
+        displayStatus: 'DNS Check Required',
+      });
+
+      const wrapper = mountComponent({
+        canEmailConfig: true,
+        domainOverrides: {
+          email_config: { verification_status: 'verified', enabled: true },
+        },
+      });
+
+      // The v-else branch (which contains the email-config link) is skipped.
+      expect(findEmailConfigLink(wrapper)).toBeUndefined();
+    });
+
+    it('does not render the email-config link in error state even when canEmailConfig is true', () => {
+      mockUseDomainStatus.mockReturnValue({
+        isWarning: false,
+        isError: true,
+        displayStatus: 'DNS Error',
+      });
+
+      const wrapper = mountComponent({
+        canEmailConfig: true,
+        domainOverrides: {
+          email_config: { verification_status: 'verified', enabled: true },
+        },
+      });
+
+      expect(findEmailConfigLink(wrapper)).toBeUndefined();
     });
   });
 });

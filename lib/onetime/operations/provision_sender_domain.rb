@@ -228,20 +228,20 @@ module Onetime
       # Returns any required credential keys that are missing or nil.
       #
       # @param provider [String] Provider name
-      # @param credentials [Hash] Credentials hash to validate
-      # @return [Array<Symbol>] Missing key names (empty if all present)
+      # @param credentials [Hash] Credentials hash (string keys per convention)
+      # @return [Array<String>] Missing key names (empty if all present)
       def missing_credential_keys(provider, credentials)
         required = case provider.to_s.downcase
                    when 'ses'
-                     [:access_key_id, :secret_access_key, :region]
+                     %w[access_key_id secret_access_key region]
                    when 'sendgrid'
-                     [:api_key]
+                     %w[api_key]
                    when 'lettermint'
                      # Team API token for domain provisioning (Bearer auth)
                      # Different from api_token used for Sending API (x-lettermint-token)
-                     [:team_token]
+                     %w[team_token]
                    when 'smtp'
-                     [:host]
+                     %w[host]
                    else
                      []
                    end

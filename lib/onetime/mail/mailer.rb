@@ -129,7 +129,7 @@ module Onetime
         # @return [Hash] Provider credentials from OT.conf['emailer']
         # @example
         #   Onetime::Mail::Mailer.provider_credentials('ses')
-        #   # => { region: 'us-east-1', access_key_id: '...', secret_access_key: '...' }
+        #   # => { 'region' => 'us-east-1', 'access_key_id' => '...', 'secret_access_key' => '...' }
         def provider_credentials(provider)
           build_provider_config(provider)
         end
@@ -247,32 +247,33 @@ module Onetime
           case provider
           when 'smtp'
             {
-              host: conf['host'] || ENV.fetch('SMTP_HOST', nil),
-              port: conf['port'] || ENV.fetch('SMTP_PORT', nil),
-              username: conf['user'] || ENV.fetch('SMTP_USERNAME', nil),
-              password: conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
-              domain: conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
-              tls: conf['tls'],
+              'host' => conf['host'] || ENV.fetch('SMTP_HOST', nil),
+              'port' => conf['port'] || ENV.fetch('SMTP_PORT', nil),
+              'username' => conf['user'] || ENV.fetch('SMTP_USERNAME', nil),
+              'password' => conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
+              'domain' => conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
+              'tls' => conf['tls'],
+              'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
             }
           when 'ses'
             {
-              region: conf['region'] || ENV.fetch('AWS_REGION', nil),
-              access_key_id: conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil),
-              secret_access_key: conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil),
+              'region' => conf['region'] || ENV.fetch('AWS_REGION', nil),
+              'access_key_id' => conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil),
+              'secret_access_key' => conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil),
             }
           when 'sendgrid'
             {
-              api_key: conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
+              'api_key' => conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
             }
           when 'lettermint'
             lm_conf = provider_config('lettermint')
             {
               # Sending API token (x-lettermint-token header) - for email delivery
-              api_token: conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+              'api_token' => conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
               # Team API token (Authorization: Bearer header) - for domain provisioning
-              team_token: conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
-              base_url: conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
-              timeout: conf['lettermint_timeout'],
+              'team_token' => conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
+              'base_url' => conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
+              'timeout' => conf['lettermint_timeout'],
             }.compact
           else
             {}

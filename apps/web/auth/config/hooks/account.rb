@@ -89,6 +89,14 @@ module Auth::Config::Hooks
           # Accept pending invitation if token provided in signup request
           invite_token = request.params['invite_token']
           if invite_token && !invite_token.to_s.strip.empty?
+            Auth::Logging.log_auth_event(
+              :invite_acceptance_started,
+              level: :debug,
+              email: customer.email,
+              account_id: account_id,
+              invite_token_prefix: invite_token.to_s[0..7],
+            )
+
             Onetime::ErrorHandler.safe_execute('accept_invitation', token: invite_token) do
               result = Auth::Operations::AcceptInvitation.new(
                 customer: customer,
@@ -99,7 +107,8 @@ module Auth::Config::Hooks
                 # Auto-verify at SQL level — invite link proves email ownership
                 update_account(account_status_column => account_open_status_value)
                 # Remove verification key — clean up the key row
-                remove_verify_account_key if respond_to?(:remove_verify_account_key)
+                had_verify_key = respond_to?(:remove_verify_account_key)
+                remove_verify_account_key if had_verify_key
 
                 # Signal to create_account_autologin? that this signup has a verified invite.
                 # Set AFTER DB operations so autologin only fires if verification succeeded.
@@ -109,15 +118,21 @@ module Auth::Config::Hooks
                   :invitation_accepted,
                   level: :info,
                   email: customer.email,
+                  account_id: account_id,
                   organization_id: result[:organization_id],
                   role: result[:role],
+                  account_auto_verified: true,
+                  verify_key_removed: had_verify_key,
+                  autologin_flag_set: true,
                 )
               else
                 Auth::Logging.log_auth_event(
                   :invitation_not_accepted,
-                  level: :info,
+                  level: :warn,
                   email: customer.email,
+                  account_id: account_id,
                   reason: result[:reason],
+                  invite_token_prefix: invite_token.to_s[0..7],
                 )
               end
             end

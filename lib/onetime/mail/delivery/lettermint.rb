@@ -97,8 +97,8 @@ module Onetime
 
         def configure_lettermint_defaults!
           ::Lettermint.configure do |c|
-            c.base_url = config[:base_url] if config[:base_url]
-            c.timeout  = config[:timeout] if config[:timeout]
+            c.base_url = config['base_url'] if config['base_url']
+            c.timeout  = config['timeout'] if config['timeout']
           end
         end
 
@@ -107,7 +107,7 @@ module Onetime
         end
 
         def api_token
-          @api_token ||= config[:api_token] || ENV.fetch('LETTERMINT_API_TOKEN', nil)
+          @api_token ||= config['api_token'] || ENV.fetch('LETTERMINT_API_TOKEN', nil)
         end
       end
     end

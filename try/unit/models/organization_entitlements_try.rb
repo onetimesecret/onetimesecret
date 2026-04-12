@@ -61,12 +61,40 @@ OT.boot! :test
 #=> true
 
 ## SaaS empty planid: can? returns false for premium entitlements
-@org.can?('custom_domains')
+@org.can?('custom_branding')
 #=> false
 
 ## SaaS empty planid: limit_for returns FREE tier limit (0 for teams)
 @org.limit_for('teams')
 #=> 0
+
+## SaaS empty planid: can? returns true for custom_domains (FREE tier key)
+@org.can?('custom_domains')
+#=> true
+
+## SaaS empty planid: can? returns true for incoming_secrets (FREE tier key)
+@org.can?('incoming_secrets')
+#=> true
+
+## SaaS empty planid: can? returns true for homepage_secrets (FREE tier key)
+@org.can?('homepage_secrets')
+#=> true
+
+## SaaS empty planid: can? returns false for custom_branding (bounded set check)
+@org.can?('custom_branding')
+#=> false
+
+## SaaS empty planid: limit_for('organizations') returns FREE tier max
+@org.limit_for('organizations')
+#=> 5
+
+## SaaS empty planid: limit_for('members_per_team') returns FREE tier max
+@org.limit_for('members_per_team')
+#=> 0
+
+## SaaS empty planid: limit_for('secret_lifetime') returns DEFAULT_FREE_TTL absent env override
+@org.limit_for('secret_lifetime')
+#=> 1_209_600
 
 ## SAAS PLAN CACHE MISS TEST: billing enabled but plan not in cache returns FREE tier (graceful degradation)
 @org.planid = "nonexistent_plan_#{@timestamp}"
@@ -82,7 +110,7 @@ OT.boot! :test
 #=> 0
 
 ## SaaS plan cache miss: can? returns false for premium entitlements not in FREE tier
-[@org.can?('custom_domains'), @org.can?('api_access'), @org.can?('audit_logs')]
+[@org.can?('custom_branding'), @org.can?('api_access'), @org.can?('audit_logs')]
 #=> [false, true, false]
 
 # Teardown

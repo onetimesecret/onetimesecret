@@ -10,15 +10,20 @@
 const { t } = useI18n();
 
   const props = defineProps<{
-    domain: CustomDomain;
+    domain: CustomDomain | null;
     hasUnsavedChanges: boolean;
     orgid: string;
   }>();
 
+  // Optional chaining on domain is defensive: the only consumer
+  // (<RouterLink :to="verifyRoute">) lives inside v-if="domain", so the
+  // computed is never read while domain is null. The ?. keeps the type
+  // narrow without forcing a non-null assertion that would lie about the
+  // prop contract (domain is CustomDomain | null).
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
   const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
-    props.domain
+    () => props.domain
   );
 </script>
 

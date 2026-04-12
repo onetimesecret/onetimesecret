@@ -10,9 +10,9 @@ require 'aws-sdk-core'
 RSpec.describe Onetime::Mail::Delivery::SES do
   let(:config) do
     {
-      access_key_id: 'AKIAIOSFODNN7EXAMPLE',
-      secret_access_key: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-      region: 'us-east-1',
+      'access_key_id' => 'AKIAIOSFODNN7EXAMPLE',
+      'secret_access_key' => 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+      'region' => 'us-east-1',
     }
   end
   let(:ses) { described_class.new(config) }

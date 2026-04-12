@@ -50,7 +50,7 @@ module Onetime
           begin
             deliver_with_settings(mail_message, settings)
           rescue Net::SMTPAuthenticationError => ex
-            raise unless config[:allow_unauthenticated_fallback]
+            raise unless config['allow_unauthenticated_fallback']
 
             handle_auth_failure(mail_message, settings, ex)
           end
@@ -68,7 +68,7 @@ module Onetime
         protected
 
         def validate_config!
-          host = config[:host] || ENV.fetch('SMTP_HOST', nil)
+          host = config['host'] || ENV.fetch('SMTP_HOST', nil)
           raise ArgumentError, 'SMTP host must be configured' if host.nil? || host.empty?
         end
 
@@ -125,18 +125,18 @@ module Onetime
 
         def smtp_settings
           settings = {
-            address: config[:host] || ENV['SMTP_HOST'] || 'localhost',
-            port: (config[:port] || ENV['SMTP_PORT'] || '587').to_i,
+            address: config['host'] || ENV['SMTP_HOST'] || 'localhost',
+            port: (config['port'] || ENV['SMTP_PORT'] || '587').to_i,
             enable_starttls_auto: resolve_tls_setting,
           }
 
           # Add domain if configured
-          domain            = config[:domain] || ENV.fetch('SMTP_DOMAIN', nil)
+          domain            = config['domain'] || ENV.fetch('SMTP_DOMAIN', nil)
           settings[:domain] = domain if domain && !domain.empty?
 
           # Add authentication if credentials provided
-          username = config[:username] || ENV.fetch('SMTP_USERNAME', nil)
-          password = config[:password] || ENV.fetch('SMTP_PASSWORD', nil)
+          username = config['username'] || ENV.fetch('SMTP_USERNAME', nil)
+          password = config['password'] || ENV.fetch('SMTP_PASSWORD', nil)
 
           if username && !username.empty? && password && !password.empty?
             settings[:user_name]      = username
@@ -148,7 +148,7 @@ module Onetime
         end
 
         def resolve_tls_setting
-          return config[:tls] unless config[:tls].nil?
+          return config['tls'] unless config['tls'].nil?
 
           ENV['SMTP_TLS'] != 'false'
         end

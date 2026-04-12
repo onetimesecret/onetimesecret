@@ -14,12 +14,10 @@ const { t } = useI18n();
   interface Props {
     domain: CustomDomain;
     orgid: string;
-    canBrand?: boolean;
     canEmailConfig?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
-    canBrand: false,
     canEmailConfig: false,
   });
 
@@ -36,7 +34,7 @@ const { t } = useI18n();
    *
    * Four states:
    *  1. "not_configured" — no email config exists (null/undefined). Default sender in use.
-   *  2. "pending"        — config exists but validation_status != 'verified'. Default sender.
+   *  2. "pending"        — config exists but verification_status != 'verified'. Default sender.
    *  3. "verified"       — config exists, verified, and enabled. Custom sender active.
    *  4. "disabled"       — config exists but enabled === false. Default sender.
    */
@@ -48,7 +46,7 @@ const { t } = useI18n();
     const config = emailConfig.value;
     if (!config) return 'not_configured';
     if (config.enabled === false) return 'disabled';
-    if (config.validation_status === 'verified') return 'verified';
+    if (config.verification_status === 'verified') return 'verified';
     return 'pending';
   });
 
@@ -87,7 +85,7 @@ const { t } = useI18n();
   <div class="flex flex-col space-y-2">
     <div class="flex items-center space-x-2">
       <router-link
-        :to="{ name: props.canBrand ? 'DomainBrand' : 'DomainVerify', params: { orgid: props.orgid, extid: domain.extid } }"
+        :to="{ name: 'DomainDetail', params: { orgid: props.orgid, extid: domain.extid } }"
         class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         {{ domain.display_domain }}
       </router-link>

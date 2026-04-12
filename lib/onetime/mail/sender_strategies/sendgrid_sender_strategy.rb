@@ -47,7 +47,7 @@ module Onetime
         # records that must be configured for DKIM and branded links.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :api_key
+        # @param credentials [Hash] Must include 'api_key'
         # @return [Hash] Provisioning result:
         #   - :success [Boolean]
         #   - :message [String]
@@ -67,7 +67,7 @@ module Onetime
             }
           end
 
-          api_key = credentials[:api_key]
+          api_key = credentials['api_key']
           unless api_key && !api_key.empty?
             return {
               success: false,
@@ -123,7 +123,7 @@ module Onetime
         # Queries SendGrid to find the domain and triggers validation.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :api_key; optionally :domain_id
+        # @param credentials [Hash] Must include 'api_key'; optionally 'domain_id'
         # @return [Hash] Verification status:
         #   - :verified [Boolean]
         #   - :status [String] 'verified', 'pending', 'failed', 'not_found'
@@ -145,7 +145,7 @@ module Onetime
             }
           end
 
-          api_key = credentials[:api_key]
+          api_key = credentials['api_key']
           unless api_key && !api_key.empty?
             return {
               verified: false,
@@ -157,7 +157,7 @@ module Onetime
           log_info "[sendgrid-sender] Checking verification status for #{domain}"
 
           # First, find the domain ID if not provided
-          domain_id = credentials[:domain_id] || find_domain_id(domain, api_key: api_key)
+          domain_id = credentials['domain_id'] || find_domain_id(domain, api_key: api_key)
 
           unless domain_id
             return {
@@ -204,7 +204,7 @@ module Onetime
         # Deletes domain authentication from SendGrid.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :api_key; optionally :domain_id
+        # @param credentials [Hash] Must include 'api_key'; optionally 'domain_id'
         # @return [Hash] Deletion result:
         #   - :deleted [Boolean]
         #   - :message [String]
@@ -219,7 +219,7 @@ module Onetime
             }
           end
 
-          api_key = credentials[:api_key]
+          api_key = credentials['api_key']
           unless api_key && !api_key.empty?
             return {
               deleted: false,
@@ -230,7 +230,7 @@ module Onetime
           log_info "[sendgrid-sender] Deleting sender authentication for #{domain}"
 
           # Find the domain ID if not provided
-          domain_id = credentials[:domain_id] || find_domain_id(domain, api_key: api_key)
+          domain_id = credentials['domain_id'] || find_domain_id(domain, api_key: api_key)
 
           unless domain_id
             return {

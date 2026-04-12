@@ -26,7 +26,7 @@
   });
 
   const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatus(
-    props.domain
+    () => props.domain
   );
 
   /**

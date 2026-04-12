@@ -98,6 +98,7 @@ describe('BrandedHeader', () => {
       domain_strategy?: string;
       domain_logo?: string | null;
       domain_branding?: Record<string, unknown>;
+      homepage_config?: Record<string, unknown> | null;
     } = {}
   ) => {
     const pinia = createTestingPinia({
@@ -121,6 +122,7 @@ describe('BrandedHeader', () => {
             button_text_light: true,
             allow_public_homepage: false,
           },
+          homepage_config: storeOverrides.homepage_config ?? null,
           ui: {
             header: {
               navigation: { enabled: true },
@@ -216,7 +218,7 @@ describe('BrandedHeader', () => {
       );
     });
 
-    it('shows "Create a Secure Link" when allow_public_homepage is true', async () => {
+    it('shows "Create a Secure Link" when homepage_config is enabled', async () => {
       wrapper = mountComponent({}, {
         domain_strategy: 'custom',
         domain_logo: 'https://cdn.example.com/logo.png',
@@ -225,7 +227,13 @@ describe('BrandedHeader', () => {
           corner_style: 'square',
           font_family: 'sans',
           button_text_light: false,
-          allow_public_homepage: true,
+          allow_public_homepage: false,
+        },
+        homepage_config: {
+          domain_id: 'cd_acme',
+          enabled: true,
+          created_at: null,
+          updated_at: null,
         },
       });
 

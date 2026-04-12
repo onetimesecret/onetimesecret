@@ -100,17 +100,17 @@ config = Onetime::Mail::Mailer.send(:build_provider_config, 'logger')
 config
 #=> {}
 
-## build_provider_config for smtp includes host key
+## build_provider_config for smtp includes host key (string keys per interface convention)
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'smtp')
-config.key?(:host)
+config.key?('host')
 #=> true
 
-## build_provider_config for ses includes region key
+## build_provider_config for ses includes region key (string keys per interface convention)
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'ses')
-config.key?(:region)
+config.key?('region')
 #=> true
 
-## build_provider_config for sendgrid includes api_key key
+## build_provider_config for sendgrid includes api_key key (string keys per interface convention)
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'sendgrid')
-config.key?(:api_key)
+config.key?('api_key')
 #=> true

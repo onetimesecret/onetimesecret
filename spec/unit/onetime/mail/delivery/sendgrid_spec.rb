@@ -7,7 +7,7 @@ require 'onetime/mail'
 require 'onetime/mail/delivery/sendgrid'
 
 RSpec.describe Onetime::Mail::Delivery::SendGrid do
-  let(:config) { { api_key: 'SG.test-key-example' } }
+  let(:config) { { 'api_key' => 'SG.test-key-example' } }
   let(:sendgrid) { described_class.new(config) }
   let(:email) do
     {

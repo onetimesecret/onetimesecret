@@ -16,6 +16,10 @@ import {
   type ValidateEmailConfigResponse,
 } from '@/schemas/api/domains/responses/email-config';
 import {
+  homepageConfigResponseSchema,
+  type HomepageConfigResponse,
+} from '@/schemas/api/domains/responses/homepage-config';
+import {
   testEmailConfigResponseSchema,
   type TestEmailConfigResponse,
 } from '@/schemas/api/domains/responses/test-email-config';
@@ -80,6 +84,10 @@ export type DomainsStore = {
     brandUpdate: UpdateDomainBrandRequest
   ) => Promise<CustomDomain>;
   updateBrandSettings: (extid: string, settings: Partial<BrandSettings>) => Promise<BrandSettings>;
+
+  // Homepage config
+  getHomepageConfig: (extid: string) => Promise<HomepageConfigResponse>;
+  putHomepageConfig: (extid: string, enabled: boolean) => Promise<HomepageConfigResponse>;
 
   // Email config
   getEmailConfig: (extid: string) => Promise<CustomDomainEmailConfig | null>;
@@ -306,6 +314,58 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Homepage configuration
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Get homepage configuration for a domain.
+   */
+  async function getHomepageConfig(extid: string): Promise<HomepageConfigResponse> {
+    const response = await $api.get(`/api/domains/${extid}/homepage-config`);
+    const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
+    if (!result.ok) {
+      throw new Error('Unable to load homepage configuration. Please try again.');
+    }
+    return result.data;
+  }
+
+  /**
+   * Create or update homepage configuration for a domain.
+   *
+   * Updates both the domainsStore records array and the bootstrapStore's
+   * homepage_config to keep all consumers (workspace views and identity store)
+   * reactive without requiring a page reload.
+   */
+  async function putHomepageConfig(extid: string, enabled: boolean): Promise<HomepageConfigResponse> {
+    const response = await $api.put(`/api/domains/${extid}/homepage-config`, { enabled });
+    const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
+    if (!result.ok) {
+      throw new Error('Unable to update homepage configuration. Please try again.');
+    }
+
+    // Update the domain record in the domainsStore to keep workspace views reactive
+    if (records.value && result.data.record) {
+      const domainIndex = records.value.findIndex((d) => d.extid === extid);
+      if (domainIndex !== -1) {
+        records.value[domainIndex] = {
+          ...records.value[domainIndex],
+          homepage_config: result.data.record,
+        };
+      }
+    }
+
+    // Update bootstrapStore so identityStore (branded header/homepage) stays in sync
+    // on custom domains without requiring a full page reload
+    if (result.data.record) {
+      const { useBootstrapStore } = await import('./bootstrapStore');
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({ homepage_config: result.data.record });
+    }
+
+    return result.data;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Email configuration
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -381,7 +441,7 @@ export const useDomainsStore = defineStore('domains', () => {
    *
    * Triggers DNS record verification and sender identity validation
    * for the domain's current email configuration. Returns the updated
-   * config with refreshed validation_status and dns_records.
+   * config with refreshed verification_status and dns_records.
    */
   async function validateEmailConfig(extid: string): Promise<ValidateEmailConfigResponse> {
     const response = await $api.post(`/api/domains/${extid}/email-config/validate`);
@@ -437,6 +497,10 @@ export const useDomainsStore = defineStore('domains', () => {
     uploadLogo,
     fetchLogo,
     removeLogo,
+
+    // Homepage config
+    getHomepageConfig,
+    putHomepageConfig,
 
     // Email config
     getEmailConfig,

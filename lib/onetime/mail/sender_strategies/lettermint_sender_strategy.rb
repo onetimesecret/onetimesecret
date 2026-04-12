@@ -46,7 +46,7 @@ module Onetime
       #   base_url:   Custom API base URL (optional, default: https://api.lettermint.co/v1)
       #
       class LettermintSenderStrategy < BaseSenderStrategy
-        # Default API base URL for Team API. Can be overridden via credentials[:base_url]
+        # Default API base URL for Team API. Can be overridden via credentials['base_url']
         # or LETTERMINT_BASE_URL env var (loaded via ProviderConfig).
         DEFAULT_BASE_URL = 'https://api.lettermint.co/v1'
 
@@ -56,7 +56,7 @@ module Onetime
         # be configured for DKIM and SPF authentication.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :api_token; optionally :base_url
+        # @param credentials [Hash] Must include 'api_token'; optionally 'base_url'
         # @return [Hash] Provisioning result:
         #   - :success [Boolean]
         #   - :message [String]
@@ -76,7 +76,7 @@ module Onetime
             }
           end
 
-          team_token = credentials[:team_token] || credentials['team_token']
+          team_token = credentials['team_token']
           unless team_token && !team_token.empty?
             return {
               success: false,
@@ -167,7 +167,7 @@ module Onetime
         # Uses filter to find domain by name, then fetches details with DNS records.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :team_token
+        # @param credentials [Hash] Must include 'team_token'
         # @return [Hash] Verification status:
         #   - :verified [Boolean]
         #   - :status [String] 'verified', 'pending', 'not_found', 'error'
@@ -257,7 +257,7 @@ module Onetime
         # Deletes a sender domain from Lettermint.
         #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
-        # @param credentials [Hash] Must include :team_token
+        # @param credentials [Hash] Must include 'team_token'
         # @return [Hash] Deletion result:
         #   - :deleted [Boolean]
         #   - :message [String]
@@ -272,7 +272,7 @@ module Onetime
             }
           end
 
-          team_token = credentials[:team_token] || credentials['team_token']
+          team_token = credentials['team_token']
           unless team_token && !team_token.empty?
             return {
               deleted: false,
@@ -349,13 +349,13 @@ module Onetime
         # Domain provisioning uses the Team API with Bearer auth, NOT the
         # Sending API (x-lettermint-token).
         #
-        # @param credentials [Hash] Must include :team_token, optionally :base_url
+        # @param credentials [Hash] Must include 'team_token', optionally 'base_url'
         # @return [Lettermint::TeamAPI] SDK client instance
         #
         def build_client(credentials)
-          team_token = credentials[:team_token] || credentials['team_token']
-          base_url   = credentials[:base_url] || credentials['base_url']
-          timeout    = credentials[:timeout] || credentials['timeout'] || 30
+          team_token = credentials['team_token']
+          base_url   = credentials['base_url']
+          timeout    = credentials['timeout'] || 30
 
           lettermint_sdk::TeamAPI.new(
             team_token: team_token,

@@ -59,6 +59,7 @@ export const DOMAIN_SERIALIZER_FIELDS = [
   'domain_logo',
   'domain_context',
   'domain_strategy',
+  'homepage_config',
 ] as const;
 
 // ============================================================================
