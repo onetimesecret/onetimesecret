@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# bin/dev - Overmind Development Runner
+# bin/dev - Development Process Runner (overmind or hivemind)
 #
 # USAGE:
 #   $ bin/dev                       # Start with Procfile.dev
@@ -30,8 +30,14 @@
 #   Usage: Essential for 'binding.pry', 'debugger', or surgical restarts.
 # -----------------------------------------------------------------------------
 
-if ! command -v overmind >/dev/null 2>&1; then
-  echo "Error: Overmind not found. Install from https://github.com/DarthSim/overmind"
+if command -v overmind >/dev/null 2>&1; then
+  RUNNER="overmind"
+elif command -v hivemind >/dev/null 2>&1; then
+  RUNNER="hivemind"
+else
+  echo "Error: Neither overmind nor hivemind found."
+  echo "  Install overmind: https://github.com/DarthSim/overmind"
+  echo "  Install hivemind: https://github.com/DarthSim/hivemind"
   exit 1
 fi
 
@@ -77,4 +83,8 @@ fi
 # --port flag takes precedence over PORT env var, then falls back to 7143
 PORT="${PORT_OVERRIDE:-${PORT:-7143}}"
 
-exec env PORT="$PORT" overmind start -f "$PROCFILE" "${ARGS[@]}"
+if [[ "$RUNNER" == "overmind" ]]; then
+  exec env PORT="$PORT" overmind start -f "$PROCFILE" "${ARGS[@]}"
+else
+  exec env PORT="$PORT" hivemind "$PROCFILE" "${ARGS[@]}"
+fi

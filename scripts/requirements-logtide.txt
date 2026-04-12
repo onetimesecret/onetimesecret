@@ -1,0 +1,2 @@
+httpx>=0.27,<1
+cyclopts>=4,<5
