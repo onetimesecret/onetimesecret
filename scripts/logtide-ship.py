@@ -198,13 +198,6 @@ class Global:
     """
 
 
-def _mask_key(key: str) -> str:
-    """Mask API key for display, showing first 4 and last 3 characters."""
-    if len(key) <= 8:
-        return "***"
-    return f"{key[:4]}***{key[-3:]}"
-
-
 def _preflight(command: str, service: str, mode: LogMode) -> None:
     """Print startup banner and verify LogTide connectivity and auth.
 
@@ -215,8 +208,8 @@ def _preflight(command: str, service: str, mode: LogMode) -> None:
     _validate_service(service)
     _validate_url(LOGTIDE_URL)
 
-    # Hoist masked key to a local to avoid CodeQL clear-text-logging false positive.
-    masked_key = _mask_key(LOGTIDE_API_KEY)
+    # Log boolean flags about the key rather than any derived form of it,
+    # to avoid CodeQL clear-text-logging flags on masked-secret output.
     _diag.info(
         "%s",
         _kv(
@@ -225,7 +218,8 @@ def _preflight(command: str, service: str, mode: LogMode) -> None:
             service=service,
             mode=mode,
             url=LOGTIDE_URL,
-            key=masked_key,
+            api_key_configured=LOGTIDE_API_KEY != "",
+            api_key_is_default=LOGTIDE_API_KEY == "CHANGEME",
         ),
     )
 
