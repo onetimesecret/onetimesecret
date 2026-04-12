@@ -110,7 +110,7 @@ def _mask_key(key: str) -> str:
     return f"{key[:4]}***{key[-3:]}"
 
 
-def _preflight(service: str, mode: LogMode) -> None:
+def _preflight(command: str, service: str, mode: LogMode) -> None:
     """Print startup banner and verify LogTide connectivity and auth.
 
     Sends an empty batch to the ingest endpoint. Exits on auth failure
@@ -118,8 +118,8 @@ def _preflight(service: str, mode: LogMode) -> None:
     connection errors but continues (server may come up later).
     """
     print(
-        f"[logtide-ship] url={LOGTIDE_URL} key={_mask_key(LOGTIDE_API_KEY)}"
-        f" mode={mode} service={service}",
+        f"[logtide-ship {command}] service={service} mode={mode}"
+        f" url={LOGTIDE_URL} key={_mask_key(LOGTIDE_API_KEY)}",
         file=sys.stderr,
     )
 
@@ -253,7 +253,7 @@ def _build_entry_json(raw: dict, service: str) -> dict:
     return {
         "time": raw.get("timestamp", _now()),     # SemanticLogger: ISO 8601
         "service": service,
-        "hostname": raw.get("host", ""),           # SemanticLogger: machine hostname
+        "hostname": raw.get("host", _HOSTNAME),    # SemanticLogger host, or machine fallback
         "level": raw.get("level", "info"),
         "message": json.dumps(raw),                # full JSON for pipeline parsing
     }
@@ -419,7 +419,7 @@ def _build_entry_metadata(raw: dict, service: str) -> dict:
     entry = {
         "time": raw.get("timestamp", _now()),
         "service": service,
-        "hostname": raw.get("host", ""),
+        "hostname": raw.get("host", _HOSTNAME),
         "level": raw.get("level", "info"),
         "message": raw.get("message", ""),
     }
@@ -434,6 +434,7 @@ def _build_entry_text(line: str, service: str) -> dict:
     return {
         "time": _now(),
         "service": service,
+        "hostname": _HOSTNAME,
         "level": detect_level(line),
         "message": line,
     }
@@ -523,7 +524,7 @@ def follow(service: str, *, opts: Global = Global()):
     service
         Service name attached to each log entry (e.g. "backend", "caddy-proxy").
     """
-    _preflight(service, opts.mode)
+    _preflight("follow", service, opts.mode)
 
     queue: Queue = Queue()
     thread = threading.Thread(
@@ -560,7 +561,7 @@ def batch(service: str, *, opts: Global = Global()):
     service
         Service name attached to each log entry (e.g. "backend", "caddy-proxy").
     """
-    _preflight(service, opts.mode)
+    _preflight("batch", service, opts.mode)
 
     lines = sys.stdin.read().splitlines()   # blocks until EOF
 
