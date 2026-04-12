@@ -7,7 +7,7 @@ require 'onetime/mail/sender_strategies/sendgrid_sender_strategy'
 
 RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
   let(:strategy) { described_class.new }
-  let(:credentials) { { api_key: 'SG.test-api-key-example' } }
+  let(:credentials) { { 'api_key' => 'SG.test-api-key-example' } }
   let(:mailer_config) do
     double('MailerConfig', from_address: 'sender@example.com')
   end
@@ -54,7 +54,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
 
       before do
         allow(strategy).to receive(:post_request)
-          .with('/whitelabel/domains', { domain: 'example.com', automatic_security: true }, api_key: credentials[:api_key])
+          .with('/whitelabel/domains', { domain: 'example.com', automatic_security: true }, api_key: credentials['api_key'])
           .and_return({ success: true, data: sendgrid_response })
       end
 
@@ -102,7 +102,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
 
     context 'with missing api_key' do
-      let(:credentials) { { api_key: nil } }
+      let(:credentials) { { 'api_key' => nil } }
 
       it 'returns error for missing key' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
@@ -113,7 +113,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
 
     context 'with empty api_key' do
-      let(:credentials) { { api_key: '' } }
+      let(:credentials) { { 'api_key' => '' } }
 
       it 'returns error for empty key' do
         result = strategy.provision_dns_records(mailer_config, credentials: credentials)
@@ -161,11 +161,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     context 'when domain is verified' do
       before do
         allow(strategy).to receive(:find_domain_id)
-          .with('example.com', api_key: credentials[:api_key])
+          .with('example.com', api_key: credentials['api_key'])
           .and_return(123)
 
         allow(strategy).to receive(:post_request)
-          .with('/whitelabel/domains/123/validate', {}, api_key: credentials[:api_key])
+          .with('/whitelabel/domains/123/validate', {}, api_key: credentials['api_key'])
           .and_return({
             success: true,
             data: {
@@ -219,11 +219,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
 
     context 'when domain_id is provided in credentials' do
-      let(:credentials_with_id) { { api_key: 'SG.test-key', domain_id: 456 } }
+      let(:credentials_with_id) { { 'api_key' => 'SG.test-key', 'domain_id' => 456 } }
 
       before do
         allow(strategy).to receive(:post_request)
-          .with('/whitelabel/domains/456/validate', {}, api_key: credentials_with_id[:api_key])
+          .with('/whitelabel/domains/456/validate', {}, api_key: credentials_with_id['api_key'])
           .and_return({ success: true, data: { 'valid' => true } })
       end
 
@@ -276,7 +276,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
       before do
         allow(strategy).to receive(:find_domain_id).and_return(123)
         allow(strategy).to receive(:delete_request)
-          .with('/whitelabel/domains/123', api_key: credentials[:api_key])
+          .with('/whitelabel/domains/123', api_key: credentials['api_key'])
           .and_return({ success: true, data: {} })
       end
 
@@ -289,11 +289,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
 
     context 'when domain_id is provided in credentials' do
-      let(:credentials_with_id) { { api_key: 'SG.test-key', domain_id: 789 } }
+      let(:credentials_with_id) { { 'api_key' => 'SG.test-key', 'domain_id' => 789 } }
 
       before do
         allow(strategy).to receive(:delete_request)
-          .with('/whitelabel/domains/789', api_key: credentials_with_id[:api_key])
+          .with('/whitelabel/domains/789', api_key: credentials_with_id['api_key'])
           .and_return({ success: true, data: {} })
       end
 
@@ -343,7 +343,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     end
 
     context 'with missing api_key' do
-      let(:credentials) { { api_key: nil } }
+      let(:credentials) { { 'api_key' => nil } }
 
       it 'returns deleted false' do
         result = strategy.delete_sender_identity(mailer_config, credentials: credentials)

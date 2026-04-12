@@ -7,7 +7,7 @@ require 'onetime/mail'
 require 'onetime/mail/delivery/smtp'
 
 RSpec.describe Onetime::Mail::Delivery::SMTP do
-  let(:config) { { host: 'localhost', port: 2525 } }
+  let(:config) { { 'host' => 'localhost', 'port' => 2525 } }
   let(:smtp) { described_class.new(config) }
   let(:email) do
     {
@@ -95,7 +95,7 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
       end
 
       context 'with allow_unauthenticated_fallback enabled' do
-        let(:config) { { host: 'localhost', port: 2525, allow_unauthenticated_fallback: true } }
+        let(:config) { { 'host' => 'localhost', 'port' => 2525, 'allow_unauthenticated_fallback' => true } }
 
         it 'succeeds when auth fails but no-auth retry works' do
           call_count = 0

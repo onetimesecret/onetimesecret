@@ -8,7 +8,7 @@ require 'onetime/mail'
 require 'onetime/mail/delivery/lettermint'
 
 RSpec.describe Onetime::Mail::Delivery::Lettermint do
-  let(:config) { { api_token: 'lm_test-token-example' } }
+  let(:config) { { 'api_token' => 'lm_test-token-example' } }
   let(:backend) { described_class.new(config) }
   let(:email) do
     {
@@ -228,7 +228,7 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
     end
 
     it 'raises ArgumentError when api_token is empty' do
-      expect { described_class.new(api_token: '') }
+      expect { described_class.new({ 'api_token' => '' }) }
         .to raise_error(ArgumentError, /Lettermint API token must be configured/)
     end
 
@@ -246,18 +246,18 @@ RSpec.describe Onetime::Mail::Delivery::Lettermint do
 
   describe 'Lettermint.configure integration' do
     it 'sets global base_url from config' do
-      described_class.new(api_token: 'lm_test-token', base_url: 'https://custom.api.com/v1')
+      described_class.new({ 'api_token' => 'lm_test-token', 'base_url' => 'https://custom.api.com/v1' })
       expect(::Lettermint.configuration.base_url).to eq('https://custom.api.com/v1')
     end
 
     it 'sets global timeout from config' do
-      described_class.new(api_token: 'lm_test-token', timeout: 45)
+      described_class.new({ 'api_token' => 'lm_test-token', 'timeout' => 45 })
       expect(::Lettermint.configuration.timeout).to eq(45)
     end
 
     it 'does not override base_url when not provided' do
       ::Lettermint.configure { |c| c.base_url = 'https://existing.api.com' }
-      described_class.new(api_token: 'lm_test-token')
+      described_class.new({ 'api_token' => 'lm_test-token' })
       expect(::Lettermint.configuration.base_url).to eq('https://existing.api.com')
     end
   end
