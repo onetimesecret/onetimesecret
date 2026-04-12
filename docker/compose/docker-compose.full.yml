@@ -87,7 +87,7 @@ services:
       - ../../data:/app/data
 
   maindb:
-    image: valkey/valkey:8.0-bookworm@sha256:3fb1247c0ae098a109f49e86a00bbae330044d610a608228a8350c0287c1e4f1
+    image: valkey/valkey:8.1-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
     container_name: onetime-maindb
     command: >
       valkey-server
