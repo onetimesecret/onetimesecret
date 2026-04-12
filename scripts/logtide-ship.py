@@ -2,9 +2,47 @@
 
 # scripts/logtide-ship.py
 
-"""logtide-ship - pipe stdin to LogTide"""
+"""logtide-ship - pipe stdin to LogTide
+
+Reads log lines from stdin and ships them to a LogTide instance via the
+HTTP ingest API (/api/v1/ingest). Supports two subcommands:
+
+    stream  - read stdin continuously, ship in batches (for long-running pipes)
+    ingest  - read all of stdin, ship as a single batch (for one-shot imports)
+
+Three modes control how JSON log lines (e.g. from SemanticLogger with
+LOG_FORMATTER=json) are handled:
+
+    plain    - All input treated as text. ANSI codes stripped, log level
+               guessed from message content. No JSON parsing. This is the
+               original behavior and works with any log formatter.
+
+    metadata - JSON lines are parsed. Level, timestamp, and hostname are
+               extracted into top-level LogTide fields. Structured fields
+               (logger name, pid, thread, SemanticLogger payload) are placed
+               in the LogTide `metadata` dict. Human-readable message is
+               preserved. Best when LogTide supports metadata queries.
+
+    json     - JSON lines are parsed. Level, timestamp, and hostname are
+               extracted into top-level fields. The full raw JSON is sent as
+               the LogTide `message`, allowing a LogTide pipeline with a JSON
+               parser step to extract and index all fields server-side.
+
+Plain text lines always use the text path regardless of mode.
+
+Usage:
+    # Stream from a process manager (default --mode json)
+    LOG_FORMATTER=json bin/backend | python3 scripts/logtide-ship.py stream backend
+
+    # Ship existing log file with text-mode fallback
+    cat /var/log/app.log | python3 scripts/logtide-ship.py ingest backend --mode plain
+
+    # Use metadata mode for structured fields without pipeline parsing
+    LOG_FORMATTER=json bin/backend | python3 scripts/logtide-ship.py stream backend --mode metadata
+"""
 
 import json
+import os
 import re
 import sys
 import threading
@@ -12,16 +50,25 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from queue import Empty, Queue
+from typing import Literal
 
 import httpx
 from cyclopts import App, Parameter
 
-LOGTIDE_URL = "http://127.0.0.1:8080/api/v1/ingest"
-API_KEY = "lp_b2d8d9a5aebf0566d7cdc52603a537bac511f9d8708bae0141b0ee28ea50851b"
+# LogTide ingest endpoint and credentials (env vars take precedence)
+LOGTIDE_URL = os.environ.get("LOGTIDE_URL", "http://127.0.0.1:8080/api/v1/ingest")
+LOGTIDE_API_KEY = os.environ.get("LOGTIDE_API_KEY", "CHANGEME")
+
+# Batching: flush when batch reaches this size or after this many seconds of
+# inactivity, whichever comes first. Keeps latency bounded while avoiding
+# per-line HTTP overhead.
 BATCH_SIZE = 100
 FLUSH_INTERVAL = 2.0
 
 app = App(name="logtide-ship", help="Ship logs to LogTide.")
+
+
+LogMode = Literal["plain", "metadata", "json"]
 
 
 @Parameter(name="*")
@@ -30,8 +77,22 @@ class Global:
     verbose: bool = False
     """Echo lines to stdout as well."""
 
+    mode: LogMode = "json"
+    """How to handle JSON log lines.
+
+    plain    -- treat all input as text (original behavior)
+    metadata -- parse JSON, extract structured fields into metadata
+    json     -- parse JSON, send full JSON as message for LogTide pipeline parsing
+    """
+
 
 def detect_level(msg: str) -> str:
+    """Guess LogTide level from message text. Used only for plain text input.
+
+    Maps to LogTide's level values (matching the syslog integration):
+    FATAL/CRIT -> critical, ERROR -> error, WARN -> warn, DEBUG -> debug,
+    everything else -> info.
+    """
     msg_upper = msg.upper()
     if any(x in msg_upper for x in ("FATAL", "CRIT")):
         return "critical"
@@ -44,6 +105,7 @@ def detect_level(msg: str) -> str:
     return "info"
 
 
+# Matches ANSI color/style escape sequences (e.g. from SemanticLogger :color formatter)
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
 
@@ -54,6 +116,12 @@ def _now() -> str:
 
 
 def _try_parse_json(line: str) -> dict | None:
+    """Fast-path JSON detection: skip lines that don't start with '{'.
+
+    SemanticLogger JSON output always starts with '{'. Plain text, ANSI-colored
+    output, and blank lines never do, so the startswith check avoids calling
+    json.loads on every line.
+    """
     if not line.startswith("{"):
         return None
     try:
@@ -62,21 +130,41 @@ def _try_parse_json(line: str) -> dict | None:
         return None
 
 
-def _build_entry(line: str, service: str) -> dict:
-    raw = _try_parse_json(line)
-    if raw:
-        return _build_entry_from_json(raw, service)
-    return _build_entry_from_text(line, service)
+def _build_entry(line: str, service: str, mode: LogMode = "json") -> dict:
+    """Dispatch to the appropriate entry builder based on mode.
+
+    For non-plain modes, attempts JSON parsing first. Falls through to
+    the text path if the line isn't valid JSON (e.g. plain text output,
+    startup banners, non-SemanticLogger lines mixed into the stream).
+    """
+    if mode != "plain":
+        raw = _try_parse_json(line)
+        if raw:
+            if mode == "metadata":
+                return _build_entry_metadata(raw, service)
+            return _build_entry_json(raw, service)
+    return _build_entry_text(line, service)
 
 
-def _build_entry_from_json(raw: dict, service: str) -> dict:
+def _build_entry_json(raw: dict, service: str) -> dict:
+    """Send full JSON as message for LogTide pipeline parsing."""
+    return {
+        "time": raw.get("timestamp", _now()),
+        "service": service,
+        "hostname": raw.get("host", ""),
+        "level": raw.get("level", "info"),
+        "message": json.dumps(raw),
+    }
+
+
+def _build_entry_metadata(raw: dict, service: str) -> dict:
+    """Extract structured fields into metadata dict."""
     metadata = {
         k: v
         for k, v in {
             "logger": raw.get("name"),
             "pid": raw.get("pid"),
             "thread": raw.get("thread"),
-            "host": raw.get("host"),
         }.items()
         if v is not None
     }
@@ -87,6 +175,7 @@ def _build_entry_from_json(raw: dict, service: str) -> dict:
     entry = {
         "time": raw.get("timestamp", _now()),
         "service": service,
+        "hostname": raw.get("host", ""),
         "level": raw.get("level", "info"),
         "message": raw.get("message", ""),
     }
@@ -95,7 +184,8 @@ def _build_entry_from_json(raw: dict, service: str) -> dict:
     return entry
 
 
-def _build_entry_from_text(line: str, service: str) -> dict:
+def _build_entry_text(line: str, service: str) -> dict:
+    """Strip ANSI, guess level from text content."""
     line = _ANSI_RE.sub("", line)
     return {
         "time": _now(),
@@ -106,11 +196,16 @@ def _build_entry_from_text(line: str, service: str) -> dict:
 
 
 def _send_batch(client: httpx.Client, batch: list[dict]) -> None:
+    """POST a batch of log entries to the LogTide ingest API.
+
+    Errors are logged to stderr rather than raised, so a transient LogTide
+    outage doesn't kill the pipeline — lines continue to be read from stdin.
+    """
     try:
         resp = client.post(
             LOGTIDE_URL,
             json={"logs": batch},
-            headers={"X-API-Key": API_KEY},
+            headers={"X-API-Key": LOGTIDE_API_KEY},
             timeout=10,
         )
         if resp.status_code != 200:
@@ -123,7 +218,14 @@ def _send_batch(client: httpx.Client, batch: list[dict]) -> None:
         print(f"[logtide-ship] send failed: {e}", file=sys.stderr)
 
 
-def _shipper(queue: Queue, service: str):
+def _shipper(queue: Queue, service: str, mode: LogMode):
+    """Background thread that drains the queue and ships batches to LogTide.
+
+    Runs in a loop reading lines from the queue, building entries, and
+    flushing when the batch is full or the flush interval elapses. Sending
+    None into the queue signals shutdown; any remaining entries are flushed
+    before the thread exits.
+    """
     batch: list[dict] = []
     last_flush = time.monotonic()
 
@@ -133,7 +235,7 @@ def _shipper(queue: Queue, service: str):
                 line = queue.get(timeout=0.5)
                 if line is None:
                     break
-                batch.append(_build_entry(line, service))
+                batch.append(_build_entry(line, service, mode))
             except Empty:
                 pass
 
@@ -160,7 +262,7 @@ def stream(service: str, *, opts: Global = Global()):
     """
     queue: Queue = Queue()
     thread = threading.Thread(
-        target=_shipper, args=(queue, service), daemon=True
+        target=_shipper, args=(queue, service, opts.mode), daemon=True
     )
     thread.start()
 
@@ -196,7 +298,7 @@ def ingest(service: str, *, opts: Global = Global()):
             sys.stdout.write(line + "\n")
         sys.stdout.flush()
 
-    batch = [_build_entry(line, service) for line in lines if line]
+    batch = [_build_entry(line, service, opts.mode) for line in lines if line]
 
     if not batch:
         return
