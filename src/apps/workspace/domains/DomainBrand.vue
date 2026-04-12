@@ -47,7 +47,6 @@
 
   const {
     domain: customDomainRecord,
-    isLoading: domainLoading,
     initialize: initializeDomain,
   } = useDomain(props.extid);
 

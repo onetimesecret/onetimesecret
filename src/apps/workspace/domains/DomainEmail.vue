@@ -76,7 +76,6 @@ const {
   emailConfig,
   formState,
   isConfigured,
-  usesFallbackSender,
   dnsRecords,
   validationStatus,
   lastValidatedAt,

@@ -368,7 +368,7 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 )
 @no_plan_org.planid = nil
 @no_plan_org.entitlements.sort
-#=> ["api_access", "create_secrets", "view_receipt"]
+#=> ["api_access", "create_secrets", "custom_domains", "homepage_secrets", "incoming_secrets", "view_receipt"]
 
 ## Test: Fail-safe for nil planid allows api_access (free tier)
 @no_plan_org.can?('api_access')
@@ -387,7 +387,7 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 )
 @empty_plan_org.planid = ''
 @empty_plan_org.entitlements.sort
-#=> ["api_access", "create_secrets", "view_receipt"]
+#=> ["api_access", "create_secrets", "custom_domains", "homepage_secrets", "incoming_secrets", "view_receipt"]
 
 ## Test: New organization defaults to free plan
 @new_org = Onetime::Organization.new(
