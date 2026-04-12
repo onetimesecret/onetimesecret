@@ -242,7 +242,7 @@ class HeaderValidator
     idx = start
     while idx < lines.length
       line = lines[idx].strip
-      break unless line.empty? || (line.start_with?('#') && !line.start_with?('#!') && idx == start)
+      break unless line.empty? || (line.start_with?('#') && !line.start_with?('#!') && idx < start + 4)
 
       idx += 1
     end

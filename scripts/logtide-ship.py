@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 # scripts/logtide-ship.py
 
 """logtide-ship - pipe stdin to LogTide
@@ -8,7 +7,7 @@ Reads log lines from stdin and ships them to a LogTide instance via the
 HTTP ingest API (/api/v1/ingest). Supports two subcommands:
 
     follow  - read stdin continuously, ship in batches (for long-running pipes)
-    batch   - read all of stdin, ship as a single batch (for one-shot imports)
+    batch   - read stdin to EOF, ship in batches (for one-shot imports)
 
 Four modes control how JSON log lines are handled:
 
@@ -275,8 +274,15 @@ _HOSTNAME = socket.gethostname()
 # Caddy duration parsing.  With `duration_format string` in the Caddyfile,
 # durations are Go time.Duration strings ("7.750ms", "250µs", "1.5s").
 # With the default `duration_format number`, they're float seconds.
-_GO_DURATION_RE = re.compile(r"^([\d.]+)(µs|us|ms|s)$")
-_DURATION_MULTIPLIERS = {"s": 1000, "ms": 1, "us": 0.001, "µs": 0.001}
+_GO_DURATION_RE = re.compile(r"^([\d.]+)(µs|us|ms|s|m|h)$")
+_DURATION_MULTIPLIERS = {
+    "h": 3600000,
+    "m": 60000,
+    "s": 1000,
+    "ms": 1,
+    "us": 0.001,
+    "µs": 0.001,
+}
 
 
 def _parse_caddy_ts(ts: int | float) -> str:
@@ -443,31 +449,56 @@ def _build_entry_text(line: str, service: str) -> dict:
 # -- HTTP transport ------------------------------------------------------
 
 
+_SEND_RETRIES = 2
+_SEND_BACKOFF = 0.5  # seconds, doubled each retry
+
+
+def _is_retryable(exc: Exception) -> bool:
+    """True for transient failures worth retrying (connection errors, 5xx)."""
+    if isinstance(exc, (httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout)):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code >= 500:
+        return True
+    return False
+
+
 def _send_batch(client: httpx.Client, batch: list[dict]) -> None:
     """POST a batch of log entries to the LogTide ingest API.
 
-    Errors are logged to stderr rather than raised, so a transient LogTide
-    outage doesn't kill the pipeline — lines continue to be read from stdin.
+    Retries up to _SEND_RETRIES times on transient failures (connection
+    errors, 5xx). Non-retryable errors are logged and swallowed so a
+    LogTide outage doesn't kill the pipeline.
     """
-    try:
-        resp = client.post(
-            LOGTIDE_URL,
-            json={"logs": batch},
-            headers={"X-API-Key": LOGTIDE_API_KEY},
-            timeout=10,
-        )
-        if resp.status_code != 200:
-            # Include the first entry for context — helps identify which
-            # service/mode is producing entries the server rejects.
-            print(
-                f"[logtide-ship] {resp.status_code}: {resp.text}"
-                f" (batch_size={len(batch)},"
-                f" first={batch[0] if batch else 'empty'})",
-                file=sys.stderr,
+    delay = _SEND_BACKOFF
+    for attempt in range(_SEND_RETRIES + 1):
+        try:
+            resp = client.post(
+                LOGTIDE_URL,
+                json={"logs": batch},
+                headers={"X-API-Key": LOGTIDE_API_KEY},
+                timeout=10,
             )
-        resp.raise_for_status()
-    except httpx.HTTPError as e:
-        print(f"[logtide-ship] send failed: {e}", file=sys.stderr)
+            if resp.status_code != 200:
+                print(
+                    f"[logtide-ship] {resp.status_code}: {resp.text}"
+                    f" (batch_size={len(batch)},"
+                    f" first={batch[0] if batch else 'empty'})",
+                    file=sys.stderr,
+                )
+            resp.raise_for_status()
+            return
+        except httpx.HTTPError as e:
+            if _is_retryable(e) and attempt < _SEND_RETRIES:
+                print(
+                    f"[logtide-ship] transient error (attempt {attempt + 1}/"
+                    f"{_SEND_RETRIES + 1}): {e} — retrying in {delay}s",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                delay *= 2
+                continue
+            print(f"[logtide-ship] send failed: {e}", file=sys.stderr)
+            return
 
 
 def _shipper(queue: Queue, service: str, mode: LogMode):
@@ -526,7 +557,7 @@ def follow(service: str, *, opts: Global = Global()):
     """
     _preflight("follow", service, opts.mode)
 
-    queue: Queue = Queue()
+    queue: Queue = Queue(maxsize=10_000)
     thread = threading.Thread(
         target=_shipper, args=(queue, service, opts.mode), daemon=True
     )
@@ -550,11 +581,12 @@ def follow(service: str, *, opts: Global = Global()):
 
 @app.command
 def batch(service: str, *, opts: Global = Global()):
-    """Read all of stdin then ship to LogTide as a single batch.
+    """Read stdin to EOF and ship to LogTide in batches.
 
     Use for one-shot imports (``cat logfile | logtide-ship batch ...``).
-    Reads stdin to EOF before shipping, so do NOT use with ``tail -f``
-    or other never-ending streams — use ``follow`` for those.
+    Reads synchronously (no background thread) and ships each batch as
+    it fills, so memory stays bounded. Do NOT use with ``tail -f`` or
+    other never-ending streams — use ``follow`` for those.
 
     Parameters
     ----------
@@ -563,21 +595,23 @@ def batch(service: str, *, opts: Global = Global()):
     """
     _preflight("batch", service, opts.mode)
 
-    lines = sys.stdin.read().splitlines()   # blocks until EOF
-
-    if opts.verbose:
-        for line in lines:
-            sys.stdout.write(line + "\n")
-        sys.stdout.flush()
-
-    batch = [_build_entry(line, service, opts.mode) for line in lines if line]
-
-    if not batch:
-        return
+    entries: list[dict] = []
 
     with httpx.Client() as client:
-        for i in range(0, len(batch), BATCH_SIZE):
-            _send_batch(client, batch[i : i + BATCH_SIZE])
+        for line in sys.stdin:
+            line = line.rstrip("\n")
+            if opts.verbose:
+                sys.stdout.write(line + "\n")
+                sys.stdout.flush()
+            if not line:
+                continue
+            entries.append(_build_entry(line, service, opts.mode))
+            if len(entries) >= BATCH_SIZE:
+                _send_batch(client, entries)
+                entries = []
+
+        if entries:
+            _send_batch(client, entries)
 
 
 if __name__ == "__main__":
