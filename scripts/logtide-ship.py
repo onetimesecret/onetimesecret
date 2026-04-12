@@ -50,6 +50,7 @@ Usage:
 """
 
 import json
+import logging
 import os
 import re
 import socket
@@ -59,10 +60,100 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from queue import Empty, Queue
-from typing import Literal
+from typing import Any, Literal
+from urllib.parse import urlparse
 
 import httpx
 from cyclopts import App, Parameter
+
+# -- Diagnostic logging --------------------------------------------------
+#
+# stdlib logging -> stderr with a logfmt-style suffix of key=value pairs.
+# Keeps diagnostics consistent (timestamp, level, subcommand context) while
+# avoiding any new deps. Payloads shipped to LogTide are unaffected.
+
+_LOG_LEVEL = os.environ.get("LOGTIDE_SHIP_LOG_LEVEL", "INFO").upper()
+
+_diag = logging.getLogger("logtide-ship")
+if not _diag.handlers:
+    _handler = logging.StreamHandler(sys.stderr)
+    _handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s logtide-ship %(message)s")
+    )
+    _diag.addHandler(_handler)
+    _diag.propagate = False
+try:
+    _diag.setLevel(getattr(logging, _LOG_LEVEL, logging.INFO))
+except Exception:
+    _diag.setLevel(logging.INFO)
+
+
+# Control chars (0x00-0x1f, 0x7f) corrupt logfmt lines; escape them explicitly.
+_CTRL_ESCAPES = {"\n": "\\n", "\r": "\\r", "\t": "\\t"}
+_CTRL_RE = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def _escape_ctrl(match: re.Match) -> str:
+    c = match.group(0)
+    return _CTRL_ESCAPES.get(c, f"\\x{ord(c):02x}")
+
+
+def _kv(**fields: Any) -> str:
+    """Format key=value pairs for logfmt-style diagnostic lines."""
+    parts = []
+    for k, v in fields.items():
+        if v is None:
+            continue
+        s = str(v)
+        has_ctrl = bool(_CTRL_RE.search(s))
+        needs_quote = has_ctrl or any(c in s for c in (" ", '"', "="))
+        if needs_quote:
+            s = s.replace("\\", "\\\\").replace('"', '\\"')
+            if has_ctrl:
+                s = _CTRL_RE.sub(_escape_ctrl, s)
+            s = '"' + s + '"'
+        parts.append(f"{k}={s}")
+    return " ".join(parts)
+
+
+def _snippet(text: str, limit: int = 200) -> str:
+    """Truncate arbitrary text for safe inclusion in a single log line."""
+    text = text.replace("\n", "\\n").replace("\r", "\\r")
+    if len(text) > limit:
+        return text[:limit] + "...<truncated>"
+    return text
+
+
+_SERVICE_RE = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def _validate_service(service: str) -> None:
+    """Reject empty/oversized/control-char service names with a clear error."""
+    if not service or not service.strip():
+        _diag.error("%s", _kv(event="invalid_service", reason="empty"))
+        sys.exit(2)
+    if len(service) > 128:
+        _diag.error(
+            "%s", _kv(event="invalid_service", reason="too_long", length=len(service))
+        )
+        sys.exit(2)
+    if _SERVICE_RE.search(service):
+        _diag.error("%s", _kv(event="invalid_service", reason="control_chars"))
+        sys.exit(2)
+
+
+def _validate_url(url: str) -> None:
+    """Reject obviously malformed LOGTIDE_URL values."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        _diag.error(
+            "%s",
+            _kv(event="invalid_url", reason="bad_scheme", scheme=parsed.scheme or ""),
+        )
+        sys.exit(2)
+    if not parsed.netloc or not parsed.hostname:
+        _diag.error("%s", _kv(event="invalid_url", reason="missing_host", url=url))
+        sys.exit(2)
 
 # -- Configuration -------------------------------------------------------
 #
@@ -79,6 +170,11 @@ LOGTIDE_API_KEY = os.environ.get("LOGTIDE_API_KEY", "CHANGEME")
 # per-line HTTP overhead.
 BATCH_SIZE = 100
 FLUSH_INTERVAL = 2.0
+
+# Queue saturation reporting: emit queue_dropped every Nth drop to avoid flooding.
+_DROP_REPORT_INTERVAL = 1000
+_QUEUE_RECOVERY_THRESHOLD = 5_000
+_QUEUE_MAXSIZE = 10_000
 
 app = App(name="logtide-ship", help="Ship logs to LogTide.")
 
@@ -116,17 +212,31 @@ def _preflight(command: str, service: str, mode: LogMode) -> None:
     (no point reading stdin if every batch will be rejected). Warns on
     connection errors but continues (server may come up later).
     """
-    print(
-        f"[logtide-ship {command}] service={service} mode={mode}"
-        f" url={LOGTIDE_URL} key={_mask_key(LOGTIDE_API_KEY)}",
-        file=sys.stderr,
+    _validate_service(service)
+    _validate_url(LOGTIDE_URL)
+
+    # Hoist masked key to a local to avoid CodeQL clear-text-logging false positive.
+    masked_key = _mask_key(LOGTIDE_API_KEY)
+    _diag.info(
+        "%s",
+        _kv(
+            event="startup",
+            subcommand=command,
+            service=service,
+            mode=mode,
+            url=LOGTIDE_URL,
+            key=masked_key,
+        ),
     )
 
     if LOGTIDE_API_KEY == "CHANGEME":
-        print(
-            "[logtide-ship] WARNING: using default API key 'CHANGEME'"
-            " — set LOGTIDE_API_KEY",
-            file=sys.stderr,
+        _diag.warning(
+            "%s",
+            _kv(
+                event="default_api_key",
+                subcommand=command,
+                hint="set LOGTIDE_API_KEY",
+            ),
         )
 
     # Probe with an empty batch.  We only care about the status code:
@@ -143,31 +253,54 @@ def _preflight(command: str, service: str, mode: LogMode) -> None:
                 timeout=5,
             )
         if resp.status_code in (401, 403):
-            print(
-                f"[logtide-ship] FATAL: authentication failed"
-                f" ({resp.status_code}). Check LOGTIDE_API_KEY.",
-                file=sys.stderr,
+            _diag.error(
+                "%s",
+                _kv(
+                    event="preflight_auth_failed",
+                    subcommand=command,
+                    status=resp.status_code,
+                    body=_snippet(resp.text),
+                    hint="check LOGTIDE_API_KEY",
+                ),
             )
             sys.exit(1)
         if resp.status_code >= 500:
-            print(
-                f"[logtide-ship] WARNING: server returned {resp.status_code}"
-                " — will retry with real batches",
-                file=sys.stderr,
+            _diag.warning(
+                "%s",
+                _kv(
+                    event="preflight_server_error",
+                    subcommand=command,
+                    status=resp.status_code,
+                    body=_snippet(resp.text),
+                ),
             )
         else:
-            print("[logtide-ship] preflight OK", file=sys.stderr)
-    except httpx.ConnectError:
-        print(
-            f"[logtide-ship] WARNING: cannot reach {LOGTIDE_URL}"
-            " — will retry when batches are ready",
-            file=sys.stderr,
+            _diag.info(
+                "%s",
+                _kv(
+                    event="preflight_ok",
+                    subcommand=command,
+                    status=resp.status_code,
+                ),
+            )
+    except httpx.ConnectError as e:
+        _diag.warning(
+            "%s",
+            _kv(
+                event="preflight_unreachable",
+                subcommand=command,
+                url=LOGTIDE_URL,
+                error=str(e),
+            ),
         )
     except httpx.HTTPError as e:
-        print(
-            f"[logtide-ship] WARNING: preflight failed: {e}"
-            " — continuing anyway",
-            file=sys.stderr,
+        _diag.warning(
+            "%s",
+            _kv(
+                event="preflight_error",
+                subcommand=command,
+                error=str(e),
+            ),
         )
 
 
@@ -211,7 +344,15 @@ def _try_parse_json(line: str) -> dict | None:
         return None
     try:
         return json.loads(line)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        _diag.debug(
+            "%s",
+            _kv(
+                event="json_parse_failed",
+                error=str(e),
+                line=_snippet(line, 120),
+            ),
+        )
         return None
 
 
@@ -479,25 +620,47 @@ def _send_batch(client: httpx.Client, batch: list[dict]) -> None:
                 timeout=10,
             )
             if resp.status_code != 200:
-                print(
-                    f"[logtide-ship] {resp.status_code}: {resp.text}"
-                    f" (batch_size={len(batch)},"
-                    f" first={batch[0] if batch else 'empty'})",
-                    file=sys.stderr,
+                _diag.warning(
+                    "%s",
+                    _kv(
+                        event="send_non_200",
+                        status=resp.status_code,
+                        attempt=attempt + 1,
+                        batch_size=len(batch),
+                        body=_snippet(resp.text),
+                    ),
                 )
             resp.raise_for_status()
             return
         except httpx.HTTPError as e:
             if _is_retryable(e) and attempt < _SEND_RETRIES:
-                print(
-                    f"[logtide-ship] transient error (attempt {attempt + 1}/"
-                    f"{_SEND_RETRIES + 1}): {e} — retrying in {delay}s",
-                    file=sys.stderr,
+                status = getattr(getattr(e, "response", None), "status_code", None)
+                _diag.warning(
+                    "%s",
+                    _kv(
+                        event="send_retry",
+                        attempt=attempt + 1,
+                        max_attempts=_SEND_RETRIES + 1,
+                        batch_size=len(batch),
+                        status=status,
+                        backoff=delay,
+                        error=str(e),
+                    ),
                 )
                 time.sleep(delay)
                 delay *= 2
                 continue
-            print(f"[logtide-ship] send failed: {e}", file=sys.stderr)
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            _diag.error(
+                "%s",
+                _kv(
+                    event="send_failed",
+                    attempt=attempt + 1,
+                    batch_size=len(batch),
+                    status=status,
+                    error=str(e),
+                ),
+            )
             return
 
 
@@ -514,29 +677,46 @@ def _shipper(queue: Queue, service: str, mode: LogMode):
     """
     batch: list[dict] = []
     last_flush = time.monotonic()
+    exit_reason = "unknown"
 
-    with httpx.Client() as client:
-        while True:
-            try:
-                line = queue.get(timeout=0.5)
-                if line is None:        # shutdown sentinel
-                    break
-                batch.append(_build_entry(line, service, mode))
-            except Empty:
-                pass                    # no new lines — check flush timer
+    try:
+        with httpx.Client() as client:
+            while True:
+                try:
+                    line = queue.get(timeout=0.5)
+                    if line is None:        # shutdown sentinel
+                        exit_reason = "shutdown_sentinel"
+                        break
+                    batch.append(_build_entry(line, service, mode))
+                except Empty:
+                    pass                    # no new lines — check flush timer
 
-            # Flush on batch-full or time-elapsed, whichever comes first
-            now = time.monotonic()
-            if len(batch) >= BATCH_SIZE or (
-                batch and now - last_flush > FLUSH_INTERVAL
-            ):
+                # Flush on batch-full or time-elapsed, whichever comes first
+                now = time.monotonic()
+                if len(batch) >= BATCH_SIZE or (
+                    batch and now - last_flush > FLUSH_INTERVAL
+                ):
+                    _send_batch(client, batch)
+                    batch = []
+                    last_flush = now
+
+            # Drain remainder after shutdown sentinel
+            if batch:
+                _diag.debug(
+                    "%s", _kv(event="shipper_drain", remaining=len(batch))
+                )
                 _send_batch(client, batch)
-                batch = []
-                last_flush = now
-
-        # Drain remainder after shutdown sentinel
-        if batch:
-            _send_batch(client, batch)
+    except Exception as e:
+        exit_reason = f"exception:{type(e).__name__}"
+        _diag.error(
+            "%s",
+            _kv(event="shipper_crash", error=str(e), exc_type=type(e).__name__),
+        )
+        raise
+    finally:
+        _diag.info(
+            "%s", _kv(event="shipper_exit", reason=exit_reason)
+        )
 
 
 # -- Subcommands ---------------------------------------------------------
@@ -550,6 +730,14 @@ def follow(service: str, *, opts: Global = Global()):
     Lines are queued and shipped by a background thread so stdin is
     never blocked by HTTP latency.
 
+    Backpressure: the producer never blocks. When the queue is full,
+    the oldest queued line is evicted (drop-oldest) and the incoming
+    line takes its place. A ``queue_full`` warning is emitted once at
+    the start of a saturation episode; ``queue_dropped`` fires every
+    ``_DROP_REPORT_INTERVAL`` drops with the running total; when the
+    queue drains below ``_QUEUE_RECOVERY_THRESHOLD`` a
+    ``queue_recovered`` event reports the total drops for the episode.
+
     Parameters
     ----------
     service
@@ -557,12 +745,16 @@ def follow(service: str, *, opts: Global = Global()):
     """
     _preflight("follow", service, opts.mode)
 
-    queue: Queue = Queue(maxsize=10_000)
+    queue: Queue = Queue(maxsize=_QUEUE_MAXSIZE)
     thread = threading.Thread(
         target=_shipper, args=(queue, service, opts.mode), daemon=True
     )
     thread.start()
 
+    stop_reason = "eof"
+    backpressure_logged = False
+    dropped = 0                 # running total for current saturation episode
+    last_reported = 0           # last value of `dropped` we emitted
     try:
         for line in sys.stdin:
             line = line.rstrip("\n")
@@ -571,12 +763,70 @@ def follow(service: str, *, opts: Global = Global()):
                 sys.stdout.flush()
             if not line:
                 continue
-            queue.put(line)
+            # Non-blocking drop-oldest: on Full, evict the head and retry.
+            # If the retry still fails (racy shipper enqueue), drop the new line.
+            try:
+                queue.put_nowait(line)
+            except Exception:
+                if not backpressure_logged:
+                    _diag.warning(
+                        "%s",
+                        _kv(
+                            event="queue_full",
+                            qsize=queue.qsize(),
+                            maxsize=_QUEUE_MAXSIZE,
+                            action="drop_oldest",
+                        ),
+                    )
+                    backpressure_logged = True
+                try:
+                    queue.get_nowait()          # evict oldest
+                    queue.put_nowait(line)
+                except Exception:
+                    pass                        # lost the race; drop incoming
+                dropped += 1
+                if dropped - last_reported >= _DROP_REPORT_INTERVAL:
+                    _diag.warning(
+                        "%s",
+                        _kv(
+                            event="queue_dropped",
+                            count=dropped,
+                            qsize=queue.qsize(),
+                        ),
+                    )
+                    last_reported = dropped
+            else:
+                if backpressure_logged and queue.qsize() < _QUEUE_RECOVERY_THRESHOLD:
+                    _diag.info(
+                        "%s",
+                        _kv(
+                            event="queue_recovered",
+                            qsize=queue.qsize(),
+                            dropped_total=dropped,
+                        ),
+                    )
+                    backpressure_logged = False
+                    dropped = 0
+                    last_reported = 0
     except KeyboardInterrupt:
-        pass
+        stop_reason = "keyboard_interrupt"
+    except Exception as e:
+        stop_reason = f"exception:{type(e).__name__}"
+        _diag.error(
+            "%s",
+            _kv(event="reader_crash", error=str(e), exc_type=type(e).__name__),
+        )
+        raise
     finally:
+        _diag.info(
+            "%s", _kv(event="reader_exit", reason=stop_reason)
+        )
         queue.put(None)             # signal shipper to flush and exit
         thread.join(timeout=5)
+        if thread.is_alive():
+            _diag.warning(
+                "%s", _kv(event="shipper_join_timeout", seconds=5)
+            )
 
 
 @app.command

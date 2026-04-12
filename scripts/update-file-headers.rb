@@ -175,7 +175,7 @@ class HeaderValidator
 
   def fix_ruby_header(full_path, relative_path, lines)
     has_shebang = lines[0]&.start_with?('#!')
-    content_start = find_ruby_content_start(lines, has_shebang ? 1 : 0)
+    content_start = find_ruby_content_start(lines, relative_path, has_shebang ? 1 : 0)
     content = lines[content_start..].join
 
     prefix = has_shebang ? lines[0] : ''
@@ -184,17 +184,23 @@ class HeaderValidator
     @fixed << relative_path
   end
 
-  def find_ruby_content_start(lines, start = 0)
+  # Only consume lines that are part of the existing file-path header:
+  #   - the exact path-header line (`# <relative_path>`)
+  #   - an immediately following `#` separator line
+  #   - an immediately following `# frozen_string_literal: true`
+  #   - a single trailing blank line
+  # Any other leading comment (license, rubocop directive, author credit)
+  # is preserved as content.
+  def find_ruby_content_start(lines, relative_path, start = 0)
     idx = start
-    while idx < lines.length
-      line = lines[idx].strip
-      break unless line.empty? ||
-                   line == '#' ||
-                   line.start_with?('# frozen_string_literal') ||
-                   (line.start_with?('#') && !line.start_with?('##') && idx < start + 4)
+    header_line = "# #{relative_path}"
 
+    if lines[idx]&.strip == header_line
       idx += 1
+      idx += 1 if lines[idx]&.strip == '#'
+      idx += 1 if lines[idx]&.strip == '# frozen_string_literal: true'
     end
+    idx += 1 if lines[idx]&.strip == ''
     idx
   end
 
@@ -229,7 +235,7 @@ class HeaderValidator
 
   def fix_python_header(full_path, relative_path, lines)
     has_shebang = lines[0]&.start_with?('#!')
-    content_start = find_python_content_start(lines, has_shebang ? 1 : 0)
+    content_start = find_python_content_start(lines, relative_path, has_shebang ? 1 : 0)
     content = lines[content_start..].join
 
     prefix = has_shebang ? lines[0] : ''
@@ -238,14 +244,12 @@ class HeaderValidator
     @fixed << relative_path
   end
 
-  def find_python_content_start(lines, start = 0)
+  # Only consume the exact file-path header line plus one trailing blank.
+  # Preserves encoding cookies, license stubs, module docstrings.
+  def find_python_content_start(lines, relative_path, start = 0)
     idx = start
-    while idx < lines.length
-      line = lines[idx].strip
-      break unless line.empty? || (line.start_with?('#') && !line.start_with?('#!') && idx < start + 4)
-
-      idx += 1
-    end
+    idx += 1 if lines[idx]&.strip == "# #{relative_path}"
+    idx += 1 if lines[idx]&.strip == ''
     idx
   end
 
