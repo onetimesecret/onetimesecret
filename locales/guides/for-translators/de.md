@@ -30,7 +30,7 @@ Ein Referenzleitfaden für die Übersetzung der Schlüsselbegriffe, Oberflächen
 
 | English | German (AT) | German (DE) | French (FR) | French (CA) | Notes |
 |---------|-------------|-------------|-------------|-------------|-------|
-| secret (noun) | Geheimnis | Geheimnis | secret | secret | Central concept of the application |
+| secret (noun) | Geheimnis / Nachricht† | Geheimnis / Nachricht† | secret | secret | † Object/content split — see "1. `secret` →" section below |
 | secret (adj) | geheim | geheim | secret/sécurisé | secret/sécurisé | |
 | passphrase | Sicherheitsphrase | Passphrase | phrase secrète | mot de passe | Authentication method for secrets |
 | burn | verbrennen | löschen | supprimer | supprimer | Action to delete a secret before viewing |
@@ -155,33 +155,37 @@ Ein Referenzleitfaden für die Übersetzung der Schlüsselbegriffe, Oberflächen
 
 ### Key Terminology
 
-### 1. `secret` → `Nachricht` (UI) / `Geheimnis` (technical documentation)
+### 1. `secret` → `Geheimnis` (record) / `Nachricht` (revealed content)
 
-**Choice:** Context-specific translation:
-- **UI elements and direct user communication:** `Nachricht` (message)
-- **Technical documentation and security descriptions:** `Geheimnis` (secret)
+**Choice:** Both terms are used, distinguished by what they refer to:
+- **`Geheimnis`** — the record/container, the lifecycle noun. Use for actions and states that operate on the secret as an object.
+- **`Nachricht`** — the revealed content, the payload. Use when referring to what the recipient actually reads.
 
-**Rationale:**
+**Examples (drawn from the de_AT 2025-04 baseline `f95b03f44:src/locales/de_AT.json`):**
 
-The word "secret" can be translated to German as either "Geheimnis" or "Nachricht", with important nuances:
+| English | German |
+|---------|--------|
+| Burn this secret | Dieses Geheimnis verbrennen |
+| Share a secret | Ein Geheimnis teilen |
+| Create new secret | Neues Geheimnis erstellen |
+| Recent secrets | Neueste Geheimnisse |
+| Secret was destroyed | Das Geheimnis wurde dauerhaft zerstört |
+| Your secure message is ready | Ihre sichere Nachricht ist bereit |
+| This message is encrypted | Diese Nachricht ist verschlüsselt |
+| Click to view message | Nachricht anzeigen |
+| The message was truncated | Die Nachricht wurde gekürzt |
 
-**Prefer "Nachricht" for UI contexts:**
-- **"Nachricht"** (neutral meaning) should be preferred when referring to Onetime Secret generated content in the user interface
-- While "Geheimnis" is the literal translation of "Secret", it carries strong connotations of something personal or intimate in German, which doesn't match the intended neutral, technical meaning
-- **Examples:**
-  - ✅ "Sie haben 3 neue Nachrichten" (neutral, technical - You have 3 new secrets)
-  - ❌ "Sie haben 3 neue Geheimnisse" (sounds too personal/intimate)
+**Rationale:** German distinguishes the container from its contents more cleanly than English does. You would naturally say *"Das Geheimnis enthält eine Nachricht"* — the secret holds a message. Collapsing both into a single term breaks the metaphor in either direction: *"Sie haben 3 neue Geheimnisse"* reads as personal/intimate, but *"Eine Nachricht verbrennen"* sounds like you are destroying an SMS, not a secret record.
 
-**"Geheimnis" acceptable in technical contexts:**
-- In technical descriptions and documentation, "Geheimnis" can be used (e.g., "Ende-zu-Ende-Verschlüsselung schützt Ihre Geheimnisse" - End-to-end encryption protects your secrets)
-- For UI and direct user address, "Nachricht" is often the more natural choice
+**Anti-patterns:**
+- Do not globally replace `Geheimnis` with `Nachricht`. The 2026-04 harmonization pass that did this broke the lifecycle vocabulary.
+- Do not use `Nachricht` with verbs like `verbrennen`, `teilen`, `erstellen`, `löschen`. Those operate on the record.
+- Do not use `Geheimnis` in `post_reveal_*`, `encrypted_message`, `message_ready` contexts. Those refer to the content the recipient sees.
 
-**Regional Differences:**
-- **Deutschland (de_DE)**: "Nachricht" preferred as neutral term for UI
-- **Österreich (de_AT)**: Same usage as Germany
-- **Schweiz (de_CH)**: Identical in written German; dialectal variations exist only in spoken language
-
-**Distinction from `de_AT`:** Usage is expected to be identical in Austrian German.
+**Regional notes:**
+- **Deutschland (`de.json`)**: same split.
+- **Österreich (`de_AT.json`)**: same split. Confirmed against the 2025-04-15 mature snapshot. See `de_AT.md` for the Austrian overlay (formality lock, placeholder values).
+- **Schweiz (`de_CH`)**: not currently shipped; would inherit the same split.
 
 ### 2. `password` → `Passwort`
 
@@ -253,11 +257,13 @@ The word "secret" can be translated to German as either "Geheimnis" or "Nachrich
 - `web.COMMON.share_link_securely`: `Teile diesen Link aus Sicherheitsgründen...` (Clear imperative)
 - `web.help.secret_view_faq.*.description`: Declarative sentences (e.g., "Du siehst...", "Dieser Inhalt wird...")
 
-### 4. Direct Address (Du vs. Sie)
+### 4. Direct Address (Du vs. Sie) — applies to `de.json` only
 
-**Rationale:** The existing partial translations predominantly used the informal "Du". This was made consistent across user-facing instructions and questions.
+**Scope:** This section documents the address-form decision for the Germany locale. It does **not** apply to Austrian German (`de_AT`), which is hard-locked to formal `Sie` — see `de_AT.md` for the overlay. Do not propagate the examples below into `locales/content/de_AT/` under any circumstances, including "harmonization" passes.
 
-**Examples:**
+**Rationale (`de.json` only):** The existing partial translations for Germany predominantly used the informal "Du". This was made consistent across user-facing instructions and questions for that locale only.
+
+**Examples (`de.json` only):**
 - `web.COMMON.careful_only_see_once`: Changed "Wir werden es..." to `Du wirst es...`
 - `web.LABELS.need_help`: `Brauchst du Hilfe?`
 - `web.homepage.cta_title`: Changed from formal "Verwenden Sie..." to informal `Verwende...`
