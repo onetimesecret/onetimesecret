@@ -8,8 +8,8 @@ require 'spec_helper'
 MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
                        :traces_sample_rate, :profiles_sample_rate, :before_send,
                        keyword_init: true) unless defined?(MockConfig)
-EventStruct = Struct.new(:request, keyword_init: true) unless defined?(EventStruct)
-RequestStruct = Struct.new(:headers, keyword_init: true) unless defined?(RequestStruct)
+EventStruct = Struct.new(:request, :contexts, keyword_init: true) unless defined?(EventStruct)
+RequestStruct = Struct.new(:headers, :url, keyword_init: true) unless defined?(RequestStruct)
 
 RSpec.describe Onetime::Initializers::SetupDiagnostics do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
@@ -237,15 +237,23 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       invalid_event = EventStruct.new(request: nil)
       expect(before_send_proc.call(invalid_event, {})).to be_nil
 
-      # Test event with request but nil headers
-      invalid_event2 = EventStruct.new(request: RequestStruct.new(headers: nil))
-      expect(before_send_proc.call(invalid_event2, {})).to be_nil
+      # Test event with request but nil headers - should pass through
+      # (background jobs and non-HTTP contexts may have nil headers)
+      event_nil_headers = EventStruct.new(
+        request: RequestStruct.new(headers: nil, url: 'https://example.com/api/status'),
+        contexts: {}
+      )
+      result = before_send_proc.call(event_nil_headers, {})
+      expect(result).not_to be_nil
+      expect(result.request.url).to eq('https://example.com/api/status')
 
-      # Test valid event
+      # Test valid event with headers
       valid_event = EventStruct.new(
         request: RequestStruct.new(
-          headers: { "User-Agent" => "test" }
-        )
+          headers: { "User-Agent" => "test" },
+          url: 'https://example.com/api/status'
+        ),
+        contexts: {}
       )
       expect(before_send_proc.call(valid_event, {})).to eq(valid_event)
     end
