@@ -86,17 +86,16 @@ repos:
       - id: forbid-submodules
         name: Check for submodules
 
-  # Full ESLint check
+  # Project ESLint via pnpm (with caching and auto-fix)
   - repo: local
     hooks:
-      - id: local-eslint-full
+      - id: pnpm-lint
         stages: [push]
-        name: Full ESLint Check
-        entry: node_modules/.bin/eslint
+        name: pnpm lint
+        entry: pnpm run lint
         language: system
         pass_filenames: false
-        files: ^src/.*\.(js|mjs|ts|tsx|vue)$
-        args: ['--max-warnings=0', '--cache']
+        always_run: true
 
   # Full TypeScript type checking
   # See comment in tsconfig.json for configuration details

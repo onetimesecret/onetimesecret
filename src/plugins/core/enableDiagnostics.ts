@@ -61,6 +61,75 @@ function scrubSensitiveParams(
   return scrubbedUrl;
 }
 
+/**
+ * Creates a Sentry beforeSend handler that scrubs sensitive route params from events.
+ * Extracted to keep createDiagnostics under the max-lines-per-function limit.
+ */
+function createBeforeSendHandler(router: Router) {
+  return (event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> => {
+    if ('secret' in event && event.secret) {
+      delete event.secret;
+    }
+
+    // Scrub sensitive route params from URLs based on route metadata
+    const currentRoute = router.currentRoute.value;
+    const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
+
+    // If explicitly opted out, return event without scrubbing
+    if (sentryScrubParams === false) {
+      return event;
+    }
+
+    // Get route params to scrub (all params by default)
+    const params = currentRoute.params as Record<string, string | string[]>;
+    if (!params || Object.keys(params).length === 0) {
+      return event;
+    }
+
+    // Scrub event.request?.url
+    if (event.request?.url) {
+      event.request.url = scrubSensitiveParams(event.request.url, params, sentryScrubParams);
+    }
+
+    // Scrub event.transaction
+    if (event.transaction) {
+      event.transaction = scrubSensitiveParams(event.transaction, params, sentryScrubParams);
+    }
+
+    // Scrub breadcrumb URLs
+    if (event.breadcrumbs) {
+      event.breadcrumbs = event.breadcrumbs.map((breadcrumb: Breadcrumb) => {
+        if (breadcrumb.data) {
+          if (breadcrumb.data.url) {
+            breadcrumb.data.url = scrubSensitiveParams(
+              breadcrumb.data.url as string,
+              params,
+              sentryScrubParams
+            );
+          }
+          if (breadcrumb.data.to) {
+            breadcrumb.data.to = scrubSensitiveParams(
+              breadcrumb.data.to as string,
+              params,
+              sentryScrubParams
+            );
+          }
+          if (breadcrumb.data.from) {
+            breadcrumb.data.from = scrubSensitiveParams(
+              breadcrumb.data.from as string,
+              params,
+              sentryScrubParams
+            );
+          }
+        }
+        return breadcrumb;
+      });
+    }
+
+    return event;
+  };
+}
+
 interface EnableDiagnosticsOptions {
   // Display domain. This is the domain the user is interacting with, not
   // the Sentry domain. Same meaning as `display_domain`.
@@ -150,69 +219,8 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // replaysSessionSampleRate: 0.1, // Capture 10% of the sessions
     // replaysOnErrorSampleRate: 1.0, // Capture 100% of the errors
 
-    // This is called for message and error events
-    beforeSend(event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> {
-      if ('secret' in event && event.secret) {
-        delete event.secret;
-      }
-
-      // Scrub sensitive route params from URLs based on route metadata
-      const currentRoute = router.currentRoute.value;
-      const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
-
-      // If explicitly opted out, return event without scrubbing
-      if (sentryScrubParams === false) {
-        return event;
-      }
-
-      // Get route params to scrub (all params by default)
-      const params = currentRoute.params as Record<string, string | string[]>;
-      if (!params || Object.keys(params).length === 0) {
-        return event;
-      }
-
-      // Scrub event.request?.url
-      if (event.request?.url) {
-        event.request.url = scrubSensitiveParams(event.request.url, params, sentryScrubParams);
-      }
-
-      // Scrub event.transaction
-      if (event.transaction) {
-        event.transaction = scrubSensitiveParams(event.transaction, params, sentryScrubParams);
-      }
-
-      // Scrub breadcrumb URLs
-      if (event.breadcrumbs) {
-        event.breadcrumbs = event.breadcrumbs.map((breadcrumb: Breadcrumb) => {
-          if (breadcrumb.data) {
-            if (breadcrumb.data.url) {
-              breadcrumb.data.url = scrubSensitiveParams(
-                breadcrumb.data.url as string,
-                params,
-                sentryScrubParams
-              );
-            }
-            if (breadcrumb.data.to) {
-              breadcrumb.data.to = scrubSensitiveParams(
-                breadcrumb.data.to as string,
-                params,
-                sentryScrubParams
-              );
-            }
-            if (breadcrumb.data.from) {
-              breadcrumb.data.from = scrubSensitiveParams(
-                breadcrumb.data.from as string,
-                params,
-                sentryScrubParams
-              );
-            }
-          }
-          return breadcrumb;
-        });
-      }
-
-      return event;
-    },
+    // Scrub sensitive route params from URLs in error events
+    beforeSend: createBeforeSendHandler(router),
     ...config.sentry, // includes dsn, environment, release, etc.
   };
 

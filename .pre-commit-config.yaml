@@ -165,6 +165,16 @@ repos:
           # Prettier integration
           - eslint-config-prettier@10.1.8
 
+  # Project ESLint via pnpm (uses local node_modules)
+  - repo: local
+    hooks:
+      - id: pnpm-lint
+        name: pnpm lint
+        description: Run project ESLint with caching and auto-fix
+        entry: pnpm exec eslint --quiet --fix --cache --cache-location ./node_modules/.cache/eslint
+        language: system
+        files: \.(ts|vue|mjs)$
+
   # Commit metadata tracking
   - repo: local
     hooks:
