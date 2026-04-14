@@ -175,9 +175,12 @@ module Onetime
           event
         rescue StandardError => ex
           # Fail-closed: redact URLs on error to prevent leaking sensitive data
-          OT.ld "[sentry] URL scrubbing failed: #{ex.class} - #{ex.message}"
+          # Note: intentionally not logging ex.message as it may contain URL fragments
+          OT.ld "[sentry] URL scrubbing failed: #{ex.class}"
           event.request.url = '[SCRUBBING_FAILED]' if event.request&.url
-          if event.contexts.is_a?(Hash) && event.contexts['request'].is_a?(Hash)
+          if event.contexts.is_a?(Hash) &&
+             event.contexts['request'].is_a?(Hash) &&
+             event.contexts['request']['url']
             event.contexts['request']['url'] = '[SCRUBBING_FAILED]'
           end
           event

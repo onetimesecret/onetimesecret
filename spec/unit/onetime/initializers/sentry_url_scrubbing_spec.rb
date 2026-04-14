@@ -396,6 +396,21 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       result = described_class.scrub_event_urls(event)
 
       expect(result.request.url).to eq('[SCRUBBING_FAILED]')
+      expect(result.contexts['request']['url']).to eq('[SCRUBBING_FAILED]')
+    end
+
+    it 'does not inject url key into contexts when scrubbing fails' do
+      allow(described_class).to receive(:scrub_url).and_raise(StandardError, 'unexpected failure')
+
+      # Context with request hash but no url key
+      event = mock_event_class.new(
+        request: mock_request_class.new(url: 'https://example.com/secret/abc', headers: {}),
+        contexts: { 'request' => { 'method' => 'GET' } }
+      )
+      result = described_class.scrub_event_urls(event)
+
+      expect(result.request.url).to eq('[SCRUBBING_FAILED]')
+      expect(result.contexts['request']).not_to have_key('url')
     end
   end
 
