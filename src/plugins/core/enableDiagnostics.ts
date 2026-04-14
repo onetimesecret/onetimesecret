@@ -410,6 +410,10 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // here are the defaults if not provided in options.
   const sentryOptions = {
     debug: DEBUG,
+    // sampleRate controls error event sampling (0.0-1.0). Default to 1.0 to capture
+    // all errors - errors are low-volume and represent actual problems worth tracking.
+    // This differs from tracesSampleRate (below) which controls performance trace
+    // sampling and should remain low since traces are high-volume.
     sampleRate: 1.0,
     transport: makeFetchTransport,
     stackParser: defaultStackParser,
