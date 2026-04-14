@@ -118,6 +118,7 @@ function createSentryPlugin(command: string): PluginOption | null {
  *
  * @see 29ffd790d74599bbbe3755d0fcba2b59c2f59ed7
  */
+// eslint-disable-next-line max-lines-per-function
 export default defineConfig(({ command }) => ({
   // Project root is ./src (imports resolve from here, index.html lives here)
   root: './src',
