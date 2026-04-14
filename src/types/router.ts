@@ -76,4 +76,21 @@ export interface RouteMeta {
    * and unauthenticated users to '/signin'.
    */
   excludeSsoOnly?: boolean;
+  /**
+   * Sentry URL scrubbing configuration. Controls which route params are
+   * redacted in Sentry events to prevent sensitive data leakage.
+   *
+   * Fail-safe default: all dynamic params are scrubbed unless explicitly opted out.
+   *
+   * - `undefined` (default): scrub all route params — safe for routes with
+   *   verifiable identifiers (secrets, receipts) or unknown sensitivity
+   * - `true`: scrub all route params (explicit, same as default)
+   * - `string[]`: scrub only the named params (e.g., `['token']`)
+   * - `false`: explicit opt-out, no scrubbing — use for routes where all
+   *   params are safe to expose (e.g., `/pricing/:product/:interval`)
+   *
+   * @see src/router/index.ts for verifiable identifier documentation
+   * @see src/plugins/core/enableDiagnostics.ts for beforeSend implementation
+   */
+  sentryScrubParams?: boolean | string[];
 }

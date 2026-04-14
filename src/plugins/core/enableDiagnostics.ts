@@ -2,6 +2,7 @@
 
 import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
+import type { RouteMeta } from '@/types/router';
 import { DEBUG } from '@/utils/debug';
 import {
   BrowserClient,
@@ -13,12 +14,139 @@ import {
   linkedErrorsIntegration,
   makeFetchTransport,
 } from '@sentry/browser';
-import { type ErrorEvent, type Integration } from '@sentry/core';
+import { type Breadcrumb, type ErrorEvent, type Integration } from '@sentry/core';
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
 
 export const SENTRY_KEY = Symbol('sentry');
+
+/**
+ * Collects param values to redact from route params, sorted by length descending.
+ * Sorting ensures longer strings are replaced before shorter ones to avoid
+ * corrupting overlapping matches (e.g., 'foobar' before 'foo').
+ *
+ * @param params - Route params object with values to redact
+ * @param paramsToScrub - Which params to scrub: undefined/true = all, string[] = named only
+ * @returns Array of values sorted by length descending, ready for scrubbing
+ */
+function collectValuesToRedact(
+  params: Record<string, string | string[]>,
+  paramsToScrub: RouteMeta['sentryScrubParams']
+): string[] {
+  const valuesToRedact = new Set<string>();
+
+  for (const [name, val] of Object.entries(params)) {
+    // Skip if we're only scrubbing specific params and this isn't one of them
+    if (Array.isArray(paramsToScrub) && !paramsToScrub.includes(name)) {
+      continue;
+    }
+    const items = Array.isArray(val) ? val : [val];
+    for (const item of items) {
+      if (item && typeof item === 'string' && item.length > 0) {
+        valuesToRedact.add(item);
+      }
+    }
+  }
+
+  // Sort by length descending to replace longer strings first
+  return Array.from(valuesToRedact).sort((a, b) => b.length - a.length);
+}
+
+/**
+ * Scrubs a URL using pre-collected values to redact.
+ * Uses URL API to isolate path/query/hash from origin to prevent
+ * accidental hostname redaction (e.g., 'one' matching 'onetimesecret.com').
+ *
+ * @param url - The URL string to scrub
+ * @param sortedValues - Values to redact, pre-sorted by length descending
+ * @returns The scrubbed URL with sensitive values replaced by [REDACTED]
+ */
+function scrubUrlWithValues(url: string, sortedValues: string[]): string {
+  if (!url || typeof url !== 'string' || sortedValues.length === 0) {
+    return url;
+  }
+
+  let result = url;
+  try {
+    // Protect the origin (protocol/host) from accidental redaction
+    const parsed = new URL(url);
+    let pathPart = parsed.pathname + parsed.search + parsed.hash;
+    for (const val of sortedValues) {
+      pathPart = pathPart.split(val).join('[REDACTED]');
+    }
+    result = parsed.origin + pathPart;
+  } catch {
+    // Fallback for relative URLs or invalid strings
+    for (const val of sortedValues) {
+      result = result.split(val).join('[REDACTED]');
+    }
+  }
+  return result;
+}
+
+/**
+ * Creates a Sentry beforeSend handler that scrubs sensitive route params from events.
+ * Extracted to keep createDiagnostics under the max-lines-per-function limit.
+ */
+function createBeforeSendHandler(router: Router) {
+  return (event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> => {
+    if ('secret' in event && event.secret) {
+      delete event.secret;
+    }
+
+    // Scrub sensitive route params from URLs based on route metadata
+    const currentRoute = router.currentRoute.value;
+    const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
+
+    // If explicitly opted out, return event without scrubbing
+    if (sentryScrubParams === false) {
+      return event;
+    }
+
+    // Get route params to scrub (all params by default)
+    const params = currentRoute.params as Record<string, string | string[]>;
+    if (!params || Object.keys(params).length === 0) {
+      return event;
+    }
+
+    // Collect values to redact once, reuse for all URL scrubbing
+    const sortedValues = collectValuesToRedact(params, sentryScrubParams);
+    if (sortedValues.length === 0) {
+      return event;
+    }
+
+    // Scrub event.request?.url
+    if (event.request?.url) {
+      event.request.url = scrubUrlWithValues(event.request.url, sortedValues);
+    }
+
+    // Scrub event.transaction
+    if (event.transaction) {
+      event.transaction = scrubUrlWithValues(event.transaction, sortedValues);
+    }
+
+    // Scrub breadcrumb URLs (values already computed, just apply)
+    if (event.breadcrumbs) {
+      event.breadcrumbs = event.breadcrumbs.map((breadcrumb: Breadcrumb) => {
+        if (breadcrumb.data) {
+          if (breadcrumb.data.url) {
+            breadcrumb.data.url = scrubUrlWithValues(breadcrumb.data.url as string, sortedValues);
+          }
+          if (breadcrumb.data.to) {
+            breadcrumb.data.to = scrubUrlWithValues(breadcrumb.data.to as string, sortedValues);
+          }
+          if (breadcrumb.data.from) {
+            breadcrumb.data.from = scrubUrlWithValues(breadcrumb.data.from as string, sortedValues);
+          }
+        }
+        return breadcrumb;
+      });
+    }
+
+    return event;
+  };
+}
 
 interface EnableDiagnosticsOptions {
   // Display domain. This is the domain the user is interacting with, not
@@ -109,13 +237,8 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // replaysSessionSampleRate: 0.1, // Capture 10% of the sessions
     // replaysOnErrorSampleRate: 1.0, // Capture 100% of the errors
 
-    // This is called for message and error events
-    beforeSend(event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> {
-      if ('secret' in event && event.secret) {
-        delete event.secret;
-      }
-      return event;
-    },
+    // Scrub sensitive route params from URLs in error events
+    beforeSend: createBeforeSendHandler(router),
     ...config.sentry, // includes dsn, environment, release, etc.
   };
 

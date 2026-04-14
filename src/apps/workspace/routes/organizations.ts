@@ -32,6 +32,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher on org list page
+      sentryScrubParams: false,
     },
   },
   {
@@ -49,6 +50,7 @@ const routes: Array<RouteRecordRaw> = [
         // Prevents stale data display if switcher visibility overridden.
         onOrgSwitch: 'same',
       },
+      sentryScrubParams: false,
     },
     props: true,
   },

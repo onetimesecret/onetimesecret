@@ -22,6 +22,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.index',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -32,6 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.users',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -42,6 +44,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.system',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -52,6 +55,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.system_settings',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -62,6 +66,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.secrets',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -72,6 +77,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.domains',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -82,6 +88,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.organizations',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -92,6 +99,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.maindb',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -102,6 +110,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.authdb',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -112,6 +121,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.redis',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -122,6 +132,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.bannedIps',
+      sentryScrubParams: false,
     },
     props: true,
   },
@@ -132,6 +143,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...defaultMeta,
       title: 'web.colonel.titles.usage',
+      sentryScrubParams: false,
     },
     props: true,
   },
