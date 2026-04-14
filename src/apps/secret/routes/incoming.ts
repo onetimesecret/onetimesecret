@@ -39,6 +39,8 @@ const incomingRoutes: RouteRecordRaw[] = [
         displayToggles: true,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      // Explicit: receiptKey is a sensitive verifiable identifier
+      sentryScrubParams: true,
     },
   },
 ];

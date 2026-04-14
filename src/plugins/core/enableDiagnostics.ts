@@ -86,6 +86,124 @@ function scrubUrlWithValues(url: string, sortedValues: string[]): string {
 }
 
 /**
+ * Regex pattern for sensitive path segments in HTTP requests.
+ * Matches: /secret/, /private/, /receipt/, /incoming/ followed by an identifier.
+ * Does NOT include /colonel/ as those routes explicitly opt out of scrubbing.
+ */
+const SENSITIVE_PATH_PATTERN = /\/(secret|private|receipt|incoming)\/([a-zA-Z0-9]+)/gi;
+
+/**
+ * Fallback pattern for 62-character verifiable identifiers.
+ * These are base62-encoded IDs that could appear in unexpected paths.
+ */
+const VERIFIABLE_ID_PATTERN = /[0-9a-z]{62}/gi;
+
+/**
+ * Scrubs sensitive identifiers from a URL path using regex patterns.
+ * Used for HTTP breadcrumbs where we don't have route context.
+ *
+ * @param url - The URL string to scrub
+ * @returns The scrubbed URL with sensitive identifiers replaced by [REDACTED]
+ */
+function scrubUrlWithPatterns(url: string): string {
+  if (!url || typeof url !== 'string') {
+    return url;
+  }
+
+  let result = url;
+
+  // First pass: scrub known sensitive path patterns
+  result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
+
+  // Second pass: scrub any remaining 62-char verifiable IDs
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
+
+  return result;
+}
+
+/**
+ * Creates a Sentry beforeBreadcrumb handler that scrubs sensitive URLs at capture time.
+ *
+ * This handler uses a hybrid approach based on breadcrumb category:
+ *
+ * **Navigation breadcrumbs** (`category === 'navigation'`):
+ * Uses router.resolve() to get route metadata and params for accurate scrubbing.
+ * This ensures the correct route context is used, not the current route.
+ *
+ * **HTTP breadcrumbs** (`category === 'xhr' || 'fetch'`):
+ * Uses regex patterns since API URLs don't correspond to Vue routes.
+ * Scrubs known sensitive paths (/secret/, /private/, /receipt/, /incoming/)
+ * and 62-char verifiable IDs as a fallback.
+ *
+ * @param router - Vue Router instance for resolving navigation paths
+ * @returns Sentry beforeBreadcrumb callback
+ */
+function createBeforeBreadcrumbHandler(router: Router) {
+  return (breadcrumb: Breadcrumb): Breadcrumb | null => {
+    const category = breadcrumb.category;
+
+    // Handle navigation breadcrumbs using route resolution
+    if (category === 'navigation' && breadcrumb.data) {
+      const scrubNavigationUrl = (path: string): string => {
+        if (!path || typeof path !== 'string') {
+          return path;
+        }
+
+        try {
+          const resolved = router.resolve(path);
+          const sentryScrubParams = resolved.meta.sentryScrubParams as
+            | RouteMeta['sentryScrubParams']
+            | undefined;
+
+          // Explicitly opted out of scrubbing
+          if (sentryScrubParams === false) {
+            return path;
+          }
+
+          const params = resolved.params as Record<string, string | string[]>;
+          if (!params || Object.keys(params).length === 0) {
+            return path;
+          }
+
+          const sortedValues = collectValuesToRedact(params, sentryScrubParams);
+          if (sortedValues.length === 0) {
+            return path;
+          }
+
+          // For navigation paths, do simple string replacement
+          let result = path;
+          for (const val of sortedValues) {
+            result = result.split(val).join('[REDACTED]');
+          }
+          return result;
+        } catch {
+          // If resolution fails, apply fallback pattern scrubbing
+          return scrubUrlWithPatterns(path);
+        }
+      };
+
+      if (breadcrumb.data.to) {
+        breadcrumb.data.to = scrubNavigationUrl(breadcrumb.data.to as string);
+      }
+      if (breadcrumb.data.from) {
+        breadcrumb.data.from = scrubNavigationUrl(breadcrumb.data.from as string);
+      }
+
+      return breadcrumb;
+    }
+
+    // Handle HTTP breadcrumbs using regex patterns
+    if ((category === 'xhr' || category === 'fetch') && breadcrumb.data?.url) {
+      breadcrumb.data.url = scrubUrlWithPatterns(breadcrumb.data.url as string);
+      return breadcrumb;
+    }
+
+    // Pass through all other breadcrumbs unchanged
+    return breadcrumb;
+  };
+}
+
+/**
  * Creates a Sentry beforeSend handler that scrubs sensitive route params from events.
  * Extracted to keep createDiagnostics under the max-lines-per-function limit.
  */
@@ -239,6 +357,9 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
 
     // Scrub sensitive route params from URLs in error events
     beforeSend: createBeforeSendHandler(router),
+
+    // Scrub sensitive URLs from breadcrumbs at capture time
+    beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
     ...config.sentry, // includes dsn, environment, release, etc.
   };
 
