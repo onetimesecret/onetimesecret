@@ -1,5 +1,6 @@
 // src/plugins/core/enableDiagnostics.ts
 
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import type { RouteMeta } from '@/types/router';
@@ -443,6 +444,14 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   const scope = new Scope();
   scope.setClient(client);
 
+  // Add jurisdiction tag for region-specific filtering in Sentry
+  // Use bootstrap value directly since Pinia is not yet installed when createDiagnostics() is called
+  const regions = getBootstrapValue('regions');
+  const jurisdictionId = regions?.current_jurisdiction?.toLowerCase() ?? null;
+  if (jurisdictionId) {
+    scope.setTag('jurisdiction', jurisdictionId);
+  }
+
   // Initialize the Sentry client. This is equivalent to calling
   // Sentry.init() with the options provided above.
   client.init(); // after setting the client on the scope
@@ -467,3 +476,12 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     },
   };
 }
+
+/**
+ * @internal - Exported for unit testing only. Do not use in production code.
+ */
+export const __testing = {
+  collectValuesToRedact,
+  scrubUrlWithValues,
+  createBeforeSendHandler,
+};
