@@ -115,6 +115,7 @@ const routes: Array<RouteRecordRaw> = [
         displayToggles: true,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
     beforeEnter: async (to) => {
       const bootstrapStore = useBootstrapStore();
@@ -152,6 +153,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -168,6 +170,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: true,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -185,6 +188,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false, // Pricing page has its own feedback toggle
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   // Deep-link routes for external sites to link directly to specific plans
@@ -206,6 +210,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -223,6 +228,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   // Developer tool: Icon gallery (not linked from navigation)
@@ -244,6 +250,7 @@ const routes: Array<RouteRecordRaw> = [
         displayToggles: false,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
 ];

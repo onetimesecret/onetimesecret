@@ -83,25 +83,6 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/receipt/:receiptIdentifier/burn',
-    name: 'Burn receipt',
-    component: BurnSecret,
-    ...withValidatedReceiptKey,
-    meta: {
-      title: 'web.TITLES.burn_secret',
-      layout: SecretLayout,
-      layoutProps: {
-        displayMasthead: false,
-        displayNavigation: false,
-        displayFooterLinks: false,
-        displayFeedback: false,
-        displayVersion: true,
-        displayPoweredBy: true,
-      },
-      scopesAvailable: SCOPE_PRESETS.hideBoth,
-    },
-  },
-  {
-    path: '/receipt/:receiptIdentifier/burn',
     name: 'Burn secret',
     component: BurnSecret,
     ...withValidatedReceiptKey,

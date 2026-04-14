@@ -14,6 +14,43 @@ import workspaceRoutes from '@/apps/workspace/routes';
 import publicRoutes from './public.routes';
 
 /**
+ * Verifiable Identifier Format
+ *
+ * Distinguishes a verifiable identifier segment from a named path segment
+ * (e.g., `/abc/:id` vs `/abc/items`).
+ *
+ * A base-36 verifiable identifier is always exactly 62 characters
+ * (320 bits: 256-bit random + 64-bit HMAC tag), encoded with `[0-9a-z]`.
+ * Named segments are never this length, so length alone is a reliable discriminant.
+ *
+ * The frontend cannot verify the HMAC (the secret is server-side only), but can
+ * perform the same plausibility check used by `plausible_identifier?` on the backend:
+ *
+ * ```ts
+ * const VERIFIABLE_ID_RE = /^[0-9a-z]{62}$/;
+ *
+ * function isVerifiableId(segment: string): boolean {
+ *   return VERIFIABLE_ID_RE.test(segment);
+ * }
+ * ```
+ *
+ * Use this to branch route rendering — e.g. render a resource view when
+ * the segment matches, a collection/action view otherwise. Treat it as a
+ * format check only; the backend performs HMAC verification before authorizing.
+ *
+ * Routes containing verifiable identifiers (secrets, receipts) use the default
+ * `sentryScrubParams` behavior (scrub all params). Routes with safe params
+ * (product names, plan codes) explicitly opt out with `sentryScrubParams: false`.
+ *
+ * @see RouteMeta.sentryScrubParams in src/types/router.ts
+ */
+export const VERIFIABLE_ID_RE = /^[0-9a-z]{62}$/;
+
+export function isVerifiableId(segment: string): boolean {
+  return VERIFIABLE_ID_RE.test(segment);
+}
+
+/**
  * Route loading order - determines precedence for route matching.
  * More specific routes should come before catch-all patterns.
  */
@@ -76,6 +113,7 @@ export function createAppRouter(): Router {
         meta: {
           title: 'web.TITLES.not_found',
           requiresAuth: false,
+          sentryScrubParams: false,
         },
       },
     ],

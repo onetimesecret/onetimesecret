@@ -55,12 +55,18 @@ const routes: Array<RouteRecordRaw> = [
     path: '/billing',
     beforeEnter: [checkBillingEnabled, createBillingRedirect('overview')],
     component: () => import('@/apps/workspace/billing/BillingOverview.vue'),
+    meta: {
+      sentryScrubParams: false,
+    },
   },
   // Redirect /billing/plans to default org's plans page
   {
     path: '/billing/plans',
     beforeEnter: [checkBillingEnabled, createBillingRedirect('plans')],
     component: () => import('@/apps/workspace/billing/PlanSelector.vue'),
+    meta: {
+      sentryScrubParams: false,
+    },
   },
   {
     path: '/billing/:extid/overview',
@@ -77,6 +83,7 @@ const routes: Array<RouteRecordRaw> = [
         domain: 'hide',
         onOrgSwitch: 'same',
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -94,6 +101,7 @@ const routes: Array<RouteRecordRaw> = [
         domain: 'hide',
         onOrgSwitch: 'same',
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -111,6 +119,7 @@ const routes: Array<RouteRecordRaw> = [
         domain: 'hide',
         onOrgSwitch: 'same',
       },
+      sentryScrubParams: false,
     },
   },
 ];

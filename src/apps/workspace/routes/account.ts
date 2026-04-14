@@ -50,6 +50,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -63,6 +64,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -76,6 +78,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -89,6 +92,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -102,6 +106,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -122,6 +127,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -134,6 +140,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -146,6 +153,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -160,8 +168,10 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
+  // NOTE: /account/email/confirm/:token uses default sentryScrubParams (scrub all) - token is sensitive
   {
     path: '/account/email/confirm/:token',
     name: 'Confirm Email Change',
@@ -188,6 +198,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -202,6 +213,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -216,6 +228,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -230,6 +243,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -244,6 +258,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -258,6 +273,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -270,6 +286,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   {
@@ -283,6 +300,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
     },
   },
   // Legacy route for backward compatibility

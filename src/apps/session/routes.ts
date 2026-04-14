@@ -25,6 +25,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -36,6 +37,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/apps/session/views/Register.vue'),
         meta: {
           title: 'web.TITLES.signup',
+          sentryScrubParams: false,
         },
       },
       {
@@ -45,6 +47,7 @@ const routes: Array<RouteRecordRaw> = [
         props: true,
         meta: {
           title: 'web.TITLES.signup',
+          sentryScrubParams: false,
         },
       },
     ],
@@ -61,6 +64,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayVersion: true,
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -82,6 +86,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -93,6 +98,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: MinimalLayout,
       layoutProps: {},
+      sentryScrubParams: false,
     },
     beforeEnter: async () => {
       const authStore = useAuthStore();
@@ -127,6 +133,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayVersion: false,
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -148,6 +155,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -169,6 +177,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      sentryScrubParams: false,
     },
   },
   {
@@ -191,10 +200,12 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      sentryScrubParams: false,
     },
   },
   // Intentionally ungated: invitation acceptance must work regardless of
   // signin/signup feature toggles since invitees follow a unique token link.
+  // NOTE: /invite/:token uses default sentryScrubParams (scrub all) - token is sensitive
   {
     path: '/invite/:token',
     name: 'Accept Invitation',
