@@ -2,6 +2,7 @@
 
 import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
+import type { RouteMeta } from '@/types/router';
 import { DEBUG } from '@/utils/debug';
 import {
   BrowserClient,
@@ -13,12 +14,52 @@ import {
   linkedErrorsIntegration,
   makeFetchTransport,
 } from '@sentry/browser';
-import { type ErrorEvent, type Integration } from '@sentry/core';
+import { type Breadcrumb, type ErrorEvent, type Integration } from '@sentry/core';
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
 
 export const SENTRY_KEY = Symbol('sentry');
+
+/**
+ * Scrubs sensitive route parameter values from a URL string.
+ *
+ * @param url - The URL string to scrub
+ * @param params - Route params object with values to redact
+ * @param paramsToScrub - Which params to scrub: undefined/true = all, string[] = named only
+ * @returns The scrubbed URL with sensitive values replaced by [REDACTED]
+ */
+function scrubSensitiveParams(
+  url: string,
+  params: Record<string, string | string[]>,
+  paramsToScrub: RouteMeta['sentryScrubParams']
+): string {
+  if (!url || !params || Object.keys(params).length === 0) {
+    return url;
+  }
+
+  let scrubbedUrl = url;
+
+  for (const [paramName, paramValue] of Object.entries(params)) {
+    // Skip if we're only scrubbing specific params and this isn't one of them
+    if (Array.isArray(paramsToScrub) && !paramsToScrub.includes(paramName)) {
+      continue;
+    }
+
+    // Handle both string and string[] param values
+    const values = Array.isArray(paramValue) ? paramValue : [paramValue];
+    for (const value of values) {
+      if (value) {
+        // Escape special regex characters in the value
+        const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Replace all occurrences of the param value in the URL
+        scrubbedUrl = scrubbedUrl.replace(new RegExp(escapedValue, 'g'), '[REDACTED]');
+      }
+    }
+  }
+
+  return scrubbedUrl;
+}
 
 interface EnableDiagnosticsOptions {
   // Display domain. This is the domain the user is interacting with, not
@@ -114,6 +155,62 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
       if ('secret' in event && event.secret) {
         delete event.secret;
       }
+
+      // Scrub sensitive route params from URLs based on route metadata
+      const currentRoute = router.currentRoute.value;
+      const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
+
+      // If explicitly opted out, return event without scrubbing
+      if (sentryScrubParams === false) {
+        return event;
+      }
+
+      // Get route params to scrub (all params by default)
+      const params = currentRoute.params as Record<string, string | string[]>;
+      if (!params || Object.keys(params).length === 0) {
+        return event;
+      }
+
+      // Scrub event.request?.url
+      if (event.request?.url) {
+        event.request.url = scrubSensitiveParams(event.request.url, params, sentryScrubParams);
+      }
+
+      // Scrub event.transaction
+      if (event.transaction) {
+        event.transaction = scrubSensitiveParams(event.transaction, params, sentryScrubParams);
+      }
+
+      // Scrub breadcrumb URLs
+      if (event.breadcrumbs) {
+        event.breadcrumbs = event.breadcrumbs.map((breadcrumb: Breadcrumb) => {
+          if (breadcrumb.data) {
+            if (breadcrumb.data.url) {
+              breadcrumb.data.url = scrubSensitiveParams(
+                breadcrumb.data.url as string,
+                params,
+                sentryScrubParams
+              );
+            }
+            if (breadcrumb.data.to) {
+              breadcrumb.data.to = scrubSensitiveParams(
+                breadcrumb.data.to as string,
+                params,
+                sentryScrubParams
+              );
+            }
+            if (breadcrumb.data.from) {
+              breadcrumb.data.from = scrubSensitiveParams(
+                breadcrumb.data.from as string,
+                params,
+                sentryScrubParams
+              );
+            }
+          }
+          return breadcrumb;
+        });
+      }
+
       return event;
     },
     ...config.sentry, // includes dsn, environment, release, etc.
