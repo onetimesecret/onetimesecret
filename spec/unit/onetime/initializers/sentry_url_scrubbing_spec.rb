@@ -388,17 +388,29 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
       expect(result.contexts['request']['url']).to eq('https://example.com/secret/[REDACTED]')
     end
+
+    it 'redacts URLs when scrubbing raises an unexpected error' do
+      allow(described_class).to receive(:scrub_url).and_raise(StandardError, 'unexpected failure')
+
+      event = build_event(url: 'https://example.com/secret/abc123')
+      result = described_class.scrub_event_urls(event)
+
+      expect(result.request.url).to eq('[SCRUBBING_FAILED]')
+    end
   end
 
   describe '.scrub_url fail-closed behavior' do
-    it 'returns [SCRUBBING_FAILED] when scrubbing raises an error' do
-      # Force an error by passing an object that will fail string operations
-      bad_input = Object.new
-      def bad_input.nil?; false; end
-      def bad_input.empty?; false; end
-      def bad_input.include?(_); raise StandardError, 'forced error'; end
+    it 'returns [SCRUBBING_FAILED] when path scrubbing raises an error' do
+      allow(described_class).to receive(:scrub_sensitive_paths).and_raise(StandardError, 'regex failure')
 
-      result = described_class.scrub_url(bad_input)
+      result = described_class.scrub_url('https://example.com/secret/abc123')
+      expect(result).to eq('[SCRUBBING_FAILED]')
+    end
+
+    it 'returns [SCRUBBING_FAILED] when query param scrubbing raises an error' do
+      allow(described_class).to receive(:scrub_sensitive_query_params).and_raise(StandardError, 'split failure')
+
+      result = described_class.scrub_url('https://example.com/api?key=secret')
       expect(result).to eq('[SCRUBBING_FAILED]')
     end
   end
