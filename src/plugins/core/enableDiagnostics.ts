@@ -410,7 +410,7 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // here are the defaults if not provided in options.
   const sentryOptions = {
     debug: DEBUG,
-    sampleRate: 0.001,
+    sampleRate: 1.0,
     transport: makeFetchTransport,
     stackParser: defaultStackParser,
     tracesSampleRate: 0.01,

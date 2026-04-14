@@ -281,6 +281,7 @@ export const sentryConfigSchema = z.object({
   debug: z.boolean().optional(),
   environment: z.string().optional(),
   release: z.string().optional(),
+  sampleRate: z.number().optional(),
   tracesSampleRate: z.number().optional(),
   maxBreadcrumbs: z.number().optional(),
   logErrors: z.boolean().default(true),
