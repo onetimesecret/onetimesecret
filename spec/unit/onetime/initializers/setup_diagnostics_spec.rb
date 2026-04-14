@@ -6,7 +6,7 @@ require 'spec_helper'
 
 # Create top-level Struct definitions to prevent "already initialized constant" warnings
 MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
-                       :traces_sample_rate, :profiles_sample_rate, :before_send,
+                       :traces_sample_rate, :profiles_sample_rate, :before_send, :tags,
                        keyword_init: true) unless defined?(MockConfig)
 EventStruct = Struct.new(:request, :contexts, keyword_init: true) unless defined?(EventStruct)
 RequestStruct = Struct.new(:headers, :url, keyword_init: true) unless defined?(RequestStruct)
@@ -52,6 +52,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
     mock_config.traces_sample_rate = nil
     mock_config.profiles_sample_rate = nil
     mock_config.before_send = nil
+    mock_config.tags = nil
 
     # Stub Kernel.require to avoid loading the real gem
     allow(Kernel).to receive(:require).and_call_original
@@ -191,13 +192,111 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
       # Verify the config using our mock config object
       expect(mock_config.dsn).to eq("https://example-dsn@sentry.io/12345")
-      expect(mock_config.environment).to include("test.example.com")
-      expect(mock_config.environment).to include(OT.env.to_s)
+      expect(mock_config.environment).to eq(OT.env)
       expect(mock_config.release).to eq(OT::VERSION.details)
       expect(mock_config.breadcrumbs_logger).to eq([:sentry_logger])
       expect(mock_config.traces_sample_rate).to eq(0.1)
       expect(mock_config.profiles_sample_rate).to eq(0.1)
       expect(mock_config.before_send).to be_a(Proc)
+    end
+  end
+
+  context "when configuring Sentry tags" do
+    it "sets site_host tag from configuration" do
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+        }
+      }
+      config['site'] = { 'host' => "prod.example.com" }
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      Onetime.instance_variable_set(:@conf, config)
+      execute_diagnostics_initializer
+
+      expect(mock_config.tags).to include(site_host: "prod.example.com")
+    end
+
+    it "sets jurisdiction tag as lowercase" do
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+        }
+      }
+      config['site'] = { 'host' => "eu.example.com" }
+      config['features'] = {
+        'regions' => {
+          'current_jurisdiction' => 'EU'
+        }
+      }
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      Onetime.instance_variable_set(:@conf, config)
+      execute_diagnostics_initializer
+
+      expect(mock_config.tags).to include(jurisdiction: "eu")
+    end
+
+    it "normalizes mixed-case jurisdiction to lowercase" do
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+        }
+      }
+      config['site'] = { 'host' => "us.example.com" }
+      config['features'] = {
+        'regions' => {
+          'current_jurisdiction' => 'Us'  # Mixed case: capital U, lowercase s
+        }
+      }
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      Onetime.instance_variable_set(:@conf, config)
+      execute_diagnostics_initializer
+
+      expect(mock_config.tags).to include(jurisdiction: "us")
+    end
+
+    it "omits jurisdiction tag when not configured" do
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" }
+        }
+      }
+      config['site'] = { 'host' => "test.example.com" }
+      # Explicitly set nil jurisdiction to override test config default
+      config['features'] = {
+        'regions' => {
+          'current_jurisdiction' => nil
+        }
+      }
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      Onetime.instance_variable_set(:@conf, config)
+      execute_diagnostics_initializer
+
+      expect(mock_config.tags).to include(site_host: "test.example.com")
+      expect(mock_config.tags).not_to have_key(:jurisdiction)
     end
   end
 

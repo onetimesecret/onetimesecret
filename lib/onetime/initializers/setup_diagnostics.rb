@@ -63,8 +63,17 @@ module Onetime
 
         Sentry.init do |config|
           config.dsn         = dsn
-          config.environment = "#{site_host} (#{OT.env})"
+          config.environment = OT.env
           config.release     = OT::VERSION.details
+
+          # Add contextual tags for filtering without fragmenting environments.
+          # site_host identifies the deployment; jurisdiction is optional.
+          jurisdiction = OT.conf.dig('features', 'regions', 'current_jurisdiction')
+
+          config.tags = {
+            site_host: site_host,
+            jurisdiction: jurisdiction&.downcase,
+          }.compact
 
           # Configure breadcrumbs logger for detailed error tracking.
           # Uses sentry_logger to capture progression of events leading
