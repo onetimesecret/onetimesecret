@@ -84,12 +84,6 @@ module Onetime
             # Return nil if the event would cause errors in processing.
             return nil if event.nil?
 
-            # If there is no request object, we can't scrub URLs, but we should
-            # still allow the event to pass through (e.g. for background jobs).
-            if event.request.nil?
-              return event
-            end
-
             # Scrub sensitive URL paths and query parameters from event data.
             # This covers both event.request.url and custom context set via
             # scope.set_context('request', ...) in error handling middleware.
@@ -162,7 +156,7 @@ module Onetime
             scrubbed_url = scrub_url(original_url)
             if scrubbed_url != original_url
               event.request.url = scrubbed_url
-              OT.ld "[sentry] Scrubbed request.url -> #{scrubbed_url}"
+              OT.ld "[sentry] Scrubbed request.url"
             end
           end
 
@@ -180,8 +174,12 @@ module Onetime
 
           event
         rescue StandardError => ex
-          # Never let scrubbing errors prevent event capture
+          # Fail-closed: redact URLs on error to prevent leaking sensitive data
           OT.ld "[sentry] URL scrubbing failed: #{ex.class} - #{ex.message}"
+          event.request.url = '[SCRUBBING_FAILED]' if event.request&.url
+          if event.contexts.is_a?(Hash) && event.contexts['request'].is_a?(Hash)
+            event.contexts['request']['url'] = '[SCRUBBING_FAILED]'
+          end
           event
         end
 
@@ -207,8 +205,8 @@ module Onetime
           scrubbed = scrub_sensitive_paths(url)
           scrub_sensitive_query_params(scrubbed)
         rescue StandardError
-          # Return original URL if scrubbing fails
-          url
+          # Fail-closed: return redacted placeholder to prevent leaking sensitive data
+          '[SCRUBBING_FAILED]'
         end
 
         # Pattern for identifier paths - matches segments >= MIN_IDENTIFIER_LENGTH chars

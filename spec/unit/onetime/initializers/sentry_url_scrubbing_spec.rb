@@ -378,5 +378,28 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
       expect(result.request.url).to eq('https://example.com/api/v1/status')
     end
+
+    it 'scrubs context URLs when request is nil (non-HTTP events)' do
+      identifier = 'a' * 25
+      contexts = { 'request' => { 'url' => "https://example.com/secret/#{identifier}" } }
+      event = mock_event_class.new(request: nil, contexts: contexts)
+
+      result = described_class.scrub_event_urls(event)
+
+      expect(result.contexts['request']['url']).to eq('https://example.com/secret/[REDACTED]')
+    end
+  end
+
+  describe '.scrub_url fail-closed behavior' do
+    it 'returns [SCRUBBING_FAILED] when scrubbing raises an error' do
+      # Force an error by passing an object that will fail string operations
+      bad_input = Object.new
+      def bad_input.nil?; false; end
+      def bad_input.empty?; false; end
+      def bad_input.include?(_); raise StandardError, 'forced error'; end
+
+      result = described_class.scrub_url(bad_input)
+      expect(result).to eq('[SCRUBBING_FAILED]')
+    end
   end
 end
