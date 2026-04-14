@@ -378,5 +378,55 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
       expect(result.request.url).to eq('https://example.com/api/v1/status')
     end
+
+    it 'scrubs context URLs when request is nil (non-HTTP events)' do
+      identifier = 'a' * 25
+      contexts = { 'request' => { 'url' => "https://example.com/secret/#{identifier}" } }
+      event = mock_event_class.new(request: nil, contexts: contexts)
+
+      result = described_class.scrub_event_urls(event)
+
+      expect(result.contexts['request']['url']).to eq('https://example.com/secret/[REDACTED]')
+    end
+
+    it 'redacts URLs when scrubbing raises an unexpected error' do
+      allow(described_class).to receive(:scrub_url).and_raise(StandardError, 'unexpected failure')
+
+      event = build_event(url: 'https://example.com/secret/abc123')
+      result = described_class.scrub_event_urls(event)
+
+      expect(result.request.url).to eq('[SCRUBBING_FAILED]')
+      expect(result.contexts['request']['url']).to eq('[SCRUBBING_FAILED]')
+    end
+
+    it 'does not inject url key into contexts when scrubbing fails' do
+      allow(described_class).to receive(:scrub_url).and_raise(StandardError, 'unexpected failure')
+
+      # Context with request hash but no url key
+      event = mock_event_class.new(
+        request: mock_request_class.new(url: 'https://example.com/secret/abc', headers: {}),
+        contexts: { 'request' => { 'method' => 'GET' } }
+      )
+      result = described_class.scrub_event_urls(event)
+
+      expect(result.request.url).to eq('[SCRUBBING_FAILED]')
+      expect(result.contexts['request']).not_to have_key('url')
+    end
+  end
+
+  describe '.scrub_url fail-closed behavior' do
+    it 'returns [SCRUBBING_FAILED] when path scrubbing raises an error' do
+      allow(described_class).to receive(:scrub_sensitive_paths).and_raise(StandardError, 'regex failure')
+
+      result = described_class.scrub_url('https://example.com/secret/abc123')
+      expect(result).to eq('[SCRUBBING_FAILED]')
+    end
+
+    it 'returns [SCRUBBING_FAILED] when query param scrubbing raises an error' do
+      allow(described_class).to receive(:scrub_sensitive_query_params).and_raise(StandardError, 'split failure')
+
+      result = described_class.scrub_url('https://example.com/api?key=secret')
+      expect(result).to eq('[SCRUBBING_FAILED]')
+    end
   end
 end
