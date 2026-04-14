@@ -233,9 +233,9 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       # Test nil event
       expect(before_send_proc.call(nil, {})).to be_nil
 
-      # Test event with nil request
-      invalid_event = EventStruct.new(request: nil)
-      expect(before_send_proc.call(invalid_event, {})).to be_nil
+      # Test event with nil request - should pass through for background jobs/CLI
+      event_nil_request = EventStruct.new(request: nil)
+      expect(before_send_proc.call(event_nil_request, {})).to eq(event_nil_request)
 
       # Test event with request but nil headers - should pass through
       # (background jobs and non-HTTP contexts may have nil headers)

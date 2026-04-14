@@ -82,11 +82,12 @@ module Onetime
           # Add a before_send to filter out problematic events and scrub sensitive URLs
           config.before_send = ->(event, _hint) do
             # Return nil if the event would cause errors in processing.
-            # Don't filter on nil headers - background jobs and non-HTTP contexts
-            # may legitimately have nil headers but still have useful event data.
-            if event.nil? || event.request.nil?
-              OT.ld '[init] Sentry: Filtering out event with nil components'
-              return nil
+            return nil if event.nil?
+
+            # If there is no request object, we can't scrub URLs, but we should
+            # still allow the event to pass through (e.g. for background jobs).
+            if event.request.nil?
+              return event
             end
 
             # Scrub sensitive URL paths and query parameters from event data.
@@ -161,7 +162,7 @@ module Onetime
             scrubbed_url = scrub_url(original_url)
             if scrubbed_url != original_url
               event.request.url = scrubbed_url
-              OT.ld "[sentry] Scrubbed request.url: #{original_url} -> #{scrubbed_url}"
+              OT.ld "[sentry] Scrubbed request.url -> #{scrubbed_url}"
             end
           end
 
@@ -173,7 +174,7 @@ module Onetime
             scrubbed_url = scrub_url(original_url)
             if scrubbed_url != original_url
               event.contexts['request']['url'] = scrubbed_url
-              OT.ld "[sentry] Scrubbed contexts.request.url: #{original_url} -> #{scrubbed_url}"
+              OT.ld "[sentry] Scrubbed contexts.request.url"
             end
           end
 
@@ -268,7 +269,7 @@ module Onetime
           # Handle fragment if present
           query_part, fragment = query_string.split('#', 2)
 
-          scrubbed_params = query_part.split('&').map do |param|
+          scrubbed_params = query_part.split('&', -1).map do |param|
             key, _value = param.split('=', 2)
             if key && SENSITIVE_QUERY_PARAMS.include?(key.downcase)
               "#{key}=[REDACTED]"
