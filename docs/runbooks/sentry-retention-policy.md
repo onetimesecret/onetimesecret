@@ -12,7 +12,7 @@ In the Sentry self-hosted `.env`:
 SENTRY_EVENT_RETENTION_DAYS=14
 ```
 
-Restart Sentry services after changing.
+Apply the changes by recreating the containers (e.g., `docker compose up -d`).
 
 ## Known Issue
 
@@ -24,11 +24,11 @@ Check ClickHouse table sizes:
 
 ```bash
 docker exec -it sentry-clickhouse clickhouse-client --query \
-  "SELECT table, formatReadableSize(sum(bytes)) as size \
-   FROM system.parts GROUP BY table ORDER BY sum(bytes) DESC"
+  "SELECT table, formatReadableSize(sum(bytes_on_disk)) as size \
+   FROM system.parts WHERE active GROUP BY table ORDER BY sum(bytes_on_disk) DESC"
 ```
 
-Monitor disk usage over 2+ weeks to confirm purging.
+Monitor disk usage and verify the oldest data partitions to confirm purging.
 
 ## Compliance
 
