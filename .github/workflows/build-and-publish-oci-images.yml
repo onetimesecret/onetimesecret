@@ -247,6 +247,27 @@ jobs:
             *.args.VERSION=${{ steps.version.outputs.version }}
             *.args.COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
 
+      - name: Create Sentry release with source maps (frontend)
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_URL: ${{ secrets.SENTRY_URL }}
+          SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "SENTRY_AUTH_TOKEN not set, skipping Sentry release"
+            exit 0
+          fi
+          npx @sentry/cli releases new "$SENTRY_RELEASE"
+          npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto
+          npx @sentry/cli sourcemaps upload ./public/web/dist \
+            --release="$SENTRY_RELEASE" \
+            --dist=frontend \
+            --url-prefix='~/dist'
+          npx @sentry/cli releases finalize "$SENTRY_RELEASE"
+
       - name: Audit — verify image version
         if: success()
         env:
