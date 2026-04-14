@@ -2,11 +2,13 @@
 
 import Vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
+import { execSync } from 'child_process';
 import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
@@ -24,6 +26,72 @@ const viteBaseUrl = process.env.VITE_BASE_URL;
 // https://vite.dev/config/server-options.html#server-allowedhosts
 // https://github.com/vitejs/vite/security/advisories/GHSA-vg6x-rcgg-rjx6
 const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS;
+
+/**
+ * Sentry Source Map Upload Plugin (Production Only)
+ * --------------------------------------------------
+ * Uploads source maps to Sentry for readable stack traces in error reports.
+ * Only active when:
+ * - Building for production (command === 'build')
+ * - SENTRY_AUTH_TOKEN is present in environment
+ *
+ * Required env vars for upload:
+ * - SENTRY_AUTH_TOKEN: API token with project:releases scope
+ * - SENTRY_ORG: Sentry organization slug (defaults to 'onetimesecret')
+ * - SENTRY_PROJECT: Sentry project slug (defaults to 'frontend')
+ *
+ * Optional:
+ * - SENTRY_RELEASE: Release version (defaults to git commit SHA)
+ * - SENTRY_DIST: Distribution identifier (defaults to 'frontend')
+ *
+ * Note: execSync is used here with a static command string (no user input),
+ * which is safe for build-time git SHA retrieval.
+ */
+function createSentryPlugin(command: string): PluginOption | null {
+  const authToken = process.env.SENTRY_AUTH_TOKEN;
+
+  // Only upload source maps during production builds
+  if (command !== 'build') {
+    return null;
+  }
+
+  // Graceful degradation: skip plugin if auth token is missing
+  if (!authToken) {
+    console.warn(
+      '[vite] Sentry source map upload skipped: SENTRY_AUTH_TOKEN not set'
+    );
+    return null;
+  }
+
+  // Determine release version: prefer explicit env var, fallback to git SHA
+  let release = process.env.SENTRY_RELEASE;
+  if (!release) {
+    try {
+      release = execSync('git rev-parse --short=7 HEAD').toString().trim();
+    } catch {
+      console.warn(
+        '[vite] Sentry: Could not determine git SHA for release, using "unknown"'
+      );
+      release = 'unknown';
+    }
+  }
+
+  const org = process.env.SENTRY_ORG || 'onetimesecret';
+  const project = process.env.SENTRY_PROJECT || 'frontend';
+  const dist = process.env.SENTRY_DIST || 'frontend';
+
+  return sentryVitePlugin({
+    authToken,
+    org,
+    project,
+    release: { name: release },
+    sourcemaps: {
+      assets: './public/web/dist/**',
+      filesToDeleteAfterUpload: './public/web/dist/**/*.map',
+    },
+    dist,
+  });
+}
 
 /**
  * Vite Configuration - Consolidated Assets
@@ -50,7 +118,8 @@ const viteAdditionalServerAllowedHosts = process.env.VITE_ADDITIONAL_SERVER_ALLO
  *
  * @see 29ffd790d74599bbbe3755d0fcba2b59c2f59ed7
  */
-export default defineConfig({
+// eslint-disable-next-line max-lines-per-function
+export default defineConfig(({ command }) => ({
   // Project root is ./src (imports resolve from here, index.html lives here)
   root: './src',
 
@@ -170,7 +239,10 @@ export default defineConfig({
      * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
      */
     addTrailingNewline(),
-  ],
+
+    // Sentry source map upload (production builds only, requires SENTRY_AUTH_TOKEN)
+    createSentryPlugin(command),
+  ].filter(Boolean) as PluginOption[],
 
   resolve: {
     alias: {
@@ -319,4 +391,4 @@ export default defineConfig({
     // Rolldown requires explicit definition to avoid ReferenceError at runtime
     __INTLIFY_PROD_DEVTOOLS__: false,
   },
-});
+}));
