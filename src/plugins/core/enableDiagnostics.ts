@@ -22,43 +22,67 @@ import type { Router } from 'vue-router';
 export const SENTRY_KEY = Symbol('sentry');
 
 /**
- * Scrubs sensitive route parameter values from a URL string.
+ * Collects param values to redact from route params, sorted by length descending.
+ * Sorting ensures longer strings are replaced before shorter ones to avoid
+ * corrupting overlapping matches (e.g., 'foobar' before 'foo').
  *
- * @param url - The URL string to scrub
  * @param params - Route params object with values to redact
  * @param paramsToScrub - Which params to scrub: undefined/true = all, string[] = named only
- * @returns The scrubbed URL with sensitive values replaced by [REDACTED]
+ * @returns Array of values sorted by length descending, ready for scrubbing
  */
-function scrubSensitiveParams(
-  url: string,
+function collectValuesToRedact(
   params: Record<string, string | string[]>,
   paramsToScrub: RouteMeta['sentryScrubParams']
-): string {
-  if (!url || !params || Object.keys(params).length === 0) {
-    return url;
-  }
+): string[] {
+  const valuesToRedact = new Set<string>();
 
-  let scrubbedUrl = url;
-
-  for (const [paramName, paramValue] of Object.entries(params)) {
+  for (const [name, val] of Object.entries(params)) {
     // Skip if we're only scrubbing specific params and this isn't one of them
-    if (Array.isArray(paramsToScrub) && !paramsToScrub.includes(paramName)) {
+    if (Array.isArray(paramsToScrub) && !paramsToScrub.includes(name)) {
       continue;
     }
-
-    // Handle both string and string[] param values
-    const values = Array.isArray(paramValue) ? paramValue : [paramValue];
-    for (const value of values) {
-      if (value) {
-        // Escape special regex characters in the value
-        const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Replace all occurrences of the param value in the URL
-        scrubbedUrl = scrubbedUrl.replace(new RegExp(escapedValue, 'g'), '[REDACTED]');
+    const items = Array.isArray(val) ? val : [val];
+    for (const item of items) {
+      if (item && typeof item === 'string' && item.length > 0) {
+        valuesToRedact.add(item);
       }
     }
   }
 
-  return scrubbedUrl;
+  // Sort by length descending to replace longer strings first
+  return Array.from(valuesToRedact).sort((a, b) => b.length - a.length);
+}
+
+/**
+ * Scrubs a URL using pre-collected values to redact.
+ * Uses URL API to isolate path/query/hash from origin to prevent
+ * accidental hostname redaction (e.g., 'one' matching 'onetimesecret.com').
+ *
+ * @param url - The URL string to scrub
+ * @param sortedValues - Values to redact, pre-sorted by length descending
+ * @returns The scrubbed URL with sensitive values replaced by [REDACTED]
+ */
+function scrubUrlWithValues(url: string, sortedValues: string[]): string {
+  if (!url || typeof url !== 'string' || sortedValues.length === 0) {
+    return url;
+  }
+
+  let result = url;
+  try {
+    // Protect the origin (protocol/host) from accidental redaction
+    const parsed = new URL(url);
+    let pathPart = parsed.pathname + parsed.search + parsed.hash;
+    for (const val of sortedValues) {
+      pathPart = pathPart.split(val).join('[REDACTED]');
+    }
+    result = parsed.origin + pathPart;
+  } catch {
+    // Fallback for relative URLs or invalid strings
+    for (const val of sortedValues) {
+      result = result.split(val).join('[REDACTED]');
+    }
+  }
+  return result;
 }
 
 /**
@@ -86,40 +110,34 @@ function createBeforeSendHandler(router: Router) {
       return event;
     }
 
+    // Collect values to redact once, reuse for all URL scrubbing
+    const sortedValues = collectValuesToRedact(params, sentryScrubParams);
+    if (sortedValues.length === 0) {
+      return event;
+    }
+
     // Scrub event.request?.url
     if (event.request?.url) {
-      event.request.url = scrubSensitiveParams(event.request.url, params, sentryScrubParams);
+      event.request.url = scrubUrlWithValues(event.request.url, sortedValues);
     }
 
     // Scrub event.transaction
     if (event.transaction) {
-      event.transaction = scrubSensitiveParams(event.transaction, params, sentryScrubParams);
+      event.transaction = scrubUrlWithValues(event.transaction, sortedValues);
     }
 
-    // Scrub breadcrumb URLs
+    // Scrub breadcrumb URLs (values already computed, just apply)
     if (event.breadcrumbs) {
       event.breadcrumbs = event.breadcrumbs.map((breadcrumb: Breadcrumb) => {
         if (breadcrumb.data) {
           if (breadcrumb.data.url) {
-            breadcrumb.data.url = scrubSensitiveParams(
-              breadcrumb.data.url as string,
-              params,
-              sentryScrubParams
-            );
+            breadcrumb.data.url = scrubUrlWithValues(breadcrumb.data.url as string, sortedValues);
           }
           if (breadcrumb.data.to) {
-            breadcrumb.data.to = scrubSensitiveParams(
-              breadcrumb.data.to as string,
-              params,
-              sentryScrubParams
-            );
+            breadcrumb.data.to = scrubUrlWithValues(breadcrumb.data.to as string, sortedValues);
           }
           if (breadcrumb.data.from) {
-            breadcrumb.data.from = scrubSensitiveParams(
-              breadcrumb.data.from as string,
-              params,
-              sentryScrubParams
-            );
+            breadcrumb.data.from = scrubUrlWithValues(breadcrumb.data.from as string, sortedValues);
           }
         }
         return breadcrumb;

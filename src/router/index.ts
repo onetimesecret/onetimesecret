@@ -106,6 +106,9 @@ export function createAppRouter(): Router {
     routes: [
       ...routes,
       // This catch-all 404 route is meant to be added last.
+      // Note: Default scrubbing is enabled (sentryScrubParams omitted) because
+      // pathMatch captures the full path which may contain sensitive tokens
+      // from expired/mistyped secret links (e.g., /secret/MY_SECRET_KEY).
       {
         path: '/:pathMatch(.*)*',
         name: 'NotFound',
@@ -113,7 +116,6 @@ export function createAppRouter(): Router {
         meta: {
           title: 'web.TITLES.not_found',
           requiresAuth: false,
-          sentryScrubParams: false,
         },
       },
     ],
