@@ -218,12 +218,8 @@ export function createBeforeBreadcrumbHandler(router: Router) {
             return path;
           }
 
-          // For navigation paths, do simple string replacement
-          let result = path;
-          for (const val of sortedValues) {
-            result = result.split(val).join('[REDACTED]');
-          }
-          return result;
+          // Use centralized utility for consistency and hostname protection
+          return scrubUrlWithValues(path, sortedValues);
         } catch {
           // If resolution fails, apply fallback pattern scrubbing
           return scrubUrlWithPatterns(path);
