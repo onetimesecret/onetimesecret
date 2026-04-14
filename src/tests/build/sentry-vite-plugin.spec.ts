@@ -52,12 +52,10 @@ describe('Sentry Vite Plugin Configuration', () => {
     it('marks SENTRY_AUTH_TOKEN as CI-only usage', () => {
       const content = fs.readFileSync(envReferencePath, 'utf-8');
       // Verify the comment indicates CI-only usage
-      const authTokenSection = content.substring(
-        content.indexOf('SENTRY_AUTH_TOKEN'),
-        content.indexOf('SENTRY_AUTH_TOKEN') + 200
-      );
+      const index = content.indexOf('SENTRY_AUTH_TOKEN');
+      const authTokenSection = content.substring(Math.max(0, index - 150), index + 50);
       expect(
-        content.includes('CI only') || content.includes('CI/CD') || content.includes('@sentry/vite-plugin')
+        authTokenSection.includes('CI only') || authTokenSection.includes('CI/CD') || authTokenSection.includes('@sentry/vite-plugin')
       ).toBe(true);
     });
   });

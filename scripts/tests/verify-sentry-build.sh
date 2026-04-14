@@ -62,6 +62,11 @@ check_project_root() {
         echo "Error: Must run from project root (where vite.config.ts is located)"
         exit 1
     fi
+
+    if ! command -v jq &> /dev/null; then
+        echo "Error: jq is required for manifest verification"
+        exit 1
+    fi
 }
 
 # Test: Build succeeds without SENTRY_AUTH_TOKEN
