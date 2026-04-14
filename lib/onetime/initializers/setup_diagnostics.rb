@@ -68,11 +68,13 @@ module Onetime
 
           # Add contextual tags for filtering without fragmenting environments.
           # site_host identifies the deployment; jurisdiction is optional.
-          jurisdiction = OT.conf.dig('features', 'regions', 'current_jurisdiction')
+          # Normalize jurisdiction to lowercase for consistent Sentry tag filtering
+          # (tags are case-sensitive, so US vs us would create separate filters).
+          jurisdiction = OT.conf.dig('features', 'regions', 'current_jurisdiction').to_s.downcase
 
           config.tags = {
             site_host: site_host,
-            jurisdiction: jurisdiction&.downcase,
+            jurisdiction: jurisdiction.empty? ? nil : jurisdiction,
           }.compact
 
           # Configure breadcrumbs logger for detailed error tracking.
