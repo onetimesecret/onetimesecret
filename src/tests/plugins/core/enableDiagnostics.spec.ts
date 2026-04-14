@@ -81,12 +81,15 @@ vi.mock('@/services/diagnostics.service', () => ({
 // Import production code after mocks are set up
 // ---------------------------------------------------------------------------
 
-import { __testing, createDiagnostics } from '@/plugins/core/enableDiagnostics';
-
-const { collectValuesToRedact, scrubUrlWithValues, createBeforeSendHandler } = __testing;
+import {
+  createDiagnostics,
+  collectValuesToRedact,
+  scrubUrlWithValues,
+  createBeforeSendHandler,
+} from '@/plugins/core/enableDiagnostics';
 
 // ---------------------------------------------------------------------------
-// Unit tests for URL scrubbing functions (via __testing export)
+// Unit tests for URL scrubbing functions
 // ---------------------------------------------------------------------------
 
 describe('enableDiagnostics URL scrubbing', () => {

@@ -488,11 +488,3 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   };
 }
 
-/**
- * @internal - Exported for unit testing only. Do not use in production code.
- */
-export const __testing = {
-  collectValuesToRedact,
-  scrubUrlWithValues,
-  createBeforeSendHandler,
-};
