@@ -455,7 +455,10 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // Add jurisdiction tag for region-specific filtering in Sentry
   // Use bootstrap value directly since Pinia is not yet installed when createDiagnostics() is called
   const regions = getBootstrapValue('regions');
-  const jurisdictionId = regions?.current_jurisdiction?.toLowerCase() ?? null;
+  const jurisdictionId =
+    typeof regions?.current_jurisdiction === 'string'
+      ? regions.current_jurisdiction.toLowerCase()
+      : null;
   if (jurisdictionId) {
     scope.setTag('jurisdiction', jurisdictionId);
   }
