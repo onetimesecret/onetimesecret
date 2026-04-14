@@ -29,8 +29,10 @@ export const SENTRY_KEY = Symbol('sentry');
  * @param params - Route params object with values to redact
  * @param paramsToScrub - Which params to scrub: undefined/true = all, string[] = named only
  * @returns Array of values sorted by length descending, ready for scrubbing
+ *
+ * @internal Exported for testing
  */
-function collectValuesToRedact(
+export function collectValuesToRedact(
   params: Record<string, string | string[]>,
   paramsToScrub: RouteMeta['sentryScrubParams']
 ): string[] {
@@ -61,8 +63,10 @@ function collectValuesToRedact(
  * @param url - The URL string to scrub
  * @param sortedValues - Values to redact, pre-sorted by length descending
  * @returns The scrubbed URL with sensitive values replaced by [REDACTED]
+ *
+ * @internal Exported for testing
  */
-function scrubUrlWithValues(url: string, sortedValues: string[]): string {
+export function scrubUrlWithValues(url: string, sortedValues: string[]): string {
   if (!url || typeof url !== 'string' || sortedValues.length === 0) {
     return url;
   }
@@ -86,20 +90,208 @@ function scrubUrlWithValues(url: string, sortedValues: string[]): string {
 }
 
 /**
- * Creates a Sentry beforeSend handler that scrubs sensitive route params from events.
- * Extracted to keep createDiagnostics under the max-lines-per-function limit.
+ * Regex pattern for sensitive path segments in HTTP requests.
+ * Matches: /secret/, /private/, /receipt/, /incoming/ followed by an identifier.
+ * Does NOT include /colonel/ as those routes explicitly opt out of scrubbing.
+ *
+ * @internal Exported for testing
  */
-function createBeforeSendHandler(router: Router) {
+export const SENSITIVE_PATH_PATTERN = /\/(secret|private|receipt|incoming)\/([a-zA-Z0-9]+)/gi;
+
+/**
+ * Fallback pattern for 62-character verifiable identifiers.
+ * These are base62-encoded IDs that could appear in unexpected paths.
+ *
+ * @internal Exported for testing
+ */
+export const VERIFIABLE_ID_PATTERN = /[0-9a-z]{62}/gi;
+
+/**
+ * Pattern for email addresses.
+ * Matches standard email formats like user@example.com.
+ *
+ * @internal Exported for testing
+ */
+export const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+
+/**
+ * Scrubs sensitive data from arbitrary strings using regex patterns.
+ * Used for exception messages, standalone messages, and other text.
+ *
+ * @param text - The string to scrub
+ * @returns The scrubbed string with sensitive data replaced
+ *
+ * @internal Exported for testing
+ */
+export function scrubSensitiveStrings(text: string): string {
+  if (!text || typeof text !== 'string') {
+    return text;
+  }
+
+  let result = text;
+
+  // Scrub email addresses
+  result = result.replace(EMAIL_PATTERN, '[EMAIL REDACTED]');
+
+  // Scrub 62-char verifiable IDs
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
+
+  // Scrub sensitive path patterns (in case exception message contains URLs/paths)
+  result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
+
+  return result;
+}
+
+/**
+ * Scrubs sensitive identifiers from a URL path using regex patterns.
+ * Used for HTTP breadcrumbs where we don't have route context.
+ *
+ * @param url - The URL string to scrub
+ * @returns The scrubbed URL with sensitive identifiers replaced by [REDACTED]
+ *
+ * @internal Exported for testing
+ */
+export function scrubUrlWithPatterns(url: string): string {
+  if (!url || typeof url !== 'string') {
+    return url;
+  }
+
+  let result = url;
+
+  // First pass: scrub known sensitive path patterns
+  result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
+
+  // Second pass: scrub any remaining 62-char verifiable IDs
+  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
+
+  return result;
+}
+
+/**
+ * Creates a Sentry beforeBreadcrumb handler that scrubs sensitive URLs at capture time.
+ *
+ * This handler uses a hybrid approach based on breadcrumb category:
+ *
+ * **Navigation breadcrumbs** (`category === 'navigation'`):
+ * Uses router.resolve() to get route metadata and params for accurate scrubbing.
+ * This ensures the correct route context is used, not the current route.
+ *
+ * **HTTP breadcrumbs** (`category === 'xhr' || 'fetch'`):
+ * Uses regex patterns since API URLs don't correspond to Vue routes.
+ * Scrubs known sensitive paths (/secret/, /private/, /receipt/, /incoming/)
+ * and 62-char verifiable IDs as a fallback.
+ *
+ * @param router - Vue Router instance for resolving navigation paths
+ * @returns Sentry beforeBreadcrumb callback
+ *
+ * @internal Exported for testing
+ */
+export function createBeforeBreadcrumbHandler(router: Router) {
+  return (breadcrumb: Breadcrumb): Breadcrumb | null => {
+    const category = breadcrumb.category;
+
+    // Handle navigation breadcrumbs using route resolution
+    if (category === 'navigation' && breadcrumb.data) {
+      const scrubNavigationUrl = (path: string): string => {
+        if (!path || typeof path !== 'string') {
+          return path;
+        }
+
+        try {
+          const resolved = router.resolve(path);
+          const sentryScrubParams = resolved.meta.sentryScrubParams as
+            | RouteMeta['sentryScrubParams']
+            | undefined;
+
+          // Explicitly opted out of scrubbing
+          if (sentryScrubParams === false) {
+            return path;
+          }
+
+          const params = resolved.params as Record<string, string | string[]>;
+          if (!params || Object.keys(params).length === 0) {
+            return path;
+          }
+
+          const sortedValues = collectValuesToRedact(params, sentryScrubParams);
+          if (sortedValues.length === 0) {
+            return path;
+          }
+
+          // Use centralized utility for consistency and hostname protection
+          return scrubUrlWithValues(path, sortedValues);
+        } catch {
+          // If resolution fails, apply fallback pattern scrubbing
+          return scrubUrlWithPatterns(path);
+        }
+      };
+
+      if (breadcrumb.data.to) {
+        breadcrumb.data.to = scrubNavigationUrl(breadcrumb.data.to as string);
+      }
+      if (breadcrumb.data.from) {
+        breadcrumb.data.from = scrubNavigationUrl(breadcrumb.data.from as string);
+      }
+
+      return breadcrumb;
+    }
+
+    // Handle HTTP breadcrumbs using regex patterns
+    if ((category === 'xhr' || category === 'fetch') && breadcrumb.data?.url) {
+      breadcrumb.data.url = scrubUrlWithPatterns(breadcrumb.data.url as string);
+      return breadcrumb;
+    }
+
+    // Pass through all other breadcrumbs unchanged
+    return breadcrumb;
+  };
+}
+
+/**
+ * Scrubs sensitive data from exception messages and standalone messages in an event.
+ * Applies regex-based scrubbing to catch interpolated secrets/emails in error strings.
+ *
+ * @param event - The Sentry error event to scrub
+ * @returns The modified event (mutated in place)
+ */
+function scrubEventMessages(event: ErrorEvent): ErrorEvent {
+  if (event.exception?.values) {
+    event.exception.values = event.exception.values.map((exc) => {
+      if (exc.value) {
+        exc.value = scrubSensitiveStrings(exc.value);
+      }
+      return exc;
+    });
+  }
+
+  if (event.message) {
+    event.message = scrubSensitiveStrings(event.message);
+  }
+
+  return event;
+}
+
+/**
+ * Creates a Sentry beforeSend handler that scrubs sensitive data from events.
+ * Handles both URL scrubbing (route-param based) and message scrubbing (regex-based).
+ *
+ * @internal Exported for testing
+ */
+export function createBeforeSendHandler(router: Router) {
   return (event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> => {
     if ('secret' in event && event.secret) {
       delete event.secret;
     }
 
+    // Scrub exception messages and standalone messages (regex-based)
+    scrubEventMessages(event);
+
     // Scrub sensitive route params from URLs based on route metadata
     const currentRoute = router.currentRoute.value;
     const sentryScrubParams = currentRoute.meta.sentryScrubParams as RouteMeta['sentryScrubParams'];
 
-    // If explicitly opted out, return event without scrubbing
+    // If explicitly opted out, return event without URL scrubbing
+    // (exception message scrubbing above still applies)
     if (sentryScrubParams === false) {
       return event;
     }
@@ -239,6 +431,9 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
 
     // Scrub sensitive route params from URLs in error events
     beforeSend: createBeforeSendHandler(router),
+
+    // Scrub sensitive URLs from breadcrumbs at capture time
+    beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
     ...config.sentry, // includes dsn, environment, release, etc.
   };
 
