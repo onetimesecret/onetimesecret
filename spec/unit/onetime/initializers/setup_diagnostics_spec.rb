@@ -213,14 +213,21 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       expect(mock_config.before_send).to be_a(Proc)
     end
 
+    # The org_id field is declared in diagnostics.sentry.defaults in the
+    # YAML schema and propagated into each peer hash (backend/frontend/
+    # workers) by Onetime::Config#apply_defaults_to_peers at config load
+    # time. These tests inject the post-normalization shape directly so
+    # they accurately reflect the runtime state the initializer reads.
     it "enables strict_trace_continuation and sets org_id when org_id is configured" do
       config = loaded_config.dup
       config['diagnostics'] = {
         'enabled' => true,
         'sentry' => {
-          'org_id' => 'test-org-123',
-          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
-          'frontend' => { 'dsn' => nil }
+          'backend' => {
+            'dsn' => "https://example-dsn@sentry.io/12345",
+            'org_id' => 'test-org-123'
+          },
+          'frontend' => { 'dsn' => nil, 'org_id' => 'test-org-123' }
         }
       }
       config['site'] = { 'host' => "test.example.com" }
@@ -255,6 +262,30 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       execute_diagnostics_initializer
 
       expect(mock_config.org_id).to be_nil
+      expect(mock_config.strict_trace_continuation).to eq(false)
+    end
+
+    it "treats blank org_id (empty or whitespace) as unset for strict_trace_continuation" do
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => {
+            'dsn' => "https://example-dsn@sentry.io/12345",
+            'org_id' => '   '
+          },
+          'frontend' => { 'dsn' => nil }
+        }
+      }
+      config['site'] = { 'host' => "test.example.com" }
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      Onetime.instance_variable_set(:@conf, config)
+      execute_diagnostics_initializer
+
       expect(mock_config.strict_trace_continuation).to eq(false)
     end
   end

@@ -825,11 +825,21 @@ diagnostics:
     # `sampleRate` - Percentage of events to sample (0.0 to 1.0)
     # `maxBreadcrumbs` - Maximum number of breadcrumbs to capture
     # `logErrors` - Whether to log errors to console
+    # `org_id` - Sentry organization ID. When set, the Ruby SDK enables
+    #   strict trace continuation (sentry-ruby 6.5+): incoming distributed
+    #   traces are only continued if their sentry-org_id baggage matches
+    #   this value, which prevents a third-party service instrumented by
+    #   Sentry under a different org from polluting our traces. Self-hosted
+    #   Sentry DSNs cannot be parsed for org_id, so it must be set
+    #   explicitly here. Leave nil to keep strict mode off and continue all
+    #   inbound traces regardless of their org. The value propagates to
+    #   each peer (backend/frontend/workers) via apply_defaults_to_peers.
     defaults:
       dsn: <%= ENV['SENTRY_DSN'] || nil %>
       sampleRate: <%= ENV['SENTRY_SAMPLE_RATE'] || '0.10' %>
       maxBreadcrumbs: <%= ENV['SENTRY_MAX_BREADCRUMBS'] || 5 %>
       logErrors: <%= ENV['SENTRY_LOG_ERRORS'] != 'false' %>
+      org_id: <%= ENV['SENTRY_ORG_ID'] || nil %>
     # Ruby backend-specific Sentry configuration
     #
     # `dsn` - Backend-specific Sentry DSN
@@ -853,14 +863,6 @@ diagnostics:
     # `dsn` - Workers-specific Sentry DSN
     workers:
       dsn: <%= ENV['SENTRY_DSN_WORKERS'] || nil %>
-    # Sentry organization ID. When set, the SDK enables strict trace
-    # continuation (sentry-ruby 6.5+): incoming distributed traces are only
-    # continued if their sentry-org_id baggage matches this value, which
-    # prevents a third-party service instrumented by Sentry under a different
-    # org from polluting our traces. Self-hosted Sentry DSNs cannot be parsed
-    # for org_id, so it must be set explicitly here. Leave nil to keep strict
-    # mode off and continue all inbound traces regardless of their org.
-    org_id: <%= ENV['SENTRY_ORG_ID'] || nil %>
 development:
   # Development Mode Configuration
   #
