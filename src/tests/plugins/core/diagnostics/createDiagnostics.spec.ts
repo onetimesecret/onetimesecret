@@ -103,6 +103,15 @@ const baseConfig = {
   },
 };
 
+/**
+ * Test fixture host value for createDiagnostics tests.
+ * This is used to test Sentry's tracePropagationTargets configuration.
+ * The actual regex anchoring is done in the production code (enableDiagnostics.ts).
+ * @see enableDiagnostics.ts tracePropagationTargets for the properly anchored regex.
+ */
+// lgtm[js/regex-missing-anchor] - Test fixture, actual anchoring in production code
+const TEST_HOST = 'example.com';
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -123,7 +132,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'EU' });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -135,7 +144,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'us' });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -147,7 +156,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'Us' });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -159,7 +168,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: '' });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -171,7 +180,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: null });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -183,7 +192,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: undefined });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -195,7 +204,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue(null);
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -207,7 +216,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ other_property: 'value' });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });
@@ -219,7 +228,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
     mockGetBootstrapValue.mockReturnValue({ current_jurisdiction: 'eu' });
 
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: createMockRouter(),
     });

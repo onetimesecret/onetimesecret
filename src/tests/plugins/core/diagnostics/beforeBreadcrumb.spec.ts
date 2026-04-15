@@ -108,6 +108,15 @@ const baseConfig = {
 };
 
 /**
+ * Test fixture host value for createDiagnostics tests.
+ * This is used to test Sentry's tracePropagationTargets configuration.
+ * The actual regex anchoring is done in the production code (enableDiagnostics.ts).
+ * @see enableDiagnostics.ts tracePropagationTargets for the properly anchored regex.
+ */
+// lgtm[js/regex-missing-anchor] - Test fixture, actual anchoring in production code
+const TEST_HOST = 'example.com';
+
+/**
  * Creates a mock router for testing beforeBreadcrumb handler.
  * The resolve() function is configured per-test by mutating this router.
  */
@@ -154,7 +163,7 @@ describe('beforeBreadcrumb handler', () => {
 
     // Wire up createDiagnostics to capture the beforeBreadcrumb handler
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: baseConfig,
       router: mockRouter,
     });

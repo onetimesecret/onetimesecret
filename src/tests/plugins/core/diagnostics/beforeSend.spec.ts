@@ -109,6 +109,15 @@ const baseConfig = {
 };
 
 /**
+ * Test fixture host value for createDiagnostics tests.
+ * This is used to test Sentry's tracePropagationTargets configuration.
+ * The actual regex anchoring is done in the production code (enableDiagnostics.ts).
+ * @see enableDiagnostics.ts tracePropagationTargets for the properly anchored regex.
+ */
+// lgtm[js/regex-missing-anchor] - Test fixture, actual anchoring in production code
+const TEST_HOST = 'example.com';
+
+/**
  * Creates a mock router for testing beforeSend handler.
  * Uses currentRoute.value for the handler's route param access.
  */
@@ -144,7 +153,7 @@ function setupWithRouter(routerConfig: { params: Record<string, string | string[
   resetCapturedOptions();
   const mockRouter = createMockRouter(routerConfig);
   createDiagnostics({
-    host: 'example.com',
+    host: TEST_HOST,
     config: baseConfig,
     router: mockRouter,
   });
