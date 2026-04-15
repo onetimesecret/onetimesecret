@@ -6,7 +6,7 @@
 // - getRegistryForVersion(): returns version-appropriate registry
 // - scanSchemas(): integration test for full scanner
 
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import {
   extractVersion,
   normalizeModelKey,
@@ -196,8 +196,16 @@ describe('schema-scanner', () => {
   // ─── scanSchemas integration ───────────────────────────────────
 
   describe('scanSchemas integration', () => {
-    it('returns zero broken entries (all SCHEMA constants resolve)', async () => {
-      const result = await scanSchemas();
+    // Cache scanSchemas() result to avoid repeated filesystem/glob scans
+    // and Prism parsing across multiple tests.
+    let scanResult: Awaited<ReturnType<typeof scanSchemas>>;
+
+    beforeAll(async () => {
+      scanResult = await scanSchemas();
+    });
+
+    it('returns zero broken entries (all SCHEMA constants resolve)', () => {
+      const result = scanResult;
 
       // The scanner should find entries
       expect(result.entries.length).toBeGreaterThan(0);
@@ -214,13 +222,13 @@ describe('schema-scanner', () => {
       expect(result.broken).toHaveLength(0);
     });
 
-    it('finds covered entries for all API versions', async () => {
-      const result = await scanSchemas();
+    it('finds covered entries for V3 API handlers', () => {
+      const result = scanResult;
 
       // Should have covered entries
       expect(result.covered.length).toBeGreaterThan(0);
 
-      // Verify we found entries from different API versions
+      // Verify we found entries from V3 API
       const classNames = result.covered.map(e => e.className);
 
       // Check for V3 entries
@@ -228,8 +236,8 @@ describe('schema-scanner', () => {
       expect(hasV3).toBe(true);
     });
 
-    it('correctly classifies model entries', async () => {
-      const result = await scanSchemas();
+    it('correctly classifies model entries', () => {
+      const result = scanResult;
 
       // Find model entries (from lib/onetime/models/)
       const modelEntries = result.entries.filter(
@@ -247,8 +255,8 @@ describe('schema-scanner', () => {
       }
     });
 
-    it('scanSchemas result structure is valid', async () => {
-      const result = await scanSchemas();
+    it('scanSchemas result structure is valid', () => {
+      const result = scanResult;
 
       // Verify result structure
       expect(result).toHaveProperty('entries');
@@ -272,27 +280,31 @@ describe('schema-scanner', () => {
   // ─── Model key normalization in validation flow ────────────────
 
   describe('model key normalization in validation flow', () => {
-    it('models/secret resolves to shapes/secret in shapeSchemas', async () => {
+    it('models/* keys are normalized to shapes/* and resolve correctly', async () => {
       // This tests the actual behavior: Ruby declares 'models/secret',
       // scanner normalizes to 'shapes/secret', which exists in shapeSchemas
       const result = await scanSchemas();
 
-      // Find entries with model keys
-      const modelEntries = result.entries.filter(e => e.schema.model);
+      // Find entries with model keys that use the 'models/' prefix
+      const modelEntries = result.entries.filter(e => e.schema.model?.startsWith('models/'));
 
-      // At least some should use the 'models/' prefix in Ruby
-      // but still be marked as covered (because normalization works)
+      // Ensure this test cannot pass vacuously: we must observe at least one
+      // Ruby model key that requires normalization.
+      expect(modelEntries.length).toBeGreaterThan(0);
+
       for (const entry of modelEntries) {
-        // If it's in covered, normalization worked
+        const normalizedModelKey = normalizeModelKey(entry.schema.model!);
+
+        // Normalization should convert models/* keys into shapes/* keys.
+        expect(normalizedModelKey.startsWith('shapes/')).toBe(true);
+
+        // These entries should be reported as covered by the scanner, which
+        // demonstrates that the normalized key matched a known schema.
         const isCovered = result.covered.some(
           c => c.className === entry.className && c.filePath === entry.filePath
         );
 
-        // If model key starts with models/ and it's covered, normalization worked
-        if (entry.schema.model?.startsWith('models/') && isCovered) {
-          // Success: models/* was normalized to shapes/* and found in registry
-          expect(isCovered).toBe(true);
-        }
+        expect(isCovered).toBe(true);
       }
     });
   });

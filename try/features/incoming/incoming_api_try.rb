@@ -536,7 +536,7 @@ true
 # Incoming::Logic::CreateIncomingSecret - domain_id tests (#2864)
 # =============================================================================
 #
-# These tests verify the V3 incoming secrets logic correctly sets domain_id
+# These tests verify the Incoming API secrets logic correctly sets domain_id
 # on receipts when created via a custom domain.
 # Setup is done in global setup section above (before first ## marker).
 
