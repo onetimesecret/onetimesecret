@@ -1,8 +1,34 @@
 // src/tests/composables/useAsyncHandler.spec.ts
+//
+// Tests for useAsyncHandler composable - async operation wrapper with error handling.
+//
+// Issue: #2964 - Sentry setTag vs setExtras separation
+//
+// Run:
+//   pnpm test src/tests/composables/useAsyncHandler.spec.ts
 
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { createError } from '@/schemas/errors/classifier';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// ---------------------------------------------------------------------------
+// Mocks - must be hoisted before imports
+// ---------------------------------------------------------------------------
+const { mockCaptureException, mockIsDiagnosticsEnabled, mockBootstrapStore } = vi.hoisted(() => {
+  const mockCaptureException = vi.fn();
+  const mockIsDiagnosticsEnabled = vi.fn();
+  const mockBootstrapStore = vi.fn();
+  return { mockCaptureException, mockIsDiagnosticsEnabled, mockBootstrapStore };
+});
+
+vi.mock('@/services/diagnostics.service', () => ({
+  captureException: mockCaptureException,
+  isDiagnosticsEnabled: mockIsDiagnosticsEnabled,
+}));
+
+vi.mock('@/shared/stores/bootstrapStore', () => ({
+  useBootstrapStore: mockBootstrapStore,
+}));
 
 // Mock vue-i18n before importing the composable
 vi.mock('vue-i18n', () => ({
