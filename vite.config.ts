@@ -22,17 +22,31 @@ import Inspector from 'vite-plugin-vue-inspector';
 const viteBaseUrl = process.env.VITE_BASE_URL;
 
 /**
- * Sentry Release Version - Baked into Frontend Bundle
- * ----------------------------------------------------
- * Reads the commit hash from .commit_hash.txt (created by pre-commit hook
- * and baked into Docker images). This ensures frontend errors are tagged
- * with the exact release that was compiled, matching sourcemap uploads.
+ * Sentry Release Version - Single Source of Truth
+ * ------------------------------------------------
+ * Determines the release version for both:
+ * - Build-time injection into frontend bundle (__SENTRY_RELEASE__)
+ * - Sentry sourcemap upload tagging
  *
- * Falls back to 'dev' for local development without the pre-commit hook.
+ * Fallback chain:
+ * 1. SENTRY_RELEASE env var (explicit override for CI/CD)
+ * 2. .commit_hash.txt file (created by pre-commit hook, baked into Docker)
+ * 3. git rev-parse (local development with git available)
+ * 4. 'dev' (local development without git)
+ *
+ * Note: execSync is used here with a static command string (no user input),
+ * which is safe for build-time git SHA retrieval.
  *
  * @see PR #2995 for backend release tracking
  */
 function getSentryRelease(): string {
+  // 1. Explicit environment variable takes precedence
+  const envRelease = process.env.SENTRY_RELEASE;
+  if (envRelease) {
+    return envRelease;
+  }
+
+  // 2. Pre-generated commit hash file (Docker builds, CI artifacts)
   const commitHashPath = resolve(process.cwd(), '.commit_hash.txt');
   if (existsSync(commitHashPath)) {
     const hash = readFileSync(commitHashPath, 'utf-8').trim();
@@ -40,7 +54,14 @@ function getSentryRelease(): string {
       return hash;
     }
   }
-  return 'dev';
+
+  // 3. Git SHA for local development
+  try {
+    return execSync('git rev-parse --short=7 HEAD').toString().trim();
+  } catch {
+    // 4. Final fallback for environments without git
+    return 'dev';
+  }
 }
 
 // server.allowedHosts - Multiple hosts can be separated by commas.

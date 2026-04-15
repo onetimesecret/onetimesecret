@@ -5,15 +5,6 @@ import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import type { RouteMeta } from '@/types/router';
 import { DEBUG } from '@/utils/debug';
-
-/**
- * Build-time Sentry release version, injected by Vite define.
- * Matches the commit hash used for sourcemap uploads, ensuring
- * frontend errors can be correlated with the correct sourcemaps.
- *
- * @see vite.config.ts getSentryRelease()
- */
-declare const __SENTRY_RELEASE__: string;
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
