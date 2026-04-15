@@ -34,6 +34,11 @@ end
 begin
   require 'onetime'
 
+  # Set execution mode for Puma/Rack web server before boot.
+  # This enables initializers (e.g., SetupDiagnostics) to configure
+  # process-specific settings like Sentry tags.
+  OT.execution_mode = :backend
+
   # Bootstrap the Application
   # NOTE: Proper semantic logging comes online during boot. Any logging
   # prior to this needs to be output directly via STDOUT/STDERR.

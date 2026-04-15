@@ -75,17 +75,6 @@ module Onetime
           # This ensures frontend and backend report the same release identifier.
           config.release = resolve_sentry_release
 
-          # Add contextual tags for filtering without fragmenting environments.
-          # site_host identifies the deployment; jurisdiction is optional.
-          # Normalize jurisdiction to lowercase for consistent Sentry tag filtering
-          # (tags are case-sensitive, so US vs us would create separate filters).
-          jurisdiction = OT.conf.dig('features', 'regions', 'current_jurisdiction').to_s.downcase
-
-          config.tags = {
-            site_host: site_host,
-            jurisdiction: jurisdiction.empty? ? nil : jurisdiction,
-          }.compact
-
           # Configure breadcrumbs logger for detailed error tracking.
           # Uses sentry_logger to capture progression of events leading
           # to errors, providing context for debugging.
@@ -115,6 +104,20 @@ module Onetime
         end
 
         OT.ld "[init] Sentry: Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+
+        # Add contextual tags for filtering without fragmenting environments.
+        # site_host identifies the deployment; jurisdiction is optional.
+        # Normalize jurisdiction to lowercase for consistent Sentry tag filtering
+        # (tags are case-sensitive, so US vs us would create separate filters).
+        # Service tag enables filtering by entry point (web vs worker).
+        # Note: config.tags was removed in sentry-ruby 4.0+; use Sentry.set_tags instead.
+        jurisdiction = OT.conf.dig('features', 'regions', 'current_jurisdiction').to_s.downcase
+        tags         = {
+          site_host: site_host,
+          service: execution_mode_to_service,
+          jurisdiction: jurisdiction.empty? ? nil : jurisdiction,
+        }.compact
+        Sentry.set_tags(tags)
 
         # Set runtime state
         Onetime::Runtime.update_infrastructure(d9s_enabled: true)
@@ -161,6 +164,27 @@ module Onetime
 
           # Delegate to VERSION which handles .commit_hash.txt and git fallback
           OT::VERSION.get_build_info
+        end
+
+        # Maps execution mode to Sentry service tag value.
+        #
+        # Service tags enable filtering events by entry point:
+        # - 'web' for HTTP requests (Puma/Rack backend)
+        # - 'worker' for background jobs (Sneakers workers, scheduler)
+        #
+        # Matches frontend convention where service is 'web' or 'api'.
+        # @see src/plugins/core/enableDiagnostics.ts
+        # @see https://github.com/onetimesecret/onetimesecret/issues/2964
+        #
+        # @return [String] The service tag value ('web' or 'worker')
+        def execution_mode_to_service
+          case OT.execution_mode
+          when :worker, :scheduler
+            'worker'
+          else
+            # :backend (Puma), :cli, or any other mode maps to 'web'
+            'web'
+          end
         end
 
         class << self

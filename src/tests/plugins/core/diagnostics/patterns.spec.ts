@@ -32,6 +32,16 @@ describe('SENSITIVE_PATH_PATTERN', () => {
     expect('/api/v3/incoming/ghi012'.match(SENSITIVE_PATH_PATTERN)).toBeTruthy();
   });
 
+  it('matches /invite/ paths with tokens', () => {
+    SENSITIVE_PATH_PATTERN.lastIndex = 0;
+    expect('/invite/abc123xyz'.match(SENSITIVE_PATH_PATTERN)).toBeTruthy();
+  });
+
+  it('matches /confirm/ paths for email confirmation tokens', () => {
+    SENSITIVE_PATH_PATTERN.lastIndex = 0;
+    expect('/account/email/confirm/tokenABC123'.match(SENSITIVE_PATH_PATTERN)).toBeTruthy();
+  });
+
   it('does not match /colonel/ paths', () => {
     SENSITIVE_PATH_PATTERN.lastIndex = 0;
     expect('/api/v3/colonel/admin123'.match(SENSITIVE_PATH_PATTERN)).toBeNull();
@@ -40,6 +50,16 @@ describe('SENSITIVE_PATH_PATTERN', () => {
   it('does not match /public/ paths', () => {
     SENSITIVE_PATH_PATTERN.lastIndex = 0;
     expect('/api/v3/public/something'.match(SENSITIVE_PATH_PATTERN)).toBeNull();
+  });
+
+  it('does not match /forgot path without token segment', () => {
+    SENSITIVE_PATH_PATTERN.lastIndex = 0;
+    expect('/forgot'.match(SENSITIVE_PATH_PATTERN)).toBeNull();
+  });
+
+  it('does not match /account without sensitive suffix', () => {
+    SENSITIVE_PATH_PATTERN.lastIndex = 0;
+    expect('/account/settings/profile'.match(SENSITIVE_PATH_PATTERN)).toBeNull();
   });
 });
 
