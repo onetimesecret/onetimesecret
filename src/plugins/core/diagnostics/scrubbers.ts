@@ -51,7 +51,7 @@ export const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
  * Used for exception messages, standalone messages, and other text.
  *
  * Scrubs:
- * - Email addresses -> [EMAIL REDACTED]
+ * - Email addresses -> [EMAIL_REDACTED]
  * - 62-char verifiable IDs -> [REDACTED]
  * - Sensitive path patterns -> /type/[REDACTED]
  *
@@ -65,8 +65,17 @@ export function scrubSensitiveStrings(text: string): string {
 
   let result = text;
 
-  // Scrub email addresses
-  result = result.replace(EMAIL_PATTERN, '[EMAIL REDACTED]');
+  // Scrub email addresses.
+  //
+  // Invariant: every sentinel emitted by any pass here must be whitespace
+  // -free (matches /^\[[A-Z_]+\]$/). Later passes apply path-scrub patterns
+  // using the `[^/\s]+` value class, which stops at any whitespace inside a
+  // preceding sentinel. A sentinel like `[EMAIL REDACTED]` (with a literal
+  // space) would cause the path regex to split its capture mid-sentinel,
+  // producing cosmetically-corrupted output like `[REDACTED] REDACTED]`.
+  // The data is still scrubbed, but the sentinels stop composing cleanly.
+  // Keep all sentinel tokens square-bracketed, uppercase, underscored.
+  result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
 
   // Scrub 62-char verifiable IDs
   result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
@@ -78,6 +87,58 @@ export function scrubSensitiveStrings(text: string): string {
   result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
 
   return result;
+}
+
+/**
+ * Apply generated patterns to the pathname portion of a URL.
+ *
+ * The generated patterns are unanchored, so applying them directly to a full
+ * URL would pull the query string into the capture group — the value class
+ * `[^/\s]+` does not stop at `?` or `#`. This function parses the input
+ * through `URL` (using a synthetic base for bare paths), scrubs only
+ * `parsed.pathname`, and reassembles protocol + host + scrubbed path +
+ * search + hash. Query params and fragments are preserved verbatim so they
+ * can still drive breadcrumb-level debugging.
+ *
+ * Note: `scrubSensitiveStrings` intentionally applies the same patterns
+ * directly to free-form text, where the whitespace boundary causes any
+ * embedded `?foo=bar#frag` suffix to be redacted along with the identifier.
+ * That over-scrubbing is a fail-safe, not a bug: a sensitive value leaking
+ * into a query string inside an exception message should go away with the
+ * rest of the URL.
+ */
+function extractAndScrubPath(input: string): string {
+  try {
+    // Use a synthetic base so bare paths (e.g. /api/v1/secret/abc?foo=bar)
+    // parse cleanly. The base is discarded when reassembling — we only use
+    // its parser. Detect "had host" by checking the raw input for a protocol
+    // prefix, since `new URL('/p', 'http://_')` yields host `_` which we must
+    // not echo back.
+    //
+    // Protocol-relative URLs (`//host/path`) are detected alongside
+    // fully-qualified URLs so the host is preserved during reassembly.
+    // Removing the `startsWith('//')` branch would cause such URLs to
+    // silently drop their host. Adding it must also preserve the `//`
+    // prefix on output (do not echo back the synthetic `http:` scheme
+    // from the base URL).
+    //
+    // data: URIs (`data:text/plain,foo`) are not a real Sentry breadcrumb
+    // input shape and are not accounted for. Under current logic they
+    // would have their scheme stripped because the scheme regex requires
+    // `://`.
+    const isProtocolRelative = input.startsWith('//');
+    const isFullURL = /^[a-z][a-z0-9+.-]*:\/\//i.test(input);
+    const hadHost = isProtocolRelative || isFullURL;
+    const parsed = new URL(input, 'http://_');
+    const scrubbedPath = scrubSensitivePath(parsed.pathname);
+    if (!hadHost) return scrubbedPath + parsed.search + parsed.hash;
+    const prefix = isProtocolRelative ? '//' : parsed.protocol + '//';
+    return prefix + parsed.host + scrubbedPath + parsed.search + parsed.hash;
+  } catch {
+    // Fallback for genuinely malformed inputs (e.g. control chars that the
+    // URL parser rejects even with a base).
+    return scrubSensitivePath(input);
+  }
 }
 
 /**
@@ -97,10 +158,10 @@ export function scrubUrlWithPatterns(url: string): string {
     return url;
   }
 
-  let result = url;
-
-  // First pass: scrub using generated route-derived patterns
-  result = scrubSensitivePath(result);
+  // First pass: scrub using generated route-derived patterns. Patterns are
+  // unanchored but applied to `parsed.pathname` via `extractAndScrubPath` so
+  // that the capture group never includes the query string or fragment.
+  let result = extractAndScrubPath(url);
 
   // Second pass: fallback for paths not covered by generated patterns
   result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
@@ -109,7 +170,7 @@ export function scrubUrlWithPatterns(url: string): string {
   result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
 
   // Fourth pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
-  result = result.replace(EMAIL_PATTERN, '[EMAIL REDACTED]');
+  result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
 
   return result;
 }

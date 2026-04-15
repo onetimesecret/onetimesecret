@@ -37,6 +37,7 @@ import {
   toOpenAPIPath,
   type OttoRoute,
 } from './otto-routes-parser';
+import { API_MOUNT_PATHS, parseSensitiveSpec } from './sensitive-spec';
 
 import { standardErrorResponses, type SpecTarget } from './route-config';
 import {
@@ -121,23 +122,6 @@ const TARGET_ARG = (() => {
   const idx = process.argv.indexOf('--target');
   return idx !== -1 ? (process.argv[idx + 1] ?? '').split(',').filter(Boolean) : [];
 })();
-
-// =============================================================================
-// API Mount Points
-// =============================================================================
-
-/** Maps API directory name to its mount path prefix */
-const API_MOUNT_PATHS: Record<string, string> = {
-  v1: '/api/v1',
-  v2: '/api/v2',
-  v3: '/api/v3',
-  account: '/api/account',
-  colonel: '/api/colonel',
-  domains: '/api/domains',
-  organizations: '/api/organizations',
-  invite: '/api/invite',
-  incoming: '/api/incoming',
-};
 
 // =============================================================================
 // Schema Mapping (scanner-driven)
@@ -600,10 +584,11 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
   }
 
   // Emit sensitive param as x-sensitive extension for downstream consumers
-  if (route.params.sensitive) {
-    operation['x-sensitive'] = route.params.sensitive === 'true'
+  const sensitiveSpec = parseSensitiveSpec(route.params.sensitive);
+  if (sensitiveSpec !== null) {
+    operation['x-sensitive'] = sensitiveSpec === true
       ? true
-      : route.params.sensitive.split(',');
+      : Array.from(sensitiveSpec);
   }
 
   // Add security

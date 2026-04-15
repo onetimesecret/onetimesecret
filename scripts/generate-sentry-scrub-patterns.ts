@@ -19,6 +19,11 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 import { parseAllApiRoutes, type OttoRoute } from './openapi/otto-routes-parser';
+import {
+  API_MOUNT_PATHS,
+  parseSensitiveSpec,
+  pathToRegexPattern,
+} from './openapi/sensitive-spec';
 
 // =============================================================================
 // Configuration
@@ -29,19 +34,6 @@ const OUTPUT_FILE = join(OUTPUT_DIR, 'sentry-scrub-patterns.ts');
 const DRY_RUN = process.argv.includes('--dry-run');
 const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
 
-/** Maps API directory name to its mount path prefix */
-const API_MOUNT_PATHS: Record<string, string> = {
-  v1: '/api/v1',
-  v2: '/api/v2',
-  v3: '/api/v3',
-  account: '/api/account',
-  colonel: '/api/colonel',
-  domains: '/api/domains',
-  organizations: '/api/organizations',
-  invite: '/api/invite',
-  incoming: '/api/incoming',
-};
-
 // =============================================================================
 // Pattern Generation
 // =============================================================================
@@ -51,6 +43,7 @@ interface SensitiveRoute {
   method: string;
   fullPath: string;
   pathParams: string[];
+  spec: true | Set<string>;
   route: OttoRoute;
 }
 
@@ -68,23 +61,58 @@ function getPathParams(path: string): string[] {
 }
 
 /**
- * Convert a route path to a regex pattern string.
- * Replaces :param with a capture group for alphanumeric identifiers.
+ * Validate a single sensitive-route annotation.
  *
- * Example: /secret/:identifier -> \/secret\/([a-zA-Z0-9]+)
+ * Performs both structural checks that protect the generator from silently
+ * emitting dead or incomplete patterns:
+ *
+ *   1. Missing-param: when `spec` is a Set of named params, every name must
+ *      appear as a `:param` token in the path. Drift between routes.txt and
+ *      reality would otherwise cause the author's intended scrub to be
+ *      silently skipped.
+ *   2. Zero-capture: the resulting regex must emit at least one capture group.
+ *      A sensitive annotation that produces zero captures is a misconfigured
+ *      route — the path has no `:param` to scrub — and would emit a dead
+ *      pattern the frontend can never match.
+ *
+ * Throws on either violation. Exported so unit tests can exercise both
+ * branches directly without booting the full generator pipeline.
  */
-function pathToRegexPattern(path: string): string {
-  // Escape regex special characters, then replace :param with capture group.
-  // Backslashes first (before they could be introduced by other escapes),
-  // then forward slashes, then parameter placeholders.
-  return path
-    .replace(/\\/g, '\\\\')
-    .replace(/\//g, '\\/')
-    .replace(/:(\w+)/g, '([a-zA-Z0-9]+)');
+export function validateSensitiveRoute(
+  method: string,
+  fullPath: string,
+  pathParams: string[],
+  spec: true | Set<string>
+): void {
+  if (spec !== true) {
+    const pathParamSet = new Set(pathParams);
+    for (const name of spec) {
+      if (!pathParamSet.has(name)) {
+        throw new Error(
+          `Route ${method} ${fullPath} declares sensitive=${Array.from(spec).join(',')} ` +
+            `but :${name} is not a path parameter (path params: ${pathParams.join(', ') || '<none>'})`
+        );
+      }
+    }
+  }
+
+  const { captureCount } = pathToRegexPattern(fullPath, spec);
+  if (captureCount === 0) {
+    throw new Error(
+      `Route ${method} ${fullPath} is marked sensitive but ` +
+        `produced 0 capture groups — the path has no :param to scrub. ` +
+        `Remove the sensitive= annotation or add a path parameter.`
+    );
+  }
 }
 
 /**
  * Filter routes to only those marked as sensitive.
+ *
+ * Validates that named `sensitive=k1,k2` params actually appear in the path
+ * and that the resulting regex has at least one capture group. A mismatch
+ * throws — it means routes.txt has drifted from reality and the generated
+ * patterns would silently skip whatever the author meant to scrub.
  */
 function filterSensitiveRoutes(
   allRoutes: Record<string, { routes: OttoRoute[] }>
@@ -95,17 +123,22 @@ function filterSensitiveRoutes(
     const mountPath = API_MOUNT_PATHS[apiName] || `/api/${apiName}`;
 
     for (const route of parsed.routes) {
-      // Check if route is marked as sensitive
-      if (route.params.sensitive) {
-        const fullPath = mountPath + route.path;
-        sensitiveRoutes.push({
-          apiName,
-          method: route.method,
-          fullPath,
-          pathParams: getPathParams(route.path),
-          route,
-        });
-      }
+      const spec = parseSensitiveSpec(route.params.sensitive);
+      if (spec === null) continue;
+
+      const fullPath = mountPath + route.path;
+      const pathParams = getPathParams(route.path);
+
+      validateSensitiveRoute(route.method, fullPath, pathParams, spec);
+
+      sensitiveRoutes.push({
+        apiName,
+        method: route.method,
+        fullPath,
+        pathParams,
+        spec,
+        route,
+      });
     }
   }
 
@@ -115,14 +148,18 @@ function filterSensitiveRoutes(
 /**
  * Deduplicate patterns by their regex string.
  * Multiple routes may produce the same pattern (e.g., GET and POST on same path).
+ *
+ * The zero-capture check lives in `validateSensitiveRoute`, which runs earlier
+ * in `filterSensitiveRoutes`, so by the time we reach here every route is
+ * guaranteed to produce at least one capture group.
  */
 function deduplicatePatterns(routes: SensitiveRoute[]): Map<string, SensitiveRoute> {
   const seen = new Map<string, SensitiveRoute>();
 
   for (const route of routes) {
-    const pattern = pathToRegexPattern(route.fullPath);
-    if (!seen.has(pattern)) {
-      seen.set(pattern, route);
+    const { regex } = pathToRegexPattern(route.fullPath, route.spec);
+    if (!seen.has(regex)) {
+      seen.set(regex, route);
     }
   }
 
@@ -248,4 +285,15 @@ function main(): void {
   console.log(DRY_RUN ? '\nDry run complete. No files written.' : '\nPatterns generated.');
 }
 
-main();
+// Only run the generator when invoked as a script. Guarding this lets unit
+// tests import `validateSensitiveRoute` without triggering a full pipeline
+// run (which would parse routes.txt and write to disk).
+const invokedAsScript =
+  typeof process !== 'undefined' &&
+  Array.isArray(process.argv) &&
+  process.argv[1] !== undefined &&
+  /generate-sentry-scrub-patterns(\.[cm]?ts|\.[cm]?js)?$/.test(process.argv[1]);
+
+if (invokedAsScript) {
+  main();
+}

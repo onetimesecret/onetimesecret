@@ -6,6 +6,12 @@
 //
 // The handler is accessed by calling createDiagnostics() and extracting
 // beforeSend from the captured BrowserClient constructor options.
+//
+// This file defines two tightly-coupled Sentry mock classes (MockBrowserClient
+// and MockScope) inside a vi.hoisted() factory. Splitting them across files
+// would obscure the mock-to-test-pairing for no structural benefit, so the
+// file-level max-classes-per-file rule is disabled here.
+/* eslint-disable max-classes-per-file */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ErrorEvent } from '@sentry/core';
@@ -16,11 +22,11 @@ import type { RouteMeta } from '@/types/router';
 // Mocks - must use vi.hoisted() for variables used in vi.mock factories
 // ---------------------------------------------------------------------------
 
+// Test-only mocks: two tightly-coupled mock classes for Sentry's BrowserClient
+// and Scope. Splitting them across files would obscure the mock/test mapping.
+// The file-level max-classes-per-file rule is disabled at the top of this
+// file (see header) to allow both to live beside the tests that use them.
 const {
-  mockSetTag,
-  mockSetClient,
-  mockClientInit,
-  mockClientClose,
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
@@ -57,10 +63,6 @@ const {
   }
 
   return {
-    mockSetTag,
-    mockSetClient,
-    mockClientInit,
-    mockClientClose,
     mockGetBootstrapValue,
     MockBrowserClient,
     MockScope,
@@ -143,7 +145,10 @@ function getBeforeSend(): (event: ErrorEvent) => ErrorEvent | null {
  * Sets up createDiagnostics with a specific router configuration.
  * Must be called in each test that needs a specific route setup.
  */
-function setupWithRouter(routerConfig: { params: Record<string, string | string[]>; meta: Partial<RouteMeta> }): void {
+function setupWithRouter(routerConfig: {
+  params: Record<string, string | string[]>;
+  meta: Partial<RouteMeta>;
+}): void {
   resetCapturedOptions();
   const mockRouter = createMockRouter(routerConfig);
   createDiagnostics({
@@ -184,7 +189,7 @@ describe('beforeSend handler', () => {
 
       const result = handler(event) as ErrorEvent;
 
-      expect(result.exception?.values?.[0].value).toBe('Failed for [EMAIL REDACTED]');
+      expect(result.exception?.values?.[0].value).toBe('Failed for [EMAIL_REDACTED]');
     });
 
     it('scrubs 62-char ID from exception message', () => {
@@ -233,7 +238,7 @@ describe('beforeSend handler', () => {
 
       const result = handler(event) as ErrorEvent;
 
-      expect(result.exception?.values?.[0].value).toBe('Error for [EMAIL REDACTED]');
+      expect(result.exception?.values?.[0].value).toBe('Error for [EMAIL_REDACTED]');
       expect(result.exception?.values?.[1].value).toBe('At path /private/[REDACTED]');
     });
   });
@@ -249,7 +254,7 @@ describe('beforeSend handler', () => {
 
       const result = handler(event) as ErrorEvent;
 
-      expect(result.message).toBe('User [EMAIL REDACTED] logged out');
+      expect(result.message).toBe('User [EMAIL_REDACTED] logged out');
     });
   });
 
@@ -357,7 +362,7 @@ describe('beforeSend handler', () => {
       const result = handler(event) as ErrorEvent;
 
       // Exception message scrubbing still applies
-      expect(result.exception?.values?.[0].value).toBe('Error for [EMAIL REDACTED]');
+      expect(result.exception?.values?.[0].value).toBe('Error for [EMAIL_REDACTED]');
       // URL scrubbing is skipped
       expect(result.request?.url).toBe('https://example.com/colonel/admin123');
     });
