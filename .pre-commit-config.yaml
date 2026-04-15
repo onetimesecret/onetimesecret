@@ -7,8 +7,8 @@
 #   1. Install pre-commit:
 #       $ pip install pre-commit
 #
-#   2. Install git hooks:
-#       $ pre-commit install
+#   2. Install all git hooks:
+#       $ pre-commit install && pre-commit install --hook-type pre-push -c .pre-push-config.yaml
 #
 # Usage:
 #   Hooks run automatically on 'git commit'
@@ -52,9 +52,8 @@ default_language_version:
   ruby: system
   node: system
 
-# Allow all hooks to run even if one (or more fails). This avoids
-# the commit->fail->fix->commit->fail->fix->commit routine.
-fail_fast: false
+# Stop on first failure for fast feedback during commits
+fail_fast: true
 
 # Ignore generated and dependency directories
 exclude: '^$'
