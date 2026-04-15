@@ -344,31 +344,78 @@ module V1
     # Available levels are :fatal, :error, :warning, :log, :info,
     # and :debug. The Sentry default, if not specified, is :error.
     #
-    def capture_error(error, level = :error, &)
+    def capture_error(error, level = :error, &block)
       return unless OT.d9s_enabled # diagnostics are disabled by default
 
-      # Capture more detailed debugging information when Sentry errors occur
-      begin
-        # Log request headers before attempting to send to Sentry
-        if defined?(req) && req.respond_to?(:env)
-          headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
-          OT.ld "[capture_error] Request headers: #{headers.inspect}"
+      # Log request headers before attempting to send to Sentry
+      if defined?(req) && req.respond_to?(:env)
+        headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+        OT.ld "[capture_error] Request headers: #{headers.inspect}"
+      end
+
+      # Capture exception with request context for debugging in Sentry
+      Sentry.capture_exception(error, level: level) do |scope|
+        # Add searchable tags
+        scope.set_tags(
+          service: 'api',
+          endpoint: req&.path_info || 'unknown',
+        )
+
+        # Add request context (URLs scrubbed by before_send hook)
+        if defined?(req) && req.respond_to?(:url)
+          scope.set_context(
+            'request',
+            {
+              url: req.url,
+              method: req.request_method,
+              ip: req.ip,
+            },
+          )
         end
 
-        # Try Sentry exception reporting
-        Sentry.capture_exception(error, level: level, &)
-      rescue NoMethodError => ex
-        raise unless ex.message.include?('start_with?')
+        # Add customer/session context with truncated IDs for privacy
+        if defined?(cust) && cust && !cust.anonymous?
+          scope.set_context(
+            'customer',
+            {
+              custid: truncate_id(cust.custid),
+              role: cust.role,
+            },
+          )
+        end
 
-        # Continue execution - don't let a Sentry error break the app
-        OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
+        if defined?(sess) && sess.respond_to?(:sessid)
+          scope.set_context(
+            'session',
+            {
+              sessid: truncate_id(sess.sessid),
+            },
+          )
+        end
 
-      # Re-raise any other NoMethodError that isn't related to start_with?
-      rescue StandardError => ex
-        OT.le "[capture_error] #{ex.class}: #{ex.message}"
-        OT.ld ex.backtrace.join("\n")
+        # Allow caller to add additional context via block
+        block&.call(scope)
       end
+    rescue NoMethodError => ex
+      raise unless ex.message.include?('start_with?')
+
+      # Continue execution - don't let a Sentry error break the app
+      OT.le "[capture_error] Sentry error with nil value in start_with? check: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
+    rescue StandardError => ex
+      OT.le "[capture_error] #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
+    end
+
+    # Truncates an ID string for privacy while keeping it useful for debugging.
+    # Shows first 8 characters followed by ellipsis.
+    # @param id [String, nil] ID to truncate
+    # @return [String] Truncated ID or 'unknown' if nil/empty
+    def truncate_id(id)
+      return 'unknown' if id.nil? || id.to_s.empty?
+
+      id_str = id.to_s
+      id_str.length <= 8 ? id_str : "#{id_str[0, 8]}..."
     end
 
     def capture_message(message, level = :log, &)
