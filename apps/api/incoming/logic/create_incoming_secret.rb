@@ -172,6 +172,12 @@ module Incoming
         # Store incoming-specific fields
         receipt.memo       = memo
         receipt.recipients = recipient_email
+
+        # Set domain_id for custom domain requests (#2864)
+        if domain_strategy == :custom && display_domain
+          receipt.domain_id = Onetime::CustomDomain.resolve_domain_id(display_domain)
+        end
+
         receipt.save
       end
 
