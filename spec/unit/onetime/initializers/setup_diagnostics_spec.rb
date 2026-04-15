@@ -7,6 +7,7 @@ require 'spec_helper'
 # Create top-level Struct definitions to prevent "already initialized constant" warnings
 MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
                        :traces_sample_rate, :profiles_sample_rate, :before_send,
+                       :org_id, :strict_trace_continuation,
                        keyword_init: true) unless defined?(MockConfig)
 EventStruct = Struct.new(:request, :contexts, keyword_init: true) unless defined?(EventStruct)
 RequestStruct = Struct.new(:headers, :url, keyword_init: true) unless defined?(RequestStruct)
@@ -57,6 +58,8 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
     mock_config.traces_sample_rate = nil
     mock_config.profiles_sample_rate = nil
     mock_config.before_send = nil
+    mock_config.org_id = nil
+    mock_config.strict_trace_continuation = nil
 
     # Stub Kernel.require to avoid loading the real gem
     allow(Kernel).to receive(:require).and_call_original
@@ -208,6 +211,51 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       expect(mock_config.traces_sample_rate).to eq(0.1)
       expect(mock_config.profiles_sample_rate).to eq(0.1)
       expect(mock_config.before_send).to be_a(Proc)
+    end
+
+    it "enables strict_trace_continuation and sets org_id when org_id is configured" do
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'org_id' => 'test-org-123',
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => nil }
+        }
+      }
+      config['site'] = { 'host' => "test.example.com" }
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      Onetime.instance_variable_set(:@conf, config)
+      execute_diagnostics_initializer
+
+      expect(mock_config.org_id).to eq('test-org-123')
+      expect(mock_config.strict_trace_continuation).to eq(true)
+    end
+
+    it "leaves strict_trace_continuation off and org_id nil when org_id is not configured" do
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => nil }
+        }
+      }
+      config['site'] = { 'host' => "test.example.com" }
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      Onetime.instance_variable_set(:@conf, config)
+      execute_diagnostics_initializer
+
+      expect(mock_config.org_id).to be_nil
+      expect(mock_config.strict_trace_continuation).to eq(false)
     end
   end
 

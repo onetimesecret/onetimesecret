@@ -68,6 +68,19 @@ module Onetime
           config.dsn         = dsn
           config.environment = OT.env
 
+          # Strict trace continuation (sentry-ruby 6.5+) — when an org_id is
+          # configured, refuse to continue distributed traces whose
+          # sentry-org_id baggage doesn't match. Defends against a third-party
+          # service (instrumented by Sentry under a different org) injecting
+          # trace context into our request path. org_id must be set explicitly
+          # for self-hosted Sentry because DSN-based parsing only works for the
+          # SaaS ingest hostnames. When org_id is nil, strict mode is left off
+          # so inbound requests carrying any sentry-org_id baggage (e.g. from a
+          # browser running sentry-javascript) still stitch into the trace.
+          sentry_org_id                    = OT.conf.dig('diagnostics', 'sentry', 'org_id')
+          config.org_id                    = sentry_org_id
+          config.strict_trace_continuation = !sentry_org_id.nil?
+
           # Determine Sentry release identifier. Priority:
           # 1. SENTRY_RELEASE env var (explicit override)
           # 2. .commit_hash.txt file (baked into Docker image by CI)

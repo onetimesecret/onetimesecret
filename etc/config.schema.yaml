@@ -176,6 +176,7 @@ diagnostics:
     frontend:
       dsn: str(required=False)
       trackComponents: any(str(), bool())
+    org_id: str(required=False)
 
 logging:
   http_requests: any(str(), bool())
