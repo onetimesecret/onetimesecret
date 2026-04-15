@@ -55,50 +55,48 @@ module Onetime
           store_envelope(delivery_info, metadata)
 
           data = nil
-          begin
-            with_trace_context do
-              data = parse_message(msg)
-              return unless data # parse_message handles reject on error
+          with_trace_context do
+            data = parse_message(msg)
+            return unless data # parse_message handles reject on error
 
-              # Handle ping test messages (from: bin/ots queue ping)
-              if ping_test?(data)
-                log_info 'Received ping test', template: data[:template], ping_id: data.dig(:data, :ping_id)
-                return ack!
-              end
-
-              # Atomic idempotency claim: only one worker can claim a message
-              unless claim_for_processing(message_id)
-                log_info "Skipping duplicate message: #{message_id}"
-                return ack!
-              end
-
-              log_debug "Processing email: #{data[:template]} (metadata: #{message_metadata})"
-
-              # Only skip retries for non-transient DeliveryErrors (auth failure, permanent rejection).
-              # Plain StandardErrors and transient DeliveryErrors are retriable.
-              retriable = ->(ex) { !ex.is_a?(Onetime::Mail::DeliveryError) || ex.transient? }
-
-              with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
-                deliver_email(data)
-              end
-
-              log_info "Email delivered: #{data[:template]}"
-              update_delivery_status(data, 'sent')
-              ack!
+            # Handle ping test messages (from: bin/ots queue ping)
+            if ping_test?(data)
+              log_info 'Received ping test', template: data[:template], ping_id: data.dig(:data, :ping_id)
+              return ack!
             end
-          rescue Onetime::Mail::DeliveryError => ex
-            if ex.transient?
-              log_error 'Transient delivery error (retries exhausted)', ex
-            else
-              log_error 'Non-transient delivery error, skipping to DLQ', ex
+
+            # Atomic idempotency claim: only one worker can claim a message
+            unless claim_for_processing(message_id)
+              log_info "Skipping duplicate message: #{message_id}"
+              return ack!
             end
-            update_delivery_status(data, 'failed')
-            reject! # Send to DLQ
-          rescue StandardError => ex
-            log_error 'Unexpected error delivering email', ex
-            update_delivery_status(data, 'failed')
-            reject! # Send to DLQ
+
+            log_debug "Processing email: #{data[:template]} (metadata: #{message_metadata})"
+
+            # Only skip retries for non-transient DeliveryErrors (auth failure, permanent rejection).
+            # Plain StandardErrors and transient DeliveryErrors are retriable.
+            retriable = ->(ex) { !ex.is_a?(Onetime::Mail::DeliveryError) || ex.transient? }
+
+            with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
+              deliver_email(data)
+            end
+
+            log_info "Email delivered: #{data[:template]}"
+            update_delivery_status(data, 'sent')
+            ack!
           end
+        rescue Onetime::Mail::DeliveryError => ex
+          if ex.transient?
+            log_error 'Transient delivery error (retries exhausted)', ex
+          else
+            log_error 'Non-transient delivery error, skipping to DLQ', ex
+          end
+          update_delivery_status(data, 'failed')
+          reject! # Send to DLQ
+        rescue StandardError => ex
+          log_error 'Unexpected error delivering email', ex
+          update_delivery_status(data, 'failed')
+          reject! # Send to DLQ
         end
 
         # Templates that support delivery status tracking on the customer model
