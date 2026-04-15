@@ -1,0 +1,282 @@
+# .github/workflows/ruby-4-preview.yml
+---
+name: Ruby 4 Preview
+
+# Standalone, non-blocking workflow that runs Ruby lint and tests under
+# Ruby 4.0.2 so the team can see what breaks before committing to the
+# upgrade. Every job is marked continue-on-error, so failures surface as
+# red checks on the PR without blocking merge.
+#
+# Design notes:
+# - Jobs are independent: each test job only needs build-assets for the
+#   frontend artifact, and uses `if: always()` so a failure in one job
+#   does not cascade into skipping others.
+# - Mirrors the service image pins and composite actions from ci.yml so
+#   the only intended variable is the Ruby version.
+# - Artifacts are scoped per workflow run, so there is no collision with
+#   the main CI workflow's `frontend-build` artifact.
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - 'rel/*'
+      - 'fix/*'
+      - 'feature/*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ruby4-preview-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-assets:
+    name: Ruby 4 · Build Frontend Assets
+    runs-on: &runs-on ubuntu-24.04
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - &checkout-step
+        name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Build assets
+        run: pnpm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: frontend-build
+          path: public/web/dist/
+          retention-days: 1
+          if-no-files-found: error
+
+  ruby-lint:
+    name: Ruby 4 · Lint
+    runs-on: *runs-on
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - *checkout-step
+
+      - uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        with:
+          ruby-version: '4.0.2'
+          bundler-cache: true
+
+      - name: Run Rubocop
+        run: |
+          mkdir -p tmp
+          bundle exec rubocop --config .rubocop.yml \
+            --format progress \
+            --format json --out tmp/rubocop_results.json \
+            --fail-level warning
+
+      - name: Upload Rubocop results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: ruby4-rubocop-results
+          path: tmp/rubocop_results.json
+          retention-days: 7
+
+  ruby-unit:
+    name: Ruby 4 · Unit Tests
+    runs-on: *runs-on
+    timeout-minutes: 15
+    continue-on-error: true
+    needs: [build-assets]
+    if: always()
+
+    services:
+      redis: &valkey-service
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2121:6379
+      rabbitmq: &rabbitmq-service
+        image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
+        options: >-
+          --health-cmd "rabbitmq-diagnostics check_port_connectivity"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5672:5672
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+        with:
+          ruby-version: '4.0.2'
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: unit
+          auth-mode: simple
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          results-file: 'ruby4_rspec_unit_results.json'
+
+  ruby-integration-simple:
+    name: Ruby 4 · Integration (Simple Mode)
+    runs-on: *runs-on
+    timeout-minutes: 15
+    continue-on-error: true
+    needs: [build-assets]
+    if: always()
+
+    services:
+      redis: *valkey-service
+      rabbitmq: *rabbitmq-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+        with:
+          ruby-version: '4.0.2'
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: simple
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          results-file: 'ruby4_rspec_simple_results.json'
+
+  ruby-integration-full-sqlite:
+    name: Ruby 4 · Integration (Full Mode - SQLite)
+    runs-on: *runs-on
+    timeout-minutes: 15
+    continue-on-error: true
+    needs: [build-assets]
+    if: always()
+
+    services:
+      redis: *valkey-service
+      rabbitmq: *rabbitmq-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+        with:
+          ruby-version: '4.0.2'
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: full
+          auth-database-url: 'sqlite::memory:'
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          results-file: 'ruby4_rspec_full_sqlite_results.json'
+
+  ruby-integration-disabled:
+    name: Ruby 4 · Integration (Disabled Mode)
+    runs-on: *runs-on
+    timeout-minutes: 15
+    continue-on-error: true
+    needs: [build-assets]
+    if: always()
+
+    services:
+      redis: *valkey-service
+      rabbitmq: *rabbitmq-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+        with:
+          ruby-version: '4.0.2'
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: disabled
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          results-file: 'ruby4_rspec_disabled_results.json'
