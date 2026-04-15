@@ -16,14 +16,25 @@ module Onetime
   module ClassMethods
     prepend Onetime::LoggerMethods
 
-    @env          = nil
-    @mode       ||= :app
-    @debug        = nil
-    @logger       = nil
-    @logging_conf = nil
-    @d9s_enabled  = false
+    @env            = nil
+    @mode         ||= :app
+    @execution_mode = :cli
+    @debug          = nil
+    @logger         = nil
+    @logging_conf   = nil
+    @d9s_enabled    = false
 
     attr_accessor :mode, :env, :logging_conf, :d9s_enabled
+
+    # Execution mode identifies the type of process running:
+    #   :web       - Puma/Rack web server
+    #   :worker    - Sneakers background job workers
+    #   :scheduler - Rufus scheduler daemon
+    #   :cli       - Command line tools (default)
+    #
+    # Set by CLI commands before boot_application! to allow initializers
+    # (e.g., SetupDiagnostics) to configure process-specific settings.
+    attr_accessor :execution_mode
     attr_writer :debug
 
     # Returns the current wall clock time as microseconds since Unix epoch

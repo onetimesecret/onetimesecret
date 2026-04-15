@@ -39,6 +39,10 @@ module Onetime
           desc: 'Log level: trace, debug, info, warn, error'
 
         def call(_environment: 'development', daemonize: false, _log_level: 'info', **)
+          # Set execution mode before boot so initializers can configure
+          # process-specific settings (e.g., Sentry DSN for scheduler).
+          OT.execution_mode = :scheduler
+
           boot_application!
 
           if daemonize

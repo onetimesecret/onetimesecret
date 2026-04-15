@@ -362,4 +362,177 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
   # valid config with all keys properly initialized. Testing individual initializers
   # via execute() is more reliable and still validates the core functionality.
   # The boot! process is tested in boot_part2_spec.rb with proper setup.
+
+  # Tests for execution_mode-aware DSN selection (GitHub #2973)
+  # Workers and schedulers can use a separate Sentry DSN to isolate
+  # background job errors from web/CLI errors.
+  describe "execution_mode-aware DSN selection" do
+    let(:backend_dsn) { "https://backend-dsn@sentry.io/12345" }
+    let(:workers_dsn) { "https://workers-dsn@sentry.io/67890" }
+
+    before do
+      # Stub Kernel.require to avoid loading the real gem
+      allow(Kernel).to receive(:require).and_call_original
+      allow(Kernel).to receive(:require).with('sentry-ruby').and_return(true)
+      allow(Kernel).to receive(:require).with('stackprof').and_return(true)
+    end
+
+    def setup_config_with_workers_dsn(workers_dsn_value)
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => backend_dsn },
+          'workers' => { 'dsn' => workers_dsn_value },
+          'frontend' => { 'dsn' => nil }
+        }
+      }
+      config['site'] = { 'host' => "test.example.com" }
+      config['features'] = { 'regions' => { 'current_jurisdiction' => 'US' } }
+      Onetime.instance_variable_set(:@conf, config)
+    end
+
+    context "when OT.execution_mode is :worker" do
+      before do
+        skip "Awaiting OT.execution_mode implementation" unless OT.respond_to?(:execution_mode)
+      end
+
+      it "uses workers DSN when workers DSN is configured" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:worker)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(workers_dsn)
+      end
+
+      it "falls back to backend DSN when workers DSN is nil" do
+        setup_config_with_workers_dsn(nil)
+        allow(OT).to receive(:execution_mode).and_return(:worker)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(backend_dsn)
+      end
+
+      it "falls back to backend DSN when workers DSN is empty string" do
+        setup_config_with_workers_dsn("")
+        allow(OT).to receive(:execution_mode).and_return(:worker)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(backend_dsn)
+      end
+    end
+
+    context "when OT.execution_mode is :scheduler" do
+      before do
+        skip "Awaiting OT.execution_mode implementation" unless OT.respond_to?(:execution_mode)
+      end
+
+      it "uses workers DSN when workers DSN is configured" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:scheduler)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(workers_dsn)
+      end
+
+      it "falls back to backend DSN when workers DSN is not configured" do
+        setup_config_with_workers_dsn(nil)
+        allow(OT).to receive(:execution_mode).and_return(:scheduler)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(backend_dsn)
+      end
+    end
+
+    context "when OT.execution_mode is :web" do
+      before do
+        skip "Awaiting OT.execution_mode implementation" unless OT.respond_to?(:execution_mode)
+      end
+
+      it "uses backend DSN even when workers DSN is configured" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:web)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(backend_dsn)
+      end
+    end
+
+    context "when OT.execution_mode is :cli" do
+      before do
+        skip "Awaiting OT.execution_mode implementation" unless OT.respond_to?(:execution_mode)
+      end
+
+      it "uses backend DSN even when workers DSN is configured" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:cli)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(backend_dsn)
+      end
+    end
+
+    context "when OT.execution_mode is not defined" do
+      it "uses backend DSN by default" do
+        # This tests backward compatibility when execution_mode is not implemented
+        setup_config_with_workers_dsn(workers_dsn)
+
+        # Do not stub execution_mode - let it use default behavior
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(backend_dsn)
+      end
+    end
+
+    context "release version and jurisdiction tags" do
+      before do
+        skip "Awaiting OT.execution_mode implementation" unless OT.respond_to?(:execution_mode)
+      end
+
+      it "sets same release version regardless of execution mode" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:worker)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.release).to eq(OT::VERSION.details)
+      end
+
+      it "sets same jurisdiction tag regardless of execution mode" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:scheduler)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.tags).to include(jurisdiction: "us")
+      end
+
+      it "sets same site_host tag regardless of execution mode" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:worker)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.tags).to include(site_host: "test.example.com")
+      end
+    end
+  end
 end
