@@ -90,6 +90,50 @@ RSpec.describe Onetime::Config do
           expect(sentry_config['defaults']).to eq(original)
         end
       end
+
+      # Contract relied on by Onetime::Initializers::SetupDiagnostics, which
+      # reads diagnostics.sentry.backend.org_id (and equivalently workers/
+      # frontend) at runtime. If this propagation ever regresses, strict
+      # trace continuation silently turns off — this is the bug fixed in
+      # commit af8bd0243 / PR #3007.
+      context 'sentry org_id propagation contract' do
+        let(:sentry_with_org_id) do
+          {
+            'defaults' => {
+              'org_id' => 'org-abc-123',
+              'environment' => 'test',
+            },
+            'backend'  => { 'dsn' => 'backend-dsn' },
+            'frontend' => { 'dsn' => 'frontend-dsn' },
+            'workers'  => { 'dsn' => 'workers-dsn' },
+          }
+        end
+
+        it 'propagates org_id from defaults to every peer hash' do
+          result = described_class.apply_defaults_to_peers(sentry_with_org_id)
+
+          expect(result['backend']['org_id']).to  eq('org-abc-123')
+          expect(result['frontend']['org_id']).to eq('org-abc-123')
+          expect(result['workers']['org_id']).to  eq('org-abc-123')
+        end
+
+        it 'lets a peer override org_id from defaults' do
+          sentry_with_org_id['workers']['org_id'] = 'org-workers-override'
+          result = described_class.apply_defaults_to_peers(sentry_with_org_id)
+
+          expect(result['backend']['org_id']).to eq('org-abc-123')
+          expect(result['workers']['org_id']).to eq('org-workers-override')
+        end
+
+        it 'leaves org_id absent on peers when defaults omit it' do
+          sentry_with_org_id['defaults'].delete('org_id')
+          result = described_class.apply_defaults_to_peers(sentry_with_org_id)
+
+          expect(result['backend']).not_to have_key('org_id')
+          expect(result['frontend']).not_to have_key('org_id')
+          expect(result['workers']).not_to have_key('org_id')
+        end
+      end
   end
 
   describe '#apply_defaults' do
