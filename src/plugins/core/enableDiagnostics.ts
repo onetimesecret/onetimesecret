@@ -356,8 +356,12 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [
       /^localhost(:\d+)?$/, // Matches localhost with optional port
-      // Add host domain regex only if host is provided
-      ...(host ? [new RegExp(`^https?:\/\/[^/]+${host.replace('.', '\\.')}`)] : []),
+      // Add host domain regex only if host is provided.
+      // Properly anchored: requires host to be at the end of the domain portion,
+      // either at end of string or followed by / or :port
+      ...(host
+        ? [new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?(/|$)`, 'i')]
+        : []),
     ],
 
     // Only the integrations listed here will be used
@@ -420,4 +424,3 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     },
   };
 }
-
