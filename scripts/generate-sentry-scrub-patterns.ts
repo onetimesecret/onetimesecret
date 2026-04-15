@@ -74,8 +74,11 @@ function getPathParams(path: string): string[] {
  * Example: /secret/:identifier -> \/secret\/([a-zA-Z0-9]+)
  */
 function pathToRegexPattern(path: string): string {
-  // Escape forward slashes and replace :param with capture group
+  // Escape regex special characters, then replace :param with capture group.
+  // Backslashes first (before they could be introduced by other escapes),
+  // then forward slashes, then parameter placeholders.
   return path
+    .replace(/\\/g, '\\\\')
     .replace(/\//g, '\\/')
     .replace(/:(\w+)/g, '([a-zA-Z0-9]+)');
 }
@@ -171,10 +174,11 @@ export function scrubSensitivePath(url: string): string {
   let result = url;
   for (const pattern of SENSITIVE_PATH_PATTERNS) {
     pattern.lastIndex = 0; // Reset global regex state
-    result = result.replace(pattern, (match, ...groups) => {
-      // Replace each captured group with [REDACTED]
+    result = result.replace(pattern, (match, ...args) => {
+      // args contains [p1, ..., pN, offset, originalString] — slice off last 2
+      const captureGroups = args.slice(0, -2);
       let scrubbed = match;
-      for (const group of groups) {
+      for (const group of captureGroups) {
         if (typeof group === 'string') {
           scrubbed = scrubbed.replace(group, '[REDACTED]');
         }

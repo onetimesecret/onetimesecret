@@ -82,10 +82,11 @@ export function scrubSensitivePath(url: string): string {
   let result = url;
   for (const pattern of SENSITIVE_PATH_PATTERNS) {
     pattern.lastIndex = 0; // Reset global regex state
-    result = result.replace(pattern, (match, ...groups) => {
-      // Replace each captured group with [REDACTED]
+    result = result.replace(pattern, (match, ...args) => {
+      // args contains [p1, ..., pN, offset, originalString] — slice off last 2
+      const captureGroups = args.slice(0, -2);
       let scrubbed = match;
-      for (const group of groups) {
+      for (const group of captureGroups) {
         if (typeof group === 'string') {
           scrubbed = scrubbed.replace(group, '[REDACTED]');
         }

@@ -270,4 +270,76 @@ describe('generated sentry-scrub-patterns', () => {
       });
     });
   });
+
+  describe('pathToRegexPattern backslash escaping', () => {
+    // Tests for the backslash escaping fix in scripts/generate-sentry-scrub-patterns.ts
+    // The pathToRegexPattern function must escape backslashes before other characters
+    // to prevent regex injection. These tests verify the expected pattern behavior.
+
+    /**
+     * Mimics pathToRegexPattern from the generator script.
+     * This allows testing the escaping logic in isolation.
+     */
+    function pathToRegexPattern(path: string): string {
+      return path
+        .replace(/\\/g, '\\\\')
+        .replace(/\//g, '\\/')
+        .replace(/:(\w+)/g, '([a-zA-Z0-9]+)');
+    }
+
+    it('escapes single backslash in path', () => {
+      // Defensive test: paths should not contain backslashes, but if they do,
+      // they must be properly escaped to avoid regex injection
+      const pattern = pathToRegexPattern('/api/v1/test\\path');
+      expect(pattern).toBe('\\/api\\/v1\\/test\\\\path');
+
+      // Verify the resulting pattern is valid regex
+      const regex = new RegExp(pattern);
+      expect(regex.test('/api/v1/test\\path')).toBe(true);
+    });
+
+    it('escapes multiple consecutive backslashes', () => {
+      const pattern = pathToRegexPattern('/api/v1/test\\\\double');
+      expect(pattern).toBe('\\/api\\/v1\\/test\\\\\\\\double');
+
+      const regex = new RegExp(pattern);
+      expect(regex.test('/api/v1/test\\\\double')).toBe(true);
+    });
+
+    it('escapes backslashes mixed with forward slashes', () => {
+      const pattern = pathToRegexPattern('/api/v1/a\\b/c\\d');
+      expect(pattern).toBe('\\/api\\/v1\\/a\\\\b\\/c\\\\d');
+
+      const regex = new RegExp(pattern);
+      expect(regex.test('/api/v1/a\\b/c\\d')).toBe(true);
+      expect(regex.test('/api/v1/aXb/cYd')).toBe(false);
+    });
+
+    it('escapes backslashes before parameter placeholders', () => {
+      // Backslash before :key is escaped, and :key is still converted to capture group
+      // because the parameter replacement regex matches any :word pattern
+      const pattern = pathToRegexPattern('/api/v1/test\\:key/:id');
+      expect(pattern).toBe('\\/api\\/v1\\/test\\\\([a-zA-Z0-9]+)\\/([a-zA-Z0-9]+)');
+
+      const regex = new RegExp(pattern);
+      expect(regex.test('/api/v1/test\\abc123/def456')).toBe(true);
+    });
+
+    it('handles path with only backslashes', () => {
+      const pattern = pathToRegexPattern('\\\\\\');
+      expect(pattern).toBe('\\\\\\\\\\\\');
+
+      const regex = new RegExp(pattern);
+      expect(regex.test('\\\\\\')).toBe(true);
+    });
+
+    it('handles normal paths without backslashes unchanged', () => {
+      // Regression test: ensure normal paths still work correctly
+      const pattern = pathToRegexPattern('/api/v1/secret/:key');
+      expect(pattern).toBe('\\/api\\/v1\\/secret\\/([a-zA-Z0-9]+)');
+
+      const regex = new RegExp(pattern, 'i');
+      expect(regex.test('/api/v1/secret/abc123')).toBe(true);
+    });
+  });
 });
