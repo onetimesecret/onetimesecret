@@ -81,6 +81,50 @@ export function scrubSensitiveStrings(text: string): string {
 }
 
 /**
+ * Apply anchored generated patterns to the pathname portion of a URL.
+ *
+ * The generated patterns in `sentry-scrub-patterns.ts` are anchored with `^`/`$`
+ * so that they only match a bare pathname (e.g. `/api/v3/secret/<id>`), not a
+ * full URL like `https://host/api/v3/secret/<id>?q=1`. Sentry breadcrumbs pass
+ * full absolute URLs, while axios interceptors pass bare paths — so we always
+ * parse the input through `URL` (using a synthetic base for bare paths) to
+ * normalize away the query/fragment before invoking the anchored patterns.
+ */
+function extractAndScrubPath(input: string): string {
+  try {
+    // Use a synthetic base so bare paths (e.g. /api/v1/secret/abc?foo=bar)
+    // parse cleanly. The base is discarded when reassembling — we only use
+    // its parser. Detect "had host" by checking the raw input for a protocol
+    // prefix, since `new URL('/p', 'http://_')` yields host `_` which we must
+    // not echo back.
+    //
+    // Protocol-relative URLs (`//host/path`) are detected alongside
+    // fully-qualified URLs so the host is preserved during reassembly.
+    // Removing the `startsWith('//')` branch would cause such URLs to
+    // silently drop their host. Adding it must also preserve the `//`
+    // prefix on output (do not echo back the synthetic `http:` scheme
+    // from the base URL).
+    //
+    // data: URIs (`data:text/plain,foo`) are not a real Sentry breadcrumb
+    // input shape and are not accounted for. Under current logic they
+    // would have their scheme stripped because the scheme regex requires
+    // `://`.
+    const isProtocolRelative = input.startsWith('//');
+    const isFullURL = /^[a-z][a-z0-9+.-]*:\/\//i.test(input);
+    const hadHost = isProtocolRelative || isFullURL;
+    const parsed = new URL(input, 'http://_');
+    const scrubbedPath = scrubSensitivePath(parsed.pathname);
+    if (!hadHost) return scrubbedPath + parsed.search + parsed.hash;
+    const prefix = isProtocolRelative ? '//' : parsed.protocol + '//';
+    return prefix + parsed.host + scrubbedPath + parsed.search + parsed.hash;
+  } catch {
+    // Fallback for genuinely malformed inputs (e.g. control chars that the
+    // URL parser rejects even with a base).
+    return scrubSensitivePath(input);
+  }
+}
+
+/**
  * Scrubs sensitive identifiers from a URL path using regex patterns.
  * Used for HTTP breadcrumbs where we don't have route context.
  *
@@ -97,10 +141,11 @@ export function scrubUrlWithPatterns(url: string): string {
     return url;
   }
 
-  let result = url;
-
-  // First pass: scrub using generated route-derived patterns
-  result = scrubSensitivePath(result);
+  // First pass: scrub using generated route-derived patterns. The generated
+  // patterns are anchored, so we must apply them to the pathname only — full
+  // absolute URLs (from Sentry fetch/xhr breadcrumbs) would otherwise never
+  // match.
+  let result = extractAndScrubPath(url);
 
   // Second pass: fallback for paths not covered by generated patterns
   result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
