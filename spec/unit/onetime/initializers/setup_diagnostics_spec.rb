@@ -6,7 +6,7 @@ require 'spec_helper'
 
 # Create top-level Struct definitions to prevent "already initialized constant" warnings
 MockConfig = Struct.new(:dsn, :environment, :release, :breadcrumbs_logger,
-                       :traces_sample_rate, :profiles_sample_rate, :before_send, :tags,
+                       :traces_sample_rate, :profiles_sample_rate, :before_send,
                        keyword_init: true) unless defined?(MockConfig)
 EventStruct = Struct.new(:request, :contexts, keyword_init: true) unless defined?(EventStruct)
 RequestStruct = Struct.new(:headers, :url, keyword_init: true) unless defined?(RequestStruct)
@@ -15,6 +15,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
   let(:loaded_config) { Onetime::Config.load(source_config_path) }
   let(:mock_config) { MockConfig.new }
+  let(:captured_tags) { {} }
   let(:original_infrastructure) { Onetime::Runtime.infrastructure }
 
   # Helper to execute the initializer with given config
@@ -41,6 +42,10 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         def self.close
           nil
         end
+
+        def self.set_tags(tags)
+          # Default implementation for stubbing
+        end
       end)
     end
 
@@ -52,7 +57,6 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
     mock_config.traces_sample_rate = nil
     mock_config.profiles_sample_rate = nil
     mock_config.before_send = nil
-    mock_config.tags = nil
 
     # Stub Kernel.require to avoid loading the real gem
     allow(Kernel).to receive(:require).and_call_original
@@ -66,6 +70,9 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
     end
     allow(Sentry).to receive(:initialized?).and_return(true)
     allow(Sentry).to receive(:close).and_return(nil)
+    allow(Sentry).to receive(:set_tags) do |tags|
+      captured_tags.merge!(tags)
+    end
   end
 
   after do
@@ -222,7 +229,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       Onetime.instance_variable_set(:@conf, config)
       execute_diagnostics_initializer
 
-      expect(mock_config.tags).to include(site_host: "prod.example.com")
+      expect(captured_tags).to include(site_host: "prod.example.com")
     end
 
     it "sets jurisdiction tag as lowercase" do
@@ -247,7 +254,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       Onetime.instance_variable_set(:@conf, config)
       execute_diagnostics_initializer
 
-      expect(mock_config.tags).to include(jurisdiction: "eu")
+      expect(captured_tags).to include(jurisdiction: "eu")
     end
 
     it "normalizes mixed-case jurisdiction to lowercase" do
@@ -272,7 +279,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       Onetime.instance_variable_set(:@conf, config)
       execute_diagnostics_initializer
 
-      expect(mock_config.tags).to include(jurisdiction: "us")
+      expect(captured_tags).to include(jurisdiction: "us")
     end
 
     it "omits jurisdiction tag when not configured" do
@@ -298,8 +305,8 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       Onetime.instance_variable_set(:@conf, config)
       execute_diagnostics_initializer
 
-      expect(mock_config.tags).to include(site_host: "test.example.com")
-      expect(mock_config.tags).not_to have_key(:jurisdiction)
+      expect(captured_tags).to include(site_host: "test.example.com")
+      expect(captured_tags).not_to have_key(:jurisdiction)
     end
   end
 
@@ -709,7 +716,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         expect(Sentry).to receive(:init).and_yield(mock_config)
         execute_diagnostics_initializer
 
-        expect(mock_config.tags).to include(jurisdiction: "us")
+        expect(captured_tags).to include(jurisdiction: "us")
       end
 
       it "sets same site_host tag regardless of execution mode" do
@@ -719,7 +726,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         expect(Sentry).to receive(:init).and_yield(mock_config)
         execute_diagnostics_initializer
 
-        expect(mock_config.tags).to include(site_host: "test.example.com")
+        expect(captured_tags).to include(site_host: "test.example.com")
       end
     end
   end
