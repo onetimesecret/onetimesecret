@@ -5,6 +5,15 @@ import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import type { RouteMeta } from '@/types/router';
 import { DEBUG } from '@/utils/debug';
+
+/**
+ * Build-time Sentry release version, injected by Vite define.
+ * Matches the commit hash used for sourcemap uploads, ensuring
+ * frontend errors can be correlated with the correct sourcemaps.
+ *
+ * @see vite.config.ts getSentryRelease()
+ */
+declare const __SENTRY_RELEASE__: string;
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
@@ -310,7 +319,13 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
 
     // Scrub sensitive URLs from breadcrumbs at capture time
     beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
-    ...config.sentry, // includes dsn, environment, release, etc.
+    ...config.sentry, // includes dsn, environment, etc.
+
+    // Build-time release takes precedence over backend config.
+    // This ensures frontend errors match the sourcemaps uploaded during this build,
+    // which is critical for CDN caching and rolling deploys where the backend
+    // might be running a newer release than the cached frontend bundle.
+    release: __SENTRY_RELEASE__,
   };
 
   console.debug('[EnableDiagnostics] sentryOptions:', sentryOptions);

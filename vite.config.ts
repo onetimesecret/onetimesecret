@@ -2,6 +2,8 @@
 
 import Vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
+import { execSync } from 'child_process';
+import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
@@ -18,6 +20,28 @@ import Inspector from 'vite-plugin-vue-inspector';
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
 const viteBaseUrl = process.env.VITE_BASE_URL;
+
+/**
+ * Sentry Release Version - Baked into Frontend Bundle
+ * ----------------------------------------------------
+ * Reads the commit hash from .commit_hash.txt (created by pre-commit hook
+ * and baked into Docker images). This ensures frontend errors are tagged
+ * with the exact release that was compiled, matching sourcemap uploads.
+ *
+ * Falls back to 'dev' for local development without the pre-commit hook.
+ *
+ * @see PR #2995 for backend release tracking
+ */
+function getSentryRelease(): string {
+  const commitHashPath = resolve(process.cwd(), '.commit_hash.txt');
+  if (existsSync(commitHashPath)) {
+    const hash = readFileSync(commitHashPath, 'utf-8').trim();
+    if (hash) {
+      return hash;
+    }
+  }
+  return 'dev';
+}
 
 // server.allowedHosts - Multiple hosts can be separated by commas.
 //
@@ -321,5 +345,8 @@ export default defineConfig(({ command: _command }) => ({
     // vue-i18n (intlify) feature flags — Rollup auto-replaced these but
     // Rolldown requires explicit definition to avoid ReferenceError at runtime
     __INTLIFY_PROD_DEVTOOLS__: false,
+    // Sentry release version baked at build time to match sourcemap uploads.
+    // Falls back to 'dev' when .commit_hash.txt doesn't exist (local development).
+    __SENTRY_RELEASE__: JSON.stringify(getSentryRelease()),
   },
 }));
