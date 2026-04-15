@@ -153,7 +153,7 @@ describe('getSentryRelease() Single Source of Truth', () => {
 
     it('getSentryRelease uses git rev-parse as third fallback', () => {
       const content = fs.readFileSync(viteConfigPath, 'utf-8');
-      expect(content).toContain("execSync('git rev-parse --short=7 HEAD')");
+      expect(content).toContain("execSync('git rev-parse --short=7 HEAD', { timeout: 5000 })");
     });
 
     it('getSentryRelease returns "dev" as final fallback', () => {
