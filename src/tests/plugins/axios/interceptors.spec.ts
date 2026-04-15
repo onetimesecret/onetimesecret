@@ -393,8 +393,8 @@ describe('axios interceptors', () => {
         await expect(errorInterceptor(error)).rejects.toBe(error);
 
         expect(Sentry.addBreadcrumb).toHaveBeenCalledTimes(1);
-        // Empty method string.toUpperCase() returns '' which is truthy (not nullish),
-        // so ?? 'HTTP' does NOT kick in - empty string is preserved
+        // Empty method string.toUpperCase() returns '' which is falsy,
+        // so || 'HTTP' kicks in - defaults to 'HTTP'
         expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
           expect.objectContaining({
             type: 'http',
@@ -402,7 +402,7 @@ describe('axios interceptors', () => {
             level: 'error',
             data: expect.objectContaining({
               url: '',
-              method: '',
+              method: 'HTTP',
             }),
           })
         );

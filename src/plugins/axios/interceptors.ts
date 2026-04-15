@@ -7,7 +7,7 @@ import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
-import { scrubUrlWithPatterns } from '../core/enableDiagnostics';
+import { scrubSensitiveStrings, scrubUrlWithPatterns } from '../core/enableDiagnostics';
 
 /**
  * CSRF Token Interceptors
@@ -140,7 +140,7 @@ export const errorInterceptor = (error: AxiosError) => {
 
   // Add Sentry breadcrumb for API error debugging
   const scrubbedUrl = scrubUrlWithPatterns(error.config?.url ?? '');
-  const method = error.config?.method?.toUpperCase() ?? 'HTTP';
+  const method = error.config?.method?.toUpperCase() || 'HTTP';
   addBreadcrumb({
     type: 'http',
     category: 'http.client',
@@ -150,7 +150,7 @@ export const errorInterceptor = (error: AxiosError) => {
       url: scrubbedUrl,
       method,
       status_code: error.response?.status,
-      reason: error.message,
+      reason: scrubSensitiveStrings(error.message),
     },
   });
 
