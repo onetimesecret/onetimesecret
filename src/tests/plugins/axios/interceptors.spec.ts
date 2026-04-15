@@ -130,13 +130,14 @@ describe('axios interceptors', () => {
         expect(mockAddBreadcrumb).toHaveBeenCalledWith({
           type: 'http',
           category: 'axios',
+          level: 'error',
+          message: 'POST /api/v3/secrets',
           data: {
             method: 'POST',
             url: '/api/v3/secrets',
             status_code: 500,
             reason: 'Internal Server Error',
           },
-          level: 'error',
         });
       });
 

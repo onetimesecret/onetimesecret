@@ -134,13 +134,14 @@ export const errorInterceptor = (error: AxiosError) => {
   addBreadcrumb({
     type: 'http',
     category: 'axios',
+    level: 'error',
+    message: `${method} ${url}`,
     data: {
       method,
       url,
       ...(error.response?.status != null && { status_code: error.response.status }),
       reason: scrubSensitiveStrings(error.message),
     },
-    level: 'error',
   });
 
   // Update our local shrimp token if new one is provided
