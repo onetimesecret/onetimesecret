@@ -447,6 +447,10 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   const scope = new Scope();
   scope.setClient(client);
 
+  // Set default service tag for all events from this frontend app
+  // @see https://github.com/onetimesecret/onetimesecret/issues/2964
+  scope.setTag('service', 'web');
+
   // Initialize the Sentry client. This is equivalent to calling
   // Sentry.init() with the options provided above.
   client.init(); // after setting the client on the scope
