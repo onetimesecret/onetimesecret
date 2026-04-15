@@ -40,6 +40,7 @@ import { responseSchemas as v1ResponseSchemas } from '@/schemas/api/v1/responses
 import { responseSchemas as v2ResponseSchemas } from '@/schemas/api/v2/responses/registry';
 import { responseSchemas as v3ResponseSchemas } from '@/schemas/api/v3/responses/registry';
 import { responseSchemas as internalResponseSchemas } from '@/schemas/api/internal/responses/registry';
+import { responseSchemas as incomingResponseSchemas } from '@/schemas/api/incoming/responses/registry';
 import { shapeSchemas } from '@/schemas/registry';
 
 // Version-aware registry selection for schema validation.
@@ -49,25 +50,43 @@ type ResponseSchemaRegistry =
   | typeof v1ResponseSchemas
   | typeof v2ResponseSchemas
   | typeof v3ResponseSchemas
-  | typeof internalResponseSchemas;
+  | typeof internalResponseSchemas
+  | typeof incomingResponseSchemas;
 
+/**
+ * Maps API version strings to their corresponding response schema registries.
+ * Used by `getRegistryForVersion()` to validate response keys against the
+ * correct registry for each API version.
+ */
 const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   v1: v1ResponseSchemas,
   v2: v2ResponseSchemas,
   v3: v3ResponseSchemas,
   internal: internalResponseSchemas,
+  incoming: incomingResponseSchemas,
 };
 
-// Internal API prefixes that map to the internal registry
+/**
+ * Ruby API module prefixes that route to the internal response schema registry.
+ * When `extractVersion()` encounters a class name starting with one of these
+ * prefixes, it returns 'internal' as the version identifier.
+ */
 const INTERNAL_API_PREFIXES = ['AccountAPI', 'ColonelAPI', 'DomainsAPI', 'OrganizationAPI', 'InviteAPI'];
+
+/**
+ * Ruby API module prefix for incoming webhooks and external integrations.
+ * Classes under this namespace validate against `incomingResponseSchemas`.
+ */
+const INCOMING_API_PREFIX = 'Incoming';
 
 /**
  * Extract API version from a Ruby class name.
  * "V3::Logic::Secrets::ConcealSecret" → "v3"
  * "ColonelAPI::Logic::Colonel::GetColonelInfo" → "internal"
+ * "Incoming::Logic::GetConfig" → "incoming"
  * "Onetime::CustomDomain" → null (model, no version prefix)
  */
-function extractVersion(className: string): string | null {
+export function extractVersion(className: string): string | null {
   // Check for versioned APIs (V1, V2, V3)
   const versionMatch = className.match(/^(V\d+)::/i);
   if (versionMatch) return versionMatch[1].toLowerCase();
@@ -76,6 +95,9 @@ function extractVersion(className: string): string | null {
   const prefix = className.split('::')[0];
   if (INTERNAL_API_PREFIXES.includes(prefix)) return 'internal';
 
+  // Check for Incoming API prefix
+  if (prefix === INCOMING_API_PREFIX) return 'incoming';
+
   return null;
 }
 
@@ -83,7 +105,7 @@ function extractVersion(className: string): string | null {
  * Get the response schema registry for a given version.
  * Falls back to v3 for unknown versions (models, etc.)
  */
-function getRegistryForVersion(version: string | null): ResponseSchemaRegistry {
+export function getRegistryForVersion(version: string | null): ResponseSchemaRegistry {
   return version ? (registryByVersion[version] ?? v3ResponseSchemas) : v3ResponseSchemas;
 }
 
@@ -459,6 +481,14 @@ const validRequestKeys = new Set([
 ]);
 
 /**
+ * Normalize model key from Ruby convention to TypeScript convention.
+ * Ruby uses 'models/secret', TypeScript uses 'shapes/secret'.
+ */
+export function normalizeModelKey(key: string): string {
+  return key.replace(/^models\//, 'shapes/');
+}
+
+/**
  * Check whether a schema key resolves to a known schema of the given type.
  * For response schemas, validates against the version-appropriate registry.
  */
@@ -467,7 +497,7 @@ function isValidKey(
   type: 'model' | 'response' | 'request',
   version?: string | null
 ): boolean {
-  if (type === 'model') return validModelKeys.has(key);
+  if (type === 'model') return validModelKeys.has(normalizeModelKey(key));
   if (type === 'request') return validRequestKeys.has(key);
   // Response validation: use version-specific registry
   const registry = getRegistryForVersion(version ?? null);
@@ -619,13 +649,17 @@ function formatSchemaValue(schema: SchemaEntry['schema']): string {
 
 /**
  * Describe which key type(s) failed validation in a broken entry.
+ * Uses the entry's className to extract version for response key validation.
+ * Includes the actual invalid key values in the error message for debugging.
  */
-function describeBrokenKey(schema: SchemaEntry['schema']): string {
+function describeBrokenKey(entry: SchemaEntry): string {
+  const { model, response, request } = entry.schema;
+  const version = extractVersion(entry.className);
   const broken: string[] = [];
-  if (schema.model && !isValidKey(schema.model, 'model')) broken.push('model');
-  if (schema.response && !isValidKey(schema.response, 'response')) broken.push('response');
-  if (schema.request && !isValidKey(schema.request, 'request')) broken.push('request');
-  return broken.length > 0 ? `invalid ${broken.join(', ')} key` : 'unknown';
+  if (model && !isValidKey(model, 'model')) broken.push(`model:'${model}'`);
+  if (response && !isValidKey(response, 'response', version)) broken.push(`response:'${response}'`);
+  if (request && !isValidKey(request, 'request')) broken.push(`request:'${request}'`);
+  return broken.length > 0 ? `invalid ${broken.join(', ')}` : 'unknown';
 }
 
 function printReport(result: ScanResult): void {
@@ -643,7 +677,7 @@ function printReport(result: ScanResult): void {
   // Broken entries — identify which key type failed
   if (result.broken.length > 0) {
     for (const entry of result.broken) {
-      const detail = describeBrokenKey(entry.schema);
+      const detail = describeBrokenKey(entry);
       console.log(`BROKEN: ${entry.className} → ${formatSchemaValue(entry.schema)} (${detail})`);
     }
     console.log('');

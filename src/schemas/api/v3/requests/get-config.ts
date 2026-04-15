@@ -1,6 +1,6 @@
 // src/schemas/api/v3/requests/get-config.ts
 //
-// Request schema for V3::Logic::Incoming::GetConfig
+// Request schema for Incoming::Logic::GetConfig
 // GET /api/incoming/config
 //
 //
