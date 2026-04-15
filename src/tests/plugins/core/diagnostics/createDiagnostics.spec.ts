@@ -5,18 +5,18 @@
 //
 // Issue: #2970 - Add jurisdiction tag to Sentry events
 
+/* eslint-disable max-classes-per-file */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Router } from 'vue-router';
 
 // ---------------------------------------------------------------------------
 // Mocks - must use vi.hoisted() for variables used in vi.mock factories
 // ---------------------------------------------------------------------------
-
 const {
   mockSetTag,
   mockSetClient,
   mockClientInit,
-  mockClientClose,
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
@@ -27,12 +27,7 @@ const {
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
   const mockGetBootstrapValue = vi.fn();
 
-  let capturedClientOptions: Record<string, unknown> | null = null;
-
   class MockBrowserClient {
-    constructor(options: Record<string, unknown>) {
-      capturedClientOptions = options;
-    }
     init = mockClientInit;
     close = mockClientClose;
   }
@@ -46,7 +41,6 @@ const {
     mockSetTag,
     mockSetClient,
     mockClientInit,
-    mockClientClose,
     mockGetBootstrapValue,
     MockBrowserClient,
     MockScope,
@@ -167,7 +161,8 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).not.toHaveBeenCalled();
+    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is null', () => {
@@ -179,7 +174,8 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).not.toHaveBeenCalled();
+    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is undefined', () => {
@@ -191,7 +187,8 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).not.toHaveBeenCalled();
+    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
   });
 
   it('does not set jurisdiction tag when regions object is missing', () => {
@@ -203,7 +200,8 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).not.toHaveBeenCalled();
+    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
   });
 
   it('does not set jurisdiction tag when regions object has no current_jurisdiction property', () => {
@@ -215,7 +213,8 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).not.toHaveBeenCalled();
+    expect(mockSetTag).toHaveBeenCalledTimes(1);
+    expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
   });
 
   it('initializes Sentry client and scope', () => {
