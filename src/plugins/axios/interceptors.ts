@@ -3,14 +3,12 @@
 import {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
-} from '@/plugins/core/enableDiagnostics';
+} from '@/plugins/core/diagnostics/scrubbers';
 import { useLanguageStore } from '@/shared/stores';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { addBreadcrumb } from '@sentry/vue';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-
-import { scrubSensitiveStrings, scrubUrlWithPatterns } from '../core/enableDiagnostics';
 
 /**
  * CSRF Token Interceptors
@@ -128,7 +126,9 @@ export const errorInterceptor = (error: AxiosError) => {
 
   // Add Sentry breadcrumb for API debugging (#2965)
   // Scrub sensitive data from URL and error message before sending
-  // Note: method/url in data object aligns with Sentry's http breadcrumb schema
+  // Note: This complements breadcrumbsIntegration auto-capture (category 'xhr'/'fetch')
+  // by adding error-specific context (reason) under a distinct 'axios' category.
+  // The method/url in data object aligns with Sentry's http breadcrumb schema.
   const method = error.config?.method?.toUpperCase() ?? 'UNKNOWN';
   const url = error.config?.url ? scrubUrlWithPatterns(error.config.url) : 'unknown';
   addBreadcrumb({
@@ -137,7 +137,7 @@ export const errorInterceptor = (error: AxiosError) => {
     data: {
       method,
       url,
-      ...(error.response?.status && { status_code: error.response.status }),
+      ...(error.response?.status != null && { status_code: error.response.status }),
       reason: scrubSensitiveStrings(error.message),
     },
     level: 'error',
@@ -147,22 +147,6 @@ export const errorInterceptor = (error: AxiosError) => {
   if (isValidShrimp(responseShrimp)) {
     csrfStore.updateShrimp(responseShrimp);
   }
-
-  // Add Sentry breadcrumb for API error debugging
-  const scrubbedUrl = scrubUrlWithPatterns(error.config?.url ?? '');
-  const method = error.config?.method?.toUpperCase() || 'HTTP';
-  addBreadcrumb({
-    type: 'http',
-    category: 'http.client',
-    level: 'error',
-    message: `${method} ${scrubbedUrl}`,
-    data: {
-      url: scrubbedUrl,
-      method,
-      status_code: error.response?.status,
-      reason: scrubSensitiveStrings(error.message),
-    },
-  });
 
   return Promise.reject(error); // no gate keeping, just pass the error along
 };

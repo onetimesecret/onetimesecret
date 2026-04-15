@@ -14,8 +14,11 @@ interface ErrorBoundaryOptions extends AsyncHandlerOptions {
 /**
  * Extracts the Vue component name for Sentry context (#2966)
  * Works with both Options API ($options.name) and script setup ($.type.name/.__name)
+ *
+ * @param instance - Vue component instance (from error handler)
+ * @returns Component name or 'unknown' if not extractable
  */
-function getComponentName(instance: unknown): string {
+export function getComponentName(instance: unknown): string {
   if (!instance || typeof instance !== 'object') return 'unknown';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const i = instance as any;

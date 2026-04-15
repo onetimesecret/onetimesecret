@@ -1,40 +1,37 @@
 // src/tests/plugins/axios/interceptors.spec.ts
+//
+// Integration tests for axios interceptors, specifically the Sentry
+// breadcrumb creation in the error interceptor.
+//
+// Issue: #2965 - Add Sentry breadcrumbs for API debugging
+//
+// Run:
+//   pnpm test src/tests/plugins/axios/interceptors.spec.ts
 
-/**
- * Tests for axios interceptors (src/plugins/axios/interceptors.ts)
- *
- * Covers:
- * - errorInterceptor breadcrumb functionality (Sentry integration)
- * - URL scrubbing for sensitive paths
- * - CSRF token preservation during errors
- *
- * Run:
- *   pnpm vitest run src/tests/plugins/axios/interceptors.spec.ts
- */
-
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import axios, { type AxiosError, type AxiosResponse } from 'axios';
-import * as Sentry from '@sentry/browser';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 // ---------------------------------------------------------------------------
-// Mock setup - must be before imports that use these modules
+// Mocks - must use vi.hoisted() for variables used in vi.mock factories
 // ---------------------------------------------------------------------------
 
-vi.mock('@sentry/browser', () => ({
-  addBreadcrumb: vi.fn(),
+const { mockAddBreadcrumb, mockUpdateShrimp } = vi.hoisted(() => ({
+  mockAddBreadcrumb: vi.fn(),
+  mockUpdateShrimp: vi.fn(),
 }));
 
-// Mock the CSRF store - use a module-level object so we can spy on it
-const mockCsrfStore = {
-  shrimp: 'mock-csrf-token',
-  updateShrimp: vi.fn(),
-};
+vi.mock('@sentry/vue', () => ({
+  addBreadcrumb: mockAddBreadcrumb,
+}));
 
+// Mock Pinia stores
 vi.mock('@/shared/stores/csrfStore', () => ({
-  useCsrfStore: () => mockCsrfStore,
+  useCsrfStore: () => ({
+    shrimp: 'test-csrf-token',
+    updateShrimp: mockUpdateShrimp,
+  }),
 }));
 
-// Mock other stores used by requestInterceptor
 vi.mock('@/shared/stores', () => ({
   useLanguageStore: () => ({
     getCurrentLocale: 'en',
@@ -47,432 +44,220 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   }),
 }));
 
-// ---------------------------------------------------------------------------
-// Import module under test AFTER mocks are set up
-// ---------------------------------------------------------------------------
-import { errorInterceptor, responseInterceptor, createLoggableShrimp } from '@/plugins/axios/interceptors';
+// Mock scrubbing functions with passthrough behavior for most tests
+// Actual scrubbing logic is tested in scrubbers.spec.ts
+vi.mock('@/plugins/core/diagnostics/scrubbers', () => ({
+  scrubSensitiveStrings: (str: string) => str,
+  scrubUrlWithPatterns: (url: string) => url,
+}));
 
 // ---------------------------------------------------------------------------
-// Helper: Create mock AxiosError objects
+// Import after mocks
 // ---------------------------------------------------------------------------
-function createMockAxiosError(options: {
-  url?: string;
-  method?: string;
-  status?: number;
-  message?: string;
-  responseHeaders?: Record<string, string>;
-}): AxiosError {
-  const { url, method, status, message = 'Request failed', responseHeaders = {} } = options;
 
-  const error = new axios.AxiosError(
-    message,
-    status?.toString() ?? 'ERR_UNKNOWN',
-    url !== undefined || method !== undefined
-      ? ({
-          url,
-          method,
-        } as any)
-      : undefined,
-    undefined,
-    status !== undefined
-      ? ({
-          status,
-          headers: responseHeaders,
+import {
+  errorInterceptor,
+  responseInterceptor,
+  createLoggableShrimp,
+} from '@/plugins/axios/interceptors';
+
+// ---------------------------------------------------------------------------
+// Test helpers
+// ---------------------------------------------------------------------------
+
+function createAxiosError(
+  overrides: Partial<{
+    message: string;
+    method: string;
+    url: string;
+    status: number;
+    responseHeaders: Record<string, string>;
+  }> = {}
+): AxiosError {
+  const config: InternalAxiosRequestConfig = {
+    method: overrides.method ?? 'get',
+    url: overrides.url ?? '/api/test',
+    headers: {} as InternalAxiosRequestConfig['headers'],
+  };
+
+  return {
+    name: 'AxiosError',
+    message: overrides.message ?? 'Request failed',
+    config,
+    isAxiosError: true,
+    toJSON: () => ({}),
+    response: overrides.status
+      ? {
+          status: overrides.status,
+          statusText: 'Error',
+          headers: overrides.responseHeaders ?? {},
+          config,
           data: {},
-        } as AxiosResponse)
-      : undefined
-  );
-
-  return error;
+        }
+      : undefined,
+  } as AxiosError;
 }
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
 describe('axios interceptors', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCsrfStore.updateShrimp.mockClear();
   });
 
-  // ========================================================================
-  // errorInterceptor - Breadcrumb functionality
-  // ========================================================================
+  afterEach(() => {
+    vi.resetModules();
+  });
+
+  // ==========================================================================
+  // errorInterceptor
+  // ==========================================================================
   describe('errorInterceptor', () => {
-    describe('breadcrumb creation', () => {
-      it('adds a breadcrumb when error occurs', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/users',
-          method: 'get',
+    describe('Sentry breadcrumb creation', () => {
+      it('creates breadcrumb with correct structure', async () => {
+        const error = createAxiosError({
+          method: 'post',
+          url: '/api/v3/secrets',
           status: 500,
           message: 'Internal Server Error',
         });
 
-        await expect(errorInterceptor(error)).rejects.toBe(error);
+        await expect(errorInterceptor(error)).rejects.toThrow();
 
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledTimes(1);
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            type: 'http',
-            category: 'http.client',
-            level: 'error',
-          })
-        );
-      });
-
-      it('includes correct data fields in breadcrumb', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/colonel/admin',
-          method: 'post',
-          status: 403,
-          message: 'Forbidden',
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'POST /api/v3/colonel/admin',
-            data: expect.objectContaining({
-              url: '/api/v3/colonel/admin',
-              method: 'POST',
-              status_code: 403,
-              reason: 'Forbidden',
-            }),
-          })
-        );
-      });
-    });
-
-    describe('URL scrubbing', () => {
-      it('scrubs /secret/ path identifiers', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/secret/abc123def456',
-          method: 'get',
-          status: 404,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'GET /api/v3/secret/[REDACTED]',
-            data: expect.objectContaining({
-              url: '/api/v3/secret/[REDACTED]',
-            }),
-          })
-        );
-      });
-
-      it('scrubs /private/ path identifiers', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/private/xyz789',
-          method: 'get',
-          status: 404,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'GET /api/v3/private/[REDACTED]',
-            data: expect.objectContaining({
-              url: '/api/v3/private/[REDACTED]',
-            }),
-          })
-        );
-      });
-
-      it('scrubs /receipt/ path identifiers', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/receipt/receipt123',
-          method: 'get',
-          status: 404,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'GET /api/v3/receipt/[REDACTED]',
-            data: expect.objectContaining({
-              url: '/api/v3/receipt/[REDACTED]',
-            }),
-          })
-        );
-      });
-
-      it('scrubs /incoming/ path identifiers', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/incoming/incoming456',
-          method: 'post',
-          status: 400,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'POST /api/v3/incoming/[REDACTED]',
-            data: expect.objectContaining({
-              url: '/api/v3/incoming/[REDACTED]',
-            }),
-          })
-        );
-      });
-
-      it('scrubs multiple sensitive segments in one URL', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/secret/abc123/private/xyz789',
-          method: 'get',
-          status: 500,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'GET /api/v3/secret/[REDACTED]/private/[REDACTED]',
-            data: expect.objectContaining({
-              url: '/api/v3/secret/[REDACTED]/private/[REDACTED]',
-            }),
-          })
-        );
-      });
-
-      it('leaves non-sensitive URLs unchanged', async () => {
-        const error = createMockAxiosError({
-          url: '/api/v3/colonel/admin',
-          method: 'get',
-          status: 401,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'GET /api/v3/colonel/admin',
-            data: expect.objectContaining({
-              url: '/api/v3/colonel/admin',
-            }),
-          })
-        );
-      });
-    });
-
-    describe('method handling', () => {
-      it('uppercases method from lowercase', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'get',
-          status: 500,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'GET /api/test',
-            data: expect.objectContaining({
-              method: 'GET',
-            }),
-          })
-        );
-      });
-
-      it('uppercases mixed case method', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'PoSt',
-          status: 500,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'POST /api/test',
-            data: expect.objectContaining({
-              method: 'POST',
-            }),
-          })
-        );
-      });
-
-      it('defaults method to HTTP when undefined', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: undefined,
-          status: 500,
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'HTTP /api/test',
-            data: expect.objectContaining({
-              method: 'HTTP',
-            }),
-          })
-        );
-      });
-    });
-
-    describe('status code and reason capture', () => {
-      it('captures status code from response', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'get',
-          status: 404,
-          message: 'Not Found',
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              status_code: 404,
-              reason: 'Not Found',
-            }),
-          })
-        );
-      });
-
-      it('handles undefined status code when no response', async () => {
-        // Network error - no response
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'get',
-          status: undefined,
-          message: 'Network Error',
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              status_code: undefined,
-              reason: 'Network Error',
-            }),
-          })
-        );
-      });
-    });
-
-    describe('graceful handling of edge cases', () => {
-      it('handles error with empty config gracefully', async () => {
-        const error = new axios.AxiosError('Request failed', 'ERR_UNKNOWN');
-        // error.config is undefined by default
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        // Should not crash, should add breadcrumb with defaults
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledTimes(1);
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'HTTP ',
-            data: expect.objectContaining({
-              url: '',
-              method: 'HTTP',
-            }),
-          })
-        );
-      });
-
-      it('handles error with null-like values gracefully', async () => {
-        const error = createMockAxiosError({
-          url: '',
-          method: '',
-          status: undefined,
-          message: 'Unknown error',
-        });
-
-        await expect(errorInterceptor(error)).rejects.toBe(error);
-
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledTimes(1);
-        // Empty method string.toUpperCase() returns '' which is falsy,
-        // so || 'HTTP' kicks in - defaults to 'HTTP'
-        expect(Sentry.addBreadcrumb).toHaveBeenCalledWith(
-          expect.objectContaining({
-            type: 'http',
-            category: 'http.client',
-            level: 'error',
-            data: expect.objectContaining({
-              url: '',
-              method: 'HTTP',
-            }),
-          })
-        );
-      });
-    });
-
-    describe('CSRF token update on error', () => {
-      it('updates CSRF token from error response headers', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'post',
-          status: 403,
-          responseHeaders: {
-            'x-csrf-token': 'new-csrf-token-from-error',
+        expect(mockAddBreadcrumb).toHaveBeenCalledOnce();
+        expect(mockAddBreadcrumb).toHaveBeenCalledWith({
+          type: 'http',
+          category: 'axios',
+          data: {
+            method: 'POST',
+            url: '/api/v3/secrets',
+            status_code: 500,
+            reason: 'Internal Server Error',
           },
+          level: 'error',
         });
+      });
+
+      it('uppercases HTTP method', async () => {
+        const error = createAxiosError({ method: 'delete' });
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        const call = mockAddBreadcrumb.mock.calls[0][0];
+        expect(call.data.method).toBe('DELETE');
+      });
+
+      it('handles missing method gracefully', async () => {
+        const error = createAxiosError({});
+        error.config = undefined as unknown as InternalAxiosRequestConfig;
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        const call = mockAddBreadcrumb.mock.calls[0][0];
+        expect(call.data.method).toBe('UNKNOWN');
+      });
+
+      it('handles missing URL gracefully', async () => {
+        const error = createAxiosError({});
+        error.config!.url = undefined;
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        const call = mockAddBreadcrumb.mock.calls[0][0];
+        expect(call.data.url).toBe('unknown');
+      });
+
+      it('omits status_code when response is undefined (network error)', async () => {
+        const error = createAxiosError({ message: 'Network Error' });
+        // No response = network error
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        const call = mockAddBreadcrumb.mock.calls[0][0];
+        expect(call.data).not.toHaveProperty('status_code');
+      });
+
+      it('includes status_code when response exists', async () => {
+        const error = createAxiosError({ status: 404 });
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        const call = mockAddBreadcrumb.mock.calls[0][0];
+        expect(call.data.status_code).toBe(404);
+      });
+
+      it('always rejects with the original error', async () => {
+        const error = createAxiosError({ message: 'Test error' });
 
         await expect(errorInterceptor(error)).rejects.toBe(error);
+      });
+    });
 
-        expect(mockCsrfStore.updateShrimp).toHaveBeenCalledWith('new-csrf-token-from-error');
+    // Note: Scrubbing function behavior is tested in scrubbers.spec.ts
+    // These tests verify the interceptor calls scrubbing functions correctly
+    describe('breadcrumb scrubbing integration', () => {
+      it('passes URL through scrubUrlWithPatterns', async () => {
+        // With passthrough mock, URL should be unchanged
+        const error = createAxiosError({ url: '/api/v3/test' });
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        const call = mockAddBreadcrumb.mock.calls[0][0];
+        expect(call.data.url).toBe('/api/v3/test');
+      });
+
+      it('passes error message through scrubSensitiveStrings', async () => {
+        // With passthrough mock, message should be unchanged
+        const error = createAxiosError({ message: 'Test error message' });
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        const call = mockAddBreadcrumb.mock.calls[0][0];
+        expect(call.data.reason).toBe('Test error message');
+      });
+    });
+
+    describe('CSRF token handling', () => {
+      it('updates CSRF token from error response headers', async () => {
+        const error = createAxiosError({
+          status: 403,
+          responseHeaders: { 'x-csrf-token': 'new-token' },
+        });
+
+        await expect(errorInterceptor(error)).rejects.toThrow();
+
+        expect(mockUpdateShrimp).toHaveBeenCalledWith('new-token');
       });
 
       it('does not update CSRF token when header is missing', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'post',
+        const error = createAxiosError({
           status: 500,
           responseHeaders: {},
         });
 
-        await expect(errorInterceptor(error)).rejects.toBe(error);
+        await expect(errorInterceptor(error)).rejects.toThrow();
 
-        expect(mockCsrfStore.updateShrimp).not.toHaveBeenCalled();
+        expect(mockUpdateShrimp).not.toHaveBeenCalled();
       });
 
       it('does not update CSRF token when header is empty string', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'post',
+        const error = createAxiosError({
           status: 403,
-          responseHeaders: {
-            'x-csrf-token': '',
-          },
+          responseHeaders: { 'x-csrf-token': '' },
         });
 
-        await expect(errorInterceptor(error)).rejects.toBe(error);
+        await expect(errorInterceptor(error)).rejects.toThrow();
 
-        expect(mockCsrfStore.updateShrimp).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('error propagation', () => {
-      it('rejects with the original error (no gate keeping)', async () => {
-        const error = createMockAxiosError({
-          url: '/api/test',
-          method: 'get',
-          status: 500,
-          message: 'Internal Server Error',
-        });
-
-        const rejection = errorInterceptor(error);
-
-        await expect(rejection).rejects.toBe(error);
+        expect(mockUpdateShrimp).not.toHaveBeenCalled();
       });
     });
   });
 
-  // ========================================================================
+  // ==========================================================================
   // responseInterceptor - CSRF token update
-  // ========================================================================
+  // ==========================================================================
   describe('responseInterceptor', () => {
     it('updates CSRF token from response headers', () => {
       const response = {
@@ -487,7 +272,7 @@ describe('axios interceptors', () => {
 
       const result = responseInterceptor(response);
 
-      expect(mockCsrfStore.updateShrimp).toHaveBeenCalledWith('new-csrf-token');
+      expect(mockUpdateShrimp).toHaveBeenCalledWith('new-csrf-token');
       expect(result).toBe(response);
     });
 
@@ -502,14 +287,14 @@ describe('axios interceptors', () => {
 
       const result = responseInterceptor(response);
 
-      expect(mockCsrfStore.updateShrimp).not.toHaveBeenCalled();
+      expect(mockUpdateShrimp).not.toHaveBeenCalled();
       expect(result).toBe(response);
     });
   });
 
-  // ========================================================================
+  // ==========================================================================
   // createLoggableShrimp - Token truncation for logging
-  // ========================================================================
+  // ==========================================================================
   describe('createLoggableShrimp', () => {
     it('truncates valid token to first 4 chars with ellipsis', () => {
       expect(createLoggableShrimp('abcdefghijklmnop')).toBe('abcd...');
