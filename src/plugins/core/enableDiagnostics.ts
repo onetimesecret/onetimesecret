@@ -310,7 +310,13 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
 
     // Scrub sensitive URLs from breadcrumbs at capture time
     beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
-    ...config.sentry, // includes dsn, environment, release, etc.
+    ...config.sentry, // includes dsn, environment, etc.
+
+    // Build-time release takes precedence over backend config.
+    // This ensures frontend errors match the sourcemaps uploaded during this build,
+    // which is critical for CDN caching and rolling deploys where the backend
+    // might be running a newer release than the cached frontend bundle.
+    release: __SENTRY_RELEASE__,
   };
 
   console.debug('[EnableDiagnostics] sentryOptions:', sentryOptions);

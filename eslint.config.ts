@@ -94,6 +94,7 @@ export default [
       globals: {
         ...globals.browser,
         process: true, // Allow process global for environment variables
+        __SENTRY_RELEASE__: true, // Build-time injected by Vite define
       },
       parser: parserTs,
       parserOptions: {

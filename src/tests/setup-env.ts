@@ -26,6 +26,12 @@ if (typeof process !== 'undefined') {
   authenticated: false,
 };
 
+// Mock __SENTRY_RELEASE__ global that Vite defines at build time
+// This value is replaced by the actual git commit hash during production builds
+// @see vite.config.ts getSentryRelease()
+// @see src/types/declarations/vite-env.d.ts
+(globalThis as Record<string, unknown>).__SENTRY_RELEASE__ = 'test-release';
+
 // Mock localStorage for tests
 const localStorageMock = {
   getItem: () => null,

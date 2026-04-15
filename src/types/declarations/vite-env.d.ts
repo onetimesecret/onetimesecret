@@ -46,6 +46,22 @@ interface ImportMetaEnv {
 }
 
 /**
+ * Build-time constants injected by Vite define.
+ * These must be in a `declare global` block because this file
+ * is a module (has imports/exports).
+ */
+declare global {
+  /**
+   * Sentry release version baked at build time.
+   * Matches the commit hash used for sourcemap uploads, ensuring
+   * frontend errors can be correlated with the correct sourcemaps.
+   *
+   * @see vite.config.ts getSentryRelease()
+   */
+  const __SENTRY_RELEASE__: string;
+}
+
+/**
  * This part tells TypeScript how to understand .vue files.
  * It's like teaching TypeScript a new language (Vue).
  */
