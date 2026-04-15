@@ -513,6 +513,223 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     end
   end
 
+  # ==========================================================================
+  # Sentry Distributed Tracing Tests
+  # ==========================================================================
+  # These tests verify that workers correctly extract and continue Sentry
+  # traces from incoming messages, enabling distributed tracing across
+  # RabbitMQ message boundaries.
+  # ==========================================================================
+
+  describe '#extract_trace_headers' do
+    context 'when metadata contains trace headers' do
+      let(:metadata_with_trace) do
+        MetadataStub.new(
+          message_id: 'msg-trace-123',
+          headers: {
+            'x-schema-version' => 1,
+            'sentry-trace' => '00-abcd1234-5678ef90-01',
+            'baggage' => 'sentry-environment=production'
+          }
+        )
+      end
+
+      before do
+        worker.store_envelope(delivery_info, metadata_with_trace)
+      end
+
+      it 'extracts sentry-trace header' do
+        result = worker.extract_trace_headers
+
+        expect(result['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
+      end
+
+      it 'extracts baggage header' do
+        result = worker.extract_trace_headers
+
+        expect(result['baggage']).to eq('sentry-environment=production')
+      end
+    end
+
+    context 'when metadata lacks trace headers' do
+      it 'returns empty hash' do
+        result = worker.extract_trace_headers
+
+        expect(result).to eq({})
+      end
+    end
+
+    context 'when metadata is nil' do
+      before do
+        worker.metadata = nil
+      end
+
+      it 'returns empty hash without raising' do
+        expect { worker.extract_trace_headers }.not_to raise_error
+        expect(worker.extract_trace_headers).to eq({})
+      end
+    end
+  end
+
+  describe '#with_trace_context' do
+    # Stub Sentry if not defined
+    before do
+      unless defined?(Sentry)
+        stub_const('Sentry', Module.new do
+          def self.initialized?
+            false
+          end
+
+          def self.get_current_scope
+            nil
+          end
+
+          def self.continue_trace(headers, name:, op:)
+            nil
+          end
+        end)
+      end
+    end
+
+    context 'when Sentry is not initialized' do
+      before do
+        allow(Sentry).to receive(:initialized?).and_return(false)
+      end
+
+      it 'yields to the block' do
+        block_called = false
+
+        worker.with_trace_context do
+          block_called = true
+        end
+
+        expect(block_called).to be true
+      end
+
+      it 'returns the result of the block' do
+        result = worker.with_trace_context do
+          'worker result'
+        end
+
+        expect(result).to eq('worker result')
+      end
+    end
+
+    context 'when Sentry is initialized' do
+      let(:mock_transaction) { instance_double('Sentry::Transaction') }
+      let(:mock_scope) { instance_double('Sentry::Scope') }
+
+      let(:metadata_with_trace) do
+        MetadataStub.new(
+          message_id: 'msg-trace-456',
+          headers: {
+            'x-schema-version' => 1,
+            'sentry-trace' => '00-trace123-span456-01',
+            'baggage' => 'sentry-environment=test'
+          }
+        )
+      end
+
+      before do
+        worker.store_envelope(delivery_info, metadata_with_trace)
+        allow(Sentry).to receive(:initialized?).and_return(true)
+        allow(Sentry).to receive(:continue_trace).and_return(mock_transaction)
+        allow(Sentry).to receive(:get_current_scope).and_return(mock_scope)
+        allow(mock_scope).to receive(:set_span)
+        allow(mock_transaction).to receive(:set_status)
+        allow(mock_transaction).to receive(:finish)
+      end
+
+      it 'calls Sentry.continue_trace with extracted headers' do
+        expected_headers = {
+          'sentry-trace' => '00-trace123-span456-01',
+          'baggage' => 'sentry-environment=test'
+        }
+
+        expect(Sentry).to receive(:continue_trace).with(
+          expected_headers,
+          name: 'rabbitmq.EmailWorker',
+          op: 'queue.process'
+        ).and_return(mock_transaction)
+
+        worker.with_trace_context {}
+      end
+
+      it 'uses default transaction name based on worker name' do
+        expect(Sentry).to receive(:continue_trace).with(
+          anything,
+          hash_including(name: 'rabbitmq.EmailWorker')
+        ).and_return(mock_transaction)
+
+        worker.with_trace_context {}
+      end
+
+      it 'allows custom transaction name' do
+        expect(Sentry).to receive(:continue_trace).with(
+          anything,
+          hash_including(name: 'custom.operation.name')
+        ).and_return(mock_transaction)
+
+        worker.with_trace_context(name: 'custom.operation.name') {}
+      end
+
+      it 'allows custom op parameter' do
+        expect(Sentry).to receive(:continue_trace).with(
+          anything,
+          hash_including(op: 'custom.op')
+        ).and_return(mock_transaction)
+
+        worker.with_trace_context(op: 'custom.op') {}
+      end
+
+      it 'yields to the block' do
+        block_called = false
+
+        worker.with_trace_context do
+          block_called = true
+        end
+
+        expect(block_called).to be true
+      end
+
+      it 'returns the result of the block' do
+        result = worker.with_trace_context do
+          'traced result'
+        end
+
+        expect(result).to eq('traced result')
+      end
+    end
+
+    context 'when message has no trace headers (backwards compatibility)' do
+      before do
+        # Default metadata has no trace headers
+        allow(Sentry).to receive(:initialized?).and_return(true)
+        allow(Sentry).to receive(:continue_trace).and_return(nil)
+      end
+
+      it 'still yields to the block' do
+        block_called = false
+
+        worker.with_trace_context do
+          block_called = true
+        end
+
+        expect(block_called).to be true
+      end
+
+      it 'calls continue_trace with empty headers' do
+        expect(Sentry).to receive(:continue_trace).with(
+          {},
+          name: 'rabbitmq.EmailWorker',
+          op: 'queue.process'
+        ).and_return(nil)
+
+        worker.with_trace_context {}
+      end
+    end
+  end
+
   describe 'race condition handling (concurrent idempotency)' do
     # This test verifies that claim_for_processing prevents race conditions.
     #

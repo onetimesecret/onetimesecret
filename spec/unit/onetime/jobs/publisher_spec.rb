@@ -69,6 +69,157 @@ RSpec.describe Onetime::Jobs::Publisher do
     end
   end
 
+  # ==========================================================================
+  # Sentry Distributed Tracing Tests
+  # ==========================================================================
+  # These tests verify that Sentry trace headers are correctly extracted
+  # from the current request context and included in published messages
+  # for distributed tracing across RabbitMQ message boundaries.
+  # ==========================================================================
+
+  describe 'trace header propagation' do
+    subject(:publisher) { described_class.new }
+
+    let(:mock_channel) { instance_double(Bunny::Channel) }
+    let(:mock_exchange) { instance_double(Bunny::Exchange) }
+    let(:mock_channel_pool) { instance_double(ConnectionPool) }
+
+    before do
+      allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+      allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+      allow(mock_exchange).to receive(:publish)
+      $rmq_channel_pool = mock_channel_pool
+
+      # Stub Sentry module for tests if not defined
+      unless defined?(Sentry)
+        stub_const('Sentry', Module.new do
+          def self.initialized?
+            false
+          end
+
+          def self.get_current_scope
+            nil
+          end
+
+          def self.get_trace_propagation_headers
+            nil
+          end
+        end)
+      end
+    end
+
+    after do
+      $rmq_channel_pool = nil
+    end
+
+    context 'when Sentry has active trace context' do
+      let(:trace_headers) do
+        {
+          'sentry-trace' => '00-abcd1234-5678ef90-01',
+          'baggage' => 'sentry-environment=production,sentry-release=1.0.0'
+        }
+      end
+
+      before do
+        allow(Onetime::Jobs::TracePropagation).to receive(:extract_trace_headers).and_return(trace_headers)
+      end
+
+      it 'includes sentry-trace header in published message headers' do
+        publisher.publish('test.queue', { data: 'test' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
+        end
+      end
+
+      it 'includes baggage header in published message headers' do
+        publisher.publish('test.queue', { data: 'test' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:headers]['baggage']).to eq('sentry-environment=production,sentry-release=1.0.0')
+        end
+      end
+
+      it 'merges trace headers with schema version header' do
+        publisher.publish('test.queue', { data: 'test' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          headers = options[:headers]
+          expect(headers['x-schema-version']).to eq(Onetime::Jobs::QueueConfig::CURRENT_SCHEMA_VERSION)
+          expect(headers['sentry-trace']).not_to be_nil
+          expect(headers['baggage']).not_to be_nil
+        end
+      end
+
+      it 'propagates trace headers via enqueue_email' do
+        publisher.enqueue_email(:secret_link, { secret_key: 'abc' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
+        end
+      end
+
+      it 'propagates trace headers via schedule_email' do
+        publisher.schedule_email(:secret_link, { secret_key: 'abc' }, delay_seconds: 60)
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
+        end
+      end
+
+      it 'propagates trace headers via enqueue_email_raw' do
+        raw_email = { to: 'test@example.com', from: 'noreply@example.com', subject: 'Test', body: 'Hello' }
+        publisher.enqueue_email_raw(raw_email)
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:headers]['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
+        end
+      end
+    end
+
+    context 'when Sentry has no active trace context' do
+      before do
+        allow(Onetime::Jobs::TracePropagation).to receive(:extract_trace_headers).and_return({})
+      end
+
+      it 'publishes message without trace headers' do
+        publisher.publish('test.queue', { data: 'test' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:headers]).not_to have_key('sentry-trace')
+          expect(options[:headers]).not_to have_key('baggage')
+        end
+      end
+
+      it 'still includes schema version header' do
+        publisher.publish('test.queue', { data: 'test' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:headers]['x-schema-version']).to eq(Onetime::Jobs::QueueConfig::CURRENT_SCHEMA_VERSION)
+        end
+      end
+    end
+
+    context 'when Sentry is not initialized' do
+      before do
+        allow(Sentry).to receive(:initialized?).and_return(false)
+        # Let the actual module handle this - it should return empty hash
+        allow(Onetime::Jobs::TracePropagation).to receive(:extract_trace_headers).and_call_original
+      end
+
+      it 'publishes message successfully without trace headers' do
+        expect {
+          publisher.publish('test.queue', { data: 'test' })
+        }.not_to raise_error
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          # Schema version should still be present
+          expect(options[:headers]['x-schema-version']).not_to be_nil
+        end
+      end
+    end
+  end
+
   describe '#enqueue_email without RabbitMQ' do
     subject(:publisher) { described_class.new }
 

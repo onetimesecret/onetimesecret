@@ -92,50 +92,52 @@ module Billing
       def work_with_params(msg, delivery_info, metadata)
         store_envelope(delivery_info, metadata)
 
-        data = parse_message(msg)
-        return unless data # parse_message handles reject on error
+        with_trace_context do
+          data = parse_message(msg)
+          return unless data # parse_message handles reject on error
 
-        # Handle ping test messages (from: bin/ots queue ping)
-        if data[:event_type] == 'ping.test'
-          log_info 'Received ping test', event_type: data[:event_type], event_id: data[:event_id]
-          return ack!
+          # Handle ping test messages (from: bin/ots queue ping)
+          if data[:event_type] == 'ping.test'
+            log_info 'Received ping test', event_type: data[:event_type], event_id: data[:event_id]
+            return ack!
+          end
+
+          # Atomic idempotency claim: only one worker can claim a message
+          unless claim_for_processing(message_id)
+            log_info "Skipping duplicate message: #{message_id}"
+            return ack!
+          end
+
+          log_debug "Processing billing event: #{data[:event_type]} (metadata: #{message_metadata})"
+
+          # Reconstruct Stripe event from raw payload
+          event = reconstruct_stripe_event(data)
+          return reject! unless event
+
+          # Delegate to operation with retry logic
+          result = nil
+          with_retry(max_retries: 3, base_delay: 2.0) do
+            result = process_event(event, data)
+          end
+
+          # Handle circuit retry scheduling - don't mark as success if queued for retry
+          if result == :queued
+            log_info "Billing event queued for circuit retry: #{data[:event_type]}", event_id: data[:event_id]
+          else
+            # Mark event as successfully processed in tracking record
+            mark_event_success(data[:event_id])
+            log_info "Billing event processed: #{data[:event_type]}", event_id: data[:event_id]
+          end
+
+          ack!
+        rescue StandardError => ex
+          log_error 'Unexpected error processing billing event', ex
+
+          # Mark event as failed in tracking record
+          mark_event_failed(data[:event_id], ex) if data
+
+          reject! # Send to DLQ
         end
-
-        # Atomic idempotency claim: only one worker can claim a message
-        unless claim_for_processing(message_id)
-          log_info "Skipping duplicate message: #{message_id}"
-          return ack!
-        end
-
-        log_debug "Processing billing event: #{data[:event_type]} (metadata: #{message_metadata})"
-
-        # Reconstruct Stripe event from raw payload
-        event = reconstruct_stripe_event(data)
-        return reject! unless event
-
-        # Delegate to operation with retry logic
-        result = nil
-        with_retry(max_retries: 3, base_delay: 2.0) do
-          result = process_event(event, data)
-        end
-
-        # Handle circuit retry scheduling - don't mark as success if queued for retry
-        if result == :queued
-          log_info "Billing event queued for circuit retry: #{data[:event_type]}", event_id: data[:event_id]
-        else
-          # Mark event as successfully processed in tracking record
-          mark_event_success(data[:event_id])
-          log_info "Billing event processed: #{data[:event_type]}", event_id: data[:event_id]
-        end
-
-        ack!
-      rescue StandardError => ex
-        log_error 'Unexpected error processing billing event', ex
-
-        # Mark event as failed in tracking record
-        mark_event_failed(data[:event_id], ex) if data
-
-        reject! # Send to DLQ
       end
 
       private

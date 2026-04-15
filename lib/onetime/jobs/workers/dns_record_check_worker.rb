@@ -88,92 +88,94 @@ module Onetime
         def work_with_params(msg, delivery_info, metadata)
           store_envelope(delivery_info, metadata)
 
-          data = parse_message(msg)
-          return unless data # parse_message handles reject on error
+          with_trace_context do
+            data = parse_message(msg)
+            return unless data # parse_message handles reject on error
 
-          # Handle ping test messages (from: bin/ots queue ping)
-          if data[:domain_id] == 'ping.test'
-            log_info 'Received ping test', domain_id: data[:domain_id]
-            return ack!
-          end
+            # Handle ping test messages (from: bin/ots queue ping)
+            if data[:domain_id] == 'ping.test'
+              log_info 'Received ping test', domain_id: data[:domain_id]
+              return ack!
+            end
 
-          # Atomic idempotency claim: only one worker can claim a message
-          unless claim_for_processing(message_id)
-            log_info "Skipping duplicate message: #{message_id}"
-            return ack!
-          end
+            # Atomic idempotency claim: only one worker can claim a message
+            unless claim_for_processing(message_id)
+              log_info "Skipping duplicate message: #{message_id}"
+              return ack!
+            end
 
-          domain_id = data[:domain_id]
-          log_debug "Checking DNS records: #{domain_id} (metadata: #{message_metadata})"
+            domain_id = data[:domain_id]
+            log_debug "Checking DNS records: #{domain_id} (metadata: #{message_metadata})"
 
-          # Load the mailer config for this domain
-          mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
-          unless mailer_config
-            log_error "MailerConfig not found for domain_id: #{domain_id}", message_id: message_id, metadata: message_metadata
-            return ack! # Don't retry -- config won't appear on its own
-          end
+            # Load the mailer config for this domain
+            mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
+            unless mailer_config
+              log_error "MailerConfig not found for domain_id: #{domain_id}", message_id: message_id, metadata: message_metadata
+              return ack! # Don't retry -- config won't appear on its own
+            end
 
-          # Mark job as processing
-          mailer_config.dns_check_status = JobLifecycle::PROCESSING
-          mailer_config.save_fields(:dns_check_status)
+            # Mark job as processing
+            mailer_config.dns_check_status = JobLifecycle::PROCESSING
+            mailer_config.save_fields(:dns_check_status)
 
-          # Load the sender strategy for DNS lookups (no credentials needed)
-          provider = mailer_config.effective_provider
-          strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
+            # Load the sender strategy for DNS lookups (no credentials needed)
+            provider = mailer_config.effective_provider
+            strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
 
-          # Perform DNS lookups with retry (DNS can be transiently flaky)
-          result = nil
-          with_retry(max_retries: 1, base_delay: 2.0) do
-            result = strategy.check_dns_records(mailer_config, credentials: {})
-          end
+            # Perform DNS lookups with retry (DNS can be transiently flaky)
+            result = nil
+            with_retry(max_retries: 1, base_delay: 2.0) do
+              result = strategy.check_dns_records(mailer_config, credentials: {})
+            end
 
-          # Persist the raw fact-finding results.
-          # dns_check_results is a jsonkey (own Redis key), so use value= directly.
-          # dns_check_completed_at and updated are scalar fields — save_fields handles those.
-          mailer_config.dns_check_results.value = result[:records]
+            # Persist the raw fact-finding results.
+            # dns_check_results is a jsonkey (own Redis key), so use value= directly.
+            # dns_check_completed_at and updated are scalar fields — save_fields handles those.
+            mailer_config.dns_check_results.value = result[:records]
 
-          # Compute dns_verified outcome: true if all records have value_matches=true
-          records                    = result[:records] || []
-          all_matched                = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
-          mailer_config.dns_verified = all_matched
+            # Compute dns_verified outcome: true if all records have value_matches=true
+            records                    = result[:records] || []
+            all_matched                = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
+            mailer_config.dns_verified = all_matched
 
-          # Mark job as completed
-          mailer_config.dns_check_status       = JobLifecycle::COMPLETED
-          mailer_config.dns_check_completed_at = Familia.now.to_i
-          mailer_config.updated                = Familia.now.to_i
-          mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
-
-          # Refresh from Redis so we see the validation worker's latest status, not our
-          # in-memory copy which was loaded before that worker ran.
-          mailer_config.refresh!
-
-          # Update stored verification_status if both jobs are now complete
-          if mailer_config.jobs_completed?
-            final_status = mailer_config.update_verification_status!
-            log_info "DNS record check complete (final): #{domain_id}",
-              record_count: records.size,
-              dns_verified: all_matched,
-              verification_status: final_status
-          else
-            log_info "DNS record check complete: #{domain_id}",
-              record_count: records.size,
-              dns_verified: all_matched,
-              provider_check_status: mailer_config.provider_check_status
-          end
-
-          ack!
-        rescue StandardError => ex
-          # Mark job as failed before sending to DLQ
-          if mailer_config
-            mailer_config.dns_check_status       = JobLifecycle::FAILED
+            # Mark job as completed
+            mailer_config.dns_check_status       = JobLifecycle::COMPLETED
             mailer_config.dns_check_completed_at = Familia.now.to_i
-            mailer_config.last_error             = ex.message
             mailer_config.updated                = Familia.now.to_i
-            mailer_config.save_fields(:dns_check_status, :dns_check_completed_at, :last_error, :updated)
-          end
+            mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
 
-          log_error 'Unexpected error checking DNS records', ex
-          reject! # Send to DLQ
+            # Refresh from Redis so we see the validation worker's latest status, not our
+            # in-memory copy which was loaded before that worker ran.
+            mailer_config.refresh!
+
+            # Update stored verification_status if both jobs are now complete
+            if mailer_config.jobs_completed?
+              final_status = mailer_config.update_verification_status!
+              log_info "DNS record check complete (final): #{domain_id}",
+                record_count: records.size,
+                dns_verified: all_matched,
+                verification_status: final_status
+            else
+              log_info "DNS record check complete: #{domain_id}",
+                record_count: records.size,
+                dns_verified: all_matched,
+                provider_check_status: mailer_config.provider_check_status
+            end
+
+            ack!
+          rescue StandardError => ex
+            # Mark job as failed before sending to DLQ
+            if mailer_config
+              mailer_config.dns_check_status       = JobLifecycle::FAILED
+              mailer_config.dns_check_completed_at = Familia.now.to_i
+              mailer_config.last_error             = ex.message
+              mailer_config.updated                = Familia.now.to_i
+              mailer_config.save_fields(:dns_check_status, :dns_check_completed_at, :last_error, :updated)
+            end
+
+            log_error 'Unexpected error checking DNS records', ex
+            reject! # Send to DLQ
+          end
         end
       end
     end
