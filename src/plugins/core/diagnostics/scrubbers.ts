@@ -11,19 +11,20 @@
 import { scrubSensitivePath } from '@/generated/sentry-scrub-patterns';
 
 /**
- * Legacy pattern for known sensitive URL paths.
- * Matches path segments that contain tokens or identifiers:
+ * Legacy fallback pattern for sensitive URL paths.
+ *
+ * Current approach uses deterministic route metadata (fail-safe, opt-out):
+ * - Frontend: src/routes/index.ts route definitions with scrub metadata
+ * - Backend: Otto routes with `sensitive=true` annotation, e.g.:
+ *   `GET /receipt/:identifier ... sensitive=true`
+ *
+ * This regex catches paths missed by route-derived patterns:
  * - /secret/, /private/, /receipt/, /incoming/ - core secret paths
  * - /invite/ - invitation tokens
- * - /account/email/confirm/ - email confirmation tokens (matched as /account/ then /confirm/)
+ * - /confirm/ - email confirmation tokens
  *
- * Note: Some auth routes use query params instead of path params:
- * - /reset-password?key=... - handled by query param scrubbing
- * - /verify-account?token=... - handled by query param scrubbing
- *
- * @deprecated Use scrubSensitivePath() from generated patterns instead.
- * Kept as fallback for paths not covered by route-derived patterns.
- *
+ * @see scrubSensitivePath - generated patterns from route metadata
+ * @see src/generated/sentry-scrub-patterns.ts - generated output
  * @internal Exported for testing
  */
 export const SENSITIVE_PATH_PATTERN =
