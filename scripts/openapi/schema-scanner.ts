@@ -53,6 +53,11 @@ type ResponseSchemaRegistry =
   | typeof internalResponseSchemas
   | typeof incomingResponseSchemas;
 
+/**
+ * Maps API version strings to their corresponding response schema registries.
+ * Used by `getRegistryForVersion()` to validate response keys against the
+ * correct registry for each API version.
+ */
 const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   v1: v1ResponseSchemas,
   v2: v2ResponseSchemas,
@@ -61,10 +66,17 @@ const registryByVersion: Record<string, ResponseSchemaRegistry> = {
   incoming: incomingResponseSchemas,
 };
 
-// Internal API prefixes that map to the internal registry
+/**
+ * Ruby API module prefixes that route to the internal response schema registry.
+ * When `extractVersion()` encounters a class name starting with one of these
+ * prefixes, it returns 'internal' as the version identifier.
+ */
 const INTERNAL_API_PREFIXES = ['AccountAPI', 'ColonelAPI', 'DomainsAPI', 'OrganizationAPI', 'InviteAPI'];
 
-// Incoming API prefix maps to the incoming registry
+/**
+ * Ruby API module prefix for incoming webhooks and external integrations.
+ * Classes under this namespace validate against `incomingResponseSchemas`.
+ */
 const INCOMING_API_PREFIX = 'Incoming';
 
 /**
@@ -638,15 +650,16 @@ function formatSchemaValue(schema: SchemaEntry['schema']): string {
 /**
  * Describe which key type(s) failed validation in a broken entry.
  * Uses the entry's className to extract version for response key validation.
+ * Includes the actual invalid key values in the error message for debugging.
  */
 function describeBrokenKey(entry: SchemaEntry): string {
   const { model, response, request } = entry.schema;
   const version = extractVersion(entry.className);
   const broken: string[] = [];
-  if (model && !isValidKey(model, 'model')) broken.push('model');
-  if (response && !isValidKey(response, 'response', version)) broken.push('response');
-  if (request && !isValidKey(request, 'request')) broken.push('request');
-  return broken.length > 0 ? `invalid ${broken.join(', ')} key` : 'unknown';
+  if (model && !isValidKey(model, 'model')) broken.push(`model:'${model}'`);
+  if (response && !isValidKey(response, 'response', version)) broken.push(`response:'${response}'`);
+  if (request && !isValidKey(request, 'request')) broken.push(`request:'${request}'`);
+  return broken.length > 0 ? `invalid ${broken.join(', ')}` : 'unknown';
 }
 
 function printReport(result: ScanResult): void {
