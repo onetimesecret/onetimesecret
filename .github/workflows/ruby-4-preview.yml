@@ -4,8 +4,10 @@ name: Ruby 4 Preview
 
 # Standalone, non-blocking workflow that runs Ruby lint and tests under
 # Ruby 4.0.2 so the team can see what breaks before committing to the
-# upgrade. Every job is marked continue-on-error, so failures surface as
-# red checks on the PR without blocking merge.
+# upgrade. The Ruby-4-dependent steps are marked continue-on-error at
+# the step level, so failures surface as yellow warning annotations
+# (not red checks) and jobs still conclude green — visible signal
+# without blocking merge or polluting the PR check list.
 #
 # Design notes:
 # - Jobs are independent: each test job only needs build-assets for the
@@ -15,6 +17,12 @@ name: Ruby 4 Preview
 #   the only intended variable is the Ruby version.
 # - Artifacts are scoped per workflow run, so there is no collision with
 #   the main CI workflow's `frontend-build` artifact.
+# - `continue-on-error` is at the step level (not job level) on every
+#   step whose outcome depends on Ruby 4 gem compatibility. Any failure
+#   there — setup-ruby's bundle install, rubocop, or the test rake
+#   tasks — is captured as a warning annotation on the step while the
+#   job itself completes successfully. See the step annotations and the
+#   uploaded result artifacts for the actual Ruby 4 compatibility signal.
 
 on:
   pull_request:
@@ -62,16 +70,18 @@ jobs:
     name: Ruby 4 · Lint
     runs-on: *runs-on
     timeout-minutes: 5
-    continue-on-error: true
     steps:
       - *checkout-step
 
-      - uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+      - name: Setup Ruby 4.0.2 (may fail on bundle install)
+        uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
+        continue-on-error: true
         with:
           ruby-version: '4.0.2'
           bundler-cache: true
 
       - name: Run Rubocop
+        continue-on-error: true
         run: |
           mkdir -p tmp
           bundle exec rubocop --config .rubocop.yml \
@@ -86,12 +96,12 @@ jobs:
           name: ruby4-rubocop-results
           path: tmp/rubocop_results.json
           retention-days: 7
+          if-no-files-found: ignore
 
   ruby-unit:
     name: Ruby 4 · Unit Tests
     runs-on: *runs-on
     timeout-minutes: 15
-    continue-on-error: true
     needs: [build-assets]
     if: always()
 
@@ -119,8 +129,9 @@ jobs:
     steps:
       - *checkout-step
 
-      - name: Setup Ruby test environment
+      - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
+        continue-on-error: true
         with:
           ruby-version: '4.0.2'
 
@@ -142,6 +153,7 @@ jobs:
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
+        continue-on-error: true
         with:
           test-type: unit
           auth-mode: simple
@@ -152,7 +164,6 @@ jobs:
     name: Ruby 4 · Integration (Simple Mode)
     runs-on: *runs-on
     timeout-minutes: 15
-    continue-on-error: true
     needs: [build-assets]
     if: always()
 
@@ -163,8 +174,9 @@ jobs:
     steps:
       - *checkout-step
 
-      - name: Setup Ruby test environment
+      - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
+        continue-on-error: true
         with:
           ruby-version: '4.0.2'
 
@@ -186,6 +198,7 @@ jobs:
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
+        continue-on-error: true
         with:
           test-type: integration
           auth-mode: simple
@@ -196,7 +209,6 @@ jobs:
     name: Ruby 4 · Integration (Full Mode - SQLite)
     runs-on: *runs-on
     timeout-minutes: 15
-    continue-on-error: true
     needs: [build-assets]
     if: always()
 
@@ -207,8 +219,9 @@ jobs:
     steps:
       - *checkout-step
 
-      - name: Setup Ruby test environment
+      - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
+        continue-on-error: true
         with:
           ruby-version: '4.0.2'
 
@@ -230,6 +243,7 @@ jobs:
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
+        continue-on-error: true
         with:
           test-type: integration
           auth-mode: full
@@ -241,7 +255,6 @@ jobs:
     name: Ruby 4 · Integration (Disabled Mode)
     runs-on: *runs-on
     timeout-minutes: 15
-    continue-on-error: true
     needs: [build-assets]
     if: always()
 
@@ -252,8 +265,9 @@ jobs:
     steps:
       - *checkout-step
 
-      - name: Setup Ruby test environment
+      - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
+        continue-on-error: true
         with:
           ruby-version: '4.0.2'
 
@@ -275,6 +289,7 @@ jobs:
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
+        continue-on-error: true
         with:
           test-type: integration
           auth-mode: disabled
