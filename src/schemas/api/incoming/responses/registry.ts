@@ -10,14 +10,17 @@ import { validateRecipientResponseSchema } from './validate-recipient';
 /**
  * Keyed lookup of Incoming API response schemas.
  * Used by the OpenAPI generator for runtime Zod parsing.
+ *
+ * Keys must match the Ruby SCHEMAS constant declarations in
+ * apps/api/incoming/logic/*.rb for the schema scanner to validate correctly.
  */
 export const responseSchemas = {
-  // Config
-  getConfig: incomingConfigResponseSchema,
+  // Config - Ruby: SCHEMAS = { response: 'incomingConfig' }
+  incomingConfig: incomingConfigResponseSchema,
 
-  // Secrets
-  createIncomingSecret: incomingSecretResponseSchema,
+  // Secrets - Ruby: SCHEMAS = { response: 'incomingSecret' }
+  incomingSecret: incomingSecretResponseSchema,
 
-  // Validation
+  // Validation - Ruby: SCHEMAS = { response: 'validateRecipient' }
   validateRecipient: validateRecipientResponseSchema,
 } as const;

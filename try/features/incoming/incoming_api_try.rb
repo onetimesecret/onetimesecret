@@ -78,8 +78,7 @@ def create_v3_strategy_with_domain(customer, domain_fqdn, domain_strategy: :cust
   )
 end
 
-# V3 incoming secrets setup for domain_id tests (#2864)
-require 'apps/api/v3/logic/incoming'
+# Incoming secrets setup for domain_id tests (#2864)
 
 @v3_ts = Familia.now.to_i
 @v3_entropy = SecureRandom.hex(4)
@@ -534,7 +533,7 @@ true
 #=> true
 
 # =============================================================================
-# V3::Logic::Incoming::CreateIncomingSecret - domain_id tests (#2864)
+# Incoming::Logic::CreateIncomingSecret - domain_id tests (#2864)
 # =============================================================================
 #
 # These tests verify the V3 incoming secrets logic correctly sets domain_id
@@ -544,7 +543,7 @@ true
 ## V3 CreateIncomingSecret with custom domain sets receipt.domain_id to resolved domain objid
 # Custom domain uses its own incoming_secrets_config, not global config
 v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(v3_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
   'secret' => {
     'memo' => 'V3 custom domain test',
     'secret' => 'Secret for domain_id test',
@@ -562,7 +561,7 @@ logic.receipt.domain_id
 # Canonical domain uses global config - use the same recipient as global tests
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 canonical_strategy = create_v3_strategy_with_domain(@v3_cust, '', domain_strategy: :canonical)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(canonical_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(canonical_strategy, {
   'secret' => {
     'memo' => 'V3 canonical domain test',
     'secret' => 'Secret for canonical domain',
@@ -579,7 +578,7 @@ logic.receipt.domain_id
 ## V3 CreateIncomingSecret with unknown custom domain raises Forbidden error
 # Unknown custom domain should fail entitlement check before receipt creation
 unknown_domain_strategy = create_v3_strategy_with_domain(@v3_cust, 'unknown-domain.example.com', domain_strategy: :custom)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(unknown_domain_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(unknown_domain_strategy, {
   'secret' => {
     'memo' => 'V3 unknown domain test',
     'secret' => 'Secret for unknown domain',
@@ -599,7 +598,7 @@ end
 # nil display_domain treated as canonical, uses global config
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 nil_domain_strategy = create_v3_strategy_with_domain(@v3_cust, nil, domain_strategy: :canonical)
-logic = V3::Logic::Incoming::CreateIncomingSecret.new(nil_domain_strategy, {
+logic = Incoming::Logic::CreateIncomingSecret.new(nil_domain_strategy, {
   'secret' => {
     'memo' => 'V3 nil domain test',
     'secret' => 'Secret for nil domain',
