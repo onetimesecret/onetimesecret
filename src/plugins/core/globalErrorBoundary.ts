@@ -4,6 +4,7 @@ import { AsyncHandlerOptions } from '@/shared/composables/useAsyncHandler';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { App, Plugin } from 'vue';
 
 interface ErrorBoundaryOptions extends AsyncHandlerOptions {
@@ -50,11 +51,32 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
         // Send to Sentry via diagnostics service
         if (isDiagnosticsEnabled()) {
           console.debug('[GlobalErrorBoundary] Sending to Sentry');
-          captureException(normalizedError, {
+
+          // Extract searchable tags from bootstrap store
+          // Note: useBootstrapStore() is safe here because Pinia is installed before this plugin
+          const bootstrap = useBootstrapStore();
+          const context: Record<string, unknown> = {
             componentInfo: info,
             errorType: classifiedError.type,
             errorSeverity: classifiedError.severity,
-          });
+          };
+
+          // Add jurisdiction if regions are configured (optional field)
+          if (bootstrap.regions?.current_jurisdiction) {
+            context.jurisdiction = bootstrap.regions.current_jurisdiction;
+          }
+
+          // Add planid from organization if present (organization is optional)
+          if (bootstrap.organization?.planid) {
+            context.planid = bootstrap.organization.planid;
+          }
+
+          // Add role from customer if present (cust is nullable)
+          if (bootstrap.cust?.role) {
+            context.role = bootstrap.cust.role;
+          }
+
+          captureException(normalizedError, context);
         } else {
           console.debug('[GlobalErrorBoundary] Sentry not initialized');
         }

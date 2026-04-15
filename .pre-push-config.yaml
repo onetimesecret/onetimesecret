@@ -4,8 +4,8 @@
 # Quality control checks that run before code is pushed to remote repositories
 #
 # Setup:
-#   1. Install the pre-push hook:
-#       $ pre-commit install --hook-type pre-push
+#   1. Install all hooks (run from .pre-commit-config.yaml instructions):
+#       $ pre-commit install && pre-commit install --hook-type pre-push -c .pre-push-config.yaml
 #
 #   2. Install required dependencies:
 #       - Ruby + Rubocop
@@ -37,16 +37,16 @@
 # Note: These intensive checks run before pushing to catch issues early
 # but allow faster local development with lighter pre-commit hooks.
 
-fail_fast: true
+# Run all checks to see complete picture before pushing
+fail_fast: false
 
 # Skip generated/dependency directories
 exclude: '^(vendor|node_modules|dist|build)/'
 
 default_install_hook_types:
   - pre-push
-  - push
 
-default_stages: [push]
+default_stages: [pre-push]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -90,7 +90,7 @@ repos:
   - repo: local
     hooks:
       - id: pnpm-lint
-        stages: [push]
+        stages: [pre-push]
         name: pnpm lint
         entry: pnpm run lint
         language: system
@@ -102,7 +102,7 @@ repos:
   - repo: local
     hooks:
       - id: typescript-check-full
-        stages: [push]
+        stages: [pre-push]
         name: TypeScript Type Check
         entry: pnpm run type-check
         language: system

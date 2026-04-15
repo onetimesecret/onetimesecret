@@ -4,10 +4,12 @@
  * Tests for diagnostics.service.ts (Sentry integration layer)
  *
  * Issue: #2790 - PR review fixes
+ * Issue: #2964 - Sentry setTag vs setExtras separation
  *
  * Covers initialization, captureException, captureMessage, console
- * fallback when Sentry is unavailable, and context isolation between
- * successive captures (validates the Scope.clone() fix from Issue 4).
+ * fallback when Sentry is unavailable, context isolation between
+ * successive captures (validates the Scope.clone() fix from Issue 4),
+ * and tag/extras separation for Sentry indexing.
  *
  * Run:
  *   pnpm test src/tests/services/diagnostics.service.spec.ts
@@ -19,16 +21,25 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Mock Scope class that tracks method calls and supports clone()
 // ---------------------------------------------------------------------------
 function createMockScope() {
-  const scope: Record<string, ReturnType<typeof vi.fn>> & { _extras: Record<string, unknown> } = {
+  const scope: Record<string, ReturnType<typeof vi.fn>> & {
+    _extras: Record<string, unknown>;
+    _tags: Record<string, string>;
+  } = {
     _extras: {},
+    _tags: {},
     setExtras: vi.fn(function (this: typeof scope, extras: Record<string, unknown>) {
       Object.assign(this._extras, extras);
       return this;
     }),
+    setTag: vi.fn(function (this: typeof scope, key: string, value: string) {
+      this._tags[key] = value;
+      return this;
+    }),
     clone: vi.fn(function (this: typeof scope) {
       const cloned = createMockScope();
-      // Simulate copying existing extras from the base scope
+      // Simulate copying existing extras and tags from the base scope
       cloned._extras = { ...this._extras };
+      cloned._tags = { ...this._tags };
       return cloned;
     }),
     captureException: vi.fn(),
@@ -116,14 +127,15 @@ describe('diagnostics.service', () => {
       initDiagnostics(client as never, baseScope as never);
 
       const error = new Error('test error');
-      const context = { schema: 'TestSchema', count: 42 };
+      // Use non-tag fields to test basic functionality
+      const context = { count: 42, detail: 'info' };
 
       captureException(error, context);
 
       // Should clone the base scope
       expect(baseScope.clone).toHaveBeenCalledOnce();
 
-      // The cloned scope should receive the extras
+      // The cloned scope should receive the extras (non-tag fields)
       const clonedScope = baseScope.clone.mock.results[0].value;
       expect(clonedScope.setExtras).toHaveBeenCalledWith(context);
 
@@ -181,7 +193,8 @@ describe('diagnostics.service', () => {
 
       initDiagnostics(client as never, baseScope as never);
 
-      const context = { source: 'test' };
+      // Use non-tag fields to test basic functionality
+      const context = { source: 'test', detail: 'info' };
       captureMessage('test message', context);
 
       expect(baseScope.clone).toHaveBeenCalledOnce();
@@ -267,6 +280,366 @@ describe('diagnostics.service', () => {
       const secondClonedScope = baseScope.clone.mock.results[1].value;
       expect(secondClonedScope.setExtras).not.toHaveBeenCalled();
       expect(baseScope.setExtras).not.toHaveBeenCalled();
+    });
+  });
+
+  // ========================================================================
+  // Tag extraction (Issue #2964: Sentry setTag vs setExtras separation)
+  // ========================================================================
+  describe('tag extraction', () => {
+    // Tag fields: errorType, schema, service, jurisdiction, planid, role
+    // These should be extracted and set via setTag() with lowercase values
+
+    describe('captureException', () => {
+      it('extracts errorType as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { errorType: 'TECHNICAL' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', 'technical');
+      });
+
+      it('extracts schema as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { schema: 'SecretResponse' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'secretresponse');
+      });
+
+      it('extracts service as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { service: 'WEB' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('service', 'web');
+      });
+
+      it('extracts jurisdiction as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { jurisdiction: 'EU' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('jurisdiction', 'eu');
+      });
+
+      it('extracts planid as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { planid: 'ENTERPRISE_V2' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('planid', 'enterprise_v2');
+      });
+
+      it('extracts role as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { role: 'CUSTOMER' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('role', 'customer');
+      });
+
+      it('extracts all 6 tag fields when present', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          errorType: 'HUMAN',
+          schema: 'UserResponse',
+          service: 'API',
+          jurisdiction: 'US',
+          planid: 'PRO',
+          role: 'COLONEL',
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', 'human');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'userresponse');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('service', 'api');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('jurisdiction', 'us');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('planid', 'pro');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('role', 'colonel');
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(6);
+      });
+
+      it('separates tag fields from non-tag fields correctly', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          errorType: 'SECURITY',
+          schema: 'SecretResponse',
+          issues: [{ path: 'field', message: 'invalid' }],
+          userId: '12345',
+          timestamp: Date.now(),
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        // Tag fields should be set via setTag
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', 'security');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'secretresponse');
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(2);
+
+        // Non-tag fields should be set via setExtras
+        expect(clonedScope.setExtras).toHaveBeenCalledTimes(1);
+        const extrasArg = clonedScope.setExtras.mock.calls[0][0];
+        expect(extrasArg).toHaveProperty('issues');
+        expect(extrasArg).toHaveProperty('userId', '12345');
+        expect(extrasArg).toHaveProperty('timestamp');
+        expect(extrasArg).not.toHaveProperty('errorType');
+        expect(extrasArg).not.toHaveProperty('schema');
+      });
+
+      it('does not call setTag for null tag values', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          errorType: null,
+          schema: 'SecretResponse',
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        // Only schema should be set as a tag
+        expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'secretresponse');
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(1);
+
+        // Tag fields with null values are skipped, not moved to extras
+        // Since there are no non-tag fields, setExtras should not be called
+        expect(clonedScope.setExtras).not.toHaveBeenCalled();
+      });
+
+      it('does not call setTag for undefined tag values', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          errorType: undefined,
+          schema: 'SecretResponse',
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        // Only schema should be set as a tag
+        expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'secretresponse');
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(1);
+
+        // Tag fields with undefined values are skipped, not moved to extras
+        // Since there are no non-tag fields, setExtras should not be called
+        expect(clonedScope.setExtras).not.toHaveBeenCalled();
+      });
+
+      it('sets empty string tag values (does not skip them)', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          errorType: '',
+          schema: 'SecretResponse',
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        // Empty string is a valid value, should be set as tag
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', '');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'secretresponse');
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(2);
+      });
+
+      it('context with only non-tag fields calls setExtras only', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          userId: '12345',
+          action: 'create',
+          payload: { data: 'test' },
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        expect(clonedScope.setTag).not.toHaveBeenCalled();
+        expect(clonedScope.setExtras).toHaveBeenCalledWith({
+          userId: '12345',
+          action: 'create',
+          payload: { data: 'test' },
+        });
+      });
+
+      it('context with only tag fields does not call setExtras', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          errorType: 'technical',
+          schema: 'SecretResponse',
+          service: 'web',
+          jurisdiction: 'eu',
+          planid: 'basic',
+          role: 'customer',
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(6);
+        expect(clonedScope.setExtras).not.toHaveBeenCalled();
+      });
+
+      it('converts non-string tag values to strings', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        // Pass a number (which will be stringified)
+        captureException(new Error('test'), {
+          errorType: 123 as unknown as string,
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', '123');
+      });
+    });
+
+    describe('captureMessage', () => {
+      it('extracts tag fields the same way as captureException', async () => {
+        const { initDiagnostics, captureMessage } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureMessage('test message', {
+          errorType: 'HUMAN',
+          schema: 'UserResponse',
+          service: 'API',
+          jurisdiction: 'US',
+          planid: 'PRO',
+          role: 'COLONEL',
+          customField: 'value',
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        // All 6 tag fields should be extracted
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', 'human');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'userresponse');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('service', 'api');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('jurisdiction', 'us');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('planid', 'pro');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('role', 'colonel');
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(6);
+
+        // Non-tag field should go to extras
+        expect(clonedScope.setExtras).toHaveBeenCalledWith({ customField: 'value' });
+      });
+
+      it('handles null/undefined tag values correctly', async () => {
+        const { initDiagnostics, captureMessage } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureMessage('test message', {
+          errorType: null,
+          schema: undefined,
+          service: 'web',
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+
+        // Only service should be set as a tag
+        expect(clonedScope.setTag).toHaveBeenCalledWith('service', 'web');
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(1);
+
+        // Tag fields with null/undefined values are skipped, not moved to extras
+        // Since there are no non-tag fields, setExtras should not be called
+        expect(clonedScope.setExtras).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('tag isolation between calls', () => {
+      it('tags from one call do not leak to the next', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        // First call with tags
+        captureException(new Error('first'), {
+          errorType: 'security',
+          schema: 'SecretResponse',
+        });
+
+        // Second call without tags
+        captureException(new Error('second'), {
+          customField: 'value',
+        });
+
+        const secondClonedScope = baseScope.clone.mock.results[1].value;
+
+        // Second call should not have any tags set
+        expect(secondClonedScope.setTag).not.toHaveBeenCalled();
+
+        // Base scope should never have setTag called directly
+        expect(baseScope.setTag).not.toHaveBeenCalled();
+      });
     });
   });
 });

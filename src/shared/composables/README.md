@@ -76,7 +76,6 @@ export function useMyFeature() {
 | `log` | `(error: ApplicationError) => void \| false` | Error logging | loggingService.error |
 | `setLoading` | `(isLoading: boolean) => void` | Loading state | noop |
 | `onError` | `(error: ApplicationError) => void` | Pre-throw callback | undefined |
-| `sentry` | `SentryInstance` | Error tracking | Auto-injected |
 
 ### Auth-Specific Pattern
 
