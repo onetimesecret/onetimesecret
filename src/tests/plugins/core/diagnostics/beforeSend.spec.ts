@@ -109,7 +109,7 @@ const baseConfig = {
 };
 
 /** Test fixture host - uses 'localhost' to avoid CodeQL regex anchor false positives */
-const TEST_HOST = 'localhost';
+const TEST_HOST = 'example.com';
 
 /**
  * Creates a mock router for testing beforeSend handler.
