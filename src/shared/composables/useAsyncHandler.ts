@@ -121,6 +121,47 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   };
 
   /**
+   * Safely invokes the onError callback, logging any callback errors
+   */
+  function handleErrorCallback(classifiedError: ApplicationError): void {
+    if (!handlers.onError) return;
+    try {
+      handlers.onError(classifiedError);
+    } catch (callbackError) {
+      handlers.log?.(classifyError(callbackError as Error));
+    }
+  }
+
+  /**
+   * Notifies the user with appropriate message based on error type
+   */
+  function notifyUser(classifiedError: ApplicationError): void {
+    if (!handlers.notify) return;
+    const isHuman = errorGuards.isOfHumanInterest(classifiedError);
+    const message = isHuman ? classifiedError.message : t('web.COMMON.unexpected_error');
+    handlers.notify(message, classifiedError.severity);
+  }
+
+  /**
+   * Logs technical errors and sends to Sentry with context tags
+   */
+  function logTechnicalError(error: unknown, classifiedError: ApplicationError): void {
+    if (errorGuards.isOfHumanInterest(classifiedError)) return;
+
+    handlers.log?.(classifiedError);
+
+    if (isDiagnosticsEnabled()) {
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        errorType: classifiedError.type,
+        service: 'web',
+        jurisdiction: bootstrap.regions?.current_jurisdiction,
+        planid: bootstrap.organization?.planid,
+        role: bootstrap.cust?.role,
+      });
+    }
+  }
+
+  /**
    * Wraps an async operation with consistent error handling
    *
    * Key features:
@@ -149,38 +190,9 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
     } catch (error) {
       const classifiedError = classifyError(error as Error);
 
-      // Call onError callback before  everything else
-      if (handlers.onError) {
-        try {
-          handlers.onError(classifiedError);
-        } catch (callbackError) {
-          // Log but don't throw callback errors
-          handlers.log?.(classifyError(callbackError as Error));
-        }
-      }
-
-      // Always notify the user, but use a generic message for technical/security errors
-      if (handlers.notify) {
-        const isHuman = errorGuards.isOfHumanInterest(classifiedError);
-        const message = isHuman ? classifiedError.message : t('web.COMMON.unexpected_error');
-        handlers.notify(message, classifiedError.severity);
-      }
-
-      // Only log technical and security errors
-      if (!errorGuards.isOfHumanInterest(classifiedError)) {
-        handlers.log?.(classifiedError);
-
-        // Send to Sentry via centralized diagnostics service with searchable tags
-        if (isDiagnosticsEnabled()) {
-          captureException(error instanceof Error ? error : new Error(String(error)), {
-            errorType: classifiedError.type,
-            service: 'web',
-            jurisdiction: bootstrap.regions?.current_jurisdiction,
-            planid: bootstrap.organization?.planid,
-            role: bootstrap.cust?.role,
-          });
-        }
-      }
+      handleErrorCallback(classifiedError);
+      notifyUser(classifiedError);
+      logTechnicalError(error, classifiedError);
 
       return undefined;
     } finally {

@@ -26,6 +26,7 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  *
  * Tags:
  * - errorType: human, security, technical (from error classification)
+ * - errorSeverity: error severity level (from error classification)
  * - schema: Zod schema name (lowercase)
  * - service: web, api
  * - jurisdiction: region code from bootstrap.regions.current_jurisdiction
@@ -34,8 +35,8 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/2964
  */
-const TAG_FIELDS = ['errorType', 'schema', 'service', 'jurisdiction', 'planid', 'role'] as const;
-type TagField = (typeof TAG_FIELDS)[number];
+const TAG_FIELDS = ['errorType', 'errorSeverity', 'schema', 'service', 'jurisdiction', 'planid', 'role'] as const;
+type _TagField = (typeof TAG_FIELDS)[number]; // Used for documentation; lookup via Set<string>
 
 /**
  * Extracts tag fields from context and applies them to the scope.
@@ -51,11 +52,15 @@ function applyTagsFromContext(
 ): Record<string, unknown> {
   const extras: Record<string, unknown> = {};
 
+  const tagFieldsSet = new Set<string>(TAG_FIELDS);
   for (const [key, value] of Object.entries(context)) {
-    if (TAG_FIELDS.includes(key as TagField) && value !== undefined && value !== null) {
-      // Tags must be strings and normalized to lowercase
-      const tagValue = String(value).toLowerCase();
-      eventScope.setTag(key, tagValue);
+    if (tagFieldsSet.has(key)) {
+      // Tag fields are handled exclusively - set if valid, skip if null/undefined
+      if (value !== undefined && value !== null) {
+        // Tags must be strings and normalized to lowercase
+        const tagValue = String(value).toLowerCase();
+        eventScope.setTag(key, tagValue);
+      }
     } else {
       extras[key] = value;
     }
