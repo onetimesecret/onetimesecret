@@ -31,9 +31,9 @@ export const SENTRY_KEY = Symbol('sentry');
  * @param paramsToScrub - Which params to scrub: undefined/true = all, string[] = named only
  * @returns Array of values sorted by length descending, ready for scrubbing
  *
- * @internal Exported for testing
+ * @internal
  */
-export function collectValuesToRedact(
+function collectValuesToRedact(
   params: Record<string, string | string[]>,
   paramsToScrub: RouteMeta['sentryScrubParams']
 ): string[] {
@@ -65,9 +65,9 @@ export function collectValuesToRedact(
  * @param sortedValues - Values to redact, pre-sorted by length descending
  * @returns The scrubbed URL with sensitive values replaced by [REDACTED]
  *
- * @internal Exported for testing
+ * @internal
  */
-export function scrubUrlWithValues(url: string, sortedValues: string[]): string {
+function scrubUrlWithValues(url: string, sortedValues: string[]): string {
   if (!url || typeof url !== 'string' || sortedValues.length === 0) {
     return url;
   }
@@ -187,7 +187,7 @@ export function scrubUrlWithPatterns(url: string): string {
  *
  * @internal Exported for testing
  */
-export function createBeforeBreadcrumbHandler(router: Router) {
+function createBeforeBreadcrumbHandler(router: Router) {
   return (breadcrumb: Breadcrumb): Breadcrumb | null => {
     const category = breadcrumb.category;
 
@@ -278,7 +278,7 @@ function scrubEventMessages(event: ErrorEvent): ErrorEvent {
  *
  * @internal Exported for testing
  */
-export function createBeforeSendHandler(router: Router) {
+function createBeforeSendHandler(router: Router) {
   return (event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> => {
     if ('secret' in event && event.secret) {
       delete event.secret;
