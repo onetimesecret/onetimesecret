@@ -20,6 +20,51 @@ interface DiagnosticsClient {
 let diagnosticsClient: DiagnosticsClient | null = null;
 
 /**
+ * Tag fields that should be indexed in Sentry for searchability.
+ * These are extracted from context and set via setTag() instead of setExtras().
+ * All tag values are normalized to lowercase for consistent querying.
+ *
+ * Tags:
+ * - errorType: human, security, technical (from error classification)
+ * - schema: Zod schema name (lowercase)
+ * - service: web, api
+ * - jurisdiction: region code from bootstrap.regions.current_jurisdiction
+ * - planid: plan identifier from bootstrap.organization.planid
+ * - role: customer, colonel, recipient, user_deleted_self from bootstrap.cust.role
+ *
+ * @see https://github.com/onetimesecret/onetimesecret/issues/2964
+ */
+const TAG_FIELDS = ['errorType', 'schema', 'service', 'jurisdiction', 'planid', 'role'] as const;
+type TagField = (typeof TAG_FIELDS)[number];
+
+/**
+ * Extracts tag fields from context and applies them to the scope.
+ * Returns the remaining context fields for use with setExtras().
+ *
+ * @param context - The context object containing tags and extras
+ * @param eventScope - The Sentry scope to apply tags to
+ * @returns The remaining context fields (non-tag fields)
+ */
+function applyTagsFromContext(
+  context: Record<string, unknown>,
+  eventScope: Scope
+): Record<string, unknown> {
+  const extras: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(context)) {
+    if (TAG_FIELDS.includes(key as TagField) && value !== undefined && value !== null) {
+      // Tags must be strings and normalized to lowercase
+      const tagValue = String(value).toLowerCase();
+      eventScope.setTag(key, tagValue);
+    } else {
+      extras[key] = value;
+    }
+  }
+
+  return extras;
+}
+
+/**
  * Initialize the diagnostics service with Sentry client and scope.
  * Called once during app startup from enableDiagnostics plugin.
  */
@@ -38,6 +83,9 @@ export function isDiagnosticsEnabled(): boolean {
  * Capture an exception to Sentry with optional context.
  * Falls back to console.error if Sentry is not initialized.
  *
+ * Tag fields (errorType, schema, service, jurisdiction, planid, role) are
+ * extracted and set via setTag() for Sentry indexing. Remaining fields use setExtras().
+ *
  * @param error - The error to capture
  * @param context - Optional extra context to attach to the event
  *
@@ -45,7 +93,10 @@ export function isDiagnosticsEnabled(): boolean {
  * ```typescript
  * captureException(new Error('Schema validation failed'), {
  *   schema: 'SecretResponse',
- *   issues: zodError.issues,
+ *   errorType: 'technical',
+ *   service: 'web',
+ *   jurisdiction: 'eu',
+ *   issues: zodError.issues, // goes to extras
  * });
  * ```
  */
@@ -58,7 +109,10 @@ export function captureException(
     const eventScope = baseScope.clone();
 
     if (context) {
-      eventScope.setExtras(context);
+      const extras = applyTagsFromContext(context, eventScope);
+      if (Object.keys(extras).length > 0) {
+        eventScope.setExtras(extras);
+      }
     }
 
     client.captureException(error, undefined, eventScope);
@@ -74,6 +128,9 @@ export function captureException(
 /**
  * Capture a message to Sentry with optional context.
  * Useful for non-exception events that should be tracked.
+ *
+ * Tag fields (errorType, schema, service, jurisdiction, planid, role) are
+ * extracted and set via setTag() for Sentry indexing. Remaining fields use setExtras().
  */
 export function captureMessage(
   message: string,
@@ -84,7 +141,10 @@ export function captureMessage(
     const eventScope = baseScope.clone();
 
     if (context) {
-      eventScope.setExtras(context);
+      const extras = applyTagsFromContext(context, eventScope);
+      if (Object.keys(extras).length > 0) {
+        eventScope.setExtras(extras);
+      }
     }
 
     client.captureMessage(message, undefined, undefined, eventScope);

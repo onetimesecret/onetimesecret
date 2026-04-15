@@ -1,12 +1,12 @@
 // src/shared/composables/useAsyncHandler.ts
 
-import { SENTRY_KEY, SentryInstance } from '@/plugins/core/enableDiagnostics';
 import type { ApplicationError } from '@/schemas/errors';
 import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
+import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import type {} from '@/shared/stores/notificationsStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
-import { inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 export interface AsyncHandlerOptions {
@@ -18,10 +18,6 @@ export interface AsyncHandlerOptions {
    * Optional error logging implementation
    */
   log?: ((error: ApplicationError) => void) | false;
-  /**
-   * Optional Sentry error tracking client
-   */
-  sentry?: SentryInstance;
   /**
    * Optional loading state handler
    */
@@ -90,7 +86,6 @@ export { createError, errorGuards, wrapError }; // Re-export for convenience
  * ```
  */
 export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
-  const sentry = inject(SENTRY_KEY, null) as SentryInstance | null;
 
   // useAsyncHandler is called during component setup (synchronously), so we put
   // useI18n() here to execute in the correct context. The t function it returns
@@ -100,6 +95,9 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   // be called synchronously at the top level of setup() or another composable
   // and not never inside callbacks, async functions, or event handlers.
   const { t } = useI18n();
+
+  // Capture bootstrap store for Sentry context tags (jurisdiction, planid, role)
+  const bootstrap = useBootstrapStore();
 
   // Default implementations that will be used if no options provided
   const handlers = {
@@ -172,8 +170,15 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
       if (!errorGuards.isOfHumanInterest(classifiedError)) {
         handlers.log?.(classifiedError);
 
-        if (sentry) {
-          sentry.scope.captureException(error);
+        // Send to Sentry via centralized diagnostics service with searchable tags
+        if (isDiagnosticsEnabled()) {
+          captureException(error instanceof Error ? error : new Error(String(error)), {
+            errorType: classifiedError.type,
+            service: 'web',
+            jurisdiction: bootstrap.regions?.current_jurisdiction,
+            planid: bootstrap.organization?.planid,
+            role: bootstrap.cust?.role,
+          });
         }
       }
 
