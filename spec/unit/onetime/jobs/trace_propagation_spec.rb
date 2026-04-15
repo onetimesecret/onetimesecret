@@ -47,6 +47,10 @@ RSpec.describe Onetime::Jobs::TracePropagation do
         def self.continue_trace(headers, name:, op:)
           nil
         end
+
+        def self.with_scope
+          yield nil if block_given?
+        end
       end)
     end
   end
@@ -296,8 +300,8 @@ RSpec.describe Onetime::Jobs::TracePropagation do
         let(:mock_scope) { instance_double('Sentry::Scope') }
 
         before do
+          allow(Sentry).to receive(:with_scope).and_yield(mock_scope)
           allow(Sentry).to receive(:continue_trace).and_return(mock_transaction)
-          allow(Sentry).to receive(:get_current_scope).and_return(mock_scope)
           allow(mock_scope).to receive(:set_span)
           allow(mock_transaction).to receive(:set_status)
           allow(mock_transaction).to receive(:finish)
@@ -390,7 +394,10 @@ RSpec.describe Onetime::Jobs::TracePropagation do
       end
 
       context 'when continue_trace returns nil (no trace context)' do
+        let(:mock_scope) { instance_double('Sentry::Scope') }
+
         before do
+          allow(Sentry).to receive(:with_scope).and_yield(mock_scope)
           allow(Sentry).to receive(:continue_trace).and_return(nil)
         end
 

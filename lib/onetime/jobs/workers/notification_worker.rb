@@ -49,35 +49,37 @@ module Onetime
         def work_with_params(msg, delivery_info, metadata)
           store_envelope(delivery_info, metadata)
 
-          with_trace_context do
-            data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+          begin
+            with_trace_context do
+              data = parse_message(msg)
+              return unless data # parse_message handles reject on error
 
-            # Handle ping test messages (from: bin/ots queue ping)
-            if data[:type] == 'ping.test'
-              log_info 'Received ping test', type: data[:type], ping_id: data.dig(:data, :ping_id)
-              return ack!
+              # Handle ping test messages (from: bin/ots queue ping)
+              if data[:type] == 'ping.test'
+                log_info 'Received ping test', type: data[:type], ping_id: data.dig(:data, :ping_id)
+                return ack!
+              end
+
+              # Atomic idempotency claim: only one worker can claim a message
+              unless claim_for_processing(message_id)
+                log_info "Skipping duplicate message: #{message_id}"
+                return ack!
+              end
+
+              log_debug "Processing notification: #{data[:type]} (metadata: #{message_metadata})"
+
+              # Delegate to operation with retry logic
+              with_retry(max_retries: 2, base_delay: 1.0) do
+                operation = Onetime::Operations::DispatchNotification.new(
+                  data: data,
+                  context: { source_message_id: message_id },
+                )
+                operation.call
+              end
+
+              log_info "Notification dispatched: #{data[:type]}", channels: data[:channels]
+              ack!
             end
-
-            # Atomic idempotency claim: only one worker can claim a message
-            unless claim_for_processing(message_id)
-              log_info "Skipping duplicate message: #{message_id}"
-              return ack!
-            end
-
-            log_debug "Processing notification: #{data[:type]} (metadata: #{message_metadata})"
-
-            # Delegate to operation with retry logic
-            with_retry(max_retries: 2, base_delay: 1.0) do
-              operation = Onetime::Operations::DispatchNotification.new(
-                data: data,
-                context: { source_message_id: message_id },
-              )
-              operation.call
-            end
-
-            log_info "Notification dispatched: #{data[:type]}", channels: data[:channels]
-            ack!
           rescue StandardError => ex
             log_error 'Unexpected error processing notification', ex
             reject! # Send to DLQ

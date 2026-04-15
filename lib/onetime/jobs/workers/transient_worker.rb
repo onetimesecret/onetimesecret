@@ -33,21 +33,23 @@ module Onetime
         def work_with_params(msg, delivery_info, metadata)
           store_envelope(delivery_info, metadata)
 
-          with_trace_context do
-            data = parse_message(msg)
-            return unless data
+          begin
+            with_trace_context do
+              data = parse_message(msg)
+              return unless data
 
-            # Skip idempotency for transient messages - they're fire-and-forget
-            action = data[:action]&.to_sym
+              # Skip idempotency for transient messages - they're fire-and-forget
+              action = data[:action]&.to_sym
 
-            case action
-            when :ping
-              handle_ping(data)
-            else
-              log_info "Unknown transient action: #{action}", data: data
+              case action
+              when :ping
+                handle_ping(data)
+              else
+                log_info "Unknown transient action: #{action}", data: data
+              end
+
+              ack!
             end
-
-            ack!
           rescue StandardError => ex
             log_error 'Error processing transient message', ex
             ack! # Don't reject transient messages - just ack and move on

@@ -584,6 +584,10 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
             nil
           end
 
+          def self.with_scope
+            yield nil if block_given?
+          end
+
           def self.continue_trace(headers, name:, op:)
             nil
           end
@@ -633,8 +637,8 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       before do
         worker.store_envelope(delivery_info, metadata_with_trace)
         allow(Sentry).to receive(:initialized?).and_return(true)
+        allow(Sentry).to receive(:with_scope).and_yield(mock_scope)
         allow(Sentry).to receive(:continue_trace).and_return(mock_transaction)
-        allow(Sentry).to receive(:get_current_scope).and_return(mock_scope)
         allow(mock_scope).to receive(:set_span)
         allow(mock_transaction).to receive(:set_status)
         allow(mock_transaction).to receive(:finish)
@@ -702,9 +706,12 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     end
 
     context 'when message has no trace headers (backwards compatibility)' do
+      let(:mock_scope) { instance_double('Sentry::Scope') }
+
       before do
         # Default metadata has no trace headers
         allow(Sentry).to receive(:initialized?).and_return(true)
+        allow(Sentry).to receive(:with_scope).and_yield(mock_scope)
         allow(Sentry).to receive(:continue_trace).and_return(nil)
       end
 

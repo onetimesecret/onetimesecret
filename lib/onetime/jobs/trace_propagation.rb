@@ -70,6 +70,10 @@ module Onetime
         # If no trace headers are present, creates a new root transaction.
         # If Sentry is not available, yields without creating a transaction.
         #
+        # Uses Sentry.with_scope to ensure the transaction is set on a LOCAL scope,
+        # preventing span leakage in multi-threaded workers. Sets status to 'ok'
+        # before yielding to handle non-local returns (e.g., `return ack!`).
+        #
         # @param trace_headers [Hash<String, String>] Headers from parse_trace_headers
         # @param name [String] Transaction name (e.g., 'queue.process')
         # @param op [String] Span operation (e.g., 'queue.process')
@@ -82,28 +86,29 @@ module Onetime
             return nil
           end
 
-          # Sentry.continue_trace returns a transaction or nil
-          transaction = Sentry.continue_trace(trace_headers, name: name, op: op)
+          Sentry.with_scope do |scope|
+            transaction = Sentry.continue_trace(trace_headers, name: name, op: op)
 
-          unless transaction
-            # No trace context - still yield but without transaction wrapping
-            return yield if block_given?
+            unless transaction
+              return yield if block_given?
 
-            return nil
-          end
+              return nil
+            end
 
-          # Set the transaction as the current span
-          Sentry.get_current_scope.set_span(transaction)
+            # Set transaction on LOCAL scope (not global)
+            scope.set_span(transaction)
 
-          begin
-            result = yield if block_given?
+            # Default to 'ok' to handle non-local returns (e.g. 'return' in block)
             transaction.set_status('ok')
-            result
-          rescue StandardError
-            transaction.set_status('internal_error')
-            raise
-          ensure
-            transaction.finish
+
+            begin
+              yield if block_given?
+            rescue StandardError
+              transaction.set_status('internal_error')
+              raise
+            ensure
+              transaction.finish
+            end
           end
         end
 
