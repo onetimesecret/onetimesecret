@@ -120,7 +120,7 @@ module Core
       #
       def welcome
         # Guard: checkout param is required for Stripe Payment Link flow
-        unless req.params['checkout']
+        if req.params['checkout'].to_s.strip.empty?
           domain_strategy = strategy_result.metadata[:domain_strategy]
 
           capture_message('Welcome page accessed without checkout param', :error) do |scope|

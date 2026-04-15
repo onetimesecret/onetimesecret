@@ -341,19 +341,36 @@ RSpec.describe Core::Controllers::Welcome do
       let(:domain_strategy) { :canonical }
       let(:params) { { 'checkout' => '' } }
 
-      # NOTE: Empty string is truthy in Ruby, so `unless req.params['checkout']`
-      # will pass an empty string through to the billing logic, where it will
-      # fail validation. This documents the current behavior - if we want to
-      # treat empty string as missing, the guard would need to be:
-      # `unless req.params['checkout'].to_s.strip.present?`
-      it 'passes empty string to billing logic (NOT treated as missing)' do
-        # The billing logic will raise an error for invalid checkout session
-        # We're just documenting that empty string gets past the guard
-        mock_logic = double('FromStripePaymentLink')
-        allow(mock_logic).to receive(:raise_concerns).and_raise(OT::FormError.new('No Stripe checkout_session_id'))
-        allow(Billing::Logic::Welcome::FromStripePaymentLink).to receive(:new).and_return(mock_logic)
+      # Empty string is treated as missing - guard uses .to_s.strip.empty?
+      it 'captures Sentry error message (treated as missing)' do
+        controller.welcome
 
-        expect { controller.welcome }.to raise_error(OT::FormError, /No Stripe checkout_session_id/)
+        expect(sentry_messages.length).to eq(1)
+        expect(sentry_messages.first[:message]).to eq('Welcome page accessed without checkout param')
+      end
+
+      it 'sets flash message on canonical domain' do
+        controller.welcome
+
+        expect(session_data['error_message']).to include('something went wrong')
+      end
+
+      it 'redirects to root path' do
+        controller.welcome
+
+        expect(@redirect_location).to eq('/')
+      end
+    end
+
+    context 'when checkout param is whitespace only' do
+      let(:domain_strategy) { :canonical }
+      let(:params) { { 'checkout' => '   ' } }
+
+      it 'treats whitespace-only as missing' do
+        controller.welcome
+
+        expect(sentry_messages.length).to eq(1)
+        expect(@redirect_location).to eq('/')
       end
     end
   end
