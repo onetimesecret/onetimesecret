@@ -62,7 +62,7 @@ module Onetime
 
       # If no valid hash from file, try git directly (works in local development)
       if commit_hash.nil? || commit_hash.empty?
-        commit_hash = `git rev-parse --short HEAD 2>/dev/null`.strip
+        commit_hash = `git rev-parse --short=7 HEAD 2>/dev/null`.strip
         commit_hash = nil if commit_hash.empty? || !$?.success?
       end
 

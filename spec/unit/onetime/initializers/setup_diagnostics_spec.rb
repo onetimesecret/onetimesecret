@@ -193,7 +193,10 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       # Verify the config using our mock config object
       expect(mock_config.dsn).to eq("https://example-dsn@sentry.io/12345")
       expect(mock_config.environment).to eq(OT.env)
-      expect(mock_config.release).to eq(OT::VERSION.details)
+      # Release follows priority: ENV['SENTRY_RELEASE'] > .commit_hash.txt > OT::VERSION.details
+      # In test environment, .commit_hash.txt typically exists with the commit hash
+      expect(mock_config.release).to be_a(String)
+      expect(mock_config.release).not_to be_empty
       expect(mock_config.breadcrumbs_logger).to eq([:sentry_logger])
       expect(mock_config.traces_sample_rate).to eq(0.1)
       expect(mock_config.profiles_sample_rate).to eq(0.1)
@@ -363,6 +366,179 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
   # via execute() is more reliable and still validates the core functionality.
   # The boot! process is tested in boot_part2_spec.rb with proper setup.
 
+  # Tests for SENTRY_RELEASE environment variable override (GitHub #2971)
+  # When SENTRY_RELEASE is set (e.g., by CI), it should be used instead of
+  # OT::VERSION.details to ensure frontend and backend report the same release.
+  describe "SENTRY_RELEASE environment variable override" do
+    before do
+      # Store original env value to restore later
+      @original_sentry_release = ENV.fetch('SENTRY_RELEASE', nil)
+    end
+
+    after do
+      # Restore original env value
+      if @original_sentry_release.nil?
+        ENV.delete('SENTRY_RELEASE')
+      else
+        ENV['SENTRY_RELEASE'] = @original_sentry_release
+      end
+    end
+
+    def setup_diagnostics_config
+      config = loaded_config.dup
+      config['diagnostics'] = {
+        'enabled' => true,
+        'sentry' => {
+          'backend' => { 'dsn' => "https://example-dsn@sentry.io/12345" },
+          'frontend' => { 'dsn' => nil }
+        }
+      }
+      config['site'] = { 'host' => "test.example.com" }
+      Onetime.instance_variable_set(:@conf, config)
+    end
+
+    it "uses SENTRY_RELEASE env var when set" do
+      ENV['SENTRY_RELEASE'] = 'abc1234'
+      setup_diagnostics_config
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      execute_diagnostics_initializer
+
+      expect(mock_config.release).to eq('abc1234')
+    end
+
+    it "uses OT::VERSION.get_build_info when SENTRY_RELEASE is not set" do
+      ENV.delete('SENTRY_RELEASE')
+      allow(OT::VERSION).to receive(:get_build_info).and_return('abc1234')
+      setup_diagnostics_config
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      execute_diagnostics_initializer
+
+      expect(mock_config.release).to eq('abc1234')
+    end
+
+    it "uses OT::VERSION.get_build_info when SENTRY_RELEASE is empty string" do
+      ENV['SENTRY_RELEASE'] = ''
+      allow(OT::VERSION).to receive(:get_build_info).and_return('def5678')
+      setup_diagnostics_config
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      execute_diagnostics_initializer
+
+      expect(mock_config.release).to eq('def5678')
+    end
+
+    it "uses OT::VERSION.get_build_info when SENTRY_RELEASE is whitespace only" do
+      ENV['SENTRY_RELEASE'] = '   '
+      allow(OT::VERSION).to receive(:get_build_info).and_return('ghi9012')
+      setup_diagnostics_config
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      execute_diagnostics_initializer
+
+      expect(mock_config.release).to eq('ghi9012')
+    end
+
+    it "trims whitespace from SENTRY_RELEASE value" do
+      ENV['SENTRY_RELEASE'] = '  def5678  '
+      setup_diagnostics_config
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      execute_diagnostics_initializer
+
+      expect(mock_config.release).to eq('def5678')
+    end
+
+    it "accepts version-style SENTRY_RELEASE values" do
+      ENV['SENTRY_RELEASE'] = 'v0.24.2'
+      setup_diagnostics_config
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      execute_diagnostics_initializer
+
+      expect(mock_config.release).to eq('v0.24.2')
+    end
+
+    it "accepts commit hash style SENTRY_RELEASE values" do
+      ENV['SENTRY_RELEASE'] = 'a1b2c3d'
+      setup_diagnostics_config
+
+      expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+      expect(Kernel).to receive(:require).with('stackprof').ordered
+      expect(Sentry).to receive(:init).and_yield(mock_config)
+
+      execute_diagnostics_initializer
+
+      expect(mock_config.release).to eq('a1b2c3d')
+    end
+
+    context "with OT::VERSION.get_build_info fallback" do
+      before do
+        ENV.delete('SENTRY_RELEASE')
+      end
+
+      it "uses OT::VERSION.get_build_info when SENTRY_RELEASE env var is not set" do
+        allow(OT::VERSION).to receive(:get_build_info).and_return('abc1234')
+        setup_diagnostics_config
+
+        expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+        expect(Kernel).to receive(:require).with('stackprof').ordered
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+
+        execute_diagnostics_initializer
+
+        expect(mock_config.release).to eq('abc1234')
+      end
+
+      it "falls back to 'dev' when no commit hash is available" do
+        allow(OT::VERSION).to receive(:get_build_info).and_return('dev')
+        setup_diagnostics_config
+
+        expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+        expect(Kernel).to receive(:require).with('stackprof').ordered
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+
+        execute_diagnostics_initializer
+
+        expect(mock_config.release).to eq('dev')
+      end
+
+      it "SENTRY_RELEASE env var takes precedence over get_build_info" do
+        ENV['SENTRY_RELEASE'] = 'env-override'
+        # Should not be called when env var is set
+        expect(OT::VERSION).not_to receive(:get_build_info)
+        setup_diagnostics_config
+
+        expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+        expect(Kernel).to receive(:require).with('stackprof').ordered
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+
+        execute_diagnostics_initializer
+
+        expect(mock_config.release).to eq('env-override')
+      end
+    end
+  end
+
   # Tests for execution_mode-aware DSN selection (GitHub #2973)
   # Workers and schedulers can use a separate Sentry DSN to isolate
   # background job errors from web/CLI errors.
@@ -521,7 +697,9 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         expect(Sentry).to receive(:init).and_yield(mock_config)
         execute_diagnostics_initializer
 
-        expect(mock_config.release).to eq(OT::VERSION.details)
+        # Release follows priority: ENV['SENTRY_RELEASE'] > .commit_hash.txt > OT::VERSION.details
+        expect(mock_config.release).to be_a(String)
+        expect(mock_config.release).not_to be_empty
       end
 
       it "sets same jurisdiction tag regardless of execution mode" do

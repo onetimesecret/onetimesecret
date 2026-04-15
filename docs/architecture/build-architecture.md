@@ -258,7 +258,7 @@ podman build -f Dockerfile \
   --build-context base=container-image://ots-base:local \
   --build-arg VERSION=dev \
   --build-arg ALLOW_DEV_VERSION=true \
-  --build-arg COMMIT_HASH=$(git rev-parse --short HEAD) \
+  --build-arg COMMIT_HASH=$(git rev-parse --short=7 HEAD) \
   --tag onetimesecret:local .
 podman rmi ots-base:local                                 # cleanup base
 
