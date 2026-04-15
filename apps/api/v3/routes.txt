@@ -9,16 +9,16 @@
 
 # Secrets - Authenticated (require session)
 GET    /receipt/recent                            V3::Logic::Secrets::ListReceipts response=json auth=sessionauth
-GET    /receipt/:identifier                       V3::Logic::Secrets::ShowReceipt response=json auth=sessionauth
-PATCH  /receipt/:identifier                       V3::Logic::Secrets::UpdateReceipt response=json auth=sessionauth
-POST   /receipt/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=sessionauth
+GET    /receipt/:identifier                       V3::Logic::Secrets::ShowReceipt response=json auth=sessionauth sensitive=true
+PATCH  /receipt/:identifier                       V3::Logic::Secrets::UpdateReceipt response=json auth=sessionauth sensitive=true
+POST   /receipt/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=sessionauth sensitive=true
 POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=sessionauth
 POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=sessionauth
-GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=sessionauth
-POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth
+GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=sessionauth sensitive=true
+POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth sensitive=true
 
 # Meta/Public endpoints (static information, no auth required)
-GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth
+GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth sensitive=true
 POST   /secret/status                             V3::Logic::Secrets::ListSecretStatus response=json auth=noauth
 
 # OPTIONS preflight for CORS (public)
@@ -28,10 +28,10 @@ OPTIONS /secret/conceal                           V3::Logic::Secrets::ConcealSec
 # Guest routes (anonymous access with GuestRouteGating)
 POST   /guest/secret/conceal                      V3::Logic::Secrets::ConcealSecret response=json auth=noauth
 POST   /guest/secret/generate                     V3::Logic::Secrets::GenerateSecret response=json auth=noauth
-GET    /guest/secret/:identifier                  V3::Logic::Secrets::ShowSecret response=json auth=noauth
-POST   /guest/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=noauth
-GET    /guest/receipt/:identifier                 V3::Logic::Secrets::ShowReceipt response=json auth=noauth
-POST   /guest/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /guest/secret/:identifier                  V3::Logic::Secrets::ShowSecret response=json auth=noauth sensitive=true
+POST   /guest/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=noauth sensitive=true
+GET    /guest/receipt/:identifier                 V3::Logic::Secrets::ShowReceipt response=json auth=noauth sensitive=true
+POST   /guest/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=noauth sensitive=true
 POST   /guest/receipts                            V3::Logic::Secrets::ShowMultipleReceipts response=json auth=noauth
 
 # Meta/Public endpoints (static information uses class methods)

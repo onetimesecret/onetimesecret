@@ -593,10 +593,17 @@ function buildOperation(route: OttoRoute, apiName: string): Record<string, unkno
   // Emit custom route params as x-o-route-* extensions.
   // Reserved params (consumed by the generator for structural purposes)
   // are excluded — only domain-specific annotations pass through.
-  const RESERVED_PARAMS = new Set(['response', 'auth', 'content', 'csrf', 'deprecated']);
+  const RESERVED_PARAMS = new Set(['response', 'auth', 'content', 'csrf', 'deprecated', 'sensitive']);
   for (const [key, value] of Object.entries(route.params)) {
     if (RESERVED_PARAMS.has(key)) continue;
     operation[`x-otto-route-${key}`] = value;
+  }
+
+  // Emit sensitive param as x-sensitive extension for downstream consumers
+  if (route.params.sensitive) {
+    operation['x-sensitive'] = route.params.sensitive === 'true'
+      ? true
+      : route.params.sensitive.split(',');
   }
 
   // Add security

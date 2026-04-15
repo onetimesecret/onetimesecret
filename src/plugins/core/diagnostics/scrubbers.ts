@@ -8,17 +8,23 @@
 // - Sentry beforeBreadcrumb handler
 // - Sentry beforeSend handler
 
+import { scrubSensitivePath } from '@/generated/sentry-scrub-patterns';
+
 /**
- * Pattern for known sensitive URL paths.
- * Matches path segments that contain tokens or identifiers:
+ * Legacy fallback pattern for sensitive URL paths.
+ *
+ * Current approach uses deterministic route metadata (fail-safe, opt-out):
+ * - Frontend: src/routes/index.ts route definitions with scrub metadata
+ * - Backend: Otto routes with `sensitive=true` annotation, e.g.:
+ *   `GET /receipt/:identifier ... sensitive=true`
+ *
+ * This regex catches paths missed by route-derived patterns:
  * - /secret/, /private/, /receipt/, /incoming/ - core secret paths
  * - /invite/ - invitation tokens
- * - /account/email/confirm/ - email confirmation tokens (matched as /account/ then /confirm/)
+ * - /confirm/ - email confirmation tokens
  *
- * Note: Some auth routes use query params instead of path params:
- * - /reset-password?key=... - handled by query param scrubbing
- * - /verify-account?token=... - handled by query param scrubbing
- *
+ * @see scrubSensitivePath - generated patterns from route metadata
+ * @see src/generated/sentry-scrub-patterns.ts - generated output
  * @internal Exported for testing
  */
 export const SENSITIVE_PATH_PATTERN =
@@ -65,7 +71,10 @@ export function scrubSensitiveStrings(text: string): string {
   // Scrub 62-char verifiable IDs
   result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
 
-  // Scrub sensitive path patterns (in case exception message contains URLs/paths)
+  // Scrub sensitive path patterns using generated route-derived patterns
+  result = scrubSensitivePath(result);
+
+  // Fallback: scrub any remaining sensitive paths not covered by generated patterns
   result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
 
   return result;
@@ -90,13 +99,16 @@ export function scrubUrlWithPatterns(url: string): string {
 
   let result = url;
 
-  // First pass: scrub known sensitive path patterns
+  // First pass: scrub using generated route-derived patterns
+  result = scrubSensitivePath(result);
+
+  // Second pass: fallback for paths not covered by generated patterns
   result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
 
-  // Second pass: scrub any remaining 62-char verifiable IDs
+  // Third pass: scrub any remaining 62-char verifiable IDs
   result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
 
-  // Third pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
+  // Fourth pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
   result = result.replace(EMAIL_PATTERN, '[EMAIL REDACTED]');
 
   return result;
