@@ -59,7 +59,6 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
             componentInfo: info,
             errorType: classifiedError.type,
             errorSeverity: classifiedError.severity,
-            service: 'web',
           };
 
           // Add jurisdiction if regions are configured (optional field)

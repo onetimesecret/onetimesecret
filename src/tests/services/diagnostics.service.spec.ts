@@ -445,9 +445,9 @@ describe('diagnostics.service', () => {
         expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'secretresponse');
         expect(clonedScope.setTag).toHaveBeenCalledTimes(1);
 
-        // null value should go to extras (not filtered out)
-        const extrasArg = clonedScope.setExtras.mock.calls[0][0];
-        expect(extrasArg).toHaveProperty('errorType', null);
+        // Tag fields with null values are skipped, not moved to extras
+        // Since there are no non-tag fields, setExtras should not be called
+        expect(clonedScope.setExtras).not.toHaveBeenCalled();
       });
 
       it('does not call setTag for undefined tag values', async () => {
@@ -468,9 +468,9 @@ describe('diagnostics.service', () => {
         expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'secretresponse');
         expect(clonedScope.setTag).toHaveBeenCalledTimes(1);
 
-        // undefined value should go to extras (not filtered out)
-        const extrasArg = clonedScope.setExtras.mock.calls[0][0];
-        expect(extrasArg).toHaveProperty('errorType', undefined);
+        // Tag fields with undefined values are skipped, not moved to extras
+        // Since there are no non-tag fields, setExtras should not be called
+        expect(clonedScope.setExtras).not.toHaveBeenCalled();
       });
 
       it('sets empty string tag values (does not skip them)', async () => {
@@ -607,10 +607,9 @@ describe('diagnostics.service', () => {
         expect(clonedScope.setTag).toHaveBeenCalledWith('service', 'web');
         expect(clonedScope.setTag).toHaveBeenCalledTimes(1);
 
-        // null/undefined values should go to extras
-        const extrasArg = clonedScope.setExtras.mock.calls[0][0];
-        expect(extrasArg).toHaveProperty('errorType', null);
-        expect(extrasArg).toHaveProperty('schema', undefined);
+        // Tag fields with null/undefined values are skipped, not moved to extras
+        // Since there are no non-tag fields, setExtras should not be called
+        expect(clonedScope.setExtras).not.toHaveBeenCalled();
       });
     });
 
