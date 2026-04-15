@@ -12,6 +12,21 @@ interface ErrorBoundaryOptions extends AsyncHandlerOptions {
 }
 
 /**
+ * Extracts the Vue component name for Sentry context (#2966)
+ * Works with both Options API ($options.name) and script setup (__name)
+ */
+function getComponentName(instance: unknown): string {
+  if (!instance || typeof instance !== 'object') return 'unknown';
+  const opts = (instance as Record<string, unknown>).$options;
+  if (opts && typeof opts === 'object' && typeof (opts as Record<string, unknown>).name === 'string') {
+    return (opts as Record<string, unknown>).name as string;
+  }
+  const name = (instance as Record<string, unknown>).__name;
+  if (typeof name === 'string') return name;
+  return 'unknown';
+}
+
+/**
  * Creates a Vue plugin that provides global error handling
  *
  * @param {ErrorBoundaryOptions} options - Configuration options
@@ -56,6 +71,7 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
           // Note: useBootstrapStore() is safe here because Pinia is installed before this plugin
           const bootstrap = useBootstrapStore();
           const context: Record<string, unknown> = {
+            componentName: getComponentName(instance),
             componentInfo: info,
             errorType: classifiedError.type,
             errorSeverity: classifiedError.severity,

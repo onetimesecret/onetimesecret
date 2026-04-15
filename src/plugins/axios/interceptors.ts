@@ -1,10 +1,13 @@
 // src/plugins/axios/interceptors.ts
 
-import { addBreadcrumb } from '@sentry/browser';
-
+import {
+  scrubSensitiveStrings,
+  scrubUrlWithPatterns,
+} from '@/plugins/core/enableDiagnostics';
 import { useLanguageStore } from '@/shared/stores';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { addBreadcrumb } from '@sentry/vue';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 import { scrubSensitiveStrings, scrubUrlWithPatterns } from '../core/enableDiagnostics';
@@ -123,15 +126,20 @@ export const errorInterceptor = (error: AxiosError) => {
   // Read CSRF token from response header even in error cases
   const responseShrimp = error.response?.headers['x-csrf-token'];
 
-  // console.error('[errorInterceptor] ', {
-  //   url: error.config?.url,
-  //   method: error.config?.method,
-  //   status: error.response?.status,
-  //   hasShrimp: responseShrimp ? true : false,
-  //   shrimp: createLoggableShrimp(responseShrimp),
-  //   error: error.message,
-  //   name: error.name,
-  // });
+  // Add Sentry breadcrumb for API debugging (#2965)
+  // Scrub sensitive data from URL and error message before sending
+  const method = error.config?.method?.toUpperCase() ?? 'UNKNOWN';
+  const url = error.config?.url ? scrubUrlWithPatterns(error.config.url) : 'unknown';
+  addBreadcrumb({
+    type: 'http',
+    category: 'axios',
+    message: `${method} ${url}`,
+    data: {
+      status_code: error.response?.status,
+      reason: scrubSensitiveStrings(error.message),
+    },
+    level: 'error',
+  });
 
   // Update our local shrimp token if new one is provided
   if (isValidShrimp(responseShrimp)) {
