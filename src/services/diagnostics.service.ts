@@ -37,6 +37,7 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  */
 const TAG_FIELDS = ['errorType', 'errorSeverity', 'schema', 'service', 'jurisdiction', 'planid', 'role'] as const;
 type _TagField = (typeof TAG_FIELDS)[number]; // Used for documentation; lookup via Set<string>
+const TAG_FIELDS_SET = new Set<string>(TAG_FIELDS);
 
 /**
  * Extracts tag fields from context and applies them to the scope.
@@ -52,9 +53,8 @@ function applyTagsFromContext(
 ): Record<string, unknown> {
   const extras: Record<string, unknown> = {};
 
-  const tagFieldsSet = new Set<string>(TAG_FIELDS);
   for (const [key, value] of Object.entries(context)) {
-    if (tagFieldsSet.has(key)) {
+    if (TAG_FIELDS_SET.has(key)) {
       // Tag fields are handled exclusively - set if valid, skip if null/undefined
       if (value !== undefined && value !== null) {
         // Tags must be strings and normalized to lowercase

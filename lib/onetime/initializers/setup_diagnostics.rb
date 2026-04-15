@@ -129,9 +129,10 @@ module Onetime
 
           case OT.execution_mode
           when :worker, :scheduler
-            workers_dsn = sentry_config.dig('workers', 'dsn')
-            dsn         = workers_dsn.nil? || workers_dsn.to_s.empty? ? backend_dsn : workers_dsn
-            if workers_dsn && !workers_dsn.to_s.empty?
+            workers_dsn         = sentry_config.dig('workers', 'dsn')
+            workers_dsn_present = !workers_dsn.to_s.strip.empty?
+            dsn                 = workers_dsn_present ? workers_dsn : backend_dsn
+            if workers_dsn_present
               OT.ld "[init] Sentry: Using workers DSN for #{OT.execution_mode} mode"
             else
               OT.ld "[init] Sentry: Workers DSN not configured, using backend DSN for #{OT.execution_mode} mode"

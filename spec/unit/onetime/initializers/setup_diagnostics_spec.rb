@@ -426,6 +426,16 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
         expect(mock_config.dsn).to eq(backend_dsn)
       end
+
+      it "falls back to backend DSN when workers DSN is whitespace only" do
+        setup_config_with_workers_dsn("   ")
+        allow(OT).to receive(:execution_mode).and_return(:worker)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(mock_config.dsn).to eq(backend_dsn)
+      end
     end
 
     context "when OT.execution_mode is :scheduler" do
