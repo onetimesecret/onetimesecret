@@ -71,6 +71,10 @@ module Onetime
 
         def call(queues: nil, concurrency: 10, daemonize: false, environment: 'development',
                  log_level: nil, check: false, skip_checks: false, **)
+          # Set execution mode before boot so initializers can configure
+          # process-specific settings (e.g., Sentry DSN for workers).
+          OT.execution_mode = :worker
+
           # Skip RabbitMQ setup during boot - Sneakers creates its own connections.
           # This prevents ConnectionPool.after_fork from timing out when closing
           # inherited channels after Sneakers forks worker processes.

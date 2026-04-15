@@ -846,6 +846,13 @@ diagnostics:
     frontend:
       dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
       trackComponents: <%= ENV['SENTRY_VUE_TRACK_COMPONENTS'] != 'false' %>
+    # Background workers-specific Sentry configuration
+    # Used for Sneakers workers and Rufus scheduler processes.
+    # Falls back to backend DSN if not configured.
+    #
+    # `dsn` - Workers-specific Sentry DSN
+    workers:
+      dsn: <%= ENV['SENTRY_DSN_WORKERS'] || nil %>
 development:
   # Development Mode Configuration
   #
