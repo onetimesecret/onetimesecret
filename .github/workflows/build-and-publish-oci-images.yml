@@ -248,7 +248,31 @@ jobs:
             *.args.VERSION=${{ steps.version.outputs.version }}
             *.args.COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
 
-      - name: Create Sentry release with source maps (frontend)
+      - name: Create Sentry release and associate commits
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_URL: ${{ secrets.SENTRY_URL }}
+          SENTRY_PROJECTS: ${{ secrets.SENTRY_PROJECTS }}
+          SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_PROJECTS" ]; then
+            echo "SENTRY_AUTH_TOKEN or SENTRY_PROJECTS not set, skipping Sentry release"
+            exit 0
+          fi
+          # Build --project flags from space-separated list
+          PROJECT_FLAGS=""
+          for proj in $SENTRY_PROJECTS; do
+            PROJECT_FLAGS="$PROJECT_FLAGS --project $proj"
+          done
+          echo "Creating release $SENTRY_RELEASE for projects: $SENTRY_PROJECTS"
+          npx @sentry/cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS
+          npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS
+          npx @sentry/cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS
+
+      - name: Upload frontend sourcemaps to Sentry
         if: github.event_name != 'pull_request'
         continue-on-error: true
         env:
@@ -258,34 +282,14 @@ jobs:
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "SENTRY_AUTH_TOKEN not set, skipping Sentry release"
+            echo "SENTRY_AUTH_TOKEN not set, skipping sourcemaps upload"
             exit 0
           fi
-          npx @sentry/cli releases new "$SENTRY_RELEASE"
-          npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto
           npx @sentry/cli sourcemaps upload ./public/web/dist \
             --release="$SENTRY_RELEASE" \
+            --project=frontend \
             --dist=frontend \
             --url-prefix='~/dist'
-          npx @sentry/cli releases finalize "$SENTRY_RELEASE"
-
-      - name: Associate commits with Sentry release (backend)
-        if: github.event_name != 'pull_request'
-        continue-on-error: true
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_URL: ${{ secrets.SENTRY_URL }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_BACKEND_PROJECT }}
-          SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
-        run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_PROJECT" ]; then
-            echo "SENTRY_AUTH_TOKEN or SENTRY_BACKEND_PROJECT not set, skipping"
-            exit 0
-          fi
-          npx @sentry/cli releases new "$SENTRY_RELEASE" --project "$SENTRY_PROJECT"
-          npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto --project "$SENTRY_PROJECT"
-          npx @sentry/cli releases finalize "$SENTRY_RELEASE" --project "$SENTRY_PROJECT"
 
       - name: Create Sentry deploy notification
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
