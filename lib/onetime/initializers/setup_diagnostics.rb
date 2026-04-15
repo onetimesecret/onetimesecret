@@ -151,8 +151,7 @@ module Onetime
 
         # Resolves the Sentry release identifier with fallback chain:
         # 1. SENTRY_RELEASE env var (explicit override, e.g., production deploy)
-        # 2. .commit_hash.txt file (baked into Docker image by CI)
-        # 3. OT::VERSION.details (local development fallback)
+        # 2. OT::VERSION.get_build_info (reads .commit_hash.txt or git, returns 'dev' fallback)
         #
         # @return [String] The release identifier for Sentry
         def resolve_sentry_release
@@ -160,16 +159,8 @@ module Onetime
           env_release = ENV.fetch('SENTRY_RELEASE', '').strip
           return env_release unless env_release.empty?
 
-          # Check for .commit_hash.txt (CI bakes this into Docker image)
-          commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
-          if File.exist?(commit_hash_file)
-            file_content = File.read(commit_hash_file).strip
-            # Use file content if it's a real commit hash (not a fallback value)
-            return file_content unless file_content.empty? || %w[dev pristine].include?(file_content)
-          end
-
-          # Fall back to version details for local development
-          OT::VERSION.details
+          # Delegate to VERSION which handles .commit_hash.txt and git fallback
+          OT::VERSION.get_build_info
         end
 
         class << self

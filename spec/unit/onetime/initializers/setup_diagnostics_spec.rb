@@ -410,12 +410,9 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       expect(mock_config.release).to eq('abc1234')
     end
 
-    it "uses OT::VERSION.details when SENTRY_RELEASE is not set and no .commit_hash.txt" do
+    it "uses OT::VERSION.get_build_info when SENTRY_RELEASE is not set" do
       ENV.delete('SENTRY_RELEASE')
-      # Stub File.exist? to return false for commit_hash.txt to test VERSION.details fallback
-      commit_hash_path = File.join(Onetime::HOME, '.commit_hash.txt')
-      allow(File).to receive(:exist?).and_call_original
-      allow(File).to receive(:exist?).with(commit_hash_path).and_return(false)
+      allow(OT::VERSION).to receive(:get_build_info).and_return('abc1234')
       setup_diagnostics_config
 
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
@@ -424,15 +421,12 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
       execute_diagnostics_initializer
 
-      expect(mock_config.release).to eq(OT::VERSION.details)
+      expect(mock_config.release).to eq('abc1234')
     end
 
-    it "uses OT::VERSION.details when SENTRY_RELEASE is empty string and no .commit_hash.txt" do
+    it "uses OT::VERSION.get_build_info when SENTRY_RELEASE is empty string" do
       ENV['SENTRY_RELEASE'] = ''
-      # Stub File.exist? to return false for commit_hash.txt to test VERSION.details fallback
-      commit_hash_path = File.join(Onetime::HOME, '.commit_hash.txt')
-      allow(File).to receive(:exist?).and_call_original
-      allow(File).to receive(:exist?).with(commit_hash_path).and_return(false)
+      allow(OT::VERSION).to receive(:get_build_info).and_return('def5678')
       setup_diagnostics_config
 
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
@@ -441,15 +435,12 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
       execute_diagnostics_initializer
 
-      expect(mock_config.release).to eq(OT::VERSION.details)
+      expect(mock_config.release).to eq('def5678')
     end
 
-    it "uses OT::VERSION.details when SENTRY_RELEASE is whitespace only and no .commit_hash.txt" do
+    it "uses OT::VERSION.get_build_info when SENTRY_RELEASE is whitespace only" do
       ENV['SENTRY_RELEASE'] = '   '
-      # Stub File.exist? to return false for commit_hash.txt to test VERSION.details fallback
-      commit_hash_path = File.join(Onetime::HOME, '.commit_hash.txt')
-      allow(File).to receive(:exist?).and_call_original
-      allow(File).to receive(:exist?).with(commit_hash_path).and_return(false)
+      allow(OT::VERSION).to receive(:get_build_info).and_return('ghi9012')
       setup_diagnostics_config
 
       expect(Kernel).to receive(:require).with('sentry-ruby').ordered
@@ -458,7 +449,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
       execute_diagnostics_initializer
 
-      expect(mock_config.release).to eq(OT::VERSION.details)
+      expect(mock_config.release).to eq('ghi9012')
     end
 
     it "trims whitespace from SENTRY_RELEASE value" do
@@ -500,31 +491,13 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       expect(mock_config.release).to eq('a1b2c3d')
     end
 
-    context "with .commit_hash.txt file fallback" do
-      let(:commit_hash_path) { File.join(Onetime::HOME, '.commit_hash.txt') }
-
+    context "with OT::VERSION.get_build_info fallback" do
       before do
         ENV.delete('SENTRY_RELEASE')
-        @original_file_exists = File.exist?(commit_hash_path)
-        @original_content = File.read(commit_hash_path) if @original_file_exists
       end
 
-      after do
-        if @original_file_exists
-          File.write(commit_hash_path, @original_content)
-        elsif File.exist?(commit_hash_path)
-          # Only delete if we created it during the test
-          # File.delete(commit_hash_path)
-        end
-      end
-
-      it "uses .commit_hash.txt when SENTRY_RELEASE env var is not set" do
-        # Skip if file doesn't exist (we don't want to create files in tests)
-        skip "No .commit_hash.txt file present" unless File.exist?(commit_hash_path)
-
-        file_content = File.read(commit_hash_path).strip
-        skip "File contains dev/pristine fallback" if %w[dev pristine].include?(file_content) || file_content.empty?
-
+      it "uses OT::VERSION.get_build_info when SENTRY_RELEASE env var is not set" do
+        allow(OT::VERSION).to receive(:get_build_info).and_return('abc1234')
         setup_diagnostics_config
 
         expect(Kernel).to receive(:require).with('sentry-ruby').ordered
@@ -533,11 +506,26 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
         execute_diagnostics_initializer
 
-        expect(mock_config.release).to eq(file_content)
+        expect(mock_config.release).to eq('abc1234')
       end
 
-      it "SENTRY_RELEASE env var takes precedence over .commit_hash.txt" do
+      it "falls back to 'dev' when no commit hash is available" do
+        allow(OT::VERSION).to receive(:get_build_info).and_return('dev')
+        setup_diagnostics_config
+
+        expect(Kernel).to receive(:require).with('sentry-ruby').ordered
+        expect(Kernel).to receive(:require).with('stackprof').ordered
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+
+        execute_diagnostics_initializer
+
+        expect(mock_config.release).to eq('dev')
+      end
+
+      it "SENTRY_RELEASE env var takes precedence over get_build_info" do
         ENV['SENTRY_RELEASE'] = 'env-override'
+        # Should not be called when env var is set
+        expect(OT::VERSION).not_to receive(:get_build_info)
         setup_diagnostics_config
 
         expect(Kernel).to receive(:require).with('sentry-ruby').ordered

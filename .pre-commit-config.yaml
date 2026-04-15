@@ -181,7 +181,7 @@ repos:
         stages: [post-commit, post-checkout, post-merge]
         name: Record commit hash
         description: Log current commit hash for build reference
-        entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; head -4 .commit_hash.txt package.json'"
+        entry: "sh -c 'git rev-parse --short=7 HEAD > .commit_hash.txt; echo Commit hash recorded; head -4 .commit_hash.txt package.json'"
         language: system
         always_run: true
         pass_filenames: false
