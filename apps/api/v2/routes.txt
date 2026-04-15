@@ -7,31 +7,31 @@
 
 # Receipts (creator-facing secret metadata)
 GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth
-POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth
-GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth
-PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth
+POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth sensitive=true
+GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth sensitive=true
+PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth sensitive=true
 
 # Legacy aliases — use /receipt/ paths instead
 GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=basicauth deprecated=true
-POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth deprecated=true
-GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth deprecated=true
-PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth deprecated=true
+POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=basicauth,noauth deprecated=true sensitive=true
+GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=basicauth,noauth deprecated=true sensitive=true
+PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=basicauth,noauth deprecated=true sensitive=true
 
 # Secrets - Public (Anonymous allowed)
-GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=basicauth,noauth
-GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=basicauth,noauth
+GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=basicauth,noauth sensitive=true
+GET    /secret/:identifier/status                 V2::Logic::Secrets::ShowSecretStatus response=json auth=basicauth,noauth sensitive=true
 POST   /secret/status                             V2::Logic::Secrets::ListSecretStatus response=json auth=basicauth,noauth
-POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=basicauth,noauth
+POST   /secret/:identifier/reveal                 V2::Logic::Secrets::RevealSecret response=json auth=basicauth,noauth sensitive=true
 POST   /secret/generate                           V2::Logic::Secrets::GenerateSecret response=json auth=basicauth,noauth
 POST   /secret/conceal                            V2::Logic::Secrets::ConcealSecret response=json auth=basicauth,noauth
 
 # Guest routes (anonymous access with GuestRouteGating)
 POST   /guest/secret/conceal                      V2::Logic::Secrets::ConcealSecret response=json auth=noauth
 POST   /guest/secret/generate                     V2::Logic::Secrets::GenerateSecret response=json auth=noauth
-GET    /guest/secret/:identifier                  V2::Logic::Secrets::ShowSecret response=json auth=noauth
-POST   /guest/secret/:identifier/reveal           V2::Logic::Secrets::RevealSecret response=json auth=noauth
-GET    /guest/receipt/:identifier                 V2::Logic::Secrets::ShowReceipt response=json auth=noauth
-POST   /guest/receipt/:identifier/burn            V2::Logic::Secrets::BurnSecret response=json auth=noauth
+GET    /guest/secret/:identifier                  V2::Logic::Secrets::ShowSecret response=json auth=noauth sensitive=true
+POST   /guest/secret/:identifier/reveal           V2::Logic::Secrets::RevealSecret response=json auth=noauth sensitive=true
+GET    /guest/receipt/:identifier                 V2::Logic::Secrets::ShowReceipt response=json auth=noauth sensitive=true
+POST   /guest/receipt/:identifier/burn            V2::Logic::Secrets::BurnSecret response=json auth=noauth sensitive=true
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json

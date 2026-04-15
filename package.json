@@ -19,6 +19,7 @@
     "locales:hashes:dry-run": "python3 locales/scripts/add_hashes.py --dry-run",
     "locales:sync": "python3 locales/scripts/build/compile.py --all --merged",
     "openapi:generate": "tsx --tsconfig scripts/tsconfig.json scripts/openapi/generate-openapi.ts",
+    "generate:sentry-patterns": "tsx --tsconfig scripts/tsconfig.json scripts/generate-sentry-scrub-patterns.ts",
     "schemas:scan": "tsx --tsconfig scripts/tsconfig.json scripts/openapi/schema-scanner.ts",
     "schemas:json:generate": "tsx --tsconfig scripts/tsconfig.json scripts/json-schema/generate.ts",
     "schemas:json:generate:dry-run": "tsx --tsconfig scripts/tsconfig.json scripts/json-schema/generate.ts --dry-run",
