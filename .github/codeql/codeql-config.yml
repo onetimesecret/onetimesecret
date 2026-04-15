@@ -9,10 +9,18 @@ name: "OnetimeSecret CodeQL Config"
 
 paths-ignore:
   # Test directories - assertions trigger false positives
-  - try/**
-  - spec/**
-  - test/**
-  - tests/**
+  - '**/try/**'
+  - '**/spec/**'
+  - '**/test/**'
+  - '**/tests/**'
+  - '**/src/tests/**'
   # Vendor/third-party code
-  - vendor/**
-  - node_modules/**
+  - '**/vendor/**'
+  - '**/node_modules/**'
+  # Specific test file patterns
+  - '**/*.spec.ts'
+  - '**/*.spec.js'
+  - '**/*.test.ts'
+  - '**/*.test.js'
+  - '**/*_test.rb'
+  - '**/*_try.rb'

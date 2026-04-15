@@ -1,9 +1,11 @@
 // src/plugins/core/enableDiagnostics.ts
 
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { initDiagnostics } from '@/services/diagnostics.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import type { RouteMeta } from '@/types/router';
 import { DEBUG } from '@/utils/debug';
+import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 import {
   BrowserClient,
   Scope,
@@ -20,74 +22,6 @@ import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
 
 export const SENTRY_KEY = Symbol('sentry');
-
-/**
- * Collects param values to redact from route params, sorted by length descending.
- * Sorting ensures longer strings are replaced before shorter ones to avoid
- * corrupting overlapping matches (e.g., 'foobar' before 'foo').
- *
- * @param params - Route params object with values to redact
- * @param paramsToScrub - Which params to scrub: undefined/true = all, string[] = named only
- * @returns Array of values sorted by length descending, ready for scrubbing
- *
- * @internal Exported for testing
- */
-export function collectValuesToRedact(
-  params: Record<string, string | string[]>,
-  paramsToScrub: RouteMeta['sentryScrubParams']
-): string[] {
-  const valuesToRedact = new Set<string>();
-
-  for (const [name, val] of Object.entries(params)) {
-    // Skip if we're only scrubbing specific params and this isn't one of them
-    if (Array.isArray(paramsToScrub) && !paramsToScrub.includes(name)) {
-      continue;
-    }
-    const items = Array.isArray(val) ? val : [val];
-    for (const item of items) {
-      if (item && typeof item === 'string' && item.length > 0) {
-        valuesToRedact.add(item);
-      }
-    }
-  }
-
-  // Sort by length descending to replace longer strings first
-  return Array.from(valuesToRedact).sort((a, b) => b.length - a.length);
-}
-
-/**
- * Scrubs a URL using pre-collected values to redact.
- * Uses URL API to isolate path/query/hash from origin to prevent
- * accidental hostname redaction (e.g., 'one' matching 'onetimesecret.com').
- *
- * @param url - The URL string to scrub
- * @param sortedValues - Values to redact, pre-sorted by length descending
- * @returns The scrubbed URL with sensitive values replaced by [REDACTED]
- *
- * @internal Exported for testing
- */
-export function scrubUrlWithValues(url: string, sortedValues: string[]): string {
-  if (!url || typeof url !== 'string' || sortedValues.length === 0) {
-    return url;
-  }
-
-  let result = url;
-  try {
-    // Protect the origin (protocol/host) from accidental redaction
-    const parsed = new URL(url);
-    let pathPart = parsed.pathname + parsed.search + parsed.hash;
-    for (const val of sortedValues) {
-      pathPart = pathPart.split(val).join('[REDACTED]');
-    }
-    result = parsed.origin + pathPart;
-  } catch {
-    // Fallback for relative URLs or invalid strings
-    for (const val of sortedValues) {
-      result = result.split(val).join('[REDACTED]');
-    }
-  }
-  return result;
-}
 
 /**
  * Regex pattern for sensitive path segments in HTTP requests.
@@ -186,7 +120,7 @@ export function scrubUrlWithPatterns(url: string): string {
  *
  * @internal Exported for testing
  */
-export function createBeforeBreadcrumbHandler(router: Router) {
+function createBeforeBreadcrumbHandler(router: Router) {
   return (breadcrumb: Breadcrumb): Breadcrumb | null => {
     const category = breadcrumb.category;
 
@@ -277,7 +211,7 @@ function scrubEventMessages(event: ErrorEvent): ErrorEvent {
  *
  * @internal Exported for testing
  */
-export function createBeforeSendHandler(router: Router) {
+function createBeforeSendHandler(router: Router) {
   return (event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> => {
     if ('secret' in event && event.secret) {
       delete event.secret;
@@ -422,8 +356,12 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [
       /^localhost(:\d+)?$/, // Matches localhost with optional port
-      // Add host domain regex only if host is provided
-      ...(host ? [new RegExp(`^https?:\/\/[^/]+${host.replace('.', '\\.')}`)] : []),
+      // Add host domain regex only if host is provided.
+      // Properly anchored: requires host to be at the end of the domain portion,
+      // either at end of string or followed by / or :port
+      ...(host
+        ? [new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?(/|$)`, 'i')]
+        : []),
     ],
 
     // Only the integrations listed here will be used
@@ -450,6 +388,17 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // Set default service tag for all events from this frontend app
   // @see https://github.com/onetimesecret/onetimesecret/issues/2964
   scope.setTag('service', 'web');
+
+  // Add jurisdiction tag for region-specific filtering in Sentry
+  // Use bootstrap value directly since Pinia is not yet installed when createDiagnostics() is called
+  const regions = getBootstrapValue('regions');
+  const jurisdictionId =
+    typeof regions?.current_jurisdiction === 'string'
+      ? regions.current_jurisdiction.toLowerCase()
+      : null;
+  if (jurisdictionId) {
+    scope.setTag('jurisdiction', jurisdictionId);
+  }
 
   // Initialize the Sentry client. This is equivalent to calling
   // Sentry.init() with the options provided above.
