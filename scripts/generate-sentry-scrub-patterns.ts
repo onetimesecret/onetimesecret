@@ -176,7 +176,7 @@ function generateOutput(patterns: Map<string, SensitiveRoute>): string {
 
   const patternLines = sortedPatterns.map(([pattern, route]) => {
     const comment = `  // ${route.fullPath}`;
-    const regex = `  /${pattern}/g,`;
+    const regex = `  /${pattern}/gi,`;
     return `${comment}\n${regex}`;
   });
 

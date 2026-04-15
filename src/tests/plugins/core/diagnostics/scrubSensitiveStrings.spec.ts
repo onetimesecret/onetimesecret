@@ -10,13 +10,13 @@ describe('scrubSensitiveStrings', () => {
   it('scrubs email addresses from text', () => {
     const text = 'Contact user@example.com for support';
     const result = scrubSensitiveStrings(text);
-    expect(result).toBe('Contact [EMAIL REDACTED] for support');
+    expect(result).toBe('Contact [EMAIL_REDACTED] for support');
   });
 
   it('scrubs multiple email addresses', () => {
     const text = 'From: alice@example.com To: bob@example.com';
     const result = scrubSensitiveStrings(text);
-    expect(result).toBe('From: [EMAIL REDACTED] To: [EMAIL REDACTED]');
+    expect(result).toBe('From: [EMAIL_REDACTED] To: [EMAIL_REDACTED]');
   });
 
   it('scrubs 62-char verifiable IDs', () => {
@@ -53,7 +53,7 @@ describe('scrubSensitiveStrings', () => {
   it('scrubs multiple sensitive patterns in one string', () => {
     const text = 'User user@example.com accessed /secret/abc123';
     const result = scrubSensitiveStrings(text);
-    expect(result).toBe('User [EMAIL REDACTED] accessed /secret/[REDACTED]');
+    expect(result).toBe('User [EMAIL_REDACTED] accessed /secret/[REDACTED]');
   });
 
   it('handles empty string input', () => {

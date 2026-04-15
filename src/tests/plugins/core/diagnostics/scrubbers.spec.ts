@@ -19,14 +19,14 @@ describe('scrubbers', () => {
     it('scrubs email addresses', () => {
       const text = 'User user@example.com reported an error';
       expect(scrubSensitiveStrings(text)).toBe(
-        'User [EMAIL REDACTED] reported an error'
+        'User [EMAIL_REDACTED] reported an error'
       );
     });
 
     it('scrubs multiple email addresses', () => {
       const text = 'From: alice@example.com To: bob@test.org';
       expect(scrubSensitiveStrings(text)).toBe(
-        'From: [EMAIL REDACTED] To: [EMAIL REDACTED]'
+        'From: [EMAIL_REDACTED] To: [EMAIL_REDACTED]'
       );
     });
 
@@ -78,20 +78,20 @@ describe('scrubbers', () => {
 
     it('scrubs email addresses in query params', () => {
       expect(scrubUrlWithPatterns('/api/users?email=user@example.com')).toBe(
-        '/api/users?email=[EMAIL REDACTED]'
+        '/api/users?email=[EMAIL_REDACTED]'
       );
     });
 
     it('scrubs email addresses in path segments', () => {
       expect(scrubUrlWithPatterns('/api/users/user@example.com/profile')).toBe(
-        '/api/users/[EMAIL REDACTED]/profile'
+        '/api/users/[EMAIL_REDACTED]/profile'
       );
     });
 
     it('scrubs multiple emails in URL', () => {
       expect(
         scrubUrlWithPatterns('/api/share?from=alice@a.com&to=bob@b.com')
-      ).toBe('/api/share?from=[EMAIL REDACTED]&to=[EMAIL REDACTED]');
+      ).toBe('/api/share?from=[EMAIL_REDACTED]&to=[EMAIL_REDACTED]');
     });
 
     it('leaves non-sensitive URLs unchanged', () => {
@@ -114,7 +114,7 @@ describe('scrubbers', () => {
       const url = 'https://api.example.com/api/v3/secret/abc123?email=test@test.com';
       const scrubbed = scrubUrlWithPatterns(url);
       expect(scrubbed).toBe(
-        'https://api.example.com/api/v3/secret/[REDACTED]?email=[EMAIL REDACTED]'
+        'https://api.example.com/api/v3/secret/[REDACTED]?email=[EMAIL_REDACTED]'
       );
     });
   });
@@ -131,6 +131,46 @@ describe('scrubbers', () => {
 
     it('exports VERIFIABLE_ID_PATTERN', () => {
       expect(VERIFIABLE_ID_PATTERN).toBeInstanceOf(RegExp);
+    });
+  });
+
+  describe('sentinel invariant', () => {
+    // Every redaction sentinel emitted by scrubSensitiveStrings or its peers
+    // MUST match /^\[[A-Z_]+\]$/ — square-bracketed, uppercase, underscored,
+    // whitespace-free. The pipeline applies multiple scrubbing passes in
+    // sequence, and later passes use the path-scrub value class `[^/\s]+`.
+    // A sentinel containing a literal space (e.g. the old `[EMAIL REDACTED]`)
+    // causes the path regex to split mid-sentinel and produce cosmetically
+    // corrupted output like `[REDACTED] REDACTED]`. The data is still
+    // scrubbed but the sentinels stop composing cleanly. This test locks
+    // the invariant in place: if a future scrubber introduces a sentinel
+    // with whitespace or lowercase, it must update this list AND prove the
+    // pipeline still composes.
+    const SENTINEL_SHAPE = /^\[[A-Z_]+\]$/;
+    const KNOWN_SENTINELS = ['[EMAIL_REDACTED]', '[REDACTED]'];
+
+    it('all known sentinels match the shape /^\\[[A-Z_]+\\]$/', () => {
+      for (const sentinel of KNOWN_SENTINELS) {
+        expect(sentinel).toMatch(SENTINEL_SHAPE);
+      }
+    });
+
+    it('no known sentinel contains whitespace', () => {
+      for (const sentinel of KNOWN_SENTINELS) {
+        expect(sentinel).not.toMatch(/\s/);
+      }
+    });
+
+    it('composes cleanly when an email sits inside a sensitive URL path', () => {
+      // Regression guard: the full pipeline should produce atomic output
+      // (one [REDACTED] swallowing the whole URL tail) rather than splitting
+      // a sentinel mid-token. Any regression to a whitespace-bearing sentinel
+      // would show up here as `[REDACTED] REDACTED]` or similar.
+      const msg = '/api/v1/secret/abcdef12345?email=user@example.com done';
+      const result = scrubSensitiveStrings(msg);
+      expect(result).toBe('/api/v1/secret/[REDACTED] done');
+      expect(result).not.toContain(' REDACTED]');
+      expect(result).not.toContain('[REDACTED][');
     });
   });
 });

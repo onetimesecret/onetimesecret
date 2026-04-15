@@ -73,8 +73,8 @@ describe('parseSensitiveSpec', () => {
 });
 
 describe('PARAM_VALUE_PATTERN', () => {
-  it('is the permissive single-path-segment class', () => {
-    expect(PARAM_VALUE_PATTERN).toBe('[^/]+');
+  it('is the permissive non-slash, non-whitespace path-segment class', () => {
+    expect(PARAM_VALUE_PATTERN).toBe('[^/\\s]+');
   });
 
   it('compiles standalone and accepts any non-empty path segment', () => {
@@ -86,14 +86,19 @@ describe('PARAM_VALUE_PATTERN', () => {
     expect(re.test('x')).toBe(true);
   });
 
-  it('rejects path separators and empty strings', () => {
+  it('rejects path separators, empty strings, and whitespace', () => {
     // For URL inputs, callers normalize through `URL` before invoking the
-    // generated patterns, so `?` and `#` never reach this class — otherwise
-    // the greedy `[^/]+` would capture them. We only need to refuse to
-    // cross a `/` boundary.
+    // generated patterns, so `?` and `#` never reach this class — the
+    // greedy `[^/\s]+` would otherwise capture them and carry the query
+    // string into the replacement. Whitespace is excluded so that, in
+    // free-form exception text, trailing log context (e.g. " failed with
+    // 500") is preserved instead of being eaten into the capture.
     const re = new RegExp(`^${PARAM_VALUE_PATTERN}$`);
     expect(re.test('')).toBe(false);
     expect(re.test('a/b')).toBe(false);
+    expect(re.test('a b')).toBe(false);
+    expect(re.test('a\tb')).toBe(false);
+    expect(re.test('a\nb')).toBe(false);
   });
 });
 
@@ -130,7 +135,7 @@ describe('pathToRegexPattern', () => {
       new Set(['secret'])
     );
     // :secret becomes a capture group; :page becomes non-capturing.
-    expect(regex).toBe('\\/foo\\/([^/]+)\\/(?:[^/]+)');
+    expect(regex).toBe('\\/foo\\/([^/\\s]+)\\/(?:[^/\\s]+)');
     expect(captureCount).toBe(1);
 
     const compiled = new RegExp(regex);
@@ -160,13 +165,13 @@ describe('pathToRegexPattern', () => {
     // The :page param still appears as a non-capturing group so the regex is
     // syntactically valid. The generator treats a zero count from a sensitive
     // route as an error (misconfigured annotation).
-    expect(regex).toContain('(?:[^/]+)');
-    expect(regex).not.toContain('([^/]+)');
+    expect(regex).toContain('(?:[^/\\s]+)');
+    expect(regex).not.toContain('([^/\\s]+)');
   });
 
   it('emits capture groups using the permissive value class', () => {
     const { regex } = pathToRegexPattern('/api/v1/secret/:key', true);
-    expect(regex).toContain('([^/]+)');
+    expect(regex).toContain('([^/\\s]+)');
     // No grammar carriers — scrubbing is structural (per param position),
     // not per-value.
     expect(regex).not.toContain('[0-9a-z]');
@@ -218,7 +223,7 @@ describe('pathToRegexPattern', () => {
     );
     expect(captureCount).toBe(1);
     // :a -> capturing, :b -> non-capturing
-    expect(regex).toBe('\\/foo\\/([^/]+)\\/(?:[^/]+)');
+    expect(regex).toBe('\\/foo\\/([^/\\s]+)\\/(?:[^/\\s]+)');
   });
 
   it('handles repeated param names in a single path (/a/:x/b/:x)', () => {
@@ -250,7 +255,7 @@ describe('pathToRegexPattern', () => {
     // Runtime callers in src/plugins/core/diagnostics/scrubbers.ts still
     // normalize through `URL` before invoking the patterns so the query
     // string is not pulled into the capture group — the value class
-    // ([^/]+) deliberately does NOT exclude `?` or `#`.
+    // ([^/\s]+) deliberately does NOT exclude `?` or `#`.
     const { regex } = pathToRegexPattern('/api/v1/secret/:key', true);
     const compiled = new RegExp(regex);
     expect(compiled.test(`https://example.com/api/v1/secret/${ID20}`)).toBe(true);

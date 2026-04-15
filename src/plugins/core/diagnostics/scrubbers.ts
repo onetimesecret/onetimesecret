@@ -51,7 +51,7 @@ export const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
  * Used for exception messages, standalone messages, and other text.
  *
  * Scrubs:
- * - Email addresses -> [EMAIL REDACTED]
+ * - Email addresses -> [EMAIL_REDACTED]
  * - 62-char verifiable IDs -> [REDACTED]
  * - Sensitive path patterns -> /type/[REDACTED]
  *
@@ -65,8 +65,17 @@ export function scrubSensitiveStrings(text: string): string {
 
   let result = text;
 
-  // Scrub email addresses
-  result = result.replace(EMAIL_PATTERN, '[EMAIL REDACTED]');
+  // Scrub email addresses.
+  //
+  // Invariant: every sentinel emitted by any pass here must be whitespace
+  // -free (matches /^\[[A-Z_]+\]$/). Later passes apply path-scrub patterns
+  // using the `[^/\s]+` value class, which stops at any whitespace inside a
+  // preceding sentinel. A sentinel like `[EMAIL REDACTED]` (with a literal
+  // space) would cause the path regex to split its capture mid-sentinel,
+  // producing cosmetically-corrupted output like `[REDACTED] REDACTED]`.
+  // The data is still scrubbed, but the sentinels stop composing cleanly.
+  // Keep all sentinel tokens square-bracketed, uppercase, underscored.
+  result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
 
   // Scrub 62-char verifiable IDs
   result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
@@ -84,12 +93,19 @@ export function scrubSensitiveStrings(text: string): string {
  * Apply generated patterns to the pathname portion of a URL.
  *
  * The generated patterns are unanchored, so applying them directly to a full
- * URL would pull the query string into the capture group — `[^/]+` does not
- * stop at `?` or `#`. This function parses the input through `URL` (using a
- * synthetic base for bare paths), scrubs only `parsed.pathname`, and
- * reassembles protocol + host + scrubbed path + search + hash. Query params
- * and fragments are preserved verbatim so they can still drive
- * breadcrumb-level debugging.
+ * URL would pull the query string into the capture group — the value class
+ * `[^/\s]+` does not stop at `?` or `#`. This function parses the input
+ * through `URL` (using a synthetic base for bare paths), scrubs only
+ * `parsed.pathname`, and reassembles protocol + host + scrubbed path +
+ * search + hash. Query params and fragments are preserved verbatim so they
+ * can still drive breadcrumb-level debugging.
+ *
+ * Note: `scrubSensitiveStrings` intentionally applies the same patterns
+ * directly to free-form text, where the whitespace boundary causes any
+ * embedded `?foo=bar#frag` suffix to be redacted along with the identifier.
+ * That over-scrubbing is a fail-safe, not a bug: a sensitive value leaking
+ * into a query string inside an exception message should go away with the
+ * rest of the URL.
  */
 function extractAndScrubPath(input: string): string {
   try {
@@ -154,7 +170,7 @@ export function scrubUrlWithPatterns(url: string): string {
   result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
 
   // Fourth pass: scrub email addresses (e.g., in query params like ?email=user@example.com)
-  result = result.replace(EMAIL_PATTERN, '[EMAIL REDACTED]');
+  result = result.replace(EMAIL_PATTERN, '[EMAIL_REDACTED]');
 
   return result;
 }

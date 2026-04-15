@@ -14,14 +14,29 @@
  * vue-router meta (also position-based) and the legacy regex fallback
  * (grammar-based, for free-form exception text). No value grammar lives here.
  *
- * The class captures any non-slash path segment. Generated patterns are
- * unanchored so they match path substrings inside full URLs and inside
- * free-form text. For URL inputs, callers still normalize through `URL` so
- * the query string is not pulled into the capture group — `[^/]+` does not
- * stop at `?` or `#`, so `/secret/abc?foo=bar` would otherwise capture
- * `abc?foo=bar`. See `extractAndScrubPath` in scrubbers.ts.
+ * The class captures any non-slash, non-whitespace path segment. Generated
+ * patterns are unanchored so they match path substrings inside full URLs and
+ * inside free-form text.
+ *
+ * Two boundary behaviours follow from excluding whitespace:
+ *
+ *   1. URL inputs: valid URL pathnames never contain whitespace (spaces are
+ *      percent-encoded as `%20`), so this class is equivalent to `[^/]+` on
+ *      parsed pathnames. Callers still normalize URL inputs through `URL` in
+ *      `extractAndScrubPath` so the query string and fragment are preserved
+ *      verbatim around the scrubbed pathname — the class does not stop at
+ *      `?` or `#`, and applying the pattern directly to a raw URL would
+ *      otherwise pull the query string into the capture group.
+ *
+ *   2. Free-form text: the class stops at the first whitespace character
+ *      after the identifier. Trailing log context ("failed with 500", stack
+ *      frames, next log line) is preserved instead of being eaten into the
+ *      REDACTED replacement. A URL embedded in free text takes its query
+ *      string and fragment down with it (because neither contains whitespace)
+ *      — this is a fail-safe: any sensitive value sitting in a query param
+ *      is scrubbed along with the path identifier.
  */
-export const PARAM_VALUE_PATTERN = '[^/]+';
+export const PARAM_VALUE_PATTERN = '[^/\\s]+';
 
 /** Maps API directory name to its mount path prefix. */
 export const API_MOUNT_PATHS: Record<string, string> = {
