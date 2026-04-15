@@ -81,14 +81,15 @@ export function scrubSensitiveStrings(text: string): string {
 }
 
 /**
- * Apply anchored generated patterns to the pathname portion of a URL.
+ * Apply generated patterns to the pathname portion of a URL.
  *
- * The generated patterns in `sentry-scrub-patterns.ts` are anchored with `^`/`$`
- * so that they only match a bare pathname (e.g. `/api/v3/secret/<id>`), not a
- * full URL like `https://host/api/v3/secret/<id>?q=1`. Sentry breadcrumbs pass
- * full absolute URLs, while axios interceptors pass bare paths — so we always
- * parse the input through `URL` (using a synthetic base for bare paths) to
- * normalize away the query/fragment before invoking the anchored patterns.
+ * The generated patterns are unanchored, so applying them directly to a full
+ * URL would pull the query string into the capture group — `[^/]+` does not
+ * stop at `?` or `#`. This function parses the input through `URL` (using a
+ * synthetic base for bare paths), scrubs only `parsed.pathname`, and
+ * reassembles protocol + host + scrubbed path + search + hash. Query params
+ * and fragments are preserved verbatim so they can still drive
+ * breadcrumb-level debugging.
  */
 function extractAndScrubPath(input: string): string {
   try {
@@ -141,10 +142,9 @@ export function scrubUrlWithPatterns(url: string): string {
     return url;
   }
 
-  // First pass: scrub using generated route-derived patterns. The generated
-  // patterns are anchored, so we must apply them to the pathname only — full
-  // absolute URLs (from Sentry fetch/xhr breadcrumbs) would otherwise never
-  // match.
+  // First pass: scrub using generated route-derived patterns. Patterns are
+  // unanchored but applied to `parsed.pathname` via `extractAndScrubPath` so
+  // that the capture group never includes the query string or fragment.
   let result = extractAndScrubPath(url);
 
   // Second pass: fallback for paths not covered by generated patterns

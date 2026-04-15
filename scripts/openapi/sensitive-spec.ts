@@ -14,10 +14,12 @@
  * vue-router meta (also position-based) and the legacy regex fallback
  * (grammar-based, for free-form exception text). No value grammar lives here.
  *
- * The class captures any non-slash path segment. Callers are responsible for
- * normalizing input to a bare pathname before invoking the anchored generated
- * patterns — `extractAndScrubPath` in scrubbers.ts strips host/query/fragment
- * via `URL` parsing so the regex never sees a trailing `?...` or `#...`.
+ * The class captures any non-slash path segment. Generated patterns are
+ * unanchored so they match path substrings inside full URLs and inside
+ * free-form text. For URL inputs, callers still normalize through `URL` so
+ * the query string is not pulled into the capture group — `[^/]+` does not
+ * stop at `?` or `#`, so `/secret/abc?foo=bar` would otherwise capture
+ * `abc?foo=bar`. See `extractAndScrubPath` in scrubbers.ts.
  */
 export const PARAM_VALUE_PATTERN = '[^/]+';
 
@@ -71,9 +73,14 @@ function escapeRegexLiteral(segment: string): string {
  *   PARAM_VALUE_PATTERN.
  * - When `spec` is a `Set`, only params listed in the set become capture
  *   groups; other params become non-capturing groups (still matched so the
- *   overall path anchors correctly, but not scrubbed).
+ *   literal path shape is preserved, but not scrubbed).
  *
- * The result is anchored with `^` and `$`.
+ * The result is unanchored. This lets a pattern match a route substring
+ * inside a fully-qualified URL or embedded in free-form exception text.
+ * Over-scrubbing is an accepted tradeoff: a sibling route with the same
+ * static shape but a literal segment in place of a param would see that
+ * literal redacted to `[REDACTED]`. Grep has confirmed no such sibling
+ * routes exist today.
  *
  * @returns the regex source and the number of capture groups emitted. A
  * zero capture count indicates a dead pattern (nothing to scrub) and
@@ -84,7 +91,7 @@ export function pathToRegexPattern(
   path: string,
   spec: true | Set<string>
 ): { regex: string; captureCount: number } {
-  let out = '^';
+  let out = '';
   let captureCount = 0;
   let i = 0;
 
@@ -111,6 +118,5 @@ export function pathToRegexPattern(
     }
   }
 
-  out += '$';
   return { regex: out, captureCount };
 }

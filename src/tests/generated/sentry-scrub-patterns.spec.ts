@@ -49,21 +49,22 @@ describe('generated sentry-scrub-patterns', () => {
       });
     });
 
-    it('every pattern is anchored with ^...$', () => {
-      // Structural invariant. Anchoring is load-bearing for precision.
-      // Runtime callers in scrubbers.ts strip host/query/hash before invoking
-      // these patterns — see the anchoring regression tests below.
+    it('no pattern is anchored with ^ or $', () => {
+      // Structural invariant. Patterns are unanchored so they can match a
+      // route substring inside a fully-qualified URL or inside free-form
+      // exception text. Query/fragment protection for URL inputs is handled
+      // at the runtime boundary (`extractAndScrubPath`), not by anchoring.
       SENSITIVE_PATH_PATTERNS.forEach((pattern) => {
-        expect(pattern.source.startsWith('^')).toBe(true);
-        expect(pattern.source.endsWith('$')).toBe(true);
+        expect(pattern.source.startsWith('^')).toBe(false);
+        expect(pattern.source.endsWith('$')).toBe(false);
       });
     });
 
     it('every pattern embeds the permissive param value class', () => {
       // Scrubbing is structural (per param position), not per-value-grammar.
-      // Capture groups match any non-slash path segment. Callers normalize
-      // input to a bare pathname (host/query/fragment stripped) before
-      // invoking the anchored patterns — see extractAndScrubPath.
+      // Capture groups match any non-slash path segment. For URL inputs,
+      // callers normalize through `URL` before invoking the patterns so the
+      // query string is not pulled into the capture — see extractAndScrubPath.
       SENSITIVE_PATH_PATTERNS.forEach((pattern) => {
         expect(pattern.source).toContain('([^/]+)');
       });
@@ -100,7 +101,7 @@ describe('generated sentry-scrub-patterns', () => {
       SENSITIVE_PATH_PATTERNS.forEach((pattern) => {
         // Generator emits \/api\/ for the mount root. A pattern that starts
         // any other way would indicate a bug in getFullPath or mount-path map.
-        expect(pattern.source.startsWith('^\\/api\\/')).toBe(true);
+        expect(pattern.source.startsWith('\\/api\\/')).toBe(true);
       });
     });
   });
@@ -328,22 +329,20 @@ describe('generated sentry-scrub-patterns', () => {
       });
 
       it('leaves a trailing-slash path with empty :identifier unchanged', () => {
-        // Anchored pattern requires the capture group to match at least one
+        // The pattern requires the capture group to match at least one
         // character (`[^/]+`). `/api/v3/secret/` has an empty final segment,
         // so no pattern matches and the input is returned verbatim. This
         // locks in that an empty :identifier is not redacted to [REDACTED].
         expect(scrubSensitivePath('/api/v3/secret/')).toBe('/api/v3/secret/');
       });
 
-      it('leaves a path with an extra trailing segment unchanged', () => {
-        // The anchored pattern for /api/v3/secret/:identifier does not
-        // match /api/v3/secret/abc/extra because the trailing /extra would
-        // need its own route in the sensitive set. scrubSensitivePath
-        // applies only the generated patterns, so the input is returned
-        // verbatim. (scrubUrlWithPatterns would still catch this via the
-        // legacy fallback pattern — covered separately in scrubUrl tests.)
+      it('scrubs a path with an extra trailing segment', () => {
+        // Unanchored patterns match a route substring. For
+        // /api/v3/secret/abc/extra, the generated pattern for
+        // /api/v3/secret/:identifier matches the /api/v3/secret/abc
+        // substring and redacts abc. The trailing /extra is preserved.
         expect(scrubSensitivePath('/api/v3/secret/abc/extra')).toBe(
-          '/api/v3/secret/abc/extra'
+          '/api/v3/secret/[REDACTED]/extra'
         );
       });
 
@@ -356,42 +355,52 @@ describe('generated sentry-scrub-patterns', () => {
       });
     });
 
-    describe('anchoring regression — callers apply anchored patterns correctly', () => {
-      // The generated patterns are anchored with ^/$ so they only match a
-      // bare pathname. The runtime callers in scrubbers.ts are responsible
-      // for stripping host+query before invoking the generated patterns:
+    describe('URL boundary scrubbing — callers preserve query/fragment', () => {
+      // Patterns are unanchored so they can match a route substring inside a
+      // full URL or inside free-form text. For URL inputs the runtime caller
+      // still normalizes through `URL` so that the capture group never pulls
+      // in the query string or fragment (`[^/]+` does not stop at `?`).
       //
-      //   - scrubUrlWithPatterns() parses full URLs and scrubs the pathname
-      //     only, reassembling protocol/host/search/hash around the result.
-      //   - scrubSensitiveStrings() relies on the legacy SENSITIVE_PATH_PATTERN
-      //     fallback to catch paths embedded in free-form exception text.
-      //
-      // These specs lock in that the Sentry breadcrumb path (full URL) and
-      // the axios interceptor path (bare path+query) both produce scrubbed
-      // output at the runtime boundary.
+      //   - scrubUrlWithPatterns() parses full URLs and scrubs only the
+      //     pathname, reassembling protocol/host/search/hash around it.
+      //   - scrubSensitiveStrings() now applies the generated patterns
+      //     directly to free-form text, giving it coverage for routes the
+      //     legacy SENSITIVE_PATH_PATTERN does not list (e.g. /metadata/).
 
-      it('should scrub full URLs with host prefix (fix anchoring regression)', () => {
+      it('scrubs full URLs with host prefix while preserving protocol/host', () => {
         const fullUrl = `https://example.com/api/v1/secret/${ID20}`;
         expect(scrubUrlWithPatterns(fullUrl)).toBe(
           'https://example.com/api/v1/secret/[REDACTED]'
         );
       });
 
-      it('should scrub paths with query string suffix (fix anchoring regression)', () => {
+      it('scrubs paths with query string suffix while preserving the query', () => {
         const pathWithQuery = `/api/v1/secret/${ID20}?foo=bar`;
         expect(scrubUrlWithPatterns(pathWithQuery)).toBe(
           '/api/v1/secret/[REDACTED]?foo=bar'
         );
       });
 
-      it('should scrub sensitive paths embedded in exception message text (fix anchoring regression)', () => {
-        // scrubSensitiveStrings uses the legacy SENSITIVE_PATH_PATTERN
-        // fallback for free-form text — the anchored generated patterns do
-        // not participate in exception-text scrubbing, which is acceptable.
+      it('scrubs sensitive paths embedded in exception message text', () => {
+        // Unanchored generated patterns apply directly to free-form text.
+        // The `[^/]+` class is greedy and does not stop at whitespace, so
+        // trailing text after the matched route segment is pulled into the
+        // capture group and replaced along with the identifier. This is an
+        // accepted over-scrubbing tradeoff: debuggability is reduced but
+        // the sensitive identifier is never leaked.
         const msg = `Request to /api/v1/secret/${ID20} failed with 500`;
         expect(scrubSensitiveStrings(msg)).toBe(
-          'Request to /api/v1/secret/[REDACTED] failed with 500'
+          'Request to /api/v1/secret/[REDACTED]'
         );
+      });
+
+      it('scrubs routes that the legacy fallback does not cover (e.g. metadata)', () => {
+        // /api/v1/metadata/:key is not in the legacy SENSITIVE_PATH_PATTERN
+        // fallback. Before the unanchoring fix, scrubSensitiveStrings had
+        // no way to catch it in free-form text; the generated pattern now
+        // does the work.
+        const msg = `/api/v1/metadata/${ID20}`;
+        expect(scrubSensitiveStrings(msg)).toBe('/api/v1/metadata/[REDACTED]');
       });
     });
   });
@@ -401,12 +410,12 @@ describe('generated sentry-scrub-patterns', () => {
       expect(PARAM_VALUE_PATTERN).toBe('[^/]+');
     });
 
-    it('produces an anchored, capturing pattern for spec=true', () => {
+    it('produces an unanchored, capturing pattern for spec=true', () => {
       const { regex, captureCount } = pathToRegexPattern(
         '/api/v1/secret/:key',
         true
       );
-      expect(regex).toBe('^\\/api\\/v1\\/secret\\/([^/]+)$');
+      expect(regex).toBe('\\/api\\/v1\\/secret\\/([^/]+)');
       expect(captureCount).toBe(1);
 
       const compiled = new RegExp(regex);
@@ -419,7 +428,7 @@ describe('generated sentry-scrub-patterns', () => {
         '/api/v1/thing/:public/:secret',
         new Set(['secret'])
       );
-      expect(regex).toBe('^\\/api\\/v1\\/thing\\/(?:[^/]+)\\/([^/]+)$');
+      expect(regex).toBe('\\/api\\/v1\\/thing\\/(?:[^/]+)\\/([^/]+)');
       expect(captureCount).toBe(1);
     });
 
