@@ -17,9 +17,8 @@ import {
 const ID20 = 'abcdefghijklmnopqrst';
 
 describe('parseSensitiveSpec', () => {
-  it('returns null for undefined, null, and empty string', () => {
+  it('returns null for undefined and empty string', () => {
     expect(parseSensitiveSpec(undefined)).toBeNull();
-    expect(parseSensitiveSpec(null as unknown as string)).toBeNull();
     expect(parseSensitiveSpec('')).toBeNull();
     expect(parseSensitiveSpec('   ')).toBeNull();
   });

@@ -61,7 +61,7 @@ export const API_MOUNT_PATHS: Record<string, string> = {
 export function parseSensitiveSpec(
   value: string | undefined
 ): true | Set<string> | null {
-  if (value === undefined || value === null) return null;
+  if (value === undefined) return null;
   const trimmed = value.trim();
   if (trimmed === '') return null;
   if (trimmed === 'true') return true;
