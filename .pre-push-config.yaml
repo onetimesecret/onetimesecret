@@ -8,9 +8,9 @@
 #       $ pre-commit install && pre-commit install --hook-type pre-push -c .pre-push-config.yaml
 #
 #   2. Install required dependencies:
-#       - Ruby + Rubocop
-#       - Node.js + ESLint
-#       - TypeScript compiler
+#       - Ruby + Bundler (bundle install)
+#       - Node.js + pnpm (pnpm install)
+#       - Redis running on localhost:6379
 #
 # Usage:
 #   Hooks run automatically on 'git push'
@@ -24,11 +24,12 @@
 #     Example: pre-commit run rubocop --config .pre-push-config.yaml
 #
 # Included Checks:
-#   - Full codebase linting (Rubocop, ESLint)
-#   - YAML/JSON validation
-#   - TypeScript type checking
-#   - Code style enforcement
-#   - Security vulnerability scanning
+#   - YAML/JSON/TOML validation
+#   - Code style enforcement (line endings, shebangs, case conflicts)
+#   - Parallel checks (runs concurrently):
+#     - Ruby specs via rake spec:fast (unit + CLI + apps)
+#     - ESLint (pnpm lint)
+#     - TypeScript type checking (pnpm type-check)
 #
 # Related Files:
 #   - .pre-commit-config.yaml: Lightweight pre-commit checks
@@ -86,25 +87,14 @@ repos:
       - id: forbid-submodules
         name: Check for submodules
 
-  # Project ESLint via pnpm (with caching and auto-fix)
+  # Parallel checks: Ruby specs + ESLint + TypeScript type checking
+  # Runs all three concurrently, reducing total time from ~115s to ~90s
   - repo: local
     hooks:
-      - id: pnpm-lint
+      - id: parallel-checks
         stages: [pre-push]
-        name: pnpm lint
-        entry: pnpm run lint
-        language: system
-        pass_filenames: false
-        always_run: true
-
-  # Full TypeScript type checking
-  # See comment in tsconfig.json for configuration details
-  - repo: local
-    hooks:
-      - id: typescript-check-full
-        stages: [pre-push]
-        name: TypeScript Type Check
-        entry: pnpm run type-check
-        language: system
+        name: Parallel checks (Ruby + TypeScript)
+        entry: ./scripts/parallel-pre-push.sh
+        language: script
         pass_filenames: false
         always_run: true
