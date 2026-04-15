@@ -171,6 +171,7 @@ diagnostics:
       sampleRate: any(str(), num())
       maxBreadcrumbs: any(str(), int())
       logErrors: any(str(), bool())
+      org_id: str(required=False)
     backend:
       dsn: str(required=False)
     frontend:
