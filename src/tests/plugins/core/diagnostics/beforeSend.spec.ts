@@ -22,6 +22,10 @@ import type { RouteMeta } from '@/types/router';
 // Mocks - must use vi.hoisted() for variables used in vi.mock factories
 // ---------------------------------------------------------------------------
 
+// Test-only mocks: two tightly-coupled mock classes for Sentry's BrowserClient
+// and Scope. Splitting them across files would obscure the mock/test mapping.
+// The file-level max-classes-per-file rule is disabled at the top of this
+// file (see header) to allow both to live beside the tests that use them.
 const {
   mockGetBootstrapValue,
   MockBrowserClient,
