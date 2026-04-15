@@ -119,6 +119,31 @@ module Core
       # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
       #
       def welcome
+        # Guard: checkout param is required for Stripe Payment Link flow
+        unless req.params['checkout']
+          domain_strategy = strategy_result.metadata[:domain_strategy]
+
+          capture_message('Welcome page accessed without checkout param', :error) do |scope|
+            scope.set_context(
+              'request',
+              {
+                domain_strategy: domain_strategy,
+                path: req.path,
+                query_string: req.query_string,
+                referrer: req.env['HTTP_REFERER'],
+              },
+            )
+          end
+
+          # Show flash message unless custom domain (would confuse users about which support to contact)
+          unless domain_strategy == :custom
+            session['error_message'] = 'It looks like you were redirected here but something went wrong. Please contact support.'
+          end
+
+          res.redirect req.app_path('/')
+          return
+        end
+
         logic = Billing::Logic::Welcome::FromStripePaymentLink.new(strategy_result, req.params, locale)
         logic.raise_concerns
         logic.process
