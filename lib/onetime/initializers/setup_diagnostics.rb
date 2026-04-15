@@ -111,9 +111,12 @@ module Onetime
         # (tags are case-sensitive, so US vs us would create separate filters).
         # Service tag enables filtering by entry point (web vs worker).
         # Note: config.tags was removed in sentry-ruby 4.0+; use Sentry.set_tags instead.
-        jurisdiction        = OT.conf.dig('features', 'regions', 'current_jurisdiction').to_s.downcase
-        tags                = { site_host: site_host, service: execution_mode_to_service }
-        tags[:jurisdiction] = jurisdiction unless jurisdiction.empty?
+        jurisdiction = OT.conf.dig('features', 'regions', 'current_jurisdiction').to_s.downcase
+        tags         = {
+          site_host: site_host,
+          service: execution_mode_to_service,
+          jurisdiction: jurisdiction.empty? ? nil : jurisdiction,
+        }.compact
         Sentry.set_tags(tags)
 
         # Set runtime state
