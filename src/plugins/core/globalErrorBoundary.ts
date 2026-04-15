@@ -5,10 +5,27 @@ import { classifyError, errorGuards } from '@/schemas/errors';
 import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import type { VueComponentLike } from '@/types/ui/vue-internals';
 import type { App, Plugin } from 'vue';
 
 interface ErrorBoundaryOptions extends AsyncHandlerOptions {
   debug?: boolean;
+}
+
+/**
+ * Extracts the Vue component name for Sentry context (#2966)
+ * Works with both Options API ($options.name) and script setup ($.type.name/.__name)
+ *
+ * @param instance - Vue component instance (from error handler)
+ * @returns Component name or 'unknown' if not extractable
+ */
+export function getComponentName(instance: unknown): string {
+  if (!instance || typeof instance !== 'object') return 'unknown';
+  const i = instance as VueComponentLike;
+  // Options API: $options.name
+  // Script setup: $.type.name or $.type.__name (Vue 3 internal component type)
+  // Guard i.$ for edge cases (SSR hydration errors, corrupted instances)
+  return i.$options?.name || i.$?.type?.name || i.$?.type?.__name || 'unknown';
 }
 
 /**
@@ -56,6 +73,7 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
           // Note: useBootstrapStore() is safe here because Pinia is installed before this plugin
           const bootstrap = useBootstrapStore();
           const context: Record<string, unknown> = {
+            componentName: getComponentName(instance),
             componentInfo: info,
             errorType: classifiedError.type,
             errorSeverity: classifiedError.severity,

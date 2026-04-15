@@ -287,10 +287,37 @@ describe('diagnostics.service', () => {
   // Tag extraction (Issue #2964: Sentry setTag vs setExtras separation)
   // ========================================================================
   describe('tag extraction', () => {
-    // Tag fields: errorType, schema, service, jurisdiction, planid, role
+    // Tag fields: componentName, errorType, errorSeverity, schema, service,
+    //             jurisdiction, planid, role
     // These should be extracted and set via setTag() with lowercase values
 
     describe('captureException', () => {
+      it('extracts componentName as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { componentName: 'SecretForm' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('componentName', 'secretform');
+      });
+
+      it('extracts errorSeverity as tag with lowercase value', async () => {
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), { errorSeverity: 'ERROR' });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorSeverity', 'error');
+      });
+
       it('extracts errorType as tag with lowercase value', async () => {
         const { initDiagnostics, captureException } = await importFresh();
         const client = createMockClient();
@@ -369,7 +396,7 @@ describe('diagnostics.service', () => {
         expect(clonedScope.setTag).toHaveBeenCalledWith('role', 'customer');
       });
 
-      it('extracts all 6 tag fields when present', async () => {
+      it('extracts all 8 tag fields when present', async () => {
         const { initDiagnostics, captureException } = await importFresh();
         const client = createMockClient();
         const baseScope = createMockScope();
@@ -377,7 +404,9 @@ describe('diagnostics.service', () => {
         initDiagnostics(client as never, baseScope as never);
 
         captureException(new Error('test'), {
+          componentName: 'SecretForm',
           errorType: 'HUMAN',
+          errorSeverity: 'ERROR',
           schema: 'UserResponse',
           service: 'API',
           jurisdiction: 'US',
@@ -386,13 +415,15 @@ describe('diagnostics.service', () => {
         });
 
         const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith('componentName', 'secretform');
         expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', 'human');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorSeverity', 'error');
         expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'userresponse');
         expect(clonedScope.setTag).toHaveBeenCalledWith('service', 'api');
         expect(clonedScope.setTag).toHaveBeenCalledWith('jurisdiction', 'us');
         expect(clonedScope.setTag).toHaveBeenCalledWith('planid', 'pro');
         expect(clonedScope.setTag).toHaveBeenCalledWith('role', 'colonel');
-        expect(clonedScope.setTag).toHaveBeenCalledTimes(6);
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(8);
       });
 
       it('separates tag fields from non-tag fields correctly', async () => {
@@ -524,7 +555,9 @@ describe('diagnostics.service', () => {
         initDiagnostics(client as never, baseScope as never);
 
         captureException(new Error('test'), {
+          componentName: 'SecretForm',
           errorType: 'technical',
+          errorSeverity: 'warning',
           schema: 'SecretResponse',
           service: 'web',
           jurisdiction: 'eu',
@@ -534,7 +567,7 @@ describe('diagnostics.service', () => {
 
         const clonedScope = baseScope.clone.mock.results[0].value;
 
-        expect(clonedScope.setTag).toHaveBeenCalledTimes(6);
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(8);
         expect(clonedScope.setExtras).not.toHaveBeenCalled();
       });
 
@@ -564,7 +597,9 @@ describe('diagnostics.service', () => {
         initDiagnostics(client as never, baseScope as never);
 
         captureMessage('test message', {
+          componentName: 'SecretForm',
           errorType: 'HUMAN',
+          errorSeverity: 'ERROR',
           schema: 'UserResponse',
           service: 'API',
           jurisdiction: 'US',
@@ -575,14 +610,16 @@ describe('diagnostics.service', () => {
 
         const clonedScope = baseScope.clone.mock.results[0].value;
 
-        // All 6 tag fields should be extracted
+        // All 8 tag fields should be extracted
+        expect(clonedScope.setTag).toHaveBeenCalledWith('componentName', 'secretform');
         expect(clonedScope.setTag).toHaveBeenCalledWith('errorType', 'human');
+        expect(clonedScope.setTag).toHaveBeenCalledWith('errorSeverity', 'error');
         expect(clonedScope.setTag).toHaveBeenCalledWith('schema', 'userresponse');
         expect(clonedScope.setTag).toHaveBeenCalledWith('service', 'api');
         expect(clonedScope.setTag).toHaveBeenCalledWith('jurisdiction', 'us');
         expect(clonedScope.setTag).toHaveBeenCalledWith('planid', 'pro');
         expect(clonedScope.setTag).toHaveBeenCalledWith('role', 'colonel');
-        expect(clonedScope.setTag).toHaveBeenCalledTimes(6);
+        expect(clonedScope.setTag).toHaveBeenCalledTimes(8);
 
         // Non-tag field should go to extras
         expect(clonedScope.setExtras).toHaveBeenCalledWith({ customField: 'value' });

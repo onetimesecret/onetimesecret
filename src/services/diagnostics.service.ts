@@ -25,6 +25,7 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  * All tag values are normalized to lowercase for consistent querying.
  *
  * Tags:
+ * - componentName: Vue component name where error occurred (#2966)
  * - errorType: human, security, technical (from error classification)
  * - errorSeverity: error severity level (from error classification)
  * - schema: Zod schema name (lowercase)
@@ -35,7 +36,7 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/2964
  */
-const TAG_FIELDS = ['errorType', 'errorSeverity', 'schema', 'service', 'jurisdiction', 'planid', 'role'] as const;
+const TAG_FIELDS = ['componentName', 'errorType', 'errorSeverity', 'schema', 'service', 'jurisdiction', 'planid', 'role'] as const;
 type _TagField = (typeof TAG_FIELDS)[number]; // Used for documentation; lookup via Set<string>
 const TAG_FIELDS_SET = new Set<string>(TAG_FIELDS);
 
