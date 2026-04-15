@@ -109,9 +109,10 @@ module Onetime
         # site_host identifies the deployment; jurisdiction is optional.
         # Normalize jurisdiction to lowercase for consistent Sentry tag filtering
         # (tags are case-sensitive, so US vs us would create separate filters).
+        # Service tag enables filtering by entry point (web vs worker).
         # Note: config.tags was removed in sentry-ruby 4.0+; use Sentry.set_tags instead.
         jurisdiction        = OT.conf.dig('features', 'regions', 'current_jurisdiction').to_s.downcase
-        tags                = { site_host: site_host }
+        tags                = { site_host: site_host, service: execution_mode_to_service }
         tags[:jurisdiction] = jurisdiction unless jurisdiction.empty?
         Sentry.set_tags(tags)
 
@@ -160,6 +161,27 @@ module Onetime
 
           # Delegate to VERSION which handles .commit_hash.txt and git fallback
           OT::VERSION.get_build_info
+        end
+
+        # Maps execution mode to Sentry service tag value.
+        #
+        # Service tags enable filtering events by entry point:
+        # - 'web' for HTTP requests (Puma/Rack backend)
+        # - 'worker' for background jobs (Sneakers workers, scheduler)
+        #
+        # Matches frontend convention where service is 'web' or 'api'.
+        # @see src/plugins/core/enableDiagnostics.ts
+        # @see https://github.com/onetimesecret/onetimesecret/issues/2964
+        #
+        # @return [String] The service tag value ('web' or 'worker')
+        def execution_mode_to_service
+          case OT.execution_mode
+          when :worker, :scheduler
+            'worker'
+          else
+            # :backend (Puma), :cli, or any other mode maps to 'web'
+            'web'
+          end
         end
 
         class << self

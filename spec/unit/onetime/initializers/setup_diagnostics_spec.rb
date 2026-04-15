@@ -729,5 +729,53 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         expect(captured_tags).to include(site_host: "test.example.com")
       end
     end
+
+    # Tests for service tag based on execution mode (GitHub #2964, #2970)
+    # Service tags enable filtering by entry point in Sentry.
+    context "service tag based on execution mode" do
+      before do
+        skip "Awaiting OT.execution_mode implementation" unless OT.respond_to?(:execution_mode)
+      end
+
+      it "sets service tag to 'worker' for :worker execution mode" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:worker)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(captured_tags).to include(service: 'worker')
+      end
+
+      it "sets service tag to 'worker' for :scheduler execution mode" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:scheduler)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(captured_tags).to include(service: 'worker')
+      end
+
+      it "sets service tag to 'web' for :backend execution mode" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:backend)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(captured_tags).to include(service: 'web')
+      end
+
+      it "sets service tag to 'web' for :cli execution mode" do
+        setup_config_with_workers_dsn(workers_dsn)
+        allow(OT).to receive(:execution_mode).and_return(:cli)
+
+        expect(Sentry).to receive(:init).and_yield(mock_config)
+        execute_diagnostics_initializer
+
+        expect(captured_tags).to include(service: 'web')
+      end
+    end
   end
 end

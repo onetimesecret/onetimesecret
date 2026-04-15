@@ -27,12 +27,12 @@ module Onetime
     attr_accessor :mode, :env, :logging_conf, :d9s_enabled
 
     # Execution mode identifies the type of process running:
-    #   :web       - Puma/Rack web server
+    #   :backend   - Puma/Rack web server (set in config.ru)
     #   :worker    - Sneakers background job workers
     #   :scheduler - Rufus scheduler daemon
     #   :cli       - Command line tools (default)
     #
-    # Set by CLI commands before boot_application! to allow initializers
+    # Set by CLI commands or config.ru before boot to allow initializers
     # (e.g., SetupDiagnostics) to configure process-specific settings.
     attr_accessor :execution_mode
     attr_writer :debug
