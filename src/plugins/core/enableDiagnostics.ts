@@ -276,15 +276,16 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // All options you normally pass to Sentry.init. The values
   // here are the defaults if not provided in options.
   const sentryOptions = {
+    // debug: Use local DEBUG flag (dev convenience override)
     debug: DEBUG,
-    // sampleRate controls error event sampling (0.0-1.0). Default to 1.0 to capture
-    // all errors - errors are low-volume and represent actual problems worth tracking.
-    // This differs from tracesSampleRate (below) which controls performance trace
-    // sampling and should remain low since traces are high-volume.
-    sampleRate: 1.0,
+    // sampleRate: Use backend config value, default to 1.0 to capture all errors.
+    // Errors are low-volume and represent actual problems worth tracking.
+    // This differs from tracesSampleRate which controls performance trace sampling.
+    sampleRate: config.sentry.sampleRate ?? 1.0,
     transport: makeFetchTransport,
     stackParser: defaultStackParser,
-    tracesSampleRate: 0.01,
+    // tracesSampleRate: Keep low default since YAML doesn't define it and traces are high-volume
+    tracesSampleRate: config.sentry.tracesSampleRate ?? 0.01,
     // Note: Sentry 10+ requires sendDefaultPii: true for IP address collection
     // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [
