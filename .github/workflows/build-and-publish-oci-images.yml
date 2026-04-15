@@ -24,6 +24,16 @@ name: Build and Publish OCI Images
 #   ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
 #   Set in Settings → Secrets and variables → Actions → Variables
 #
+# Sentry Integration (Repository Secrets):
+#   SENTRY_AUTH_TOKEN  API token with project:releases and org:read scopes
+#   SENTRY_ORG         Organization slug (e.g., "onetimesecret")
+#   SENTRY_URL         Sentry instance URL (omit for sentry.io)
+#   SENTRY_PROJECTS    Space-separated project slugs (e.g., "frontend backend workers")
+#
+#   These enable: release creation, commit association, sourcemap upload,
+#   and deploy notifications. All Sentry steps use continue-on-error so
+#   missing secrets won't fail the build.
+#
 
 on:
   push:
