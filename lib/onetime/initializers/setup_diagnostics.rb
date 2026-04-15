@@ -67,7 +67,13 @@ module Onetime
         Sentry.init do |config|
           config.dsn         = dsn
           config.environment = OT.env
-          config.release     = OT::VERSION.details
+
+          # Determine Sentry release identifier. Priority:
+          # 1. SENTRY_RELEASE env var (explicit override)
+          # 2. .commit_hash.txt file (baked into Docker image by CI)
+          # 3. OT::VERSION.details fallback (local development)
+          # This ensures frontend and backend report the same release identifier.
+          config.release = resolve_sentry_release
 
           # Add contextual tags for filtering without fragmenting environments.
           # site_host identifies the deployment; jurisdiction is optional.
@@ -141,6 +147,29 @@ module Onetime
           else
             backend_dsn
           end
+        end
+
+        # Resolves the Sentry release identifier with fallback chain:
+        # 1. SENTRY_RELEASE env var (explicit override, e.g., production deploy)
+        # 2. .commit_hash.txt file (baked into Docker image by CI)
+        # 3. OT::VERSION.details (local development fallback)
+        #
+        # @return [String] The release identifier for Sentry
+        def resolve_sentry_release
+          # Check env var first (allows explicit override)
+          env_release = ENV.fetch('SENTRY_RELEASE', '').strip
+          return env_release unless env_release.empty?
+
+          # Check for .commit_hash.txt (CI bakes this into Docker image)
+          commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
+          if File.exist?(commit_hash_file)
+            file_content = File.read(commit_hash_file).strip
+            # Use file content if it's a real commit hash (not a fallback value)
+            return file_content unless file_content.empty? || %w[dev pristine].include?(file_content)
+          end
+
+          # Fall back to version details for local development
+          OT::VERSION.details
         end
 
         class << self
