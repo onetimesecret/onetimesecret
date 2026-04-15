@@ -1,9 +1,13 @@
 // src/plugins/axios/interceptors.ts
 
+import { addBreadcrumb } from '@sentry/browser';
+
 import { useLanguageStore } from '@/shared/stores';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+
+import { scrubUrlWithPatterns } from '../core/enableDiagnostics';
 
 /**
  * CSRF Token Interceptors
@@ -133,6 +137,22 @@ export const errorInterceptor = (error: AxiosError) => {
   if (isValidShrimp(responseShrimp)) {
     csrfStore.updateShrimp(responseShrimp);
   }
+
+  // Add Sentry breadcrumb for API error debugging
+  const scrubbedUrl = scrubUrlWithPatterns(error.config?.url ?? '');
+  const method = error.config?.method?.toUpperCase() ?? 'HTTP';
+  addBreadcrumb({
+    type: 'http',
+    category: 'http.client',
+    level: 'error',
+    message: `${method} ${scrubbedUrl}`,
+    data: {
+      url: scrubbedUrl,
+      method,
+      status_code: error.response?.status,
+      reason: error.message,
+    },
+  });
 
   return Promise.reject(error); // no gate keeping, just pass the error along
 };
