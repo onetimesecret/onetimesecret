@@ -13,17 +13,16 @@ interface ErrorBoundaryOptions extends AsyncHandlerOptions {
 
 /**
  * Extracts the Vue component name for Sentry context (#2966)
- * Works with both Options API ($options.name) and script setup (__name)
+ * Works with both Options API ($options.name) and script setup ($.type.name/.__name)
  */
 function getComponentName(instance: unknown): string {
   if (!instance || typeof instance !== 'object') return 'unknown';
-  const opts = (instance as Record<string, unknown>).$options;
-  if (opts && typeof opts === 'object' && typeof (opts as Record<string, unknown>).name === 'string') {
-    return (opts as Record<string, unknown>).name as string;
-  }
-  const name = (instance as Record<string, unknown>).__name;
-  if (typeof name === 'string') return name;
-  return 'unknown';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const i = instance as any;
+  // Options API: $options.name
+  // Script setup: $.type.name or $.type.__name (Vue 3 internal component type)
+  // Guard i.$ for edge cases (SSR hydration errors, corrupted instances)
+  return i.$options?.name || i.$?.type?.name || i.$?.type?.__name || 'unknown';
 }
 
 /**

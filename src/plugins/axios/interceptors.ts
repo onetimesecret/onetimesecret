@@ -128,14 +128,16 @@ export const errorInterceptor = (error: AxiosError) => {
 
   // Add Sentry breadcrumb for API debugging (#2965)
   // Scrub sensitive data from URL and error message before sending
+  // Note: method/url in data object aligns with Sentry's http breadcrumb schema
   const method = error.config?.method?.toUpperCase() ?? 'UNKNOWN';
   const url = error.config?.url ? scrubUrlWithPatterns(error.config.url) : 'unknown';
   addBreadcrumb({
     type: 'http',
     category: 'axios',
-    message: `${method} ${url}`,
     data: {
-      status_code: error.response?.status,
+      method,
+      url,
+      ...(error.response?.status && { status_code: error.response.status }),
       reason: scrubSensitiveStrings(error.message),
     },
     level: 'error',
