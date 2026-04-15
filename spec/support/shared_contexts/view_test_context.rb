@@ -113,7 +113,7 @@ RSpec.shared_context 'view_test_context' do
     allow(OT).to receive(:conf).and_return(config)
     allow(OT).to receive(:d9s_enabled).and_return(false)
     allow(OT).to receive(:default_locale).and_return('en')
-    allow(Onetime).to receive(:with_diagnostics).and_yield
+    allow(Onetime).to receive(:with_diagnostics).and_yield(config['diagnostics'])
 
     allow(OT).to receive(:locales).and_return({
       'en' => {

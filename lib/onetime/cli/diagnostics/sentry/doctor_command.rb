@@ -94,6 +94,17 @@ module Onetime
             ok 'SENTRY_DSN_FRONTEND', 'set'
           end
 
+          workers = ENV.fetch('SENTRY_DSN_WORKERS', nil)
+          if workers.to_s.strip.empty?
+            fallback = ENV.fetch('SENTRY_DSN', nil)
+            fail 'SENTRY_DSN_WORKERS', 'not set (no SENTRY_DSN fallback either)' if fallback.to_s.strip.empty?
+
+            warn 'SENTRY_DSN_WORKERS', 'not set — using SENTRY_DSN fallback'
+
+          else
+            ok 'SENTRY_DSN_WORKERS', 'set'
+          end
+
           sample_rate = ENV['SENTRY_SAMPLE_RATE'] || '0.10'
           ok 'SENTRY_SAMPLE_RATE', sample_rate
 

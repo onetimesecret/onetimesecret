@@ -10,12 +10,19 @@
 
 /**
  * Pattern for known sensitive URL paths.
- * Matches /secret/, /private/, /receipt/, /incoming/ followed by an identifier.
+ * Matches path segments that contain tokens or identifiers:
+ * - /secret/, /private/, /receipt/, /incoming/ - core secret paths
+ * - /invite/ - invitation tokens
+ * - /account/email/confirm/ - email confirmation tokens (matched as /account/ then /confirm/)
+ *
+ * Note: Some auth routes use query params instead of path params:
+ * - /reset-password?key=... - handled by query param scrubbing
+ * - /verify-account?token=... - handled by query param scrubbing
  *
  * @internal Exported for testing
  */
 export const SENSITIVE_PATH_PATTERN =
-  /\/(secret|private|receipt|incoming)\/([a-zA-Z0-9]+)/gi;
+  /\/(secret|private|receipt|incoming|invite|confirm)\/([a-zA-Z0-9]+)/gi;
 
 /**
  * Fallback pattern for 62-character verifiable identifiers.
@@ -69,7 +76,7 @@ export function scrubSensitiveStrings(text: string): string {
  * Used for HTTP breadcrumbs where we don't have route context.
  *
  * Scrubs:
- * - Known sensitive paths (/secret/, /private/, /receipt/, /incoming/)
+ * - Known sensitive paths (/secret/, /private/, /receipt/, /incoming/, /invite/, /confirm/)
  * - 62-char verifiable IDs
  * - Email addresses in query strings (e.g., ?email=user@example.com)
  *

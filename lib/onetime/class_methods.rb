@@ -332,7 +332,7 @@ module Onetime
     def with_diagnostics(&)
       return unless Onetime.d9s_enabled
 
-      yield # call the block in its own context
+      yield OT.conf['diagnostics']
     end
 
     def debug

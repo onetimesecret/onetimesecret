@@ -71,6 +71,13 @@ module Onetime
         ENV['SENTRY_DSN_FRONTEND'].then { |v| v unless v.to_s.strip.empty? } ||
           ENV['SENTRY_DSN'].then        { |v| v unless v.to_s.strip.empty? }
       end
+
+      # Resolve the effective workers DSN (Sneakers workers, Rufus scheduler):
+      # SENTRY_DSN_WORKERS → SENTRY_DSN
+      def self.workers_dsn
+        ENV['SENTRY_DSN_WORKERS'].then { |v| v unless v.to_s.strip.empty? } ||
+          ENV['SENTRY_DSN'].then       { |v| v unless v.to_s.strip.empty? }
+      end
     end
   end
 end
