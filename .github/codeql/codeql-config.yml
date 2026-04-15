@@ -13,6 +13,7 @@ paths-ignore:
   - spec/**
   - test/**
   - tests/**
+  - src/tests/**
   # Vendor/third-party code
   - vendor/**
   - node_modules/**
