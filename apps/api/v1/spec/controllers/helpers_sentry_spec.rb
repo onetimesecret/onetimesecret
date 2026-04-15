@@ -207,27 +207,82 @@ RSpec.describe V1::ControllerHelpers do
       end
 
       context 'when request object is nil' do
-        # Note: In production, req is always defined in controller context via Otto.
-        # Testing the nil case reveals that the implementation uses `defined?(req)`
-        # which returns true for attr_readers even when they return nil.
-        # A safer implementation would use `req&.path_info || 'unknown'`.
-        # This edge case is unlikely in production but noted here for completeness.
-        #
-        # The tests below are skipped because they require implementation changes
-        # to handle nil requests gracefully within the scope block.
+        # When @req attr_reader is defined but returns nil, the implementation
+        # uses safe navigation (req&.path_info) to avoid NoMethodError and
+        # falls back to 'unknown' for the endpoint tag.
 
         let(:controller_without_request) do
           controller_class.new
         end
 
-        it 'would ideally handle nil request gracefully', skip: 'Requires safe navigation fix: req&.path_info' do
+        before do
           allow(Sentry).to receive(:capture_exception).and_yield(mock_scope)
+        end
 
+        it 'sets endpoint tag to unknown when request is nil' do
           expect(mock_scope).to receive(:set_tags).with(
             hash_including(endpoint: 'unknown')
           )
 
           controller_without_request.capture_error(test_error)
+        end
+
+        it 'does not set request context when request is nil' do
+          expect(mock_scope).not_to receive(:set_context).with('request', anything)
+
+          controller_without_request.capture_error(test_error)
+        end
+      end
+
+      context 'when req is not defined (NameError prevention)' do
+        # Test that capture_error works when called from a context where
+        # the `req` method doesn't exist at all (would raise NameError).
+        # The implementation guards with `defined?(req)` checks.
+
+        let(:minimal_controller_class) do
+          Class.new do
+            include V1::ControllerHelpers
+            # Intentionally omit req, cust, sess attr_readers
+          end
+        end
+
+        let(:minimal_controller) { minimal_controller_class.new }
+
+        before do
+          allow(Sentry).to receive(:capture_exception).and_yield(mock_scope)
+        end
+
+        it 'does not raise NameError when req is undefined' do
+          expect { minimal_controller.capture_error(test_error) }.not_to raise_error
+        end
+
+        it 'sets endpoint to unknown when req is undefined' do
+          expect(mock_scope).to receive(:set_tags).with(
+            hash_including(
+              service: 'api',
+              endpoint: 'unknown'
+            )
+          )
+
+          minimal_controller.capture_error(test_error)
+        end
+
+        it 'does not set request context when req is undefined' do
+          expect(mock_scope).not_to receive(:set_context).with('request', anything)
+
+          minimal_controller.capture_error(test_error)
+        end
+
+        it 'does not set customer context when cust is undefined' do
+          expect(mock_scope).not_to receive(:set_context).with('customer', anything)
+
+          minimal_controller.capture_error(test_error)
+        end
+
+        it 'does not set session context when sess is undefined' do
+          expect(mock_scope).not_to receive(:set_context).with('session', anything)
+
+          minimal_controller.capture_error(test_error)
         end
       end
 
@@ -390,8 +445,15 @@ RSpec.describe V1::ControllerHelpers do
     end
   end
 
-  describe '#truncate_id' do
+  describe '#truncate_id (private)' do
     let(:controller_instance) { controller_class.new }
+
+    # Verify truncate_id is private to prevent exposure as a controller action.
+    # Otto maps public methods to routes, so helper methods must be private.
+    it 'is a private method (not exposed as controller action)' do
+      expect(controller_instance.public_methods).not_to include(:truncate_id)
+      expect(controller_instance.private_methods).to include(:truncate_id)
+    end
 
     it 'returns unknown for nil id' do
       expect(controller_instance.send(:truncate_id, nil)).to eq('unknown')

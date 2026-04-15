@@ -355,10 +355,10 @@ module V1
 
       # Capture exception with request context for debugging in Sentry
       Sentry.capture_exception(error, level: level) do |scope|
-        # Add searchable tags
+        # Add searchable tags (guard req to avoid NameError if not defined)
         scope.set_tags(
           service: 'api',
-          endpoint: req&.path_info || 'unknown',
+          endpoint: (defined?(req) && req&.path_info) || 'unknown',
         )
 
         # Add request context (URLs scrubbed by before_send hook)
@@ -417,6 +417,7 @@ module V1
       id_str = id.to_s
       id_str.length <= 8 ? id_str : "#{id_str[0, 8]}..."
     end
+    private :truncate_id
 
     def capture_message(message, level = :log, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
