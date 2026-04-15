@@ -5,6 +5,7 @@ import { classifyError, errorGuards } from '@/schemas/errors';
 import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import type { VueComponentLike } from '@/types/ui/vue-internals';
 import type { App, Plugin } from 'vue';
 
 interface ErrorBoundaryOptions extends AsyncHandlerOptions {
@@ -20,8 +21,7 @@ interface ErrorBoundaryOptions extends AsyncHandlerOptions {
  */
 export function getComponentName(instance: unknown): string {
   if (!instance || typeof instance !== 'object') return 'unknown';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const i = instance as any;
+  const i = instance as VueComponentLike;
   // Options API: $options.name
   // Script setup: $.type.name or $.type.__name (Vue 3 internal component type)
   // Guard i.$ for edge cases (SSR hydration errors, corrupted instances)

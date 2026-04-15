@@ -11,3 +11,4 @@ export * from './forms';
 export * from './layouts';
 export * from './local-receipt';
 export * from './notifications';
+export * from './vue-internals';

@@ -6,6 +6,14 @@ import type { DiagnosticsConfig } from '@/types/diagnostics';
 import type { RouteMeta } from '@/types/router';
 import { DEBUG } from '@/utils/debug';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
+// Re-export scrubbing utilities from dependency-free module for backward compatibility
+export {
+  EMAIL_PATTERN,
+  SENSITIVE_PATH_PATTERN,
+  VERIFIABLE_ID_PATTERN,
+  scrubSensitiveStrings,
+  scrubUrlWithPatterns,
+} from './diagnostics/scrubbers';
 import {
   BrowserClient,
   Scope,
@@ -23,83 +31,8 @@ import type { Router } from 'vue-router';
 
 export const SENTRY_KEY = Symbol('sentry');
 
-/**
- * Regex pattern for sensitive path segments in HTTP requests.
- * Matches: /secret/, /private/, /receipt/, /incoming/ followed by an identifier.
- * Does NOT include /colonel/ as those routes explicitly opt out of scrubbing.
- *
- * @internal Exported for testing
- */
-export const SENSITIVE_PATH_PATTERN = /\/(secret|private|receipt|incoming)\/([a-zA-Z0-9]+)/gi;
-
-/**
- * Fallback pattern for 62-character verifiable identifiers.
- * These are base62-encoded IDs that could appear in unexpected paths.
- *
- * @internal Exported for testing
- */
-export const VERIFIABLE_ID_PATTERN = /[0-9a-z]{62}/gi;
-
-/**
- * Pattern for email addresses.
- * Matches standard email formats like user@example.com.
- *
- * @internal Exported for testing
- */
-export const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-
-/**
- * Scrubs sensitive data from arbitrary strings using regex patterns.
- * Used for exception messages, standalone messages, and other text.
- *
- * @param text - The string to scrub
- * @returns The scrubbed string with sensitive data replaced
- *
- * @internal Exported for testing
- */
-export function scrubSensitiveStrings(text: string): string {
-  if (!text || typeof text !== 'string') {
-    return text;
-  }
-
-  let result = text;
-
-  // Scrub email addresses
-  result = result.replace(EMAIL_PATTERN, '[EMAIL REDACTED]');
-
-  // Scrub 62-char verifiable IDs
-  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
-
-  // Scrub sensitive path patterns (in case exception message contains URLs/paths)
-  result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
-
-  return result;
-}
-
-/**
- * Scrubs sensitive identifiers from a URL path using regex patterns.
- * Used for HTTP breadcrumbs where we don't have route context.
- *
- * @param url - The URL string to scrub
- * @returns The scrubbed URL with sensitive identifiers replaced by [REDACTED]
- *
- * @internal Exported for testing
- */
-export function scrubUrlWithPatterns(url: string): string {
-  if (!url || typeof url !== 'string') {
-    return url;
-  }
-
-  let result = url;
-
-  // First pass: scrub known sensitive path patterns
-  result = result.replace(SENSITIVE_PATH_PATTERN, '/$1/[REDACTED]');
-
-  // Second pass: scrub any remaining 62-char verifiable IDs
-  result = result.replace(VERIFIABLE_ID_PATTERN, '[REDACTED]');
-
-  return result;
-}
+// Import functions for local use (patterns are re-exported above for external consumers)
+import { scrubSensitiveStrings, scrubUrlWithPatterns } from './diagnostics/scrubbers';
 
 /**
  * Creates a Sentry beforeBreadcrumb handler that scrubs sensitive URLs at capture time.
