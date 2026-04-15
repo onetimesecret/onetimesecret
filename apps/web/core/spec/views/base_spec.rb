@@ -182,12 +182,14 @@ RSpec.describe Core::Views::BaseView do
 
       it 'sets diagnostic variables when enabled and DSN provided' do
         vars = subject.serialized_data
-        expect(vars['diagnostics']).to eq({
-          'sentry' => {
-            'dsn' => 'https://test-dsn@sentry.example.com/1',
-          },
-        },
-                                         )
+        expect(vars['diagnostics']['sentry']['dsn']).to eq('https://test-dsn@sentry.example.com/1')
+        expect(vars['diagnostics']['sentry']).to include(
+          'environment' => 'testing',
+          'logErrors' => true,
+          'maxBreadcrumbs' => 5,
+          'sampleRate' => 1.0,
+          'trackComponents' => true,
+        )
         expect(vars['d9s_enabled']).to be true
       end
     end
@@ -210,12 +212,14 @@ RSpec.describe Core::Views::BaseView do
       it 'sets diagnostic to disabled when DSN not provided' do
         vars = subject.serialized_data
         expect(vars['d9s_enabled']).to be false
-        expect(vars['diagnostics']).to eq({
-          'sentry' => {
-            'dsn' => nil,
-          },
-        },
-                                         )
+        expect(vars['diagnostics']['sentry']['dsn']).to be_nil
+        expect(vars['diagnostics']['sentry']).to include(
+          'environment' => 'testing',
+          'logErrors' => true,
+          'maxBreadcrumbs' => 5,
+          'sampleRate' => 1.0,
+          'trackComponents' => true,
+        )
       end
     end
   end
