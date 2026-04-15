@@ -113,7 +113,9 @@ RSpec.shared_context 'view_test_context' do
     allow(OT).to receive(:conf).and_return(config)
     allow(OT).to receive(:d9s_enabled).and_return(false)
     allow(OT).to receive(:default_locale).and_return('en')
-    allow(Onetime).to receive(:with_diagnostics).and_yield(config['diagnostics'])
+    # Use block implementation instead of and_yield to avoid
+    # RSpec 4.x arity checking issues on x86_64-linux
+    allow(Onetime).to receive(:with_diagnostics) { |&block| block&.call }
 
     allow(OT).to receive(:locales).and_return({
       'en' => {
