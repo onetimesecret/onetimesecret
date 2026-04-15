@@ -81,15 +81,17 @@ describe('Sentry Vite Plugin Configuration', () => {
   describe('Vite Config Structure', () => {
     const viteConfigPath = path.join(PROJECT_ROOT, 'vite.config.ts');
 
-    it('imports sentryVitePlugin from @sentry/vite-plugin', () => {
-      const content = fs.readFileSync(viteConfigPath, 'utf-8');
-      expect(content).toContain("import { sentryVitePlugin } from '@sentry/vite-plugin'");
-    });
-
     it('has sourcemap enabled in build config', () => {
       const content = fs.readFileSync(viteConfigPath, 'utf-8');
       // The build config should have sourcemap: true for Sentry to work
       expect(content).toMatch(/sourcemap:\s*true/);
+    });
+
+    it('documents CI-based sourcemap upload (not build-time)', () => {
+      const content = fs.readFileSync(viteConfigPath, 'utf-8');
+      // Sourcemaps are uploaded via sentry-cli in CI, not via sentryVitePlugin at build time.
+      // This keeps auth tokens out of the build context.
+      expect(content).toContain('Sentry sourcemaps are uploaded via CI');
     });
   });
 
