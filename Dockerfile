@@ -133,6 +133,15 @@ RUN set -eux && \
       fi ; \
     fi
 
+# Generate build metadata BEFORE build so getSentryRelease() can read it.
+# COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
+# The .commit_hash.txt file is read by vite.config.ts to bake the release
+# version into the frontend bundle, ensuring sourcemaps match errors.
+RUN set -eux && \
+    mkdir -p /tmp/build-meta && \
+    echo "${COMMIT_HASH:-dev}" > .commit_hash.txt && \
+    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
+
 # Build application and generate schema
 RUN set -eux && \
     pnpm run build && \
@@ -140,12 +149,6 @@ RUN set -eux && \
     pnpm prune --prod && \
     rm -rf node_modules ~/.npm ~/.pnpm-store && \
     npm uninstall -g pnpm
-
-# Generate build metadata.
-# COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
-RUN set -eux && \
-    mkdir -p /tmp/build-meta && \
-    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision

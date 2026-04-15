@@ -199,6 +199,67 @@ describe('getSentryRelease() Single Source of Truth', () => {
       expect(content).toContain('@see vite.config.ts getSentryRelease()');
     });
   });
+
+  describe('ESLint Configuration', () => {
+    const eslintConfigPath = path.join(PROJECT_ROOT, 'eslint.config.ts');
+
+    it('__SENTRY_RELEASE__ is declared in ESLint globals', () => {
+      const content = fs.readFileSync(eslintConfigPath, 'utf-8');
+      expect(content).toContain('__SENTRY_RELEASE__: true');
+    });
+
+    it('ESLint globals comment explains build-time injection', () => {
+      const content = fs.readFileSync(eslintConfigPath, 'utf-8');
+      // Verify the comment explains the build-time injection
+      expect(content).toMatch(/__SENTRY_RELEASE__:.*Build-time.*Vite define/i);
+    });
+  });
+
+  describe('Test Environment Setup', () => {
+    const setupEnvPath = path.join(PROJECT_ROOT, 'src/tests/setup-env.ts');
+
+    it('__SENTRY_RELEASE__ is mocked in test setup', () => {
+      const content = fs.readFileSync(setupEnvPath, 'utf-8');
+      expect(content).toContain('__SENTRY_RELEASE__');
+      expect(content).toContain('test-release');
+    });
+
+    it('test setup references vite.config.ts getSentryRelease()', () => {
+      const content = fs.readFileSync(setupEnvPath, 'utf-8');
+      expect(content).toContain('@see vite.config.ts getSentryRelease()');
+    });
+  });
+});
+
+describe('__SENTRY_RELEASE__ Usage in enableDiagnostics', () => {
+  const enableDiagnosticsPath = path.join(
+    PROJECT_ROOT,
+    'src/plugins/core/enableDiagnostics.ts'
+  );
+
+  it('uses __SENTRY_RELEASE__ for the release property', () => {
+    const content = fs.readFileSync(enableDiagnosticsPath, 'utf-8');
+    expect(content).toContain('release: __SENTRY_RELEASE__');
+  });
+
+  it('__SENTRY_RELEASE__ is placed after config spread to take precedence', () => {
+    const content = fs.readFileSync(enableDiagnosticsPath, 'utf-8');
+    // The spread of config.sentry should come before release: __SENTRY_RELEASE__
+    // This ensures build-time release overrides backend-provided release
+    const configSpreadIndex = content.indexOf('...config.sentry');
+    const releaseIndex = content.indexOf('release: __SENTRY_RELEASE__');
+
+    expect(configSpreadIndex).toBeGreaterThan(-1);
+    expect(releaseIndex).toBeGreaterThan(-1);
+    expect(releaseIndex).toBeGreaterThan(configSpreadIndex);
+  });
+
+  it('has comment explaining CDN caching and rolling deploys', () => {
+    const content = fs.readFileSync(enableDiagnosticsPath, 'utf-8');
+    // Verify the comment explains why build-time release takes precedence
+    expect(content).toContain('Build-time release takes precedence');
+    expect(content).toContain('CDN caching');
+  });
 });
 
 describe('Sentry Plugin Behavior Specification', () => {

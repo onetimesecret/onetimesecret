@@ -55,9 +55,9 @@ function getSentryRelease(): string {
     }
   }
 
-  // 3. Git SHA for local development
+  // 3. Git SHA for local development (5s timeout prevents hanging builds)
   try {
-    return execSync('git rev-parse --short=7 HEAD').toString().trim();
+    return execSync('git rev-parse --short=7 HEAD', { timeout: 5000 }).toString().trim();
   } catch {
     // 4. Final fallback for environments without git
     return 'dev';
