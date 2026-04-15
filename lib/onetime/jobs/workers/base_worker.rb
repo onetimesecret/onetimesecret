@@ -5,6 +5,7 @@
 require 'sneakers'
 require 'json'
 require_relative '../../utils/retry_helper'
+require_relative '../trace_propagation'
 
 module Onetime
   module Jobs
@@ -66,6 +67,38 @@ module Onetime
           def store_envelope(delivery_info, metadata)
             @delivery_info = delivery_info
             @metadata      = metadata
+          end
+
+          # Extract Sentry trace headers from message metadata.
+          #
+          # Returns empty hash if no trace headers present (backwards compatible
+          # with messages published before trace propagation was implemented).
+          #
+          # @return [Hash<String, String>] Trace headers or empty hash
+          def extract_trace_headers
+            Onetime::Jobs::TracePropagation.parse_trace_headers(@metadata)
+          end
+
+          # Continue Sentry trace from message headers and wrap processing.
+          #
+          # Links worker errors and performance data to the originating web
+          # request in Sentry. Creates a new transaction if trace headers are
+          # absent. Safe to call even if Sentry is not configured.
+          #
+          # @param name [String] Transaction name (default: "rabbitmq.WorkerClass")
+          # @param op [String] Span operation (default: 'queue.process')
+          # @yield Block to execute within the transaction
+          # @return Result of the block
+          def with_trace_context(name: nil, op: 'queue.process', &)
+            trace_headers    = extract_trace_headers
+            transaction_name = name || "rabbitmq.#{worker_name}"
+
+            Onetime::Jobs::TracePropagation.continue_trace(
+              trace_headers,
+              name: transaction_name,
+              op: op,
+              &
+            )
           end
 
           # Parse and validate message payload

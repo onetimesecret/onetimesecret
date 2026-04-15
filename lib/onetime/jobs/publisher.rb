@@ -5,6 +5,7 @@
 require 'securerandom'
 require 'time'
 require_relative 'queues/config'
+require_relative 'trace_propagation'
 
 module Onetime
   module Jobs
@@ -339,13 +340,19 @@ module Onetime
 
         message_id = SecureRandom.uuid
 
+        # Capture Sentry trace context BEFORE any async operations.
+        # New threads lose Sentry context, so extract headers in the request thread.
+        trace_headers = TracePropagation.extract_trace_headers
+
         $rmq_channel_pool.with do |channel|
           channel.default_exchange.publish(
             payload.to_json,
             routing_key: queue_name,
             persistent: true,
             message_id: message_id,
-            headers: { 'x-schema-version' => QueueConfig::CURRENT_SCHEMA_VERSION },
+            headers: {
+              'x-schema-version' => QueueConfig::CURRENT_SCHEMA_VERSION,
+            }.merge(trace_headers),
             **,
           )
         end
