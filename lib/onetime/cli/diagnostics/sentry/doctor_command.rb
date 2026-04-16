@@ -8,13 +8,15 @@
 #
 # Usage:
 #   bin/ots diagnostics sentry doctor
+#   bin/ots diagnostics sentry doctor --send-event
 #
 # Checks:
 #   1. DIAGNOSTICS_ENABLED env var is 'true'
-#   2. DSN env vars are set (backend / frontend / fallback)
+#   2. DSN env vars are set (backend / frontend / workers / fallback)
 #   3. DSN format is valid (https://KEY@HOST/PROJECT_ID)
 #   4. Sentry host responds at /api/0/  (unauthenticated)
 #   5. Store endpoint accepts the DSN key (authenticated POST)
+#   6. (--send-event) sentry-ruby SDK raises → captures → delivers
 
 module Onetime
   module CLI
@@ -22,7 +24,18 @@ module Onetime
       class SentryDoctorCommand < DelayBootCommand
         desc 'Report Sentry configuration and connectivity health'
 
-        def call(**)
+        option :send_event,
+          type: :boolean,
+          default: false,
+          desc: 'Also raise/capture a test exception through sentry-ruby to verify SDK delivery'
+
+        TICK  = '[OK]  '
+        CROSS = '[FAIL]'
+        WARN  = '[WARN]'
+
+        DSN_TARGETS = %w[BACKEND FRONTEND WORKERS].freeze
+
+        def call(send_event: false, **)
           @issues = []
 
           puts
@@ -30,16 +43,13 @@ module Onetime
           puts '=' * 50
 
           check_env
-          check_backend_dsn
-          check_frontend_dsn
+          check_dsn(:backend)
+          check_dsn(:frontend)
+          send_live_events if send_event
 
           puts
           summarize
         end
-
-        TICK  = '[OK]  '
-        CROSS = '[FAIL]'
-        WARN  = '[WARN]'
 
         private
 
@@ -72,84 +82,43 @@ module Onetime
 
           ok 'DIAGNOSTICS_ENABLED', enabled
 
-          backend = ENV.fetch('SENTRY_DSN_BACKEND', nil)
-          if backend.to_s.strip.empty?
-            fallback = ENV.fetch('SENTRY_DSN', nil)
-            fail 'SENTRY_DSN_BACKEND', 'not set (no SENTRY_DSN fallback either)' if fallback.to_s.strip.empty?
+          DSN_TARGETS.each { |target| check_env_dsn(target) }
 
-            warn 'SENTRY_DSN_BACKEND', 'not set — using SENTRY_DSN fallback'
-
-          else
-            ok 'SENTRY_DSN_BACKEND', 'set'
-          end
-
-          frontend = ENV.fetch('SENTRY_DSN_FRONTEND', nil)
-          if frontend.to_s.strip.empty?
-            fallback = ENV.fetch('SENTRY_DSN', nil)
-            fail 'SENTRY_DSN_FRONTEND', 'not set (no SENTRY_DSN fallback either)' if fallback.to_s.strip.empty?
-
-            warn 'SENTRY_DSN_FRONTEND', 'not set — using SENTRY_DSN fallback'
-
-          else
-            ok 'SENTRY_DSN_FRONTEND', 'set'
-          end
-
-          workers = ENV.fetch('SENTRY_DSN_WORKERS', nil)
-          if workers.to_s.strip.empty?
-            fallback = ENV.fetch('SENTRY_DSN', nil)
-            fail 'SENTRY_DSN_WORKERS', 'not set (no SENTRY_DSN fallback either)' if fallback.to_s.strip.empty?
-
-            warn 'SENTRY_DSN_WORKERS', 'not set — using SENTRY_DSN fallback'
-
-          else
-            ok 'SENTRY_DSN_WORKERS', 'set'
-          end
-
-          sample_rate = ENV['SENTRY_SAMPLE_RATE'] || '0.10'
-          ok 'SENTRY_SAMPLE_RATE', sample_rate
+          ok 'SENTRY_SAMPLE_RATE', ENV['SENTRY_SAMPLE_RATE'] || '0.10'
 
           log_errors = ENV.fetch('SENTRY_LOG_ERRORS', nil)
           ok 'SENTRY_LOG_ERRORS', log_errors.nil? ? '(default: true)' : log_errors
         end
 
-        def check_backend_dsn
-          dsn = Diagnostics.backend_dsn
-          return if dsn.nil?
+        def check_env_dsn(target)
+          var = "SENTRY_DSN_#{target}"
+          val = ENV.fetch(var, nil)
 
-          puts
-          puts 'Backend DSN'
-          puts '-' * 50
+          if val.to_s.strip.empty?
+            fail var, 'not set (no SENTRY_DSN fallback either)' if ENV['SENTRY_DSN'].to_s.strip.empty?
 
-          parsed = Diagnostics.parse_dsn(dsn)
-          if parsed.nil?
-            fail 'DSN format', 'invalid — expected https://KEY@HOST/PROJECT_ID'
-            return
+            warn var, 'not set — using SENTRY_DSN fallback'
+
+          else
+            ok var, 'set'
           end
-
-          ok   'Key',        "#{parsed[:key][0..7]}..."
-          ok   'Host',       parsed[:host]
-          ok   'Project ID', parsed[:project_id]
-
-          probe_host(parsed[:host])
-          probe_store(parsed)
         end
 
-        def check_frontend_dsn
-          dsn = Diagnostics.frontend_dsn
+        def check_dsn(role)
+          dsn = role == :backend ? Diagnostics.backend_dsn : Diagnostics.frontend_dsn
           return if dsn.nil?
 
-          # Skip if it's the same DSN as backend (SENTRY_DSN fallback for both)
-          if dsn == Diagnostics.backend_dsn && ENV['SENTRY_DSN_FRONTEND'].to_s.strip.empty?
-            puts
-            puts 'Frontend DSN'
-            puts '-' * 50
-            warn 'Frontend DSN', 'same as backend (SENTRY_DSN fallback) — skipping duplicate probe'
+          label = "#{role.to_s.capitalize} DSN"
+          puts
+          puts label
+          puts '-' * 50
+
+          # Frontend falling back to SENTRY_DSN is identical to backend —
+          # no useful second probe, just note it and skip.
+          if role == :frontend && dsn == Diagnostics.backend_dsn && ENV['SENTRY_DSN_FRONTEND'].to_s.strip.empty?
+            warn label, 'same as backend (SENTRY_DSN fallback) — skipping duplicate probe'
             return
           end
-
-          puts
-          puts 'Frontend DSN'
-          puts '-' * 50
 
           parsed = Diagnostics.parse_dsn(dsn)
           if parsed.nil?
@@ -161,8 +130,7 @@ module Onetime
           ok 'Host',       parsed[:host]
           ok 'Project ID', parsed[:project_id]
 
-          # Skip connectivity re-probe if on same host as backend
-          backend_parsed = Diagnostics.parse_dsn(Diagnostics.backend_dsn)
+          backend_parsed = role == :frontend ? Diagnostics.parse_dsn(Diagnostics.backend_dsn) : nil
           if backend_parsed && backend_parsed[:host] == parsed[:host]
             ok 'API connectivity', 'same host as backend (already verified)'
           else
@@ -190,6 +158,59 @@ module Onetime
             detail = result[:error] ? "#{result[:status]} — #{result[:error]}" : result[:status].to_s
             fail 'Store endpoint', detail
           end
+        end
+
+        # Opt-in: initializes sentry-ruby with synchronous delivery, raises a
+        # test exception, captures it, and reports the event_id. Runs for
+        # backend and (if distinct) frontend DSNs.
+        def send_live_events
+          puts
+          puts 'Live SDK delivery'
+          puts '-' * 50
+
+          deliver_via_sdk(:backend, Diagnostics.backend_dsn)
+
+          frontend = Diagnostics.frontend_dsn
+          return if frontend.nil? || frontend == Diagnostics.backend_dsn
+
+          deliver_via_sdk(:frontend, frontend)
+        end
+
+        def deliver_via_sdk(role, dsn)
+          label = "#{role.to_s.capitalize} SDK delivery"
+          return if dsn.nil?
+
+          parsed = Diagnostics.parse_dsn(dsn)
+          unless parsed
+            fail label, 'invalid DSN'
+            return
+          end
+
+          require 'sentry-ruby'
+          Sentry.close if defined?(Sentry) && Sentry.initialized?
+
+          Sentry.init do |c|
+            c.dsn                       = dsn
+            c.environment               = 'cli-doctor'
+            c.release                   = defined?(OT::VERSION) ? OT::VERSION.details : 'cli'
+            c.traces_sample_rate        = 0.0
+            # Synchronous delivery — CLI exits cleanly after capture.
+            c.background_worker_threads = 0
+          end
+
+          begin
+            raise "[OTS doctor] Sentry delivery probe #{Time.now.utc.iso8601}"
+          rescue RuntimeError => ex
+            event    = Sentry.capture_exception(ex)
+            event_id = event&.event_id
+            fail label, 'capture_exception returned nil (dropped by before_send, sample rate, or rate limit)' unless event_id
+
+            ok label, "event_id=#{event_id} (project #{parsed[:project_id]})"
+          end
+        rescue StandardError => ex
+          fail label, ex.message
+        ensure
+          Sentry.close if defined?(Sentry) && Sentry.initialized?
         end
 
         def summarize

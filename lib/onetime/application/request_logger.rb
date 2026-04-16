@@ -47,7 +47,7 @@ module Onetime
         level   = determine_level(status, duration_μs)
         payload = build_payload(request, status, duration_μs)
 
-        @logger.send(level, status, payload)
+        @logger.send(level, Familia::JsonSerializer.dump(payload))
       end
 
       def build_payload(request, status, duration_μs)
@@ -59,7 +59,12 @@ module Onetime
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip]         = request.ip if capture?(:ip)
         payload[:params]     = redact_params(request.params) if capture?(:params)
-        payload[:session_id] = request.session.id if capture?(:session_id) && request.session.respond_to?(:id)
+        # Rack::Session::SessionId is not JSON-serializable under strict mode;
+        # prefer public_id (hex digest safe to log) and fall back to to_s.
+        if capture?(:session_id) && request.session.respond_to?(:id)
+          sid                  = request.session.id
+          payload[:session_id] = sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
+        end
 
         if capture?(:headers)
           payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }

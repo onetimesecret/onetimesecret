@@ -29,7 +29,24 @@ module Onetime
     rescue StandardError => ex
       log_error(operation, ex, context)
       track_error(operation) if trackable?
-      capture_error(operation, ex, context) if sentry_available?
+
+      sentry_ok = sentry_available?
+      app_logger.debug '[sentry] error_handler → capture decision',
+        {
+          operation: operation,
+          exception_class: ex.class.name,
+          sentry_defined: defined?(Sentry) ? true : false,
+          sentry_initialized: (defined?(Sentry) && Sentry.initialized?) || false,
+          sentry_available: sentry_ok,
+        }
+      if sentry_ok
+        capture_error(operation, ex, context)
+      else
+        app_logger.debug '[sentry] error_handler skipped — sentry_available=false',
+          {
+            operation: operation,
+          }
+      end
     end
 
     # Lua script for atomic INCR + EXPIRE (prevents race condition
@@ -75,11 +92,17 @@ module Onetime
 
       # Captures error in Sentry with context
       def capture_error(operation, ex, context)
-        Sentry.capture_exception(ex) do |scope|
+        event_id = Sentry.capture_exception(ex) do |scope|
           scope.set_context('error_handler', { operation: operation, **context })
           scope.set_level(:warning)
           scope.set_tags(operation: operation, error_handler: true)
         end
+        app_logger.debug '[sentry] error_handler capture_error returned',
+          {
+            operation: operation,
+            event_id: event_id,
+            exception_class: ex.class.name,
+          }
       rescue StandardError => ex
         # Don't let Sentry errors break the error handler itself
         app_logger.error 'error-handler: Failed to capture in Sentry',

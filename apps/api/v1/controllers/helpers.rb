@@ -345,7 +345,14 @@ module V1
     # and :debug. The Sentry default, if not specified, is :error.
     #
     def capture_error(error, level = :error, &block)
-      return unless OT.d9s_enabled # diagnostics are disabled by default
+      OT.ld "[sentry] api capture_error → decision exception=#{error.class} level=#{level} " \
+            "d9s_enabled=#{OT.d9s_enabled} sentry_defined=#{defined?(Sentry) ? true : false} " \
+            "sentry_initialized=#{(defined?(Sentry) && Sentry.initialized?) || false}"
+
+      unless OT.d9s_enabled # diagnostics are disabled by default
+        OT.ld '[sentry] api capture_error skipped — d9s_enabled=false'
+        return
+      end
 
       # Log request headers before attempting to send to Sentry
       if defined?(req) && req.respond_to?(:env)
@@ -354,7 +361,7 @@ module V1
       end
 
       # Capture exception with request context for debugging in Sentry
-      Sentry.capture_exception(error, level: level) do |scope|
+      event_id = Sentry.capture_exception(error, level: level) do |scope|
         # Add searchable tags (guard req to avoid NameError if not defined)
         scope.set_tags(
           service: 'api',
@@ -396,6 +403,7 @@ module V1
         # Allow caller to add additional context via block
         block&.call(scope)
       end
+      OT.ld "[sentry] api capture_error returned event_id=#{event_id.inspect} exception=#{error.class}"
     rescue NoMethodError => ex
       raise unless ex.message.include?('start_with?')
 

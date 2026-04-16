@@ -84,7 +84,22 @@ module Core
           }
 
         # Track in Sentry if diagnostics enabled
-        capture_error(ex, env) if OT.d9s_enabled
+        http_logger.debug '[sentry] handle_error → capture decision',
+          {
+            exception_class: ex.class.name,
+            d9s_enabled: OT.d9s_enabled,
+            sentry_defined: defined?(Sentry) ? true : false,
+            sentry_initialized: (defined?(Sentry) && Sentry.initialized?) || false,
+            request_id: env['HTTP_X_REQUEST_ID'],
+          }
+        if OT.d9s_enabled
+          capture_error(ex, env)
+        else
+          http_logger.debug '[sentry] skipping capture — d9s_enabled=false',
+            {
+              request_id: env['HTTP_X_REQUEST_ID'],
+            }
+        end
 
         # Serve Vue entry point - let Vue show error UI
         serve_vue_entry_point(env, status: 500)
@@ -118,8 +133,23 @@ module Core
       end
 
       def capture_error(error, env)
-        return unless defined?(Sentry)
+        unless defined?(Sentry)
+          http_logger.debug '[sentry] capture_error aborted — Sentry constant not defined',
+            {
+              request_id: env && env['HTTP_X_REQUEST_ID'],
+            }
+          return
+        end
 
+        http_logger.debug '[sentry] capture_error → entering Sentry.with_scope',
+          {
+            exception_class: error.class.name,
+            exception_message: error.message,
+            sentry_initialized: Sentry.initialized?,
+            request_id: env && env['HTTP_X_REQUEST_ID'],
+          }
+
+        event_id = nil
         Sentry.with_scope do |scope|
           if env
             req = build_rack_request(env)
@@ -133,8 +163,15 @@ module Core
             )
           end
 
-          Sentry.capture_exception(error)
+          event_id = Sentry.capture_exception(error)
         end
+
+        http_logger.debug '[sentry] capture_error returned',
+          {
+            event_id: event_id,
+            exception_class: error.class.name,
+            request_id: env && env['HTTP_X_REQUEST_ID'],
+          }
       rescue StandardError => ex
         http_logger.error 'Sentry capture failed',
           {
