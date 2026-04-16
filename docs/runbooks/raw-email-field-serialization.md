@@ -67,4 +67,3 @@ Expected: `0/604 customers have raw email`
 ## Related
 
 - GitHub issue: #3016
-- Latent same bug in `lib/onetime/services/change_email.rb:167-169` (raw `hset` targeting v1-style keys)

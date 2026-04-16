@@ -171,7 +171,7 @@ module Onetime
                 break if orphans_found >= limit
 
                 begin
-                  owner_id = redis.hget(key, 'owner_id')
+                  owner_id = parse_redis_value(redis.hget(key, 'owner_id'))
                   next if owner_id.nil? || owner_id.empty?
 
                   # Check if owner customer exists
@@ -223,7 +223,7 @@ module Onetime
                 next unless role == 'owner'
 
                 # Promote this member
-                redis.hset(org_key, 'owner_id', member_id)
+                redis.hset(org_key, 'owner_id', Familia::JsonSerializer.dump(member_id))
                 return member_id
               end
 
