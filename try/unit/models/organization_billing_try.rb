@@ -8,9 +8,10 @@ require_relative '../../support/test_helpers'
 #
 # Tests billing field management on Organization model.
 
-## Ensure feature is loaded
+## Ensure feature and billing metadata are loaded
 require 'lib/onetime/models/organization/features/with_organization_billing'
 require 'onetime/models/organization'
+require 'apps/web/billing/metadata'
 
 ## Create test customer
 @cust = Onetime::Customer.create!(

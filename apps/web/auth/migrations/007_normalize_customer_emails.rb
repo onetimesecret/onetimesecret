@@ -131,7 +131,7 @@ Sequel.migration do
               stored_email_raw = redis.hget(customer_key, 'email')
               stored_email     = begin
                 Familia::JsonSerializer.parse(stored_email_raw)
-              rescue StandardError
+              rescue JSON::ParserError, Familia::SerializerError
                 stored_email_raw
               end
               if stored_email && stored_email != lowercase_email
@@ -151,7 +151,7 @@ Sequel.migration do
               stored_email_raw = redis.hget(customer_key, 'email')
               stored_email     = begin
                 Familia::JsonSerializer.parse(stored_email_raw)
-              rescue StandardError
+              rescue JSON::ParserError, Familia::SerializerError
                 stored_email_raw
               end
               if stored_email && stored_email != lowercase_email

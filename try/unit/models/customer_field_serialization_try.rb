@@ -19,6 +19,9 @@
 # 2. Familia::JsonSerializer.dump produces expected format for email strings
 # 3. Raw (non-JSON) string is detectable as improperly serialized
 # 4. Deserialize fallback handles both JSON and bare string formats
+# 5. JSON parsing correctly accepts non-string JSON types (numbers, booleans, null)
+# 6. Narrowed rescue catches SerializerError but not unrelated exceptions
+# 7. Diagnostic properly_serialized? matches doctor properly_serialized_value?
 
 require_relative '../../support/test_helpers'
 
@@ -164,3 +167,279 @@ end
 cust.delete!
 all_json_wrapped
 #=> true
+
+# ------------------------------------------------------------------
+# JSON-parse-based serialization check vs old heuristic
+#
+# The doctor command and diagnostic script now use actual JSON parsing
+# (via Familia::JsonSerializer.parse) instead of checking for wrapping
+# quotes. These tests verify JSON parsing correctly identifies valid
+# JSON types that the heuristic would have rejected.
+# ------------------------------------------------------------------
+
+## JSON-parse check accepts a number as properly serialized
+begin
+  Familia::JsonSerializer.parse("123")
+  true
+rescue Familia::SerializerError
+  false
+end
+#=> true
+
+## JSON-parse check accepts a boolean as properly serialized
+begin
+  Familia::JsonSerializer.parse("true")
+  true
+rescue Familia::SerializerError
+  false
+end
+#=> true
+
+## JSON-parse check accepts null as properly serialized
+begin
+  Familia::JsonSerializer.parse("null")
+  true
+rescue Familia::SerializerError
+  false
+end
+#=> true
+
+## JSON-parse check accepts a JSON object as properly serialized
+begin
+  Familia::JsonSerializer.parse('{"key":"value"}')
+  true
+rescue Familia::SerializerError
+  false
+end
+#=> true
+
+## JSON-parse check accepts a JSON array as properly serialized
+begin
+  Familia::JsonSerializer.parse('[1,2,3]')
+  true
+rescue Familia::SerializerError
+  false
+end
+#=> true
+
+## JSON-parse check rejects a bare email string
+begin
+  Familia::JsonSerializer.parse("bare@example.com")
+  false
+rescue Familia::SerializerError
+  true
+end
+#=> true
+
+## JSON-parse check rejects an unterminated quoted string
+begin
+  Familia::JsonSerializer.parse('"unterminated')
+  false
+rescue Familia::SerializerError
+  true
+end
+#=> true
+
+## JSON-parse check rejects a bare hostname-like string
+begin
+  Familia::JsonSerializer.parse("some-host.example.com")
+  false
+rescue Familia::SerializerError
+  true
+end
+#=> true
+
+# ------------------------------------------------------------------
+# Narrowed rescue: SerializerError vs other exception types
+#
+# The migration and doctor code now rescue only JSON::ParserError and
+# Familia::SerializerError. Familia::JsonSerializer.parse raises
+# SerializerError (wrapping Oj errors), never JSON::ParserError.
+# These tests verify the rescue specificity.
+# ------------------------------------------------------------------
+
+## SerializerError is not a subclass of JSON::ParserError
+Familia::SerializerError.ancestors.include?(JSON::ParserError)
+#=> false
+
+## SerializerError is a subclass of Familia::HorreumError
+Familia::SerializerError.ancestors.include?(Familia::HorreumError)
+#=> true
+
+## A rescue clause catching SerializerError does catch parse failures
+caught = begin
+  Familia::JsonSerializer.parse("not-json-at-all")
+  :no_exception
+rescue Familia::SerializerError
+  :serializer_error
+rescue StandardError
+  :other_error
+end
+caught
+#=> :serializer_error
+
+## A rescue clause for SerializerError does not catch TypeError
+caught = begin
+  raise TypeError, "simulated type error"
+rescue Familia::SerializerError
+  :serializer_error
+rescue TypeError
+  :type_error
+end
+caught
+#=> :type_error
+
+## A rescue clause for SerializerError does not catch RuntimeError
+caught = begin
+  raise RuntimeError, "simulated runtime error"
+rescue Familia::SerializerError
+  :serializer_error
+rescue RuntimeError
+  :runtime_error
+end
+caught
+#=> :runtime_error
+
+# ------------------------------------------------------------------
+# Diagnostic script and doctor command: properly_serialized? behavior
+#
+# Both use Familia::JsonSerializer.parse wrapped in a rescue block.
+# These tests replicate the exact logic from both implementations.
+# ------------------------------------------------------------------
+
+## Doctor properly_serialized_value? logic returns true for JSON-quoted string
+value = '"user@example.com"'
+result = begin
+  Familia::JsonSerializer.parse(value)
+  true
+rescue JSON::ParserError, Familia::SerializerError
+  false
+end
+result
+#=> true
+
+## Doctor properly_serialized_value? logic returns false for bare string
+value = 'user@example.com'
+result = begin
+  Familia::JsonSerializer.parse(value)
+  true
+rescue JSON::ParserError, Familia::SerializerError
+  false
+end
+result
+#=> false
+
+## Doctor properly_serialized_value? logic returns true for integer value
+value = '42'
+result = begin
+  Familia::JsonSerializer.parse(value)
+  true
+rescue JSON::ParserError, Familia::SerializerError
+  false
+end
+result
+#=> true
+
+## Doctor properly_serialized_value? logic returns true for boolean value
+value = 'false'
+result = begin
+  Familia::JsonSerializer.parse(value)
+  true
+rescue JSON::ParserError, Familia::SerializerError
+  false
+end
+result
+#=> true
+
+## Doctor properly_serialized_value? logic returns true for JSON object
+value = '{"planid":"basic"}'
+result = begin
+  Familia::JsonSerializer.parse(value)
+  true
+rescue JSON::ParserError, Familia::SerializerError
+  false
+end
+result
+#=> true
+
+## Diagnostic properly_serialized? returns true for nil (early return)
+value = nil
+result = if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+  true
+else
+  begin
+    Familia::JsonSerializer.parse(value)
+    true
+  rescue JSON::ParserError, Familia::SerializerError
+    false
+  end
+end
+result
+#=> true
+
+## Diagnostic properly_serialized? returns true for empty string (early return)
+value = ''
+result = if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+  true
+else
+  begin
+    Familia::JsonSerializer.parse(value)
+    true
+  rescue JSON::ParserError, Familia::SerializerError
+    false
+  end
+end
+result
+#=> true
+
+# ------------------------------------------------------------------
+# Migration rescue narrowing: JSON.parse vs Familia::JsonSerializer.parse
+#
+# The migration uses JSON.parse for objid_json (line 119) which raises
+# JSON::ParserError, and Familia::JsonSerializer.parse for stored_email
+# (lines 133-134, 152-153) which raises Familia::SerializerError.
+# These tests verify both exception types are handled correctly.
+# ------------------------------------------------------------------
+
+## JSON.parse raises JSON::ParserError for invalid JSON (migration objid path)
+begin
+  JSON.parse("not-valid-json")
+  :no_exception
+rescue JSON::ParserError
+  :parser_error
+end
+#=> :parser_error
+
+## JSON.parse succeeds for a JSON-quoted string (migration objid path)
+JSON.parse('"some-objid-value"')
+#=> "some-objid-value"
+
+## Migration fallback: JSON.parse failure falls back to raw value
+objid_json = "raw-objid-no-quotes"
+objid = begin
+  JSON.parse(objid_json)
+rescue JSON::ParserError
+  objid_json
+end
+objid
+#=> "raw-objid-no-quotes"
+
+## Migration email parse: Familia serializer parse with fallback to raw
+stored_email_raw = "user@example.com"
+stored_email = begin
+  Familia::JsonSerializer.parse(stored_email_raw)
+rescue JSON::ParserError, Familia::SerializerError
+  stored_email_raw
+end
+stored_email
+#=> "user@example.com"
+
+## Migration email parse: properly serialized email is unwrapped
+stored_email_raw = '"user@example.com"'
+stored_email = begin
+  Familia::JsonSerializer.parse(stored_email_raw)
+rescue JSON::ParserError, Familia::SerializerError
+  stored_email_raw
+end
+stored_email
+#=> "user@example.com"

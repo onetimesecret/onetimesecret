@@ -30,19 +30,9 @@ module Diagnostics
     def properly_serialized?(value)
       return true if value.nil? || value.empty?
 
-      # Valid JSON literals
-      return true if value == 'null'
-      return true if %w[true false].include?(value)
-
-      # JSON string: must start and end with double quote
-      return true if value.start_with?('"') && value.end_with?('"')
-
-      # JSON number (integer or float, possibly negative)
-      return true if value.match?(/\A-?\d+(\.\d+)?\z/)
-
-      # JSON object or array
-      return true if value.start_with?('{', '[')
-
+      Familia::JsonSerializer.parse(value)
+      true
+    rescue JSON::ParserError, Familia::SerializerError
       false
     end
 
