@@ -8,7 +8,7 @@
 #   1. default_org_id points to existing org that customer is member of (CRITICAL)
 #   2. email_index entries match customer email (HIGH)
 #   3. email_index has entry for customer (HIGH)
-#   4. customer.organizations bidirectional sync with org.members (MEDIUM)
+#   4. customer participations reverse index sync with org.members (MEDIUM)
 #   5. role field has valid value (MEDIUM)
 #   6. verified/verified_by consistency (WARNING)
 #   7. counter fields are non-negative (LOW)
@@ -107,7 +107,7 @@ module Onetime
             1. default_org_id points to valid org membership (CRITICAL)
             2. email_index entries are consistent (HIGH)
             3. customer has email_index entry (HIGH)
-            4. organization membership bidirectional sync (MEDIUM)
+            4. participation reverse index sync with org.members (MEDIUM)
             5. role field has valid value (MEDIUM)
             6. verified/verified_by consistency (WARNING)
             7. counter fields are non-negative (LOW)
@@ -335,26 +335,33 @@ module Onetime
         end
       end
 
-      # CHECK: customer.organizations bidirectional sync with org.members
+      # CHECK: participation reverse index sync with org.members
+      #
+      # Uses Familia's participations reverse index to find which organizations
+      # the customer believes they belong to, then verifies each org exists and
+      # has the customer in its members sorted set.
       def check_org_membership_sync(customer, issues, report, repair:)
-        # Check organizations customer thinks they belong to
-        customer.organizations.to_a.each do |org_objid|
+        # Get org objids from the participations reverse index
+        org_objids = customer.participating_ids_for_target(Onetime::Organization, ['members'])
+
+        org_objids.each do |org_objid|
           organization = Onetime::Organization.load(org_objid)
 
           if organization.nil?
-            # Org deleted but customer still has reference
+            # Org deleted but customer's participations still references it
+            collection_key = [Onetime::Organization.prefix, org_objid, 'members'].join(Familia.delim)
             issues << {
               check: :org_membership_desync,
               severity: :medium,
-              message: "customer.organizations contains deleted org #{org_objid}",
+              message: "participations references deleted org #{org_objid}",
               org_objid: org_objid,
               repairable: true,
-              repair_action: 'Remove from customer.organizations',
+              repair_action: 'Remove stale participation entry',
             }
 
             if repair
-              customer.organizations.remove(org_objid)
-              OT.info "[customers doctor] Removed deleted org #{org_objid} from #{customer.extid}.organizations"
+              customer.untrack_participation_in(collection_key)
+              OT.info "[customers doctor] Removed stale participation #{collection_key} for #{customer.extid}"
               report[:repaired] << {
                 customer: customer.extid,
                 action: :stale_org_removed,
@@ -366,7 +373,7 @@ module Onetime
             issues << {
               check: :org_membership_desync,
               severity: :medium,
-              message: "customer in organizations set for #{organization.extid} but not in org.members",
+              message: "customer tracked in participations for #{organization.extid} but not in org.members",
               org_extid: organization.extid,
               repairable: true,
               repair_action: 'Add customer to org.members',
