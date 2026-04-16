@@ -35,7 +35,7 @@ module Onetime
         end
 
         puts format(
-          '%-22s %-35s %-15s %-12s %-10s %s',
+          '%-30s %-35s %-15s %-12s %-10s %s',
           'ID',
           'PRODUCT NAME',
           'PLAN_ID',
@@ -43,7 +43,7 @@ module Onetime
           'INTERVAL',
           'PRICE',
         )
-        puts '-' * 115
+        puts '-' * 123
 
         prices.data.each do |price|
           puts format_price_row(price)

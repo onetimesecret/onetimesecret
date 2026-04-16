@@ -55,7 +55,12 @@ module Onetime
       option :price_id,
         type: :string,
         default: nil,
-        desc: 'Stripe Price ID for the $0 complimentary plan (required for --run)'
+        desc: 'Stripe Price ID for the $0 complimentary plan (required for --run unless --price-ids used)'
+
+      option :price_ids,
+        type: :string,
+        default: nil,
+        desc: 'Currency-specific prices, e.g. "cad:price_xxx,usd:price_yyy" (overrides --price-id)'
 
       option :target_planid,
         type: :string,
@@ -68,7 +73,7 @@ module Onetime
         aliases: ['h'],
         desc: 'Show help message'
 
-      def call(run: false, verbose: false, price_id: nil, target_planid: DEFAULT_TARGET_PLANID, help: false, **)
+      def call(run: false, verbose: false, price_id: nil, price_ids: nil, target_planid: DEFAULT_TARGET_PLANID, help: false, **)
         return show_usage_help if help
 
         boot_application!
@@ -79,11 +84,20 @@ module Onetime
 
         dry_run = !run
 
-        if !dry_run && price_id.to_s.empty?
-          puts "\nError: --price-id is required when using --run"
-          puts 'This should be a $0 Stripe Price ID on the identity_plus product.'
-          puts 'Create one in Stripe Dashboard or via API first.'
+        # Build currency -> price_id map
+        price_map = parse_price_ids(price_ids, price_id)
+
+        if !dry_run && price_map.empty?
+          puts "\nError: --price-id or --price-ids is required when using --run"
+          puts 'Examples:'
+          puts '  --price-id price_xxx                        (single currency)'
+          puts '  --price-ids "cad:price_xxx,usd:price_yyy"   (multi-currency)'
           return
+        end
+
+        unless dry_run || price_map.empty?
+          puts "\nPrice mapping:"
+          price_map.each { |cur, pid| puts "  #{(cur || 'default').upcase}: #{pid}" }
         end
 
         return unless dry_run || verify_stripe_configured!
@@ -99,11 +113,12 @@ module Onetime
           skipped_no_org: 0,
           skipped_has_subscription: 0,
           skipped_already_migrated: 0,
+          skipped_currency_mismatch: 0,
           errors: [],
         }
 
         customers.each_with_index do |cust, idx|
-          process_customer(cust, idx, customers.size, stats, dry_run, verbose, price_id, target_planid)
+          process_customer(cust, idx, customers.size, stats, dry_run, verbose, price_map, target_planid)
         end
 
         print_results(stats, dry_run)
@@ -111,6 +126,35 @@ module Onetime
       end
 
       private
+
+      # Parse --price-ids "cad:price_xxx,usd:price_yyy" into { "cad" => "price_xxx", "usd" => "price_yyy" }.
+      # Falls back to --price-id as a single-entry map (currency determined at subscription time).
+      def parse_price_ids(price_ids_str, single_price_id)
+        if price_ids_str
+          price_ids_str.split(',').each_with_object({}) do |pair, map|
+            currency, pid          = pair.strip.split(':', 2)
+            map[currency.downcase] = pid if currency && pid && !pid.empty?
+          end
+        elsif single_price_id
+          # No explicit currency — stored under nil key, used as default
+          { nil => single_price_id }
+        else
+          {}
+        end
+      end
+
+      # Pick the right price ID for a Stripe customer's currency.
+      # Returns nil if no matching price is available.
+      def resolve_price_for_customer(stripe_customer, price_map)
+        # Single-price mode (--price-id without --price-ids)
+        return price_map[nil] if price_map.key?(nil)
+
+        customer_currency = stripe_customer.currency&.downcase
+        # Customer has no currency yet (no prior invoices) — use first available
+        return price_map.values.first if customer_currency.nil?
+
+        price_map[customer_currency]
+      end
 
       def verify_stripe_configured!
         return true if defined?(Stripe) && !Stripe.api_key.to_s.empty?
@@ -157,7 +201,7 @@ module Onetime
         end
       end
 
-      def process_customer(cust, idx, total, stats, dry_run, verbose, price_id, target_planid)
+      def process_customer(cust, idx, total, stats, dry_run, verbose, price_map, target_planid)
         stats[:total] += 1
         label          = "[#{idx + 1}/#{total}]"
 
@@ -192,21 +236,34 @@ module Onetime
         end
 
         # Live migration
-        migrate_account!(cust, org, price_id, target_planid, label, stats, verbose)
+        migrate_account!(cust, org, price_map, target_planid, label, stats, verbose)
       rescue StandardError => ex
         stats[:errors] << "#{cust.extid}: #{ex.message}"
         puts "  #{label} Error: #{ex.message}"
         OT.le "[MigrateProBono] Error for #{cust.extid}: #{ex.message}"
       end
 
-      def migrate_account!(cust, org, price_id, target_planid, label, stats, verbose)
+      def migrate_account!(cust, org, price_map, target_planid, label, stats, verbose)
         rate_limit_retries = 0
 
         begin
           # Step 1: Get or create Stripe Customer
           stripe_customer = get_or_create_stripe_customer(org, cust)
 
-          # Step 2: Create $0 subscription with complimentary metadata
+          # Step 2: Resolve the correct price for this customer's currency
+          price_id = resolve_price_for_customer(stripe_customer, price_map)
+          unless price_id
+            customer_currency                  = stripe_customer.currency || 'none'
+            stats[:skipped_currency_mismatch] += 1
+            puts "  #{label} Skipping #{cust.extid}: no price for currency #{customer_currency} (available: #{price_map.keys.join(', ')})"
+            return
+          end
+
+          if stripe_customer.currency.nil? && !price_map.key?(nil) && verbose
+            puts "  #{label} Note: #{cust.extid} has no Stripe currency, using default price #{price_id}"
+          end
+
+          # Step 3: Create $0 subscription with complimentary metadata
           subscription = Stripe::Subscription.create(
             customer: stripe_customer.id,
             items: [{ price: price_id }],
@@ -219,7 +276,7 @@ module Onetime
             },
           )
 
-          # Step 3: Update organization via shared operation
+          # Step 4: Update organization via shared operation
           # Uses planid_override because the $0 complimentary price may
           # not be in the plan catalog yet.
           Billing::Operations::ApplySubscriptionToOrg.call(
@@ -229,7 +286,7 @@ module Onetime
             planid_override: target_planid,
           )
 
-          # Step 4: Clear legacy customer.planid
+          # Step 5: Clear legacy customer.planid
           cust.planid = nil
           cust.save
 
@@ -290,6 +347,7 @@ module Onetime
         puts '  Skipped (no organization):'.ljust(35) + stats[:skipped_no_org].to_s
         puts '  Skipped (has subscription):'.ljust(35) + stats[:skipped_has_subscription].to_s
         puts '  Skipped (already migrated):'.ljust(35) + stats[:skipped_already_migrated].to_s
+        puts '  Skipped (currency mismatch):'.ljust(35) + stats[:skipped_currency_mismatch].to_s if stats[:skipped_currency_mismatch] > 0
 
         return unless stats[:errors].any?
 
@@ -305,10 +363,14 @@ module Onetime
           To execute migration, run:
             bin/ots migrations migrate-probono-accounts --run --price-id <PRICE_ID>
 
+          For customers with mixed currencies (CAD/USD):
+            bin/ots migrations migrate-probono-accounts --run --price-ids "cad:<CAD_PRICE>,usd:<USD_PRICE>"
+
           Prerequisites:
-            1. Create a $0 CAD recurring price on the identity_plus product in Stripe
-            2. Set metadata: complimentary=true on the price
-            3. Use that price ID with --price-id
+            1. Create a $0 recurring price on the identity_plus product in Stripe
+               (one per currency if customers have mixed currencies)
+            2. Set metadata: complimentary=true on each price
+            3. Use the price ID(s) with --price-id or --price-ids
 
         MESSAGE
       end
@@ -331,7 +393,8 @@ module Onetime
 
           Options:
             --run                   Execute migration (default is dry-run)
-            --price-id <ID>         Stripe Price ID for $0 complimentary plan (required with --run)
+            --price-id <ID>         Stripe Price ID for $0 complimentary plan (single currency)
+            --price-ids <MAP>       Currency-specific prices: "cad:price_xxx,usd:price_yyy"
             --target-planid <ID>    Target plan ID (default: identity_plus_v1)
             --verbose, -v           Show detailed progress for each account
             --help, -h              Show this help message
@@ -340,8 +403,11 @@ module Onetime
             # Preview migration (dry run)
             bin/ots migrations migrate-probono-accounts
 
-            # Execute migration
+            # Execute with single price
             bin/ots migrations migrate-probono-accounts --run --price-id price_0ABC123
+
+            # Execute with multi-currency prices
+            bin/ots migrations migrate-probono-accounts --run --price-ids "cad:price_CAD,usd:price_USD"
 
             # Verbose dry run
             bin/ots migrations migrate-probono-accounts --verbose

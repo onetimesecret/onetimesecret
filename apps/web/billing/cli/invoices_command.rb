@@ -36,14 +36,14 @@ module Onetime
         end
 
         puts format(
-          '%-22s %-22s %-12s %-10s %s',
+          '%-30s %-22s %-12s %-10s %s',
           'ID',
           'CUSTOMER',
           'AMOUNT',
           'STATUS',
           'CREATED',
         )
-        puts '-' * 80
+        puts '-' * 88
 
         invoices.data.each do |invoice|
           puts format_invoice_row(invoice)
