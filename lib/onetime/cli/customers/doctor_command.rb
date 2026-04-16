@@ -483,10 +483,10 @@ module Onetime
 
         return unless repair
 
-        bad_fields.each do |field_name|
-          raw_value = raw_hash[field_name]
-          Onetime::Customer.dbclient.hset(customer.dbkey, field_name, JSON.dump(raw_value))
+        updates = bad_fields.each_with_object({}) do |field_name, hash|
+          hash[field_name] = JSON.dump(raw_hash[field_name])
         end
+        Onetime::Customer.dbclient.hset(customer.dbkey, updates)
         OT.info "[customers doctor] Re-serialized #{bad_fields.size} field(s) for #{customer.extid}: #{bad_fields.join(', ')}"
         report[:repaired] << {
           customer: customer.extid,
