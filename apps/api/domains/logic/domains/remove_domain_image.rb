@@ -48,7 +48,9 @@ module DomainsAPI::Logic
 
       def process
         _image_field.delete! # delete the entire db hash key
-        @custom_domain.save
+        # commit_fields persists without guard_unique_indexes! which can
+        # raise RecordExistsError on existing domains (see #3020).
+        @custom_domain.commit_fields
 
         success_data
       end

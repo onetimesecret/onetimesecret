@@ -121,7 +121,10 @@ module DomainsAPI::Logic
         if result[:data]
           @custom_domain.vhost   = result[:data].to_json
           @custom_domain.updated = OT.now.to_i
-          @custom_domain.save
+          # Domain already created via save above; this is a post-creation
+          # update. Use commit_fields to avoid guard_unique_indexes! which
+          # can raise RecordExistsError on existing domains (see #3020).
+          @custom_domain.commit_fields
         end
 
         result

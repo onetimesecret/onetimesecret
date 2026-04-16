@@ -81,7 +81,12 @@ module DomainsAPI::Logic
         end
 
         custom_domain.updated = Familia.now.to_i
-        custom_domain.save
+        # Use commit_fields instead of save to skip guard_unique_indexes!
+        # which incorrectly raises RecordExistsError on update when the
+        # display_domain_index entry already belongs to this record.
+        # Brand updates never change display_domain, so revalidating
+        # uniqueness is unnecessary.
+        custom_domain.commit_fields
 
         success_data
       end
