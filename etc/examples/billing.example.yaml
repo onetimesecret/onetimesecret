@@ -184,7 +184,10 @@ plans:
       secret_lifetime: 1209600 # 14 days in seconds
       secrets_per_day: null    # TBD - not yet enforced
 
-    prices: []  # Free tier has no prices
+    # Free tier must have no prices. Find the free_v1 (in the matching region if
+    # relevant) and if it lists any prices, they need to be deleted or archived.
+    # Then do a bin/ots billing catalog pull --clear.
+    prices: []
 
   # Legacy Plan - Grandfathered customers only
   # No longer offered but remains active for existing subscriptions.
