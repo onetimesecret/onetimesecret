@@ -54,25 +54,6 @@ module Onetime
 end
 ```
 
-## Usage
-
-```ruby
-# Services support a multi-phase workflow
-service = Onetime::Services::ChangeEmail.new(old_email, new_email, realm)
-
-# Preview changes before executing
-puts service.summarize_changes
-
-# Validate inputs
-service.validate!
-
-# Execute with confirmation
-if user_confirmed?
-  service.execute!
-  service.save_report_to_db
-end
-```
-
 ## When to Use Services
 
 - Administrative tasks run from CLI
@@ -83,7 +64,6 @@ end
 
 ## Examples in Codebase
 
-- `Onetime::Services::ChangeEmail` - Changes customer email with validation and audit trail
 - `Onetime::Services::RedisKeyMigrator` - Migrates Redis keys between databases with statistics
 
 ## Comparison with Other Patterns
