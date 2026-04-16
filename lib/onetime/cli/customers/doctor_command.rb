@@ -12,6 +12,7 @@
 #   5. role field has valid value (MEDIUM)
 #   6. verified/verified_by consistency (WARNING)
 #   7. counter fields are non-negative (LOW)
+#   8. hash field values are properly JSON-serialized (HIGH)
 #
 # Usage:
 #   bin/ots customers doctor trytoremember@me.not  # Check by email or extid
@@ -110,6 +111,7 @@ module Onetime
             5. role field has valid value (MEDIUM)
             6. verified/verified_by consistency (WARNING)
             7. counter fields are non-negative (LOW)
+            8. hash field values are properly JSON-serialized (HIGH)
         USAGE
       end
 
@@ -155,6 +157,9 @@ module Onetime
 
         # CHECK: counter sanity
         check_counter_sanity(customer, issues, report, repair: repair)
+
+        # CHECK: field serialization (JSON contract)
+        check_field_serialization(customer, issues, report, repair: repair)
 
         if issues.empty?
           report[:healthy] += 1
@@ -456,6 +461,51 @@ module Onetime
         }
       end
 
+      # CHECK: hash field values are properly JSON-serialized
+      def check_field_serialization(customer, issues, report, repair:)
+        raw_hash = Onetime::Customer.dbclient.hgetall(customer.dbkey)
+        bad_fields = []
+
+        raw_hash.each do |field_name, raw_value|
+          bad_fields << field_name unless properly_serialized?(raw_value)
+        end
+
+        return if bad_fields.empty?
+
+        issues << {
+          check: :field_serialization,
+          severity: :high,
+          message: "#{bad_fields.size} field(s) not JSON-serialized: #{bad_fields.join(', ')}",
+          fields: bad_fields,
+          repairable: true,
+          repair_action: 'Re-serialize fields with JSON.dump',
+        }
+
+        return unless repair
+
+        bad_fields.each do |field_name|
+          raw_value = raw_hash[field_name]
+          Onetime::Customer.dbclient.hset(customer.dbkey, field_name, JSON.dump(raw_value))
+        end
+        OT.info "[customers doctor] Re-serialized #{bad_fields.size} field(s) for #{customer.extid}: #{bad_fields.join(', ')}"
+        report[:repaired] << {
+          customer: customer.extid,
+          action: :fields_reserialized,
+          fields: bad_fields,
+        }
+      end
+
+      # Checks whether a raw Redis value is a valid JSON literal.
+      # Empty strings are legitimate "cleared" field state, not a serialization issue.
+      def properly_serialized?(raw_value)
+        return true if raw_value.nil? || raw_value.empty?
+
+        JSON.parse(raw_value)
+        true
+      rescue JSON::ParserError
+        false
+      end
+
       # Output helpers
 
       def output_report(report, json:, repair:)
@@ -503,6 +553,8 @@ module Onetime
               puts "  #{r[:customer]}: set verified_by='#{r[:value]}'"
             when :counters_reset
               puts "  #{r[:customer]}: reset counters #{r[:fields].join(', ')}"
+            when :fields_reserialized
+              puts "  #{r[:customer]}: re-serialized fields #{r[:fields].join(', ')}"
             else
               puts "  #{r[:action]}"
             end
