@@ -128,7 +128,12 @@ Sequel.migration do
 
             # Check if Customer object email also needs updating
             if redis.exists?(customer_key)
-              stored_email = redis.hget(customer_key, 'email')
+              stored_email_raw = redis.hget(customer_key, 'email')
+              stored_email     = begin
+                Familia::JsonSerializer.parse(stored_email_raw)
+              rescue JSON::ParserError, Familia::SerializerError
+                stored_email_raw
+              end
               if stored_email && stored_email != lowercase_email
                 puts "      Would update Customer object: #{obfuscate_email(stored_email)} -> #{obfuscate_email(lowercase_email)}"
                 stats[:customer_objects_updated] += 1
@@ -143,9 +148,14 @@ Sequel.migration do
 
             # Also update the email field on the Customer object in Redis
             if redis.exists?(customer_key)
-              stored_email = redis.hget(customer_key, 'email')
+              stored_email_raw = redis.hget(customer_key, 'email')
+              stored_email     = begin
+                Familia::JsonSerializer.parse(stored_email_raw)
+              rescue JSON::ParserError, Familia::SerializerError
+                stored_email_raw
+              end
               if stored_email && stored_email != lowercase_email
-                redis.hset(customer_key, 'email', lowercase_email)
+                redis.hset(customer_key, 'email', Familia::JsonSerializer.dump(lowercase_email))
                 stats[:customer_objects_updated] += 1
               end
             end

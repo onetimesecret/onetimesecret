@@ -8,7 +8,7 @@
 #   1. default_org_id points to existing org that customer is member of (CRITICAL)
 #   2. email_index entries match customer email (HIGH)
 #   3. email_index has entry for customer (HIGH)
-#   4. customer.organizations bidirectional sync with org.members (MEDIUM)
+#   4. customer participations reverse index sync with org.members (MEDIUM)
 #   5. role field has valid value (MEDIUM)
 #   6. verified/verified_by consistency (WARNING)
 #   7. counter fields are non-negative (LOW)
@@ -107,7 +107,7 @@ module Onetime
             1. default_org_id points to valid org membership (CRITICAL)
             2. email_index entries are consistent (HIGH)
             3. customer has email_index entry (HIGH)
-            4. organization membership bidirectional sync (MEDIUM)
+            4. participation reverse index sync with org.members (MEDIUM)
             5. role field has valid value (MEDIUM)
             6. verified/verified_by consistency (WARNING)
             7. counter fields are non-negative (LOW)
@@ -335,26 +335,33 @@ module Onetime
         end
       end
 
-      # CHECK: customer.organizations bidirectional sync with org.members
+      # CHECK: participation reverse index sync with org.members
+      #
+      # Uses Familia's participations reverse index to find which organizations
+      # the customer believes they belong to, then verifies each org exists and
+      # has the customer in its members sorted set.
       def check_org_membership_sync(customer, issues, report, repair:)
-        # Check organizations customer thinks they belong to
-        customer.organizations.to_a.each do |org_objid|
+        # Get org objids from the participations reverse index
+        org_objids = customer.participating_ids_for_target(Onetime::Organization, ['members'])
+
+        org_objids.each do |org_objid|
           organization = Onetime::Organization.load(org_objid)
 
           if organization.nil?
-            # Org deleted but customer still has reference
+            # Org deleted but customer's participations still references it
+            collection_key = [Onetime::Organization.prefix, org_objid, 'members'].join(Familia.delim)
             issues << {
               check: :org_membership_desync,
               severity: :medium,
-              message: "customer.organizations contains deleted org #{org_objid}",
+              message: "participations references deleted org #{org_objid}",
               org_objid: org_objid,
               repairable: true,
-              repair_action: 'Remove from customer.organizations',
+              repair_action: 'Remove stale participation entry',
             }
 
             if repair
-              customer.organizations.remove(org_objid)
-              OT.info "[customers doctor] Removed deleted org #{org_objid} from #{customer.extid}.organizations"
+              customer.untrack_participation_in(collection_key)
+              OT.info "[customers doctor] Removed stale participation #{collection_key} for #{customer.extid}"
               report[:repaired] << {
                 customer: customer.extid,
                 action: :stale_org_removed,
@@ -366,7 +373,7 @@ module Onetime
             issues << {
               check: :org_membership_desync,
               severity: :medium,
-              message: "customer in organizations set for #{organization.extid} but not in org.members",
+              message: "customer tracked in participations for #{organization.extid} but not in org.members",
               org_extid: organization.extid,
               repairable: true,
               repair_action: 'Add customer to org.members',
@@ -461,13 +468,27 @@ module Onetime
         }
       end
 
-      # CHECK: hash field values are properly JSON-serialized
+      # CHECK: field values in :object hash are properly JSON-serialized
+      #
+      # Familia v2 stores all Horreum field values as JSON strings. A raw
+      # string (e.g., "user@example.com" instead of "\"user@example.com\"")
+      # indicates a serialization bypass — typically from a direct hset
+      # that skipped Familia's serialize_value path.
       def check_field_serialization(customer, issues, report, repair:)
-        raw_hash = Onetime::Customer.dbclient.hgetall(customer.dbkey)
-        bad_fields = []
+        # Uses class-level dbclient rather than customer.dbclient; the instance-level
+        # path routes through Familia::FiberTransactionHandler, while the class-level
+        # path bypasses it. If a future caller wraps this check in a Familia
+        # transaction and wants the repair write to participate, switch to
+        # customer.dbclient.
+        dbclient     = customer.class.dbclient
+        customer_key = customer.dbkey(:object)
+        raw_hash     = dbclient.hgetall(customer_key)
+        bad_fields   = []
 
         raw_hash.each do |field_name, raw_value|
-          bad_fields << field_name unless properly_serialized?(raw_value)
+          next if properly_serialized?(raw_value)
+
+          bad_fields << { field: field_name, value: raw_value[0..60] }
         end
 
         return if bad_fields.empty?
@@ -475,34 +496,41 @@ module Onetime
         issues << {
           check: :field_serialization,
           severity: :high,
-          message: "#{bad_fields.size} field(s) not JSON-serialized: #{bad_fields.join(', ')}",
+          message: "#{bad_fields.size} field(s) stored as raw strings instead of JSON: #{bad_fields.map { |f| f[:field] }.join(', ')}",
           fields: bad_fields,
           repairable: true,
-          repair_action: 'Re-serialize fields with JSON.dump',
+          repair_action: 'Re-serialize fields with Familia::JsonSerializer.dump',
         }
 
         return unless repair
 
-        updates = bad_fields.each_with_object({}) do |field_name, hash|
-          hash[field_name] = JSON.dump(raw_hash[field_name])
+        updates = bad_fields.to_h do |entry|
+          [entry[:field], Familia::JsonSerializer.dump(raw_hash[entry[:field]])]
         end
-        Onetime::Customer.dbclient.hset(customer.dbkey, updates)
-        OT.info "[customers doctor] Re-serialized #{bad_fields.size} field(s) for #{customer.extid}: #{bad_fields.join(', ')}"
+        dbclient.hset(customer_key, updates)
+
+        OT.info "[customers doctor] Re-serialized #{bad_fields.size} field(s) for #{customer.extid}: #{bad_fields.map { |f| f[:field] }.join(', ')}"
         report[:repaired] << {
           customer: customer.extid,
           action: :fields_reserialized,
-          fields: bad_fields,
+          fields: bad_fields.map { |f| f[:field] },
         }
       end
 
-      # Checks whether a raw Redis value is a valid JSON literal.
-      # Empty strings are legitimate "cleared" field state, not a serialization issue.
+      # Checks whether a raw Redis value is a valid JSON literal. The empty-string
+      # early-return is intentional: an empty value is the legitimate "cleared field"
+      # state, not a serialization failure. Parse-based detection has a blind spot
+      # for bare values that happen to parse as JSON primitives ("true", "false",
+      # "null", "0", "123") — there's no way at read time to tell those apart from
+      # a correctly serialized primitive. Harmless for string-valued fields like
+      # email (a bare string never parses as JSON), but a bypass write to a
+      # boolean/integer/null-valued field would slip past this check.
       def properly_serialized?(raw_value)
         return true if raw_value.nil? || raw_value.empty?
 
-        JSON.parse(raw_value)
+        Familia::JsonSerializer.parse(raw_value)
         true
-      rescue JSON::ParserError
+      rescue JSON::ParserError, Familia::SerializerError
         false
       end
 

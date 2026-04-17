@@ -54,7 +54,6 @@ Metrics/PerceivedComplexity:
     - 'apps/web/billing/cli/products_update_command.rb'
     - 'apps/web/billing/models/plan.rb'
     - 'apps/web/core/views/helpers/initialize_view_vars.rb'
-    - 'lib/onetime/cli/change_email_command.rb'
     - 'lib/onetime/cli/customers/sync_auth_accounts_command.rb'
     - 'lib/onetime/cli/migrate_redis_data_command.rb'
     - 'lib/onetime/config.rb'
