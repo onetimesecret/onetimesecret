@@ -58,6 +58,16 @@ module Onetime
         false
       end
 
+      # Stat-key naming note
+      #
+      # Keys :would_migrate_true / :would_migrate_false / :migrated_true /
+      # :migrated_false deliberately deviate from the 2025-07-27 convention of
+      # past-tense action nouns (e.g. :backup_created, :symbols_converted,
+      # :records_updated). The boolean split is retained for production
+      # observability: operators can verify the true/false ratio matches
+      # expectations, and if :migrated_true stays at zero across runs, the
+      # legacy fallback at CustomDomain#allow_public_homepage? is provably
+      # unused and safe to remove.
       def migrate
         run_mode_banner
 

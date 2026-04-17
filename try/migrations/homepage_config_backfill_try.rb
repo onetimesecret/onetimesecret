@@ -133,7 +133,14 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_off.identifier)
 
 # --- Error path: per-domain rescue in migrate ---
 #
-# One domain is rigged so that CustomDomain.find_by_identifier raises for it.
+# One domain is rigged so that its `brand` Redis key is the wrong Redis type
+# (string instead of hash). CustomDomain.find_by_identifier returns the domain
+# normally, but the downstream call `domain.brand_settings.allow_public_homepage?`
+# triggers `brand.hgetall`, which raises Redis::CommandError (WRONGTYPE).
+# This exercises the per-domain rescue in `migrate` via real data corruption
+# rather than monkey-patching class methods, so the test survives Familia /
+# redis-rb version changes that would break singleton-method stubs.
+#
 # The migration must count :errors, keep processing the remaining domains,
 # and must not raise out of migrate.
 # Bare code between ## blocks does not execute in Tryouts; we wrap setup in
@@ -154,28 +161,23 @@ Familia.dbclient.flushdb
 [@raising_id.to_s.length.positive?, @domain_ok.identifier.to_s.length.positive?]
 #=> [true, true]
 
-## Setup: install singleton override that raises for one specific id
-# Capture closure variables (define_singleton_method's block runs with self bound
-# to the class; instance variables inside the block would resolve against the
-# class, not this test context).
-@original_find      = Onetime::CustomDomain.method(:find_by_identifier)
-Onetime::CustomDomain.singleton_class.send(:alias_method, :__orig_find_for_test, :find_by_identifier)
-captured_raising_id = @raising_id
-Onetime::CustomDomain.define_singleton_method(:find_by_identifier) do |id|
-  raise StandardError, "simulated failure for #{id}" if id == captured_raising_id
+## Setup: corrupt the raising domain's brand key (hash -> string) so hgetall raises WRONGTYPE
+@brand_dbkey = @domain_err.brand.dbkey
+Familia.dbclient.del(@brand_dbkey)
+Familia.dbclient.set(@brand_dbkey, 'corrupted-not-a-hash')
+Familia.dbclient.type(@brand_dbkey)
+#=> "string"
 
-  __orig_find_for_test(id)
-end
-# Sanity: routes raising id to StandardError, non-raising id to a real domain
+## Sanity: fresh domain load raises from brand_settings due to WRONGTYPE, non-raising domain loads cleanly
 sanity =
   begin
-    Onetime::CustomDomain.find_by_identifier(@raising_id)
+    Onetime::CustomDomain.find_by_identifier(@raising_id).brand_settings.allow_public_homepage?
     :no_raise
   rescue StandardError
     :raised
   end
-ok_domain = Onetime::CustomDomain.find_by_identifier(@domain_ok.identifier)
-[sanity, ok_domain&.identifier == @domain_ok.identifier]
+ok_fresh = Onetime::CustomDomain.find_by_identifier(@domain_ok.identifier)
+[sanity, ok_fresh&.identifier == @domain_ok.identifier]
 #=> [:raised, true]
 
 ## Error run completes without raising
@@ -199,12 +201,6 @@ Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_ok.identifier).e
 ## Raising domain did not get a HomepageConfig written
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@raising_id)
 #=> false
-
-## Teardown: remove the singleton override so the class method is restored
-Onetime::CustomDomain.singleton_class.send(:remove_method, :find_by_identifier)
-Onetime::CustomDomain.singleton_class.send(:remove_method, :__orig_find_for_test)
-Onetime::CustomDomain.find_by_identifier(@domain_ok.identifier).identifier == @domain_ok.identifier
-#=> true
 
 # --- migration_needed? false when all domains already have HomepageConfig ---
 
@@ -285,6 +281,33 @@ Onetime::CustomDomain.instances.to_a
 [@empty_run.stats[:migrated_true], @empty_run.stats[:migrated_false],
  @empty_run.stats[:skipped_existing], @empty_run.stats[:errors]]
 #=> [0, 0, 0, 0]
+
+# --- Stale instances entry: identifier in sorted set but domain record missing ---
+
+## Setup: flush and stage one real domain plus a stale identifier in the sorted set
+Familia.dbclient.flushdb
+@ts_stale    = Familia.now.to_i
+@owner_stale = Onetime::Customer.create!(email: "hp_stale_owner_#{@ts_stale}_#{SecureRandom.hex(4)}@test.com")
+@org_stale   = Onetime::Organization.create!("HpStale Test Org #{@ts_stale}", @owner_stale, "hp_stale_#{@ts_stale}@test.com")
+@stale_id    = 'nonexistent_domain_id_xyz'
+
+@domain_stale                                = Onetime::CustomDomain.create!("hp-stale-#{@ts_stale}.example.com", @org_stale.objid)
+@domain_stale.brand['allow_public_homepage'] = true
+@domain_stale.instance_variable_set(:@brand_settings, nil)
+
+Familia.dbclient.zadd(Onetime::CustomDomain.instances.dbkey, Familia.now.to_f, @stale_id)
+[Onetime::CustomDomain.instances.size,
+ Onetime::CustomDomain.find_by_identifier(@stale_id).nil?]
+#=> [2, true]
+
+## skipped_missing_domain: migrate succeeds, stale id is skipped, real domain is backfilled
+@stale_run = Onetime::Migrations::BackfillHomepageConfig.new(run: true).tap(&:prepare)
+@stale_run.migrate
+[@stale_run.stats[:skipped_missing_domain],
+ @stale_run.stats[:migrated_true],
+ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_stale.identifier),
+ Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_stale.identifier).enabled?]
+#=> [1, 1, true, true]
 
 # Teardown
 Familia.dbclient.flushdb
