@@ -78,7 +78,10 @@ RSpec.describe V1::ControllerHelpers do
   end
 
   before do
-    # Define a minimal Sentry constant if it doesn't exist
+    # Define a minimal Sentry constant if it doesn't exist.
+    # initialized? is required because capture_error's diagnostic log line
+    # (helpers.rb) interpolates `Sentry.initialized?` regardless of the
+    # d9s_enabled gate — evaluation happens before the early return.
     unless defined?(Sentry)
       stub_const('Sentry', Module.new do
         def self.capture_exception(error, **options, &block)
@@ -87,6 +90,10 @@ RSpec.describe V1::ControllerHelpers do
 
         def self.capture_message(message, **options, &block)
           # Default stub
+        end
+
+        def self.initialized?
+          true
         end
       end)
     end
