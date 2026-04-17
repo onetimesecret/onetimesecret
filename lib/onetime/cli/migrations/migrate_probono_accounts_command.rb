@@ -133,7 +133,9 @@ module Onetime
         if price_ids_str
           price_ids_str.split(',').each_with_object({}) do |pair, map|
             currency, pid          = pair.strip.split(':', 2)
-            map[currency.downcase] = pid if currency && pid && !pid.empty?
+            currency               = currency&.strip
+            pid                    = pid&.strip
+            map[currency.downcase] = pid if currency && !currency.empty? && pid && !pid.empty?
           end
         elsif single_price_id
           # No explicit currency — stored under nil key, used as default
@@ -150,7 +152,16 @@ module Onetime
         return price_map[nil] if price_map.key?(nil)
 
         customer_currency = stripe_customer.currency&.downcase
-        # Customer has no currency yet (no prior invoices) — use first available
+        # WARNING: When a Stripe customer has no currency set (no prior invoices)
+        # and the price_map has multiple entries, we arbitrarily pick the first
+        # one. If it doesn't match the currency Stripe eventually locks to this
+        # customer, Stripe will reject the subscription create call and the
+        # account will be logged as an error and skipped. This is acceptable for
+        # this one-shot legacy pro-bono migration because: (a) with a single-
+        # entry map the "first" is the only sensible choice, and (b) with a
+        # multi-entry map the downstream rescue in #migrate_account! catches
+        # and reports the mismatch so no silent bad data is written. Operators
+        # can re-run with corrected --price-ids after investigating.
         return price_map.values.first if customer_currency.nil?
 
         price_map[customer_currency]

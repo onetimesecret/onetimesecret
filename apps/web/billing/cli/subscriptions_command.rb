@@ -36,13 +36,13 @@ module Onetime
         end
 
         puts format(
-          '%-30s %-22s %-12s %s',
+          '%-30s %-30s %-20s %-12s',
           'ID',
           'CUSTOMER',
           'STATUS',
           'PERIOD END',
         )
-        puts '-' * 78
+        puts '-' * 95
 
         subscriptions.data.each do |subscription|
           puts format_subscription_row(subscription)

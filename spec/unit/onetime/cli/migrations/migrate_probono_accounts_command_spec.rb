@@ -5,7 +5,7 @@
 # Unit tests for MigrateProbonoAccountsCommand.
 #
 # Covers:
-# - parse_price_ids: multi-currency string parsing, fallback, edge cases
+# - parse_price_ids: multi-currency string parsing, fallback, empty-currency guard, edge cases
 # - resolve_price_for_customer: single-price mode, multi-currency dispatch
 # - Dry-run mode (no mutations, correct preview output)
 # - Skip: no organization found
@@ -14,7 +14,9 @@
 # - Skip: currency mismatch (no matching price)
 # - Live migration flow (Stripe customer + subscription creation)
 # - Live migration with multi-currency prices
-# - Rate limit retry logic
+# - Rate limit retry logic (backoff, retry exhaustion, re-raise)
+# - get_or_create_stripe_customer: retrieve, InvalidRequestError fallback, create new
+# - Error handling (records error and continues)
 #
 # Run: pnpm run test:rspec spec/unit/onetime/cli/migrations/migrate_probono_accounts_command_spec.rb
 
@@ -133,12 +135,22 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       expect(result).to eq('cad' => 'price_aaa', 'usd' => 'price_bbb')
     end
 
-    it 'skips entries with empty currency or price after split' do
+    it 'skips entries with empty currency after split' do
       result = command.send(:parse_price_ids, ':price_orphan,cad:price_aaa', nil)
 
-      # ":price_orphan" splits to ["", "price_orphan"] -- empty string is truthy,
-      # so it gets stored under "" key. This is the current behavior.
-      expect(result).to include('cad' => 'price_aaa')
+      # ":price_orphan" splits to ["", "price_orphan"] -- the !currency.empty?
+      # guard rejects the empty-string key so only valid entries survive.
+      expect(result).to eq('cad' => 'price_aaa')
+      expect(result).not_to have_key('')
+    end
+
+    it 'strips whitespace around currency and price tokens' do
+      result = command.send(:parse_price_ids, 'cad :price_whitespace,usd:price_ok', nil)
+
+      # Without inner strip, "cad " would leak in as the key and later lookup
+      # against stripe_customer.currency&.downcase -> "cad" would silently miss.
+      expect(result).to eq('cad' => 'price_whitespace', 'usd' => 'price_ok')
+      expect(result).not_to have_key('cad ')
     end
 
     it 'prefers --price-ids over --price-id when both provided' do
@@ -445,6 +457,147 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
 
       expect(stats[:errors].size).to eq(1)
       expect(stats[:errors].first).to include('test error')
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Rate limit retry logic
+  # ---------------------------------------------------------------------------
+
+  describe '#migrate_account! rate limit retry' do
+    let(:stripe_customer) { double('Stripe::Customer', id: 'cus_rl_1', currency: 'cad') }
+    let(:period_end) { 1_700_000_000 }
+    let(:subscription_item) { double('SubscriptionItem', current_period_end: period_end) }
+    let(:items_data) { double('ItemsData', data: [subscription_item]) }
+    let(:stripe_subscription) do
+      double('Stripe::Subscription',
+        id: 'sub_rl_1',
+        status: 'active',
+        customer: 'cus_rl_1',
+        items: items_data,
+        metadata: {
+          Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
+          Billing::Metadata::FIELD_PLAN_ID => target_planid,
+          'migrated_from' => 'probono',
+        },
+      )
+    end
+
+    before do
+      allow(Stripe::Customer).to receive(:list)
+        .and_return(double(data: [stripe_customer]))
+      allow(org).to receive(:stripe_customer_id).and_return(nil)
+      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:call)
+    end
+
+    it 'retries on Stripe::RateLimitError up to MAX_RATE_LIMIT_RETRIES times then succeeds' do
+      call_count = 0
+      allow(Stripe::Subscription).to receive(:create) do
+        call_count += 1
+        raise Stripe::RateLimitError.new if call_count <= 2
+
+        stripe_subscription
+      end
+
+      command.send(:migrate_account!, customer, org, price_map, target_planid, '[1/1]', stats, false)
+
+      expect(stats[:migrated]).to eq(1)
+      expect(call_count).to eq(3)
+    end
+
+    it 're-raises Stripe::RateLimitError after exhausting MAX_RATE_LIMIT_RETRIES retries' do
+      allow(Stripe::Subscription).to receive(:create)
+        .and_raise(Stripe::RateLimitError.new)
+
+      expect {
+        command.send(:migrate_account!, customer, org, price_map, target_planid, '[1/1]', stats, false)
+      }.to raise_error(Stripe::RateLimitError)
+    end
+
+    it 'sleeps with exponential backoff between rate-limit retries' do
+      call_count = 0
+      allow(Stripe::Subscription).to receive(:create) do
+        call_count += 1
+        raise Stripe::RateLimitError.new if call_count <= 2
+
+        stripe_subscription
+      end
+
+      # Expect backoff sleeps: 5s for retry 1, 10s for retry 2,
+      # plus the normal BATCH_DELAY_SECONDS after success
+      expect(command).to receive(:sleep).with(5).ordered
+      expect(command).to receive(:sleep).with(10).ordered
+      expect(command).to receive(:sleep).with(described_class::BATCH_DELAY_SECONDS).ordered
+
+      command.send(:migrate_account!, customer, org, price_map, target_planid, '[1/1]', stats, false)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # get_or_create_stripe_customer paths
+  # ---------------------------------------------------------------------------
+
+  describe '#get_or_create_stripe_customer (private)' do
+    let(:stripe_customer) { double('Stripe::Customer', id: 'cus_existing_1', currency: 'cad') }
+
+    context 'when org has a valid stripe_customer_id' do
+      before do
+        allow(org).to receive(:stripe_customer_id).and_return('cus_existing_1')
+      end
+
+      it 'retrieves the customer by stripe_customer_id' do
+        expect(Stripe::Customer).to receive(:retrieve).with('cus_existing_1')
+          .and_return(stripe_customer)
+
+        result = command.send(:get_or_create_stripe_customer, org, customer)
+
+        expect(result).to eq(stripe_customer)
+      end
+    end
+
+    context 'when org stripe_customer_id is stale (Stripe::InvalidRequestError)' do
+      before do
+        allow(org).to receive(:stripe_customer_id).and_return('cus_deleted_999')
+        allow(Stripe::Customer).to receive(:retrieve)
+          .and_raise(Stripe::InvalidRequestError.new('No such customer', 'id'))
+      end
+
+      it 'falls back to email lookup via Stripe::Customer.list' do
+        found_customer = double('Stripe::Customer', id: 'cus_by_email', currency: 'usd')
+        allow(Stripe::Customer).to receive(:list)
+          .with(email: customer_email, limit: 1)
+          .and_return(double(data: [found_customer]))
+
+        result = command.send(:get_or_create_stripe_customer, org, customer)
+
+        expect(result).to eq(found_customer)
+      end
+    end
+
+    context 'when no existing Stripe customer is found' do
+      let(:created_customer) { double('Stripe::Customer', id: 'cus_new_1', currency: nil) }
+
+      before do
+        allow(org).to receive(:stripe_customer_id).and_return(nil)
+        allow(Stripe::Customer).to receive(:list)
+          .and_return(double(data: []))
+      end
+
+      it 'creates a new Stripe customer with org metadata' do
+        expect(Stripe::Customer).to receive(:create).with(
+          hash_including(
+            email: customer_email,
+            metadata: hash_including(
+              'org_extid' => 'org_ext_1',
+              'migrated_from' => 'probono',
+            ),
+          ),
+        ).and_return(created_customer)
+
+        result = command.send(:get_or_create_stripe_customer, org, customer)
+
+        expect(result).to eq(created_customer)
+      end
     end
   end
 end

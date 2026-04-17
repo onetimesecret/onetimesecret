@@ -48,7 +48,7 @@ module Onetime
         end
 
         puts format(
-          '%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
+          '%-30s %-30s %-12s %-12s %-10s %-8s %-10s %s',
           'ID',
           'NAME',
           'TIER',
