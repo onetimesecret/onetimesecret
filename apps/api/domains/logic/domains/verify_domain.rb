@@ -56,10 +56,7 @@ module DomainsAPI::Logic
         end
 
         custom_domain.updated = OT.now.to_i
-        # commit_fields persists all fields without running guard_unique_indexes!
-        # which can raise RecordExistsError on existing domains. Status updates
-        # never change display_domain so uniqueness re-check is unnecessary.
-        custom_domain.commit_fields
+        custom_domain.save
       rescue StandardError => ex
         OT.le "[VerifyDomain.refresh_status] Error: #{ex.message}"
       end
@@ -86,7 +83,7 @@ module DomainsAPI::Logic
           if result[:data]
             custom_domain.vhost   = result[:data].to_json
             custom_domain.updated = OT.now.to_i
-            custom_domain.commit_fields # see refresh_status comment above
+            custom_domain.save
           end
         else
           OT.le "[VerifyDomain.ensure_vhost_exists] Failed to create vhost: #{result[:message]}"
