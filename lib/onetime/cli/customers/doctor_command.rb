@@ -475,6 +475,11 @@ module Onetime
       # indicates a serialization bypass — typically from a direct hset
       # that skipped Familia's serialize_value path.
       def check_field_serialization(customer, issues, report, repair:)
+        # Uses class-level dbclient rather than customer.dbclient; the instance-level
+        # path routes through Familia::FiberTransactionHandler, while the class-level
+        # path bypasses it. If a future caller wraps this check in a Familia
+        # transaction and wants the repair write to participate, switch to
+        # customer.dbclient.
         dbclient     = customer.class.dbclient
         customer_key = customer.dbkey(:object)
         raw_hash     = dbclient.hgetall(customer_key)
@@ -512,8 +517,14 @@ module Onetime
         }
       end
 
-      # Checks whether a raw Redis value is a valid JSON literal.
-      # Empty strings are legitimate "cleared" field state, not a serialization issue.
+      # Checks whether a raw Redis value is a valid JSON literal. The empty-string
+      # early-return is intentional: an empty value is the legitimate "cleared field"
+      # state, not a serialization failure. Parse-based detection has a blind spot
+      # for bare values that happen to parse as JSON primitives ("true", "false",
+      # "null", "0", "123") — there's no way at read time to tell those apart from
+      # a correctly serialized primitive. Harmless for string-valued fields like
+      # email (a bare string never parses as JSON), but a bypass write to a
+      # boolean/integer/null-valued field would slip past this check.
       def properly_serialized?(raw_value)
         return true if raw_value.nil? || raw_value.empty?
 
