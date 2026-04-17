@@ -2,15 +2,21 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for MigrateProbonoAccountsCommand#process_customer.
+# Unit tests for MigrateProbonoAccountsCommand.
 #
 # Covers:
+# - parse_price_ids: multi-currency string parsing, fallback, empty-currency guard, edge cases
+# - resolve_price_for_customer: single-price mode, multi-currency dispatch
 # - Dry-run mode (no mutations, correct preview output)
 # - Skip: no organization found
 # - Skip: org already has active subscription
 # - Skip: already migrated (complimentary marker)
+# - Skip: currency mismatch (no matching price)
 # - Live migration flow (Stripe customer + subscription creation)
-# - Rate limit retry logic
+# - Live migration with multi-currency prices
+# - Rate limit retry logic (backoff, retry exhaustion, re-raise)
+# - get_or_create_stripe_customer: retrieve, InvalidRequestError fallback, create new
+# - Error handling (records error and continues)
 #
 # Run: pnpm run test:rspec spec/unit/onetime/cli/migrations/migrate_probono_accounts_command_spec.rb
 
@@ -24,6 +30,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
 
   let(:customer_email) { 'probono@example.com' }
   let(:price_id) { 'price_0_complimentary' }
+  let(:price_map) { { nil => price_id } }
   let(:target_planid) { 'identity_plus_v1' }
 
   let(:customer) do
@@ -66,6 +73,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       skipped_no_org: 0,
       skipped_has_subscription: 0,
       skipped_already_migrated: 0,
+      skipped_currency_mismatch: 0,
       errors: [],
     }
   end
@@ -81,6 +89,134 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
   end
 
   # ---------------------------------------------------------------------------
+  # parse_price_ids
+  # ---------------------------------------------------------------------------
+
+  describe '#parse_price_ids (private)' do
+    it 'parses multi-currency string into a hash' do
+      result = command.send(:parse_price_ids, 'cad:price_aaa,usd:price_bbb', nil)
+
+      expect(result).to eq('cad' => 'price_aaa', 'usd' => 'price_bbb')
+    end
+
+    it 'handles extra whitespace around entries' do
+      result = command.send(:parse_price_ids, ' cad:price_aaa , usd:price_bbb ', nil)
+
+      expect(result).to eq('cad' => 'price_aaa', 'usd' => 'price_bbb')
+    end
+
+    it 'handles a single currency entry' do
+      result = command.send(:parse_price_ids, 'cad:price_aaa', nil)
+
+      expect(result).to eq('cad' => 'price_aaa')
+    end
+
+    it 'downcases currency codes' do
+      result = command.send(:parse_price_ids, 'CAD:price_aaa,USD:price_bbb', nil)
+
+      expect(result).to eq('cad' => 'price_aaa', 'usd' => 'price_bbb')
+    end
+
+    it 'falls back to single price_id with nil key when no price_ids string' do
+      result = command.send(:parse_price_ids, nil, 'price_xxx')
+
+      expect(result).to eq(nil => 'price_xxx')
+    end
+
+    it 'returns empty hash when both arguments are nil' do
+      result = command.send(:parse_price_ids, nil, nil)
+
+      expect(result).to eq({})
+    end
+
+    it 'skips malformed entries missing a colon' do
+      result = command.send(:parse_price_ids, 'cad:price_aaa,badentry,usd:price_bbb', nil)
+
+      expect(result).to eq('cad' => 'price_aaa', 'usd' => 'price_bbb')
+    end
+
+    it 'skips entries with empty currency after split' do
+      result = command.send(:parse_price_ids, ':price_orphan,cad:price_aaa', nil)
+
+      # ":price_orphan" splits to ["", "price_orphan"] -- the !currency.empty?
+      # guard rejects the empty-string key so only valid entries survive.
+      expect(result).to eq('cad' => 'price_aaa')
+      expect(result).not_to have_key('')
+    end
+
+    it 'strips whitespace around currency and price tokens' do
+      result = command.send(:parse_price_ids, 'cad :price_whitespace,usd:price_ok', nil)
+
+      # Without inner strip, "cad " would leak in as the key and later lookup
+      # against stripe_customer.currency&.downcase -> "cad" would silently miss.
+      expect(result).to eq('cad' => 'price_whitespace', 'usd' => 'price_ok')
+      expect(result).not_to have_key('cad ')
+    end
+
+    it 'prefers --price-ids over --price-id when both provided' do
+      result = command.send(:parse_price_ids, 'cad:price_aaa', 'price_fallback')
+
+      expect(result).to eq('cad' => 'price_aaa')
+      expect(result).not_to have_key(nil)
+    end
+
+    it 'rejects entries with empty price values' do
+      result = command.send(:parse_price_ids, 'cad:price_aaa,usd:', nil)
+
+      expect(result).to eq('cad' => 'price_aaa')
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # resolve_price_for_customer
+  # ---------------------------------------------------------------------------
+
+  describe '#resolve_price_for_customer (private)' do
+    let(:stripe_customer_usd) { double('Stripe::Customer', currency: 'usd') }
+    let(:stripe_customer_cad) { double('Stripe::Customer', currency: 'cad') }
+    let(:stripe_customer_eur) { double('Stripe::Customer', currency: 'eur') }
+    let(:stripe_customer_nil) { double('Stripe::Customer', currency: nil) }
+
+    context 'single-price mode (nil key in map)' do
+      let(:single_map) { { nil => 'price_single' } }
+
+      it 'returns the single price regardless of customer currency' do
+        result = command.send(:resolve_price_for_customer, stripe_customer_usd, single_map)
+        expect(result).to eq('price_single')
+      end
+
+      it 'returns the single price when customer has no currency' do
+        result = command.send(:resolve_price_for_customer, stripe_customer_nil, single_map)
+        expect(result).to eq('price_single')
+      end
+    end
+
+    context 'multi-currency mode' do
+      let(:multi_map) { { 'cad' => 'price_cad', 'usd' => 'price_usd' } }
+
+      it 'returns the USD price for a USD customer' do
+        result = command.send(:resolve_price_for_customer, stripe_customer_usd, multi_map)
+        expect(result).to eq('price_usd')
+      end
+
+      it 'returns the CAD price for a CAD customer' do
+        result = command.send(:resolve_price_for_customer, stripe_customer_cad, multi_map)
+        expect(result).to eq('price_cad')
+      end
+
+      it 'returns first available price when customer has no currency' do
+        result = command.send(:resolve_price_for_customer, stripe_customer_nil, multi_map)
+        expect(result).to eq(multi_map.values.first)
+      end
+
+      it 'returns nil when customer currency has no matching price' do
+        result = command.send(:resolve_price_for_customer, stripe_customer_eur, multi_map)
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Dry-run mode
   # ---------------------------------------------------------------------------
 
@@ -89,7 +225,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       expect(Stripe::Customer).not_to receive(:create)
       expect(Stripe::Subscription).not_to receive(:create)
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_map, target_planid)
 
       expect(stats[:total]).to eq(1)
       expect(stats[:migrated]).to eq(1)
@@ -98,7 +234,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
     it 'outputs preview message' do
       expect(command).to receive(:puts).with(/Would migrate.*cust_ext_1/)
 
-      command.send(:process_customer, customer, 0, 1, stats, true, true, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, true, true, price_map, target_planid)
     end
   end
 
@@ -111,7 +247,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       allow(customer).to receive(:organization_instances)
         .and_return(double(to_a: []))
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_map, target_planid)
 
       expect(stats[:skipped_no_org]).to eq(1)
       expect(stats[:migrated]).to eq(0)
@@ -121,7 +257,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
       allow(org).to receive(:active_subscription?).and_return(true)
       allow(org).to receive(:planid).and_return('identity_plus_v1')
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_map, target_planid)
 
       expect(stats[:skipped_has_subscription]).to eq(1)
     end
@@ -129,18 +265,18 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
     it 'skips when org already has complimentary marker' do
       allow(org).to receive(:complimentary).and_return('true')
 
-      command.send(:process_customer, customer, 0, 1, stats, true, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, true, false, price_map, target_planid)
 
       expect(stats[:skipped_already_migrated]).to eq(1)
     end
   end
 
   # ---------------------------------------------------------------------------
-  # Live migration
+  # Live migration (single-price mode)
   # ---------------------------------------------------------------------------
 
-  describe '#process_customer (live mode)' do
-    let(:stripe_customer) { double('Stripe::Customer', id: 'cus_new_123') }
+  describe '#process_customer (live mode, single-price)' do
+    let(:stripe_customer) { double('Stripe::Customer', id: 'cus_new_123', currency: 'cad') }
     let(:period_end) { 1_700_000_000 }
     let(:subscription_item) { double('SubscriptionItem', current_period_end: period_end) }
     let(:items_data) { double('ItemsData', data: [subscription_item]) }
@@ -163,6 +299,7 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
         .and_return(double(data: [stripe_customer]))
       allow(Stripe::Subscription).to receive(:create)
         .and_return(stripe_subscription)
+      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:call)
       allow(org).to receive(:stripe_customer_id).and_return(nil)
     end
 
@@ -178,27 +315,131 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
         ),
       ).and_return(stripe_subscription)
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_map, target_planid)
 
       expect(stats[:migrated]).to eq(1)
     end
 
-    it 'updates organization fields' do
-      expect(org).to receive(:stripe_customer_id=).with('cus_new_123')
-      expect(org).to receive(:stripe_subscription_id=).with('sub_new_123')
-      expect(org).to receive(:subscription_status=).with('active')
-      expect(org).to receive(:planid=).with('identity_plus_v1')
-      expect(org).to receive(:complimentary=).with('true')
-      expect(org).to receive(:save)
+    it 'applies subscription to organization via ApplySubscriptionToOrg' do
+      expect(Billing::Operations::ApplySubscriptionToOrg).to receive(:call).with(
+        org,
+        stripe_subscription,
+        owner: true,
+        planid_override: target_planid,
+      )
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_map, target_planid)
     end
 
     it 'clears legacy customer planid' do
       expect(customer).to receive(:planid=).with(nil)
       expect(customer).to receive(:save)
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_map, target_planid)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Live migration (multi-currency mode)
+  # ---------------------------------------------------------------------------
+
+  describe '#process_customer (live mode, multi-currency)' do
+    let(:multi_price_map) { { 'cad' => 'price_cad_123', 'usd' => 'price_usd_456' } }
+    let(:stripe_customer) { double('Stripe::Customer', id: 'cus_multi_1', currency: 'usd') }
+    let(:period_end) { 1_700_000_000 }
+    let(:subscription_item) { double('SubscriptionItem', current_period_end: period_end) }
+    let(:items_data) { double('ItemsData', data: [subscription_item]) }
+    let(:stripe_subscription) do
+      double('Stripe::Subscription',
+        id: 'sub_multi_1',
+        status: 'active',
+        customer: 'cus_multi_1',
+        items: items_data,
+        metadata: {
+          Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
+          Billing::Metadata::FIELD_PLAN_ID => target_planid,
+          'migrated_from' => 'probono',
+        },
+      )
+    end
+
+    before do
+      allow(Stripe::Customer).to receive(:list)
+        .and_return(double(data: [stripe_customer]))
+      allow(Stripe::Subscription).to receive(:create)
+        .and_return(stripe_subscription)
+      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:call)
+      allow(org).to receive(:stripe_customer_id).and_return(nil)
+    end
+
+    it 'uses the currency-matched price for subscription creation' do
+      expect(Stripe::Subscription).to receive(:create).with(
+        hash_including(
+          customer: 'cus_multi_1',
+          items: [{ price: 'price_usd_456' }],
+        ),
+      ).and_return(stripe_subscription)
+
+      command.send(:process_customer, customer, 0, 1, stats, false, false, multi_price_map, target_planid)
+
+      expect(stats[:migrated]).to eq(1)
+    end
+
+    it 'uses CAD price for a CAD-currency Stripe customer' do
+      cad_customer = double('Stripe::Customer', id: 'cus_cad_1', currency: 'cad')
+      allow(Stripe::Customer).to receive(:list)
+        .and_return(double(data: [cad_customer]))
+
+      expect(Stripe::Subscription).to receive(:create).with(
+        hash_including(
+          items: [{ price: 'price_cad_123' }],
+        ),
+      ).and_return(stripe_subscription)
+
+      command.send(:process_customer, customer, 0, 1, stats, false, false, multi_price_map, target_planid)
+    end
+
+    it 'logs a note when verbose and Stripe customer has no currency' do
+      nil_currency_customer = double('Stripe::Customer', id: 'cus_nil_1', currency: nil)
+      allow(Stripe::Customer).to receive(:list)
+        .and_return(double(data: [nil_currency_customer]))
+
+      # Re-allow puts so we can assert on output
+      allow(command).to receive(:puts).and_call_original
+
+      expect {
+        command.send(:process_customer, customer, 0, 1, stats, false, true, multi_price_map, target_planid)
+      }.to output(/has no Stripe currency, using default price/).to_stdout
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Currency mismatch skip
+  # ---------------------------------------------------------------------------
+
+  describe '#process_customer (currency mismatch)' do
+    let(:multi_price_map) { { 'cad' => 'price_cad_123', 'usd' => 'price_usd_456' } }
+    let(:stripe_customer_eur) { double('Stripe::Customer', id: 'cus_eur_1', currency: 'eur') }
+
+    before do
+      allow(Stripe::Customer).to receive(:list)
+        .and_return(double(data: [stripe_customer_eur]))
+      allow(org).to receive(:stripe_customer_id).and_return(nil)
+    end
+
+    it 'skips customer and increments skipped_currency_mismatch' do
+      expect(Stripe::Subscription).not_to receive(:create)
+
+      command.send(:process_customer, customer, 0, 1, stats, false, false, multi_price_map, target_planid)
+
+      expect(stats[:skipped_currency_mismatch]).to eq(1)
+      expect(stats[:migrated]).to eq(0)
+    end
+
+    it 'outputs a message about the currency mismatch' do
+      expect(command).to receive(:puts).with(/no price for currency eur/)
+
+      command.send(:process_customer, customer, 0, 1, stats, false, true, multi_price_map, target_planid)
     end
   end
 
@@ -212,10 +453,151 @@ RSpec.describe Onetime::CLI::MigrateProbonoAccountsCommand do
         StandardError.new('test error')
       )
 
-      command.send(:process_customer, customer, 0, 1, stats, false, false, price_id, target_planid)
+      command.send(:process_customer, customer, 0, 1, stats, false, false, price_map, target_planid)
 
       expect(stats[:errors].size).to eq(1)
       expect(stats[:errors].first).to include('test error')
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Rate limit retry logic
+  # ---------------------------------------------------------------------------
+
+  describe '#migrate_account! rate limit retry' do
+    let(:stripe_customer) { double('Stripe::Customer', id: 'cus_rl_1', currency: 'cad') }
+    let(:period_end) { 1_700_000_000 }
+    let(:subscription_item) { double('SubscriptionItem', current_period_end: period_end) }
+    let(:items_data) { double('ItemsData', data: [subscription_item]) }
+    let(:stripe_subscription) do
+      double('Stripe::Subscription',
+        id: 'sub_rl_1',
+        status: 'active',
+        customer: 'cus_rl_1',
+        items: items_data,
+        metadata: {
+          Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
+          Billing::Metadata::FIELD_PLAN_ID => target_planid,
+          'migrated_from' => 'probono',
+        },
+      )
+    end
+
+    before do
+      allow(Stripe::Customer).to receive(:list)
+        .and_return(double(data: [stripe_customer]))
+      allow(org).to receive(:stripe_customer_id).and_return(nil)
+      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:call)
+    end
+
+    it 'retries on Stripe::RateLimitError up to MAX_RATE_LIMIT_RETRIES times then succeeds' do
+      call_count = 0
+      allow(Stripe::Subscription).to receive(:create) do
+        call_count += 1
+        raise Stripe::RateLimitError.new if call_count <= 2
+
+        stripe_subscription
+      end
+
+      command.send(:migrate_account!, customer, org, price_map, target_planid, '[1/1]', stats, false)
+
+      expect(stats[:migrated]).to eq(1)
+      expect(call_count).to eq(3)
+    end
+
+    it 're-raises Stripe::RateLimitError after exhausting MAX_RATE_LIMIT_RETRIES retries' do
+      allow(Stripe::Subscription).to receive(:create)
+        .and_raise(Stripe::RateLimitError.new)
+
+      expect {
+        command.send(:migrate_account!, customer, org, price_map, target_planid, '[1/1]', stats, false)
+      }.to raise_error(Stripe::RateLimitError)
+    end
+
+    it 'sleeps with exponential backoff between rate-limit retries' do
+      call_count = 0
+      allow(Stripe::Subscription).to receive(:create) do
+        call_count += 1
+        raise Stripe::RateLimitError.new if call_count <= 2
+
+        stripe_subscription
+      end
+
+      # Expect backoff sleeps: 5s for retry 1, 10s for retry 2,
+      # plus the normal BATCH_DELAY_SECONDS after success
+      expect(command).to receive(:sleep).with(5).ordered
+      expect(command).to receive(:sleep).with(10).ordered
+      expect(command).to receive(:sleep).with(described_class::BATCH_DELAY_SECONDS).ordered
+
+      command.send(:migrate_account!, customer, org, price_map, target_planid, '[1/1]', stats, false)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # get_or_create_stripe_customer paths
+  # ---------------------------------------------------------------------------
+
+  describe '#get_or_create_stripe_customer (private)' do
+    let(:stripe_customer) { double('Stripe::Customer', id: 'cus_existing_1', currency: 'cad') }
+
+    context 'when org has a valid stripe_customer_id' do
+      before do
+        allow(org).to receive(:stripe_customer_id).and_return('cus_existing_1')
+      end
+
+      it 'retrieves the customer by stripe_customer_id' do
+        expect(Stripe::Customer).to receive(:retrieve).with('cus_existing_1')
+          .and_return(stripe_customer)
+
+        result = command.send(:get_or_create_stripe_customer, org, customer)
+
+        expect(result).to eq(stripe_customer)
+      end
+    end
+
+    context 'when org stripe_customer_id is stale (Stripe::InvalidRequestError)' do
+      before do
+        allow(org).to receive(:stripe_customer_id).and_return('cus_deleted_999')
+        allow(Stripe::Customer).to receive(:retrieve)
+          .and_raise(Stripe::InvalidRequestError.new('No such customer', 'id'))
+      end
+
+      it 'falls back to email lookup via Stripe::Customer.list' do
+        found_customer = double('Stripe::Customer', id: 'cus_by_email', currency: 'usd')
+        allow(Stripe::Customer).to receive(:list)
+          .with(email: customer_email, limit: 1)
+          .and_return(double(data: [found_customer]))
+
+        result = command.send(:get_or_create_stripe_customer, org, customer)
+
+        expect(result).to eq(found_customer)
+      end
+    end
+
+    context 'when no existing Stripe customer is found' do
+      let(:created_customer) { double('Stripe::Customer', id: 'cus_new_1', currency: nil) }
+
+      before do
+        allow(org).to receive(:stripe_customer_id).and_return(nil)
+        allow(Stripe::Customer).to receive(:list)
+          .and_return(double(data: []))
+      end
+
+      it 'creates a new Stripe customer with org metadata' do
+        expect(Stripe::Customer).to receive(:create).with(
+          hash_including(
+            email: customer_email,
+            metadata: hash_including(
+              'org_extid' => 'org_ext_1',
+              'migrated_from' => 'probono',
+            ),
+          ),
+        ).and_return(created_customer)
+
+        result = command.send(:get_or_create_stripe_customer, org, customer)
+
+        expect(result).to eq(created_customer)
+      end
     end
   end
 end

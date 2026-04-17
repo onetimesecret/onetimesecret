@@ -117,8 +117,8 @@ module Onetime
         active                = product.active ? 'yes' : 'no'
 
         format(
-          '%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
-          product.id[0..21],
+          '%-30s %-30s %-12s %-12s %-10s %-8s %-10s %s',
+          product.id,
           product.name[0..29],
           tier[0..11],
           tenancy[0..11],
@@ -157,8 +157,8 @@ module Onetime
         product_with_status = "#{product_name} (#{product_status})"
 
         format(
-          '%-22s %-35s %-15s %-12s %-10s %s',
-          price.id[0..21],
+          '%-30s %-35s %-15s %-12s %-10s %s',
+          price.id,
           product_with_status[0..34],
           plan_id[0..14],
           amount[0..11],
@@ -248,17 +248,16 @@ module Onetime
       end
 
       def format_subscription_row(subscription)
-        customer_id        = subscription.customer[0..21]
-        status             = subscription.status[0..11]
+        status             = subscription.status
         # NOTE: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
         first_item         = subscription.items&.data&.first
         period_end_ts      = first_item&.current_period_end
         current_period_end = period_end_ts ? Time.at(period_end_ts).strftime('%Y-%m-%d') : 'N/A'
 
         format(
-          '%-22s %-22s %-12s %-12s',
-          subscription.id[0..21],
-          customer_id,
+          '%-30s %-30s %-20s %-12s',
+          subscription.id,
+          subscription.customer,
           status,
           current_period_end,
         )
@@ -270,8 +269,8 @@ module Onetime
         created = Time.at(customer.created).strftime('%Y-%m-%d')
 
         format(
-          '%-22s %-30s %-25s %s',
-          customer.id[0..21],
+          '%-30s %-30s %-25s %s',
+          customer.id,
           email[0..29],
           name[0..24],
           created,
@@ -279,15 +278,14 @@ module Onetime
       end
 
       def format_invoice_row(invoice)
-        customer_id = invoice.customer[0..21]
         amount      = format_amount(invoice.amount_due, invoice.currency)
         status      = invoice.status || 'N/A'
         created     = Time.at(invoice.created).strftime('%Y-%m-%d')
 
         format(
-          '%-22s %-22s %-12s %-10s %s',
-          invoice.id[0..21],
-          customer_id,
+          '%-30s %-22s %-12s %-10s %s',
+          invoice.id,
+          invoice.customer,
           amount[0..11],
           status[0..9],
           created,
@@ -295,13 +293,12 @@ module Onetime
       end
 
       def format_event_row(event)
-        event_type = event.type[0..34]
         created    = Time.at(event.created).strftime('%Y-%m-%d %H:%M:%S')
 
         format(
-          '%-22s %-35s %s',
-          event.id[0..21],
-          event_type,
+          '%-30s %-35s %s',
+          event.id,
+          event.type,
           created,
         )
       end
@@ -374,7 +371,7 @@ module Onetime
       # @param status [String] Validation status marker (✓ or ✗)
       def print_validation_row(name, id, plan_id, status)
         name_display    = name[0..19].ljust(20)
-        id_display      = id[0..21].ljust(22)
+        id_display      = id.ljust(30)
         plan_id_display = plan_id[0..13].ljust(14)
 
         puts "│  #{status} #{name_display}  #{id_display}  #{plan_id_display}│"
@@ -399,8 +396,8 @@ module Onetime
           plan_id_display = plan_id || '(no plan_id)'
           validation      = plan_id ? 'VALID' : 'INVALID'
 
-          line    = "    #{status} #{product.id.ljust(22)}  #{plan_id_display.ljust(14)} #{validation}"
-          padding = 61 - line.length
+          line    = "    #{status} #{product.id.ljust(30)}  #{plan_id_display.ljust(14)} #{validation}"
+          padding = 69 - line.length
           puts "│#{line}" + (' ' * padding) + '│'
         end
 
@@ -425,7 +422,7 @@ module Onetime
           status  = '✓'
 
           # Format: ✓ prod_id  plan_id  region  active
-          puts "    #{status} #{product.id.ljust(20)}  #{plan_id.ljust(18)} #{region.ljust(10)} #{active.ljust(7)}"
+          puts "    #{status} #{product.id.ljust(30)}  #{plan_id.ljust(18)} #{region.ljust(10)} #{active.ljust(7)}"
         end
 
         puts

@@ -32,13 +32,13 @@ module Onetime
         end
 
         puts format(
-          '%-22s %-30s %-25s %s',
+          '%-30s %-30s %-25s %s',
           'ID',
           'EMAIL',
           'NAME',
           'CREATED',
         )
-        puts '-' * 90
+        puts '-' * 98
 
         customers.data.each do |customer|
           puts format_customer_row(customer)

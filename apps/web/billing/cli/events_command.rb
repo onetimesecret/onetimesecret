@@ -32,12 +32,12 @@ module Onetime
         end
 
         puts format(
-          '%-22s %-35s %s',
+          '%-30s %-35s %s',
           'ID',
           'TYPE',
           'CREATED',
         )
-        puts '-' * 70
+        puts '-' * 85
 
         events.data.each do |event|
           puts format_event_row(event)
