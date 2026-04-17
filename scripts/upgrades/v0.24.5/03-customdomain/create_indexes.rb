@@ -201,6 +201,17 @@ class CustomDomainIndexCreator
       @redis.restore(temp_key, 0, dump_data, replace: true)
       fields = @redis.hgetall(temp_key)
 
+      # Strict consistency: the enriched objid from the JSONL must match the
+      # :object hash's own objid field when present. A mismatch means the dump
+      # was transformed against one seed while the JSONL was enriched against
+      # another — emitting commands against mixed sources is the mechanism that
+      # produced the split-brain corruption in #3020. Halt loudly.
+      if objid && fields['objid'] && objid != fields['objid']
+        raise "customdomain/create_indexes: objid mismatch for #{record[:key]}. " \
+              "JSONL.objid=#{objid.inspect} vs :object.objid=#{fields['objid'].inspect}. " \
+              'Regenerate from a single consistent dump+enrichment pass.'
+      end
+
       # Use enriched objid, or fall back to domainid from hash/key
       domainid = objid || fields['domainid'] || key_parts[1]
 

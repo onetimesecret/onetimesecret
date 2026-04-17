@@ -14,12 +14,19 @@
 #   7. verification_state fields are coherent (WARNING)
 #   8. txt_validation_value format is valid (LOW)
 #
+# Additional checks (opt-in):
+#   --familia-audit   Run Familia's generic CustomDomain.health_check, which
+#                     covers any declared unique_index, multi_index, and
+#                     participates_in relationships automatically. Findings are
+#                     appended to the issues array as type :familia_audit.
+#
 # Usage:
 #   bin/ots domains doctor secrets.example.com      # Check single domain
 #   bin/ots domains doctor --all                    # Scan all domains
 #   bin/ots domains doctor --org on8q...            # Scan domains for one org
 #   bin/ots domains doctor --all --repair           # Auto-repair issues
 #   bin/ots domains doctor --all --json             # JSON output
+#   bin/ots domains doctor --all --familia-audit    # Include Familia audit
 
 require 'json'
 
@@ -54,12 +61,17 @@ module Onetime
         default: false,
         desc: 'JSON output'
 
+      option :familia_audit,
+        type: :boolean,
+        default: false,
+        desc: 'Additionally run CustomDomain.health_check (Familia generic audit)'
+
       SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, warning: 3, low: 4 }.freeze
 
       # Valid 32-char hex pattern for txt_validation_value
       TXT_VALIDATION_PATTERN = /\A[a-f0-9]{32}\z/i
 
-      def call(fqdn: nil, all: false, org: nil, repair: false, json: false, **)
+      def call(fqdn: nil, all: false, org: nil, repair: false, json: false, familia_audit: false, **)
         boot_application!
 
         unless fqdn || all || org
@@ -68,6 +80,8 @@ module Onetime
         end
 
         report = { checked: 0, healthy: 0, issues: [], repaired: [] }
+
+        run_familia_health_check(report) if familia_audit
 
         if fqdn
           domain = load_domain(fqdn)
@@ -101,12 +115,16 @@ module Onetime
             --org EXTID             Check domains for a specific organization
             --repair                Auto-repair issues (default: audit only)
             --json                  JSON output
+            --familia-audit         Additionally run CustomDomain.health_check
+                                    (Familia's generic audit covering declared
+                                    indexes and participations; read-only)
 
           Examples:
             bin/ots domains doctor secrets.example.com
             bin/ots domains doctor --all
             bin/ots domains doctor --org on8q30gih2uxu2cw77jzh7caq07
             bin/ots domains doctor --all --repair
+            bin/ots domains doctor --all --familia-audit
 
           Checks performed:
             1. org_id points to existing organization (CRITICAL)
@@ -117,6 +135,7 @@ module Onetime
             6. org.domains entries have valid domain objects (MEDIUM)
             7. verification_state is coherent (WARNING)
             8. txt_validation_value format is valid (LOW)
+            +. Familia.health_check (opt-in via --familia-audit)
         USAGE
       end
 
@@ -448,6 +467,149 @@ module Onetime
         }
       end
 
+      # Run Familia's generic CustomDomain.health_check and translate findings
+      # into report[:issues] entries. Additive layer — does not replace bespoke
+      # checks. Guarded with rescue so a Familia API change cannot crash the
+      # doctor command.
+      def run_familia_health_check(report)
+        audit = Onetime::CustomDomain.health_check
+
+        findings = []
+        collect_familia_instance_findings(audit, findings)
+        collect_familia_unique_index_findings(audit, findings)
+        collect_familia_multi_index_findings(audit, findings)
+        collect_familia_participation_findings(audit, findings)
+
+        return if findings.empty?
+
+        report[:issues] << {
+          type: :familia_audit,
+          model_class: audit.model_class,
+          audited_at: audit.audited_at,
+          duration: audit.duration,
+          issues: findings.sort_by { |i| SEVERITY_ORDER[i[:severity]] },
+        }
+      rescue StandardError => ex
+        report[:issues] << {
+          type: :familia_audit,
+          issues: [{
+            check: :familia_audit_unavailable,
+            severity: :warning,
+            message: "Familia health_check unavailable: #{ex.message}",
+            repairable: false,
+          }],
+        }
+      end
+
+      def collect_familia_instance_findings(audit, findings)
+        instances = audit.instances || {}
+        phantoms  = Array(instances[:phantoms])
+        missing   = Array(instances[:missing])
+
+        unless phantoms.empty?
+          findings << {
+            check: :familia_instances_phantom,
+            severity: :medium,
+            message: "#{phantoms.size} phantom instance(s) in timeline but missing from DB",
+            phantoms: phantoms.first(10),
+            total: phantoms.size,
+            repairable: false,
+          }
+        end
+
+        return if missing.empty?
+
+        findings << {
+          check: :familia_instances_missing,
+          severity: :high,
+          message: "#{missing.size} instance(s) present in DB but absent from timeline",
+          missing: missing.first(10),
+          total: missing.size,
+          repairable: false,
+        }
+      end
+
+      def collect_familia_unique_index_findings(audit, findings)
+        Array(audit.unique_indexes).each do |idx|
+          stale   = Array(idx[:stale])
+          missing = Array(idx[:missing])
+
+          unless stale.empty?
+            findings << {
+              check: :familia_unique_index_stale,
+              severity: :high,
+              index_name: idx[:index_name],
+              message: "#{stale.size} stale entries in unique_index #{idx[:index_name]}",
+              stale: stale.first(10),
+              total: stale.size,
+              repairable: false,
+            }
+          end
+
+          next if missing.empty?
+
+          findings << {
+            check: :familia_unique_index_missing,
+            severity: :high,
+            index_name: idx[:index_name],
+            message: "#{missing.size} missing entries in unique_index #{idx[:index_name]}",
+            missing: missing.first(10),
+            total: missing.size,
+            repairable: false,
+          }
+        end
+      end
+
+      def collect_familia_multi_index_findings(audit, findings)
+        Array(audit.multi_indexes).each do |idx|
+          next if idx[:status] == :not_implemented
+
+          stale    = Array(idx[:stale_members])
+          orphaned = Array(idx[:orphaned_keys])
+
+          unless stale.empty?
+            findings << {
+              check: :familia_multi_index_stale,
+              severity: :medium,
+              index_name: idx[:index_name],
+              message: "#{stale.size} stale members in multi_index #{idx[:index_name]}",
+              stale_members: stale.first(10),
+              total: stale.size,
+              repairable: false,
+            }
+          end
+
+          next if orphaned.empty?
+
+          findings << {
+            check: :familia_multi_index_orphaned,
+            severity: :medium,
+            index_name: idx[:index_name],
+            message: "#{orphaned.size} orphaned keys for multi_index #{idx[:index_name]}",
+            orphaned_keys: orphaned.first(10),
+            total: orphaned.size,
+            repairable: false,
+          }
+        end
+      end
+
+      def collect_familia_participation_findings(audit, findings)
+        Array(audit.participations).each do |part|
+          stale = Array(part[:stale_members])
+          next if stale.empty?
+
+          findings << {
+            check: :familia_participation_stale,
+            severity: :high,
+            collection_name: part[:collection_name],
+            message: "#{stale.size} stale members in participation #{part[:collection_name]}",
+            stale_members: stale.first(10),
+            total: stale.size,
+            repairable: false,
+          }
+        end
+      end
+
       # Output helpers
 
       def output_report(report, json:, repair:)
@@ -504,6 +666,8 @@ module Onetime
             puts 'Index Integrity:'
           when :org_domains
             puts "Organization #{issue_group[:org_extid]} domains:"
+          when :familia_audit
+            puts "Familia Audit (#{issue_group[:model_class] || 'CustomDomain'}):"
           else
             puts "#{issue_group[:domain_fqdn]} (#{issue_group[:domain_extid]})"
           end

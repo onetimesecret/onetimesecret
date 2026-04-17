@@ -22,8 +22,12 @@
 #   - objid: UUIDv7 generated deterministically from created timestamp + original key
 #   - extid: Derived from objid using model-specific prefix
 #
-# IDEMPOTENT: Running this script multiple times produces identical objids because
-# the random bytes in UUIDv7 are derived from SHA256(original_key + timestamp).
+# IDEMPOTENT ONLY IF INPUT IS STABLE: Running this script multiple times against
+# the same dump JSONL produces identical objids because the random bytes in UUIDv7
+# are derived from SHA256(original_key + timestamp). Running it against a REGENERATED
+# dump (different `created` values or renamed keys) will produce different objids,
+# which — if loaded alongside previously-enriched Redis state — causes the split-brain
+# corruption documented in #3020. The enricher now halts on detected drift.
 #
 # Key renames:
 #   - customer:{id}:metadata → customer:{id}:receipts
@@ -183,6 +187,21 @@ class IdentifierEnricher
 
     # Derive extid from objid
     extid = derive_extid_from_uuid(objid, prefix: prefix)
+
+    # Strict idempotence: if the record already carries objid/extid (e.g., a
+    # previous enrichment pass wrote them), refuse to proceed if the computed
+    # values differ. A mismatch means the seed inputs (key or created) changed
+    # between runs — re-enriching would drift intermediate artifacts away from
+    # live Redis and produce split-brain indexes (cf. #3020).
+    if record['objid'] && record['objid'] != objid
+      raise "enrich_with_identifiers: refusing to overwrite objid for #{original_key}. " \
+            "Existing=#{record['objid']} computed=#{objid}. " \
+            'This means the dump input changed between runs — regenerate from a fresh dump.'
+    end
+    if record['extid'] && record['extid'] != extid
+      raise "enrich_with_identifiers: refusing to overwrite extid for #{original_key}. " \
+            "Existing=#{record['extid']} computed=#{extid}."
+    end
 
     record['objid'] = objid
     record['extid'] = extid

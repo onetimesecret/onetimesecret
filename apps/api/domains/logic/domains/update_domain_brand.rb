@@ -80,7 +80,7 @@ module DomainsAPI::Logic
           end
         end
 
-        custom_domain.updated = Familia.now.to_i
+        custom_domain.updated = OT.now.to_i
         custom_domain.save
 
         success_data
