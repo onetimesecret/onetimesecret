@@ -37,6 +37,19 @@ def resolve_release
   OT::VERSION.get_build_info
 end
 
+# CLI-faithful helper that models the extra 'cli' fallback branch in
+# doctor_command.rb's deliver_via_sdk. Driven by a flag rather than mutating
+# the OT::VERSION constant so it can coexist with other tryouts in the shared
+# runner.
+def cli_resolve_release(version_defined: true)
+  env_release = ENV.fetch('SENTRY_RELEASE', '').strip
+  if env_release.empty?
+    version_defined ? OT::VERSION.get_build_info : 'cli'
+  else
+    env_release
+  end
+end
+
 # Preserve the caller's ENV so teardown can restore it.
 @original_sentry_release = ENV['SENTRY_RELEASE']
 
@@ -121,6 +134,76 @@ setup_source = File.read(File.expand_path(
   __dir__,
 ))
 setup_source.include?('def resolve_sentry_release')
+#=> true
+
+# -----------------------------------------------------------------------------
+# CLI-faithful release-resolver behavioral tests (PR #3012)
+#
+# The CLI site has an extra fallback the runtime site does not: when
+# OT::VERSION is not defined, the CLI returns the literal 'cli'. This preserves
+# a usable release identifier for CLI tools loaded outside a full Onetime boot.
+#
+# We model the exact CLI expression here -- including the `defined?(OT::VERSION)`
+# guard -- and drive it via a flag rather than mutating the constant (which
+# would leak into every subsequent test case in the shared runner).
+# -----------------------------------------------------------------------------
+
+## CLI resolver: SENTRY_RELEASE wins even when OT::VERSION is available
+ENV['SENTRY_RELEASE'] = 'v2.0.0'
+cli_resolve_release(version_defined: true)
+#=> 'v2.0.0'
+
+## CLI resolver: unset env + OT::VERSION defined -> get_build_info
+ENV.delete('SENTRY_RELEASE')
+cli_resolve_release(version_defined: true)
+#=> @build_info_fallback
+
+## CLI resolver: unset env + OT::VERSION undefined -> literal 'cli'
+# This is the CLI-only branch -- the runtime site would raise NameError here.
+ENV.delete('SENTRY_RELEASE')
+cli_resolve_release(version_defined: false)
+#=> 'cli'
+
+## CLI resolver: empty env + OT::VERSION undefined -> literal 'cli'
+ENV['SENTRY_RELEASE'] = ''
+cli_resolve_release(version_defined: false)
+#=> 'cli'
+
+## CLI resolver: whitespace-only env + OT::VERSION undefined -> 'cli'
+# Whitespace must be treated as empty (guards against "SENTRY_RELEASE= " slipping
+# through in CI scripts), and fallback must still resolve cleanly.
+ENV['SENTRY_RELEASE'] = "\t\n "
+cli_resolve_release(version_defined: false)
+#=> 'cli'
+
+## CLI resolver: explicit env overrides the 'cli' fallback branch entirely
+# Proves the branch order: env is checked first, so the OT::VERSION guard is
+# never reached when env is present.
+ENV['SENTRY_RELEASE'] = 'release-abc123'
+cli_resolve_release(version_defined: false)
+#=> 'release-abc123'
+
+# -----------------------------------------------------------------------------
+# Additional source-level guards against known regression paths
+# -----------------------------------------------------------------------------
+
+## deliver_via_sdk uses Sentry.init (not a hand-rolled HTTP envelope) for release tagging
+# The release identifier only reaches Sentry if it's attached via SDK config,
+# not via the HTTP fallback path.
+@doctor_source.match?(/def deliver_via_sdk.*Sentry\.init/m)
+#=> true
+
+## The 'cli' literal is co-located with OT::VERSION guard (not a stray string elsewhere)
+# Ensures the fallback lives on the same logical line as the defined? check.
+@doctor_source.match?(/defined\?\(OT::VERSION\).*?'cli'/m)
+#=> true
+
+## Time#iso8601 is actually called in the delivery probe (proves require 'time' is used)
+@doctor_source.include?('Time.now.utc.iso8601')
+#=> true
+
+## environment tag is set to 'cli-doctor' (so runtime and CLI events can be filtered apart in Sentry)
+@doctor_source.include?("c.environment               = 'cli-doctor'")
 #=> true
 
 # -----------------------------------------------------------------------------

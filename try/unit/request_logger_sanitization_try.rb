@@ -137,3 +137,113 @@ result = @logger.send(:sanitize_for_json, deep)
 # After 10 levels, further recursion returns the sentinel string.
 Familia::JsonSerializer.dump(result).include?('TOO_DEEP')
 #=> true
+
+# -----------------------------------------------------------------------------
+# Additional coverage (PR #3012): non-primitive coercion, mixed nesting, keys,
+# depth boundary, and mutation safety.
+# -----------------------------------------------------------------------------
+
+## IO-like object (StringIO) coerces to to_s output, not raising under strict JSON
+require 'stringio'
+io     = StringIO.new('hello')
+result = @logger.send(:sanitize_for_json, io)
+# StringIO#to_s returns the default Object inspect-like form -- what matters is
+# that it's a String (so Oj strict doesn't blow up). We only assert the class
+# and that JSON serialization succeeds.
+[result.class, Familia::JsonSerializer.dump({ 'io' => result }).class]
+#=> [String, String]
+
+## Rack::Session::SessionId-like object (no public_id; .to_s returns hex digest)
+# Mirrors the real-world cause: SessionId reaches the payload when capture=debug.
+class FakeSessionId
+  def to_s
+    'abcdef0123456789'
+  end
+end
+result = @logger.send(:sanitize_for_json, FakeSessionId.new)
+[result.class, result]
+#=> [String, 'abcdef0123456789']
+
+## Nested Array inside Hash inside Array recurses at each level
+input  = [{ 'list' => ['a', SanitizeTargetObject.new, 2] }]
+result = @logger.send(:sanitize_for_json, input)
+[result.class, result[0]['list']]
+#=> [Array, ['a', 'sanitize-target-object-string', 2]]
+
+## Hash inside Array inside Hash recurses (mixed Hash/Array structure)
+input  = { 'items' => [{ 'id' => 1, 'obj' => SanitizeTargetObject.new }] }
+result = @logger.send(:sanitize_for_json, input)
+[result['items'][0]['id'], result['items'][0]['obj']]
+#=> [1, 'sanitize-target-object-string']
+
+## Symbol keys are stringified recursively inside nested Hashes too
+input  = { outer: { inner: { deeper: 'ok' } } }
+result = @logger.send(:sanitize_for_json, input)
+[result.keys, result['outer'].keys, result['outer']['inner'].keys, result['outer']['inner']['deeper']]
+#=> [['outer'], ['inner'], ['deeper'], 'ok']
+
+## Numeric (Integer) keys are coerced to strings via k.to_s
+input  = { 1 => 'one', 2 => 'two' }
+result = @logger.send(:sanitize_for_json, input)
+[result.keys.sort, result['1'], result['2']]
+#=> [['1', '2'], 'one', 'two']
+
+## Mixed key types in one Hash all coerce to String keys
+input  = { :sym => 1, 'str' => 2, 42 => 3 }
+result = @logger.send(:sanitize_for_json, input)
+result.keys.sort
+#=> ['42', 'str', 'sym']
+
+## Array values also participate in depth counting
+# Build a structure that's 11 Array-levels deep. At depth > 10 the sentinel fires.
+deep_array = 'leaf'
+11.times { deep_array = [deep_array] }
+result = @logger.send(:sanitize_for_json, deep_array)
+Familia::JsonSerializer.dump(result).include?('TOO_DEEP')
+#=> true
+
+## Exactly at the depth cap (10 nested hashes), the leaf still serializes
+# Structure: depth 0 is root, depth 10 is the innermost 'k'. depth > 10 triggers sentinel.
+at_limit = { 'a' => { 'b' => { 'c' => { 'd' => { 'e' => { 'f' => { 'g' => { 'h' => { 'i' => { 'j' => 'leaf' } } } } } } } } } }
+result = @logger.send(:sanitize_for_json, at_limit)
+json   = Familia::JsonSerializer.dump(result)
+[json.include?('TOO_DEEP'), json.include?('leaf')]
+#=> [false, true]
+
+## Mixed Hash/Array nesting contributes equally to depth counting
+# 5 hashes wrapping 6 arrays = 11 levels; should trigger sentinel.
+mixed = 'leaf'
+6.times { mixed = [mixed] }
+5.times { mixed = { 'k' => mixed } }
+result = @logger.send(:sanitize_for_json, mixed)
+Familia::JsonSerializer.dump(result).include?('TOO_DEEP')
+#=> true
+
+## Original input Hash is not mutated by sanitization (returns a new structure)
+input  = { sym: 'v' }
+_      = @logger.send(:sanitize_for_json, input)
+# Keys on the original should still be Symbols; only the returned Hash is stringified.
+input.keys
+#=> [:sym]
+
+## Original input Array is not mutated by sanitization (returns a new Array)
+obj    = SanitizeTargetObject.new
+input  = [obj, 1]
+_      = @logger.send(:sanitize_for_json, input)
+# First element of the original array is still the raw object, not the stringification.
+input.first.equal?(obj)
+#=> true
+
+## Empty Hash round-trips to an empty Hash
+@logger.send(:sanitize_for_json, {})
+#=> {}
+
+## Empty Array round-trips to an empty Array
+@logger.send(:sanitize_for_json, [])
+#=> []
+
+## Symbol value (not key) is a non-primitive and coerces to its String form
+# Symbols are NOT listed in the primitive whenlist, so they go through value.to_s.
+result = @logger.send(:sanitize_for_json, :status_ok)
+[result.class, result]
+#=> [String, 'status_ok']

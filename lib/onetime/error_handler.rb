@@ -50,6 +50,36 @@ module Onetime
       nil
     end
 
+    # Rack env keys for headers that carry authentication credentials or
+    # session state. These are redacted from Sentry capture-decision debug
+    # logs because that logging runs exactly when operators enable debug
+    # mode in production to diagnose dropped events — the same conditions
+    # under which a leaked Basic Auth header would reach the log aggregator.
+    SENSITIVE_HEADER_KEYS = %w[
+      HTTP_AUTHORIZATION
+      HTTP_PROXY_AUTHORIZATION
+      HTTP_COOKIE
+      HTTP_X_API_KEY
+      HTTP_X_AUTH_TOKEN
+    ].freeze
+
+    # Filters a Rack env hash down to HTTP_* request headers suitable for
+    # debug logging, with sensitive headers replaced by "[FILTERED]". The
+    # `rescue false` guards against non-String keys — Rack's spec says keys
+    # are Strings, but this debug path must never raise.
+    #
+    # @param env [Hash] Rack request env
+    # @return [Hash] subset of env whose keys start with "HTTP_", with
+    #   sensitive values redacted
+    def self.http_headers_from(env)
+      return {} unless env.respond_to?(:select)
+
+      headers = env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+      headers.each_with_object({}) do |(k, v), result|
+        result[k] = SENSITIVE_HEADER_KEYS.include?(k) ? '[FILTERED]' : v
+      end
+    end
+
     # Lua script for atomic INCR + EXPIRE (prevents race condition
     # where a crash between the two commands leaves a permanent key).
     TRACK_ERROR_LUA = <<~LUA

@@ -280,7 +280,7 @@ module Core
 
         begin
           if defined?(req) && req.respond_to?(:env)
-            headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+            headers = Onetime::ErrorHandler.http_headers_from(req.env)
             http_logger.debug 'Capturing error to Sentry with request headers',
               {
                 headers: headers,

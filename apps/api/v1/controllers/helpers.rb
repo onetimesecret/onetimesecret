@@ -356,7 +356,7 @@ module V1
 
       # Log request headers before attempting to send to Sentry
       if defined?(req) && req.respond_to?(:env)
-        headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+        headers = Onetime::ErrorHandler.http_headers_from(req.env)
         OT.ld "[capture_error] Request headers: #{headers.inspect}"
       end
 
