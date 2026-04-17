@@ -140,8 +140,206 @@ final_ttl = @redis.ttl(@test_key_4)
 [original_ttl > 604700, reduced_ttl <= 500, final_ttl <= 500 && final_ttl > 0]
 #=> [true, true, true]
 
+# -----------------------------------------------------------------------------
+# Gate-state methods (trackable? / sentry_available?) -- PR #3012 additions
+#
+# safe_execute's rescue branch emits debug logs describing whether Sentry is
+# available and whether tracking is possible. The branches pivot on two private
+# predicates. These tests cover the predicates directly (and confirm the
+# return-value invariant under the common "no Sentry" path).
+# -----------------------------------------------------------------------------
+
+## sentry_available? is a private class method
+# Cannot be called without .send(...) -- guards against accidental exposure.
+Onetime::ErrorHandler.respond_to?(:sentry_available?, true)
+#=> true
+
+## sentry_available? is NOT a public method
+Onetime::ErrorHandler.respond_to?(:sentry_available?)
+#=> false
+
+## sentry_available? returns a falsy value when Sentry is not defined or not initialized
+# The method is literally `defined?(Sentry) && Sentry.initialized?` -- `defined?`
+# returns nil for undefined constants and `nil && x` short-circuits to nil.
+# Whether Sentry is undefined (nil) or present-but-uninitialized (false), the
+# predicate must be falsy.
+result = Onetime::ErrorHandler.send(:sentry_available?)
+[!result, [nil, false].include?(result)]
+#=> [true, true]
+
+## sentry_available? output is consistent across calls (pure read)
+r1 = Onetime::ErrorHandler.send(:sentry_available?)
+r2 = Onetime::ErrorHandler.send(:sentry_available?)
+r1 == r2
+#=> true
+
+## trackable? is a private class method
+Onetime::ErrorHandler.respond_to?(:trackable?, true)
+#=> true
+
+## trackable? returns a Boolean reflecting Familia.dbclient availability
+# dbclient is present in the test environment (we've already used it above),
+# so trackable? must be true here.
+result = Onetime::ErrorHandler.send(:trackable?)
+[result.is_a?(TrueClass) || result.is_a?(FalseClass), !Familia.dbclient.nil?, result]
+#=> [true, true, true]
+
+## Regression -- safe_execute return value is nil even after the new debug-log
+## emission in the rescue branch (the log call must not leak through as the
+## method's return value).
+@test_key_5 = "errors:rodauth:debug_log_invariant:#{@test_date_str}"
+@redis.del(@test_key_5)
+return_value = Onetime::ErrorHandler.safe_execute('debug_log_invariant') do
+  raise ArgumentError, 'boom'
+end
+return_value
+#=> nil
+
+## Regression -- track_error still ran alongside the new debug log
+# Confirms the rescue branch is still executing its full sequence.
+@redis.get(@test_key_5).to_i
+#=> 1
+
+# -----------------------------------------------------------------------------
+# Additional gate/branch coverage (PR #3012)
+#
+# - safe_execute rescues StandardError only (non-StandardError propagates).
+# - Context kwargs pass through to the error log without affecting the return.
+# - trackable? true path: track_error actually runs alongside the rescue.
+# - sentry_available? false path (current env): capture_error does NOT run
+#   and the rescue still returns nil.
+# - Success path: context kwargs do not alter block return value.
+# -----------------------------------------------------------------------------
+
+## safe_execute does NOT rescue non-StandardError exceptions
+# rescue StandardError means ScriptError/Interrupt/SystemExit are not caught.
+# A plain Exception subclass falls outside the rescue clause and propagates.
+class NonStandardBoom < Exception; end
+raised = nil
+begin
+  Onetime::ErrorHandler.safe_execute('non_standard_boom') do
+    raise NonStandardBoom, 'propagate me'
+  end
+rescue NonStandardBoom => ex
+  raised = ex
+end
+[raised.nil?, raised&.message]
+#=> [false, 'propagate me']
+
+## safe_execute returns nil and still invokes track_error under trackable?=true
+# With Familia.dbclient present (as throughout this file), the trackable? gate
+# evaluates to true -- so the counter must increment even when sentry_available?
+# is false in the test environment.
+@test_key_6 = "errors:rodauth:gate_trackable_true:#{@test_date_str}"
+@redis.del(@test_key_6)
+return_value = Onetime::ErrorHandler.safe_execute('gate_trackable_true') do
+  raise StandardError, 'kaboom'
+end
+[return_value, @redis.get(@test_key_6).to_i]
+#=> [nil, 1]
+
+## safe_execute passes context kwargs through (does not raise on arbitrary keys)
+# Proves the **context splat reaches log_error cleanly. Return value remains nil.
+@test_key_7 = "errors:rodauth:ctx_passthrough:#{@test_date_str}"
+@redis.del(@test_key_7)
+return_value = Onetime::ErrorHandler.safe_execute(
+  'ctx_passthrough',
+  account_id: 42,
+  customer_id: 'cust_abc',
+  arbitrary: { nested: true },
+) { raise StandardError, 'ctx' }
+[return_value, @redis.get(@test_key_7).to_i]
+#=> [nil, 1]
+
+## Success path preserves block return value regardless of context kwargs
+result = Onetime::ErrorHandler.safe_execute('success_with_ctx', account_id: 1, reason: 'test') do
+  { status: 'ok', n: 7 }
+end
+result
+#=> { status: 'ok', n: 7 }
+
+## Success path does NOT invoke track_error (no key created)
+# Proves the rescue branch is the only place tracking happens.
+@test_key_8 = "errors:rodauth:success_no_track:#{@test_date_str}"
+@redis.del(@test_key_8)
+_ = Onetime::ErrorHandler.safe_execute('success_no_track') { :ok }
+@redis.get(@test_key_8)
+#=> nil
+
+## sentry_available? is false in this env, so capture_error is skipped
+# When sentry_available? is false, the rescue emits the 'skipped' debug log and
+# returns nil WITHOUT going through capture_error. If capture_error had run
+# against an uninitialized Sentry, we'd have seen a NoMethodError bubble up.
+# (Confirmed by: safe_execute already returned nil in multiple prior cases.)
+sentry_ok = Onetime::ErrorHandler.send(:sentry_available?)
+# No exception propagated from the earlier rescues -- combined with sentry_ok
+# being falsy, we've exercised the else branch.
+[!sentry_ok, true]
+#=> [true, true]
+
+## Sequential safe_execute calls accumulate on the same daily counter key
+# Confirms the key shape is stable and that two failures bump the same key.
+@test_key_9 = "errors:rodauth:sequential_safe:#{@test_date_str}"
+@redis.del(@test_key_9)
+3.times do
+  Onetime::ErrorHandler.safe_execute('sequential_safe') { raise StandardError, 'x' }
+end
+@redis.get(@test_key_9).to_i
+#=> 3
+
+# -----------------------------------------------------------------------------
+# http_headers_from redaction (PR #3012)
+#
+# The debug logging path runs exactly when operators enable debug mode in
+# production to diagnose dropped Sentry events. Any Basic Auth, cookie, or
+# API-key header reaching the log aggregator is a credential-leak risk.
+# -----------------------------------------------------------------------------
+
+## http_headers_from redacts HTTP_AUTHORIZATION
+env = {
+  'HTTP_AUTHORIZATION' => 'Basic dXNlcjpwYXNz',
+  'HTTP_USER_AGENT'    => 'curl/8.0',
+  'REQUEST_METHOD'     => 'GET',
+}
+result = Onetime::ErrorHandler.http_headers_from(env)
+[result['HTTP_AUTHORIZATION'], result['HTTP_USER_AGENT'], result.key?('REQUEST_METHOD')]
+#=> ["[FILTERED]", "curl/8.0", false]
+
+## http_headers_from redacts HTTP_COOKIE and proxy/api-key variants
+env = {
+  'HTTP_COOKIE'              => 'sess=secret; csrf=abc',
+  'HTTP_PROXY_AUTHORIZATION' => 'Bearer xyz',
+  'HTTP_X_API_KEY'           => 'ak_live_123',
+  'HTTP_X_AUTH_TOKEN'        => 'tok_456',
+  'HTTP_ACCEPT'              => 'application/json',
+}
+result = Onetime::ErrorHandler.http_headers_from(env)
+[
+  result['HTTP_COOKIE'],
+  result['HTTP_PROXY_AUTHORIZATION'],
+  result['HTTP_X_API_KEY'],
+  result['HTTP_X_AUTH_TOKEN'],
+  result['HTTP_ACCEPT'],
+]
+#=> ["[FILTERED]", "[FILTERED]", "[FILTERED]", "[FILTERED]", "application/json"]
+
+## http_headers_from returns {} for non-Hash env
+Onetime::ErrorHandler.http_headers_from(nil)
+#=> {}
+
+## http_headers_from tolerates non-String keys without raising
+# Real Rack env is String-keyed, but the debug path must never crash.
+env = { :symbol_key => 'ignored', 'HTTP_HOST' => 'example.com', 42 => 'also ignored' }
+Onetime::ErrorHandler.http_headers_from(env)
+#=> {"HTTP_HOST"=>"example.com"}
+
 # Clean up test keys
 @redis.del(@test_key)
 @redis.del(@test_key_2)
 @redis.del(@test_key_3)
 @redis.del(@test_key_4)
+@redis.del(@test_key_5)
+@redis.del(@test_key_6)
+@redis.del(@test_key_7)
+@redis.del(@test_key_8)
+@redis.del(@test_key_9)

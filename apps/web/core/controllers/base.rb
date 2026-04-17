@@ -265,18 +265,34 @@ module Core
       # Available levels are :fatal, :error, :warning, :log, :info, and :debug.
       # The Sentry default, if not specified, is :error.
       def capture_error(error, level = :error, &)
-        return unless OT.d9s_enabled
+        http_logger.debug '[sentry] controller capture_error → decision',
+          {
+            exception_class: error.class.name,
+            level: level,
+            d9s_enabled: OT.d9s_enabled,
+            sentry_defined: defined?(Sentry) ? true : false,
+            sentry_initialized: (defined?(Sentry) && Sentry.initialized?) || false,
+          }
+        unless OT.d9s_enabled
+          http_logger.debug '[sentry] controller capture_error skipped — d9s_enabled=false'
+          return
+        end
 
         begin
           if defined?(req) && req.respond_to?(:env)
-            headers = req.env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+            headers = Onetime::ErrorHandler.http_headers_from(req.env)
             http_logger.debug 'Capturing error to Sentry with request headers',
               {
                 headers: headers,
               }
           end
 
-          Sentry.capture_exception(error, level: level, &)
+          event_id = Sentry.capture_exception(error, level: level, &)
+          http_logger.debug '[sentry] controller capture_error returned',
+            {
+              event_id: event_id,
+              exception_class: error.class.name,
+            }
         rescue NoMethodError => ex
           raise unless ex.message.include?('start_with?')
 

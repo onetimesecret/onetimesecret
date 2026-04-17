@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'uri'
+
 module Onetime
   module Initializers
     # SetupDiagnostics initializer
@@ -55,9 +57,18 @@ module Onetime
           return
         end
 
-        # Safely log first part of DSN for debugging
-        dsn_preview = dsn ? "#{dsn[0..10]}..." : 'nil'
-        OT.boot_logger.info "[init] Sentry: Initializing with DSN: #{dsn_preview}"
+        # Safely log first part of DSN for debugging, plus the host and
+        # project id parsed out of the DSN path so multi-project setups
+        # can tell which Sentry project each boot is targeting. Project
+        # name isn't encoded in the DSN (Sentry only exposes the numeric
+        # project id), so host + id is the most specific identifier
+        # available without hitting the API.
+        dsn_preview              = "#{dsn[0..10]}..."
+        dsn_host, dsn_project_id = parse_sentry_dsn(dsn)
+        OT.boot_logger.info(
+          "[init] Sentry: Initializing project=#{dsn_project_id || 'unknown'} " \
+          "host=#{dsn_host || 'unknown'} dsn=#{dsn_preview}",
+        )
 
         # Only require Sentry if we have a DSN. We call explicitly
         # via Kernel to aid in testing.
@@ -142,6 +153,18 @@ module Onetime
       end
 
       private
+
+        # Parses a Sentry DSN to extract host and project id. A Sentry DSN
+        # has the shape "https://PUBLIC_KEY@HOST/PROJECT_ID"; the project id
+        # is the last path segment. Returns [host, project_id], either of
+        # which may be nil if the DSN is malformed.
+        def parse_sentry_dsn(dsn)
+          uri        = URI.parse(dsn)
+          project_id = uri.path.to_s.split('/').reject(&:empty?).last
+          [uri.host, project_id]
+        rescue URI::InvalidURIError
+          [nil, nil]
+        end
 
         # Selects the appropriate Sentry DSN based on execution mode.
         #

@@ -29,7 +29,55 @@ module Onetime
     rescue StandardError => ex
       log_error(operation, ex, context)
       track_error(operation) if trackable?
-      capture_error(operation, ex, context) if sentry_available?
+
+      sentry_ok = sentry_available?
+      app_logger.debug '[sentry] error_handler → capture decision',
+        {
+          operation: operation,
+          exception_class: ex.class.name,
+          sentry_defined: defined?(Sentry) ? true : false,
+          sentry_initialized: (defined?(Sentry) && Sentry.initialized?) || false,
+          sentry_available: sentry_ok,
+        }
+      if sentry_ok
+        capture_error(operation, ex, context)
+      else
+        app_logger.debug '[sentry] error_handler skipped — sentry_available=false',
+          {
+            operation: operation,
+          }
+      end
+      nil
+    end
+
+    # Rack env keys for headers that carry authentication credentials or
+    # session state. These are redacted from Sentry capture-decision debug
+    # logs because that logging runs exactly when operators enable debug
+    # mode in production to diagnose dropped events — the same conditions
+    # under which a leaked Basic Auth header would reach the log aggregator.
+    SENSITIVE_HEADER_KEYS = %w[
+      HTTP_AUTHORIZATION
+      HTTP_PROXY_AUTHORIZATION
+      HTTP_COOKIE
+      HTTP_X_API_KEY
+      HTTP_X_AUTH_TOKEN
+    ].freeze
+
+    # Filters a Rack env hash down to HTTP_* request headers suitable for
+    # debug logging, with sensitive headers replaced by "[FILTERED]". The
+    # `rescue false` guards against non-String keys — Rack's spec says keys
+    # are Strings, but this debug path must never raise.
+    #
+    # @param env [Hash] Rack request env
+    # @return [Hash] subset of env whose keys start with "HTTP_", with
+    #   sensitive values redacted
+    def self.http_headers_from(env)
+      return {} unless env.respond_to?(:select)
+
+      headers = env.select { |k, _v| k.start_with?('HTTP_') rescue false } # rubocop:disable Style/RescueModifier
+      headers.each_with_object({}) do |(k, v), result|
+        result[k] = SENSITIVE_HEADER_KEYS.include?(k) ? '[FILTERED]' : v
+      end
     end
 
     # Lua script for atomic INCR + EXPIRE (prevents race condition
@@ -75,11 +123,17 @@ module Onetime
 
       # Captures error in Sentry with context
       def capture_error(operation, ex, context)
-        Sentry.capture_exception(ex) do |scope|
+        event_id = Sentry.capture_exception(ex) do |scope|
           scope.set_context('error_handler', { operation: operation, **context })
           scope.set_level(:warning)
           scope.set_tags(operation: operation, error_handler: true)
         end
+        app_logger.debug '[sentry] error_handler capture_error returned',
+          {
+            operation: operation,
+            event_id: event_id,
+            exception_class: ex.class.name,
+          }
       rescue StandardError => ex
         # Don't let Sentry errors break the error handler itself
         app_logger.error 'error-handler: Failed to capture in Sentry',

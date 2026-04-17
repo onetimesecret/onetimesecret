@@ -47,7 +47,28 @@ module Onetime
         level   = determine_level(status, duration_μs)
         payload = build_payload(request, status, duration_μs)
 
-        @logger.send(level, status, payload)
+        @logger.send(level, Familia::JsonSerializer.dump(sanitize_for_json(payload)))
+      end
+
+      # Recursively coerce values into JSON-safe primitives so strict
+      # serialization never raises on unexpected objects (e.g., uploaded files,
+      # tempfiles, IO handles) that may appear under :debug capture mode.
+      # Logging must never break request processing.
+      def sanitize_for_json(value, depth = 0)
+        return '[TOO_DEEP]' if depth > 10
+
+        case value
+        when Hash
+          value.each_with_object({}) do |(k, v), result|
+            result[k.to_s] = sanitize_for_json(v, depth + 1)
+          end
+        when Array
+          value.map { |v| sanitize_for_json(v, depth + 1) }
+        when String, Integer, Float, TrueClass, FalseClass, NilClass
+          value
+        else
+          value.to_s
+        end
       end
 
       def build_payload(request, status, duration_μs)
@@ -59,7 +80,12 @@ module Onetime
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip]         = request.ip if capture?(:ip)
         payload[:params]     = redact_params(request.params) if capture?(:params)
-        payload[:session_id] = request.session.id if capture?(:session_id) && request.session.respond_to?(:id)
+        # Rack::Session::SessionId is not JSON-serializable under strict mode;
+        # prefer public_id (hex digest safe to log) and fall back to to_s.
+        if capture?(:session_id) && request.session.respond_to?(:id)
+          sid                  = request.session.id
+          payload[:session_id] = sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
+        end
 
         if capture?(:headers)
           payload[:headers] = request.env.select { |k, _| k.start_with?('HTTP_') }

@@ -57,6 +57,8 @@ module Onetime
         config               = load_logging_config
         Onetime.logging_conf = config
 
+        SemanticLogger.application = 'onetimesecret'
+
         configure_default_level(config)
         configure_appender(config)
 
