@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'time'
+
 # Report on the full Sentry configuration health without booting the
 # application. Reads environment variables directly so it works
 # before Redis/DB are available.
@@ -192,7 +194,16 @@ module Onetime
           Sentry.init do |c|
             c.dsn                       = dsn
             c.environment               = 'cli-doctor'
-            c.release                   = defined?(OT::VERSION) ? OT::VERSION.details : 'cli'
+            # Mirror SetupDiagnostics#resolve_sentry_release so doctor-originated
+            # events group under the same release as runtime events.
+            c.release                   = begin
+              env_release = ENV.fetch('SENTRY_RELEASE', '').strip
+              if env_release.empty?
+                defined?(OT::VERSION) ? OT::VERSION.get_build_info : 'cli'
+              else
+                env_release
+              end
+            end
             c.traces_sample_rate        = 0.0
             # Synchronous delivery — CLI exits cleanly after capture.
             c.background_worker_threads = 0

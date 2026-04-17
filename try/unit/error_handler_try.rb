@@ -140,8 +140,69 @@ final_ttl = @redis.ttl(@test_key_4)
 [original_ttl > 604700, reduced_ttl <= 500, final_ttl <= 500 && final_ttl > 0]
 #=> [true, true, true]
 
+# -----------------------------------------------------------------------------
+# Gate-state methods (trackable? / sentry_available?) -- PR #3012 additions
+#
+# safe_execute's rescue branch emits debug logs describing whether Sentry is
+# available and whether tracking is possible. The branches pivot on two private
+# predicates. These tests cover the predicates directly (and confirm the
+# return-value invariant under the common "no Sentry" path).
+# -----------------------------------------------------------------------------
+
+## sentry_available? is a private class method
+# Cannot be called without .send(...) -- guards against accidental exposure.
+Onetime::ErrorHandler.respond_to?(:sentry_available?, true)
+#=> true
+
+## sentry_available? is NOT a public method
+Onetime::ErrorHandler.respond_to?(:sentry_available?)
+#=> false
+
+## sentry_available? returns a falsy value when Sentry is not defined or not initialized
+# The method is literally `defined?(Sentry) && Sentry.initialized?` -- `defined?`
+# returns nil for undefined constants and `nil && x` short-circuits to nil.
+# Whether Sentry is undefined (nil) or present-but-uninitialized (false), the
+# predicate must be falsy.
+result = Onetime::ErrorHandler.send(:sentry_available?)
+[!result, [nil, false].include?(result)]
+#=> [true, true]
+
+## sentry_available? output is consistent across calls (pure read)
+r1 = Onetime::ErrorHandler.send(:sentry_available?)
+r2 = Onetime::ErrorHandler.send(:sentry_available?)
+r1 == r2
+#=> true
+
+## trackable? is a private class method
+Onetime::ErrorHandler.respond_to?(:trackable?, true)
+#=> true
+
+## trackable? returns a Boolean reflecting Familia.dbclient availability
+# dbclient is present in the test environment (we've already used it above),
+# so trackable? must be true here.
+result = Onetime::ErrorHandler.send(:trackable?)
+[result.is_a?(TrueClass) || result.is_a?(FalseClass), !Familia.dbclient.nil?, result]
+#=> [true, true, true]
+
+## Regression -- safe_execute return value is nil even after the new debug-log
+## emission in the rescue branch (the log call must not leak through as the
+## method's return value).
+@test_key_5 = "errors:rodauth:debug_log_invariant:#{@test_date_str}"
+@redis.del(@test_key_5)
+return_value = Onetime::ErrorHandler.safe_execute('debug_log_invariant') do
+  raise ArgumentError, 'boom'
+end
+return_value
+#=> nil
+
+## Regression -- track_error still ran alongside the new debug log
+# Confirms the rescue branch is still executing its full sequence.
+@redis.get(@test_key_5).to_i
+#=> 1
+
 # Clean up test keys
 @redis.del(@test_key)
 @redis.del(@test_key_2)
 @redis.del(@test_key_3)
 @redis.del(@test_key_4)
+@redis.del(@test_key_5)

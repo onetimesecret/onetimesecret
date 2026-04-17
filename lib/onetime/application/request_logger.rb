@@ -47,7 +47,28 @@ module Onetime
         level   = determine_level(status, duration_μs)
         payload = build_payload(request, status, duration_μs)
 
-        @logger.send(level, Familia::JsonSerializer.dump(payload))
+        @logger.send(level, Familia::JsonSerializer.dump(sanitize_for_json(payload)))
+      end
+
+      # Recursively coerce values into JSON-safe primitives so strict
+      # serialization never raises on unexpected objects (e.g., uploaded files,
+      # tempfiles, IO handles) that may appear under :debug capture mode.
+      # Logging must never break request processing.
+      def sanitize_for_json(value, depth = 0)
+        return '[TOO_DEEP]' if depth > 10
+
+        case value
+        when Hash
+          value.each_with_object({}) do |(k, v), result|
+            result[k.to_s] = sanitize_for_json(v, depth + 1)
+          end
+        when Array
+          value.map { |v| sanitize_for_json(v, depth + 1) }
+        when String, Integer, Float, TrueClass, FalseClass, NilClass
+          value
+        else
+          value.to_s
+        end
       end
 
       def build_payload(request, status, duration_μs)

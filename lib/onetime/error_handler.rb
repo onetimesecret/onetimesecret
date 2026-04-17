@@ -47,6 +47,7 @@ module Onetime
             operation: operation,
           }
       end
+      nil
     end
 
     # Lua script for atomic INCR + EXPIRE (prevents race condition
