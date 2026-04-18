@@ -303,6 +303,18 @@ module Onetime
         raise
       end
 
+      # Re-populate org_email_lookup on the NEW composite-keyed model.
+      # activate_members_instance saves the composite model (populates
+      # org_email_lookup) and then destroys the staged UUID model. As of
+      # Familia 2.5.0, Horreum#destroy! auto-cleans class-level unique_index
+      # entries — and because staged and activated models share the same
+      # org_email_key, the destroy wipes the entry the activated save just
+      # wrote. Restore it here so find_by_org_email continues to resolve
+      # the active membership.
+      if activated.org_email_key
+        self.class.org_email_lookup[activated.org_email_key] = activated.objid
+      end
+
       # Populate active-state OTS index on the NEW composite-keyed model
       if activated.org_customer_key
         self.class.org_customer_lookup[activated.org_customer_key] = activated.objid

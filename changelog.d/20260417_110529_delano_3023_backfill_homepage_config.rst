@@ -5,6 +5,7 @@ Fixed
 
 - Added a backfill migration for ``CustomDomain::HomepageConfig`` so domains that had ``allow_public_homepage`` enabled under the legacy BrandSettings schema continue to render correctly after the v0.25 homepage-config split. The migration is idempotent and safe to re-run; production was already manually pre-mitigated. (#3023)
 - ``CustomDomain#destroy!`` now cleans up the ``HomepageConfig`` and ``ApiConfig`` sibling records in addition to the existing ``SsoConfig`` / ``MailerConfig`` / ``IncomingConfig`` cleanup. Each sibling cleanup is isolated so one failure does not block the others, preventing orphaned per-domain config records when a domain is removed. (#3023)
+- ``OrganizationMembership#accept!`` now re-populates ``org_email_lookup`` with the activated membership's objid after ``activate_members_instance`` returns. The Familia 2.5.0 upgrade introduced automatic class-index cleanup on ``Horreum#destroy!``, which meant the destroy of the staged UUID model wiped the index entry the composite-keyed save had just written (both share the same ``org_email_key``). Without the restore, ``find_by_org_email`` returned ``nil`` for freshly accepted invitations. (#3023)
 
 Changed
 -------
