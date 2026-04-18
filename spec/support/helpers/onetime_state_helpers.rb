@@ -39,29 +39,47 @@ module OnetimeStateHelpers
     Onetime.not_ready
   end
 
-  # Snapshot of the three Familia pool-related globals that SetupConnectionPool
-  # mutates. Returned as a plain Hash so the caller can pass it to
-  # restore_familia_pool_config. Uses public readers; raw ivar access is only
-  # needed for the writers (see below).
+  # Snapshot of the Familia + infrastructure globals that SetupConnectionPool
+  # (and the ConfigureFamilia initializer that runs before it) mutate. Returned
+  # as a plain Hash so the caller can pass it to restore_familia_pool_config.
+  #
+  # Captures:
+  # - Familia.connection_provider — the lambda pointing at the process-local pool
+  # - Familia.uri — the default URI used when no provider is installed
+  # - Familia.transaction_mode / pipelined_mode — the :warn/:raise flags
+  # - Onetime::Runtime.infrastructure.database_pool — the live ConnectionPool
+  #
+  # Raw ivar access is used for values whose public setters reject nil
+  # (transaction_mode, pipelined_mode) or normalize the input in ways that
+  # make a clean-slate round-trip impossible (uri).
   #
   # @return [Hash]
   def snapshot_familia_pool_config
     {
       connection_provider: Familia.connection_provider,
+      uri:                 Familia.instance_variable_get(:@uri),
       transaction_mode:    Familia.instance_variable_get(:@transaction_mode),
       pipelined_mode:      Familia.instance_variable_get(:@pipelined_mode),
+      database_pool:       Onetime::Runtime.infrastructure.database_pool,
     }
   end
 
-  # Restore Familia pool-related globals from a snapshot. Uses public setters
-  # where they exist. Note: Familia.transaction_mode= and pipelined_mode=
-  # validate their input and reject nil, so we round-trip nil via the raw ivar
-  # rather than let the setter raise ArgumentError on a clean-slate snapshot.
+  # Restore Familia + infrastructure globals from a snapshot. Uses public
+  # setters where they exist. Notes:
+  # - Familia.transaction_mode= and pipelined_mode= validate their input and
+  #   reject nil, so nil round-trips via the raw ivar.
+  # - Familia.uri= calls normalize_uri which substitutes the current default
+  #   when given nil; the raw ivar is the only way to put a previous value
+  #   (including URI objects or nil) back verbatim.
+  # - Runtime.update_infrastructure is the canonical path for mutating the
+  #   frozen infrastructure Data object; passing database_pool: nil clears
+  #   the pool so a subsequent Onetime.boot! re-installs a fresh one.
   #
   # @param snapshot [Hash] from snapshot_familia_pool_config
   # @return [void]
   def restore_familia_pool_config(snapshot)
     Familia.connection_provider = snapshot[:connection_provider]
+    Familia.instance_variable_set(:@uri, snapshot[:uri])
     if snapshot[:transaction_mode].nil?
       Familia.instance_variable_set(:@transaction_mode, nil)
     else
@@ -72,5 +90,6 @@ module OnetimeStateHelpers
     else
       Familia.pipelined_mode = snapshot[:pipelined_mode]
     end
+    Onetime::Runtime.update_infrastructure(database_pool: snapshot[:database_pool])
   end
 end

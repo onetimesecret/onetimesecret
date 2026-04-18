@@ -109,13 +109,27 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
       port
     end
 
-    # FAMILIA_POOL_TIMEOUT caps the wall-clock budget. When connect() returns
-    # ECONNREFUSED against a closed localhost port, it returns immediately —
-    # the reconnect backoff ladder (setup_connection_pool.rb:52-57) only
-    # activates after a successful connection that later drops, so the 1s
-    # ceiling here is a defensive floor, not a load-bearing deadline.
+    # Snapshot Familia + infrastructure globals around the boot! call. The
+    # initializer pipeline partially completes before SetupConnectionPool
+    # raises: ConfigureFamilia has already set Familia.uri to the closed-port
+    # URI, and SetupConnectionPool has already installed a ConnectionPool +
+    # connection_provider targeting that closed port, before Redis.ping
+    # fails. Without restoration, subsequent specs (anything going through
+    # Familia, e.g. Onetime::BannedIP in the IPBan middleware) route through
+    # the leaked provider and hit ECONNREFUSED against the now-reused
+    # ephemeral port. FullModeSuiteDatabase.setup! uses an idempotent
+    # before(:context) Onetime.boot!, so if it already ran before this
+    # example no subsequent boot! rewrites Familia.uri either — the leak
+    # sticks across the whole suite.
     around do |example|
+      snapshot = snapshot_familia_pool_config
       original_timeout = ENV['FAMILIA_POOL_TIMEOUT']
+      # FAMILIA_POOL_TIMEOUT caps the wall-clock budget. When connect()
+      # returns ECONNREFUSED against a closed localhost port, it returns
+      # immediately — the reconnect backoff ladder
+      # (setup_connection_pool.rb:52-57) only activates after a successful
+      # connection that later drops, so the 1s ceiling here is a defensive
+      # floor, not a load-bearing deadline.
       ENV['FAMILIA_POOL_TIMEOUT'] = '1'
       begin
         example.run
@@ -125,6 +139,7 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
         else
           ENV['FAMILIA_POOL_TIMEOUT'] = original_timeout
         end
+        restore_familia_pool_config(snapshot)
       end
     end
 
