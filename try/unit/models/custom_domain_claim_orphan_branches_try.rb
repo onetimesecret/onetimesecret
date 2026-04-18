@@ -123,22 +123,15 @@ Onetime::CustomDomain.display_domains.get(@atomic_domain_name) == @claimed_atomi
 Onetime::CustomDomain.display_domain_index.get(@atomic_domain_name) == @claimed_atomic.identifier
 #=> true
 
-## Branch documentation: WATCH-abort path (result == false || result.nil?).
-## Simulating a real WATCH race inside a tryout requires a second connection
-## mutating existing.dbkey between WATCH and MULTI -- feasible with a raw
-## Redis client, but fragile because Familia's atomic_write opens its own
-## connection pooling. We assert the guard-clause logic matches atomic_write's
-## documented contract instead:
-##   - atomic_write returns false if the transaction is discarded
-##     (atomic_write.rb:190-195, via atomic_write_success?(nil) => false).
-##   - claim_orphaned_domain treats both `false` and `nil` as failure.
-## The boolean evaluation below mirrors the guard clause.
-[nil, false].all? { |r| r == false || r.nil? }
-#=> true
-
-## Truthy atomic_write results do NOT trip the WATCH-abort guard
-[true, Object.new].none? { |r| r == false || r.nil? }
-#=> true
+# Branch documentation: WATCH-abort path (result == false || result.nil?).
+# Simulating a real WATCH race inside a tryout requires a second connection
+# mutating existing.dbkey between WATCH and MULTI -- feasible with a raw
+# Redis client, but fragile because Familia's atomic_write opens its own
+# connection pooling. The guard-clause in claim_orphaned_domain matches
+# atomic_write's documented contract:
+#   - atomic_write returns false if the transaction is discarded
+#     (atomic_write.rb:190-195, via atomic_write_success?(nil) => false).
+#   - claim_orphaned_domain treats both `false` and `nil` as failure.
 
 # Teardown
 @claimed_atomic.destroy! if @claimed_atomic&.exists?
