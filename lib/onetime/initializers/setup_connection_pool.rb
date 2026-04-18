@@ -92,11 +92,6 @@ module Onetime
         level: :debug,
       )
 
-      # Optional: Single migration flag for entire DB 0
-      dbkey      = Familia.join(%w[ots migration_needed db_0])
-      first_time = database_pool.with { |conn| conn.setnx(dbkey, '1') } # Direct pool usage for setup
-      OT.ld "[init] Connect database: Setting #{dbkey} to '1' (already set? #{!first_time})"
-
       # Set runtime state
       Onetime::Runtime.update_infrastructure(database_pool: database_pool)
       end
