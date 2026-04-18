@@ -151,6 +151,42 @@ module Onetime
           config
         end
 
+        # Atomically return an existing HomepageConfig or create one if absent.
+        #
+        # Backfill/bootstrap counterpart to upsert. A concurrent writer that
+        # created a record between the caller's read and our write gets their
+        # value preserved — this method never overwrites an existing record.
+        # Uses Familia's WATCH-based save_if_not_exists! so the exists-check
+        # and save participate in the same optimistic transaction.
+        #
+        # @param domain_id [String] CustomDomain identifier
+        # @param enabled   [Boolean, String] value to use only if creating
+        # @return [Array(HomepageConfig, Symbol)] [config, :created | :existed]
+        def find_or_create_for_domain(domain_id:, enabled:)
+          raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
+
+          existing = find_by_domain_id(domain_id)
+          return [existing, :existed] if existing
+
+          now    = Familia.now.to_i
+          config = new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now)
+
+          begin
+            config.save_if_not_exists!
+            [config, :created]
+          rescue Familia::RecordExistsError
+            # A racing writer's record existed inside Familia's WATCH block.
+            # Re-read must succeed: if it doesn't, the record vanished between
+            # WATCH and re-read (concurrent destroy, TTL eviction, test teardown).
+            # Raise rather than silently return [nil, :existed] and break the
+            # method contract.
+            found = find_by_domain_id(domain_id)
+            raise Onetime::Problem, "HomepageConfig for #{domain_id} vanished after conflict" unless found
+
+            [found, :existed]
+          end
+        end
+
         # Create a new homepage config for a domain.
         #
         # @param domain_id [String] CustomDomain identifier

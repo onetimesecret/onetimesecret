@@ -115,12 +115,6 @@ module Onetime
       end
 
       def process_domain(domain_id)
-        if @config_class.exists_for_domain?(domain_id)
-          track_stat(:skipped_existing)
-          info "Skip (existing HomepageConfig): #{domain_id}"
-          return
-        end
-
         domain = @model_class.find_by_identifier(domain_id)
         unless domain
           track_stat(:skipped_missing_domain)
@@ -131,12 +125,29 @@ module Onetime
         legacy_enabled = domain.brand_settings.allow_public_homepage?
 
         if dry_run?
-          track_stat(legacy_enabled ? :would_migrate_true : :would_migrate_false)
-          info "[DRY RUN] would upsert HomepageConfig(domain_id=#{domain_id}, enabled=#{legacy_enabled})"
-        else
-          @config_class.upsert(domain_id: domain_id, enabled: legacy_enabled)
+          if @config_class.exists_for_domain?(domain_id)
+            track_stat(:skipped_existing)
+            info "[DRY RUN] skip (existing HomepageConfig): #{domain_id}"
+          else
+            track_stat(legacy_enabled ? :would_migrate_true : :would_migrate_false)
+            info "[DRY RUN] would create HomepageConfig(domain_id=#{domain_id}, enabled=#{legacy_enabled})"
+          end
+          return
+        end
+
+        # find_or_create_for_domain uses WATCH+MULTI; a concurrent PUT that
+        # wrote first wins and we return :existed without stomping their value.
+        _config, outcome = @config_class.find_or_create_for_domain(
+          domain_id: domain_id, enabled: legacy_enabled,
+        )
+
+        case outcome
+        when :created
           track_stat(legacy_enabled ? :migrated_true : :migrated_false)
-          info "Upserted HomepageConfig(domain_id=#{domain_id}, enabled=#{legacy_enabled})"
+          info "Created HomepageConfig(domain_id=#{domain_id}, enabled=#{legacy_enabled})"
+        when :existed
+          track_stat(:skipped_existing)
+          info "Skip (existing HomepageConfig): #{domain_id}"
         end
       end
     end

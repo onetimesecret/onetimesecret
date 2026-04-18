@@ -10,3 +10,4 @@ Changed
 -------
 
 - The HomepageConfig backfill migration now emits a periodic progress line (every 250 domains) with a running stat breakdown, so operators have visibility into long-running backfills. Small datasets remain quiet — no progress output below the threshold. (#3023)
+- ``CustomDomain::HomepageConfig`` and ``CustomDomain::ApiConfig`` gained ``find_or_create_for_domain``, an atomic create-if-missing class method backed by Familia's ``save_if_not_exists!`` (WATCH + MULTI). The backfill migration now uses it, so a concurrent PUT that writes before the migration does cannot have its value silently overwritten. ``upsert`` remains in place for PUT endpoint callers where last-write-wins is the intended semantic. (#3023)
