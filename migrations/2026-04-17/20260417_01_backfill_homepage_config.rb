@@ -68,14 +68,27 @@ module Onetime
       # expectations, and if :migrated_true stays at zero across runs, the
       # legacy fallback at CustomDomain#allow_public_homepage? is provably
       # unused and safe to remove.
+      # Progress reporting threshold: emit a running breakdown every N domains
+      # processed. 250 balances noise vs. operator visibility on large domain
+      # counts; below the threshold the summary banner is enough.
+      PROGRESS_STEP = 250
+
       def migrate
         run_mode_banner
+
+        # ZCARD on CustomDomain.instances — O(1), worth the one-time cost so
+        # progress output can show current/total.
+        total     = @model_class.instances.count
+        processed = 0
 
         @model_class.instances.each do |domain_id|
           process_domain(domain_id)
         rescue StandardError => ex
           track_stat(:errors)
           error "Error processing domain #{domain_id}: #{ex.message}"
+        ensure
+          processed += 1
+          report_progress(processed, total)
         end
 
         print_summary do |mode|
@@ -88,6 +101,18 @@ module Onetime
       end
 
       private
+
+      # Emit a periodic progress line with a running stat breakdown so
+      # operators can watch long-running backfills. Only logs at the step
+      # boundary or the final iteration; stays silent below the threshold
+      # to avoid noise on small datasets.
+      def report_progress(processed, total)
+        return unless total >= PROGRESS_STEP
+        return unless (processed % PROGRESS_STEP).zero? || processed == total
+
+        breakdown = @stats.map { |k, v| "#{k}=#{v}" }.join(', ')
+        info "Progress: #{processed}/#{total} (#{breakdown})"
+      end
 
       def process_domain(domain_id)
         if @config_class.exists_for_domain?(domain_id)
