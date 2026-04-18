@@ -24,6 +24,8 @@ require 'spec_helper'
 # rubocop:disable RSpec/SpecFilePathFormat
 # File name matches implementation file setup_connection_pool.rb
 RSpec.describe Onetime::Initializers::SetupConnectionPool do
+  include OnetimeStateHelpers
+
   let(:instance) { described_class.new }
 
   # Reusable doubles that stand in for the boundary collaborators. The pool
@@ -36,21 +38,22 @@ RSpec.describe Onetime::Initializers::SetupConnectionPool do
   # .to_s and .size on the collection, so any object responding to to_s works.
   let(:fake_member) { Class.new { def self.to_s; 'FakeModel'; end } }
 
-  # Snapshot/restore Familia global configuration state and Runtime infrastructure
-  # to prevent bleed between examples. Mirrors the infrastructure-restore pattern
-  # in setup_diagnostics_spec.rb.
-  let(:original_infrastructure)       { Onetime::Runtime.infrastructure }
-  let(:original_connection_provider)  { Familia.connection_provider }
-  let(:original_transaction_mode)     { Familia.instance_variable_get(:@transaction_mode) }
-  let(:original_pipelined_mode)       { Familia.instance_variable_get(:@pipelined_mode) }
+  # Snapshot/restore Familia + Runtime state around each example. The around
+  # hook guarantees restoration even when an expectation raises. Uses public
+  # Familia setters via the shared helper; see onetime_state_helpers.rb for
+  # the nil-vs-symbol nuance on transaction_mode / pipelined_mode.
+  around do |example|
+    original_infrastructure = Onetime::Runtime.infrastructure
+    familia_snapshot        = snapshot_familia_pool_config
+    begin
+      example.run
+    ensure
+      Onetime::Runtime.infrastructure = original_infrastructure
+      restore_familia_pool_config(familia_snapshot)
+    end
+  end
 
   before do
-    # Prime snapshots (let! not used — touch each to capture current value).
-    original_infrastructure
-    original_connection_provider
-    original_transaction_mode
-    original_pipelined_mode
-
     # Default: pretend at least one model is loaded, so the empty-members guard
     # does not trip. Individual examples override with [] where they want to
     # assert the raise path.
@@ -73,13 +76,6 @@ RSpec.describe Onetime::Initializers::SetupConnectionPool do
     # Keep the log output out of the test runner.
     allow(OT).to receive(:ld)
     allow(OT).to receive(:log_box)
-  end
-
-  after do
-    Onetime::Runtime.infrastructure = original_infrastructure
-    Familia.instance_variable_set(:@connection_provider, original_connection_provider)
-    Familia.instance_variable_set(:@transaction_mode, original_transaction_mode)
-    Familia.instance_variable_set(:@pipelined_mode, original_pipelined_mode)
   end
 
   describe 'Familia.members guard' do
@@ -174,6 +170,56 @@ RSpec.describe Onetime::Initializers::SetupConnectionPool do
         instance.execute(nil)
       end
     end
+
+    context 'when env vars are empty strings (characterization)' do
+      # ENV.fetch returns the empty string (not the default), and ''.to_i is 0.
+      # Same failure shape as 'abc'/'xyz' but via a different mechanism — worth
+      # pinning separately since the fetch default branch is skipped.
+      before do
+        ENV['FAMILIA_POOL_SIZE']    = ''
+        ENV['FAMILIA_POOL_TIMEOUT'] = ''
+      end
+
+      it 'coerces empty strings to 0 via String#to_i' do
+        expect(ConnectionPool).to receive(:new)
+          .with(hash_including(size: 0, timeout: 0))
+          .and_return(mock_pool)
+        instance.execute(nil)
+      end
+    end
+
+    context 'when env vars are negative integer strings (characterization)' do
+      # The initializer passes the parsed integers through to ConnectionPool.new
+      # without range validation. ConnectionPool itself may reject at runtime,
+      # but that's not this initializer's concern.
+      before do
+        ENV['FAMILIA_POOL_SIZE']    = '-5'
+        ENV['FAMILIA_POOL_TIMEOUT'] = '-1'
+      end
+
+      it 'passes negative integers through unchanged' do
+        expect(ConnectionPool).to receive(:new)
+          .with(hash_including(size: -5, timeout: -1))
+          .and_return(mock_pool)
+        instance.execute(nil)
+      end
+    end
+
+    context 'when env vars are very large integer strings (characterization)' do
+      # Ruby Integer is bignum-capable; no overflow. The point of this test is
+      # to prove the initializer does no capping or truncation of its own.
+      before do
+        ENV['FAMILIA_POOL_SIZE']    = '1000000000'
+        ENV['FAMILIA_POOL_TIMEOUT'] = '999999999'
+      end
+
+      it 'passes large integers through unchanged' do
+        expect(ConnectionPool).to receive(:new)
+          .with(hash_including(size: 1_000_000_000, timeout: 999_999_999))
+          .and_return(mock_pool)
+        instance.execute(nil)
+      end
+    end
   end
 
   describe 'ConnectionPool construction' do
@@ -229,6 +275,20 @@ RSpec.describe Onetime::Initializers::SetupConnectionPool do
 
       # Once inside setup (the ping), plus three provider invocations.
       expect(mock_pool).to have_received(:with).at_least(4).times
+    end
+
+    it 'propagates errors raised by pool.with' do
+      # Characterization: the provider is a thin delegation. It does not
+      # rescue. If pool.with raises (e.g. ConnectionPool::TimeoutError,
+      # ConnectionPool::Error::ConnectionNotEstablished), that error surfaces
+      # to the Familia caller.
+      instance.execute(nil)
+
+      allow(mock_pool).to receive(:with)
+        .and_raise(ConnectionPool::TimeoutError, 'Waited 5 sec')
+
+      provider = Familia.connection_provider
+      expect { provider.call(nil) }.to raise_error(ConnectionPool::TimeoutError)
     end
   end
 
