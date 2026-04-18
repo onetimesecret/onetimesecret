@@ -36,19 +36,30 @@ def orphan!(domain, owning_org)
   Onetime::CustomDomain.load_by_display_domain(domain.display_domain)
 end
 
-## Branch: same-org idempotent short-circuit (line 813) is UNREACHABLE in
-## the current code because `existing.hget(:org_id)` returns the value with
-## the Familia v2 JSON-encoded quoting (`"\"<uuid>\""`), so the `.to_s ==
-## org_id.to_s` comparison always fails and falls through to the
-## "another org" raise. This is a pre-existing bug in claim_orphaned_domain
-## predating the atomic_write refactor; documented here because the fix
-## under review does not touch it. Verify the comparison drift:
+## Raw hget() returns the Familia v2 JSON-encoded form (e.g. `"\"<uuid>\""`),
+## while the field accessor returns the bare value. claim_orphaned_domain
+## now JSON.parse()s the hget value so the same-org idempotent branch
+## actually matches. The encoding gap is documented here as a regression
+## indicator — if Familia ever stops wrapping scalars, the second element
+## of the comparison goes away and the first element becomes `true`.
 @probe_domain = Onetime::CustomDomain.create!("probe-#{@ts}.example.com", @org_a.objid)
 @probe_hget   = @probe_domain.hget(:org_id)
 @probe_field  = @probe_domain.org_id
-## hget() returns a JSON-quoted string; field accessor returns the bare value
 [@probe_hget.to_s == @probe_field.to_s, @probe_hget.to_s.include?(@probe_field.to_s)]
 #=> [false, true]
+
+## Branch: same-org idempotent short-circuit returns the existing record
+## without raising. claim_orphaned_domain sees a non-empty hget value,
+## JSON.parse()s it, confirms it matches org_id, and returns early.
+@idempotent_domain = Onetime::CustomDomain.create!("idempotent-#{@ts}.example.com", @org_a.objid)
+@idempotent_result = Onetime::CustomDomain.claim_orphaned_domain(@idempotent_domain, @org_a.objid)
+@idempotent_result.identifier == @idempotent_domain.identifier
+#=> true
+
+## Re-claiming leaves the record intact — no side-effect rewrites
+@idempotent_domain_refetched = Onetime::CustomDomain.find_by_identifier(@idempotent_domain.identifier)
+@idempotent_domain_refetched.org_id == @org_a.objid
+#=> true
 
 ## Branch: already-claimed-by-another-org raises.
 ## (Exercises line 818 fall-through after line 813 fails to short-circuit.)
@@ -132,6 +143,7 @@ Onetime::CustomDomain.display_domain_index.get(@atomic_domain_name) == @claimed_
 # Teardown
 @claimed_atomic.destroy! if @claimed_atomic&.exists?
 @conflict_domain.destroy! if @conflict_domain&.exists?
+@idempotent_domain.destroy! if @idempotent_domain&.exists?
 @probe_domain.destroy! if @probe_domain&.exists?
 @org_a.destroy! if @org_a&.exists?
 @org_b.destroy! if @org_b&.exists?

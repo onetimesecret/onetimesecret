@@ -803,35 +803,43 @@ module Onetime
       def claim_orphaned_domain(existing, org_id)
         OT.info "[CustomDomain.create!] Claiming orphaned domain: #{existing.display_domain} for org_id=#{org_id}"
 
-        # Use WATCH/MULTI for optimistic locking on the domain record
-        result = dbclient.watch(existing.dbkey) do
-          # Re-check org_id inside the watch - if changed, transaction will fail
-          current_org_id = existing.hget(:org_id)
+        # Pin a single pool connection for the entire WATCH+MULTI critical
+        # section. Without the pin, each Familia.dbclient call (including
+        # the nested atomic_write's MULTI) may resolve to a different pool
+        # connection — WATCH on conn A and MULTI on conn C never pair up,
+        # so races go undetected.
+        result = Onetime.with_pinned_dbclient do |conn|
+          conn.watch(existing.dbkey) do
+            # Re-check org_id inside the watch - if changed, transaction will fail.
+            # hget returns raw stored bytes; Familia v2 JSON-encodes scalar
+            # fields, so a set org_id comes back as a JSON-quoted string.
+            raw_org_id = existing.hget(:org_id)
 
-          unless current_org_id.to_s.empty?
-            dbclient.unwatch
-            return existing if current_org_id.to_s == org_id.to_s
+            unless raw_org_id.to_s.empty?
+              conn.unwatch
+              current_org_id = JSON.parse(raw_org_id).to_s
+              # We already own it (concurrent request from same org succeeded)
+              return existing if current_org_id == org_id.to_s
 
-            # We already own it (concurrent request from same org succeeded)
+              # Another org claimed it
+              raise Onetime::Problem, 'Domain is registered to another organization'
+            end
 
-            # Another org claimed it
-            raise Onetime::Problem, 'Domain is registered to another organization'
-          end
+            # Load org BEFORE multi — reads inside MULTI return QUEUED
+            org = Onetime::Organization.load(org_id)
+            unless org
+              conn.unwatch
+              raise Onetime::Problem, "Organization #{org_id} not found"
+            end
 
-          # Load org BEFORE multi — reads inside MULTI return QUEUED
-          org = Onetime::Organization.load(org_id)
-          unless org
-            dbclient.unwatch
-            raise Onetime::Problem, "Organization #{org_id} not found"
-          end
+            existing.atomic_write do
+              existing.org_id  = org_id
+              existing.updated = OT.now.to_i
+              existing.add_to_organization_domains(org) if org
 
-          existing.atomic_write do
-            existing.org_id  = org_id
-            existing.updated = OT.now.to_i
-            existing.add_to_organization_domains(org) if org
-
-            # Update owners hash (Location E) to reflect new org ownership
-            owners.put existing.to_s, org_id
+              # Update owners hash (Location E) to reflect new org ownership
+              owners.put existing.to_s, org_id
+            end
           end
         end
 
