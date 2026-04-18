@@ -816,7 +816,6 @@ module Onetime
 
             # Another org claimed it
             raise Onetime::Problem, 'Domain is registered to another organization'
-
           end
 
           # Load org BEFORE multi — reads inside MULTI return QUEUED
