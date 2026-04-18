@@ -826,11 +826,9 @@ module Onetime
             raise Onetime::Problem, "Organization #{org_id} not found"
           end
 
-          dbclient.multi do |_multi|
+          existing.atomic_write do
             existing.org_id  = org_id
             existing.updated = OT.now.to_i
-            existing.save
-
             existing.add_to_organization_domains(org) if org
 
             # Update owners hash (Location E) to reflect new org ownership
@@ -838,8 +836,10 @@ module Onetime
           end
         end
 
-        # If multi returned nil, WATCH detected a change - retry or fail
-        if result.nil?
+        # atomic_write returns false when EXEC is discarded (WATCH saw a
+        # concurrent modification). nil is defensive against unexpected
+        # returns from the enclosing watch block.
+        if result == false || result.nil?
           OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
           raise Onetime::Problem, 'Domain claim failed due to concurrent modification'
         end
