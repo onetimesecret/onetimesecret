@@ -48,6 +48,7 @@ module DomainsAPI::Logic
 
       def process
         _image_field.delete! # delete the entire db hash key
+        @custom_domain.updated = OT.now.to_i
         @custom_domain.save
 
         success_data
