@@ -400,10 +400,27 @@ module Onetime
     #
     # @return [void]
     def destroy!
-      # Clean up domain-specific configurations (idempotent, safe to call if none exist)
-      Onetime::CustomDomain::SsoConfig.delete_for_domain!(identifier)
-      Onetime::CustomDomain::MailerConfig.delete_for_domain!(identifier)
-      Onetime::CustomDomain::IncomingConfig.delete_for_domain!(identifier)
+      # Clean up domain-specific configurations (idempotent, safe to call if
+      # none exist). Each sibling is wrapped individually so that a failure
+      # cleaning one config does not block the others — orphaned sibling
+      # records are preferable to a partial cleanup that can't be retried.
+      sibling_configs = [
+        Onetime::CustomDomain::HomepageConfig,
+        Onetime::CustomDomain::ApiConfig,
+        Onetime::CustomDomain::SsoConfig,
+        Onetime::CustomDomain::MailerConfig,
+        Onetime::CustomDomain::IncomingConfig,
+      ]
+      # Rescue only Familia's own errors (schema drift, field-level failures)
+      # so that infrastructure failures like Redis::BaseConnectionError surface
+      # to the caller — there's no value in continuing the cascade if the
+      # datastore is unreachable, and the subsequent super call would fail with
+      # a more accurate error anyway.
+      sibling_configs.each do |config_class|
+        config_class.delete_for_domain!(identifier)
+      rescue Familia::Problem => ex
+        OT.le "[CustomDomain.destroy!] Failed to clean up #{config_class}: #{ex.message}"
+      end
 
       # Remove domain-scoped memberships (SSO-provisioned users restricted to this domain)
       scoped_memberships = Onetime::OrganizationMembership.find_all_by_domain_scope(objid)

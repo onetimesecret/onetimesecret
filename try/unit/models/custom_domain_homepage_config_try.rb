@@ -136,5 +136,64 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_no_cfg.identifi
 @domain_no_cfg.allow_public_homepage?
 #=> false
 
+# --- find_or_create_for_domain: atomic create-if-missing ---
+
+## Setup: a fresh domain with no HomepageConfig
+@focd_domain = Onetime::CustomDomain.create!("hp-cfg-focd-#{@ts}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@focd_domain.identifier)
+#=> false
+
+## find_or_create_for_domain on missing record returns :created
+@focd_config, @focd_outcome = Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(
+  domain_id: @focd_domain.identifier, enabled: true,
+)
+@focd_outcome
+#=> :created
+
+## Created record has the requested enabled value
+@focd_config.enabled?
+#=> true
+
+## Created record persists (exists_for_domain? is true)
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@focd_domain.identifier)
+#=> true
+
+## find_or_create_for_domain on existing record returns :existed
+@focd_config2, @focd_outcome2 = Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(
+  domain_id: @focd_domain.identifier, enabled: false,
+)
+@focd_outcome2
+#=> :existed
+
+## Existing record's enabled value is preserved (proposed false did NOT overwrite the true)
+@focd_config2.enabled?
+#=> true
+
+## Returned existing record has same domain_id
+@focd_config2.domain_id == @focd_domain.identifier
+#=> true
+
+## Reload confirms the stored value was not overwritten by the second call
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@focd_domain.identifier).enabled?
+#=> true
+
+## find_or_create_for_domain raises Problem when domain_id is empty string
+begin
+  Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(domain_id: '', enabled: true)
+  'unexpected_success'
+rescue Onetime::Problem => e
+  e.message
+end
+#=> 'domain_id is required'
+
+## find_or_create_for_domain raises Problem when domain_id is nil
+begin
+  Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(domain_id: nil, enabled: true)
+  'unexpected_success'
+rescue Onetime::Problem => e
+  e.message
+end
+#=> 'domain_id is required'
+
 # Teardown
 Familia.dbclient.flushdb
