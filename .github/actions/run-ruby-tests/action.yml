@@ -44,6 +44,9 @@
 #   - try:integration:simple     - Integration tryouts (simple mode only)
 #
 # Changelog:
+#   2.2.0 - Capture stdout/stderr per step; post last 300 lines of failed
+#           output as a PR comment so reviewers (human or agent) can see
+#           which test failed without log-viewer auth.
 #   2.1.0 - Use spec:fast for unit tests; leverage auto-discovery
 #   2.0.0 - Switch to rake tasks; remove rspec-paths input
 #   1.0.0 - Initial release with RSpec/Tryouts support and job summaries
@@ -130,6 +133,7 @@ runs:
         fi
 
     - name: Run Tryouts via rake
+      id: tryouts
       if: steps.rake-tasks.outputs.tryouts-task != ''
       shell: bash
       env:
@@ -139,12 +143,18 @@ runs:
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
         AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
+      # Pipe through tee so the runner's live log still streams while we keep
+      # a copy on disk for the failure-comment step. PIPESTATUS[0] preserves
+      # rake's exit code (set -o pipefail would also work but is heavier).
       run: |
-        set -e
+        mkdir -p tmp
         echo "Running rake ${{ steps.rake-tasks.outputs.tryouts-task }}..."
-        bundle exec rake ${{ steps.rake-tasks.outputs.tryouts-task }}
+        bundle exec rake ${{ steps.rake-tasks.outputs.tryouts-task }} 2>&1 \
+          | tee tmp/tryouts.log
+        exit ${PIPESTATUS[0]}
 
     - name: Run RSpec via rake
+      id: rspec
       shell: bash
       env:
         REDIS_URL: ${{ inputs.redis-url }}
@@ -155,10 +165,64 @@ runs:
         AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
         RSPEC_OUTPUT_FILE: tmp/${{ inputs.results-file }}
       run: |
-        set -e
         mkdir -p tmp
         echo "Running rake ${{ steps.rake-tasks.outputs.rspec-task }}..."
-        bundle exec rake ${{ steps.rake-tasks.outputs.rspec-task }}
+        bundle exec rake ${{ steps.rake-tasks.outputs.rspec-task }} 2>&1 \
+          | tee tmp/rspec.log
+        exit ${PIPESTATUS[0]}
+
+    - name: Post failure tail to PR
+      # Only on PR events that actually failed. Skips push/manual runs to keep
+      # comment churn off main. Caller workflow must grant pull-requests: write.
+      if: failure() && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+        JOB_NAME: ${{ github.job }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        AUTH_MODE: ${{ inputs.auth-mode }}
+        TEST_TYPE: ${{ inputs.test-type }}
+      run: |
+        # Pick the log most likely to contain the failure: tryouts runs first
+        # and fails fast (set -e) so an rspec.log only exists when tryouts
+        # passed. Prefer the later-and-failing log when both are present.
+        log_file=""
+        if [ -f tmp/rspec.log ] && [ "${{ steps.rspec.outcome }}" = "failure" ]; then
+          log_file="tmp/rspec.log"
+          which_step="RSpec (\`${{ steps.rake-tasks.outputs.rspec-task }}\`)"
+        elif [ -f tmp/tryouts.log ] && [ "${{ steps.tryouts.outcome }}" = "failure" ]; then
+          log_file="tmp/tryouts.log"
+          which_step="Tryouts (\`${{ steps.rake-tasks.outputs.tryouts-task }}\`)"
+        else
+          echo "No captured log to post; skipping PR comment."
+          exit 0
+        fi
+
+        # 300 lines is enough for one tryouts/rspec failure with stack trace
+        # but stays well under GitHub's 65k-char comment limit.
+        tail -n 300 "$log_file" > /tmp/tail.log
+
+        body_file=$(mktemp)
+        {
+          echo "### CI failure: ${JOB_NAME} (${TEST_TYPE} / ${AUTH_MODE})"
+          echo ""
+          echo "Step: ${which_step} — [run log](${RUN_URL})"
+          echo ""
+          echo "<details><summary>Last 300 lines of output</summary>"
+          echo ""
+          echo '```'
+          cat /tmp/tail.log
+          echo '```'
+          echo "</details>"
+          echo ""
+          echo "<sub>Posted by run-ruby-tests action so unauthenticated reviewers (humans + agents) can read the failure without log-viewer access.</sub>"
+        } > "$body_file"
+
+        gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+          -f body="$(cat "$body_file")" >/dev/null
+        echo "Posted failure tail to PR #${PR_NUMBER}"
 
     - name: Generate job summary
       if: always()
