@@ -506,7 +506,7 @@ jobs:
       redis: *valkey-service
       rabbitmq: *rabbitmq-service
       postgres:
-        image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
+        image: postgres:17@sha256:5b96f1a16bd9768b060dd2ffe55cb6225c4d9ef4d214a8b21eb08134869a97e4
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
