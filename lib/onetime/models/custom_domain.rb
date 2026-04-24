@@ -840,6 +840,9 @@ module Onetime
               current_org_id = begin
                 JSON.parse(raw_org_id).to_s
               rescue JSON::ParserError
+                # Surface the fallback so ops can detect unmigrated rows in
+                # production and decide whether a backfill is warranted.
+                OT.le "[CustomDomain.claim_orphaned_domain] legacy org_id encoding on #{existing.display_domain}: raw=#{raw_org_id.inspect}"
                 raw_org_id.to_s
               end
               # We already own it (concurrent request from same org succeeded)
