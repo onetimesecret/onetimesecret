@@ -36,11 +36,18 @@ module Onetime
       begin
         yield conn
       ensure
-        popped                            = stack.pop
-        unless popped.equal?(conn)
-          OT.le "[with_pinned_dbclient] stack invariant violated: popped=#{popped.object_id} expected=#{conn.object_id}"
+        popped = stack.pop
+        if popped.equal?(conn)
+          Fiber[:ots_pinned_dbclient_stack] = nil if stack.empty?
+        else
+          # Invariant violated: a nested caller either mutated the stack out
+          # of order or the frame was reentered from a different fiber. Clear
+          # the fiber-local entirely so subsequent Familia.dbclient calls fall
+          # back to a fresh pool checkout rather than reusing a stale conn
+          # reference whose pool-with frame has already returned.
+          OT.le "[with_pinned_dbclient] stack invariant violated: popped=#{popped.object_id} expected=#{conn.object_id}; clearing fiber stack"
+          Fiber[:ots_pinned_dbclient_stack] = nil
         end
-        Fiber[:ots_pinned_dbclient_stack] = nil if stack.empty?
       end
     end
   end

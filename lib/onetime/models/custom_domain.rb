@@ -834,7 +834,14 @@ module Onetime
 
             unless raw_org_id.to_s.empty?
               conn.unwatch
-              current_org_id = JSON.parse(raw_org_id).to_s
+              # Pre-Familia-v2 records stored org_id as a bare UUID rather than
+              # a JSON-quoted string. Fall back to the raw value so legacy rows
+              # don't turn "already claimed" into an unexpected exception.
+              current_org_id = begin
+                JSON.parse(raw_org_id).to_s
+              rescue JSON::ParserError
+                raw_org_id.to_s
+              end
               # We already own it (concurrent request from same org succeeded)
               return existing if current_org_id == org_id.to_s
 

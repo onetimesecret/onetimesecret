@@ -7,8 +7,8 @@
 # assertion that makes atomic_write safe for orphan claims.
 #
 # Branches under test:
-#   - Same-org re-claim (idempotent short-circuit on line 813)
-#   - Claimed-by-another-org (raise on line 818)
+#   - Same-org re-claim: idempotent short-circuit when stored org_id matches
+#   - Claimed-by-another-org: raise when stored org_id differs
 #   - atomic_write single-MULTI atomicity across locations C, D, E
 #   - guard_unique_display_domain_index! self-reference does not raise
 #   - WATCH-abort branch (documented gap; simulation noted below)
