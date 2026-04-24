@@ -59,7 +59,7 @@
 ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:510c441d2541a5ef8c6a657a67ae98d5b0c6acdd886691690ed30f986095f55e
+ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:bebb8cf2ccb39189eecd8cbb8876279d80c333c24d4ef6854663d316fd5e88c7
 
 ##
 # DEPENDENCIES: Install application dependencies
