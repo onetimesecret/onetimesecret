@@ -127,7 +127,10 @@ module Onetime
         notification = build_bell_notification
         key          = "notifications:#{custid}"
 
-        # Use MULTI/EXEC for atomic Redis operations
+        # Use MULTI/EXEC for atomic Redis operations. Keep the
+        # Familia.dbclient resolve inline with .multi — splitting the
+        # resolve from the .multi call can land the two on different pool
+        # connections under the escaped-checkout provider.
         Familia.dbclient.multi do |multi|
           multi.lpush(key, notification.to_json)
           multi.ltrim(key, 0, MAX_NOTIFICATIONS - 1)

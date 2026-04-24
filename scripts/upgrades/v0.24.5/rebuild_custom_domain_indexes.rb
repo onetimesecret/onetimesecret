@@ -38,7 +38,9 @@ module Onetime
     module IndexRebuilder
       module_function
 
-      ATOMIC_SWAP = Familia::Features::Relationships::Indexing::RebuildStrategies
+      # Familia 2.6.0 moved atomic_swap out of the Indexing::RebuildStrategies
+      # module and into Familia::AtomicOperations as a module function.
+      ATOMIC_SWAP = Familia::AtomicOperations
 
       def run(execute: false, verbose: false, io: $stdout)
         log = CommandLog.new(execute: execute, io: io, verbose: verbose)

@@ -274,6 +274,11 @@ jobs:
       needs.changes.outputs.ruby == 'true' &&
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
+    # pull-requests: write lets run-ruby-tests post failure tails as PR
+    # comments. contents: read inherited from workflow-level permissions.
+    permissions:
+      contents: read
+      pull-requests: write
 
     services:
       redis: &valkey-service
@@ -408,6 +413,9 @@ jobs:
       needs.changes.outputs.ruby == 'true' &&
       needs.ruby-unit.result == 'success' &&
       !contains(needs.*.result, 'cancelled')
+    permissions: &perms-pr-comment
+      contents: read
+      pull-requests: write
 
     services:
       redis: *valkey-service
@@ -449,6 +457,7 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-unit]
     if: *if-ruby-integration
+    permissions: *perms-pr-comment
 
     services:
       redis: *valkey-service
@@ -491,6 +500,7 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-unit]
     if: *if-ruby-integration
+    permissions: *perms-pr-comment
 
     services:
       redis: *valkey-service
@@ -590,6 +600,7 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-unit]
     if: *if-ruby-integration
+    permissions: *perms-pr-comment
 
     services:
       redis: *valkey-service
