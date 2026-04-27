@@ -9,6 +9,16 @@
 # This lets the full pipeline complete so all issues surface in one run,
 # rather than fixing one model at a time and re-running.
 #
+# CONTRACT: All scripts invoked by this pipeline MUST default to execute
+# (i.e., run-with-side-effects without an explicit flag). The Phase 2
+# orchestration in upgrade.sh runs this script only when --execute is set,
+# so dry-run propagation is handled at the parent level. enrich_with_identifiers.rb
+# is the documented exception (defaults to dry-run for direct CLI safety,
+# cf. PR #2748); it is invoked here with an explicit --execute and guarded
+# against silent dry-run output below. If you add a callee that defaults
+# to dry-run, either flip its default or add a similar guard, or the
+# pipeline will silently no-op (see issue #3036).
+#
 # Usage: Run from project root:
 #   scripts/upgrades/v0.24.5/run_pipeline.sh
 #
@@ -61,7 +71,29 @@ echo ""
 echo ""
 phase_start=$SECONDS
 echo "=== Enriching with identifiers ============================================="
-ruby scripts/upgrades/v0.24.5/enrich_with_identifiers.rb --execute
+# Defensive guard: enrich_with_identifiers.rb is the only callee in this
+# pipeline that defaults to dry-run; every other script defaults to execute.
+# That asymmetry has burned us once already (cf. issue #3036). If the enricher
+# silently no-ops, downstream transforms produce empty/incorrect output without
+# any error. Capture the script output, replay it, and abort if the dry-run
+# banner appears.
+#
+# Implementation note: $(cmd) under set -e aborts on non-zero, so we wrap
+# with || true and check exit status via PIPESTATUS; that preserves real
+# ruby crashes (we re-exit) while letting us inspect dry-run banners.
+enrich_output=$(ruby scripts/upgrades/v0.24.5/enrich_with_identifiers.rb --execute 2>&1) || enrich_status=$?
+enrich_status=${enrich_status:-0}
+echo "$enrich_output"
+if [ "$enrich_status" -ne 0 ]; then
+  echo "  FATAL: enrich_with_identifiers.rb exited with status $enrich_status"
+  exit "$enrich_status"
+fi
+if echo "$enrich_output" | grep -q "Would enrich"; then
+  echo ""
+  echo "  FATAL: enrich_with_identifiers.rb ran in dry-run mode."
+  echo "  The pipeline requires --execute. See run_pipeline.sh contract above."
+  exit 1
+fi
 echo "  Enrichment completed in $((SECONDS - phase_start))s"
 
 echo ""
