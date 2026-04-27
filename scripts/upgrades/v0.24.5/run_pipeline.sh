@@ -61,7 +61,7 @@ echo ""
 echo ""
 phase_start=$SECONDS
 echo "=== Enriching with identifiers ============================================="
-ruby scripts/upgrades/v0.24.5/enrich_with_identifiers.rb
+ruby scripts/upgrades/v0.24.5/enrich_with_identifiers.rb --execute
 echo "  Enrichment completed in $((SECONDS - phase_start))s"
 
 echo ""
