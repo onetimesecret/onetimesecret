@@ -4,3 +4,4 @@
 !/api/*
 !DOCKER*.md
 !README*.md
+/api/*.txt
