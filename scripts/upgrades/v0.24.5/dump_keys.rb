@@ -107,7 +107,7 @@ class KeyDumper
     # Process all databases in one pass, collecting into model files
     MIGRATION_DBS.each do |db|
       puts "Processing DB #{db}..."
-      redis = Redis.new(url: redis_url_for_db(db))
+      redis = redis_connect(db)
 
       if @dry_run
         stats = { total: 0, dumped: 0, skipped: 0, errors: [] }

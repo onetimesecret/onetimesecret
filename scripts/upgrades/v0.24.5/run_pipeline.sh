@@ -78,9 +78,10 @@ echo "=== Enriching with identifiers ===========================================
 # any error. Capture the script output, replay it, and abort if the dry-run
 # banner appears.
 #
-# Implementation note: $(cmd) under set -e aborts on non-zero, so we wrap
-# with || true and check exit status via PIPESTATUS; that preserves real
-# ruby crashes (we re-exit) while letting us inspect dry-run banners.
+# Implementation note: $(cmd) under set -e aborts on non-zero, so we capture
+# the exit status into enrich_status with `|| enrich_status=$?` (defaulting to
+# 0 on success). That preserves real ruby crashes — we re-exit with the
+# captured status — while letting us inspect the output for the dry-run banner.
 enrich_output=$(ruby scripts/upgrades/v0.24.5/enrich_with_identifiers.rb --execute 2>&1) || enrich_status=$?
 enrich_status=${enrich_status:-0}
 echo "$enrich_output"
