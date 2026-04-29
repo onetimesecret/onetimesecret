@@ -144,7 +144,10 @@ class KeyLoader
       if File.exist?(transformed_file)
         load_transformed_records(model_name, transformed_file)
       else
-        puts "  No transformed file: #{transformed_file}"
+        msg = "Missing transformed file: #{transformed_file} (Phase 2 artifact). " \
+              'Re-run Phase 2, or pass --skip-records if loading indexes only is intentional.'
+        warn "  ERROR: #{msg}"
+        @stats[model_name][:errors] << { error: msg, file: transformed_file }
       end
     end
 
@@ -154,7 +157,10 @@ class KeyLoader
       if File.exist?(indexes_file)
         execute_index_commands(model_name, indexes_file)
       else
-        puts "  No indexes file: #{indexes_file}"
+        msg = "Missing indexes file: #{indexes_file} (Phase 2 artifact). " \
+              'Re-run Phase 2, or pass --skip-indexes if loading records only is intentional.'
+        warn "  ERROR: #{msg}"
+        @stats[model_name][:errors] << { error: msg, file: indexes_file }
       end
     end
 
@@ -443,12 +449,12 @@ def parse_args(args)
           --skip-records       Load only indexes (skip RESTORE operations)
           --help               Show this help
 
-        Models (loaded in dependency order):
-          customer       -> DB 6
-          organization   -> DB 6
-          customdomain   -> DB 6
-          receipt        -> DB 7
-          secret         -> DB 8
+        Models (loaded in dependency order, all into consolidated DB 0):
+          customer       -> DB 0
+          organization   -> DB 0
+          customdomain   -> DB 0
+          receipt        -> DB 0 (read from 'metadata' subdir)
+          secret         -> DB 0
 
         Input files per model (in subdirs):
           {model}_transformed.jsonl   Records to RESTORE (with dump blobs)

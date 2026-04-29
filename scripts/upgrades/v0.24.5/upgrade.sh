@@ -441,10 +441,22 @@ if [ "$START_PHASE" -le 3 ]; then
   " "$TARGET_VALKEY_URL" "$REDIS_TIMEOUT" 2>/dev/null || echo "    (could not read keyspace)"
   echo ""
 
+  set +e
   ruby scripts/upgrades/v0.24.5/load_keys.rb \
     --valkey-url="$TARGET_VALKEY_URL" \
     --input-dir="$DATA_DIR" \
     $DRY_RUN_FLAG
+  load_keys_rc=$?
+  set -e
+
+  if [ "$load_keys_rc" -ne 0 ]; then
+    echo ""
+    echo "  FATAL: Phase 3 (load_keys.rb) failed with exit code $load_keys_rc"
+    echo "         Inspect output above; common causes are missing Phase 2 artifacts"
+    echo "         or RESTORE/index command errors against the target."
+    echo "         To resume after fixing: $0 --execute --start-phase=3"
+    exit "$load_keys_rc"
+  fi
 
   # Capture keyspace after load
   if $EXECUTE; then
