@@ -27,8 +27,10 @@
 #   --input-dir=DIR    Input directory with dump/transformed files (default: data/upgrades/v0.24.5)
 #   --redis-url=URL    Redis URL for RESTORE operations (env: VALKEY_URL or REDIS_URL)
 #   --target-db=N      Target database number (default: 0)
-#   --dry-run          Preview without writing to Redis
+#   --execute          Perform Redis writes (default: dry-run, no writes)
 #   --help             Show this help
+#
+# Default behavior is DRY-RUN. Pass --execute to perform Redis RESTORE operations.
 #
 # Input:
 #   data/upgrades/v0.24.5/{model}/{model}_dump.jsonl        (v1 dump — source of RESTORE binaries)
@@ -95,7 +97,7 @@ class OriginalRecordRestorer
     },
   }.freeze
 
-  def initialize(input_dir:, redis_url:, target_db:, dry_run: false)
+  def initialize(input_dir:, redis_url:, target_db:, dry_run: true)
     @input_dir  = input_dir
     @redis_url  = redis_url
     @target_db  = target_db
@@ -369,7 +371,7 @@ def parse_args(args)
     input_dir: DEFAULT_DATA_DIR,
     redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
     target_db: 0,
-    dry_run: false,
+    dry_run: true,
   }
 
   args.each do |arg|
@@ -380,19 +382,21 @@ def parse_args(args)
       options[:redis_url] = Regexp.last_match(1)
     when /^--target-db=(\d+)$/
       options[:target_db] = Regexp.last_match(1).to_i
-    when '--dry-run'
-      options[:dry_run] = true
+    when '--execute'
+      options[:dry_run] = false
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.5/enrich_with_original_record.rb [OPTIONS]
 
         Restores original v1 records as _original_* Redis keys with 30-day TTL.
 
+        Default behavior is DRY-RUN (no Redis writes). Pass --execute to perform writes.
+
         Options:
           --input-dir=DIR    Input directory (default: data/upgrades/v0.24.5)
           --redis-url=URL    Redis URL for RESTORE (env: VALKEY_URL or REDIS_URL)
           --target-db=N      Target database number (default: 0)
-          --dry-run          Preview without writing to Redis
+          --execute          Perform Redis writes (default: dry-run, no writes)
           --help             Show this help
 
         Input files:
