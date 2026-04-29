@@ -63,8 +63,20 @@ class KeyDumper
     uri.to_s
   end
 
+  # Larger timeouts than the 1s default — DUMP on big keys and SCAN over big DBs
+  # routinely take >1s on a 700MB+ dataset.
+  def redis_connect(db_number)
+    Redis.new(
+      url: redis_url_for_db(db_number),
+      connect_timeout: 10,
+      read_timeout: 30,
+      write_timeout: 10,
+      reconnect_attempts: [0.5, 1.0, 2.0],
+    )
+  end
+
   def dump_database(db_number)
-    redis = Redis.new(url: redis_url_for_db(db_number))
+    redis = redis_connect(db_number)
 
     if @dry_run
       puts "DRY RUN: Would dump DB #{db_number}"
@@ -95,7 +107,7 @@ class KeyDumper
     # Process all databases in one pass, collecting into model files
     MIGRATION_DBS.each do |db|
       puts "Processing DB #{db}..."
-      redis = Redis.new(url: redis_url_for_db(db))
+      redis = redis_connect(db)
 
       if @dry_run
         stats = { total: 0, dumped: 0, skipped: 0, errors: [] }
