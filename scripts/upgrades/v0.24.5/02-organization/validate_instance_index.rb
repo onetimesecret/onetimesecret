@@ -270,6 +270,11 @@ def parse_args(args)
     transformed_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_transformed.jsonl'),
     indexes_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_indexes.jsonl'),
     customer_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_transformed.jsonl'),
+    # Accepted for symmetry with sibling validators (run_pipeline.sh passes
+    # --redis-url to every validator). This validator works exclusively on
+    # JSONL artifacts on disk; the value is currently unused but is recorded
+    # so callers don't fail when invoking with the standard flag set.
+    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
   }
 
   args.each do |arg|
@@ -280,6 +285,8 @@ def parse_args(args)
       options[:indexes_file] = Regexp.last_match(1)
     when /^--customer-file=(.+)$/
       options[:customer_file] = Regexp.last_match(1)
+    when /^--redis-url=(.+)$/
+      options[:redis_url] = Regexp.last_match(1)
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.5/02-organization/validate_instance_index.rb [OPTIONS]
@@ -291,6 +298,8 @@ def parse_args(args)
           --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.5/organization/organization_transformed.jsonl)
           --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.5/organization/organization_indexes.jsonl)
           --customer-file=FILE     Customer transformed JSONL (default: data/upgrades/v0.24.5/customer/customer_transformed.jsonl)
+          --redis-url=URL          Accepted for parity with other validators; unused
+                                   (env: VALKEY_URL or REDIS_URL)
           --help                   Show this help
 
         Validates:

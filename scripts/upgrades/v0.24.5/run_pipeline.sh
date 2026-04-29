@@ -112,7 +112,7 @@ phase_start=$SECONDS
 echo "=== Organization ============================================="
 ruby scripts/upgrades/v0.24.5/02-organization/generate.rb
 ruby scripts/upgrades/v0.24.5/02-organization/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/02-organization/validate_instance_index.rb
+run_validator scripts/upgrades/v0.24.5/02-organization/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Organization completed in $((SECONDS - phase_start))s"
 
 echo ""
