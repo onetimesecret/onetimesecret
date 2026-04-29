@@ -7,7 +7,7 @@
 #
 # Regression context (#3041): the v0.24.5 upgrade pipeline produced
 # Organization records but never emitted OrganizationMembership records, which
-# in turn left organization:org_customer_lookup empty. Customers appeared in
+# in turn left org_membership:org_customer_lookup empty. Customers appeared in
 # org.members ZSETs and customer.participations SETs, but model-level lookups
 # such as OrganizationMembership.find_by_org_customer returned nil. The
 # Organization-stage validator also lacked a --redis-url option, so
@@ -18,7 +18,7 @@
 #   1. generate.rb + create_indexes.rb + load_keys.rb (the production path)
 #      produce a discoverable OrganizationMembership for each org's owner with
 #      role='owner', status='active', and a positive joined_at.
-#   2. organization:org_customer_lookup HSET contains the expected
+#   2. org_membership:org_customer_lookup HSET contains the expected
 #      "org_objid:owner_id" -> membership_objid mapping.
 #   3. The owner is in org.members (ZSET) and the org collection key is in
 #      customer.participations (SET) — guards the existing behavior that the
@@ -257,9 +257,9 @@ end
 
 # --- Membership emission contract (#3041 fix) ---------------------------------
 
-## organization:org_customer_lookup HSET contains an entry for every (org, owner) pair
+## org_membership:org_customer_lookup HSET contains an entry for every (org, owner) pair
 @expected_lookup_keys = @org_records.map { |r| "#{r['objid']}:#{r['owner_id']}" }.sort
-@actual_lookup_keys   = @redis.hkeys('organization:org_customer_lookup').sort
+@actual_lookup_keys   = @redis.hkeys('org_membership:org_customer_lookup').sort
 (@expected_lookup_keys - @actual_lookup_keys).empty?
 #=> true
 
@@ -301,7 +301,7 @@ end
 # --- Idempotency: re-running create_indexes.rb + load_keys.rb is stable -------
 
 ## Snapshot membership state before the second pass
-@before_lookup_size = @redis.hlen('organization:org_customer_lookup')
+@before_lookup_size = @redis.hlen('org_membership:org_customer_lookup')
 @before_membership_objids = @org_records.map do |r|
   Onetime::OrganizationMembership.find_by_org_customer(r['objid'], r['owner_id']).objid
 end
@@ -317,7 +317,7 @@ run_load_keys(input_dir: @workdir).last.success?
 #=> true
 
 ## Lookup HSET size is unchanged (no duplicates)
-@redis.hlen('organization:org_customer_lookup') == @before_lookup_size
+@redis.hlen('org_membership:org_customer_lookup') == @before_lookup_size
 #=> true
 
 ## Each (org, owner) still resolves to the same membership objid
