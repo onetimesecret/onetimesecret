@@ -490,10 +490,18 @@ if [ "$START_PHASE" -le 4 ]; then
 
   phase_start=$SECONDS
 
+  # enrich_with_original_record.rb defaults to dry-run; pass --execute when
+  # the operator has opted into a real upgrade. $DRY_RUN_FLAG (--dry-run) does
+  # not apply here since the script's flag semantics are inverted.
+  ENRICH_ORIGINAL_EXECUTE_FLAG=""
+  if $EXECUTE; then
+    ENRICH_ORIGINAL_EXECUTE_FLAG="--execute"
+  fi
+
   ruby scripts/upgrades/v0.24.5/enrich_with_original_record.rb \
     --redis-url="$TARGET_VALKEY_URL" \
     --input-dir="$DATA_DIR" \
-    $DRY_RUN_FLAG
+    $ENRICH_ORIGINAL_EXECUTE_FLAG
 
   echo ""
   echo "  Phase 4 completed in $((SECONDS - phase_start))s"
