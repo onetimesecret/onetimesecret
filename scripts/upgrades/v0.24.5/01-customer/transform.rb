@@ -428,13 +428,23 @@ class CustomerTransformer
   def write_output(records)
     FileUtils.mkdir_p(@output_dir)
     output_file = File.join(@output_dir, 'customer_transformed.jsonl')
+    temp_file   = "#{output_file}.tmp"
 
-    File.open(output_file, 'w') do |f|
-      records.each do |record|
-        f.puts(JSON.generate(record))
-        @stats[:v2_records_written] += 1
+    begin
+      File.open(temp_file, 'w') do |f|
+        records.each do |record|
+          f.puts(JSON.generate(record))
+          @stats[:v2_records_written] += 1
+        end
       end
+      FileUtils.mv(temp_file, output_file)
+    rescue StandardError
+      # Ensure no partial output is promoted to the final filename.
+      # Any prior successful run's output remains at output_file.
+      FileUtils.rm_f(temp_file)
+      raise
     end
+
     puts "Wrote #{@stats[:v2_records_written]} transformed records to #{output_file}"
   end
 
