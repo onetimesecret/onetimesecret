@@ -270,7 +270,7 @@ class OrganizationGenerator
       org_objid: org_record[:objid],
       customer_objid: customer_objid,
       created: org_record[:created],
-      db: customer_record[:db],
+      db: record[:db],
     )
     return unless membership_record
 
