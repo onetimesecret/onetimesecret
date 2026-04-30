@@ -162,6 +162,16 @@ class CustomerTransformer
     @redis.close
   end
 
+  # Pipelining is opt-in via OTS_MIGRATION_PIPELINE. Any truthy value enables
+  # within-customer pipelining of RESTORE+HGETALL, HMSET+DUMP, and the
+  # counter SET+DUMP fan-out. DEL stays in `ensure` blocks unchanged so temp
+  # keys are cleaned up on every path. Memoized; ENV is read once.
+  def pipeline_enabled?
+    return @pipeline_enabled if defined?(@pipeline_enabled)
+    raw = ENV['OTS_MIGRATION_PIPELINE'].to_s.strip.downcase
+    @pipeline_enabled = !(raw.empty? || %w[0 false no off].include?(raw))
+  end
+
   def group_records_by_customer
     puts "Reading and grouping records from #{@input_file}..."
     groups = Hash.new { |h, k| h[k] = [] }
@@ -270,31 +280,62 @@ class CustomerTransformer
   # Extract counter fields from customer hash and emit as standalone JSONL records.
   # In v2, Familia class_counter fields are Redis String keys, not hash fields.
   def externalize_counters(v1_fields, objid, original_record)
-    records = []
+    pending = []
     COUNTER_FIELDS.each do |field|
       value = v1_fields[field].to_i
       next if value.zero?
 
-      # Create a proper Redis DUMP blob so load_keys.rb can RESTORE it
-      temp_key = "#{TEMP_KEY_PREFIX}ctr_#{SecureRandom.hex(4)}"
-      dump_b64 = begin
-        @redis.set(temp_key, value)
-        dump_data = @redis.dump(temp_key)
-        Base64.strict_encode64(dump_data)
-      ensure
-        @redis.del(temp_key)
-      end
-
-      records << {
-        key: "customer:#{objid}:#{field}",
-        type: 'string',
-        ttl_ms: -1,
-        db: original_record[:db],
-        dump: dump_b64,
-      }
-      @stats[:externalized_counters] += 1
+      pending << [field, value, "#{TEMP_KEY_PREFIX}ctr_#{SecureRandom.hex(4)}"]
     end
-    records
+    return [] if pending.empty?
+
+    if pipeline_enabled?
+      # Pipeline all SET+DUMP pairs for this customer's counters in one RTT,
+      # then DEL the temp keys in one RTT. For a customer with N non-zero
+      # counters this collapses 3N round trips into 2. The DEL pipeline lives
+      # in `ensure` so a transient failure mid-SET+DUMP does not leak temp keys
+      # for `cleanup_redis` to mop up later.
+      begin
+        results = @redis.pipelined do |pipe|
+          pending.each do |_field, value, temp_key|
+            pipe.set(temp_key, value)
+            pipe.dump(temp_key)
+          end
+        end
+        pending.each_with_index.map do |(field, _value, _temp_key), i|
+          dump_data = results[(i * 2) + 1]
+          @stats[:externalized_counters] += 1
+          {
+            key: "customer:#{objid}:#{field}",
+            type: 'string',
+            ttl_ms: -1,
+            db: original_record[:db],
+            dump: Base64.strict_encode64(dump_data),
+          }
+        end
+      ensure
+        @redis.pipelined { |pipe| pending.each { |_, _, tk| pipe.del(tk) } }
+      end
+    else
+      pending.map do |field, value, temp_key|
+        dump_b64 = begin
+          @redis.set(temp_key, value)
+          dump_data = @redis.dump(temp_key)
+          Base64.strict_encode64(dump_data)
+        ensure
+          @redis.del(temp_key)
+        end
+
+        @stats[:externalized_counters] += 1
+        {
+          key: "customer:#{objid}:#{field}",
+          type: 'string',
+          ttl_ms: -1,
+          db: original_record[:db],
+          dump: dump_b64,
+        }
+      end
+    end
   end
 
   def transform_customer_object(v1_record, v1_fields, objid, extid)
@@ -326,8 +367,18 @@ class CustomerTransformer
       v2_serialized = serialize_for_v2(v2_fields)
       # NOTE: hmset is deprecated, but redis-rb gem maps it to HMSET for older redis-server versions
       # For modern Redis, this would be `hset(temp_key, v2_serialized)`
-      @redis.hmset(temp_key, v2_serialized.to_a.flatten)
-      dump_data     = @redis.dump(temp_key)
+      hmset_args = v2_serialized.to_a.flatten
+      dump_data =
+        if pipeline_enabled?
+          _hmset_result, dumped = @redis.pipelined do |pipe|
+            pipe.hmset(temp_key, hmset_args)
+            pipe.dump(temp_key)
+          end
+          dumped
+        else
+          @redis.hmset(temp_key, hmset_args)
+          @redis.dump(temp_key)
+        end
       Base64.strict_encode64(dump_data)
     ensure
       @redis.del(temp_key)
@@ -370,8 +421,19 @@ class CustomerTransformer
     temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
     dump_data = Base64.strict_decode64(record[:dump])
     begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
+      if pipeline_enabled?
+        # RESTORE then HGETALL on the same key in a single round trip; Redis
+        # processes pipelined commands in order, so HGETALL sees the just-
+        # restored hash. Saves one RTT per customer object decode.
+        _restore_result, fields = @redis.pipelined do |pipe|
+          pipe.restore(temp_key, 0, dump_data, replace: true)
+          pipe.hgetall(temp_key)
+        end
+        fields
+      else
+        @redis.restore(temp_key, 0, dump_data, replace: true)
+        @redis.hgetall(temp_key)
+      end
     rescue Redis::CommandError => ex
       raise "Restore failed for key #{record[:key]}: #{ex.message}"
     ensure

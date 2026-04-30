@@ -168,6 +168,16 @@ class OrganizationGenerator
     @redis.close
   end
 
+  # Pipelining is opt-in via OTS_MIGRATION_PIPELINE. Any truthy value enables
+  # within-record pipelining of RESTORE+HGETALL and HMSET+DUMP. DEL stays in
+  # `ensure` blocks unchanged so temp keys are cleaned up on every path.
+  # Memoized; ENV is read once.
+  def pipeline_enabled?
+    return @pipeline_enabled if defined?(@pipeline_enabled)
+    raw = ENV['OTS_MIGRATION_PIPELINE'].to_s.strip.downcase
+    @pipeline_enabled = !(raw.empty? || %w[0 false no off].include?(raw))
+  end
+
   def serialize_for_v2(fields, field_types = FIELD_TYPES)
     fields.each_with_object({}) do |(key, value), result|
       result[key] = if value == '' || value.nil?
@@ -283,8 +293,19 @@ class OrganizationGenerator
     dump_data = Base64.strict_decode64(record[:dump])
 
     begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
+      if pipeline_enabled?
+        # RESTORE then HGETALL on the same key in a single round trip; Redis
+        # processes pipelined commands in order, so HGETALL sees the just-
+        # restored hash. Saves one RTT per customer object decode.
+        _restore_result, fields = @redis.pipelined do |pipe|
+          pipe.restore(temp_key, 0, dump_data, replace: true)
+          pipe.hgetall(temp_key)
+        end
+        fields
+      else
+        @redis.restore(temp_key, 0, dump_data, replace: true)
+        @redis.hgetall(temp_key)
+      end
     rescue Redis::CommandError => ex
       @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
       nil
@@ -353,9 +374,19 @@ class OrganizationGenerator
     # Serialize values for Familia v2 JSON format before writing to Redis
     temp_key     = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
     serialized   = serialize_for_v2(org_fields)
+    hmset_args   = serialized.to_a.flatten
     org_dump_b64 = begin
-      @redis.hmset(temp_key, serialized.to_a.flatten)
-      dump_data = @redis.dump(temp_key)
+      dump_data =
+        if pipeline_enabled?
+          _hmset_result, dumped = @redis.pipelined do |pipe|
+            pipe.hmset(temp_key, hmset_args)
+            pipe.dump(temp_key)
+          end
+          dumped
+        else
+          @redis.hmset(temp_key, hmset_args)
+          @redis.dump(temp_key)
+        end
       Base64.strict_encode64(dump_data)
     ensure
       @redis.del(temp_key)
@@ -414,9 +445,20 @@ class OrganizationGenerator
 
     temp_key   = "#{TEMP_KEY_PREFIX}mem_#{SecureRandom.hex(8)}"
     serialized = serialize_for_v2(membership_fields, MEMBERSHIP_FIELD_TYPES)
+    hmset_args = serialized.to_a.flatten
     dump_b64   = begin
-      @redis.hmset(temp_key, serialized.to_a.flatten)
-      Base64.strict_encode64(@redis.dump(temp_key))
+      dump_data =
+        if pipeline_enabled?
+          _hmset_result, dumped = @redis.pipelined do |pipe|
+            pipe.hmset(temp_key, hmset_args)
+            pipe.dump(temp_key)
+          end
+          dumped
+        else
+          @redis.hmset(temp_key, hmset_args)
+          @redis.dump(temp_key)
+        end
+      Base64.strict_encode64(dump_data)
     ensure
       @redis.del(temp_key)
     end
