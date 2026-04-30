@@ -32,6 +32,8 @@ require 'fileutils'
 require 'securerandom'
 require 'uri'
 
+require_relative '../lib/progress'
+
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/04-receipt/create_indexes.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
@@ -143,10 +145,13 @@ class ReceiptIndexCreator
     uri.path = "/#{@temp_db}"
     redis    = Redis.new(url: uri.to_s)
 
+    progress = Upgrade::ProgressReporter.new('receipt indexes')
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:records_read] += 1
       process_record(line.strip, out, redis)
     end
+    progress.finish
   rescue StandardError => ex
     @stats[:errors] << { error: ex.message, backtrace: ex.backtrace.first(3) }
   ensure

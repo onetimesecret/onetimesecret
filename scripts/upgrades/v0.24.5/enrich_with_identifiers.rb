@@ -44,6 +44,8 @@ require 'securerandom'
 require 'digest'
 require 'fileutils'
 
+require_relative 'lib/progress'
+
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/enrich_with_identifiers.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
@@ -104,9 +106,11 @@ class IdentifierEnricher
   end
 
   def dry_run_model(model, input_file)
-    stats = @stats[model]
+    stats    = @stats[model]
+    progress = Upgrade::ProgressReporter.new("#{model} dry-run")
 
     File.foreach(input_file) do |line|
+      progress.tick
       stats[:total] += 1
       record         = JSON.parse(line.chomp)
 
@@ -118,6 +122,7 @@ class IdentifierEnricher
     rescue JSON::ParserError => ex
       stats[:errors] << { line: stats[:total], error: ex.message }
     end
+    progress.finish
 
     puts "  Would enrich #{stats[:enriched]} of #{stats[:total]} records"
   end
@@ -130,8 +135,11 @@ class IdentifierEnricher
 
     FileUtils.mkdir_p(File.dirname(output_file))
 
+    progress = Upgrade::ProgressReporter.new("#{model} enriched")
+
     File.open(temp_file, 'w') do |out|
       File.foreach(input_file) do |line|
+        progress.tick
         stats[:total] += 1
         record         = JSON.parse(line.chomp)
 
@@ -153,6 +161,7 @@ class IdentifierEnricher
         stats[:errors] << { line: stats[:total], error: ex.message }
       end
     end
+    progress.finish
 
     # Atomic replace
     FileUtils.mv(temp_file, output_file)

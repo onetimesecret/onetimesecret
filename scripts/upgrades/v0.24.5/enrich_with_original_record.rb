@@ -57,6 +57,8 @@ require 'redis'
 require 'familia'
 require 'uri'
 
+require_relative 'lib/progress'
+
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class OriginalRecordRestorer
@@ -274,7 +276,9 @@ class OriginalRecordRestorer
     stats[:mapped] = mapping.size
 
     # Phase B: Stream v1 dump and RESTORE each record
+    progress = Upgrade::ProgressReporter.new("#{model} originals")
     File.foreach(dump_file) do |line|
+      progress.tick
       record = JSON.parse(line.chomp, symbolize_names: true)
       next unless record[:key] && record[:dump]
 
@@ -300,6 +304,7 @@ class OriginalRecordRestorer
     rescue JSON::ParserError => ex
       stats[:errors] << { error: ex.message }
     end
+    progress.finish
 
     puts "  Phase B: Restored #{stats[:restored]} keys (#{stats[:not_found]} not mapped, #{stats[:skipped]} skipped)"
     puts "  Errors: #{stats[:errors].size}" if stats[:errors].any?

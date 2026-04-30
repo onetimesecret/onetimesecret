@@ -34,6 +34,8 @@ require 'base64'
 require 'fileutils'
 require 'uri'
 
+require_relative 'lib/progress'
+
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/dump_keys.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
@@ -151,16 +153,19 @@ class KeyDumper
   end
 
   def scan_and_dump(redis, db_number)
-    cursor = '0'
+    progress = Upgrade::ProgressReporter.new("DB #{db_number} scan")
+    cursor   = '0'
     loop do
       cursor, keys = redis.scan(cursor, count: 1000)
 
       keys.each do |key|
+        progress.tick
         dump_key(redis, key, db_number)
       end
 
       break if cursor == '0'
     end
+    progress.finish
   end
 
   def get_model_for_key(key)

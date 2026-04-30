@@ -43,6 +43,8 @@ require 'base64'
 require 'uri'
 require 'set'
 
+require_relative 'lib/progress'
+
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/load_keys.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
@@ -249,6 +251,7 @@ class KeyLoader
     puts "  Loading records from #{File.basename(file_path)}..."
     target_db = MODELS[model_name][:db]
     redis     = get_redis(target_db)
+    progress  = Upgrade::ProgressReporter.new("#{model_name} RESTORE")
 
     if pipeline_enabled?
       puts "    Pipelining RESTORE in batches of #{pipeline_batch_size}"
@@ -261,21 +264,27 @@ class KeyLoader
         batch << prepared
         if batch.size >= pipeline_batch_size
           flush_record_batch(model_name, redis, batch)
+          progress.tick(batch.size)
           batch.clear
         end
       rescue JSON::ParserError => ex
         @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
       end
-      flush_record_batch(model_name, redis, batch) unless batch.empty?
+      unless batch.empty?
+        flush_record_batch(model_name, redis, batch)
+        progress.tick(batch.size)
+      end
     else
       File.foreach(file_path) do |line|
         record = JSON.parse(line, symbolize_names: true)
         restore_record(model_name, redis, record)
+        progress.tick
       rescue JSON::ParserError => ex
         @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
       end
     end
 
+    progress.finish
     puts "    Records restored: #{@stats[model_name][:records_restored]}"
     puts "    Records skipped: #{@stats[model_name][:records_skipped]}" if @stats[model_name][:records_skipped] > 0
   end
@@ -359,6 +368,7 @@ class KeyLoader
     puts "  Executing indexes from #{File.basename(file_path)}..."
     target_db = MODELS[model_name][:db]
     redis     = get_redis(target_db)
+    progress  = Upgrade::ProgressReporter.new("#{model_name} indexes")
 
     if pipeline_enabled?
       puts "    Pipelining index commands in batches of #{pipeline_batch_size}"
@@ -371,21 +381,27 @@ class KeyLoader
         batch << prepared
         if batch.size >= pipeline_batch_size
           flush_index_batch(model_name, redis, batch)
+          progress.tick(batch.size)
           batch.clear
         end
       rescue JSON::ParserError => ex
         @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
       end
-      flush_index_batch(model_name, redis, batch) unless batch.empty?
+      unless batch.empty?
+        flush_index_batch(model_name, redis, batch)
+        progress.tick(batch.size)
+      end
     else
       File.foreach(file_path) do |line|
         cmd = JSON.parse(line, symbolize_names: true)
         execute_command(model_name, redis, cmd)
+        progress.tick
       rescue JSON::ParserError => ex
         @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
       end
     end
 
+    progress.finish
     puts "    Index commands executed: #{@stats[model_name][:indexes_executed]}"
     puts "    Index commands skipped: #{@stats[model_name][:indexes_skipped]}" if @stats[model_name][:indexes_skipped] > 0
   end

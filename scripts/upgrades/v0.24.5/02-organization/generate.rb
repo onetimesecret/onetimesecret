@@ -35,6 +35,8 @@ require 'openssl'
 require 'familia'
 require 'uri'
 
+require_relative '../lib/progress'
+
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/02-organization/generate.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
@@ -220,7 +222,9 @@ class OrganizationGenerator
   end
 
   def process_customers
+    progress = Upgrade::ProgressReporter.new('customers -> orgs')
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
 
@@ -240,6 +244,7 @@ class OrganizationGenerator
     rescue JSON::ParserError => ex
       @stats[:errors] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
     end
+    progress.finish
   end
 
   def process_customer_record(record)

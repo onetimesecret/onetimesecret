@@ -27,6 +27,8 @@ require 'redis'
 require 'familia'
 require 'uri'
 
+require_relative '../lib/progress'
+
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/02-organization/create_indexes.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
@@ -106,7 +108,9 @@ class OrganizationIndexCreator
   end
 
   def process_input_file
+    progress = Upgrade::ProgressReporter.new('org records')
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:total_records] += 1
       record                  = JSON.parse(line, symbolize_names: true)
 
@@ -128,6 +132,7 @@ class OrganizationIndexCreator
     rescue JSON::ParserError => ex
       @stats[:errors] << { line: @stats[:total_records], error: ex.message }
     end
+    progress.finish
   end
 
   def process_membership_record(record)
