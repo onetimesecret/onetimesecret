@@ -49,6 +49,13 @@ Hash        organization:{objid}:urls                  New in V2
 Sorted Set  organization:{objid}:pending_invitations   New in V2
 JsonKey     organization:{objid}:caboose               New in V2
 JsonKey     organization:{objid}:_original_record    New in V2 (migration snapshot)
+Hash        org_membership:organization:{org}:customer:{cust}:org_membership:object
+                                                       New in V2 (owner membership;
+                                                       Familia prefix=org_membership,
+                                                       objid=composite path
+                                                       organization:{org}:customer:{cust}:org_membership
+                                                       matching Familia's
+                                                       ThroughModelOperations.build_key)
 
 INDEXES
 
@@ -62,6 +69,9 @@ Lookup Indexes
   organization:stripe_checkout_email_index  Hash    email -> "objid"
   organization:extid_lookup                 Hash    extid -> "objid"
   organization:objid_lookup                 Hash    objid -> "objid"
+  org_membership:org_customer_lookup        Hash    "org_objid:customer_objid" ->
+                                                    "membership_objid"
+                                                    (powers find_by_org_customer)
 
 Participation Indexes
   organization:{objid}:members    Sorted Set    Add customer objids with score=joined
@@ -70,12 +80,21 @@ Participation Indexes
 
 SCRIPTS
 
-1. generate.rb   - Creates organization records from transformed customer data
+1. generate.rb   - Creates organization records from transformed customer data,
+                   plus an owner OrganizationMembership record per organization.
+                   Both record types are written to the same JSONL output so
+                   load_keys.rb (which iterates by :key) loads them transparently.
                    Input:  exports/customer/customer_transformed.jsonl
                    Output: exports/organization/organization_transformed.jsonl
-                           exports/organization/customer_to_org_lookup.json
+                             - organization:{org_objid}:object records
+                             - org_membership:organization:{org}:customer:{cust}:org_membership:object records
+                           exports/organization/customer_objid_to_org_objid.json
+                           exports/organization/email_to_org_objid.json
 
-2. create_indexes.rb - Creates index commands from generated organizations
+2. create_indexes.rb - Creates index commands from generated records. For the
+                       org records, emits all instance/lookup/participation
+                       commands. For each membership record, emits one HSET
+                       on org_membership:org_customer_lookup.
                        Input:  exports/organization/organization_transformed.jsonl
                        Output: exports/organization/organization_indexes.jsonl
 
@@ -133,6 +152,13 @@ rebuild_indexes(v2_record):
 
   # Participation (add owner as first member)
   ZADD organization:{objid}:members created v2_record.owner_id
+  SADD customer:{owner_id}:participations organization:{objid}:members
+
+  # Owner membership lookup (powers OrganizationMembership.find_by_org_customer).
+  # membership_objid is the same composite path used as the through model's objid.
+  membership_objid = "organization:{objid}:customer:{owner_id}:org_membership"
+  HSET org_membership:org_customer_lookup
+       "{objid}:{owner_id}" json(membership_objid)
 
 VALIDATION CHECKLIST
 
@@ -148,6 +174,9 @@ VALIDATION CHECKLIST
 [ ] Added to organization:objid_lookup
 [ ] Stripe indexes populated if applicable
 [ ] Owner added to organization:{objid}:members
+[ ] Owner OrganizationMembership record created (role=owner, status=active)
+[ ] org_membership:org_customer_lookup populated for "{org_objid}:{owner_id}"
+[ ] customer:{owner_id}:participations contains organization:{org_objid}:members
 [ ] Migration status = 'completed'
 
 WARNINGS

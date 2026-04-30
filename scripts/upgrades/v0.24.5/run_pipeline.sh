@@ -9,15 +9,20 @@
 # This lets the full pipeline complete so all issues surface in one run,
 # rather than fixing one model at a time and re-running.
 #
-# CONTRACT: All scripts invoked by this pipeline MUST default to execute
-# (i.e., run-with-side-effects without an explicit flag). The Phase 2
-# orchestration in upgrade.sh runs this script only when --execute is set,
-# so dry-run propagation is handled at the parent level. enrich_with_identifiers.rb
-# is the documented exception (defaults to dry-run for direct CLI safety,
-# cf. PR #2748); it is invoked here with an explicit --execute and guarded
-# against silent dry-run output below. If you add a callee that defaults
-# to dry-run, either flip its default or add a similar guard, or the
-# pipeline will silently no-op (see issue #3036).
+# CONTRACT: All scripts invoked by THIS PIPELINE (Phase 2 transforms) MUST
+# default to execute (i.e., run-with-side-effects without an explicit flag).
+# The Phase 2 orchestration in upgrade.sh runs this script only when --execute
+# is set, so dry-run propagation is handled at the parent level.
+# enrich_with_identifiers.rb is the documented exception (defaults to dry-run
+# for direct CLI safety, cf. PR #2748); it is invoked here with an explicit
+# --execute and guarded against silent dry-run output below. If you add a
+# callee that defaults to dry-run, either flip its default or add a similar
+# guard, or the pipeline will silently no-op (see issue #3036).
+#
+# Scope note: this contract applies to run_pipeline.sh (Phase 2) only.
+# Phase 4's enrich_with_original_record.rb is invoked directly by upgrade.sh
+# and intentionally defaults to dry-run for its own CLI-safety reasons; the
+# parent flag-translation lives at upgrade.sh:493-499.
 #
 # Usage: Run from project root:
 #   scripts/upgrades/v0.24.5/run_pipeline.sh
@@ -112,7 +117,7 @@ phase_start=$SECONDS
 echo "=== Organization ============================================="
 ruby scripts/upgrades/v0.24.5/02-organization/generate.rb
 ruby scripts/upgrades/v0.24.5/02-organization/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/02-organization/validate_instance_index.rb
+run_validator scripts/upgrades/v0.24.5/02-organization/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Organization completed in $((SECONDS - phase_start))s"
 
 echo ""
@@ -130,7 +135,7 @@ phase_start=$SECONDS
 echo "=== Receipt ============================================="
 ruby scripts/upgrades/v0.24.5/04-receipt/transform.rb
 ruby scripts/upgrades/v0.24.5/04-receipt/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/04-receipt/validate_instance_index.rb
+run_validator scripts/upgrades/v0.24.5/04-receipt/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Receipt completed in $((SECONDS - phase_start))s"
 
 echo ""
@@ -139,7 +144,7 @@ phase_start=$SECONDS
 echo "=== Secret ============================================="
 ruby scripts/upgrades/v0.24.5/05-secret/transform.rb
 ruby scripts/upgrades/v0.24.5/05-secret/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/05-secret/validate_instance_index.rb
+run_validator scripts/upgrades/v0.24.5/05-secret/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
 echo "  Secret completed in $((SECONDS - phase_start))s"
 
 echo ""

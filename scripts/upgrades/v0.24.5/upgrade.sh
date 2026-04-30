@@ -441,10 +441,22 @@ if [ "$START_PHASE" -le 3 ]; then
   " "$TARGET_VALKEY_URL" "$REDIS_TIMEOUT" 2>/dev/null || echo "    (could not read keyspace)"
   echo ""
 
+  set +e
   ruby scripts/upgrades/v0.24.5/load_keys.rb \
     --valkey-url="$TARGET_VALKEY_URL" \
     --input-dir="$DATA_DIR" \
     $DRY_RUN_FLAG
+  load_keys_rc=$?
+  set -e
+
+  if [ "$load_keys_rc" -ne 0 ]; then
+    echo ""
+    echo "  FATAL: Phase 3 (load_keys.rb) failed with exit code $load_keys_rc"
+    echo "         Inspect output above; common causes are missing Phase 2 artifacts"
+    echo "         or RESTORE/index command errors against the target."
+    echo "         To resume after fixing: $0 --execute --start-phase=3"
+    exit "$load_keys_rc"
+  fi
 
   # Capture keyspace after load
   if $EXECUTE; then
@@ -478,10 +490,18 @@ if [ "$START_PHASE" -le 4 ]; then
 
   phase_start=$SECONDS
 
+  # enrich_with_original_record.rb defaults to dry-run; pass --execute when
+  # the operator has opted into a real upgrade. $DRY_RUN_FLAG (--dry-run) does
+  # not apply here since the script's flag semantics are inverted.
+  ENRICH_ORIGINAL_EXECUTE_FLAG=""
+  if $EXECUTE; then
+    ENRICH_ORIGINAL_EXECUTE_FLAG="--execute"
+  fi
+
   ruby scripts/upgrades/v0.24.5/enrich_with_original_record.rb \
     --redis-url="$TARGET_VALKEY_URL" \
     --input-dir="$DATA_DIR" \
-    $DRY_RUN_FLAG
+    $ENRICH_ORIGINAL_EXECUTE_FLAG
 
   echo ""
   echo "  Phase 4 completed in $((SECONDS - phase_start))s"

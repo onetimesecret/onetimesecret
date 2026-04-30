@@ -4,6 +4,22 @@
 # Loads migrated data into Valkey/Redis from transformed JSONL files.
 # Processes both transformed records (RESTORE) and index commands (ZADD/HSET/etc).
 #
+# Default: execute (writes to Valkey/Redis). Pass --dry-run to preview.
+# This default is intentional: orchestrators (upgrade.sh, run_pipeline.sh) rely
+# on the run_pipeline.sh contract that pipeline scripts default to execute and
+# upgrade.sh's $DRY_RUN_FLAG ("--dry-run" when not executing) is forwarded here.
+# See run_pipeline.sh header for the full contract; flipping this default would
+# silently break upgrade.sh's dry-run propagation.
+#
+# Error handling: per-record soft errors (Base64 decode, JSON parse, single-key
+# Redis errors not in HARD_ERROR_PATTERNS) are collected to @stats[model][:errors]
+# and the run continues so all issues surface in one pass. HARD Redis errors
+# (WRONGTYPE, NOAUTH, READONLY, LOADING, CLUSTERDOWN, MISCONF, OOM, corrupt
+# DUMP payload) abort the run immediately with exit code 2 — these indicate
+# environment misconfiguration or structural data conflict where continuing
+# would compound damage or amount to retry-spam against a broken environment.
+# Exit codes: 0 clean, 1 soft errors only, 2 hard error fail-fast.
+#
 # Usage:
 #   ruby scripts/upgrades/v0.24.5/load_keys.rb [OPTIONS]
 #
@@ -41,6 +57,31 @@ class KeyLoader
   }.freeze
 
   VALID_COMMANDS = %w[ZADD HSET SADD INCRBY].freeze
+
+  # Redis errors that abort the run immediately. Continuing past these either
+  # compounds data corruption (WRONGTYPE: every subsequent same-keyspace write
+  # fails the same way), is impossible (NOAUTH, READONLY), or means the input
+  # itself is broken (DUMP payload checksum). See header for full rationale.
+  HARD_ERROR_PATTERNS = [
+    /\AWRONGTYPE/,
+    /\ANOAUTH/,
+    /\AREADONLY/,
+    /\ALOADING/,
+    /\ACLUSTERDOWN/,
+    /\AMISCONF/,
+    /\AOOM\b/,
+    /DUMP payload version or checksum/,
+  ].freeze
+
+  class HardLoadError < StandardError
+    attr_reader :model_name, :key, :original
+    def initialize(message, model_name:, key:, original:)
+      super(message)
+      @model_name = model_name
+      @key        = key
+      @original   = original
+    end
+  end
 
   def initialize(input_dir:, valkey_url:, model: nil, dry_run: false, skip_indexes: false, skip_records: false)
     @input_dir     = input_dir
@@ -87,6 +128,18 @@ class KeyLoader
 
     print_summary
     exit_with_status
+  rescue HardLoadError => ex
+    warn ''
+    warn "FATAL: hard error during #{ex.model_name} load — aborting before further damage."
+    warn "  key:   #{ex.key.inspect}"
+    warn "  error: #{ex.original.message}"
+    warn ''
+    warn 'Hard errors (WRONGTYPE, NOAUTH, READONLY, LOADING, CLUSTERDOWN, MISCONF,'
+    warn 'OOM, corrupt DUMP) indicate environment misconfiguration or structural'
+    warn 'data conflict where continuing would compound damage. Investigate the'
+    warn 'cause above, then re-run.'
+    print_summary
+    exit 2
   ensure
     close_connections
   end
@@ -121,7 +174,32 @@ class KeyLoader
     parts << 'records only' if @skip_indexes
     parts << 'indexes only' if @skip_records
     parts << 'full load' if parts.empty?
+    parts << "pipeline=#{pipeline_batch_size}" if pipeline_enabled?
     parts.join(', ')
+  end
+
+  # Pipelining is opt-in via OTS_MIGRATION_PIPELINE.
+  #   unset / 0 / false / no / off -> off (default; per-record round trips)
+  #   1 / true / yes / on          -> on, batch size 500
+  #   <positive integer>           -> on, that batch size
+  # Memoized per loader so we read ENV once at startup.
+  def pipeline_batch_size
+    return @pipeline_batch_size if defined?(@pipeline_batch_size)
+    raw = ENV['OTS_MIGRATION_PIPELINE'].to_s.strip.downcase
+    @pipeline_batch_size =
+      if raw.empty? || %w[0 false no off].include?(raw)
+        0
+      elsif (parsed = Integer(raw, exception: false)) && parsed > 0
+        parsed
+      elsif %w[1 true yes on].include?(raw)
+        500
+      else
+        0
+      end
+  end
+
+  def pipeline_enabled?
+    pipeline_batch_size > 0
   end
 
   def load_model(model_name, dir_name = nil)
@@ -144,7 +222,10 @@ class KeyLoader
       if File.exist?(transformed_file)
         load_transformed_records(model_name, transformed_file)
       else
-        puts "  No transformed file: #{transformed_file}"
+        msg = "Missing transformed file: #{transformed_file} (Phase 2 artifact). " \
+              'Re-run Phase 2, or pass --skip-records if loading indexes only is intentional.'
+        warn "  ERROR: #{msg}"
+        @stats[model_name][:errors] << { error: msg, file: transformed_file }
       end
     end
 
@@ -154,7 +235,10 @@ class KeyLoader
       if File.exist?(indexes_file)
         execute_index_commands(model_name, indexes_file)
       else
-        puts "  No indexes file: #{indexes_file}"
+        msg = "Missing indexes file: #{indexes_file} (Phase 2 artifact). " \
+              'Re-run Phase 2, or pass --skip-indexes if loading records only is intentional.'
+        warn "  ERROR: #{msg}"
+        @stats[model_name][:errors] << { error: msg, file: indexes_file }
       end
     end
 
@@ -166,11 +250,30 @@ class KeyLoader
     target_db = MODELS[model_name][:db]
     redis     = get_redis(target_db)
 
-    File.foreach(file_path) do |line|
-      record = JSON.parse(line, symbolize_names: true)
-      restore_record(model_name, redis, record)
-    rescue JSON::ParserError => ex
-      @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
+    if pipeline_enabled?
+      puts "    Pipelining RESTORE in batches of #{pipeline_batch_size}"
+      batch = []
+      File.foreach(file_path) do |line|
+        record   = JSON.parse(line, symbolize_names: true)
+        prepared = prepare_record(model_name, record)
+        next unless prepared
+
+        batch << prepared
+        if batch.size >= pipeline_batch_size
+          flush_record_batch(model_name, redis, batch)
+          batch.clear
+        end
+      rescue JSON::ParserError => ex
+        @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
+      end
+      flush_record_batch(model_name, redis, batch) unless batch.empty?
+    else
+      File.foreach(file_path) do |line|
+        record = JSON.parse(line, symbolize_names: true)
+        restore_record(model_name, redis, record)
+      rescue JSON::ParserError => ex
+        @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
+      end
     end
 
     puts "    Records restored: #{@stats[model_name][:records_restored]}"
@@ -178,6 +281,26 @@ class KeyLoader
   end
 
   def restore_record(model_name, redis, record)
+    prepared = prepare_record(model_name, record)
+    return unless prepared
+
+    key, restore_ttl, dump_data = prepared
+    redis.restore(key, restore_ttl, dump_data, replace: true)
+    @record_keys << key
+    @stats[model_name][:records_restored] += 1
+  rescue Redis::CommandError => ex
+    fatal_if_hard_redis_error!(ex, model_name: model_name, key: key, op: 'RESTORE')
+    @stats[model_name][:records_skipped] += 1
+    @stats[model_name][:errors] << { key: key, error: "RESTORE failed: #{ex.message}" }
+  end
+
+  # Validate, decode, and produce a [key, restore_ttl, dump_data] triple ready
+  # for either single-record RESTORE or pipelined RESTORE. Per-record soft
+  # errors (missing fields, base64 decode) are recorded against @stats here so
+  # both code paths get identical error semantics. Returns nil for skip.
+  # In dry-run mode the key is counted as restored and nil is returned (no
+  # Redis work to do).
+  def prepare_record(model_name, record)
     key      = record[:key]
     dump_b64 = record[:dump]
     ttl_ms   = record[:ttl_ms]
@@ -185,33 +308,51 @@ class KeyLoader
     unless key && dump_b64
       @stats[model_name][:records_skipped] += 1
       @stats[model_name][:errors] << { key: key, error: 'Missing key or dump data' }
-      return
+      return nil
     end
 
     if @dry_run
       @record_keys << key
       @stats[model_name][:records_restored] += 1
-      return
+      return nil
     end
 
-    # Decode the dump blob
-    dump_data = Base64.strict_decode64(dump_b64)
+    begin
+      dump_data = Base64.strict_decode64(dump_b64)
+    rescue ArgumentError => ex
+      @stats[model_name][:records_skipped] += 1
+      @stats[model_name][:errors] << { key: key, error: "Base64 decode failed: #{ex.message}" }
+      return nil
+    end
 
-    # Determine TTL for RESTORE command
-    # -1 in source means no expiry -> use 0 in RESTORE
-    # Otherwise use the ttl_ms value directly
+    # -1 in source means no expiry -> use 0 in RESTORE; else use ttl_ms as-is.
     restore_ttl = ttl_ms == -1 ? 0 : ttl_ms.to_i
+    [key, restore_ttl, dump_data]
+  end
 
-    # RESTORE key ttl serialized-value REPLACE
-    redis.restore(key, restore_ttl, dump_data, replace: true)
-    @record_keys << key
-    @stats[model_name][:records_restored] += 1
-  rescue ArgumentError => ex
-    @stats[model_name][:records_skipped] += 1
-    @stats[model_name][:errors] << { key: key, error: "Base64 decode failed: #{ex.message}" }
-  rescue Redis::CommandError => ex
-    @stats[model_name][:records_skipped] += 1
-    @stats[model_name][:errors] << { key: key, error: "RESTORE failed: #{ex.message}" }
+  def flush_record_batch(model_name, redis, prepared)
+    return if prepared.empty?
+
+    # exception: false -> per-command results; failed commands appear as
+    # Redis::CommandError instances at their slot in the result array. This
+    # preserves the per-key error granularity of the non-pipelined path.
+    results = redis.pipelined(exception: false) do |pipe|
+      prepared.each do |key, ttl, data|
+        pipe.restore(key, ttl, data, replace: true)
+      end
+    end
+
+    results.each_with_index do |result, idx|
+      key = prepared[idx][0]
+      if result.is_a?(Redis::CommandError)
+        fatal_if_hard_redis_error!(result, model_name: model_name, key: key, op: 'RESTORE')
+        @stats[model_name][:records_skipped] += 1
+        @stats[model_name][:errors] << { key: key, error: "RESTORE failed: #{result.message}" }
+      else
+        @record_keys << key
+        @stats[model_name][:records_restored] += 1
+      end
+    end
   end
 
   def execute_index_commands(model_name, file_path)
@@ -219,11 +360,30 @@ class KeyLoader
     target_db = MODELS[model_name][:db]
     redis     = get_redis(target_db)
 
-    File.foreach(file_path) do |line|
-      cmd = JSON.parse(line, symbolize_names: true)
-      execute_command(model_name, redis, cmd)
-    rescue JSON::ParserError => ex
-      @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
+    if pipeline_enabled?
+      puts "    Pipelining index commands in batches of #{pipeline_batch_size}"
+      batch = []
+      File.foreach(file_path) do |line|
+        cmd      = JSON.parse(line, symbolize_names: true)
+        prepared = prepare_index_command(model_name, cmd)
+        next unless prepared
+
+        batch << prepared
+        if batch.size >= pipeline_batch_size
+          flush_index_batch(model_name, redis, batch)
+          batch.clear
+        end
+      rescue JSON::ParserError => ex
+        @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
+      end
+      flush_index_batch(model_name, redis, batch) unless batch.empty?
+    else
+      File.foreach(file_path) do |line|
+        cmd = JSON.parse(line, symbolize_names: true)
+        execute_command(model_name, redis, cmd)
+      rescue JSON::ParserError => ex
+        @stats[model_name][:errors] << { error: "JSON parse error: #{ex.message}" }
+      end
     end
 
     puts "    Index commands executed: #{@stats[model_name][:indexes_executed]}"
@@ -231,6 +391,30 @@ class KeyLoader
   end
 
   def execute_command(model_name, redis, cmd)
+    prepared = prepare_index_command(model_name, cmd)
+    return unless prepared
+
+    command, key, args = prepared
+    case command
+    when 'ZADD'   then redis.zadd(key, *args)
+    when 'HSET'   then redis.hset(key, *args)
+    when 'SADD'   then redis.sadd(key, *args)
+    when 'INCRBY' then redis.incrby(key, args.first.to_i)
+    end
+
+    @index_keys << key
+    @stats[model_name][:indexes_executed] += 1
+  rescue Redis::CommandError => ex
+    fatal_if_hard_redis_error!(ex, model_name: model_name, key: key, op: command)
+    @stats[model_name][:indexes_skipped] += 1
+    @stats[model_name][:errors] << { key: key, command: command, error: ex.message }
+  end
+
+  # Validate an index command and produce a [command, key, args] triple ready
+  # for either single-shot or pipelined execution. Per-cmd soft errors are
+  # recorded here so both paths get identical error semantics. Returns nil
+  # for skip; in dry-run mode the key is counted as executed and nil returned.
+  def prepare_index_command(model_name, cmd)
     command = cmd[:command]
     key     = cmd[:key]
     args    = cmd[:args]
@@ -238,41 +422,57 @@ class KeyLoader
     unless VALID_COMMANDS.include?(command)
       @stats[model_name][:indexes_skipped] += 1
       @stats[model_name][:errors] << { key: key, error: "Unknown command: #{command}" }
-      return
+      return nil
     end
 
     unless key && args.is_a?(Array)
       @stats[model_name][:indexes_skipped] += 1
       @stats[model_name][:errors] << { key: key, error: 'Missing key or args' }
-      return
+      return nil
     end
 
     if @dry_run
       @index_keys << key
       @stats[model_name][:indexes_executed] += 1
-      return
+      return nil
     end
 
-    case command
-    when 'ZADD'
-      # args: [score, member] or [score, member, score, member, ...]
-      redis.zadd(key, *args)
-    when 'HSET'
-      # args: [field, value] or [field, value, field, value, ...]
-      redis.hset(key, *args)
-    when 'SADD'
-      # args: [member, ...]
-      redis.sadd(key, *args)
-    when 'INCRBY'
-      # args: [increment]
-      redis.incrby(key, args.first.to_i)
+    [command, key, args]
+  end
+
+  def flush_index_batch(model_name, redis, prepared)
+    return if prepared.empty?
+
+    results = redis.pipelined(exception: false) do |pipe|
+      prepared.each do |command, key, args|
+        case command
+        when 'ZADD'   then pipe.zadd(key, *args)
+        when 'HSET'   then pipe.hset(key, *args)
+        when 'SADD'   then pipe.sadd(key, *args)
+        when 'INCRBY' then pipe.incrby(key, args.first.to_i)
+        end
+      end
     end
 
-    @index_keys << key
-    @stats[model_name][:indexes_executed] += 1
-  rescue Redis::CommandError => ex
-    @stats[model_name][:indexes_skipped] += 1
-    @stats[model_name][:errors] << { key: key, command: command, error: ex.message }
+    results.each_with_index do |result, idx|
+      command, key, _args = prepared[idx]
+      if result.is_a?(Redis::CommandError)
+        fatal_if_hard_redis_error!(result, model_name: model_name, key: key, op: command)
+        @stats[model_name][:indexes_skipped] += 1
+        @stats[model_name][:errors] << { key: key, command: command, error: result.message }
+      else
+        @index_keys << key
+        @stats[model_name][:indexes_executed] += 1
+      end
+    end
+  end
+
+  def fatal_if_hard_redis_error!(ex, model_name:, key:, op:)
+    return unless HARD_ERROR_PATTERNS.any? { |pattern| ex.message.match?(pattern) }
+    raise HardLoadError.new(
+      "#{op} failed on #{key.inspect} (#{model_name}): #{ex.message}",
+      model_name: model_name, key: key, original: ex,
+    )
   end
 
   def get_redis(db)
@@ -443,12 +643,12 @@ def parse_args(args)
           --skip-records       Load only indexes (skip RESTORE operations)
           --help               Show this help
 
-        Models (loaded in dependency order):
-          customer       -> DB 6
-          organization   -> DB 6
-          customdomain   -> DB 6
-          receipt        -> DB 7
-          secret         -> DB 8
+        Models (loaded in dependency order, all into consolidated DB 0):
+          customer       -> DB 0
+          organization   -> DB 0
+          customdomain   -> DB 0
+          receipt        -> DB 0 (read from 'metadata' subdir)
+          secret         -> DB 0
 
         Input files per model (in subdirs):
           {model}_transformed.jsonl   Records to RESTORE (with dump blobs)

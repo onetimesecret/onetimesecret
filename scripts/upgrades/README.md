@@ -7,7 +7,7 @@ contains scripts to migrate data from the previous version.
 
 | Directory  | From   | To     | Description                      |
 | ---------- | ------ | ------ | -------------------------------- |
-| `v0.24.0/` | 0.23.x | 0.24.0 | Familia v1 to v2 data transforms |
+| `v0.24.5/` | 0.23.x | 0.24.5 | Familia v1 to v2 data transforms |
 
 ## Structure
 
@@ -22,10 +22,10 @@ Each upgrade directory contains:
 
 ```bash
 # Run all transforms for an upgrade
-./scripts/upgrades/v0.24.0/run_pipeline.sh
+./scripts/upgrades/v0.24.5/run_pipeline.sh
 
 # Run individual transforms
-ruby scripts/upgrades/v0.24.0/01-customer/transform.rb --help
+ruby scripts/upgrades/v0.24.5/01-customer/transform.rb --help
 ```
 
 ## Distinction from Migrations

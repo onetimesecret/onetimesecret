@@ -18,7 +18,10 @@
 #
 # Input: data/upgrades/v0.24.5/customer/customer_transformed.jsonl (V2 customer records)
 # Output:
-#   - data/upgrades/v0.24.5/organization/organization_transformed.jsonl (V2 organization records)
+#   - data/upgrades/v0.24.5/organization/organization_transformed.jsonl
+#       Contains both organization:{org}:object records AND the
+#       org_membership:organization:{org}:customer:{cust}:org_membership:object
+#       records that record each customer as the owner of their org.
 #   - data/upgrades/v0.24.5/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
 #   - data/upgrades/v0.24.5/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
 
@@ -71,6 +74,21 @@ class OrganizationGenerator
     # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
   }.freeze
 
+  # Field type mappings for OrganizationMembership records.
+  # Owner memberships generated during migration only need a small subset of
+  # fields (see lib/onetime/models/organization_membership.rb). Pending-only
+  # fields (token, invited_email, invited_by, invited_at, resend_count,
+  # domain_scope_id) are intentionally omitted.
+  MEMBERSHIP_FIELD_TYPES = {
+    'objid'              => :string,
+    'organization_objid' => :string,
+    'customer_objid'     => :string,
+    'role'               => :string,
+    'status'             => :string,
+    'joined_at'          => :timestamp,
+    'updated_at'         => :timestamp,
+  }.freeze
+
   def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
     @input_file = input_file
     @output_dir = output_dir
@@ -83,15 +101,17 @@ class OrganizationGenerator
       records_read: 0,          # Total lines read from JSONL (includes related records)
       customer_objects: 0,      # Customer :object records processed
       organizations_created: 0,
+      memberships_created: 0,
       stripe_customers: 0,
       stripe_subscriptions: 0,
       skipped: 0,
       errors: [],
     }
 
-    @customer_to_org = {}  # customer_objid -> org_objid
-    @email_to_org    = {}  # email -> org_objid
-    @org_records     = []  # Generated organization JSONL records
+    @customer_to_org    = {}  # customer_objid -> org_objid
+    @email_to_org       = {}  # email -> org_objid
+    @org_records        = []  # Generated organization JSONL records
+    @membership_records = []  # Generated OrganizationMembership JSONL records (owner per org)
   end
 
   def run
@@ -148,12 +168,22 @@ class OrganizationGenerator
     @redis.close
   end
 
-  def serialize_for_v2(fields)
+  # Pipelining is opt-in via OTS_MIGRATION_PIPELINE. Any truthy value enables
+  # within-record pipelining of RESTORE+HGETALL and HMSET+DUMP. DEL stays in
+  # `ensure` blocks unchanged so temp keys are cleaned up on every path.
+  # Memoized; ENV is read once.
+  def pipeline_enabled?
+    return @pipeline_enabled if defined?(@pipeline_enabled)
+    raw = ENV['OTS_MIGRATION_PIPELINE'].to_s.strip.downcase
+    @pipeline_enabled = !(raw.empty? || %w[0 false no off].include?(raw))
+  end
+
+  def serialize_for_v2(fields, field_types = FIELD_TYPES)
     fields.each_with_object({}) do |(key, value), result|
       result[key] = if value == '' || value.nil?
                       'null'
                     else
-                      ruby_val = parse_to_ruby_type(key, value)
+                      ruby_val = parse_to_ruby_type(key, value, field_types)
                       Familia::JsonSerializer.dump(ruby_val)
                     end
     end
@@ -175,9 +205,9 @@ class OrganizationGenerator
     fields.transform_values { |v| deserialize_v2_value(v) }
   end
 
-  def parse_to_ruby_type(key, value)
-    field_type = FIELD_TYPES[key.to_s]
-    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+  def parse_to_ruby_type(key, value, field_types = FIELD_TYPES)
+    field_type = field_types[key.to_s]
+    raise ArgumentError, "Unknown field '#{key}' not in field types map - add it to the mapping" unless field_type
 
     case field_type
     when :string then value.to_s
@@ -242,6 +272,20 @@ class OrganizationGenerator
     @email_to_org[email] = org_record[:objid] if email && !email.empty?
 
     @stats[:organizations_created] += 1
+
+    # Generate the owner OrganizationMembership record alongside the org.
+    # Without this, OrganizationMembership.find_by_org_customer returns nil
+    # for every migrated owner and plan switching breaks (issue #3041).
+    membership_record = generate_owner_membership(
+      org_objid: org_record[:objid],
+      customer_objid: customer_objid,
+      created: org_record[:created],
+      db: record[:db],
+    )
+    return unless membership_record
+
+    @membership_records << membership_record
+    @stats[:memberships_created] += 1
   end
 
   def restore_and_read_hash(record)
@@ -249,8 +293,19 @@ class OrganizationGenerator
     dump_data = Base64.strict_decode64(record[:dump])
 
     begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
+      if pipeline_enabled?
+        # RESTORE then HGETALL on the same key in a single round trip; Redis
+        # processes pipelined commands in order, so HGETALL sees the just-
+        # restored hash. Saves one RTT per customer object decode.
+        _restore_result, fields = @redis.pipelined do |pipe|
+          pipe.restore(temp_key, 0, dump_data, replace: true)
+          pipe.hgetall(temp_key)
+        end
+        fields
+      else
+        @redis.restore(temp_key, 0, dump_data, replace: true)
+        @redis.hgetall(temp_key)
+      end
     rescue Redis::CommandError => ex
       @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
       nil
@@ -319,9 +374,19 @@ class OrganizationGenerator
     # Serialize values for Familia v2 JSON format before writing to Redis
     temp_key     = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
     serialized   = serialize_for_v2(org_fields)
+    hmset_args   = serialized.to_a.flatten
     org_dump_b64 = begin
-      @redis.hmset(temp_key, serialized.to_a.flatten)
-      dump_data = @redis.dump(temp_key)
+      dump_data =
+        if pipeline_enabled?
+          _hmset_result, dumped = @redis.pipelined do |pipe|
+            pipe.hmset(temp_key, hmset_args)
+            pipe.dump(temp_key)
+          end
+          dumped
+        else
+          @redis.hmset(temp_key, hmset_args)
+          @redis.dump(temp_key)
+        end
       Base64.strict_encode64(dump_data)
     ensure
       @redis.del(temp_key)
@@ -337,6 +402,80 @@ class OrganizationGenerator
       extid: org_extid,
       owner_id: customer_objid,
       contact_email: email,
+      created: created,
+    }
+  end
+
+  # Build the OrganizationMembership record that records the V1 customer as
+  # the active owner of their generated organization.
+  #
+  # Familia builds through-model objids deterministically as a composite path
+  # (see Familia ThroughModelOperations.build_key):
+  #
+  #   {target.prefix}:{target.objid}:{participant.prefix}:{participant.objid}:{through.prefix}
+  #
+  # For OrganizationMembership that resolves to:
+  #
+  #   organization:{org_objid}:customer:{customer_objid}:org_membership
+  #
+  # The full Redis key is then dbkey(objid, suffix) = prefix:objid:suffix:
+  #
+  #   org_membership:organization:{org_objid}:customer:{customer_objid}:org_membership:object
+  #
+  # Using a UUIDv7 here would write the hash to a key that find_by_org_customer
+  # could never resolve back to; the lookup index value MUST equal the composite
+  # path so that load(objid) reconstructs the correct dbkey.
+  #
+  # Generated downstream by load_keys.rb via RESTORE. The lookup HSET that
+  # makes find_by_org_customer work is emitted by create_indexes.rb.
+  def generate_owner_membership(org_objid:, customer_objid:, created:, db:)
+    membership_objid = "organization:#{org_objid}:customer:#{customer_objid}:org_membership"
+    now              = Time.now.to_f
+    joined_at        = created.to_f.positive? ? created.to_f : now
+
+    membership_fields = {
+      'objid'              => membership_objid,
+      'organization_objid' => org_objid,
+      'customer_objid'     => customer_objid,
+      'role'               => 'owner',
+      'status'             => 'active',
+      'joined_at'          => joined_at.to_s,
+      'updated_at'         => now.to_s,
+    }
+
+    temp_key   = "#{TEMP_KEY_PREFIX}mem_#{SecureRandom.hex(8)}"
+    serialized = serialize_for_v2(membership_fields, MEMBERSHIP_FIELD_TYPES)
+    hmset_args = serialized.to_a.flatten
+    dump_b64   = begin
+      dump_data =
+        if pipeline_enabled?
+          _hmset_result, dumped = @redis.pipelined do |pipe|
+            pipe.hmset(temp_key, hmset_args)
+            pipe.dump(temp_key)
+          end
+          dumped
+        else
+          @redis.hmset(temp_key, hmset_args)
+          @redis.dump(temp_key)
+        end
+      Base64.strict_encode64(dump_data)
+    ensure
+      @redis.del(temp_key)
+    end
+
+    {
+      key: "org_membership:#{membership_objid}:object",
+      type: 'hash',
+      ttl_ms: -1,
+      db: db,
+      dump: dump_b64,
+      record_kind: 'organization_membership',
+      objid: membership_objid,
+      organization_objid: org_objid,
+      customer_objid: customer_objid,
+      role: 'owner',
+      status: 'active',
+      joined_at: joined_at,
       created: created,
     }
   end
@@ -398,14 +537,16 @@ class OrganizationGenerator
   def write_outputs
     FileUtils.mkdir_p(@output_dir)
 
-    # Write organization records JSONL
+    # Write organization + owner-membership records to a single JSONL.
+    # load_keys.rb iterates the file and RESTOREs each record by its :key,
+    # so co-locating memberships avoids changes to the loader.
     org_file = File.join(@output_dir, 'organization_transformed.jsonl')
     File.open(org_file, 'w') do |f|
-      @org_records.each do |record|
-        f.puts(JSON.generate(record))
-      end
+      @org_records.each { |record| f.puts(JSON.generate(record)) }
+      @membership_records.each { |record| f.puts(JSON.generate(record)) }
     end
     puts "Wrote #{@org_records.size} organization records to #{org_file}"
+    puts "Wrote #{@membership_records.size} owner-membership records to #{org_file}"
 
     # Write customer_objid -> org_objid lookup (debug/reference)
     customer_lookup_file = File.join(@output_dir, 'customer_objid_to_org_objid.json')
@@ -424,6 +565,7 @@ class OrganizationGenerator
     puts "Records read: #{@stats[:records_read]}"
     puts "Customer objects: #{@stats[:customer_objects]}"
     puts "Organizations created: #{@stats[:organizations_created]}"
+    puts "Owner memberships created: #{@stats[:memberships_created]}"
     puts "  With Stripe customer: #{@stats[:stripe_customers]}"
     puts "  With Stripe subscription: #{@stats[:stripe_subscriptions]}"
     puts "Skipped: #{@stats[:skipped]}"
@@ -468,7 +610,8 @@ def parse_args(args)
           --help              Show this help
 
         Output files:
-          organization_transformed.jsonl       - V2 organization records with DUMP data
+          organization_transformed.jsonl     - V2 organization records AND owner-
+                                               membership records (DUMP data)
           customer_objid_to_org_objid.json   - customer_objid -> org_objid mapping
           email_to_org_objid.json            - email -> org_objid (for customdomain)
 

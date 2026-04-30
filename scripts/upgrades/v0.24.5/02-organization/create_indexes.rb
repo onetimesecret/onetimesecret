@@ -45,12 +45,14 @@ class OrganizationIndexCreator
     @stats = {
       total_records: 0,
       object_records: 0,
+      membership_records: 0,
       indexes_written: 0,
       stripe_customer_indexes: 0,
       stripe_subscription_indexes: 0,
       stripe_checkout_email_indexes: 0,
       billing_email_indexes: 0,
       member_entries: 0,
+      org_customer_lookups: 0,
       skipped: 0,
       errors: [],
     }
@@ -113,12 +115,44 @@ class OrganizationIndexCreator
       # Skip GLOBAL singleton records (should not be indexed as organizations)
       next if record[:key]&.include?(':GLOBAL:') || record[:key]&.include?(':GLOBAL_STATS:')
 
-      @stats[:object_records] += 1
-
-      process_organization_record(record)
+      # Owner-membership records (emitted alongside orgs by generate.rb) need
+      # only the org_customer_lookup HSET. Routing is by explicit record_kind
+      # marker, not key shape, to keep the consumer/producer contract obvious.
+      if record[:record_kind] == 'organization_membership'
+        @stats[:membership_records] += 1
+        process_membership_record(record)
+      else
+        @stats[:object_records] += 1
+        process_organization_record(record)
+      end
     rescue JSON::ParserError => ex
       @stats[:errors] << { line: @stats[:total_records], error: ex.message }
     end
+  end
+
+  def process_membership_record(record)
+    membership_objid   = record[:objid]
+    organization_objid = record[:organization_objid]
+    customer_objid     = record[:customer_objid]
+
+    if [membership_objid, organization_objid, customer_objid].any? { |v| v.nil? || v.to_s.empty? }
+      @stats[:skipped] += 1
+      @stats[:errors] << { key: record[:key], error: 'Missing membership identifiers' }
+      return
+    end
+
+    # Composite key matches OrganizationMembership#org_customer_key:
+    #   "#{organization_objid}:#{customer_objid}"
+    # Index Redis key matches Familia class_hashkey shape:
+    #   "{prefix}:#{index_name}" -> "org_membership:org_customer_lookup"
+    # Value is JSON-quoted membership objid (Familia HashKey convention).
+    composite_key = "#{organization_objid}:#{customer_objid}"
+    add_command(
+      'HSET',
+      'org_membership:org_customer_lookup',
+      [composite_key, membership_objid.to_json],
+    )
+    @stats[:org_customer_lookups] += 1
   end
 
   def process_organization_record(record)
@@ -281,6 +315,7 @@ class OrganizationIndexCreator
     puts "Input file: #{@input_file}"
     puts "Total records: #{@stats[:total_records]}"
     puts "Object records: #{@stats[:object_records]}"
+    puts "Membership records: #{@stats[:membership_records]}"
     puts "Index commands generated: #{@stats[:indexes_written]}"
     puts
     puts 'Lookup Indexes:'
@@ -288,6 +323,7 @@ class OrganizationIndexCreator
     puts "  Stripe subscription indexes: #{@stats[:stripe_subscription_indexes]}"
     puts "  Stripe checkout email indexes: #{@stats[:stripe_checkout_email_indexes]}"
     puts "  Billing email indexes: #{@stats[:billing_email_indexes]}"
+    puts "  Membership org_customer lookups: #{@stats[:org_customer_lookups]}"
     puts
     puts 'Participation Indexes:'
     puts "  Member entries: #{@stats[:member_entries]}"
@@ -347,6 +383,7 @@ def parse_args(args)
           - organization:stripe_checkout_email_index (hash: email -> "org_objid")
           - organization:{org_objid}:members (sorted set: score=created, member=customer_objid)
           - customer:{owner_id}:participations (set: organization:{org_objid}:members)
+          - org_membership:org_customer_lookup (hash: "org:cust" -> "membership_objid")
       HELP
       exit 0
     else
