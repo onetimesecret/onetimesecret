@@ -32,6 +32,15 @@
 #
 # Default behavior is DRY-RUN. Pass --execute to perform Redis RESTORE operations.
 #
+# Default rationale: this script is a Phase 4 callee of upgrade.sh — NOT a
+# run_pipeline.sh (Phase 2) callee. The "must default to execute" contract
+# documented at run_pipeline.sh:12-20 applies only to Phase 2 transforms.
+# Phase 4 archives v1 dumps with a 30-day TTL and is the most consequential
+# write of any single phase; defaulting to dry-run preserves CLI safety when
+# operators run this script standalone. upgrade.sh:493-499 translates its
+# own --execute flag into this script's --execute (the $DRY_RUN_FLAG pattern
+# does not apply because the flag semantics are inverted).
+#
 # Input:
 #   data/upgrades/v0.24.5/{model}/{model}_dump.jsonl        (v1 dump — source of RESTORE binaries)
 #   data/upgrades/v0.24.5/{model}/{model}_transformed.jsonl (v2 records — source of v1→v2 mapping)

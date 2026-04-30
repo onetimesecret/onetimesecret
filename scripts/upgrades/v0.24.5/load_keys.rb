@@ -4,6 +4,22 @@
 # Loads migrated data into Valkey/Redis from transformed JSONL files.
 # Processes both transformed records (RESTORE) and index commands (ZADD/HSET/etc).
 #
+# Default: execute (writes to Valkey/Redis). Pass --dry-run to preview.
+# This default is intentional: orchestrators (upgrade.sh, run_pipeline.sh) rely
+# on the run_pipeline.sh contract that pipeline scripts default to execute and
+# upgrade.sh's $DRY_RUN_FLAG ("--dry-run" when not executing) is forwarded here.
+# See run_pipeline.sh header for the full contract; flipping this default would
+# silently break upgrade.sh's dry-run propagation.
+#
+# Error handling: per-record soft errors (Base64 decode, JSON parse, single-key
+# Redis errors not in HARD_ERROR_PATTERNS) are collected to @stats[model][:errors]
+# and the run continues so all issues surface in one pass. HARD Redis errors
+# (WRONGTYPE, NOAUTH, READONLY, LOADING, CLUSTERDOWN, MISCONF, OOM, corrupt
+# DUMP payload) abort the run immediately with exit code 2 — these indicate
+# environment misconfiguration or structural data conflict where continuing
+# would compound damage or amount to retry-spam against a broken environment.
+# Exit codes: 0 clean, 1 soft errors only, 2 hard error fail-fast.
+#
 # Usage:
 #   ruby scripts/upgrades/v0.24.5/load_keys.rb [OPTIONS]
 #
@@ -41,6 +57,31 @@ class KeyLoader
   }.freeze
 
   VALID_COMMANDS = %w[ZADD HSET SADD INCRBY].freeze
+
+  # Redis errors that abort the run immediately. Continuing past these either
+  # compounds data corruption (WRONGTYPE: every subsequent same-keyspace write
+  # fails the same way), is impossible (NOAUTH, READONLY), or means the input
+  # itself is broken (DUMP payload checksum). See header for full rationale.
+  HARD_ERROR_PATTERNS = [
+    /\AWRONGTYPE/,
+    /\ANOAUTH/,
+    /\AREADONLY/,
+    /\ALOADING/,
+    /\ACLUSTERDOWN/,
+    /\AMISCONF/,
+    /\AOOM\b/,
+    /DUMP payload version or checksum/,
+  ].freeze
+
+  class HardLoadError < StandardError
+    attr_reader :model_name, :key, :original
+    def initialize(message, model_name:, key:, original:)
+      super(message)
+      @model_name = model_name
+      @key        = key
+      @original   = original
+    end
+  end
 
   def initialize(input_dir:, valkey_url:, model: nil, dry_run: false, skip_indexes: false, skip_records: false)
     @input_dir     = input_dir
@@ -87,6 +128,18 @@ class KeyLoader
 
     print_summary
     exit_with_status
+  rescue HardLoadError => ex
+    warn ''
+    warn "FATAL: hard error during #{ex.model_name} load — aborting before further damage."
+    warn "  key:   #{ex.key.inspect}"
+    warn "  error: #{ex.original.message}"
+    warn ''
+    warn 'Hard errors (WRONGTYPE, NOAUTH, READONLY, LOADING, CLUSTERDOWN, MISCONF,'
+    warn 'OOM, corrupt DUMP) indicate environment misconfiguration or structural'
+    warn 'data conflict where continuing would compound damage. Investigate the'
+    warn 'cause above, then re-run.'
+    print_summary
+    exit 2
   ensure
     close_connections
   end
@@ -216,6 +269,7 @@ class KeyLoader
     @stats[model_name][:records_skipped] += 1
     @stats[model_name][:errors] << { key: key, error: "Base64 decode failed: #{ex.message}" }
   rescue Redis::CommandError => ex
+    fatal_if_hard_redis_error!(ex, model_name: model_name, key: key, op: 'RESTORE')
     @stats[model_name][:records_skipped] += 1
     @stats[model_name][:errors] << { key: key, error: "RESTORE failed: #{ex.message}" }
   end
@@ -277,8 +331,17 @@ class KeyLoader
     @index_keys << key
     @stats[model_name][:indexes_executed] += 1
   rescue Redis::CommandError => ex
+    fatal_if_hard_redis_error!(ex, model_name: model_name, key: key, op: command)
     @stats[model_name][:indexes_skipped] += 1
     @stats[model_name][:errors] << { key: key, command: command, error: ex.message }
+  end
+
+  def fatal_if_hard_redis_error!(ex, model_name:, key:, op:)
+    return unless HARD_ERROR_PATTERNS.any? { |pattern| ex.message.match?(pattern) }
+    raise HardLoadError.new(
+      "#{op} failed on #{key.inspect} (#{model_name}): #{ex.message}",
+      model_name: model_name, key: key, original: ex,
+    )
   end
 
   def get_redis(db)

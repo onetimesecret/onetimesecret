@@ -7,6 +7,13 @@
 # Dumps Redis keys to JSONL format for migration, organized by model.
 # Each line: {"key": "...", "type": "...", "ttl_ms": ..., "dump": "<base64>", "created": ...}
 #
+# Default: execute (writes JSONL to disk). Pass --dry-run to preview.
+# This default is intentional: orchestrators (upgrade.sh, run_pipeline.sh) rely
+# on the run_pipeline.sh contract that pipeline scripts default to execute and
+# upgrade.sh's $DRY_RUN_FLAG ("--dry-run" when not executing) is forwarded here.
+# See run_pipeline.sh header for the full contract; flipping this default would
+# silently break upgrade.sh's dry-run propagation.
+#
 # Usage:
 #   ruby scripts/dump_keys.rb [OPTIONS]
 #
