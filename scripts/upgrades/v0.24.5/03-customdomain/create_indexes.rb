@@ -56,6 +56,7 @@ class CustomDomainIndexCreator
       records_read: 0,
       objects_processed: 0,
       instance_index_source: nil,
+      instance_index_source_records: 0,  # Count of customdomain:values records (typically 0 or 1)
       instance_entries: 0,
       display_domain_lookups: 0,
       extid_lookups: 0,
@@ -65,7 +66,12 @@ class CustomDomainIndexCreator
       skipped: 0,
       missing_org_lookup: 0,
       missing_org_details: [],  # Details of domains missing org lookup
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
   end
 
@@ -91,6 +97,7 @@ class CustomDomainIndexCreator
       case record[:key]
       when 'customdomain:values'
         # Existing instance index - rename it
+        @stats[:instance_index_source_records] += 1
         commands.concat(process_instance_index(record))
       when /:object$/
         # CustomDomain object hash - extract fields for indexes
@@ -99,7 +106,7 @@ class CustomDomainIndexCreator
         @stats[:skipped] += 1
       end
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
     progress.finish
 
@@ -170,7 +177,7 @@ class CustomDomainIndexCreator
       members_with_scores = @redis.zrange(temp_key, 0, -1, with_scores: true)
       @stats[:v1_instance_members] = members_with_scores.size
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "Restore failed: #{ex.message}" }
     ensure
       begin
         @redis.del(temp_key)
@@ -183,10 +190,11 @@ class CustomDomainIndexCreator
   end
 
   def process_customdomain_object(record)
-    commands                    = []
-    @stats[:objects_processed] += 1
+    commands = []
 
     if @dry_run
+      # Count records seen in dry-run for parity with non-dry-run reconciliation.
+      @stats[:objects_processed] += 1
       return commands
     end
 
@@ -196,7 +204,10 @@ class CustomDomainIndexCreator
 
     # Extract identifier from key (custom_domain:{id}:object)
     key_parts = record[:key].split(':')
-    return commands if key_parts.size < 3
+    if key_parts.size < 3
+      @stats[:skipped] += 1
+      return commands
+    end
 
     # Restore hash to temp key and read fields
     temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
@@ -227,7 +238,15 @@ class CustomDomainIndexCreator
       custid         = fields['custid']
       created        = record[:created] || fields['created']
 
-      return commands if domainid.nil? || domainid.empty?
+      if domainid.nil? || domainid.empty?
+        @stats[:skipped] += 1
+        return commands
+      end
+
+      # Count :objects_processed only for the success path so reconciliation
+      # (objects_processed + skipped + instance_index_source_records) matches
+      # records_read exactly.
+      @stats[:objects_processed] += 1
 
       # Resolve custid -> org_id
       org_id = resolve_org_id(
@@ -305,7 +324,11 @@ class CustomDomainIndexCreator
         @stats[:org_participation] += 1
       end
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
+      # Restore failure means we cannot process this :object record — count it
+      # in :skipped for reconciliation (matches the semantic: not processed)
+      # and record the error detail in :data_corruption.
+      @stats[:skipped] += 1
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "Restore failed: #{ex.message}" }
     ensure
       begin
         @redis.del(temp_key)
@@ -361,8 +384,17 @@ class CustomDomainIndexCreator
     puts "\n=== CustomDomain Index Creation Summary ==="
     puts "Input file: #{@input_file}"
     puts "Records read: #{@stats[:records_read]}"
-    puts "Objects processed: #{@stats[:objects_processed]}"
-    puts "Skipped records: #{@stats[:skipped]}"
+    puts "  Objects processed: #{@stats[:objects_processed]}"
+    puts "  Instance index source: #{@stats[:instance_index_source_records]}"
+    puts "  Skipped: #{@stats[:skipped]}"
+    reconciled = @stats[:objects_processed] +
+                 @stats[:instance_index_source_records] +
+                 @stats[:skipped]
+    if reconciled == @stats[:records_read]
+      puts "  (Reconciled: #{reconciled} = #{@stats[:records_read]} OK)"
+    else
+      puts "  WARNING: Reconciliation mismatch: #{reconciled} != #{@stats[:records_read]}"
+    end
     puts
 
     puts 'Instance Index:'
@@ -397,13 +429,29 @@ class CustomDomainIndexCreator
       puts
     end
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each do |err|
-      puts "  #{err}"
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    # Customdomain orphans (e.g., missing org lookup) are reported separately via
+    # missing_org_lookup; this bucket is reserved for index-without-:object cases.
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
     end
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
   end
 end
 

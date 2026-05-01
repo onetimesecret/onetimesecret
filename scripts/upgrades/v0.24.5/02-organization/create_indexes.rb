@@ -56,7 +56,12 @@ class OrganizationIndexCreator
       member_entries: 0,
       org_customer_lookups: 0,
       skipped: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
 
     @commands = []
@@ -130,7 +135,7 @@ class OrganizationIndexCreator
         process_organization_record(record)
       end
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:total_records], error: ex.message }
+      @stats[:errors][:data_corruption] << { line: @stats[:total_records], error: ex.message }
     end
     progress.finish
   end
@@ -142,7 +147,7 @@ class OrganizationIndexCreator
 
     if [membership_objid, organization_objid, customer_objid].any? { |v| v.nil? || v.to_s.empty? }
       @stats[:skipped] += 1
-      @stats[:errors] << { key: record[:key], error: 'Missing membership identifiers' }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing membership identifiers' }
       return
     end
 
@@ -169,7 +174,7 @@ class OrganizationIndexCreator
 
     unless org_objid && !org_objid.empty?
       @stats[:skipped] += 1
-      @stats[:errors] << { key: record[:key], error: 'Missing org objid' }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing org objid' }
       return
     end
 
@@ -265,7 +270,7 @@ class OrganizationIndexCreator
       # Deserialize v2 JSON-encoded values written by generate.rb
       deserialize_v2_fields(raw_fields)
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "RESTORE failed: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "RESTORE failed: #{ex.message}" }
       nil
     ensure
       begin
@@ -335,13 +340,27 @@ class OrganizationIndexCreator
     puts
     puts "Skipped: #{@stats[:skipped]}"
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "\nErrors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each do |err|
-      puts "  #{err}"
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "\nErrors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
     end
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
   end
 end
 

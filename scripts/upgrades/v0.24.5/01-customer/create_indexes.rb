@@ -65,15 +65,26 @@ class CustomerIndexCreator
       extid_lookups: 0,
       objid_lookups: 0,
       role_entries: Hash.new(0),
-      missing_roles: 0,           # Customers with nil/empty role
+      missing_roles: 0,           # Customers with nil/empty role (defaulted to 'customer')
+      defaulted_roles: 0,         # Subset of missing_roles that received the v2 default
       invalid_roles: Hash.new(0), # Customers with role not in VALID_ROLES
       counters: Hash.new(0),
       global_counters: {},            # Counter values from GLOBAL_STATS record
       externalized_counter_records: 0,
       skipped: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
   end
+
+  # v2 customer model defaults role to 'customer' (see lib/onetime/models/
+  # customer/features/status.rb). Use the same default here so v1 records with
+  # no explicit role land in the same role index as v2-created customers.
+  DEFAULT_ROLE = 'customer'
 
   def run
     validate_input_file
@@ -123,7 +134,7 @@ class CustomerIndexCreator
         @stats[:skipped] += 1
       end
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
 
     scan_progress.finish
@@ -221,7 +232,7 @@ class CustomerIndexCreator
         objid = @email_to_objid[email]
 
         unless objid
-          @stats[:errors] << { key: record[:key], error: "No objid mapping for email: #{redact_email(email)}" }
+          @stats[:errors][:orphans] << { key: record[:key], error: "No objid mapping for email: #{redact_email(email)}" }
           next
         end
 
@@ -237,7 +248,7 @@ class CustomerIndexCreator
         @stats[:instance_entries] += 1
       end
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "Restore failed: #{ex.message}" }
     ensure
       begin
         @redis.del(temp_key)
@@ -276,10 +287,13 @@ class CustomerIndexCreator
   end
 
   def process_customer_object(record)
-    commands                    = []
-    @stats[:objects_processed] += 1
+    commands = []
 
-    return commands if @dry_run
+    if @dry_run
+      # Count records seen in dry-run for parity with non-dry-run reconciliation.
+      @stats[:objects_processed] += 1
+      return commands
+    end
 
     key_parts = record[:key].split(':')
     return commands if key_parts.size < 3
@@ -299,7 +313,13 @@ class CustomerIndexCreator
       fields = @redis.hgetall(temp_key)
 
       objid, extid = resolve_identifiers(objid, extid, fields)
+      # Records with unresolvable objid take the skipped path — resolve_identifiers
+      # has already incremented @stats[:skipped]. Count :objects_processed only
+      # for the success path so reconciliation (objects_processed + skipped + …)
+      # matches records_read exactly.
       return commands if objid.nil? || objid.empty?
+
+      @stats[:objects_processed] += 1
 
       # Build email->objid mapping for instance index conversion.
       # v1 used email as custid; we need to map those to objid.
@@ -314,7 +334,8 @@ class CustomerIndexCreator
 
       build_customer_index_commands(commands, record, fields, objid, extid)
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
+      @stats[:skipped] += 1
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "Restore failed: #{ex.message}" }
     ensure
       begin
         @redis.del(temp_key)
@@ -371,15 +392,22 @@ class CustomerIndexCreator
     @stats[:objid_lookups] += 1
 
     # Role index (raw identifier for Familia Set compatibility, not JSON-encoded).
-    # Track customers without valid roles for data quality reporting.
-    role = fields['role']
-    if role.nil? || role.empty?
-      @stats[:missing_roles] += 1
-    elsif VALID_ROLES.include?(role)
-      commands << { command: 'SADD', key: "customer:role_index:#{role}", args: [objid] }
-      @stats[:role_entries][role] += 1
+    # v1 stored role as a hash field that was often absent (76% of records in
+    # the test run). v2 defaults role to 'customer' (see customer/features/
+    # status.rb), so treat missing/empty as 'customer' here too — otherwise
+    # those accounts disappear from role_index:customer entirely.
+    raw_role  = fields['role']
+    effective = raw_role.nil? || raw_role.empty? ? DEFAULT_ROLE : raw_role
+    if raw_role.nil? || raw_role.empty?
+      @stats[:missing_roles]   += 1
+      @stats[:defaulted_roles] += 1
+    end
+
+    if VALID_ROLES.include?(effective)
+      commands << { command: 'SADD', key: "customer:role_index:#{effective}", args: [objid] }
+      @stats[:role_entries][effective] += 1
     else
-      @stats[:invalid_roles][role] += 1
+      @stats[:invalid_roles][effective] += 1
     end
   end
 
@@ -410,7 +438,7 @@ class CustomerIndexCreator
         @stats[:global_counters][field] = fields[field].to_i
       end
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "GLOBAL decode failed: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "GLOBAL decode failed: #{ex.message}" }
     ensure
       begin
         @redis.del(temp_key)
@@ -505,10 +533,14 @@ class CustomerIndexCreator
       puts "  #{role}: #{count}"
     end
     puts '  (no role entries)' if @stats[:role_entries].empty?
-    # Warn about data quality issues with roles
+    # Surface data quality issues with roles. After Fix 3, missing roles are
+    # defaulted to 'customer' (already counted in role_entries above), so this
+    # block reports the data-quality signal without implying records were lost.
     if @stats[:missing_roles] > 0 || @stats[:invalid_roles].any?
-      puts "  WARNING: #{@stats[:objects_processed]} objects, #{total_with_roles} with valid roles"
-      puts "    Missing role: #{@stats[:missing_roles]}" if @stats[:missing_roles] > 0
+      puts "  Note: #{@stats[:objects_processed]} objects, #{total_with_roles} with role entries"
+      if @stats[:defaulted_roles] > 0
+        puts "    Defaulted to '#{DEFAULT_ROLE}' (missing v1 role): #{@stats[:defaulted_roles]}"
+      end
       @stats[:invalid_roles].each do |role, count|
         puts "    Invalid role '#{role}': #{count}"
       end
@@ -543,13 +575,27 @@ class CustomerIndexCreator
     puts "  Email->objid mappings: #{@stats[:lookups_written]}"
     puts
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each do |err|
-      puts "  #{err}"
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size} (benign - index entries without :object records)"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
     end
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
   end
 end
 

@@ -143,7 +143,12 @@ class SecretTransformer
       failed_customer_lookups: [],
       failed_org_lookups: [],
       failed_domain_lookups: [],
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
   end
 
@@ -161,9 +166,10 @@ class SecretTransformer
       @stats[:v1_records_read] += 1
       v2_records.concat(process_record(line.strip))
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
     rescue StandardError => ex
-      @stats[:errors] << { line: @stats[:v1_records_read], error: "Processing failed: #{ex.message}" }
+      bucket = ex.message.start_with?('Unknown field') ? :schema_gaps : :processing_failures
+      @stats[:errors][bucket] << { line: @stats[:v1_records_read], error: "Processing failed: #{ex.message}" }
     end
     progress.finish
 
@@ -301,7 +307,7 @@ class SecretTransformer
 
     unless objid && !objid.empty?
       @stats[:skipped_secrets] += 1
-      @stats[:errors] << { key: key, error: 'Could not extract objid from key.' }
+      @stats[:errors][:data_corruption] << { key: key, error: 'Could not extract objid from key.' }
       return []
     end
 
@@ -539,11 +545,27 @@ class SecretTransformer
     puts '  (none)' if @stats[:state_transforms].empty?
     puts
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each { |err| puts "  - #{err}" }
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    - #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
+    end
   end
 
   def redact_email(email)

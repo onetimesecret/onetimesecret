@@ -72,7 +72,12 @@ class ReceiptIndexCreator
       org_indexes: 0,
       domain_indexes: 0,
       participation_indexes: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
       missing_customer_lookups: 0,
       missing_org_lookups: 0,
       missing_domain_lookups: 0,
@@ -153,7 +158,7 @@ class ReceiptIndexCreator
     end
     progress.finish
   rescue StandardError => ex
-    @stats[:errors] << { error: ex.message, backtrace: ex.backtrace.first(3) }
+    @stats[:errors][:processing_failures] << { error: ex.message, backtrace: ex.backtrace.first(3) }
   ensure
     redis&.close
   end
@@ -191,10 +196,10 @@ class ReceiptIndexCreator
     @stats[:records_processed] += 1
   rescue JSON::ParserError => ex
     @stats[:records_skipped] += 1
-    @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
+    @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
   rescue StandardError => ex
     @stats[:records_skipped] += 1
-    @stats[:errors] << { line: @stats[:records_read], error: ex.message }
+    @stats[:errors][:processing_failures] << { line: @stats[:records_read], error: ex.message }
   end
 
   def extract_objid(key)
@@ -221,7 +226,7 @@ class ReceiptIndexCreator
 
     fields
   rescue StandardError => ex
-    @stats[:errors] << { error: "Decode error: #{ex.message}" }
+    @stats[:errors][:data_corruption] << { error: "Decode error: #{ex.message}" }
     nil
   end
 
@@ -442,12 +447,27 @@ class ReceiptIndexCreator
       end
     end
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
+
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
 
     puts
-    puts 'Errors (first 10):'
-    @stats[:errors].first(10).each do |err|
-      puts "  #{err}"
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
     end
   end
 

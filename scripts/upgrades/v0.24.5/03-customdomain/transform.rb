@@ -146,7 +146,12 @@ class CustomDomainTransformer
       missing_org_mapping: 0,
       missing_object_records: [],    # Domains with no :object record
       unmapped_custids: [],          # Domains where custid couldn't be mapped to org
-      errors: [],
+      errors: {
+        schema_gaps: [],          # unknown fields encountered (this transform raises today)
+        orphans: [],              # missing :object records, custids without org mapping
+        data_corruption: [],      # restore failures, JSON parse errors, unresolvable objid
+        processing_failures: [],  # everything else (rescue StandardError)
+      },
     }
   end
 
@@ -165,7 +170,8 @@ class CustomDomainTransformer
       process_progress.tick
       v2_records.concat(process_domain(domainid, records))
     rescue StandardError => ex
-      @stats[:errors] << { domain: domainid, records: records, error: "Processing failed: #{ex.message}" }
+      bucket = ex.message.start_with?('Unknown field') ? :schema_gaps : :processing_failures
+      @stats[:errors][bucket] << { domain: domainid, related_count: records.size, error: "Processing failed: #{ex.message}" }
     end
     process_progress.finish
 
@@ -235,7 +241,7 @@ class CustomDomainTransformer
         email                     = fields['v1_custid'] || fields['email']
         @email_to_customer[email] = objid if email && !email.empty?
       rescue Redis::CommandError => ex
-        @stats[:errors] << { key: record[:key], error: "Mapping restore failed: #{ex.message}" }
+        @stats[:errors][:data_corruption] << { key: record[:key], error: "Mapping restore failed: #{ex.message}" }
       ensure
         begin
           @redis.del(temp_key)
@@ -295,7 +301,7 @@ class CustomDomainTransformer
       domainid = key_parts[1]
       groups[domainid] << record
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
     end
 
     progress.finish
@@ -316,7 +322,7 @@ class CustomDomainTransformer
         related_keys: related_keys,
         record_count: records.size,
       }
-      @stats[:errors] << { domain: domainid, error: 'No :object record found.' }
+      @stats[:errors][:orphans] << { domain: domainid, error: 'No :object record found.' }
       return []
     end
 
@@ -327,7 +333,9 @@ class CustomDomainTransformer
 
     unless objid && !objid.empty?
       @stats[:skipped_domains] += 1
-      @stats[:errors] << { domain: domainid, error: 'Could not resolve objid.' }
+      # After Fix 4 (enricher synthesizes missing `created`), this branch should
+      # rarely fire; remaining hits indicate dump corruption.
+      @stats[:errors][:data_corruption] << { domain: domainid, error: 'Could not resolve objid.' }
       return []
     end
 
@@ -378,7 +386,7 @@ class CustomDomainTransformer
           customer_objid: customer_objid,
           reason: customer_objid ? 'customer_objid not in org mapping' : 'custid not in customer mapping',
         }
-        @stats[:errors] << { domain: objid, error: "No org mapping for custid: #{redact_email(custid)}" }
+        @stats[:errors][:orphans] << { domain: objid, error: "No org mapping for custid: #{redact_email(custid)}" }
       end
     end
 
@@ -477,7 +485,7 @@ class CustomDomainTransformer
         dump: new_dump_b64,
       }
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Related hash transform failed: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "Related hash transform failed: #{ex.message}" }
       # Fall back to just renaming the key without transformation
       record.merge(key: new_key)
     ensure
@@ -664,11 +672,27 @@ class CustomDomainTransformer
     # Write follow-up files for manual review
     write_followup_files unless @dry_run
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(20).each { |err| puts "  - #{err}" }
-    puts "  ... and #{@stats[:errors].size - 20} more" if @stats[:errors].size > 20
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size} (missing :object records, custids without org mapping)"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    - #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
+    end
   end
 
   def write_followup_files

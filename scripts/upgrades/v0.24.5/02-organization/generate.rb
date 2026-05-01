@@ -107,7 +107,12 @@ class OrganizationGenerator
       stripe_customers: 0,
       stripe_subscriptions: 0,
       skipped: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],          # unknown fields encountered (this generator raises today)
+        orphans: [],              # unused for org generation; reserved for parity
+        data_corruption: [],      # JSON parse, restore failures, missing customer objid
+        processing_failures: [],  # everything else (rescue StandardError)
+      },
     }
 
     @customer_to_org    = {}  # customer_objid -> org_objid
@@ -242,7 +247,7 @@ class OrganizationGenerator
       @stats[:customer_objects] += 1
       process_customer_record(record)
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
     end
     progress.finish
   end
@@ -251,7 +256,7 @@ class OrganizationGenerator
     customer_objid = record[:objid]
     unless customer_objid && !customer_objid.empty?
       @stats[:skipped] += 1
-      @stats[:errors] << { key: record[:key], error: 'Missing customer objid' }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing customer objid' }
       return
     end
 
@@ -312,7 +317,7 @@ class OrganizationGenerator
         @redis.hgetall(temp_key)
       end
     rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: "Restore failed: #{ex.message}" }
       nil
     ensure
       begin
@@ -575,11 +580,27 @@ class OrganizationGenerator
     puts "  With Stripe subscription: #{@stats[:stripe_subscriptions]}"
     puts "Skipped: #{@stats[:skipped]}"
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "\nErrors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each { |err| puts "  - #{err}" }
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "\nErrors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    - #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
+    end
   end
 end
 
