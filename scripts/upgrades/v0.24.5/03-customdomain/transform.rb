@@ -33,6 +33,7 @@ require 'fileutils'
 require 'familia'
 
 require_relative '../lib/progress'
+require_relative '../lib/v1_hash'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/03-customdomain/transform.rb
@@ -278,7 +279,13 @@ class CustomDomainTransformer
 
     return [] if @dry_run
 
-    v1_fields    = read_v1_hash(object_record) || {}
+    v1_fields = read_v1_hash(object_record)
+    unless v1_fields
+      # read_v1_hash already logged :data_corruption when fields_b64 was missing
+      @stats[:skipped_domains] += 1
+      return []
+    end
+
     objid, extid = resolve_identifiers(object_record, v1_fields)
 
     unless objid && !objid.empty?
@@ -424,19 +431,11 @@ class CustomDomainTransformer
   end
 
   # Decode v1 hash fields from the typed payload emitted by upstream
-  # transforms (fields_b64). Returns a `{String => String}` hash equivalent
-  # to what HGETALL returned before. Replaces the prior RESTORE → HGETALL
-  # round-trip through a temp Redis DB.
+  # transforms (fields_b64). Delegates to the shared Upgrade::V1Hash module
+  # so all 5 transforms share one implementation. Returns nil (and logs
+  # :data_corruption) if the payload is missing or malformed.
   def read_v1_hash(record)
-    fields = record[:fields_b64]
-    unless fields.is_a?(Hash)
-      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing fields_b64 typed payload' }
-      return nil
-    end
-
-    fields.each_with_object({}) do |(field, b64), acc|
-      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
-    end
+    Upgrade::V1Hash.read(record, @stats[:errors])
   end
 
   def resolve_identifiers(record, fields)

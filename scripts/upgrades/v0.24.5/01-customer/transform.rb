@@ -27,6 +27,7 @@ require 'fileutils'
 require 'familia'
 
 require_relative '../lib/progress'
+require_relative '../lib/v1_hash'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/01-customer/transform.rb
@@ -193,7 +194,13 @@ class CustomerTransformer
 
     return [] if @dry_run # Stop here for dry run after counting
 
-    v1_fields    = read_v1_hash(object_record)
+    v1_fields = read_v1_hash(object_record)
+    unless v1_fields
+      # read_v1_hash already logged :data_corruption when fields_b64 was missing
+      @stats[:skipped_customers] += 1
+      return []
+    end
+
     objid, extid = resolve_identifiers(object_record, v1_fields)
 
     unless objid && !objid.empty?
@@ -237,9 +244,12 @@ class CustomerTransformer
     # Decode GLOBAL hash to extract counter values for summary comparison
     begin
       global_fields = read_v1_hash(object_record)
-      COUNTER_FIELDS.each do |field|
-        @stats[:global_counters][field] = global_fields[field].to_i
+      if global_fields
+        COUNTER_FIELDS.each do |field|
+          @stats[:global_counters][field] = global_fields[field].to_i
+        end
       end
+      # If global_fields is nil, read_v1_hash already logged :data_corruption.
     rescue StandardError => ex
       @stats[:errors][:data_corruption] << { customer: 'GLOBAL', error: "Failed to decode counters: #{ex.message}" }
     end
@@ -253,13 +263,11 @@ class CustomerTransformer
   end
 
   # Decode v1 hash fields from the typed payload emitted by dump_keys.rb.
-  # Returns a `{String => String}` hash equivalent to what HGETALL returned
-  # before. Replaces the prior RESTORE → HGETALL round-trip through a temp
-  # Redis DB.
+  # Delegates to the shared Upgrade::V1Hash module so all 5 transforms share
+  # one implementation. Returns nil (and logs :data_corruption) if the
+  # `fields_b64` payload is missing or malformed.
   def read_v1_hash(record)
-    (record[:fields_b64] || {}).each_with_object({}) do |(field, b64), acc|
-      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
-    end
+    Upgrade::V1Hash.read(record, @stats[:errors])
   end
 
   # Tally counter fields from an individual customer for summary comparison

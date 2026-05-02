@@ -32,6 +32,7 @@ require 'openssl'
 require 'familia'
 
 require_relative '../lib/progress'
+require_relative '../lib/v1_hash'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/02-organization/generate.rb
@@ -207,6 +208,8 @@ class OrganizationGenerator
       process_customer_record(record)
     rescue JSON::ParserError => ex
       @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
+    rescue StandardError => ex
+      @stats[:errors][:processing_failures] << { line: @stats[:records_read], error: ex.message }
     end
     progress.finish
   end
@@ -258,19 +261,11 @@ class OrganizationGenerator
   end
 
   # Decode v1 hash fields from the typed payload emitted by upstream
-  # transforms (fields_b64). Returns a `{String => String}` hash equivalent
-  # to what HGETALL returned before. Replaces the prior RESTORE → HGETALL
-  # round-trip through a temp Redis DB.
+  # transforms (fields_b64). Delegates to the shared Upgrade::V1Hash module
+  # so all 5 transforms share one implementation. Returns nil (and logs
+  # :data_corruption) if the payload is missing or malformed.
   def read_v1_hash(record)
-    fields = record[:fields_b64]
-    unless fields.is_a?(Hash)
-      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing fields_b64 typed payload' }
-      return nil
-    end
-
-    fields.each_with_object({}) do |(field, b64), acc|
-      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
-    end
+    Upgrade::V1Hash.read(record, @stats[:errors])
   end
 
   def generate_organization(customer_objid, customer_fields, customer_record)
