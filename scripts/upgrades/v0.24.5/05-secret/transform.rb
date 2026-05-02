@@ -43,6 +43,8 @@ require 'securerandom'
 require 'familia'
 require 'uri'
 
+require_relative '../lib/progress'
+
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/05-secret/transform.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
@@ -152,8 +154,10 @@ class SecretTransformer
 
     # Process each secret record and generate V2 records
     v2_records = []
+    progress   = Upgrade::ProgressReporter.new('secrets processed')
 
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:v1_records_read] += 1
       v2_records.concat(process_record(line.strip))
     rescue JSON::ParserError => ex
@@ -161,6 +165,7 @@ class SecretTransformer
     rescue StandardError => ex
       @stats[:errors] << { line: @stats[:v1_records_read], error: "Processing failed: #{ex.message}" }
     end
+    progress.finish
 
     # Write the transformed records to the output file
     write_output(v2_records) unless @dry_run

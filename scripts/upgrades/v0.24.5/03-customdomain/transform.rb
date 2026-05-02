@@ -37,6 +37,8 @@ require 'securerandom'
 require 'familia'
 require 'uri'
 
+require_relative '../lib/progress'
+
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/03-customdomain/transform.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
@@ -157,12 +159,15 @@ class CustomDomainTransformer
     records_by_domain = group_records_by_domain
 
     # 2. Process each domain group to generate V2 records
-    v2_records = []
+    v2_records      = []
+    process_progress = Upgrade::ProgressReporter.new('domains transformed')
     records_by_domain.each do |domainid, records|
+      process_progress.tick
       v2_records.concat(process_domain(domainid, records))
     rescue StandardError => ex
       @stats[:errors] << { domain: domainid, records: records, error: "Processing failed: #{ex.message}" }
     end
+    process_progress.finish
 
     # 3. Write the transformed records to the output file
     write_output(v2_records) unless @dry_run
@@ -264,9 +269,11 @@ class CustomDomainTransformer
 
   def group_records_by_domain
     puts "Reading and grouping records from #{@input_file}..."
-    groups = Hash.new { |h, k| h[k] = [] }
+    groups   = Hash.new { |h, k| h[k] = [] }
+    progress = Upgrade::ProgressReporter.new('records read')
 
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:v1_records_read] += 1
       record                    = JSON.parse(line, symbolize_names: true)
 
@@ -291,6 +298,7 @@ class CustomDomainTransformer
       @stats[:errors] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
     end
 
+    progress.finish
     puts "Found #{@stats[:v1_records_read]} records for #{groups.size - (groups.key?('__instance_index__') ? 1 : 0)} distinct domains."
     groups
   end

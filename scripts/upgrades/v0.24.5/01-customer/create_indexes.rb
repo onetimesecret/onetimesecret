@@ -33,6 +33,8 @@ require 'fileutils'
 require 'securerandom'
 require 'uri'
 
+require_relative '../lib/progress'
+
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/01-customer/create_indexes.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
@@ -87,7 +89,9 @@ class CustomerIndexCreator
     externalized_counter_records = []
 
     # First pass: collect records and detect if onetime:customer exists
+    scan_progress = Upgrade::ProgressReporter.new('records scanned')
     File.foreach(@input_file) do |line|
+      scan_progress.tick
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
 
@@ -122,13 +126,18 @@ class CustomerIndexCreator
       @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
 
+    scan_progress.finish
+
     # Set source to 'generated' if no existing index found
     @stats[:instance_index_source] ||= 'generated'
 
     # Second pass: process customer objects (builds email->objid mapping)
+    obj_progress = Upgrade::ProgressReporter.new('customer indexes')
     customer_object_records.each do |record|
+      obj_progress.tick
       commands.concat(process_customer_object(record))
     end
+    obj_progress.finish
 
     # Process instance index now that we have email->objid mapping
     if instance_index_record

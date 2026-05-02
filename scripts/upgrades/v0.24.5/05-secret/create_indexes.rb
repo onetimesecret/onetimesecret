@@ -22,6 +22,8 @@ require 'json'
 require 'base64'
 require 'fileutils'
 
+require_relative '../lib/progress'
+
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/05-secret/create_indexes.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
@@ -105,7 +107,9 @@ class SecretIndexCreator
   end
 
   def process_dump(out)
+    progress = Upgrade::ProgressReporter.new('secret indexes')
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:records_read] += 1
       record                 = JSON.parse(line.chomp)
 
@@ -156,6 +160,7 @@ class SecretIndexCreator
       @stats[:errors] << { line: @stats[:records_read], error: ex.message }
       @stats[:records_skipped] += 1
     end
+    progress.finish
   end
 
   def extract_objid(key)

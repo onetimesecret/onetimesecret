@@ -32,6 +32,8 @@ require 'fileutils'
 require 'securerandom'
 require 'uri'
 
+require_relative '../lib/progress'
+
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/03-customdomain/create_indexes.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
@@ -72,9 +74,11 @@ class CustomDomainIndexCreator
     connect_redis unless @dry_run
 
     commands = []
+    progress = Upgrade::ProgressReporter.new('domain indexes')
 
     # Process the dump file
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
 
@@ -97,6 +101,7 @@ class CustomDomainIndexCreator
     rescue JSON::ParserError => ex
       @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
+    progress.finish
 
     # Instance index is always generated from V2 objects (V1 hex IDs != V2 UUIDs)
     @stats[:instance_index_source] = 'generated'
