@@ -3,8 +3,11 @@
 
 # Restores original v1 records as _original_* Redis keys for rollback/audit.
 #
-# Uses Redis RESTORE to place v1 dump binaries directly as sibling keys
-# alongside v2 records, with a 30-day TTL for automatic cleanup.
+# Replays each v1 record onto target as a sibling key with a 30-day TTL for
+# automatic cleanup. Prefers the typed payload (fields_b64 / value_b64 /
+# members / zmembers) emitted by dump_keys.rb, falling back to RESTORE on the
+# raw DUMP blob when only that's present. The typed path is the cross-engine
+# fallback (Redis 8 RDB v12 → Valkey 8 RDB v11 won't RESTORE).
 #
 # Two-phase approach:
 #   Phase A — Build v1→v2 objid mapping from transformed JSONL
@@ -238,7 +241,9 @@ class OriginalRecordRestorer
     mapping
   end
 
-  # Build mapping by RESTOREing transformed dumps to read v1_identifier
+  # Build mapping by reading v1_identifier from each transformed record. Prefers
+  # the typed `fields_b64` payload (cheap base64 decode) and falls back to a
+  # temp-RESTORE of the DUMP blob on legacy artifacts that lack the typed form.
   def build_mapping_from_transformed(config, transformed_file)
     mapping = {}
 
@@ -249,8 +254,7 @@ class OriginalRecordRestorer
       objid = record[:objid]
       next unless objid
 
-      # RESTORE dump temporarily to read v1_identifier field
-      v1_identifier = read_field_from_dump(record[:dump], 'v1_identifier')
+      v1_identifier = read_v1_identifier(record)
       next unless v1_identifier
 
       # Deserialize JSON-encoded value from Familia v2 serialization
@@ -266,6 +270,16 @@ class OriginalRecordRestorer
     mapping
   end
 
+  def read_v1_identifier(record)
+    if record[:fields_b64] && (encoded = record[:fields_b64][:v1_identifier] || record[:fields_b64]['v1_identifier'])
+      return Base64.strict_decode64(encoded.to_s)
+    end
+    return nil unless record[:dump]
+    read_field_from_dump(record[:dump], 'v1_identifier')
+  rescue ArgumentError
+    nil
+  end
+
   # ── Phase B: RESTORE v1 Dumps ───────────────────────────
 
   def restore_model(model, config, dump_file, transformed_file)
@@ -275,12 +289,14 @@ class OriginalRecordRestorer
     mapping = build_v1_to_v2_mapping(model, config, dump_file, transformed_file)
     stats[:mapped] = mapping.size
 
-    # Phase B: Stream v1 dump and RESTORE each record
+    # Phase B: Stream v1 dump and replay each record onto the target
     progress = Upgrade::ProgressReporter.new("#{model} originals")
     File.foreach(dump_file) do |line|
       progress.tick
       record = JSON.parse(line.chomp, symbolize_names: true)
-      next unless record[:key] && record[:dump]
+      next unless record[:key]
+      next unless record[:dump] || record[:fields_b64] || record[:value_b64] ||
+                  record[:members] || record[:zmembers]
 
       suffix = extract_suffix(record[:key])
       unless config[:related_suffixes].include?(suffix)
@@ -299,8 +315,7 @@ class OriginalRecordRestorer
       # Compute v2 target key: {v2_prefix}:{objid}:_original_{suffix}
       target_key = "#{config[:v2_prefix]}:#{objid}:_original_#{suffix}"
 
-      # Decode and RESTORE with 30-day TTL
-      restore_to_target(target_key, record[:dump], stats)
+      replay_to_target(target_key, record, stats)
     rescue JSON::ParserError => ex
       stats[:errors] << { error: ex.message }
     end
@@ -310,13 +325,51 @@ class OriginalRecordRestorer
     puts "  Errors: #{stats[:errors].size}" if stats[:errors].any?
   end
 
-  def restore_to_target(target_key, dump_b64, stats)
-    dump_data = Base64.strict_decode64(dump_b64)
-    @redis.restore(target_key, THIRTY_DAYS_MS, dump_data, replace: true)
+  # Replay a v1 dump record onto the target as `target_key` with a 30-day TTL.
+  # Prefers typed payload (fields_b64 / value_b64 / members / zmembers); falls
+  # back to RESTORE on the raw DUMP blob. All collection-type writes DEL the
+  # target first to match RESTORE-with-replace idempotency.
+  def replay_to_target(target_key, record, stats)
+    if record[:fields_b64]
+      fields = record[:fields_b64].each_with_object({}) do |(field, encoded), acc|
+        acc[field.to_s] = Base64.strict_decode64(encoded.to_s)
+      end
+      @redis.del(target_key)
+      @redis.hset(target_key, fields) unless fields.empty?
+      @redis.pexpire(target_key, THIRTY_DAYS_MS) unless fields.empty?
+    elsif record[:value_b64]
+      value = Base64.strict_decode64(record[:value_b64].to_s)
+      @redis.set(target_key, value, px: THIRTY_DAYS_MS)
+    elsif record[:zmembers]
+      pairs = record[:zmembers].map { |entry| [entry[1].to_f, entry[0].to_s] }
+      @redis.del(target_key)
+      unless pairs.empty?
+        @redis.zadd(target_key, pairs)
+        @redis.pexpire(target_key, THIRTY_DAYS_MS)
+      end
+    elsif record[:members]
+      members = record[:members].map(&:to_s)
+      @redis.del(target_key)
+      if members.any?
+        if record[:type].to_s == 'list'
+          @redis.rpush(target_key, members)
+        else
+          @redis.sadd(target_key, members)
+        end
+        @redis.pexpire(target_key, THIRTY_DAYS_MS)
+      end
+    elsif record[:dump]
+      dump_data = Base64.strict_decode64(record[:dump])
+      @redis.restore(target_key, THIRTY_DAYS_MS, dump_data, replace: true)
+    else
+      stats[:skipped] += 1
+      return
+    end
+
     stats[:restored] += 1
-  rescue Redis::CommandError => ex
+  rescue Redis::CommandError, ArgumentError => ex
     stats[:errors] << { key: target_key, error: ex.message }
-    warn "  Warning: Failed to restore #{target_key}: #{ex.message}"
+    warn "  Warning: Failed to replay #{target_key}: #{ex.message}"
   end
 
   # ── Helpers ─────────────────────────────────────────────

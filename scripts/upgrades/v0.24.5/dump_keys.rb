@@ -5,7 +5,25 @@
 # frozen_string_literal: true
 
 # Dumps Redis keys to JSONL format for migration, organized by model.
-# Each line: {"key": "...", "type": "...", "ttl_ms": ..., "dump": "<base64>", "created": ...}
+#
+# Each line carries BOTH a raw RDB DUMP blob AND a typed payload, so the
+# loader can RESTORE (when source/target RDB versions match) or replay native
+# commands (when they don't — e.g. Redis 8 RDB v12 → Valkey 8 RDB v11). The
+# typed payload is the cross-engine fallback; everything downstream prefers it
+# when present.
+#
+# Schema per record (depending on key type):
+#   Common: { key, type, ttl_ms, db, dump (base64) }
+#   hash:   ..., fields_b64: { field => base64(value) }
+#   string: ..., value_b64: base64(value)
+#   set:    ..., members:   [String, ...]
+#   zset:   ..., zmembers:  [[String, Float], ...]
+#   list:   ..., members:   [String, ...]
+#   plus optional: created (Integer, hash :object only)
+#
+# Hash field values and string bytes are base64-encoded because they may
+# contain binary (e.g. AES-GCM ciphertext). Set/zset/list members are emitted
+# as plain strings; OTS uses these only for identifier-shaped values.
 #
 # Default: execute (writes JSONL to disk). Pass --dry-run to preview.
 # This default is intentional: orchestrators (upgrade.sh, run_pipeline.sh) rely
@@ -232,12 +250,20 @@ class KeyDumper
       dump: Base64.strict_encode64(dump_data),
     }
 
-    # Extract 'created' field for hash types that have it (needed for UUIDv7)
+    # Typed payload for cross-engine load. Reads via native commands so the
+    # loader can replay them when the target rejects the DUMP blob (Redis 8
+    # RDB v12 vs Valkey 8 RDB v11). Failures here are non-fatal — the DUMP
+    # blob is still written, so a same-engine load path stays viable.
+    typed = read_typed_payload(redis, key, key_type)
+    record.merge!(typed) if typed
+
+    # Extract 'created' field for hash types that have it (needed for UUIDv7).
+    # Reuse the typed payload when available to avoid an extra HGET round trip.
     if key_type == 'hash' && key.end_with?(':object')
       prefix = key.split(':').first
       if MODELS_WITH_CREATED.include?(prefix)
-        created          = redis.hget(key, 'created')
-        record[:created] = created.to_i if created && !created.empty?
+        created = created_from_typed(typed) || redis.hget(key, 'created')
+        record[:created] = created.to_i if created && !created.to_s.empty?
       end
     end
 
@@ -246,6 +272,45 @@ class KeyDumper
     stats[:dumped] += 1
   rescue Redis::CommandError => ex
     stats[:errors] << { key: key, error: ex.message }
+  end
+
+  # Read the key's contents using native typed commands and return a hash
+  # of additional JSONL fields (fields_b64 / value_b64 / members / zmembers).
+  # Returns nil and records a stat error on failure — the caller still writes
+  # the DUMP blob, so this is purely additive.
+  def read_typed_payload(redis, key, key_type)
+    case key_type
+    when 'hash'
+      fields  = redis.hgetall(key)
+      encoded = fields.each_with_object({}) do |(field, value), acc|
+        acc[field] = Base64.strict_encode64(value.to_s)
+      end
+      { fields_b64: encoded }
+    when 'string'
+      value = redis.get(key)
+      { value_b64: Base64.strict_encode64(value.to_s) }
+    when 'set'
+      { members: redis.smembers(key) }
+    when 'zset'
+      # ZRANGE WITHSCORES returns [[member, score], ...] in ascending order.
+      pairs = redis.zrange(key, 0, -1, with_scores: true)
+      { zmembers: pairs.map { |member, score| [member, score] } }
+    when 'list'
+      { members: redis.lrange(key, 0, -1) }
+    else
+      nil
+    end
+  rescue Redis::CommandError => ex
+    @model_stats[get_model_for_key(key)[:model]][:errors] <<
+      { key: key, error: "Typed read failed (#{key_type}): #{ex.message}" }
+    nil
+  end
+
+  def created_from_typed(typed)
+    return nil unless typed && typed[:fields_b64]
+    encoded = typed[:fields_b64]['created']
+    return nil unless encoded
+    Base64.strict_decode64(encoded)
   end
 
   def write_combined_manifest(databases)

@@ -335,10 +335,13 @@ class CustomerTransformer
             ttl_ms: -1,
             db: original_record[:db],
             dump: Base64.strict_encode64(dump_data),
+            # Typed payload for cross-engine load. The counter's stored form is
+            # the integer text — base64-encode the raw bytes so load_keys.rb
+            # can SET it without RESTORE (Redis 8 → Valkey 8 RDB mismatch).
+            value_b64: Base64.strict_encode64(value.to_s),
             # Plain-integer counter value for create_indexes.rb's
-            # accumulate_externalized_counters tally. load_keys.rb only reads
-            # :key/:dump/:ttl_ms (see prepare_record), so this extra key is
-            # invisible to the loader.
+            # accumulate_externalized_counters tally. load_keys.rb prefers
+            # :value_b64; this extra key is invisible to the loader.
             value: value,
           }
         end
@@ -362,10 +365,11 @@ class CustomerTransformer
           ttl_ms: -1,
           db: original_record[:db],
           dump: dump_b64,
+          # Typed payload for cross-engine load. See pipelined branch above.
+          value_b64: Base64.strict_encode64(value.to_s),
           # Plain-integer counter value for create_indexes.rb's
-          # accumulate_externalized_counters tally. load_keys.rb only reads
-          # :key/:dump/:ttl_ms (see prepare_record), so this extra key is
-          # invisible to the loader.
+          # accumulate_externalized_counters tally. load_keys.rb prefers
+          # :value_b64; this extra key is invisible to the loader.
           value: value,
         }
       end
@@ -437,12 +441,20 @@ class CustomerTransformer
 
     @stats[:transformed_objects] += 1
 
+    # Typed payload for cross-engine load: load_keys.rb prefers fields_b64 over
+    # the DUMP blob when both are present (Redis 8 → Valkey 8 RDB mismatch).
+    # We base64-encode the already-JSON-serialized v2 values for binary safety.
+    fields_b64 = v2_serialized.each_with_object({}) do |(field, value), acc|
+      acc[field] = Base64.strict_encode64(value.to_s)
+    end
+
     {
       key: "customer:#{objid}:object",
       type: 'hash',
       ttl_ms: v1_record[:ttl_ms],
       db: v1_record[:db],
       dump: v2_dump_b64,
+      fields_b64: fields_b64,
       objid: objid,
       extid: v2_fields['extid'],
       created: v1_record[:created] || v1_fields['created']&.to_i,

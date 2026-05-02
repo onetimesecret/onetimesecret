@@ -2,7 +2,18 @@
 # frozen_string_literal: true
 
 # Loads migrated data into Valkey/Redis from transformed JSONL files.
-# Processes both transformed records (RESTORE) and index commands (ZADD/HSET/etc).
+# Processes both transformed records and index commands (ZADD/HSET/etc).
+#
+# Record-loading strategy:
+#   1. Prefer typed payload (fields_b64 / value_b64 / members / zmembers) and
+#      replay the appropriate native commands. This is the cross-engine path
+#      (e.g. Redis 8 source whose RDB v12 DUMP blobs Valkey 8 won't accept).
+#   2. Fall back to RESTORE on the raw DUMP blob when no typed payload is
+#      present. Typed and DUMP are emitted side-by-side by dump_keys.rb and
+#      the per-entity transforms, so this fallback exists for older artifacts.
+#
+# In both paths the loader DEL's the key before writing collection types
+# (hash/set/zset/list) so re-runs match RESTORE-with-replace semantics.
 #
 # Default: execute (writes to Valkey/Redis). Pass --dry-run to preview.
 # This default is intentional: orchestrators (upgrade.sh, run_pipeline.sh) rely
@@ -293,30 +304,40 @@ class KeyLoader
     prepared = prepare_record(model_name, record)
     return unless prepared
 
-    key, restore_ttl, dump_data = prepared
-    redis.restore(key, restore_ttl, dump_data, replace: true)
-    @record_keys << key
+    apply_record(redis, prepared)
+    @record_keys << prepared[:key]
     @stats[model_name][:records_restored] += 1
   rescue Redis::CommandError => ex
-    fatal_if_hard_redis_error!(ex, model_name: model_name, key: key, op: 'RESTORE')
+    op = prepared ? prepared[:kind].to_s.upcase : 'LOAD'
+    key = prepared && prepared[:key]
+    fatal_if_hard_redis_error!(ex, model_name: model_name, key: key, op: op)
     @stats[model_name][:records_skipped] += 1
-    @stats[model_name][:errors] << { key: key, error: "RESTORE failed: #{ex.message}" }
+    @stats[model_name][:errors] << { key: key, error: "#{op} failed: #{ex.message}" }
   end
 
-  # Validate, decode, and produce a [key, restore_ttl, dump_data] triple ready
-  # for either single-record RESTORE or pipelined RESTORE. Per-record soft
-  # errors (missing fields, base64 decode) are recorded against @stats here so
-  # both code paths get identical error semantics. Returns nil for skip.
-  # In dry-run mode the key is counted as restored and nil is returned (no
-  # Redis work to do).
+  # Validate, decode, and produce a load descriptor ready for either single-
+  # shot or pipelined execution. Per-record soft errors (missing payload,
+  # base64 decode) are recorded against @stats here so both code paths get
+  # identical error semantics. Returns nil for skip; in dry-run mode the key
+  # is counted as restored and nil returned.
+  #
+  # Descriptor shapes (`:kind` discriminator):
+  #   { kind: :hash,    key:, fields:    Hash<String,String>, pttl: }
+  #   { kind: :string,  key:, value:     String,              pttl: }
+  #   { kind: :set,     key:, members:   Array<String>,       pttl: }
+  #   { kind: :zset,    key:, pairs:     Array<[Float,String]>,pttl: }
+  #   { kind: :list,    key:, members:   Array<String>,       pttl: }
+  #   { kind: :restore, key:, dump:      String,              pttl: }  # fallback
+  #
+  # `pttl` is 0 for "no expiry" (RESTORE convention) or a positive PEXPIRE
+  # value in milliseconds.
   def prepare_record(model_name, record)
-    key      = record[:key]
-    dump_b64 = record[:dump]
-    ttl_ms   = record[:ttl_ms]
+    key    = record[:key]
+    ttl_ms = record[:ttl_ms]
 
-    unless key && dump_b64
+    unless key
       @stats[model_name][:records_skipped] += 1
-      @stats[model_name][:errors] << { key: key, error: 'Missing key or dump data' }
+      @stats[model_name][:errors] << { key: key, error: 'Missing key' }
       return nil
     end
 
@@ -326,37 +347,190 @@ class KeyLoader
       return nil
     end
 
-    begin
-      dump_data = Base64.strict_decode64(dump_b64)
-    rescue ArgumentError => ex
-      @stats[model_name][:records_skipped] += 1
-      @stats[model_name][:errors] << { key: key, error: "Base64 decode failed: #{ex.message}" }
-      return nil
+    pttl = ttl_ms.to_i == -1 ? 0 : ttl_ms.to_i
+
+    if (fields_b64 = record[:fields_b64])
+      fields = decode_fields_b64(model_name, key, fields_b64)
+      return nil unless fields
+      return { kind: :hash, key: key, fields: fields, pttl: pttl }
     end
 
-    # -1 in source means no expiry -> use 0 in RESTORE; else use ttl_ms as-is.
-    restore_ttl = ttl_ms == -1 ? 0 : ttl_ms.to_i
-    [key, restore_ttl, dump_data]
+    if (value_b64 = record[:value_b64])
+      value = decode_b64(model_name, key, value_b64, 'value_b64')
+      return nil unless value
+      return { kind: :string, key: key, value: value, pttl: pttl }
+    end
+
+    if (zmembers = record[:zmembers])
+      pairs = zmembers.map { |entry| [entry[1].to_f, entry[0].to_s] }
+      return { kind: :zset, key: key, pairs: pairs, pttl: pttl }
+    end
+
+    if (members = record[:members])
+      kind = record[:type].to_s == 'list' ? :list : :set
+      return { kind: kind, key: key, members: members.map(&:to_s), pttl: pttl }
+    end
+
+    if (dump_b64 = record[:dump])
+      dump_data = decode_b64(model_name, key, dump_b64, 'dump')
+      return nil unless dump_data
+      return { kind: :restore, key: key, dump: dump_data, pttl: pttl }
+    end
+
+    @stats[model_name][:records_skipped] += 1
+    @stats[model_name][:errors] << { key: key, error: 'No payload (missing dump and typed fields)' }
+    nil
   end
 
-  def flush_record_batch(model_name, redis, prepared)
-    return if prepared.empty?
+  def decode_b64(model_name, key, value, label)
+    Base64.strict_decode64(value.to_s)
+  rescue ArgumentError => ex
+    @stats[model_name][:records_skipped] += 1
+    @stats[model_name][:errors] << { key: key, error: "Base64 decode failed (#{label}): #{ex.message}" }
+    nil
+  end
 
-    # exception: false -> per-command results; failed commands appear as
-    # Redis::CommandError instances at their slot in the result array. This
-    # preserves the per-key error granularity of the non-pipelined path.
+  def decode_fields_b64(model_name, key, fields_b64)
+    result = {}
+    fields_b64.each do |field, encoded|
+      result[field.to_s] = Base64.strict_decode64(encoded.to_s)
+    end
+    result
+  rescue ArgumentError => ex
+    @stats[model_name][:records_skipped] += 1
+    @stats[model_name][:errors] << { key: key, error: "Base64 decode failed (fields_b64): #{ex.message}" }
+    nil
+  end
+
+  # Single-shot apply (non-pipelined path). Returns nil; raises Redis::CommandError
+  # on failure for the surrounding rescue to handle.
+  def apply_record(redis, prepared)
+    push_load_commands(redis, prepared)
+  end
+
+  # Push the redis commands required to load `prepared` against `target`
+  # (either a Redis client for single-shot or a pipeline accumulator). Returns
+  # the count of commands pushed so the pipelined caller can map results back
+  # to the originating record.
+  #
+  # All collection types DEL the key first to match RESTORE-with-replace
+  # semantics on re-runs (HSET/SADD/ZADD/RPUSH would otherwise leave stale
+  # fields/members behind from a prior partial load).
+  def push_load_commands(target, prepared)
+    case prepared[:kind]
+    when :hash    then push_hash(target, prepared)
+    when :string  then push_string(target, prepared)
+    when :set     then push_set(target, prepared)
+    when :zset    then push_zset(target, prepared)
+    when :list    then push_list(target, prepared)
+    when :restore then push_restore(target, prepared)
+    else
+      raise ArgumentError, "Unknown load kind: #{prepared[:kind].inspect}"
+    end
+  end
+
+  def push_hash(target, prepared)
+    target.del(prepared[:key])
+    if prepared[:fields].empty?
+      1
+    else
+      target.hset(prepared[:key], prepared[:fields])
+      if prepared[:pttl] > 0
+        target.pexpire(prepared[:key], prepared[:pttl])
+        3
+      else
+        2
+      end
+    end
+  end
+
+  def push_string(target, prepared)
+    if prepared[:pttl] > 0
+      target.set(prepared[:key], prepared[:value], px: prepared[:pttl])
+    else
+      target.set(prepared[:key], prepared[:value])
+    end
+    1
+  end
+
+  def push_set(target, prepared)
+    target.del(prepared[:key])
+    if prepared[:members].empty?
+      1
+    else
+      target.sadd(prepared[:key], prepared[:members])
+      if prepared[:pttl] > 0
+        target.pexpire(prepared[:key], prepared[:pttl])
+        3
+      else
+        2
+      end
+    end
+  end
+
+  def push_zset(target, prepared)
+    target.del(prepared[:key])
+    if prepared[:pairs].empty?
+      1
+    else
+      target.zadd(prepared[:key], prepared[:pairs])
+      if prepared[:pttl] > 0
+        target.pexpire(prepared[:key], prepared[:pttl])
+        3
+      else
+        2
+      end
+    end
+  end
+
+  def push_list(target, prepared)
+    target.del(prepared[:key])
+    if prepared[:members].empty?
+      1
+    else
+      target.rpush(prepared[:key], prepared[:members])
+      if prepared[:pttl] > 0
+        target.pexpire(prepared[:key], prepared[:pttl])
+        3
+      else
+        2
+      end
+    end
+  end
+
+  def push_restore(target, prepared)
+    target.restore(prepared[:key], prepared[:pttl], prepared[:dump], replace: true)
+    1
+  end
+
+  def flush_record_batch(model_name, redis, prepared_batch)
+    return if prepared_batch.empty?
+
+    # Each prepared record may push 1+ commands (DEL + write + PEXPIRE for
+    # collection types; SET for strings; RESTORE for fallback). Track per-
+    # record command counts so we can attribute pipeline results back to the
+    # originating record. exception: false preserves the per-key error
+    # granularity of the non-pipelined path.
+    command_counts = []
     results = redis.pipelined(exception: false) do |pipe|
-      prepared.each do |key, ttl, data|
-        pipe.restore(key, ttl, data, replace: true)
+      prepared_batch.each do |prepared|
+        command_counts << push_load_commands(pipe, prepared)
       end
     end
 
-    results.each_with_index do |result, idx|
-      key = prepared[idx][0]
-      if result.is_a?(Redis::CommandError)
-        fatal_if_hard_redis_error!(result, model_name: model_name, key: key, op: 'RESTORE')
+    cursor = 0
+    prepared_batch.each_with_index do |prepared, idx|
+      n = command_counts[idx]
+      record_results = results[cursor, n]
+      cursor += n
+
+      error = record_results.find { |r| r.is_a?(Redis::CommandError) }
+      key = prepared[:key]
+      if error
+        op = prepared[:kind].to_s.upcase
+        fatal_if_hard_redis_error!(error, model_name: model_name, key: key, op: op)
         @stats[model_name][:records_skipped] += 1
-        @stats[model_name][:errors] << { key: key, error: "RESTORE failed: #{result.message}" }
+        @stats[model_name][:errors] << { key: key, error: "#{op} failed: #{error.message}" }
       else
         @record_keys << key
         @stats[model_name][:records_restored] += 1

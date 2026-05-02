@@ -421,6 +421,8 @@ class CustomDomainTransformer
       ttl_ms: v1_record[:ttl_ms],
       db: v1_record[:db],
       dump: v2_dump_b64,
+      # Typed payload for cross-engine load (Redis 8 → Valkey 8 RDB mismatch).
+      fields_b64: serialized_fields.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       objid: objid,
       extid: v2_fields['extid'],
       org_id: v2_fields['org_id'],
@@ -483,6 +485,8 @@ class CustomDomainTransformer
         ttl_ms: record[:ttl_ms],
         db: record[:db],
         dump: new_dump_b64,
+        # Typed payload for cross-engine load (Redis 8 → Valkey 8 RDB mismatch).
+        fields_b64: v2_serialized.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       }
     rescue Redis::CommandError => ex
       @stats[:errors][:data_corruption] << { key: record[:key], error: "Related hash transform failed: #{ex.message}" }

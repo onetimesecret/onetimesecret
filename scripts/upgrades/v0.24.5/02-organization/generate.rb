@@ -408,6 +408,9 @@ class OrganizationGenerator
       ttl_ms: -1,  # Organizations don't expire
       db: customer_record[:db],
       dump: org_dump_b64,
+      # Typed payload for cross-engine load (Redis 8 → Valkey 8 RDB mismatch).
+      # load_keys.rb prefers fields_b64 over the DUMP blob.
+      fields_b64: serialized.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       objid: org_objid,
       extid: org_extid,
       owner_id: customer_objid,
@@ -479,6 +482,8 @@ class OrganizationGenerator
       ttl_ms: -1,
       db: db,
       dump: dump_b64,
+      # Typed payload for cross-engine load (Redis 8 → Valkey 8 RDB mismatch).
+      fields_b64: serialized.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       record_kind: 'organization_membership',
       objid: membership_objid,
       organization_objid: org_objid,
