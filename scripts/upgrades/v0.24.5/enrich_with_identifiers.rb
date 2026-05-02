@@ -64,6 +64,10 @@ class IdentifierEnricher
   # are created fresh during migration (one per customer), not imported from v1.
   MODELS_TO_ENRICH = %w[customer customdomain].freeze
 
+  # Sentinel timestamp for records missing a `created` field. Clearly pre-OTS
+  # (2010-01-01 UTC) so post-migration audits can identify synthesized values.
+  SYNTHESIZED_CREATED_TS = Time.utc(2010, 1, 1).to_i
+
   # Key rename patterns: old_suffix => new_suffix
   KEY_RENAMES = {
     ':metadata' => ':receipts',
@@ -74,7 +78,7 @@ class IdentifierEnricher
     @output_dir = output_dir
     @dry_run    = dry_run
 
-    @stats = Hash.new { |h, k| h[k] = { total: 0, enriched: 0, renamed: 0, skipped: 0, errors: [] } }
+    @stats = Hash.new { |h, k| h[k] = { total: 0, enriched: 0, renamed: 0, skipped: 0, created_synthesized: 0, errors: [] } }
   end
 
   def run
@@ -150,7 +154,7 @@ class IdentifierEnricher
 
         # Enrich with identifiers
         if should_enrich?(record)
-          enrich_record!(record, prefix)
+          enrich_record!(record, prefix, stats: stats)
           stats[:enriched] += 1
         else
           stats[:skipped] += 1
@@ -183,13 +187,42 @@ class IdentifierEnricher
   end
 
   def should_enrich?(record)
-    # Only enrich :object records that have a created timestamp
-    record['key']&.end_with?(':object') && record['created']&.positive?
+    # Enrich all :object records. If `created` is missing/zero, enrich_record!
+    # synthesizes a sentinel timestamp so the customer is not silently dropped
+    # downstream (transform.rb would otherwise raise "Could not resolve objid").
+    record['key']&.end_with?(':object')
   end
 
-  def enrich_record!(record, prefix)
-    created_timestamp = record['created']
+  def enrich_record!(record, prefix, stats: nil)
     original_key = record['key']
+
+    # Synthesize a sentinel `created` when missing/zero so we can still derive
+    # a deterministic objid. The transform consumes record[:created] as the
+    # zset score for the instance index; SYNTHESIZED_CREATED_TS keeps the math
+    # valid and clearly marks the record as pre-OTS for post-migration audits.
+    raw_created      = record['created']
+    created_synth    = raw_created.nil? || !raw_created.is_a?(Numeric) || raw_created <= 0
+    created_timestamp = created_synth ? SYNTHESIZED_CREATED_TS : raw_created
+
+    if created_synth
+      record['created'] = SYNTHESIZED_CREATED_TS
+      # Use the canonical 'pending' enum (see lib/onetime/models/features/
+      # with_migration_fields.rb) so Customer.pending_migration surfaces these
+      # records for operator review. The 'created_synthesized' tag is recorded
+      # in migration_comment below for forensic context.
+      record['migration_status'] = 'pending'
+
+      # Append to (rather than overwrite) any existing migration_comment so we
+      # don't clobber a downstream-set value during a re-run.
+      existing_comment = record['migration_comment']
+      note             = 'created_synthesized'
+      record['migration_comment'] = if existing_comment && !existing_comment.empty?
+                                      "#{existing_comment};#{note}"
+                                    else
+                                      note
+                                    end
+      stats[:created_synthesized] += 1 if stats
+    end
 
     # Generate UUIDv7 from created timestamp + original key (deterministic)
     objid = generate_uuid_v7_from(created_timestamp, seed_key: original_key)
@@ -280,10 +313,11 @@ class IdentifierEnricher
     puts "\n=== Identifier Enrichment Summary ==="
     @stats.each do |model, stats|
       puts "#{model}:"
-      puts "  Total records: #{stats[:total]}"
-      puts "  Enriched:      #{stats[:enriched]}"
-      puts "  Renamed:       #{stats[:renamed]}"
-      puts "  Skipped:       #{stats[:skipped]}"
+      puts "  Total records:        #{stats[:total]}"
+      puts "  Enriched:             #{stats[:enriched]}"
+      puts "  Renamed:              #{stats[:renamed]}"
+      puts "  Skipped:              #{stats[:skipped]}"
+      puts "  Created synthesized:  #{stats[:created_synthesized]}" if stats[:created_synthesized] > 0
       next unless stats[:errors].any?
 
       puts "  Errors:        #{stats[:errors].size}"

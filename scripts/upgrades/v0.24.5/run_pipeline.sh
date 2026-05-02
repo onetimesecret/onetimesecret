@@ -108,7 +108,7 @@ phase_start=$SECONDS
 echo "=== Customer ============================================="
 ruby scripts/upgrades/v0.24.5/01-customer/transform.rb
 ruby scripts/upgrades/v0.24.5/01-customer/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/01-customer/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
+run_validator scripts/upgrades/v0.24.5/01-customer/validate_instance_index.rb
 echo "  Customer completed in $((SECONDS - phase_start))s"
 
 echo ""
@@ -117,7 +117,7 @@ phase_start=$SECONDS
 echo "=== Organization ============================================="
 ruby scripts/upgrades/v0.24.5/02-organization/generate.rb
 ruby scripts/upgrades/v0.24.5/02-organization/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/02-organization/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
+run_validator scripts/upgrades/v0.24.5/02-organization/validate_instance_index.rb
 echo "  Organization completed in $((SECONDS - phase_start))s"
 
 echo ""
@@ -135,7 +135,7 @@ phase_start=$SECONDS
 echo "=== Receipt ============================================="
 ruby scripts/upgrades/v0.24.5/04-receipt/transform.rb
 ruby scripts/upgrades/v0.24.5/04-receipt/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/04-receipt/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
+run_validator scripts/upgrades/v0.24.5/04-receipt/validate_instance_index.rb
 echo "  Receipt completed in $((SECONDS - phase_start))s"
 
 echo ""
@@ -144,7 +144,7 @@ phase_start=$SECONDS
 echo "=== Secret ============================================="
 ruby scripts/upgrades/v0.24.5/05-secret/transform.rb
 ruby scripts/upgrades/v0.24.5/05-secret/create_indexes.rb
-run_validator scripts/upgrades/v0.24.5/05-secret/validate_instance_index.rb --redis-url="${VALKEY_URL:-$REDIS_URL}"
+run_validator scripts/upgrades/v0.24.5/05-secret/validate_instance_index.rb
 echo "  Secret completed in $((SECONDS - phase_start))s"
 
 echo ""

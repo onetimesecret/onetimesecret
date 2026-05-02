@@ -2,8 +2,8 @@
 # frozen_string_literal: true
 
 # Creates customer indexes from dump file.
-# Reads JSONL dump, decodes Redis DUMP data via temporary restore, extracts fields,
-# and outputs index commands as JSONL.
+# Reads JSONL dump with typed payloads (fields_b64 / zmembers), decodes
+# base64 field values directly, and outputs index commands as JSONL.
 #
 # Usage:
 #   ruby scripts/migrations/jan24/create_indexes_customer.rb [OPTIONS]
@@ -11,8 +11,6 @@
 # Options:
 #   --input-file=FILE   Input JSONL dump file (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
 #   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/customer)
-#   --redis-url=URL     Redis URL for temporary restore (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N         Temporary database for restore operations (default: 15)
 #   --dry-run           Parse and count without writing output
 #
 # Output: customer_indexes.jsonl with Redis commands for:
@@ -26,12 +24,9 @@
 #   - customer:secrets_burned (INCRBY) - counter
 #   - customer:emails_sent (INCRBY) - counter
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
-require 'uri'
 
 require_relative '../lib/progress'
 
@@ -40,19 +35,15 @@ require_relative '../lib/progress'
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class CustomerIndexCreator
-  TEMP_KEY_PREFIX = '_migrate_tmp_'
   COUNTER_FIELDS  = %w[secrets_created secrets_shared secrets_burned emails_sent].freeze
   # NOTE: 'recipient' is also valid in V2 but not used in V1 data
   # 'user_deleted_self' tracks accounts that users deleted themselves
   VALID_ROLES     = %w[colonel customer anonymous recipient user_deleted_self].freeze
 
-  def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, dry_run: false)
     @input_file = input_file
     @output_dir = output_dir
-    @redis_url  = redis_url
-    @temp_db    = temp_db
     @dry_run    = dry_run
-    @redis      = nil
 
     @stats = {
       records_read: 0,
@@ -65,19 +56,29 @@ class CustomerIndexCreator
       extid_lookups: 0,
       objid_lookups: 0,
       role_entries: Hash.new(0),
-      missing_roles: 0,           # Customers with nil/empty role
+      missing_roles: 0,           # Customers with nil/empty role (defaulted to 'customer')
+      defaulted_roles: 0,         # Subset of missing_roles that received the v2 default
       invalid_roles: Hash.new(0), # Customers with role not in VALID_ROLES
       counters: Hash.new(0),
       global_counters: {},            # Counter values from GLOBAL_STATS record
       externalized_counter_records: 0,
       skipped: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
   end
 
+  # v2 customer model defaults role to 'customer' (see lib/onetime/models/
+  # customer/features/status.rb). Use the same default here so v1 records with
+  # no explicit role land in the same role index as v2-created customers.
+  DEFAULT_ROLE = 'customer'
+
   def run
     validate_input_file
-    connect_redis unless @dry_run
 
     commands                  = []
     instance_index_record     = nil
@@ -123,7 +124,7 @@ class CustomerIndexCreator
         @stats[:skipped] += 1
       end
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
 
     scan_progress.finish
@@ -158,8 +159,6 @@ class CustomerIndexCreator
 
     print_summary
     @stats
-  ensure
-    cleanup_redis
   end
 
   private
@@ -168,27 +167,6 @@ class CustomerIndexCreator
     unless File.exist?(@input_file)
       raise ArgumentError, "Input file not found: #{@input_file}"
     end
-  end
-
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    # Verify connection and that temp db is usable
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    # Clean up any temporary keys
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
   end
 
   def process_instance_index(record)
@@ -208,42 +186,28 @@ class CustomerIndexCreator
       return commands
     end
 
-    # Restore to temp key, read members, generate ZADD commands with objid
-    temp_key  = "#{TEMP_KEY_PREFIX}instance_index"
-    dump_data = Base64.strict_decode64(record[:dump])
+    # Direct typed-payload read: zmembers is [[member, score], ...]
+    members_with_scores = record[:zmembers] || []
 
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      members_with_scores = @redis.zrange(temp_key, 0, -1, with_scores: true)
+    members_with_scores.each do |email, score|
+      # Convert v1 email member to v2 objid member
+      objid = @email_to_objid[email]
 
-      members_with_scores.each do |email, score|
-        # Convert v1 email member to v2 objid member
-        objid = @email_to_objid[email]
-
-        unless objid
-          @stats[:errors] << { key: record[:key], error: "No objid mapping for email: #{redact_email(email)}" }
-          next
-        end
-
-        # Raw identifier (not JSON-encoded) for Familia SortedSet compatibility.
-        # SortedSet members are object references stored unquoted, unlike
-        # HashKey values which use JSON encoding for type preservation.
-        commands << {
-          command: 'ZADD',
-          key: 'customer:instances',
-          args: [score.to_i, objid],
-        }
-        @objids_in_instance_index << objid
-        @stats[:instance_entries] += 1
+      unless objid
+        @stats[:errors][:orphans] << { key: record[:key], error: "No objid mapping for email: #{redact_email(email)}" }
+        next
       end
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+
+      # Raw identifier (not JSON-encoded) for Familia SortedSet compatibility.
+      # SortedSet members are object references stored unquoted, unlike
+      # HashKey values which use JSON encoding for type preservation.
+      commands << {
+        command: 'ZADD',
+        key: 'customer:instances',
+        args: [score.to_i, objid],
+      }
+      @objids_in_instance_index << objid
+      @stats[:instance_entries] += 1
     end
 
     commands
@@ -276,10 +240,13 @@ class CustomerIndexCreator
   end
 
   def process_customer_object(record)
-    commands                    = []
-    @stats[:objects_processed] += 1
+    commands = []
 
-    return commands if @dry_run
+    if @dry_run
+      # Count records seen in dry-run for parity with non-dry-run reconciliation.
+      @stats[:objects_processed] += 1
+      return commands
+    end
 
     key_parts = record[:key].split(':')
     return commands if key_parts.size < 3
@@ -291,37 +258,31 @@ class CustomerIndexCreator
     objid = record[:objid]
     extid = record[:extid]
 
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      fields = @redis.hgetall(temp_key)
-
-      objid, extid = resolve_identifiers(objid, extid, fields)
-      return commands if objid.nil? || objid.empty?
-
-      # Build email->objid mapping for instance index conversion.
-      # v1 used email as custid; we need to map those to objid.
-      # NOTE: This intentionally duplicates the email_index logic below. Both
-      # read from source material (the key and hash fields) independently,
-      # avoiding a mistake in one codepath from affecting another.
-      @email_to_objid[v1_custid] = objid
-
-      # Track objid->created for backfilling missing instance entries
-      created                  = record[:created] || fields['created']
-      @objid_to_created[objid] = created.to_i if created
-
-      build_customer_index_commands(commands, record, fields, objid, extid)
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+    fields = (record[:fields_b64] || {}).each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
     end
+
+    objid, extid = resolve_identifiers(objid, extid, fields)
+    # Records with unresolvable objid take the skipped path — resolve_identifiers
+    # has already incremented @stats[:skipped]. Count :objects_processed only
+    # for the success path so reconciliation (objects_processed + skipped + …)
+    # matches records_read exactly.
+    return commands if objid.nil? || objid.empty?
+
+    @stats[:objects_processed] += 1
+
+    # Build email->objid mapping for instance index conversion.
+    # v1 used email as custid; we need to map those to objid.
+    # NOTE: This intentionally duplicates the email_index logic below. Both
+    # read from source material (the key and hash fields) independently,
+    # avoiding a mistake in one codepath from affecting another.
+    @email_to_objid[v1_custid] = objid
+
+    # Track objid->created for backfilling missing instance entries
+    created                  = record[:created] || fields['created']
+    @objid_to_created[objid] = created.to_i if created
+
+    build_customer_index_commands(commands, record, fields, objid, extid)
 
     commands
   end
@@ -371,15 +332,22 @@ class CustomerIndexCreator
     @stats[:objid_lookups] += 1
 
     # Role index (raw identifier for Familia Set compatibility, not JSON-encoded).
-    # Track customers without valid roles for data quality reporting.
-    role = fields['role']
-    if role.nil? || role.empty?
-      @stats[:missing_roles] += 1
-    elsif VALID_ROLES.include?(role)
-      commands << { command: 'SADD', key: "customer:role_index:#{role}", args: [objid] }
-      @stats[:role_entries][role] += 1
+    # v1 stored role as a hash field that was often absent (76% of records in
+    # the test run). v2 defaults role to 'customer' (see customer/features/
+    # status.rb), so treat missing/empty as 'customer' here too — otherwise
+    # those accounts disappear from role_index:customer entirely.
+    raw_role  = fields['role']
+    effective = raw_role.nil? || raw_role.empty? ? DEFAULT_ROLE : raw_role
+    if raw_role.nil? || raw_role.empty?
+      @stats[:missing_roles]   += 1
+      @stats[:defaulted_roles] += 1
+    end
+
+    if VALID_ROLES.include?(effective)
+      commands << { command: 'SADD', key: "customer:role_index:#{effective}", args: [objid] }
+      @stats[:role_entries][effective] += 1
     else
-      @stats[:invalid_roles][role] += 1
+      @stats[:invalid_roles][effective] += 1
     end
   end
 
@@ -398,26 +366,17 @@ class CustomerIndexCreator
 
   # Decode the GLOBAL_STATS record to extract counter values for summary comparison
   def decode_global_counters(record)
-    return unless record[:dump]
+    fields_b64 = record[:fields_b64]
+    return unless fields_b64
 
-    temp_key  = "#{TEMP_KEY_PREFIX}global_stats"
-    dump_data = Base64.strict_decode64(record[:dump])
+    COUNTER_FIELDS.each do |field|
+      encoded = fields_b64[field.to_sym] || fields_b64[field]
+      next unless encoded
 
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      fields = @redis.hgetall(temp_key)
-      COUNTER_FIELDS.each do |field|
-        @stats[:global_counters][field] = fields[field].to_i
-      end
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "GLOBAL decode failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+      @stats[:global_counters][field] = Base64.strict_decode64(encoded.to_s).to_i
     end
+  rescue ArgumentError => ex
+    @stats[:errors][:data_corruption] << { key: record[:key], error: "GLOBAL decode failed: #{ex.message}" }
   end
 
   # NOTE: No longer needed b/c we simply rename the customer:GLOBAL:object key to
@@ -505,10 +464,14 @@ class CustomerIndexCreator
       puts "  #{role}: #{count}"
     end
     puts '  (no role entries)' if @stats[:role_entries].empty?
-    # Warn about data quality issues with roles
+    # Surface data quality issues with roles. After Fix 3, missing roles are
+    # defaulted to 'customer' (already counted in role_entries above), so this
+    # block reports the data-quality signal without implying records were lost.
     if @stats[:missing_roles] > 0 || @stats[:invalid_roles].any?
-      puts "  WARNING: #{@stats[:objects_processed]} objects, #{total_with_roles} with valid roles"
-      puts "    Missing role: #{@stats[:missing_roles]}" if @stats[:missing_roles] > 0
+      puts "  Note: #{@stats[:objects_processed]} objects, #{total_with_roles} with role entries"
+      if @stats[:defaulted_roles] > 0
+        puts "    Defaulted to '#{DEFAULT_ROLE}' (missing v1 role): #{@stats[:defaulted_roles]}"
+      end
       @stats[:invalid_roles].each do |role, count|
         puts "    Invalid role '#{role}': #{count}"
       end
@@ -543,13 +506,27 @@ class CustomerIndexCreator
     puts "  Email->objid mappings: #{@stats[:lookups_written]}"
     puts
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each do |err|
-      puts "  #{err}"
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size} (benign - index entries without :object records)"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
     end
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
   end
 end
 
@@ -557,8 +534,6 @@ def parse_args(args)
   options = {
     input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_dump.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'customer'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -568,10 +543,6 @@ def parse_args(args)
       options[:input_file] = Regexp.last_match(1)
     when /^--output-dir=(.+)$/
       options[:output_dir] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
@@ -583,8 +554,6 @@ def parse_args(args)
         Options:
           --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
           --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/customer)
-          --redis-url=URL     Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse without writing output
           --help              Show this help
 
@@ -618,8 +587,6 @@ if __FILE__ == $0
   creator = CustomerIndexCreator.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
 

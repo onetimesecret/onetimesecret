@@ -5,7 +5,25 @@
 # frozen_string_literal: true
 
 # Dumps Redis keys to JSONL format for migration, organized by model.
-# Each line: {"key": "...", "type": "...", "ttl_ms": ..., "dump": "<base64>", "created": ...}
+#
+# Source is Redis 8 (RDB v12) and target is Valkey 8, which rejects v12
+# RESTORE payloads. There is no DUMP/RESTORE path: every record carries a
+# typed payload that the loader replays via native commands. Records whose
+# typed payload cannot be produced are fatal (the run aborts on the first
+# such record so the cause is investigated, not silently dropped).
+#
+# Schema per record (depending on key type):
+#   Common: { key, type, ttl_ms, db }
+#   hash:   ..., fields_b64: { field => base64(value) }
+#   string: ..., value_b64: base64(value)
+#   set:    ..., members:   [String, ...]
+#   zset:   ..., zmembers:  [[String, Float], ...]
+#   list:   ..., members:   [String, ...]
+#   plus optional: created (Integer, hash :object only)
+#
+# Hash field values and string bytes are base64-encoded because they may
+# contain binary (e.g. AES-GCM ciphertext). Set/zset/list members are emitted
+# as plain strings; OTS uses these only for identifier-shaped values.
 #
 # Default: execute (writes JSONL to disk). Pass --dry-run to preview.
 # This default is intentional: orchestrators (upgrade.sh, run_pipeline.sh) rely
@@ -216,28 +234,30 @@ class KeyDumper
       return
     end
 
-    # Get serialized value
-    dump_data = redis.dump(key)
-
-    if dump_data.nil?
-      stats[:skipped] += 1
-      return
-    end
-
     record = {
       key: key,
       type: key_type,
       ttl_ms: ttl_ms,
       db: db_number,
-      dump: Base64.strict_encode64(dump_data),
     }
 
-    # Extract 'created' field for hash types that have it (needed for UUIDv7)
+    # Typed payload is the only load representation. A failure here is fatal
+    # for this record — the loader has nothing to replay without it, so we
+    # surface the cause instead of silently dropping the key.
+    typed = read_typed_payload(redis, key, key_type)
+    if typed.nil?
+      stats[:skipped] += 1
+      return
+    end
+    record.merge!(typed)
+
+    # Extract 'created' field for hash types that have it (needed for UUIDv7).
+    # Reuse the typed payload when available to avoid an extra HGET round trip.
     if key_type == 'hash' && key.end_with?(':object')
       prefix = key.split(':').first
       if MODELS_WITH_CREATED.include?(prefix)
-        created          = redis.hget(key, 'created')
-        record[:created] = created.to_i if created && !created.empty?
+        created = created_from_typed(typed) || redis.hget(key, 'created')
+        record[:created] = created.to_i if created && !created.to_s.empty?
       end
     end
 
@@ -246,6 +266,45 @@ class KeyDumper
     stats[:dumped] += 1
   rescue Redis::CommandError => ex
     stats[:errors] << { key: key, error: ex.message }
+  end
+
+  # Read the key's contents using native typed commands and return a hash
+  # of additional JSONL fields (fields_b64 / value_b64 / members / zmembers).
+  # Returns nil and records a stat error on failure — the caller treats this
+  # as fatal for the record (no DUMP fallback exists in the typed-only path).
+  def read_typed_payload(redis, key, key_type)
+    case key_type
+    when 'hash'
+      fields  = redis.hgetall(key)
+      encoded = fields.each_with_object({}) do |(field, value), acc|
+        acc[field] = Base64.strict_encode64(value.to_s)
+      end
+      { fields_b64: encoded }
+    when 'string'
+      value = redis.get(key)
+      { value_b64: Base64.strict_encode64(value.to_s) }
+    when 'set'
+      { members: redis.smembers(key) }
+    when 'zset'
+      # ZRANGE WITHSCORES returns [[member, score], ...] in ascending order.
+      pairs = redis.zrange(key, 0, -1, with_scores: true)
+      { zmembers: pairs.map { |member, score| [member, score] } }
+    when 'list'
+      { members: redis.lrange(key, 0, -1) }
+    else
+      nil
+    end
+  rescue Redis::CommandError => ex
+    @model_stats[get_model_for_key(key)[:model]][:errors] <<
+      { key: key, error: "Typed read failed (#{key_type}): #{ex.message}" }
+    nil
+  end
+
+  def created_from_typed(typed)
+    return nil unless typed && typed[:fields_b64]
+    encoded = typed[:fields_b64]['created']
+    return nil unless encoded
+    Base64.strict_decode64(encoded)
   end
 
   def write_combined_manifest(databases)

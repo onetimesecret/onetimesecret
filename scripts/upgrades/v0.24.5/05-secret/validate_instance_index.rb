@@ -15,27 +15,24 @@
 # 4. Expected fields should be present but may be conditional (WARN if missing)
 # 5. All observed fields are reported with presence rates for full visibility
 #
+# Reads fields directly from the typed payload (record['fields_b64']) emitted
+# by the transform. No Redis dependency.
+#
 # Usage:
 #   ruby scripts/upgrades/v0.24.5/05-secret/validate_instance_index.rb [OPTIONS]
 #
 # Options:
 #   --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.5/secret/secret_transformed.jsonl)
 #   --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.5/secret/secret_indexes.jsonl)
-#   --redis-url=URL          Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N              Temp database number (default: 15)
 #   --help                   Show this help
 
 require 'json'
 require 'base64'
-require 'redis'
-require 'securerandom'
-require 'uri'
+require 'set'
 
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class SecretInstanceIndexValidator
-  TEMP_KEY_PREFIX = '_validate_secret_'
-
   # Fields that MUST be present in every transformed record.
   # Missing any of these is a validation failure.
   REQUIRED_FIELDS = %w[
@@ -59,12 +56,9 @@ class SecretInstanceIndexValidator
     org_id domain_id
   ].freeze
 
-  def initialize(transformed_file:, indexes_file:, redis_url:, temp_db: 15)
+  def initialize(transformed_file:, indexes_file:)
     @transformed_file = transformed_file
     @indexes_file     = indexes_file
-    @redis_url        = redis_url
-    @temp_db          = temp_db
-    @redis            = nil
 
     @stats = {
       index_members: 0,
@@ -82,7 +76,6 @@ class SecretInstanceIndexValidator
 
   def run
     validate_input_files
-    connect_redis
 
     # 1. Extract objids from secret:instances index commands
     index_objids = extract_index_objids
@@ -96,19 +89,16 @@ class SecretInstanceIndexValidator
     # 3. Cross-reference: index vs objects
     cross_reference(index_objids, transformed_objects)
 
-    # 4. Full field audit by decoding dump blobs
+    # 4. Full field audit by decoding typed payloads
     audit_fields(transformed_objects)
 
     # 5. Report
     print_report
 
     # Success if no orphaned entries and no required field failures
-    success = @stats[:in_index_not_in_objects].empty? &&
-              @stats[:in_objects_not_in_index].empty? &&
-              REQUIRED_FIELDS.none? { |f| @stats[:field_presence][f][:missing] > 0 }
-    success
-  ensure
-    cleanup_redis
+    @stats[:in_index_not_in_objects].empty? &&
+      @stats[:in_objects_not_in_index].empty? &&
+      REQUIRED_FIELDS.none? { |f| @stats[:field_presence][f][:missing] > 0 }
   end
 
   private
@@ -117,29 +107,9 @@ class SecretInstanceIndexValidator
     unless File.exist?(@transformed_file)
       raise ArgumentError, "Transformed file not found: #{@transformed_file}\nRun transform.rb first."
     end
-    unless File.exist?(@indexes_file)
-      raise ArgumentError, "Indexes file not found: #{@indexes_file}\nRun create_indexes.rb first."
-    end
-    raise ArgumentError, 'Redis URL required for dump blob decoding (set VALKEY_URL or REDIS_URL, or use --redis-url)' unless @redis_url
-  end
+    return if File.exist?(@indexes_file)
 
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
+    raise ArgumentError, "Indexes file not found: #{@indexes_file}\nRun create_indexes.rb first."
   end
 
   def extract_index_objids
@@ -199,26 +169,17 @@ class SecretInstanceIndexValidator
     @stats[:matches] = (index_objids & object_objids).size
   end
 
-  # Decode the dump blob via Redis RESTORE + HGETALL to inspect hash fields
+  # Decode hash fields from the typed payload. Returns {} if absent.
   def decode_hash_fields(record)
-    dump_b64 = record['dump']
-    return {} unless dump_b64
+    fields_b64 = record['fields_b64']
+    return {} unless fields_b64.is_a?(Hash)
 
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(dump_b64)
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record['key'], error: "RESTORE failed: #{ex.message}" }
-      {}
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+    fields_b64.each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
     end
+  rescue ArgumentError => ex
+    @stats[:errors] << { key: record['key'], error: "Base64 decode failed: #{ex.message}" }
+    {}
   end
 
   # Audit all fields in every record: track presence for required/expected
@@ -327,8 +288,9 @@ class SecretInstanceIndexValidator
     puts
 
     # --- All other observed fields (informational) ---
-    known_fields = Set.new(REQUIRED_FIELDS + EXPECTED_FIELDS + KNOWN_OPTIONAL_FIELDS)
-    other_fields = @stats[:all_observed_fields].select { |f| !REQUIRED_FIELDS.include?(f) && !EXPECTED_FIELDS.include?(f) }
+    other_fields = @stats[:all_observed_fields].reject do |f|
+      REQUIRED_FIELDS.include?(f) || EXPECTED_FIELDS.include?(f)
+    end
 
     if other_fields.any?
       puts '=== Additional Observed Fields ==='
@@ -363,8 +325,6 @@ def parse_args(args)
   options = {
     transformed_file: File.join(DEFAULT_DATA_DIR, 'secret/secret_transformed.jsonl'),
     indexes_file: File.join(DEFAULT_DATA_DIR, 'secret/secret_indexes.jsonl'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
   }
 
   args.each do |arg|
@@ -373,22 +333,17 @@ def parse_args(args)
       options[:transformed_file] = Regexp.last_match(1)
     when /^--indexes-file=(.+)$/
       options[:indexes_file] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.5/05-secret/validate_instance_index.rb [OPTIONS]
 
         Validates secret:instances index against transformed secret objects.
-        Decodes dump blobs via Redis RESTORE + HGETALL to inspect hash fields.
+        Reads hash fields directly from the typed payload (fields_b64) emitted
+        by the transform; no Redis dependency.
 
         Options:
           --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.5/secret/secret_transformed.jsonl)
           --indexes-file=FILE      Indexes JSONL (default: data/upgrades/v0.24.5/secret/secret_indexes.jsonl)
-          --redis-url=URL          Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N              Temp database number (default: 15)
           --help                   Show this help
 
         Validates:
@@ -414,8 +369,6 @@ if __FILE__ == $PROGRAM_NAME
   validator = SecretInstanceIndexValidator.new(
     transformed_file: options[:transformed_file],
     indexes_file: options[:indexes_file],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
   )
 
   success = validator.run

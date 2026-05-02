@@ -19,8 +19,6 @@
 #   --output-dir=DIR         Output directory (default: data/upgrades/v0.24.5/customdomain)
 #   --email-to-org=FILE      JSON map of email -> org_objid (default: data/upgrades/v0.24.5/organization/email_to_org_objid.json)
 #   --email-to-customer=FILE JSON map of email -> customer_objid (built from customer transform)
-#   --redis-url=URL          Redis URL for temporary operations (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N              Temporary database for restore/dump (default: 15)
 #   --dry-run                Parse and count without writing output
 #
 # Output: customdomain_transformed.jsonl with V2 records in Redis DUMP format.
@@ -29,23 +27,19 @@
 #   - Phase 1 Customer migration (provides email->customer_objid via customer_transformed.jsonl)
 #   - Phase 2 Organization migration (provides email->org_objid via email_to_org_objid.json)
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
 require 'familia'
-require 'uri'
 
 require_relative '../lib/progress'
+require_relative '../lib/v1_hash'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/03-customdomain/transform.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class CustomDomainTransformer
-  TEMP_KEY_PREFIX = '_migrate_tmp_domain_'
-
   # Field type mappings for Familia v2 JSON serialization
   # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
   FIELD_TYPES = {
@@ -121,15 +115,12 @@ class CustomDomainTransformer
     resolving created updated
   ].freeze
 
-  def initialize(input_file:, output_dir:, email_to_org_file:, email_to_customer_file:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, email_to_org_file:, email_to_customer_file:, dry_run: false)
     @input_file             = input_file
     @output_dir             = output_dir
     @email_to_org_file      = email_to_org_file
     @email_to_customer_file = email_to_customer_file
-    @redis_url              = redis_url
-    @temp_db                = temp_db
     @dry_run                = dry_run
-    @redis                  = nil
 
     @email_to_org      = {}
     @email_to_customer = {}
@@ -146,13 +137,17 @@ class CustomDomainTransformer
       missing_org_mapping: 0,
       missing_object_records: [],    # Domains with no :object record
       unmapped_custids: [],          # Domains where custid couldn't be mapped to org
-      errors: [],
+      errors: {
+        schema_gaps: [],          # unknown fields encountered (this transform raises today)
+        orphans: [],              # missing :object records, custids without org mapping
+        data_corruption: [],      # restore failures, JSON parse errors, unresolvable objid
+        processing_failures: [],  # everything else (rescue StandardError)
+      },
     }
   end
 
   def run
     validate_input_file
-    connect_redis unless @dry_run
     load_mappings
 
     # 1. Group records by domain ID from the dump file
@@ -165,7 +160,8 @@ class CustomDomainTransformer
       process_progress.tick
       v2_records.concat(process_domain(domainid, records))
     rescue StandardError => ex
-      @stats[:errors] << { domain: domainid, records: records, error: "Processing failed: #{ex.message}" }
+      bucket = ex.message.start_with?('Unknown field') ? :schema_gaps : :processing_failures
+      @stats[:errors][bucket] << { domain: domainid, related_count: records.size, error: "Processing failed: #{ex.message}" }
     end
     process_progress.finish
 
@@ -173,8 +169,6 @@ class CustomDomainTransformer
     write_output(v2_records) unless @dry_run
 
     print_summary
-  ensure
-    cleanup_redis
   end
 
   private
@@ -206,65 +200,28 @@ class CustomDomainTransformer
   end
 
   def build_email_to_customer_mapping(customer_file)
-    # Read customer_transformed.jsonl and build email -> customer_objid mapping
-    # The v1_custid field contains the original email
+    # Read customer_transformed.jsonl and build email -> customer_objid mapping.
+    # The v1_custid field contains the original email. Customer transform writes
+    # the typed payload (fields_b64) with v2 JSON-serialized values, so we
+    # base64-decode then JSON-deserialize before lookup.
     File.foreach(customer_file) do |line|
       record = JSON.parse(line, symbolize_names: true)
       next unless record[:key]&.end_with?(':object')
 
-      # Decode the hash to get v1_custid (email)
-      if @dry_run
-        # In dry run, we can't decode the hash, but we can try to extract from the record
-        next
-      end
-
       objid = record[:objid]
       next unless objid
 
-      # We need to decode the dump to get v1_custid
-      temp_key  = "#{TEMP_KEY_PREFIX}cust_#{SecureRandom.hex(4)}"
-      dump_data = Base64.strict_decode64(record[:dump])
+      fields = read_v1_hash(record)
+      next unless fields
 
-      begin
-        @redis.restore(temp_key, 0, dump_data, replace: true)
-        fields = @redis.hgetall(temp_key)
+      # Customer transform writes v2 JSON-serialized values, so deserialize
+      fields = deserialize_v2_fields(fields)
 
-        # Customer transform writes v2 JSON-serialized values, so deserialize
-        fields = deserialize_v2_fields(fields)
-
-        email                     = fields['v1_custid'] || fields['email']
-        @email_to_customer[email] = objid if email && !email.empty?
-      rescue Redis::CommandError => ex
-        @stats[:errors] << { key: record[:key], error: "Mapping restore failed: #{ex.message}" }
-      ensure
-        begin
-          @redis.del(temp_key)
-        rescue StandardError
-          nil
-        end
-      end
+      email                     = fields['v1_custid'] || fields['email']
+      @email_to_customer[email] = objid if email && !email.empty?
     rescue JSON::ParserError
       next
     end
-  end
-
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
   end
 
   def group_records_by_domain
@@ -295,7 +252,7 @@ class CustomDomainTransformer
       domainid = key_parts[1]
       groups[domainid] << record
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
     end
 
     progress.finish
@@ -316,18 +273,26 @@ class CustomDomainTransformer
         related_keys: related_keys,
         record_count: records.size,
       }
-      @stats[:errors] << { domain: domainid, error: 'No :object record found.' }
+      @stats[:errors][:orphans] << { domain: domainid, error: 'No :object record found.' }
       return []
     end
 
     return [] if @dry_run
 
-    v1_fields    = restore_and_read_hash(object_record)
+    v1_fields = read_v1_hash(object_record)
+    unless v1_fields
+      # read_v1_hash already logged :data_corruption when fields_b64 was missing
+      @stats[:skipped_domains] += 1
+      return []
+    end
+
     objid, extid = resolve_identifiers(object_record, v1_fields)
 
     unless objid && !objid.empty?
       @stats[:skipped_domains] += 1
-      @stats[:errors] << { domain: domainid, error: 'Could not resolve objid.' }
+      # After Fix 4 (enricher synthesizes missing `created`), this branch should
+      # rarely fire; remaining hits indicate dump corruption.
+      @stats[:errors][:data_corruption] << { domain: domainid, error: 'Could not resolve objid.' }
       return []
     end
 
@@ -378,7 +343,7 @@ class CustomDomainTransformer
           customer_objid: customer_objid,
           reason: customer_objid ? 'customer_objid not in org mapping' : 'custid not in customer mapping',
         }
-        @stats[:errors] << { domain: objid, error: "No org mapping for custid: #{redact_email(custid)}" }
+        @stats[:errors][:orphans] << { domain: objid, error: "No org mapping for custid: #{redact_email(custid)}" }
       end
     end
 
@@ -388,16 +353,7 @@ class CustomDomainTransformer
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
 
-    # Create new dump for the transformed hash with Familia v2 JSON serialization
-    temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    v2_dump_b64 = begin
-      serialized_fields = serialize_for_v2(v2_fields)
-      @redis.hmset(temp_key, serialized_fields.to_a.flatten)
-      dump_data         = @redis.dump(temp_key)
-      Base64.strict_encode64(dump_data)
-    ensure
-      @redis.del(temp_key)
-    end
+    serialized_fields = serialize_for_v2(v2_fields)
 
     @stats[:transformed_objects] += 1
 
@@ -412,7 +368,9 @@ class CustomDomainTransformer
       type: 'hash',
       ttl_ms: v1_record[:ttl_ms],
       db: v1_record[:db],
-      dump: v2_dump_b64,
+      # Typed payload for cross-engine load. load_keys.rb HSETs decoded fields
+      # directly into the v2 hash (no RESTORE).
+      fields_b64: serialized_fields.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       objid: objid,
       extid: v2_fields['extid'],
       org_id: v2_fields['org_id'],
@@ -438,68 +396,46 @@ class CustomDomainTransformer
   def transform_related_hash(record, objid, data_type)
     new_key = "custom_domain:#{objid}:#{data_type}"
 
-    # Restore the original dump and read fields
-    temp_key  = "#{TEMP_KEY_PREFIX}related_#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      v1_fields = @redis.hgetall(temp_key)
-
-      # Select appropriate field type mapping based on data_type
-      field_types = case data_type
-                    when 'brand' then BRAND_FIELD_TYPES
-                    when 'logo', 'icon' then IMAGE_FIELD_TYPES
-                    else {}
-                    end
-
-      # Serialize fields with proper type conversion
-      v2_serialized = v1_fields.each_with_object({}) do |(key, value), result|
-        result[key] = if value.nil? || value == ''
-                        'null'
-                      else
-                        ruby_val = parse_related_field(key, value, field_types)
-                        Familia::JsonSerializer.dump(ruby_val)
-                      end
-      end
-
-      # Create new dump with serialized values
-      @redis.del(temp_key)
-      @redis.hmset(temp_key, v2_serialized.to_a.flatten)
-      new_dump_data = @redis.dump(temp_key)
-      new_dump_b64  = Base64.strict_encode64(new_dump_data)
-
-      {
-        key: new_key,
-        type: record[:type],
-        ttl_ms: record[:ttl_ms],
-        db: record[:db],
-        dump: new_dump_b64,
-      }
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Related hash transform failed: #{ex.message}" }
-      # Fall back to just renaming the key without transformation
-      record.merge(key: new_key)
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+    v1_fields = read_v1_hash(record)
+    unless v1_fields
+      # Fall back to renaming the key only when the typed payload is missing.
+      return record.merge(key: new_key)
     end
+
+    # Select appropriate field type mapping based on data_type
+    field_types = case data_type
+                  when 'brand' then BRAND_FIELD_TYPES
+                  when 'logo', 'icon' then IMAGE_FIELD_TYPES
+                  else {}
+                  end
+
+    # Serialize fields with proper type conversion
+    v2_serialized = v1_fields.each_with_object({}) do |(key, value), result|
+      result[key] = if value.nil? || value == ''
+                      'null'
+                    else
+                      ruby_val = parse_related_field(key, value, field_types)
+                      Familia::JsonSerializer.dump(ruby_val)
+                    end
+    end
+
+    {
+      key: new_key,
+      type: record[:type],
+      ttl_ms: record[:ttl_ms],
+      db: record[:db],
+      # Typed payload for cross-engine load. load_keys.rb HSETs decoded fields
+      # directly into the v2 hash (no RESTORE).
+      fields_b64: v2_serialized.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
+    }
   end
 
-  def restore_and_read_hash(record)
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
-    rescue Redis::CommandError => ex
-      raise "Restore failed for key #{record[:key]}: #{ex.message}"
-    ensure
-      @redis.del(temp_key) if @redis
-    end
+  # Decode v1 hash fields from the typed payload emitted by upstream
+  # transforms (fields_b64). Delegates to the shared Upgrade::V1Hash module
+  # so all 5 transforms share one implementation. Returns nil (and logs
+  # :data_corruption) if the payload is missing or malformed.
+  def read_v1_hash(record)
+    Upgrade::V1Hash.read(record, @stats[:errors])
   end
 
   def resolve_identifiers(record, fields)
@@ -664,11 +600,27 @@ class CustomDomainTransformer
     # Write follow-up files for manual review
     write_followup_files unless @dry_run
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(20).each { |err| puts "  - #{err}" }
-    puts "  ... and #{@stats[:errors].size - 20} more" if @stats[:errors].size > 20
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size} (missing :object records, custids without org mapping)"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    - #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
+    end
   end
 
   def write_followup_files
@@ -716,8 +668,6 @@ def parse_args(args)
     output_dir: File.join(DEFAULT_DATA_DIR, 'customdomain'),
     email_to_org: File.join(DEFAULT_DATA_DIR, 'organization/email_to_org_objid.json'),
     email_to_customer: File.join(DEFAULT_DATA_DIR, 'customer/customer_transformed.jsonl'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -727,8 +677,6 @@ def parse_args(args)
     when /^--output-dir=(.+)$/ then options[:output_dir]               = Regexp.last_match(1)
     when /^--email-to-org=(.+)$/ then options[:email_to_org]           = Regexp.last_match(1)
     when /^--email-to-customer=(.+)$/ then options[:email_to_customer] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/ then options[:redis_url]                 = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/ then options[:temp_db]                    = Regexp.last_match(1).to_i
     when '--dry-run' then options[:dry_run]                            = true
     when '--help', '-h'
       puts <<~HELP
@@ -741,8 +689,6 @@ def parse_args(args)
           --output-dir=DIR         Output directory (default: data/upgrades/v0.24.5/customdomain)
           --email-to-org=FILE      email->org_objid JSON map (default: data/upgrades/v0.24.5/organization/email_to_org_objid.json)
           --email-to-customer=FILE customer transformed JSONL for email->objid (default: data/upgrades/v0.24.5/customer/customer_transformed.jsonl)
-          --redis-url=URL          Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N              Temp database number (default: 15)
           --dry-run                Parse and count without writing output
           --help                   Show this help
 
@@ -774,8 +720,6 @@ if __FILE__ == $0
     output_dir: options[:output_dir],
     email_to_org_file: options[:email_to_org],
     email_to_customer_file: options[:email_to_customer],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
   transformer.run

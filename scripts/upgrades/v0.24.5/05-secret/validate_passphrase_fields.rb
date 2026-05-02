@@ -14,35 +14,28 @@
 # 3. Secrets WITHOUT passphrases: field is clean (absent, empty, or JSON "null")
 # 4. Hash algorithm distribution statistics
 #
+# Reads fields directly from the typed payload (record['fields_b64']) emitted
+# by the transform. No Redis dependency.
+#
 # Usage:
 #   ruby scripts/upgrades/v0.24.5/05-secret/validate_passphrase_fields.rb [OPTIONS]
 #
 # Options:
 #   --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.5/secret/secret_transformed.jsonl)
-#   --redis-url=URL          Redis URL for dump blob decoding
-#   --temp-db=N              Temp database number (default: 15)
 #   --help                   Show this help
 
 require 'json'
 require 'base64'
-require 'redis'
-require 'securerandom'
-require 'uri'
 
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class SecretPassphraseValidator
-  TEMP_KEY_PREFIX = '_validate_sec_pp_'
-
   # Known bcrypt prefixes
   BCRYPT_PREFIXES = %w[$2a$ $2b$ $2y$].freeze
   ARGON2_PREFIX = '$argon2id$'
 
-  def initialize(transformed_file:, redis_url:, temp_db: 15)
+  def initialize(transformed_file:)
     @transformed_file = transformed_file
-    @redis_url        = redis_url
-    @temp_db          = temp_db
-    @redis            = nil
 
     @stats = {
       total_secrets: 0,
@@ -65,17 +58,9 @@ class SecretPassphraseValidator
 
   def run
     validate_input_files
-    connect_redis
-
-    # 1. Scan and validate all secret records
     validate_secrets
-
-    # 2. Report
     print_report
-
     success?
-  ensure
-    cleanup_redis
   end
 
   def success?
@@ -88,51 +73,22 @@ class SecretPassphraseValidator
   private
 
   def validate_input_files
-    unless File.exist?(@transformed_file)
-      raise ArgumentError, "Transformed file not found: #{@transformed_file}\nRun transform.rb first."
-    end
-    raise ArgumentError, 'Redis URL required for dump blob decoding (set VALKEY_URL or REDIS_URL, or use --redis-url)' unless @redis_url
+    return if File.exist?(@transformed_file)
+
+    raise ArgumentError, "Transformed file not found: #{@transformed_file}\nRun transform.rb first."
   end
 
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
-  end
-
-  # Decode the dump blob via Redis RESTORE + HGETALL to inspect hash fields
+  # Decode hash fields from the typed payload. Returns {} if absent.
   def decode_hash_fields(record)
-    dump_b64 = record['dump']
-    return {} unless dump_b64
+    fields_b64 = record['fields_b64']
+    return {} unless fields_b64.is_a?(Hash)
 
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(dump_b64)
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record['key'], error: "RESTORE failed: #{ex.message}" }
-      {}
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+    fields_b64.each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
     end
+  rescue ArgumentError => ex
+    @stats[:errors] << { key: record['key'], error: "Base64 decode failed: #{ex.message}" }
+    {}
   end
 
   # Unwrap Familia v2 JSON-encoded string values.
@@ -344,30 +300,23 @@ end
 def parse_args(args)
   options = {
     transformed_file: File.join(DEFAULT_DATA_DIR, 'secret/secret_transformed.jsonl'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
   }
 
   args.each do |arg|
     case arg
     when /^--transformed-file=(.+)$/
       options[:transformed_file] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.5/05-secret/validate_passphrase_fields.rb [OPTIONS]
 
         Validates passphrase and encryption data on secret records after v1->v2 migration.
-        Decodes dump blobs via Redis RESTORE + HGETALL to inspect hash fields.
+        Reads hash fields directly from the typed payload (fields_b64) emitted by the
+        transform; no Redis dependency.
 
         Options:
           --transformed-file=FILE  Transformed JSONL
                                    (default: data/upgrades/v0.24.5/secret/secret_transformed.jsonl)
-          --redis-url=URL          Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N              Temp database number (default: 15)
           --help                   Show this help
 
         Validates:
@@ -391,8 +340,6 @@ if __FILE__ == $PROGRAM_NAME
 
   validator = SecretPassphraseValidator.new(
     transformed_file: options[:transformed_file],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
   )
 
   success = validator.run

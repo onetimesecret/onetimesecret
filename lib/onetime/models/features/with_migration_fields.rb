@@ -44,6 +44,8 @@ module Onetime
           base.field :v1_identifier      # Original v1 key/identifier for rollback reference
           base.field :migration_status   # pending, migrating, completed, failed, skipped
           base.field :migrated_at        # Timestamp of migration completion
+          base.field :migration_comment  # Free-form notes about this record's migration
+          # (e.g., dropped_fields=cname,plan_id; created_synthesized)
 
           # Original v1 record stored as a separate Redis hash via RESTORE.
           # The v1 dump binary is restored directly to a sibling key:

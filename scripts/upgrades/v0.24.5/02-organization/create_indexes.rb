@@ -12,8 +12,6 @@
 # Options:
 #   --input-file=FILE   Input JSONL file (default: data/upgrades/v0.24.5/organization/organization_transformed.jsonl)
 #   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/organization)
-#   --redis-url=URL     Redis URL for DUMP decoding (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N         Temp database for restore operations (default: 15)
 #   --dry-run           Show what would be created without writing
 #
 # Input: data/upgrades/v0.24.5/organization/organization_transformed.jsonl (from generate.rb)
@@ -22,10 +20,7 @@
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
-require 'redis'
 require 'familia'
-require 'uri'
 
 require_relative '../lib/progress'
 
@@ -34,15 +29,10 @@ require_relative '../lib/progress'
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class OrganizationIndexCreator
-  TEMP_KEY_PREFIX = '_migrate_tmp_idx_'
-
-  def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, dry_run: false)
     @input_file = input_file
     @output_dir = output_dir
-    @redis_url  = redis_url
-    @temp_db    = temp_db
     @dry_run    = dry_run
-    @redis      = nil
 
     @stats = {
       total_records: 0,
@@ -56,7 +46,12 @@ class OrganizationIndexCreator
       member_entries: 0,
       org_customer_lookups: 0,
       skipped: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
 
     @commands = []
@@ -69,14 +64,11 @@ class OrganizationIndexCreator
     puts "Output: #{@output_dir}"
     puts 'Mode: DRY RUN' if @dry_run
 
-    connect_redis unless @dry_run
     process_input_file
     write_outputs unless @dry_run
 
     print_summary
     @stats
-  ensure
-    cleanup_redis
   end
 
   private
@@ -86,25 +78,6 @@ class OrganizationIndexCreator
       abort "Error: Input file not found: #{@input_file}\n" \
             'Run generate.rb first to create organization records.'
     end
-  end
-
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
   end
 
   def process_input_file
@@ -130,7 +103,7 @@ class OrganizationIndexCreator
         process_organization_record(record)
       end
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:total_records], error: ex.message }
+      @stats[:errors][:data_corruption] << { line: @stats[:total_records], error: ex.message }
     end
     progress.finish
   end
@@ -142,7 +115,7 @@ class OrganizationIndexCreator
 
     if [membership_objid, organization_objid, customer_objid].any? { |v| v.nil? || v.to_s.empty? }
       @stats[:skipped] += 1
-      @stats[:errors] << { key: record[:key], error: 'Missing membership identifiers' }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing membership identifiers' }
       return
     end
 
@@ -169,16 +142,16 @@ class OrganizationIndexCreator
 
     unless org_objid && !org_objid.empty?
       @stats[:skipped] += 1
-      @stats[:errors] << { key: record[:key], error: 'Missing org objid' }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing org objid' }
       return
     end
 
-    # For additional fields, decode the DUMP if not in dry-run mode
+    # For additional fields, decode the typed payload if not in dry-run mode
     org_fields = if @dry_run
                    # Use metadata from JSONL record for dry-run
                    { 'objid' => org_objid, 'extid' => org_extid, 'owner_id' => owner_id }
                  else
-                   decode_dump(record) || {}
+                   decode_fields(record) || {}
                  end
 
     # Extract fields (prefer JSONL metadata, fall back to decoded fields)
@@ -253,27 +226,20 @@ class OrganizationIndexCreator
     )
   end
 
-  def decode_dump(record)
-    return nil unless record[:dump]
+  # Decode v2 JSON-encoded hash fields from the typed payload (fields_b64).
+  # Each value in fields_b64 is base64-encoded; the underlying string is the
+  # JSON-serialized v2 value written by generate.rb.
+  def decode_fields(record)
+    fields_b64 = record[:fields_b64]
+    return nil unless fields_b64
 
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      raw_fields = @redis.hgetall(temp_key)
-      # Deserialize v2 JSON-encoded values written by generate.rb
-      deserialize_v2_fields(raw_fields)
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "RESTORE failed: #{ex.message}" }
-      nil
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+    raw_fields = fields_b64.each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
     end
+    deserialize_v2_fields(raw_fields)
+  rescue ArgumentError => ex
+    @stats[:errors][:data_corruption] << { key: record[:key], error: "fields_b64 decode failed: #{ex.message}" }
+    nil
   end
 
   # Deserialize a single v2 JSON-encoded value back to Ruby type
@@ -335,13 +301,27 @@ class OrganizationIndexCreator
     puts
     puts "Skipped: #{@stats[:skipped]}"
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "\nErrors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each do |err|
-      puts "  #{err}"
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "\nErrors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
     end
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
   end
 end
 
@@ -349,8 +329,6 @@ def parse_args(args)
   options = {
     input_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_transformed.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'organization'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -358,8 +336,6 @@ def parse_args(args)
     case arg
     when /^--input-file=(.+)$/ then options[:input_file] = Regexp.last_match(1)
     when /^--output-dir=(.+)$/ then options[:output_dir] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/ then options[:redis_url]   = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/ then options[:temp_db]      = Regexp.last_match(1).to_i
     when '--dry-run' then options[:dry_run]              = true
     when '--help', '-h'
       puts <<~HELP
@@ -371,8 +347,6 @@ def parse_args(args)
         Options:
           --input-file=FILE   Input JSONL (default: data/upgrades/v0.24.5/organization/organization_transformed.jsonl)
           --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/organization)
-          --redis-url=URL     Redis URL for DUMP decoding (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N         Temp database number (default: 15)
           --dry-run           Show what would be created without writing
           --help              Show this help
 
@@ -406,8 +380,6 @@ if __FILE__ == $0
   creator = OrganizationIndexCreator.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
 
