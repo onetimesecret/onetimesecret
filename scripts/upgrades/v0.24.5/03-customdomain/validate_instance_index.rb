@@ -27,30 +27,25 @@
 #   --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.5/customdomain/customdomain_transformed.jsonl)
 #   --indexes-file=FILE      Domain indexes JSONL (default: data/upgrades/v0.24.5/customdomain/customdomain_indexes.jsonl)
 #   --org-indexes-file=FILE  Org indexes JSONL (default: data/upgrades/v0.24.5/organization/organization_indexes.jsonl)
-#   --redis-url=URL          Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N              Temp database number (default: 15)
+#   --redis-url=URL          Live Valkey URL for --live post-RESTORE checks (env: VALKEY_URL or REDIS_URL)
+#   --live                   Also validate against live Valkey (post-RESTORE ZCARD/EXISTS checks)
 
 require 'redis'
 require 'json'
-require 'base64'
 require 'set'
-require 'uri'
 
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class CustomDomainInstanceIndexValidator
-  TEMP_KEY_PREFIX = '_validate_tmp_'
   KEY_FIELDS = %w[objid extid org_id created].freeze
 
-  def initialize(dump_file:, transformed_file:, indexes_file:, org_indexes_file:, redis_url:, temp_db:, live: false)
+  def initialize(dump_file:, transformed_file:, indexes_file:, org_indexes_file:, redis_url:, live: false)
     @dump_file        = dump_file
     @transformed_file = transformed_file
     @indexes_file     = indexes_file
     @org_indexes_file = org_indexes_file
     @redis_url        = redis_url
-    @temp_db          = temp_db
     @live             = live
-    @redis            = nil
     @live_redis       = nil
 
     @stats = {
@@ -84,9 +79,8 @@ class CustomDomainInstanceIndexValidator
 
   def run
     validate_input_files
-    connect_redis
 
-    # 1. Extract V1 domain set from dump (needs Redis RESTORE)
+    # 1. Extract V1 domain set from dump (typed payload, no Redis required)
     v1_domain_ids = extract_v1_domain_set
     puts "Found #{v1_domain_ids.size} members in customdomain:values (v1)"
 
@@ -156,7 +150,7 @@ class CustomDomainInstanceIndexValidator
 
     success?
   ensure
-    cleanup_redis
+    @live_redis&.close
   end
 
   private
@@ -174,13 +168,6 @@ class CustomDomainInstanceIndexValidator
     end
   end
 
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
   # Connect to the live (non-temp) Redis database for post-RESTORE checks.
   # Uses the default database from the Redis URL (no path override).
   def connect_live_redis
@@ -188,21 +175,7 @@ class CustomDomainInstanceIndexValidator
     @live_redis.ping
   end
 
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
-
-    @live_redis&.close
-  end
-
-  # Read V1 customdomain:values set from dump file (DUMP blob, needs Redis)
+  # Read V1 customdomain:values set from dump file's typed payload (zmembers).
   def extract_v1_domain_set
     v1_record = nil
 
@@ -221,16 +194,9 @@ class CustomDomainInstanceIndexValidator
       return Set.new
     end
 
-    temp_key  = "#{TEMP_KEY_PREFIX}v1_domain_set"
-    dump_data = Base64.strict_decode64(v1_record[:dump])
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      members = Set.new(@redis.zrange(temp_key, 0, -1))
-      @stats[:v1_members] = members.size
-      members
-    ensure
-      @redis.del(temp_key) if @redis
-    end
+    members = Set.new((v1_record[:zmembers] || []).map(&:first))
+    @stats[:v1_members] = members.size
+    members
   end
 
   # Read V2 ZADD commands from indexes file
@@ -761,7 +727,6 @@ def parse_args(args)
     indexes_file: File.join(DEFAULT_DATA_DIR, 'customdomain/customdomain_indexes.jsonl'),
     org_indexes_file: File.join(DEFAULT_DATA_DIR, 'organization/organization_indexes.jsonl'),
     redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     live: false,
   }
 
@@ -777,8 +742,6 @@ def parse_args(args)
       options[:org_indexes_file] = Regexp.last_match(1)
     when /^--redis-url=(.+)$/
       options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--live'
       options[:live] = true
     when '--help', '-h'
@@ -792,9 +755,8 @@ def parse_args(args)
           --transformed-file=FILE  Transformed JSONL (default: data/upgrades/v0.24.5/customdomain/customdomain_transformed.jsonl)
           --indexes-file=FILE      Domain indexes JSONL (default: data/upgrades/v0.24.5/customdomain/customdomain_indexes.jsonl)
           --org-indexes-file=FILE  Org indexes JSONL (default: data/upgrades/v0.24.5/organization/organization_indexes.jsonl)
-          --redis-url=URL          Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N              Temp database number (default: 15)
-          --live                   Also validate against live Redis (post-RESTORE ZCARD check)
+          --redis-url=URL          Live Valkey URL for --live post-RESTORE checks (env: VALKEY_URL or REDIS_URL)
+          --live                   Also validate against live Valkey (post-RESTORE ZCARD/EXISTS checks)
           --help                   Show this help
 
         Validates:
@@ -823,7 +785,6 @@ if __FILE__ == $PROGRAM_NAME
     indexes_file: options[:indexes_file],
     org_indexes_file: options[:org_indexes_file],
     redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     live: options[:live],
   )
 

@@ -2,8 +2,8 @@
 # frozen_string_literal: true
 
 # Creates customer indexes from dump file.
-# Reads JSONL dump, decodes Redis DUMP data via temporary restore, extracts fields,
-# and outputs index commands as JSONL.
+# Reads JSONL dump with typed payloads (fields_b64 / zmembers), decodes
+# base64 field values directly, and outputs index commands as JSONL.
 #
 # Usage:
 #   ruby scripts/migrations/jan24/create_indexes_customer.rb [OPTIONS]
@@ -11,8 +11,6 @@
 # Options:
 #   --input-file=FILE   Input JSONL dump file (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
 #   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/customer)
-#   --redis-url=URL     Redis URL for temporary restore (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N         Temporary database for restore operations (default: 15)
 #   --dry-run           Parse and count without writing output
 #
 # Output: customer_indexes.jsonl with Redis commands for:
@@ -26,12 +24,9 @@
 #   - customer:secrets_burned (INCRBY) - counter
 #   - customer:emails_sent (INCRBY) - counter
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
-require 'uri'
 
 require_relative '../lib/progress'
 
@@ -40,19 +35,15 @@ require_relative '../lib/progress'
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class CustomerIndexCreator
-  TEMP_KEY_PREFIX = '_migrate_tmp_'
   COUNTER_FIELDS  = %w[secrets_created secrets_shared secrets_burned emails_sent].freeze
   # NOTE: 'recipient' is also valid in V2 but not used in V1 data
   # 'user_deleted_self' tracks accounts that users deleted themselves
   VALID_ROLES     = %w[colonel customer anonymous recipient user_deleted_self].freeze
 
-  def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, dry_run: false)
     @input_file = input_file
     @output_dir = output_dir
-    @redis_url  = redis_url
-    @temp_db    = temp_db
     @dry_run    = dry_run
-    @redis      = nil
 
     @stats = {
       records_read: 0,
@@ -88,7 +79,6 @@ class CustomerIndexCreator
 
   def run
     validate_input_file
-    connect_redis unless @dry_run
 
     commands                  = []
     instance_index_record     = nil
@@ -169,8 +159,6 @@ class CustomerIndexCreator
 
     print_summary
     @stats
-  ensure
-    cleanup_redis
   end
 
   private
@@ -179,27 +167,6 @@ class CustomerIndexCreator
     unless File.exist?(@input_file)
       raise ArgumentError, "Input file not found: #{@input_file}"
     end
-  end
-
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    # Verify connection and that temp db is usable
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    # Clean up any temporary keys
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
   end
 
   def process_instance_index(record)
@@ -219,42 +186,28 @@ class CustomerIndexCreator
       return commands
     end
 
-    # Restore to temp key, read members, generate ZADD commands with objid
-    temp_key  = "#{TEMP_KEY_PREFIX}instance_index"
-    dump_data = Base64.strict_decode64(record[:dump])
+    # Direct typed-payload read: zmembers is [[member, score], ...]
+    members_with_scores = record[:zmembers] || []
 
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      members_with_scores = @redis.zrange(temp_key, 0, -1, with_scores: true)
+    members_with_scores.each do |email, score|
+      # Convert v1 email member to v2 objid member
+      objid = @email_to_objid[email]
 
-      members_with_scores.each do |email, score|
-        # Convert v1 email member to v2 objid member
-        objid = @email_to_objid[email]
-
-        unless objid
-          @stats[:errors][:orphans] << { key: record[:key], error: "No objid mapping for email: #{redact_email(email)}" }
-          next
-        end
-
-        # Raw identifier (not JSON-encoded) for Familia SortedSet compatibility.
-        # SortedSet members are object references stored unquoted, unlike
-        # HashKey values which use JSON encoding for type preservation.
-        commands << {
-          command: 'ZADD',
-          key: 'customer:instances',
-          args: [score.to_i, objid],
-        }
-        @objids_in_instance_index << objid
-        @stats[:instance_entries] += 1
+      unless objid
+        @stats[:errors][:orphans] << { key: record[:key], error: "No objid mapping for email: #{redact_email(email)}" }
+        next
       end
-    rescue Redis::CommandError => ex
-      @stats[:errors][:data_corruption] << { key: record[:key], error: "Restore failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+
+      # Raw identifier (not JSON-encoded) for Familia SortedSet compatibility.
+      # SortedSet members are object references stored unquoted, unlike
+      # HashKey values which use JSON encoding for type preservation.
+      commands << {
+        command: 'ZADD',
+        key: 'customer:instances',
+        args: [score.to_i, objid],
+      }
+      @objids_in_instance_index << objid
+      @stats[:instance_entries] += 1
     end
 
     commands
@@ -305,44 +258,31 @@ class CustomerIndexCreator
     objid = record[:objid]
     extid = record[:extid]
 
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      fields = @redis.hgetall(temp_key)
-
-      objid, extid = resolve_identifiers(objid, extid, fields)
-      # Records with unresolvable objid take the skipped path — resolve_identifiers
-      # has already incremented @stats[:skipped]. Count :objects_processed only
-      # for the success path so reconciliation (objects_processed + skipped + …)
-      # matches records_read exactly.
-      return commands if objid.nil? || objid.empty?
-
-      @stats[:objects_processed] += 1
-
-      # Build email->objid mapping for instance index conversion.
-      # v1 used email as custid; we need to map those to objid.
-      # NOTE: This intentionally duplicates the email_index logic below. Both
-      # read from source material (the key and hash fields) independently,
-      # avoiding a mistake in one codepath from affecting another.
-      @email_to_objid[v1_custid] = objid
-
-      # Track objid->created for backfilling missing instance entries
-      created                  = record[:created] || fields['created']
-      @objid_to_created[objid] = created.to_i if created
-
-      build_customer_index_commands(commands, record, fields, objid, extid)
-    rescue Redis::CommandError => ex
-      @stats[:skipped] += 1
-      @stats[:errors][:data_corruption] << { key: record[:key], error: "Restore failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+    fields = (record[:fields_b64] || {}).each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
     end
+
+    objid, extid = resolve_identifiers(objid, extid, fields)
+    # Records with unresolvable objid take the skipped path — resolve_identifiers
+    # has already incremented @stats[:skipped]. Count :objects_processed only
+    # for the success path so reconciliation (objects_processed + skipped + …)
+    # matches records_read exactly.
+    return commands if objid.nil? || objid.empty?
+
+    @stats[:objects_processed] += 1
+
+    # Build email->objid mapping for instance index conversion.
+    # v1 used email as custid; we need to map those to objid.
+    # NOTE: This intentionally duplicates the email_index logic below. Both
+    # read from source material (the key and hash fields) independently,
+    # avoiding a mistake in one codepath from affecting another.
+    @email_to_objid[v1_custid] = objid
+
+    # Track objid->created for backfilling missing instance entries
+    created                  = record[:created] || fields['created']
+    @objid_to_created[objid] = created.to_i if created
+
+    build_customer_index_commands(commands, record, fields, objid, extid)
 
     commands
   end
@@ -426,26 +366,17 @@ class CustomerIndexCreator
 
   # Decode the GLOBAL_STATS record to extract counter values for summary comparison
   def decode_global_counters(record)
-    return unless record[:dump]
+    fields_b64 = record[:fields_b64]
+    return unless fields_b64
 
-    temp_key  = "#{TEMP_KEY_PREFIX}global_stats"
-    dump_data = Base64.strict_decode64(record[:dump])
+    COUNTER_FIELDS.each do |field|
+      encoded = fields_b64[field.to_sym] || fields_b64[field]
+      next unless encoded
 
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      fields = @redis.hgetall(temp_key)
-      COUNTER_FIELDS.each do |field|
-        @stats[:global_counters][field] = fields[field].to_i
-      end
-    rescue Redis::CommandError => ex
-      @stats[:errors][:data_corruption] << { key: record[:key], error: "GLOBAL decode failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+      @stats[:global_counters][field] = Base64.strict_decode64(encoded.to_s).to_i
     end
+  rescue ArgumentError => ex
+    @stats[:errors][:data_corruption] << { key: record[:key], error: "GLOBAL decode failed: #{ex.message}" }
   end
 
   # NOTE: No longer needed b/c we simply rename the customer:GLOBAL:object key to
@@ -603,8 +534,6 @@ def parse_args(args)
   options = {
     input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_dump.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'customer'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -614,10 +543,6 @@ def parse_args(args)
       options[:input_file] = Regexp.last_match(1)
     when /^--output-dir=(.+)$/
       options[:output_dir] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
@@ -629,8 +554,6 @@ def parse_args(args)
         Options:
           --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
           --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/customer)
-          --redis-url=URL     Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse without writing output
           --help              Show this help
 
@@ -664,8 +587,6 @@ if __FILE__ == $0
   creator = CustomerIndexCreator.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
 

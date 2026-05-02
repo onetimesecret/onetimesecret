@@ -13,24 +13,21 @@
 #   --customer-lookup=PATH Path to customer email→objid JSON map (default: data/upgrades/v0.24.5/customer/email_to_objid.json)
 #   --org-lookup=PATH      Path to customer objid→org objid JSON map (default: data/upgrades/v0.24.5/organization/customer_objid_to_org_objid.json)
 #   --domain-lookup=PATH   Path to domain fqdn→objid JSON map (default: data/upgrades/v0.24.5/customdomain/fqdn_to_objid.json)
-#   --redis-url=URL        Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N            Temp database number (default: 15)
 #   --dry-run              Show what would be created without writing
 #   --help                 Show this help
 #
-# Input format (each line):
-#   {"key": "metadata:abc123:object", "type": "hash", "ttl_ms": -1, "db": 7, "dump": "<base64>", "created": 1234567890}
+# Input format (each line, typed payload from dump_keys.rb):
+#   {"key": "metadata:abc123:object", "type": "hash", "ttl_ms": -1, "db": 7,
+#    "fields_b64": {"custid": "<base64>", "secret_ttl": "<base64>", ...},
+#    "created": 1234567890}
 #
 # Output format (JSONL with Redis commands):
 #   {"command": "ZADD", "key": "receipt:instances", "args": ["1234567890", "objid123"]}
 #   {"command": "SADD", "key": "receipt:objid123:participations", "args": ["organization:orgid:receipts"]}
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
-require 'uri'
 
 require_relative '../lib/progress'
 
@@ -46,14 +43,12 @@ class ReceiptIndexCreator
   DEFAULT_ORG_LOOKUP      = 'data/upgrades/v0.24.5/organization/customer_objid_to_org_objid.json'
   DEFAULT_DOMAIN_LOOKUP   = 'data/upgrades/v0.24.5/customdomain/fqdn_to_objid.json'
 
-  def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, customer_lookup_path:, org_lookup_path:, domain_lookup_path:, dry_run: false)
     @input_file           = input_file
     @output_dir           = output_dir
     @customer_lookup_path = customer_lookup_path
     @org_lookup_path      = org_lookup_path
     @domain_lookup_path   = domain_lookup_path
-    @redis_url            = redis_url
-    @temp_db              = temp_db
     @dry_run              = dry_run
 
     @customer_lookup = load_lookup(@customer_lookup_path, 'customer')
@@ -145,25 +140,18 @@ class ReceiptIndexCreator
   end
 
   def process_input_file(out)
-    # Connect to Redis temp DB for decode operations
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    redis    = Redis.new(url: uri.to_s)
-
     progress = Upgrade::ProgressReporter.new('receipt indexes')
     File.foreach(@input_file) do |line|
       progress.tick
       @stats[:records_read] += 1
-      process_record(line.strip, out, redis)
+      process_record(line.strip, out)
     end
     progress.finish
   rescue StandardError => ex
     @stats[:errors][:processing_failures] << { error: ex.message, backtrace: ex.backtrace.first(3) }
-  ensure
-    redis&.close
   end
 
-  def process_record(line, out, redis)
+  def process_record(line, out)
     return if line.empty?
 
     record = JSON.parse(line)
@@ -176,8 +164,8 @@ class ReceiptIndexCreator
     objid = extract_objid(key)
     return unless objid
 
-    # Decode the dump to get field values
-    fields = decode_dump(record['dump'], redis)
+    # Decode the typed payload to get field values
+    fields = decode_fields(record['fields_b64'])
     return if fields.nil?
 
     # Use 'created' from the dump record (extracted during dump_keys.rb)
@@ -208,25 +196,16 @@ class ReceiptIndexCreator
     match ? match[1] : nil
   end
 
-  def decode_dump(dump_base64, redis)
-    return nil if dump_base64.nil? || dump_base64.empty?
+  # Decode the typed-payload fields_b64 hash. Each value is base64-encoded;
+  # the underlying string is the raw v1 hash field value.
+  def decode_fields(fields_b64)
+    return nil if fields_b64.nil? || fields_b64.empty?
 
-    # Use a temporary key to restore and read the dump
-    temp_key  = "temp:decode:#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(dump_base64)
-
-    # RESTORE the dump to a temporary key (0 = no TTL)
-    redis.restore(temp_key, 0, dump_data)
-
-    # Read all hash fields
-    fields = redis.hgetall(temp_key)
-
-    # Clean up
-    redis.del(temp_key)
-
-    fields
-  rescue StandardError => ex
-    @stats[:errors][:data_corruption] << { error: "Decode error: #{ex.message}" }
+    fields_b64.each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
+    end
+  rescue ArgumentError => ex
+    @stats[:errors][:data_corruption] << { error: "fields_b64 decode error: #{ex.message}" }
     nil
   end
 
@@ -493,8 +472,6 @@ def parse_args(args)
     customer_lookup: ReceiptIndexCreator::DEFAULT_CUSTOMER_LOOKUP,
     org_lookup: ReceiptIndexCreator::DEFAULT_ORG_LOOKUP,
     domain_lookup: ReceiptIndexCreator::DEFAULT_DOMAIN_LOOKUP,
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -510,10 +487,6 @@ def parse_args(args)
       options[:org_lookup] = Regexp.last_match(1)
     when /^--domain-lookup=(.+)$/
       options[:domain_lookup] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
@@ -531,8 +504,6 @@ def parse_args(args)
                                  (default: data/upgrades/v0.24.5/organization/customer_objid_to_org_objid.json)
           --domain-lookup=PATH   JSON file mapping fqdn -> objid
                                  (default: data/upgrades/v0.24.5/customdomain/fqdn_to_objid.json)
-          --redis-url=URL        Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N            Temp database number (default: 15)
           --dry-run              Show what would be created
           --help                 Show this help
 
@@ -565,19 +536,12 @@ end
 if __FILE__ == $0
   options = parse_args(ARGV)
 
-  unless options[:redis_url]
-    warn 'Error: --redis-url is required'
-    exit 1
-  end
-
   creator = ReceiptIndexCreator.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
     customer_lookup_path: options[:customer_lookup],
     org_lookup_path: options[:org_lookup],
     domain_lookup_path: options[:domain_lookup],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
 

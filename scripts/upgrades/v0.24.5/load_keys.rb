@@ -4,16 +4,14 @@
 # Loads migrated data into Valkey/Redis from transformed JSONL files.
 # Processes both transformed records and index commands (ZADD/HSET/etc).
 #
-# Record-loading strategy:
-#   1. Prefer typed payload (fields_b64 / value_b64 / members / zmembers) and
-#      replay the appropriate native commands. This is the cross-engine path
-#      (e.g. Redis 8 source whose RDB v12 DUMP blobs Valkey 8 won't accept).
-#   2. Fall back to RESTORE on the raw DUMP blob when no typed payload is
-#      present. Typed and DUMP are emitted side-by-side by dump_keys.rb and
-#      the per-entity transforms, so this fallback exists for older artifacts.
+# Record-loading strategy: replay the typed payload (fields_b64 / value_b64 /
+# members / zmembers) emitted by dump_keys.rb via native commands. This is
+# the only load representation — there is no DUMP/RESTORE fallback (Redis 8
+# source produces RDB v12 blobs that Valkey 8 rejects). Records that arrive
+# without a typed payload are recorded as soft errors and skipped.
 #
-# In both paths the loader DEL's the key before writing collection types
-# (hash/set/zset/list) so re-runs match RESTORE-with-replace semantics.
+# The loader DEL's the key before writing collection types (hash/set/zset/list)
+# so re-runs are idempotent.
 #
 # Default: execute (writes to Valkey/Redis). Pass --dry-run to preview.
 # This default is intentional: orchestrators (upgrade.sh, run_pipeline.sh) rely
@@ -25,8 +23,8 @@
 # Error handling: per-record soft errors (Base64 decode, JSON parse, single-key
 # Redis errors not in HARD_ERROR_PATTERNS) are collected to @stats[model][:errors]
 # and the run continues so all issues surface in one pass. HARD Redis errors
-# (WRONGTYPE, NOAUTH, READONLY, LOADING, CLUSTERDOWN, MISCONF, OOM, corrupt
-# DUMP payload) abort the run immediately with exit code 2 — these indicate
+# (WRONGTYPE, NOAUTH, READONLY, LOADING, CLUSTERDOWN, MISCONF, OOM) abort the
+# run immediately with exit code 2 — these indicate
 # environment misconfiguration or structural data conflict where continuing
 # would compound damage or amount to retry-spam against a broken environment.
 # Exit codes: 0 clean, 1 soft errors only, 2 hard error fail-fast.
@@ -40,12 +38,12 @@
 #   --model=NAME         Load only specific model (customer, organization, customdomain, receipt, secret)
 #   --dry-run            Count records without loading
 #   --skip-indexes       Load only transformed records (skip index commands)
-#   --skip-records       Load only indexes (skip RESTORE operations)
+#   --skip-records       Load only indexes (skip record loads)
 #
 # Models are loaded in dependency order: customer -> organization -> customdomain -> receipt -> secret
 #
 # Input files per model (in subdirs):
-#   - {model}_transformed.jsonl: Records to RESTORE (with dump blobs)
+#   - {model}_transformed.jsonl: Records to load (typed payload per key type)
 #   - {model}_indexes.jsonl: Redis commands to execute (ZADD, HSET, SADD, INCRBY)
 
 require 'redis'
@@ -229,7 +227,7 @@ class KeyLoader
       return
     end
 
-    # Load transformed records (RESTORE)
+    # Load transformed records (typed-payload replay)
     unless @skip_records
       transformed_file = File.join(model_dir, "#{model_name}_transformed.jsonl")
       if File.exist?(transformed_file)
@@ -265,7 +263,7 @@ class KeyLoader
     progress  = Upgrade::ProgressReporter.new("#{model_name} RESTORE")
 
     if pipeline_enabled?
-      puts "    Pipelining RESTORE in batches of #{pipeline_batch_size}"
+      puts "    Pipelining record loads in batches of #{pipeline_batch_size}"
       batch = []
       File.foreach(file_path) do |line|
         record   = JSON.parse(line, symbolize_names: true)
@@ -319,7 +317,7 @@ class KeyLoader
   # shot or pipelined execution. Per-record soft errors (missing payload,
   # base64 decode) are recorded against @stats here so both code paths get
   # identical error semantics. Returns nil for skip; in dry-run mode the key
-  # is counted as restored and nil returned.
+  # is counted as loaded and nil returned.
   #
   # Descriptor shapes (`:kind` discriminator):
   #   { kind: :hash,    key:, fields:    Hash<String,String>, pttl: }
@@ -327,10 +325,8 @@ class KeyLoader
   #   { kind: :set,     key:, members:   Array<String>,       pttl: }
   #   { kind: :zset,    key:, pairs:     Array<[Float,String]>,pttl: }
   #   { kind: :list,    key:, members:   Array<String>,       pttl: }
-  #   { kind: :restore, key:, dump:      String,              pttl: }  # fallback
   #
-  # `pttl` is 0 for "no expiry" (RESTORE convention) or a positive PEXPIRE
-  # value in milliseconds.
+  # `pttl` is 0 for "no expiry" or a positive PEXPIRE value in milliseconds.
   def prepare_record(model_name, record)
     key    = record[:key]
     ttl_ms = record[:ttl_ms]
@@ -371,14 +367,8 @@ class KeyLoader
       return { kind: kind, key: key, members: members.map(&:to_s), pttl: pttl }
     end
 
-    if (dump_b64 = record[:dump])
-      dump_data = decode_b64(model_name, key, dump_b64, 'dump')
-      return nil unless dump_data
-      return { kind: :restore, key: key, dump: dump_data, pttl: pttl }
-    end
-
     @stats[model_name][:records_skipped] += 1
-    @stats[model_name][:errors] << { key: key, error: 'No payload (missing dump and typed fields)' }
+    @stats[model_name][:errors] << { key: key, error: 'No typed payload (missing fields_b64/value_b64/members/zmembers)' }
     nil
   end
 
@@ -413,9 +403,9 @@ class KeyLoader
   # the count of commands pushed so the pipelined caller can map results back
   # to the originating record.
   #
-  # All collection types DEL the key first to match RESTORE-with-replace
-  # semantics on re-runs (HSET/SADD/ZADD/RPUSH would otherwise leave stale
-  # fields/members behind from a prior partial load).
+  # All collection types DEL the key first so re-runs are idempotent
+  # (HSET/SADD/ZADD/RPUSH would otherwise leave stale fields/members behind
+  # from a prior partial load).
   def push_load_commands(target, prepared)
     case prepared[:kind]
     when :hash    then push_hash(target, prepared)
@@ -423,7 +413,6 @@ class KeyLoader
     when :set     then push_set(target, prepared)
     when :zset    then push_zset(target, prepared)
     when :list    then push_list(target, prepared)
-    when :restore then push_restore(target, prepared)
     else
       raise ArgumentError, "Unknown load kind: #{prepared[:kind].inspect}"
     end
@@ -498,19 +487,14 @@ class KeyLoader
     end
   end
 
-  def push_restore(target, prepared)
-    target.restore(prepared[:key], prepared[:pttl], prepared[:dump], replace: true)
-    1
-  end
-
   def flush_record_batch(model_name, redis, prepared_batch)
     return if prepared_batch.empty?
 
     # Each prepared record may push 1+ commands (DEL + write + PEXPIRE for
-    # collection types; SET for strings; RESTORE for fallback). Track per-
-    # record command counts so we can attribute pipeline results back to the
-    # originating record. exception: false preserves the per-key error
-    # granularity of the non-pipelined path.
+    # collection types; SET for strings). Track per-record command counts so
+    # we can attribute pipeline results back to the originating record.
+    # exception: false preserves the per-key error granularity of the
+    # non-pipelined path.
     command_counts = []
     results = redis.pipelined(exception: false) do |pipe|
       prepared_batch.each do |prepared|
@@ -746,7 +730,7 @@ class KeyLoader
     overlap_count = overlap.size
 
     puts '  Keys tracked by this script:'
-    puts "    Record keys (RESTORE):   #{record_count}"
+    puts "    Record keys (loaded):    #{record_count}"
     puts "    Index keys (commands):   #{index_count}"
     puts "    Total unique keys:       #{total_unique}"
     puts "    Overlap (both):          #{overlap_count}"
@@ -772,7 +756,7 @@ class KeyLoader
       end
 
       puts
-      puts '  NOTE: Overlap occurs when a key is both RESTORE\'d from v1 dump'
+      puts '  NOTE: Overlap occurs when a key is both loaded from typed payload'
       puts '  and targeted by an index command (ZADD/HSET/SADD). This is safe'
       puts '  if the index command is additive (ZADD to a sorted set) or if'
       puts '  it intentionally overwrites (HSET fields). Verify the patterns'
@@ -830,7 +814,7 @@ def parse_args(args)
           --model=NAME         Load only specific model
           --dry-run            Count records without loading
           --skip-indexes       Load only transformed records (skip index commands)
-          --skip-records       Load only indexes (skip RESTORE operations)
+          --skip-records       Load only indexes (skip record loads)
           --help               Show this help
 
         Models (loaded in dependency order, all into consolidated DB 0):
@@ -841,7 +825,7 @@ def parse_args(args)
           secret         -> DB 0
 
         Input files per model (in subdirs):
-          {model}_transformed.jsonl   Records to RESTORE (with dump blobs)
+          {model}_transformed.jsonl   Records to load (typed payload per key type)
           {model}_indexes.jsonl       Redis commands (ZADD, HSET, SADD, INCRBY)
 
         Examples:
@@ -857,7 +841,7 @@ def parse_args(args)
           # Load only transformed records (no indexes)
           ruby load_keys.rb --skip-indexes
 
-          # Load only indexes (no RESTORE)
+          # Load only indexes (no record loads)
           ruby load_keys.rb --skip-records
       HELP
       exit 0

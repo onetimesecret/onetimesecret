@@ -20,8 +20,6 @@
 #   --input-file=FILE   Input JSONL dump file (default: data/upgrades/v0.24.5/metadata/metadata_dump.jsonl)
 #   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/metadata)
 #   --exports-dir=DIR   Base exports directory for loading indexes (default: data/upgrades/v0.24.5)
-#   --redis-url=URL     Redis URL for temporary operations (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
 # Output: receipt_transformed.jsonl with V2 records in Redis DUMP format.
@@ -31,13 +29,10 @@
 #   - data/upgrades/v0.24.5/organization/organization_indexes.jsonl (email -> org_objid)
 #   - data/upgrades/v0.24.5/customdomain/customdomain_indexes.jsonl (fqdn -> domain_objid)
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
 require 'familia'
-require 'uri'
 
 require_relative '../lib/progress'
 
@@ -46,8 +41,6 @@ require_relative '../lib/progress'
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class ReceiptTransformer
-  TEMP_KEY_PREFIX = '_migrate_tmp_receipt_'
-
   # Field type mappings for Familia v2 JSON serialization
   # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
   FIELD_TYPES = {
@@ -145,14 +138,11 @@ class ReceiptTransformer
   ORG_CONTACT_EMAIL_KEY    = 'organization:contact_email_index'
   DOMAIN_DISPLAY_INDEX_KEY = 'custom_domain:display_domain_index'  # NOTE: underscore in custom_domain
 
-  def initialize(input_file:, output_dir:, exports_dir:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, exports_dir:, dry_run: false)
     @input_file  = input_file
     @output_dir  = output_dir
     @exports_dir = exports_dir
-    @redis_url   = redis_url
-    @temp_db     = temp_db
     @dry_run     = dry_run
-    @redis       = nil
 
     @email_to_customer = {}  # email -> customer_objid
     @email_to_org      = {}  # email -> org_objid
@@ -189,7 +179,6 @@ class ReceiptTransformer
   def run
     validate_input_file
     load_mappings
-    connect_redis unless @dry_run
 
     # Process each metadata record and generate V2 receipt records
     v2_records = []
@@ -211,8 +200,6 @@ class ReceiptTransformer
     write_output(v2_records) unless @dry_run
 
     print_summary
-  ensure
-    cleanup_redis
   end
 
   private
@@ -271,25 +258,6 @@ class ReceiptTransformer
     end
   end
 
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
-  end
-
   def process_record(line)
     return [] if line.empty?
 
@@ -304,7 +272,7 @@ class ReceiptTransformer
 
     return [] if @dry_run
 
-    v1_fields = restore_and_read_hash(record)
+    v1_fields = read_v1_hash(record) || {}
     objid     = extract_objid(key)
 
     unless objid && !objid.empty?
@@ -404,21 +372,11 @@ class ReceiptTransformer
     v2_fields['migration_status'] = 'completed'
     v2_fields['migrated_at']      = Time.now.to_f.to_s
 
-    # Create new dump for the transformed hash
-    # Filter out nil values - Redis doesn't accept them
+    # Filter out nil values
     v2_fields_clean = v2_fields.compact
 
     # Serialize values for Familia v2 JSON format
     v2_fields_serialized = serialize_for_v2(v2_fields_clean)
-
-    temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    v2_dump_b64 = begin
-      @redis.hmset(temp_key, v2_fields_serialized.to_a.flatten)
-      dump_data = @redis.dump(temp_key)
-      Base64.strict_encode64(dump_data)
-    ensure
-      @redis.del(temp_key)
-    end
 
     @stats[:transformed_objects] += 1
 
@@ -427,8 +385,8 @@ class ReceiptTransformer
       type: 'hash',
       ttl_ms: v1_record[:ttl_ms],
       db: v1_record[:db],
-      dump: v2_dump_b64,
-      # Typed payload for cross-engine load (Redis 8 → Valkey 8 RDB mismatch).
+      # Typed payload for cross-engine load. load_keys.rb HSETs decoded fields
+      # directly into the v2 hash (no RESTORE).
       fields_b64: v2_fields_serialized.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       objid: objid,
       owner_id: v2_fields['owner_id'],
@@ -478,16 +436,19 @@ class ReceiptTransformer
     end
   end
 
-  def restore_and_read_hash(record)
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.hgetall(temp_key)
-    rescue Redis::CommandError => ex
-      raise "Restore failed for key #{record[:key]}: #{ex.message}"
-    ensure
-      @redis.del(temp_key) if @redis
+  # Decode v1 hash fields from the typed payload emitted by dump_keys.rb
+  # (fields_b64). Returns a `{String => String}` hash equivalent to what
+  # HGETALL returned before. Replaces the prior RESTORE → HGETALL round-trip
+  # through a temp Redis DB.
+  def read_v1_hash(record)
+    fields = record[:fields_b64]
+    unless fields.is_a?(Hash)
+      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing fields_b64 typed payload' }
+      return nil
+    end
+
+    fields.each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
     end
   end
 
@@ -627,8 +588,6 @@ def parse_args(args)
     input_file: File.join(DEFAULT_DATA_DIR, 'metadata/metadata_dump.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'metadata'),
     exports_dir: DEFAULT_DATA_DIR,
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -637,8 +596,6 @@ def parse_args(args)
     when /^--input-file=(.+)$/ then options[:input_file]   = Regexp.last_match(1)
     when /^--output-dir=(.+)$/ then options[:output_dir]   = Regexp.last_match(1)
     when /^--exports-dir=(.+)$/ then options[:exports_dir] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/ then options[:redis_url]     = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/ then options[:temp_db]        = Regexp.last_match(1).to_i
     when '--dry-run' then options[:dry_run]                = true
     when '--help', '-h'
       puts <<~HELP
@@ -650,8 +607,6 @@ def parse_args(args)
           --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.5/metadata/metadata_dump.jsonl)
           --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/metadata)
           --exports-dir=DIR   Base exports directory for index files (default: data/upgrades/v0.24.5)
-          --redis-url=URL     Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output
           --help              Show this help
 
@@ -689,8 +644,6 @@ if __FILE__ == $0
     input_file: options[:input_file],
     output_dir: options[:output_dir],
     exports_dir: options[:exports_dir],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
   transformer.run

@@ -6,14 +6,14 @@
 
 # Dumps Redis keys to JSONL format for migration, organized by model.
 #
-# Each line carries BOTH a raw RDB DUMP blob AND a typed payload, so the
-# loader can RESTORE (when source/target RDB versions match) or replay native
-# commands (when they don't — e.g. Redis 8 RDB v12 → Valkey 8 RDB v11). The
-# typed payload is the cross-engine fallback; everything downstream prefers it
-# when present.
+# Source is Redis 8 (RDB v12) and target is Valkey 8, which rejects v12
+# RESTORE payloads. There is no DUMP/RESTORE path: every record carries a
+# typed payload that the loader replays via native commands. Records whose
+# typed payload cannot be produced are fatal (the run aborts on the first
+# such record so the cause is investigated, not silently dropped).
 #
 # Schema per record (depending on key type):
-#   Common: { key, type, ttl_ms, db, dump (base64) }
+#   Common: { key, type, ttl_ms, db }
 #   hash:   ..., fields_b64: { field => base64(value) }
 #   string: ..., value_b64: base64(value)
 #   set:    ..., members:   [String, ...]
@@ -234,28 +234,22 @@ class KeyDumper
       return
     end
 
-    # Get serialized value
-    dump_data = redis.dump(key)
-
-    if dump_data.nil?
-      stats[:skipped] += 1
-      return
-    end
-
     record = {
       key: key,
       type: key_type,
       ttl_ms: ttl_ms,
       db: db_number,
-      dump: Base64.strict_encode64(dump_data),
     }
 
-    # Typed payload for cross-engine load. Reads via native commands so the
-    # loader can replay them when the target rejects the DUMP blob (Redis 8
-    # RDB v12 vs Valkey 8 RDB v11). Failures here are non-fatal — the DUMP
-    # blob is still written, so a same-engine load path stays viable.
+    # Typed payload is the only load representation. A failure here is fatal
+    # for this record — the loader has nothing to replay without it, so we
+    # surface the cause instead of silently dropping the key.
     typed = read_typed_payload(redis, key, key_type)
-    record.merge!(typed) if typed
+    if typed.nil?
+      stats[:skipped] += 1
+      return
+    end
+    record.merge!(typed)
 
     # Extract 'created' field for hash types that have it (needed for UUIDv7).
     # Reuse the typed payload when available to avoid an extra HGET round trip.
@@ -276,8 +270,8 @@ class KeyDumper
 
   # Read the key's contents using native typed commands and return a hash
   # of additional JSONL fields (fields_b64 / value_b64 / members / zmembers).
-  # Returns nil and records a stat error on failure — the caller still writes
-  # the DUMP blob, so this is purely additive.
+  # Returns nil and records a stat error on failure — the caller treats this
+  # as fatal for the record (no DUMP fallback exists in the typed-only path).
   def read_typed_payload(redis, key, key_type)
     case key_type
     when 'hash'

@@ -7,12 +7,7 @@
 #
 # Regression context (#3041): the v0.24.5 upgrade pipeline produced
 # Organization records but never emitted OrganizationMembership records, which
-# in turn left org_membership:org_customer_lookup empty. Customers appeared in
-# org.members ZSETs and customer.participations SETs, but model-level lookups
-# such as OrganizationMembership.find_by_org_customer returned nil. The
-# Organization-stage validator also lacked a --redis-url option, so
-# run_pipeline.sh:115 invoked it without one (out of step with the customer
-# and customdomain validators on lines 106 and 124).
+# in turn left org_membership:org_customer_lookup empty.
 #
 # What these tests lock in (post-fix contract):
 #   1. generate.rb + create_indexes.rb + load_keys.rb (the production path)
@@ -21,27 +16,17 @@
 #   2. org_membership:org_customer_lookup HSET contains the expected
 #      "org_objid:owner_id" -> membership_objid mapping.
 #   3. The owner is in org.members (ZSET) and the org collection key is in
-#      customer.participations (SET) — guards the existing behavior that the
-#      fix must not regress.
+#      customer.participations (SET).
 #   4. Re-running the pipeline produces no duplicate memberships and leaves
 #      the lookup HSET stable.
-#   5. validate_instance_index.rb accepts --redis-url=... and exits 0 against
-#      the seeded fixture.
-#   6. run_pipeline.sh:115 invokes the org validator with --redis-url, mirroring
-#      the customer (:106) and customdomain (:124) calls.
-#   7. Snippet-A audit (sample N orgs, count missing memberships) reports zero
-#      gaps after the fix.
+#   5. validate_instance_index.rb runs and exits 0 against the seeded fixture.
 #
 # Implementation notes:
-#   - Customer fixture records carry real Redis DUMP blobs of v2-serialized
-#     hashes — generate.rb RESTOREs and deserialize_v2_fields-decodes the
-#     contents. Fake bytes raise Redis::CommandError.
-#   - Index commands are applied via load_keys.rb (the production applier)
-#     rather than reimplemented; that's the same code path Prod-1's emitter
-#     output flows through in production.
-#   - Tests boot OT in-process to use OrganizationMembership.find_by_org_customer
-#     — the storage shape (additional JSONL records vs index commands vs both)
-#     is implementation detail; the contract is the model lookup.
+#   - Customer fixture records carry a typed payload (fields_b64) of
+#     v2-serialized hash field values. generate.rb base64-decodes them
+#     directly — there is no Redis temp-DB scratch in the post-cleanup path.
+#   - Index commands are applied via load_keys.rb (the production applier).
+#   - Tests boot OT in-process to use OrganizationMembership.find_by_org_customer.
 #   - If no test Redis is reachable on port 2121, the whole file exits 0
 #     cleanly so CI doesn't false-fail on missing infrastructure.
 
@@ -65,26 +50,21 @@ LOAD_KEYS_RB  = File.join(PROJECT_ROOT, 'scripts/upgrades/v0.24.5/load_keys.rb')
 PIPELINE_SH   = File.join(PROJECT_ROOT, 'scripts/upgrades/v0.24.5/run_pipeline.sh').freeze
 
 TEST_REDIS_URL = ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
-TEMP_DB        = 14  # generate/create_indexes use --temp-db for RESTORE staging
-                     # 15 is the script default; keep our value distinct to surface
-                     # accidental cross-talk between staging and target databases.
 
 # --- Fixture builders ---------------------------------------------------------
 
-# Stages a v2-serialized customer hash into Redis under a temp key, DUMPs it,
-# DELs the key, and returns the base64-encoded DUMP. Mirrors what 01-customer
-# transform.rb writes into customer_transformed.jsonl.
-def customer_dump_b64(redis, fields)
-  temp_key = "_test_customer_stage_#{SecureRandom.hex(6)}"
+# Builds the typed payload that dump_keys.rb / transform.rb emit for a hash:
+# fields_b64 = { field_name => Base64.strict_encode64(raw_value) }.
+# Mirrors what 01-customer transform.rb writes into customer_transformed.jsonl.
+def fields_b64_payload(fields)
   serialized = fields.transform_values { |v| v.nil? ? 'null' : JSON.generate(v) }
-  redis.hset(temp_key, serialized)
-  blob = redis.dump(temp_key)
-  redis.del(temp_key)
-  Base64.strict_encode64(blob)
+  serialized.each_with_object({}) do |(field, value), acc|
+    acc[field] = Base64.strict_encode64(value.to_s)
+  end
 end
 
-# Builds a customer_transformed.jsonl record carrying a real DUMP blob.
-def customer_record(redis:, objid:, email:, created:, **extra_fields)
+# Builds a customer_transformed.jsonl record carrying a typed fields_b64 payload.
+def customer_record(objid:, email:, created:, **extra_fields)
   fields = {
     'custid' => objid,
     'email' => email,
@@ -100,7 +80,7 @@ def customer_record(redis:, objid:, email:, created:, **extra_fields)
     'type' => 'hash',
     'ttl_ms' => -1,
     'db' => 0,
-    'dump' => customer_dump_b64(redis, fields),
+    'fields_b64' => fields_b64_payload(fields),
     'objid' => objid,
     'extid' => "ur#{SecureRandom.hex(12).rjust(25, '0')[0, 25]}",
     'created' => created.to_f,
@@ -116,8 +96,8 @@ def read_jsonl(path)
   File.foreach(path).map { |line| JSON.parse(line.chomp) }
 end
 
-# Shells out with VALKEY_URL/REDIS_URL pointing at the test Redis so any
-# script that picks them up via env (vs flag) hits the same database.
+# Shells out with VALKEY_URL/REDIS_URL pointing at the test Redis so load_keys.rb
+# (the only step that still needs Redis) hits the same database.
 def shell_out(*cmd)
   env = { 'VALKEY_URL' => TEST_REDIS_URL, 'REDIS_URL' => TEST_REDIS_URL }
   Open3.capture3(env, *cmd, chdir: PROJECT_ROOT)
@@ -126,17 +106,13 @@ end
 def run_generate(input_file:, output_dir:)
   shell_out('ruby', GENERATE_RB,
             "--input-file=#{input_file}",
-            "--output-dir=#{output_dir}",
-            "--redis-url=#{TEST_REDIS_URL}",
-            "--temp-db=#{TEMP_DB}")
+            "--output-dir=#{output_dir}")
 end
 
 def run_create_indexes(input_file:, output_dir:)
   shell_out('ruby', INDEXES_RB,
             "--input-file=#{input_file}",
-            "--output-dir=#{output_dir}",
-            "--redis-url=#{TEST_REDIS_URL}",
-            "--temp-db=#{TEMP_DB}")
+            "--output-dir=#{output_dir}")
 end
 
 # Apply only the organization indexes JSONL via load_keys.rb. We skip the
@@ -175,10 +151,6 @@ OT.boot! :test
 
 @redis = Redis.new(url: TEST_REDIS_URL)
 @redis.flushdb
-# Also flush the temp DB used by generate/create_indexes for RESTORE staging,
-# in case a previous run left orphan keys in DB 14.
-temp_uri = URI.parse(TEST_REDIS_URL).tap { |u| u.path = "/#{TEMP_DB}" }
-Redis.new(url: temp_uri.to_s).then { |r| r.flushdb; r.close }
 
 @workdir   = Dir.mktmpdir('orggen_try_')
 @cust_dir  = File.join(@workdir, 'customer')
@@ -195,17 +167,17 @@ Redis.new(url: temp_uri.to_s).then { |r| r.flushdb; r.close }
   { objid: SecureRandom.uuid_v7, email: "carol_#{@ts}@orggentry.example", created: @ts - 100 },
 ]
 
-write_jsonl(@cust_file, @records.map { |r| customer_record(redis: @redis, **r) })
+write_jsonl(@cust_file, @records.map { |r| customer_record(**r) })
 
-# --- Pipeline shape: validator must be invoked with --redis-url ---------------
+# --- Pipeline shape -----------------------------------------------------------
 
 ## run_pipeline.sh exists at the expected path
 File.exist?(PIPELINE_SH)
 #=> true
 
-## run_pipeline.sh invokes the org validator with --redis-url, like its peers
+## run_pipeline.sh invokes the org validator without --redis-url (no Redis dependency)
 @pipeline_src = File.read(PIPELINE_SH)
-@pipeline_src.match?(%r{02-organization/validate_instance_index\.rb.*--redis-url=}m)
+@pipeline_src.match?(%r{02-organization/validate_instance_index\.rb(?!.*--redis-url)})
 #=> true
 
 # --- generate.rb produces organization records --------------------------------
@@ -225,6 +197,10 @@ File.exist?(PIPELINE_SH)
 ## owner_id values exactly match the customer objids the records came from
 expected_owners = @records.map { |r| r[:objid] }.sort
 @org_records.map { |r| r['owner_id'] }.sort == expected_owners
+#=> true
+
+## Each emitted org carries a typed fields_b64 payload (no :dump field)
+@org_records.all? { |r| r['fields_b64'].is_a?(Hash) && r['dump'].nil? }
 #=> true
 
 # --- create_indexes.rb + load_keys.rb populates Redis state ------------------
@@ -327,22 +303,20 @@ end
 @after_membership_objids == @before_membership_objids
 #=> true
 
-# --- Validator CLI: --redis-url is accepted and the run exits 0 ---------------
+# --- Validator CLI: runs without Redis ---------------------------------------
 
-## validate_instance_index.rb --redis-url=... runs and exits 0
+## validate_instance_index.rb runs and exits 0 (no Redis dependency post-cleanup)
 @val_stdout, @val_stderr, @val_status = shell_out(
   'ruby', VALIDATOR_RB,
   "--transformed-file=#{@org_file}",
   "--indexes-file=#{@idx_file}",
   "--customer-file=#{@cust_file}",
-  "--redis-url=#{TEST_REDIS_URL}",
 )
-[@val_status.success?, @val_stderr.include?('Unknown option: --redis-url')]
+[@val_status.success?, @val_stderr.include?('Unknown option')]
 #=> [true, false]
 
 # --- Teardown ----------------------------------------------------------------
 
 @redis.flushdb
 @redis.close
-Redis.new(url: temp_uri.to_s).then { |r| r.flushdb; r.close }
 FileUtils.rm_rf(@workdir) if @workdir
