@@ -69,6 +69,11 @@ module Onetime
           auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.domain.validation' },
         },
+        'migration.customer.batch' => {
+          durable: true,
+          auto_delete: false,
+          arguments: { 'x-dead-letter-exchange' => 'dlx.migration.customer' },
+        },
         'system.transient' => {
           durable: false,
           auto_delete: true,
@@ -105,6 +110,10 @@ module Onetime
         },
         'dlx.domain.validation' => {
           queue: 'dlq.domain.validation',
+          arguments: {},
+        },
+        'dlx.migration.customer' => {
+          queue: 'dlq.migration.customer',
           arguments: {},
         },
       }.freeze

@@ -37,8 +37,12 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(queues).to have_key('system.transient')
     end
 
-    it 'has 8 queues total' do
-      expect(queues.size).to eq(8)
+    it 'defines migration.customer.batch queue' do
+      expect(queues).to have_key('migration.customer.batch')
+    end
+
+    it 'has 9 queues total' do
+      expect(queues.size).to eq(9)
     end
   end
 
@@ -118,6 +122,22 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     end
   end
 
+  describe 'migration.customer.batch queue' do
+    subject(:queue) { described_class::QUEUES['migration.customer.batch'] }
+
+    it 'is durable' do
+      expect(queue[:durable]).to be true
+    end
+
+    it 'does not auto_delete' do
+      expect(queue[:auto_delete]).to be false
+    end
+
+    it 'has dead letter exchange configured' do
+      expect(queue[:arguments]['x-dead-letter-exchange']).to eq('dlx.migration.customer')
+    end
+  end
+
   describe 'system.transient queue' do
     subject(:queue) { described_class::QUEUES['system.transient'] }
 
@@ -153,8 +173,8 @@ RSpec.describe Onetime::Jobs::QueueConfig do
       expect(dead_letter_config).to be_frozen
     end
 
-    it 'has 5 entries' do
-      expect(dead_letter_config.size).to eq(5)
+    it 'has 6 entries' do
+      expect(dead_letter_config.size).to eq(6)
     end
 
     it "contains 'dlx.email.message' with queue 'dlq.email.message'" do
@@ -180,6 +200,11 @@ RSpec.describe Onetime::Jobs::QueueConfig do
     it "contains 'dlx.domain.validation' with queue 'dlq.domain.validation'" do
       expect(dead_letter_config).to have_key('dlx.domain.validation')
       expect(dead_letter_config['dlx.domain.validation'][:queue]).to eq('dlq.domain.validation')
+    end
+
+    it "contains 'dlx.migration.customer' with queue 'dlq.migration.customer'" do
+      expect(dead_letter_config).to have_key('dlx.migration.customer')
+      expect(dead_letter_config['dlx.migration.customer'][:queue]).to eq('dlq.migration.customer')
     end
 
     it 'has empty arguments (TTL managed via DLQ_POLICIES)' do

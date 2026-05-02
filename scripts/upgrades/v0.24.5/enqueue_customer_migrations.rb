@@ -12,7 +12,7 @@
 # This script is the enqueuer half of a two-process design:
 #
 #   enqueue_customer_migrations.rb  (this script)
-#         ↓ RabbitMQ: customer_migration queue
+#         ↓ RabbitMQ: migration.customer.batch queue
 #   customer_migration_worker.rb    (parallel agent)
 #
 # The enqueuer builds an ordered index of v1 customers, checks each against the
@@ -33,7 +33,7 @@
 #   _migration:customer:enqueue_lock      — NX lock to prevent concurrent runs
 #
 # On RabbitMQ:
-#   customer_migration queue             — one message per candidate customer key
+#   migration.customer.batch queue       — one message per candidate batch (N keys)
 #
 # IDEMPOTENCY GUARANTEES
 # ======================
@@ -92,7 +92,8 @@
 # Options:
 #   --source-url=URL             Source Redis URL (env: SOURCE_REDIS_URL)
 #   --target-url=URL             Target Valkey URL (env: TARGET_VALKEY_URL)
-#   --queue-name=NAME            Queue name (default: customer_migration)
+#   --rmq-url=URL                RabbitMQ URL (env: RABBITMQ_URL); required for --execute
+#   --queue-name=NAME            Queue name (default: migration.customer.batch)
 #   --batch-size=N               Keys per publish call (default: 500)
 #   --max-batches=N              Stop after N batches (testing/surgical use)
 #   --rebuild-zset               Force re-scan even if sorted set exists
@@ -106,6 +107,7 @@
 #   --help                       Show this help
 
 require 'redis'
+require 'bunny'
 require 'json'
 require 'securerandom'
 require 'digest'
@@ -184,8 +186,10 @@ class CustomerMigrationEnqueuer
   LOCK_KEY = '_migration:customer:enqueue_lock'
   LOCK_TTL_SECONDS = 3600  # 1 hour; adjust if runs legitimately take longer
 
-  # RabbitMQ queue name default (overridable via --queue-name)
-  DEFAULT_QUEUE_NAME = 'customer_migration'
+  # RabbitMQ queue name default (overridable via --queue-name).
+  # Matches Onetime::Jobs::QueueConfig::QUEUES naming convention
+  # ({domain}.{entity}.{action}); declared with DLX dlx.migration.customer.
+  DEFAULT_QUEUE_NAME = 'migration.customer.batch'
 
   # Default batch size: keys published per message.
   # Workers receive an array of keys; larger batches reduce overhead but
@@ -218,6 +222,7 @@ class CustomerMigrationEnqueuer
   def initialize(options = {})
     @source_url              = options.fetch(:source_url)
     @target_url              = options.fetch(:target_url)
+    @rmq_url                 = options.fetch(:rmq_url, nil)
     @queue_name              = options.fetch(:queue_name, DEFAULT_QUEUE_NAME)
     @batch_size              = options.fetch(:batch_size, DEFAULT_BATCH_SIZE)
     @max_batches             = options[:max_batches]   # nil = unlimited
@@ -231,6 +236,8 @@ class CustomerMigrationEnqueuer
 
     @source_redis  = nil
     @target_redis  = nil
+    @rmq_conn      = nil
+    @rmq_channel   = nil
     @lock_acquired = false
 
     @stats = {
@@ -248,6 +255,7 @@ class CustomerMigrationEnqueuer
   # Entry point. Returns @stats hash.
   def run
     connect_redis
+    connect_rmq
     acquire_lock
 
     build_or_reuse_sorted_set
@@ -337,6 +345,57 @@ class CustomerMigrationEnqueuer
     [@source_redis, @target_redis].compact.each do |c|
       c.close rescue nil
     end
+    close_rmq
+  end
+
+  # --------------------------------------------------------------------------
+  # RabbitMQ connection (publisher side)
+  # --------------------------------------------------------------------------
+
+  # Standalone Bunny wrapper. The script does not boot the Onetime app, so we
+  # cannot reuse $rmq_channel_pool; we open one TCP connection and one channel
+  # for the lifetime of the run.
+  #
+  # Skipped in dry-run: nothing is published, so no need to fail early on a
+  # missing RabbitMQ URL when only previewing.
+  def connect_rmq
+    return if @dry_run
+
+    unless @rmq_url
+      raise CustomerMigrationEnqueuer::QueueUnavailable,
+        'RabbitMQ URL not configured (--rmq-url or RABBITMQ_URL)'
+    end
+
+    @rmq_conn = Bunny.new(
+      @rmq_url,
+      heartbeat:                     60,
+      recover_from_connection_close: true,
+      network_recovery_interval:     5,
+      continuation_timeout:          15_000,
+    )
+    @rmq_conn.start
+    @rmq_channel = @rmq_conn.create_channel
+
+    puts "Connected to RabbitMQ at #{sanitize_rmq_url(@rmq_url)}"
+  rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout, Bunny::AuthenticationFailureError => ex
+    raise CustomerMigrationEnqueuer::QueueUnavailable,
+      "Cannot connect to RabbitMQ: #{ex.class}: #{ex.message}"
+  end
+
+  def close_rmq
+    @rmq_channel.close if @rmq_channel&.open?
+    @rmq_conn.close    if @rmq_conn&.open?
+  rescue StandardError
+    # Best-effort cleanup; the process is exiting either way.
+  ensure
+    @rmq_channel = nil
+    @rmq_conn    = nil
+  end
+
+  def sanitize_rmq_url(url)
+    url.to_s
+       .gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')
+       .gsub(%r{://([^/:@]+)@}, '://***@')
   end
 
   # --------------------------------------------------------------------------
@@ -651,33 +710,25 @@ class CustomerMigrationEnqueuer
       schema_version: 1,
     }
 
-    # TODO: Confirm whether to send one message per key or one message per batch.
-    #       Current design: one message per batch (lower overhead, larger re-queue unit).
-    #       If workers are designed for single-key messages, iterate and call
-    #       publish_single(key, v1_score) here instead.
-    #
-    # TODO: Pre-flight check that $rmq_channel_pool is initialized before the
-    #       run loop starts, not per-batch. Add a connect_queue method and call
-    #       it in #run before the loop.
-    #
-    # Uses Onetime::Jobs::Publisher#publish which handles:
-    #   - channel pool checkout
-    #   - message_id (UUID)
-    #   - x-schema-version header
-    #   - Sentry trace header propagation
-    #   - persistent: true
-    #
-    # This script runs outside the Onetime app boot context. You need either:
-    #   a) A minimal require path that sets up $rmq_channel_pool, or
-    #   b) A standalone Bunny wrapper that mirrors the publisher's options.
-    # TODO: Decide and implement. Option (b) is safer for a one-shot CLI script.
-    raise NotImplementedError,
-      "TODO: Implement publish_batch. " \
-      "Use Onetime::Jobs::Publisher#publish(#{@queue_name.inspect}, payload) " \
-      "or a standalone Bunny wrapper if app boot is not feasible here."
-  rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure => ex
+    # One AMQP publish per batch carries N keys in a single message — the
+    # worker rehydrates the array. Mirrors Onetime::Jobs::Publisher#publish
+    # options without bootstrapping the Onetime app. Sentry trace
+    # propagation is intentionally omitted: one-shot CLI, not request path.
+    message_id = SecureRandom.uuid
+
+    @rmq_channel.default_exchange.publish(
+      payload.to_json,
+      routing_key:  @queue_name,
+      persistent:   true,
+      content_type: 'application/json',
+      message_id:   message_id,
+      headers:      { 'x-schema-version' => 1 },
+    )
+
+    puts "  Published batch of #{batch.size} keys to '#{@queue_name}' (message_id=#{message_id})"
+  rescue Bunny::ConnectionClosedError, Bunny::NetworkFailure, Bunny::ChannelAlreadyClosed => ex
     raise CustomerMigrationEnqueuer::QueueUnavailable,
-      "RabbitMQ unavailable during publish: #{ex.message}"
+      "RabbitMQ unavailable during publish: #{ex.class}: #{ex.message}"
   end
 
   # --------------------------------------------------------------------------
@@ -751,6 +802,7 @@ def parse_args(args)
   options = {
     source_url:           ENV['SOURCE_REDIS_URL'] || ENV['REDIS_URL'],
     target_url:           ENV['TARGET_VALKEY_URL'] || ENV['VALKEY_URL'],
+    rmq_url:              ENV.fetch('RABBITMQ_URL', nil),
     queue_name:           CustomerMigrationEnqueuer::DEFAULT_QUEUE_NAME,
     batch_size:           CustomerMigrationEnqueuer::DEFAULT_BATCH_SIZE,
     max_batches:          nil,
@@ -769,6 +821,8 @@ def parse_args(args)
       options[:source_url] = Regexp.last_match(1)
     when /\A--target-url=(.+)\z/
       options[:target_url] = Regexp.last_match(1)
+    when /\A--rmq-url=(.+)\z/
+      options[:rmq_url] = Regexp.last_match(1)
     when /\A--queue-name=(.+)\z/
       options[:queue_name] = Regexp.last_match(1)
     when /\A--batch-size=(\d+)\z/
@@ -801,6 +855,7 @@ def parse_args(args)
         Connection:
           --source-url=URL             Source Redis URL (env: SOURCE_REDIS_URL)
           --target-url=URL             Target Valkey URL (env: TARGET_VALKEY_URL)
+          --rmq-url=URL                RabbitMQ URL (env: RABBITMQ_URL); required for --execute
 
         Queue:
           --queue-name=NAME            Queue name (default: #{CustomerMigrationEnqueuer::DEFAULT_QUEUE_NAME})
@@ -822,6 +877,7 @@ def parse_args(args)
         Environment variables (fallbacks):
           SOURCE_REDIS_URL or REDIS_URL
           TARGET_VALKEY_URL or VALKEY_URL
+          RABBITMQ_URL
 
         Examples:
           # Dry run to see what would be enqueued

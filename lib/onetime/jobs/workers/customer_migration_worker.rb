@@ -53,10 +53,9 @@ module Onetime
       #   7. archive_v1_originals
       #   8. mark_migration_status
       #
-      # TODO (topology): Add 'migration.customer.batch' to QueueConfig::QUEUES
-      # and its DLQ entry to DEAD_LETTER_CONFIG before running this worker.
-      # The enqueuer agent owns the declaration; this worker just consumes.
-      # Without the entry, QueueDeclarator.sneakers_options_for raises KeyError.
+      # Queue topology: 'migration.customer.batch' is registered in
+      # QueueConfig::QUEUES with DLX dlx.migration.customer →
+      # dlq.migration.customer (see lib/onetime/jobs/queues/config.rb).
       #
       # TODO (Phase 5 exclusion): Rodauth/auth account sync is explicitly out of
       # scope here. After migration completes, a separate command handles that.
@@ -67,11 +66,10 @@ module Onetime
 
         QUEUE_NAME = 'migration.customer.batch'
 
-        # TODO: (topology): uncomment once QUEUE_NAME is registered in QueueConfig::QUEUES
-        # from_queue QUEUE_NAME,
-        #   **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
-        #   threads: ENV.fetch('MIGRATION_WORKER_THREADS', 2).to_i,
-        #   prefetch: ENV.fetch('MIGRATION_WORKER_PREFETCH', 1).to_i
+        from_queue QUEUE_NAME,
+          **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
+          threads: ENV.fetch('MIGRATION_WORKER_THREADS', 2).to_i,
+          prefetch: ENV.fetch('MIGRATION_WORKER_PREFETCH', 1).to_i
 
         # prefetch: 1 keeps the in-flight window tight during migration so a
         # worker crash only risks one batch. Raise to 2 if throughput is the
@@ -110,8 +108,19 @@ module Onetime
 
         # Process one batch message from the queue.
         #
-        # @param msg [String] JSON-encoded Array of custid strings.
-        #   Schema: { "custids": ["email@example.com", ...], "batch_id": "uuid" }
+        # @param msg [String] JSON-encoded batch payload from the enqueuer.
+        #   Schema (see scripts/upgrades/v0.24.5/enqueue_customer_migrations.rb,
+        #   CustomerMigrationEnqueuer#publish_batch):
+        #     {
+        #       "keys": [
+        #         { "key": "customer:<custid>:object",
+        #           "v1_updated_score": <float> },
+        #         ...
+        #       ],
+        #       "enqueued_at": "<ISO8601>",
+        #       "schema_version": 1
+        #     }
+        #   batch_id is taken from AMQP message_id (set by the enqueuer).
         # @param delivery_info [Bunny::DeliveryInfo]
         # @param metadata [Bunny::MessageProperties]
         def work_with_params(msg, delivery_info, metadata)
@@ -122,22 +131,22 @@ module Onetime
             data    = parse_message(msg)
             return unless data
 
-            custids  = data[:custids]
-            batch_id = data[:batch_id] || message_id
+            entries  = data[:keys]
+            batch_id = message_id
 
-            unless custids.is_a?(Array) && !custids.empty?
-              log_error 'Batch payload missing or empty custids array', batch_id: batch_id
+            unless entries.is_a?(Array) && !entries.empty?
+              log_error 'Batch payload missing or empty keys array', batch_id: batch_id
               return reject!
             end
 
             log_info 'Processing migration batch',
               batch_id: batch_id,
-              size: custids.size,
+              size: entries.size,
               redelivered: delivery_info.redelivered?
 
-            process_batch(custids, batch_id)
+            process_batch(entries, batch_id)
 
-            log_info 'Migration batch complete', batch_id: batch_id, size: custids.size
+            log_info 'Migration batch complete', batch_id: batch_id, size: entries.size
             ack!
           end
         rescue HardInfrastructureError => ex
@@ -164,29 +173,33 @@ module Onetime
 
         # ── Batch loop ────────────────────────────────────────────────────────
 
-        def process_batch(custids, batch_id)
+        def process_batch(entries, batch_id)
           # Sort oldest-first so queue stalls leave the most-recently-active
-          # customers for later. Sorting happens inside read_v1_source_data
-          # (it reads the `updated` field). See sort_by_updated_asc.
-          #
-          # TODO (enqueuer): the enqueuer is expected to emit custids
-          # already sorted oldest-first by the Lua+pipeline ordered scanner.
-          # The worker re-sorts as defense-in-depth; remove if benchmarks show
-          # it accounts for meaningful overhead.
+          # customers for later. The enqueuer publishes entries already
+          # sorted oldest-first by the Lua+pipeline ordered scanner; the
+          # v1_updated_score field is preserved here for re-sort/freshness
+          # checks if the worker decides to use it.
 
-          custids.each do |custid|
-            migrate_one(custid, batch_id)
+          entries.each do |entry|
+            # Each entry: { key: "customer:<custid>:object", v1_updated_score: <float> }
+            # Stubbed downstream (see migrate_one) — implementation can pass
+            # entry through or derive custid from entry[:key] as needed.
+            migrate_one(entry, batch_id)
           rescue HardInfrastructureError
             raise # Propagate to work_with_params; abort entire batch
           rescue StandardError => ex
             # Per-record failure: classify, mark, ship to record DLQ, continue
-            handle_per_record_failure(custid, ex, batch_id)
+            handle_per_record_failure(entry, ex, batch_id)
           end
         end
 
         # ── Per-record migration ───────────────────────────────────────────────
 
-        def migrate_one(custid, _batch_id)
+        def migrate_one(entry, _batch_id)
+          # entry: { key: "customer:<custid>:object", v1_updated_score: <float> }
+          # Downstream stubs still take a custid; derive from the key when
+          # they are implemented (key.delete_prefix("customer:").delete_suffix(":object")).
+          custid  = entry.is_a?(Hash) ? entry[:key] : entry
           v1_data = read_v1_source_data(custid)
 
           # Step 0: Idempotency fast-path
@@ -558,28 +571,30 @@ module Onetime
         # TODO (enqueuer coordination): agree on the dlq.migration.customer.record
         # message schema and channel access pattern.
         #
-        # @param custid [String]
+        # @param entry [Hash] { key:, v1_updated_score: } from the batch payload
         # @param error [StandardError]
         # @param batch_id [String]
-        def handle_per_record_failure(custid, error, batch_id)
+        def handle_per_record_failure(entry, error, batch_id)
+          key = entry.is_a?(Hash) ? entry[:key] : entry.to_s
+
           # Sentry capture — do this first so event_id is available for DLQ payload
-          sentry_event_id = capture_to_sentry(error, custid: custid, batch_id: batch_id)
+          sentry_event_id = capture_to_sentry(error, key: key, batch_id: batch_id)
 
           log_error 'Per-record migration failure',
             error,
-            custid: redact(custid),
+            key: redact(key),
             batch_id: batch_id,
             sentry_event_id: sentry_event_id
 
           # TODO: attempt to write migration_status: 'failed' to v2 record.
-          # Use mark_migration_failed_direct(custid, error) below.
-          mark_migration_failed_direct(custid, error)
+          # Use mark_migration_failed_direct(entry, error) below.
+          mark_migration_failed_direct(entry, error)
 
           # TODO: publish single-record failure to per-record DLQ.
-          publish_to_record_dlq(custid, error, batch_id, sentry_event_id)
+          publish_to_record_dlq(entry, error, batch_id, sentry_event_id)
         rescue StandardError => ex
           # Failure handler must not raise — log and move on
-          log_error 'Error in failure handler (swallowed)', ex, custid: redact(custid)
+          log_error 'Error in failure handler (swallowed)', ex, key: redact(key)
         end
 
         # Mark a v2 customer record as migration-failed via direct Redis write.
@@ -590,7 +605,7 @@ module Onetime
         #
         # TODO: implement. Call mark_migration_failed! on the model if loadable,
         # or HSET directly: migration_status = 'failed', migration_error = truncated msg.
-        def mark_migration_failed_direct(custid, error)
+        def mark_migration_failed_direct(entry, error)
           # TODO: implement
         end
 
@@ -598,9 +613,9 @@ module Onetime
         # NOT the AMQP x-dead-letter-exchange — this is an application-level DLQ.
         #
         # TODO: implement. Schema TBD with enqueuer agent.
-        # Minimum payload: { custid:, error_class:, error_message:,
+        # Minimum payload: { key:, v1_updated_score:, error_class:, error_message:,
         #                    batch_id:, sentry_event_id:, failed_at: }
-        def publish_to_record_dlq(custid, error, batch_id, sentry_event_id)
+        def publish_to_record_dlq(entry, error, batch_id, sentry_event_id)
           # TODO: implement
         end
 
