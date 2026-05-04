@@ -424,11 +424,15 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   brand_primary_color: z.string().nullish(),
   brand_product_name: z.string().nullish(),
+  brand_product_domain: z.string().nullish(),
+  brand_support_email: z.string().nullish(),
   brand_corner_style: z.enum(cornerStyleValues).nullish(),
   brand_font_family: z.enum(fontFamilyValues).nullish(),
   brand_button_text_light: z.boolean().nullish(),
   brand_allow_public_homepage: z.boolean().nullish(),
   brand_allow_public_api: z.boolean().nullish(),
+  brand_logo_url: z.string().nullish(),
+  brand_totp_issuer: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields

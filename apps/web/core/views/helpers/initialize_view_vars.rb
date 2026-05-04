@@ -202,6 +202,14 @@ module Core
         brand_button_text_light     = brand_config.fetch('button_text_light', brand_defaults[:button_text_light])
         brand_allow_public_homepage = brand_config.fetch('allow_public_homepage', brand_defaults[:allow_public_homepage])
         brand_allow_public_api      = brand_config.fetch('allow_public_api', brand_defaults[:allow_public_api])
+        # Site-wide brand fields not in DEFAULTS (per-domain Data class) —
+        # sourced from GLOBAL_DEFAULTS or directly from brand_config. Frontend
+        # falls through to NEUTRAL_BRAND_DEFAULTS when nil.
+        brand_global_defaults       = Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS
+        brand_product_domain        = brand_config['product_domain']
+        brand_support_email         = brand_config['support_email'] || brand_global_defaults[:support_email]
+        brand_logo_url              = brand_config['logo_url'] || brand_global_defaults[:logo_url]
+        brand_totp_issuer           = brand_config['totp_issuer'] || brand_global_defaults[:totp_issuer]
 
         # Return all view variables as a hash
         {
@@ -238,6 +246,10 @@ module Core
           'brand_button_text_light' => brand_button_text_light,
           'brand_allow_public_homepage' => brand_allow_public_homepage,
           'brand_allow_public_api' => brand_allow_public_api,
+          'brand_product_domain' => brand_product_domain,
+          'brand_support_email' => brand_support_email,
+          'brand_logo_url' => brand_logo_url,
+          'brand_totp_issuer' => brand_totp_issuer,
           'support_email' => support_email,
           'docs_host' => docs_host,
         }
