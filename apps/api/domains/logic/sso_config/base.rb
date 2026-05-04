@@ -91,7 +91,7 @@ module DomainsAPI
         def validate_enforce_sso_requires_enabled(enabled, enforce_sso_only)
           return unless enforce_sso_only && !enabled
 
-          raise_form_error('Cannot enforce SSO-only when SSO is disabled', field: :enforce_sso_only, error_type: :invalid)
+          raise_form_error('Enable SSO before enforcing SSO-only mode', field: :enforce_sso_only, error_type: :invalid)
         end
       end
     end

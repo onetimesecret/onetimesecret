@@ -1,6 +1,7 @@
 // src/utils/features.ts
 
 import { getBootstrapValue } from '@/services/bootstrap.service';
+import { featuresSchema, type Features } from '@/schemas/contracts/bootstrap';
 import { debugLog } from '@/utils/debug';
 
 /**
@@ -8,6 +9,31 @@ import { debugLog } from '@/utils/debug';
  * Features are configured on the backend via environment variables and
  * exposed through window.__BOOTSTRAP_ME__, accessed via bootstrap.service.ts
  */
+
+// Cached validated features object - parsed once, reused thereafter
+let validatedFeaturesCache: Features | null = null;
+
+/**
+ * Returns validated features with schema enforcement.
+ * Parses once and caches the result. Falls back to defaults on validation failure.
+ */
+function getValidatedFeatures(): Features {
+  if (validatedFeaturesCache) return validatedFeaturesCache;
+
+  if (typeof window === 'undefined') {
+    return featuresSchema.parse({});
+  }
+
+  const features = getBootstrapValue('features');
+  try {
+    validatedFeaturesCache = featuresSchema.parse(features);
+  } catch (error) {
+    console.error('[Features] Bootstrap validation failed:', error);
+    validatedFeaturesCache = featuresSchema.parse({});
+  }
+
+  return validatedFeaturesCache;
+}
 
 /**
  * Valid values for the restrict_to single-auth-method override.
@@ -137,8 +163,8 @@ export function getSsoProviders(): SsoProvider[] {
 export function isSsoEnforcedForDomain(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const features = getBootstrapValue('features');
-  const sso = features?.sso;
+  const features = getValidatedFeatures();
+  const sso = features.sso;
 
   if (!sso || typeof sso === 'boolean') return false;
 
