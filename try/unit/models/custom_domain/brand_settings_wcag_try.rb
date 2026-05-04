@@ -187,3 +187,51 @@ rescue StandardError
   'raised'
 end
 #=> 'ok'
+
+# ============================================================================
+# WCAG 3:1 boundary tests (gap 3 — issue #3048)
+# ============================================================================
+#
+# validate_color_accessibility! enforces a 3:1 minimum contrast ratio against
+# white (#FFFFFF). The boundary lives between gray pairs:
+#   #949494 -> ratio ~3.03 (passes, just above 3.0)
+#   #959595 -> ratio ~2.99 (fails, just below 3.0)
+# These exact pairs guard against silent threshold drift if the contrast
+# formula or coefficient set ever changes.
+
+## boundary: #949494 against white has contrast ratio ~3.03 (just above 3:1)
+ratio = @bs.contrast_ratio('#949494', '#FFFFFF')
+ratio > 3.0 && ratio < 3.05
+#=> true
+
+## boundary: #959595 against white has contrast ratio ~2.99 (just below 3:1)
+ratio = @bs.contrast_ratio('#959595', '#FFFFFF')
+ratio < 3.0 && ratio > 2.95
+#=> true
+
+## boundary: validate! ACCEPTS #949494 primary_color (passes 3:1 minimum)
+begin
+  @bs.validate!(primary_color: '#949494')
+  'ok'
+rescue StandardError
+  'raised'
+end
+#=> 'ok'
+
+## boundary: validate! REJECTS #959595 primary_color (fails 3:1 minimum)
+begin
+  @bs.validate!(primary_color: '#959595')
+  'no error'
+rescue StandardError
+  'raised'
+end
+#=> 'raised'
+
+## boundary: error message names accessibility on rejection
+begin
+  @bs.validate!(primary_color: '#959595')
+  ''
+rescue Onetime::Problem => e
+  e.message.include?('WCAG') || e.message.include?('contrast') || e.message.include?('accessibility')
+end
+#=> true
