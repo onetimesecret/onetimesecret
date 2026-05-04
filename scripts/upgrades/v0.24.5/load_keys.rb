@@ -649,11 +649,20 @@ class KeyLoader
     )
   end
 
+  # Larger timeouts than the 1s default — pipelined batches of 500 writes and
+  # PEXPIRE on large hashes/zsets routinely take >1s. Matches dump_keys.rb and
+  # the other heavy data-moving scripts in this directory.
   def get_redis(db)
     @redis_clients[db] ||= begin
       uri      = URI.parse(@valkey_url)
       uri.path = "/#{db}"
-      client   = Redis.new(url: uri.to_s)
+      client   = Redis.new(
+        url: uri.to_s,
+        connect_timeout: 10,
+        read_timeout: 30,
+        write_timeout: 10,
+        reconnect_attempts: [0.5, 1.0, 2.0],
+      )
       client.ping # Verify connection
       client
     rescue Redis::CannotConnectError => ex
