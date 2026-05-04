@@ -183,7 +183,8 @@ RSpec.describe Core::Views::ConfigSerializer do
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Contoso Azure AD',
-            platform_route_name: 'entra'
+            platform_route_name: 'entra',
+            enforce_sso_only?: false
           )
         end
 
@@ -322,7 +323,8 @@ RSpec.describe Core::Views::ConfigSerializer do
             enabled?: true,
             provider_type: 'entra_id',
             display_name: 'Acme Corp Entra',
-            platform_route_name: 'entra'
+            platform_route_name: 'entra',
+            enforce_sso_only?: false
           )
         end
 
@@ -590,6 +592,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       expect(result).to eq({
         'enabled' => true,
+        'enforce_sso_only' => false,
         'providers' => [
           { 'route_name' => 'oidc', 'display_name' => 'Acme SSO' },
         ],
@@ -602,6 +605,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       expect(result).to eq({
         'enabled' => true,
+        'enforce_sso_only' => false,
         'providers' => [
           { 'route_name' => 'entra', 'display_name' => 'Microsoft Login' },
         ],

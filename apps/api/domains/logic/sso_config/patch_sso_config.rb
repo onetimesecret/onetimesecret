@@ -82,12 +82,10 @@ module DomainsAPI
           # Validate provider-specific fields
           validate_provider_specific_fields
 
-          # Validate enforce_sso_only requires enabled
+          # Validate enforce_sso_only requires enabled (using effective values for PATCH semantics)
           effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
           effective_enforce = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
-          if effective_enforce && !effective_enabled
-            raise_form_error('Cannot enforce SSO-only when SSO is disabled', field: :enforce_sso_only, error_type: :invalid)
-          end
+          validate_enforce_sso_requires_enabled(effective_enabled, effective_enforce)
         end
 
         def process

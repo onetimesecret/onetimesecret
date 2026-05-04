@@ -74,10 +74,8 @@ module DomainsAPI
           # Validate provider-specific fields
           validate_provider_specific_fields
 
-          # Cannot enforce SSO-only when SSO is disabled
-          if @enforce_sso_only && !@enabled
-            raise_form_error('Cannot enforce SSO-only when SSO is disabled', field: :enforce_sso_only, error_type: :invalid)
-          end
+          # Validate enforce_sso_only requires enabled (using direct values for PUT semantics)
+          validate_enforce_sso_requires_enabled(@enabled, @enforce_sso_only)
         end
 
         def process
