@@ -196,6 +196,10 @@ module Core
                                       brand_defaults[:primary_color]
         support_email               = brand_config['support_email'] ||
                                       Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
+        # docs_host: full documentation URL exposed to bootstrap. Sources from
+        # DOCS_URL env var with the same default the YAML footer link uses, since
+        # the legacy site.support.host path was retired in #1461.
+        docs_host                   = ENV.fetch('DOCS_URL', 'https://docs.onetimesecret.com/')
         brand_corner_style          = brand_config['corner_style'] || brand_defaults[:corner_style]
         brand_font_family           = brand_config['font_family'] || brand_defaults[:font_family]
         brand_button_text_light     = brand_config.fetch('button_text_light', brand_defaults[:button_text_light])
@@ -250,6 +254,7 @@ module Core
           'brand_logo_url' => brand_logo_url,
           'brand_totp_issuer' => brand_totp_issuer,
           'support_email' => support_email,
+          'docs_host' => docs_host,
         }
       end
 
