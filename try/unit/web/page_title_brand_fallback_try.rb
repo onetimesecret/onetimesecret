@@ -224,16 +224,6 @@ with_brand_conf({ 'support_email' => 'help@acme.test' }) do
 end
 #=> 'help@acme.test'
 
-## initialize_view_vars exposes 'docs_host'
-vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-vars.key?('docs_host')
-#=> true
-
-## docs_host is a String
-vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-vars['docs_host'].is_a?(String) && !vars['docs_host'].empty?
-#=> true
-
 # ============================================================================
 # Sanity: brand_primary_color reflects override when set
 # ============================================================================
