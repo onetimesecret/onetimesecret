@@ -286,7 +286,7 @@ function normalizeHex(hex: string): string {
  * shades (50–950).
  *
  * Keys are CSS variable names: `--color-brand-500`, etc.
- * Values are hex color strings: `#dc4a22`, etc.
+ * Values are hex color strings: `#3B82F6`, etc.
  *
  * Invalid input falls back to NEUTRAL_BRAND_DEFAULTS.primary_color.
  */

@@ -71,7 +71,7 @@ describe('useWorkspacePrivacyDefaults', () => {
     }> = {}
   ): UseWorkspacePrivacyDefaultsOptions {
     const defaultBrandSettings: BrandSettings = {
-      primary_color: '#dc4a22',
+      primary_color: '#3B82F6',
       font_family: 'sans',
       corner_style: 'rounded',
       button_text_light: false,
