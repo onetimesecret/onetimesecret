@@ -1207,4 +1207,167 @@ describe('AuthMethodSelector', () => {
       });
     });
   });
+
+  describe('showSsoOnly Decomposition (#3064)', () => {
+    /**
+     * showSsoOnly is composed of two named intermediaries:
+     *   ssoRequired   = ssoOnly || (isCustom && enforceSsoForDomain)
+     *   ssoConfigured = ssoEnabled && ssoProviders.length > 0
+     *   showSsoOnly   = ssoRequired && ssoConfigured
+     *
+     * These tests isolate one sub-condition at a time so a regression points
+     * at the responsible intermediary instead of the combined expression.
+     */
+
+    const PROVIDERS = [{ route_name: 'entra', display_name: 'Microsoft' }];
+
+    const mountReal = async (opts: {
+      isCustom?: boolean;
+      ssoEnabled?: boolean;
+      ssoOnlyMode?: boolean;
+      enforceOnly?: boolean;
+      providers?: Array<{ route_name: string; display_name: string }>;
+    }) => {
+      mockIsCustomRef.value = opts.isCustom ?? false;
+      mockFeatures.ssoEnabled.value = opts.ssoEnabled ?? false;
+      mockFeatures.ssoOnlyMode.value = opts.ssoOnlyMode ?? false;
+      mockEnforceSsoOnly.value = opts.enforceOnly ?? false;
+      mockProviders.value = opts.providers ?? [];
+
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, createTestingPinia({ createSpy: vi.fn })],
+        },
+      });
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    describe('ssoRequired', () => {
+      it('is satisfied by global sso_only flag on canonical domain', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+
+      it('is satisfied by enforce_sso_only on custom domain (without global sso_only)', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          ssoOnlyMode: false,
+          enforceOnly: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+
+      it('is NOT satisfied by enforce_sso_only on canonical domain', async () => {
+        // isCustom=false short-circuits the per-domain branch
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          enforceOnly: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is NOT satisfied when both sso_only and enforce_sso_only are false', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          ssoOnlyMode: false,
+          enforceOnly: false,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is satisfied by global sso_only even on a custom domain without enforce_sso_only', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          enforceOnly: false,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+    });
+
+    describe('ssoConfigured', () => {
+      it('is NOT satisfied when ssoEnabled is false (even with providers and ssoRequired)', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: false,
+          ssoOnlyMode: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is NOT satisfied when providers array is empty (even with ssoEnabled and ssoRequired)', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: [],
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is satisfied with ssoEnabled and at least one provider', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+    });
+
+    describe('composition', () => {
+      it('renders SSO-only section when both ssoRequired AND ssoConfigured are true', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          enforceOnly: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+
+      it('does not render SSO-only section when ssoRequired is true but ssoConfigured is false', async () => {
+        // ssoRequired via global flag, but no providers → ssoConfigured false
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: [],
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('does not render SSO-only section when ssoConfigured is true but ssoRequired is false', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: false,
+          enforceOnly: false,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+    });
+  });
 });
