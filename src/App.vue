@@ -6,12 +6,17 @@
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import StatusBar from '@/shared/components/ui/StatusBar.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
+  import { useBrandTheme } from '@/shared/composables/useBrandTheme';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { locale } = useI18n();
   const route = useRoute();
+
+  // Bridge identity store brand settings → DOM (CSS vars + favicon).
+  // Single-entry guarded; safe to call once from the app root.
+  useBrandTheme();
 
   const defaultProps: LayoutProps = {
     displayMasthead: true,
