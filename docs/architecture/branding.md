@@ -298,6 +298,12 @@ useBrandTheme()
 
 Tailwind `theme.colors.brand.500` etc. resolve to these vars (see `tailwind.config.ts`), so `bg-brand-500`, `text-branddim-300`, `border-brandcomp-700` all work.
 
+## Performance
+
+oklch palette generation runs once on mount (immediate watcher) and again whenever `identityStore.primaryColor` changes — typically a per-domain navigation or a brand-color save. The composable memoizes the most recent `(hex → 44-entry palette)` result in module scope (`src/shared/composables/useBrandTheme.ts`), so re-renders that don't change the input are O(1) lookups.
+
+The math chain (hex → sRGB → linear → LMS → oklab → oklch + binary-search gamut clip per shade) is ~32 iterations × 11 shades × 4 scales per regeneration; negligible on modern hardware but observable in CPU traces during initial theme apply. In production, watch first-paint CPU on the `useBrandTheme` activation frame and any spike when an admin saves a new `primary_color` (live brand-color updates trigger one regeneration per change).
+
 ## Special Cases
 
 ### Email Templates
