@@ -34,7 +34,6 @@
 # ```
 
 schema_version: "1.0"
-app_identifier: "exampleapplication"  # Used in Stripe metadata['app'] matching
 
 # It doesn't make sense to have an enabled flag for turning the billing functionality
 # on. If the billing.yaml config file exists, we assume it is enabled. Ah, but what if
@@ -43,6 +42,7 @@ enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
 stripe_key: <%= ENV['STRIPE_API_KEY'] || 'nostripekey' %>
 webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
 stripe_api_version: "2025-12-15.clover"
+currency: <%= ENV['BILLING_CURRENCY'] || 'cad' %>
 
 # Product Matching Configuration
 #
@@ -58,8 +58,8 @@ stripe_api_version: "2025-12-15.clover"
 #
 # match_fields: Reserved for future composite-key matching. Not read at runtime;
 #   regional isolation is driven solely by the region field above.
+app_identifier: "exampleapplication"  # Used in Stripe metadata['app'] matching
 region: <%= ENV['JURISDICTION'] || nil %>
-currency: <%= ENV['BILLING_CURRENCY'] || 'cad' %>
 match_fields:
   - plan_id
   - region
@@ -189,49 +189,9 @@ plans:
     # Then do a bin/ots billing catalog pull --clear.
     prices: []
 
-  # Legacy Plan - Grandfathered customers only
-  # No longer offered but remains active for existing subscriptions.
-  # Set show_on_plans_page: false to hide from the public plans UI.
-  legacy_plan_v1:
-    name: "Legacy Plan (Legacy)"
-    tier: single_team
-    tenancy: multi
-    region: <%= ENV['JURISDICTION'] || nil %>
-    display_order: null
-    show_on_plans_page: false
-    legacy: true
-    # stripe_product_id: prod_XXXXXXXXXXXX  # Bind directly when auto-matching fails
-    grandfathered_until: "2028-01-31"  # Auto-downgraded after this date
-    description: "Original plan, grandfathered for existing customers"
-
-    entitlements:
-      - create_secrets
-      - view_receipt
-      - custom_domains
-      - custom_branding
-      - custom_privacy_defaults
-      - homepage_secrets
-      - incoming_secrets
-      - custom_mail_sender
-      - api_access
-
-    features:
-      - web.billing.features.custom_branding
-      - web.billing.features.homepage_secrets
-      - web.billing.features.api_access
-
-    limits:
-      organizations: 1
-      members_per_team: 5
-      custom_domains: -1       # unlimited
-      secret_lifetime: 2592000 # 30 days in seconds
-      secrets_per_day: -1      # unlimited
-
-    prices: []  # Preserved in Stripe; no new subscriptions
-
   # Example Paid Tier - Individual account
   identity_plus_v1:
-    name: "Identity Plus"
+    name: "Identity Plus (<%= ENV['JURISDICTION'] || nil %>)"
     tier: single_account
     plan_name_label: web.billing.plans.individual_account
     tenancy: multi
@@ -267,21 +227,24 @@ plans:
       secret_lifetime: 1209600 # 14 days in seconds
       secrets_per_day: -1      # unlimited
 
+    # Changes to prices requires a full catalog push && catalog pull. If a price is
+    # updated/deleted/archived through the Stripe dashboard, the pull command must
+    # include the --clear flag to properly updated the cache.
     prices:
-      - interval: month
-        amount: 900   # $9.00
-      - interval: year
-        amount: 9000  # $90.00
         # Complimentary price for pro-bono accounts (see #2657)
         # Used by: bin/ots migrations migrate-probono-accounts --price-id <id>
       - interval: month
         amount: 0
         metadata:
           complimentary: "true"
+      - interval: month
+        amount: 900   # $9.00
+      - interval: year
+        amount: 9000  # $90.00
 
   # # Team Plan - Uncomment to enable team subscriptions
   # team_plus_v1:
-  #   name: "Team Plus"
+  #   name: "Team Plus (<%= ENV['JURISDICTION'] || nil %>)"
   #   tier: single_team
   #   plan_name_label: web.billing.plans.team_account
   #   tenancy: multi
