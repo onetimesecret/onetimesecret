@@ -4,6 +4,7 @@ import {
   brandSettingsSchema,
   type BrandSettings,
 } from '@/schemas/shapes/v3/custom-domain';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { cornerStyleClasses, fontFamilyClasses } from '@/shared/utils/brand-helpers';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { defineStore, storeToRefs } from 'pinia';
@@ -11,7 +12,6 @@ import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useBootstrapStore } from './bootstrapStore';
 
-export const DEFAULT_PRIMARY_COLOR = '#dc4a22';
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
 export const DEFAULT_BUTTON_TEXT_LIGHT = true; // light text for default colour
 
@@ -78,7 +78,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const brand = brandResult.ok ? brandResult.data : null;
 
     const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
-    const primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    const primaryColor = colorResult.ok ? (colorResult.data ?? NEUTRAL_BRAND_DEFAULTS.primary_color) : NEUTRAL_BRAND_DEFAULTS.primary_color;
     const buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     const allowPublicHomepage = homepage_config.value?.enabled ?? false;
 
@@ -105,7 +105,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     state.brand = brand;
 
     const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
-    state.primaryColor = colorResult.ok ? (colorResult.data ?? DEFAULT_PRIMARY_COLOR) : DEFAULT_PRIMARY_COLOR;
+    state.primaryColor = colorResult.ok ? (colorResult.data ?? NEUTRAL_BRAND_DEFAULTS.primary_color) : NEUTRAL_BRAND_DEFAULTS.primary_color;
     state.buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
   });
 

@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import HoverTooltip from './HoverTooltip.vue';
 
 const { t } = useI18n();
@@ -14,7 +15,7 @@ const props = withDefaults(defineProps<{
   label: string;
   id?: string;
 }>(), {
-  modelValue: '#dc4a22', // Provide default color
+  modelValue: NEUTRAL_BRAND_DEFAULTS.primary_color,
   id: undefined
 });
 
@@ -26,7 +27,7 @@ const emit = defineEmits<{
 const label = computed(() => props.label || t('web.branding.color_picker'));
 const id = computed(() => props.id || 'color-picker');
 const name = computed(() => props.name || 'color');
-const currentColor = computed(() => props.modelValue || '#dc4a22');
+const currentColor = computed(() => props.modelValue || NEUTRAL_BRAND_DEFAULTS.primary_color);
 
 const updateColor = (event: Event, isText = false) => {
   const target = event.target as HTMLInputElement;
