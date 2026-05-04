@@ -335,6 +335,53 @@ site:
     csp:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
+# Brand / Private-Label Configuration
+# -----------------------------------
+# All values default to nil. The runtime resolvers in
+# BrandSettingsConstants.defaults / .global_defaults fall back to neutral
+# values (blue #3B82F6, 'OTS' product name, nil support email) per #3049
+# so shipped defaults stay brand-agnostic. Per-domain Redis branding
+# overrides bootstrap config; bootstrap config overrides Ruby defaults.
+#
+# Operators set BRAND_* env vars to override the neutral fallbacks. Empty
+# string is treated as unset (falls through to defaults).
+brand:
+  # Primary brand color as 6- or 3-digit hex (e.g. #FF0000 or #F00).
+  # Used for buttons, links, accents across the UI and email templates.
+  # Wrapped in single-quoted YAML literal so the leading '#' isn't parsed
+  # as a YAML comment. Operator-supplied single-quotes are doubled to
+  # escape per YAML 1.2 single-quoted scalar rules.
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRIMARY_COLOR'].gsub("'", "''")}'} %>
+  # Product / brand display name. Surfaces in page titles, MFA issuer
+  # labels, email senders, and the masthead text mark.
+  product_name: <%= ENV['BRAND_PRODUCT_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_NAME'].gsub("'", "''")}'} %>
+  # Public-facing product domain (e.g. 'example.com'). Used in email
+  # templates and outbound links when the request domain isn't suitable.
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_DOMAIN'].gsub("'", "''")}'} %>
+  # Support contact email shown in email templates and help surfaces.
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SUPPORT_EMAIL'].gsub("'", "''")}'} %>
+  # UI corner style: rounded | square | pill
+  corner_style: <%= ENV['BRAND_CORNER_STYLE'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_CORNER_STYLE'].gsub("'", "''")}'} %>
+  # UI font family: sans | serif | mono
+  font_family: <%= ENV['BRAND_FONT_FAMILY'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FONT_FAMILY'].gsub("'", "''")}'} %>
+  # When true, button labels render in light text (for use over dark
+  # primary colors). Default true matches the BrandSettings DEFAULTS flip.
+  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'].to_s.empty? ? 'null' : ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
+  # When true, allow the secret-create form to render on the public
+  # homepage of branded instances. Default false (require auth).
+  allow_public_homepage: <%= ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'].to_s.empty? ? 'null' : ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'] == 'true' %>
+  # When true, expose the public API on branded instances. Default false.
+  allow_public_api: <%= ENV['BRAND_ALLOW_PUBLIC_API'].to_s.empty? ? 'null' : ENV['BRAND_ALLOW_PUBLIC_API'] == 'true' %>
+  # Logo URL used in email templates and views. Must be absolute (https://)
+  # or a relative path starting with /. When unset, runtime falls back
+  # to nil and templates may suppress the logo.
+  logo_url: <%= ENV['BRAND_LOGO_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_LOGO_URL'].gsub("'", "''")}'} %>
+  # TOTP issuer name shown in authenticator apps (e.g. Google
+  # Authenticator). Changing this after enrollment is cosmetic only —
+  # existing codes still work, but the label is frozen at enrollment
+  # time. Defaults to GLOBAL_DEFAULTS[:totp_issuer] ('OTS').
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_TOTP_ISSUER'].gsub("'", "''")}'} %>
+
 features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
