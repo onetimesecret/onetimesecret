@@ -72,7 +72,7 @@ module Onetime
           resolved_org = check_organization_by_extid(org)
           return unless resolved_org
 
-          check_customer_for_org(resolved_org)
+          _customer = check_customer_for_org(resolved_org)
         end
         org = resolved_org
 
@@ -224,8 +224,8 @@ module Onetime
         end
 
         puts "  Org ID:       #{org.objid}"
-        puts "  ExtID:        #{org.extid}" if org.respond_to?(:extid)
-        puts "  Display Name: #{org.display_name}" if org.respond_to?(:display_name)
+        puts "  ExtID:        #{org.extid}"
+        puts "  Display Name: #{org.display_name}"
         puts "  Is Default:   #{org.is_default}"
 
         stripe_cust = org.respond_to?(:stripe_customer_id) ? org.stripe_customer_id : nil
@@ -308,8 +308,7 @@ module Onetime
           puts '  Source: Redis plan cache'
           puts "  Key:    billing_plan:#{planid}:entitlements"
           puts "  Count:  #{ents.size}"
-          product_id = plan.respond_to?(:stripe_product_id) ? plan.stripe_product_id : nil
-          puts "  Stripe Product: #{product_id.to_s.empty? ? '(none)' : product_id}"
+          puts "  Stripe Product: #{plan.stripe_product_id.to_s.empty? ? '(none)' : plan.stripe_product_id}"
           if verbose && plan.respond_to?(:tier)
             puts "  Tier:   #{plan.tier}"
           end
