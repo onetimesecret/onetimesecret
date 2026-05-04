@@ -395,7 +395,7 @@ logic.process
 logic.receipt.memo
 #=> 'Stored memo test'
 
-## CreateIncomingSecret stores recipients on receipt
+## CreateIncomingSecret stores recipients on receipt (obscured)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
@@ -407,7 +407,7 @@ logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
 logic.process_params
 logic.raise_concerns
 logic.process
-logic.receipt.recipients == @test_recipient_email
+logic.receipt.recipients == OT::Utils.obscure_email(@test_recipient_email)
 #=> true
 
 ## CreateIncomingSecret greenlighted is true after successful process
