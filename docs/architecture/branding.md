@@ -272,6 +272,32 @@ useBrandTheme()
 - `src/schemas/contracts/config/section/brand.ts` — Zod schema for the YAML brand section
 - `src/schemas/contracts/bootstrap.ts` — Optional `brand_*` fields on `bootstrapSchema`
 
+## CSS Variables (Generated Palette)
+
+`generateBrandPalette(hex)` (in `src/utils/brand-palette.ts`) emits 44 CSS custom properties — 4 palette groups crossed with 11 shade steps. `useBrandTheme()` writes them to `document.documentElement.style`, so any consumer (Tailwind utility, inline style, raw CSS) can target them.
+
+**Naming convention**: `--color-{prefix}-{shade}`
+
+| Prefix | Source |
+|---|---|
+| `brand` | base hue at full chroma |
+| `branddim` | base hue, lightness × 0.84, chroma × 0.90 |
+| `brandcomp` | complement (base hue + 180°), full chroma |
+| `brandcompdim` | complement, dimmed (same factors as `branddim`) |
+
+**Shade steps** (11): `50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950`. `500` is the supplied base; `<500` lightens via a sqrt curve toward `L_MAX = 0.98`; `>500` darkens linearly toward `L_MIN = 0.25`.
+
+```css
+/* Examples */
+--color-brand-500          /* base brand color (input hex) */
+--color-brand-50           /* lightest tint of brand */
+--color-branddim-700       /* dimmed brand, dark shade */
+--color-brandcomp-500      /* complement at base lightness */
+--color-brandcompdim-950   /* dimmed complement, darkest shade */
+```
+
+Tailwind `theme.colors.brand.500` etc. resolve to these vars (see `tailwind.config.ts`), so `bg-brand-500`, `text-branddim-300`, `border-brandcomp-700` all work.
+
 ## Special Cases
 
 ### Email Templates
