@@ -335,3 +335,34 @@ result = with_orgs_features(orgs_enabled: true, sso_enabled: true, custom_mail_e
 end
 [result['organizations']['enabled'], result['organizations']['sso_enabled'], result['organizations']['custom_mail_enabled'], result['organizations']['incoming_secrets_enabled']]
 #=> [true, true, true, true]
+
+# =============================================================================
+# build_tenant_sso_response tests for enforce_sso_only (Issue #3057)
+# =============================================================================
+
+## build_tenant_sso_response includes enforce_sso_only when false
+mock_config = Object.new
+mock_config.define_singleton_method(:platform_route_name) { 'entra' }
+mock_config.define_singleton_method(:display_name) { 'Test SSO' }
+mock_config.define_singleton_method(:enforce_sso_only?) { false }
+result = Core::Views::ConfigSerializer.send(:build_tenant_sso_response, mock_config)
+result['enforce_sso_only']
+#=> false
+
+## build_tenant_sso_response includes enforce_sso_only when true
+mock_config = Object.new
+mock_config.define_singleton_method(:platform_route_name) { 'entra' }
+mock_config.define_singleton_method(:display_name) { 'Test SSO' }
+mock_config.define_singleton_method(:enforce_sso_only?) { true }
+result = Core::Views::ConfigSerializer.send(:build_tenant_sso_response, mock_config)
+result['enforce_sso_only']
+#=> true
+
+## build_tenant_sso_response has enforce_sso_only key present
+mock_config = Object.new
+mock_config.define_singleton_method(:platform_route_name) { 'entra' }
+mock_config.define_singleton_method(:display_name) { 'Test SSO' }
+mock_config.define_singleton_method(:enforce_sso_only?) { false }
+result = Core::Views::ConfigSerializer.send(:build_tenant_sso_response, mock_config)
+result.key?('enforce_sso_only')
+#=> true

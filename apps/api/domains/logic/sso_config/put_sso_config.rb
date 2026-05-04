@@ -40,15 +40,16 @@ module DomainsAPI
         attr_reader :sso_config, :existing_config
 
         def process_params
-          @domain_id       = sanitize_identifier(params['extid'])
-          @provider_type   = sanitize_plain_text(params['provider_type'])
-          @display_name    = sanitize_plain_text(params['display_name'])
-          @client_id       = params['client_id'].to_s.strip
-          @client_secret   = params['client_secret'].to_s.strip
-          @tenant_id       = sanitize_plain_text(params['tenant_id'])
-          @issuer          = sanitize_url(params['issuer'])
-          @allowed_domains = parse_allowed_domains(params['allowed_domains'])
-          @enabled         = parse_boolean(params['enabled'])
+          @domain_id        = sanitize_identifier(params['extid'])
+          @provider_type    = sanitize_plain_text(params['provider_type'])
+          @display_name     = sanitize_plain_text(params['display_name'])
+          @client_id        = params['client_id'].to_s.strip
+          @client_secret    = params['client_secret'].to_s.strip
+          @tenant_id        = sanitize_plain_text(params['tenant_id'])
+          @issuer           = sanitize_url(params['issuer'])
+          @allowed_domains  = parse_allowed_domains(params['allowed_domains'])
+          @enabled          = parse_boolean(params['enabled'])
+          @enforce_sso_only = parse_boolean(params['enforce_sso_only'])
         end
 
         def raise_concerns
@@ -72,6 +73,11 @@ module DomainsAPI
 
           # Validate provider-specific fields
           validate_provider_specific_fields
+
+          # Cannot enforce SSO-only when SSO is disabled
+          if @enforce_sso_only && !@enabled
+            raise_form_error('Cannot enforce SSO-only when SSO is disabled', field: :enforce_sso_only, error_type: :invalid)
+          end
         end
 
         def process
@@ -122,6 +128,7 @@ module DomainsAPI
             issuer: @issuer,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
+            enforce_sso_only: @enforce_sso_only,
           }
         end
 
@@ -179,6 +186,7 @@ module DomainsAPI
             issuer: @issuer,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
+            enforce_sso_only: @enforce_sso_only,
           )
         end
 
@@ -191,14 +199,15 @@ module DomainsAPI
           @sso_config = @existing_config
 
           # PUT semantics: full replacement - set ALL fields from request
-          @sso_config.provider_type   = @provider_type
-          @sso_config.display_name    = @display_name    # Empty string clears the field
-          @sso_config.client_id       = @client_id
-          @sso_config.client_secret   = @client_secret   # Always required for PUT
-          @sso_config.tenant_id       = @tenant_id       # Empty string clears the field
-          @sso_config.issuer          = @issuer          # Empty string clears the field
-          @sso_config.allowed_domains = @allowed_domains # Empty array clears the field
-          @sso_config.enabled         = @enabled.to_s
+          @sso_config.provider_type    = @provider_type
+          @sso_config.display_name     = @display_name    # Empty string clears the field
+          @sso_config.client_id        = @client_id
+          @sso_config.client_secret    = @client_secret   # Always required for PUT
+          @sso_config.tenant_id        = @tenant_id       # Empty string clears the field
+          @sso_config.issuer           = @issuer          # Empty string clears the field
+          @sso_config.allowed_domains  = @allowed_domains # Empty array clears the field
+          @sso_config.enabled          = @enabled.to_s
+          @sso_config.enforce_sso_only = @enforce_sso_only.to_s
 
           # Update timestamp for replacement
           @sso_config.updated = Familia.now.to_i

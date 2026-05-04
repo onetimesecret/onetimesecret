@@ -126,6 +126,25 @@ export function getSsoProviders(): SsoProvider[] {
   return [];
 }
 
+/**
+ * Checks if SSO-only authentication is enforced for this domain.
+ * When true, password-based authentication is disabled and users
+ * must sign in via the configured SSO provider.
+ *
+ * This is a per-domain setting configured by domain administrators,
+ * distinct from the app-level restrict_to='sso' mode.
+ */
+export function isSsoEnforcedForDomain(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const sso = features?.sso;
+
+  if (!sso || typeof sso === 'boolean') return false;
+
+  return sso.enforce_sso_only === true;
+}
+
 // ── Single-auth-method restriction ──────────────────────────────────
 
 const VALID_RESTRICT_TO: readonly string[] = ['password', 'email_auth', 'webauthn', 'sso'];

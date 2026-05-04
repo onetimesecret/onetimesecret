@@ -180,6 +180,7 @@ export const ssoProviderSchema = z.object({
 export const ssoConfigSchema = z.object({
   enabled: z.boolean().default(false),
   providers: z.array(ssoProviderSchema).default([]),
+  enforce_sso_only: z.boolean().default(false),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

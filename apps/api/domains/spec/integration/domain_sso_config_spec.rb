@@ -943,6 +943,125 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
   end
 
   # ==========================================================================
+  # enforce_sso_only Field Tests (Issue #3057)
+  # ==========================================================================
+
+  describe 'enforce_sso_only field' do
+    before do
+      enable_sso_feature_flag
+      login_as(test_owner)
+    end
+
+    describe 'PUT /api/domains/:extid/sso' do
+      it 'accepts enforce_sso_only in request and returns it in response' do
+        params = valid_entra_params.merge(enforce_sso_only: true)
+        csrf_put api_path(test_custom_domain.extid), params
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+        expect(record['enforce_sso_only']).to be true
+      end
+
+      it 'defaults enforce_sso_only to false when not provided' do
+        csrf_put api_path(test_custom_domain.extid), valid_entra_params
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+        expect(record['enforce_sso_only']).to be false
+      end
+    end
+
+    describe 'PATCH /api/domains/:extid/sso' do
+      let!(:existing_config) do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'entra_id',
+          display_name: 'Original Config',
+          client_id: 'original-client-id',
+          client_secret: 'original-secret',
+          tenant_id: 'original-tenant-id',
+          enabled: true,
+        )
+      end
+
+      it 'updates enforce_sso_only when provided' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          enforce_sso_only: true,
+        }
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+        expect(record['enforce_sso_only']).to be true
+      end
+
+      it 'preserves enforce_sso_only when not provided in PATCH' do
+        # First set enforce_sso_only to true
+        existing_config.enforce_sso_only = 'true'
+        existing_config.save
+
+        # PATCH without enforce_sso_only
+        csrf_patch api_path(test_custom_domain.extid), {
+          display_name: 'Updated Name Only',
+        }
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+        expect(record['enforce_sso_only']).to be true
+        expect(record['display_name']).to eq('Updated Name Only')
+      end
+
+      it 'can disable enforce_sso_only via PATCH' do
+        # First set enforce_sso_only to true
+        existing_config.enforce_sso_only = 'true'
+        existing_config.save
+
+        # PATCH to disable it
+        csrf_patch api_path(test_custom_domain.extid), {
+          enforce_sso_only: false,
+        }
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+        expect(record['enforce_sso_only']).to be false
+      end
+    end
+
+    describe 'GET /api/domains/:extid/sso' do
+      it 'returns enforce_sso_only in response' do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'entra_id',
+          display_name: 'Test Config',
+          client_id: 'test-client-id',
+          client_secret: 'test-secret',
+          tenant_id: 'test-tenant-id',
+          enforce_sso_only: true,
+          enabled: true,
+        )
+
+        json_get api_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+        expect(record).to have_key('enforce_sso_only')
+        expect(record['enforce_sso_only']).to be true
+      end
+    end
+  end
+
+  # ==========================================================================
   # Response Serialization Tests
   # ==========================================================================
 
@@ -978,6 +1097,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         provider_type
         display_name
         enabled
+        enforce_sso_only
         client_id
         client_secret_masked
         tenant_id
