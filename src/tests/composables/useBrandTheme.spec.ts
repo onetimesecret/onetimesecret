@@ -229,6 +229,100 @@ describe('useBrandTheme', () => {
       // No assertion on DOM state — only that the composable did not throw.
       scope.stop();
     });
+
+    it('leaves <link rel="icon"> untouched when favicon_url is undefined', async () => {
+      const original = 'https://example.com/original.ico';
+      const link = ensureFaviconLink(original);
+      // brand has no favicon_url at all — this is the "no custom favicon" path.
+      mockBrand.value = { favicon_url: undefined };
+
+      const scope = effectScope();
+      scope.run(() => useBrandTheme());
+      await nextTick();
+
+      // During the active scope: untouched.
+      expect(link.href.endsWith('original.ico')).toBe(true);
+
+      scope.stop();
+
+      // After disposal: still untouched.
+      expect(link.href.endsWith('original.ico')).toBe(true);
+    });
+
+    it('leaves <link rel="icon"> untouched when favicon_url is null', async () => {
+      const original = 'https://example.com/original.ico';
+      const link = ensureFaviconLink(original);
+      mockBrand.value = { favicon_url: null };
+
+      const scope = effectScope();
+      scope.run(() => useBrandTheme());
+      await nextTick();
+
+      expect(link.href.endsWith('original.ico')).toBe(true);
+
+      scope.stop();
+
+      expect(link.href.endsWith('original.ico')).toBe(true);
+    });
+  });
+
+  describe('dispose safety', () => {
+    it('calling dispose twice does not throw or further mutate the DOM', async () => {
+      const original = 'https://example.com/original.ico';
+      const link = ensureFaviconLink(original);
+
+      const scope = effectScope();
+      scope.run(() => useBrandTheme());
+
+      mockPrimaryColor.value = OTS_ORANGE;
+      mockBrand.value = { favicon_url: 'https://example.com/custom.ico' };
+      await nextTick();
+
+      // First dispose: clears overrides + restores favicon.
+      expect(() => scope.stop()).not.toThrow();
+      expect(getVar('--color-brand-500')).toBe('');
+      expect(link.href.endsWith('original.ico')).toBe(true);
+
+      // Snapshot DOM state after first dispose.
+      const snapshotAfterFirst: Record<string, string> = {};
+      for (const key of ALL_KEYS) snapshotAfterFirst[key] = getVar(key);
+      const faviconAfterFirst = link.href;
+
+      // Second dispose: must be a safe no-op.
+      expect(() => scope.stop()).not.toThrow();
+
+      // DOM unchanged by the second dispose.
+      for (const key of ALL_KEYS) {
+        expect(getVar(key)).toBe(snapshotAfterFirst[key]);
+      }
+      expect(link.href).toBe(faviconAfterFirst);
+    });
+  });
+
+  describe('rapid mutation', () => {
+    it('rapid primary_color mutations settle on the last input (no stale palette)', async () => {
+      const scope = effectScope();
+      scope.run(() => useBrandTheme());
+
+      // Distinct, unambiguous hex inputs — the final value drives the assertion.
+      const colors = [
+        '#ff0000', '#ff8800', '#ffff00', '#88ff00', '#00ff00',
+        '#00ff88', '#00ffff', '#0088ff', '#0000ff', '#8800ff',
+      ];
+
+      for (const c of colors) {
+        mockPrimaryColor.value = c;
+        await nextTick();
+      }
+
+      const finalHex = colors[colors.length - 1];
+      const finalPalette = generateBrandPalette(finalHex);
+      expect(getVar('--color-brand-500')).toBe(finalPalette['--color-brand-500']);
+      // Spot-check a different shade to guard against partial application.
+      expect(getVar('--color-brand-50')).toBe(finalPalette['--color-brand-50']);
+
+      scope.stop();
+    });
   });
 
   describe('neutral fallback (#3048 / #3049 regression guard)', () => {
