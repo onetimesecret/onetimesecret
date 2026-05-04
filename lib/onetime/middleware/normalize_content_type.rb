@@ -82,18 +82,17 @@ module Onetime
       end
 
       def read_sample(body)
-        body.rewind
+        body.rewind if body.respond_to?(:rewind)
         body.read(SNIFF_BYTES)
       ensure
         body.rewind if body.respond_to?(:rewind)
       end
 
       def sniff(sample)
-        stripped = sample.byteslice(0, SNIFF_BYTES).to_s.lstrip
+        stripped = sample.lstrip
         return nil if stripped.empty?
 
-        first = stripped[0]
-        return JSON_TYPE if first == '{' || first == '['
+        return JSON_TYPE if stripped.start_with?('{', '[')
         return FORM_TYPE if stripped.match?(FORM_PREFIX_RE)
 
         nil
@@ -104,7 +103,7 @@ module Onetime
 
         # Compare against the bare media type, ignoring parameters
         # like charset=utf-8.
-        media_type = value.split(';', 2).first.to_s.strip.downcase
+        media_type = value.split(';', 2).first&.strip&.downcase
         PARSEABLE_TYPES.include?(media_type)
       end
     end
