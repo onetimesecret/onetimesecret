@@ -56,6 +56,7 @@ repos:
         name: Validate YAML files
         args: ['--allow-multiple-documents']
         files: \.(yaml|yml)$
+        exclude: 'etc/defaults/.*\.yaml$'
 
       - id: check-toml
         name: Validate TOML files
