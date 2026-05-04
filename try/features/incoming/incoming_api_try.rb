@@ -179,7 +179,7 @@ logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
 logic.process_params
 logic.raise_concerns
 result = logic.process
-result[:config][:recipients].first[:hash]
+result[:config][:recipients].first['digest']
 #=> 'test_recipient_hash_abc123'
 
 ## ValidateRecipient returns valid true for valid hash
