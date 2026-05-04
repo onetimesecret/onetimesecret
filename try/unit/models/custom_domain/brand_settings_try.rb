@@ -166,3 +166,107 @@ result
 ## to_h_for_storage excludes nil values (preserved)
 @bs.from_hash({}).to_h_for_storage.key?('logo_url')
 #=> false
+
+# ============================================================================
+# coerce_boolean edge cases (gap 4 — issue #3048)
+# ============================================================================
+#
+# coerce_boolean is documented contract for HTTP/string boolean inputs.
+# Behavior is: nil -> nil; true/false -> identity; everything else
+# stringifies and compares to literal 'true' (case-sensitive).
+# Tests assert ACTUAL behavior; some inputs (case variants, '0'/'1',
+# integers) coerce to false because they don't equal the string 'true'.
+
+## coerce_boolean returns nil for nil input
+@bs.coerce_boolean(nil)
+#=> nil
+
+## coerce_boolean returns true unchanged
+@bs.coerce_boolean(true)
+#=> true
+
+## coerce_boolean returns false unchanged
+@bs.coerce_boolean(false)
+#=> false
+
+## coerce_boolean('true') is true
+@bs.coerce_boolean('true')
+#=> true
+
+## coerce_boolean('false') is false
+@bs.coerce_boolean('false')
+#=> false
+
+## coerce_boolean is case-sensitive — 'TRUE' is false (only literal 'true' matches)
+@bs.coerce_boolean('TRUE')
+#=> false
+
+## coerce_boolean('FALSE') is false (string != 'true')
+@bs.coerce_boolean('FALSE')
+#=> false
+
+## coerce_boolean('0') is false (string != 'true')
+@bs.coerce_boolean('0')
+#=> false
+
+## coerce_boolean('1') is false (string != 'true', NOT truthy-by-numeric)
+@bs.coerce_boolean('1')
+#=> false
+
+## coerce_boolean('maybe') is false (any non-'true' string)
+@bs.coerce_boolean('maybe')
+#=> false
+
+## coerce_boolean(2) is false (integer.to_s == '2' != 'true')
+@bs.coerce_boolean(2)
+#=> false
+
+## coerce_boolean(1) is false (integer.to_s == '1' != 'true')
+@bs.coerce_boolean(1)
+#=> false
+
+## coerce_boolean(0) is false (integer.to_s == '0' != 'true')
+@bs.coerce_boolean(0)
+#=> false
+
+## from_hash applies coerce_boolean to BOOLEAN_FIELDS — string 'true' -> true
+@bs.from_hash('button_text_light' => 'true').button_text_light
+#=> true
+
+## from_hash applies coerce_boolean to BOOLEAN_FIELDS — string 'false' -> false
+@bs.from_hash('button_text_light' => 'false').button_text_light
+#=> false
+
+## from_hash + coerce_boolean — invalid strings collapse to false
+@bs.from_hash('button_text_light' => 'maybe').button_text_light
+#=> false
+
+# ============================================================================
+# normalize_color round-trip identity (gap 8 — issue #3048)
+# ============================================================================
+#
+# 3-digit hex (#abc) normalized via normalize_color produces #AABBCC.
+# from_hash itself does NOT auto-normalize — the API path normalizes
+# explicitly before storage. This test verifies the documented round-trip
+# (caller normalizes, persists via to_h_for_storage, restores via from_hash)
+# preserves the uppercase 6-digit form without case change.
+
+## normalize_color('#abc') produces #AABBCC (preserved invariant)
+@bs.normalize_color('#abc')
+#=> '#AABBCC'
+
+## Round-trip: normalize -> from_hash -> to_h_for_storage -> from_hash preserves uppercase 6-digit form
+@normalized   = @bs.normalize_color('#abc')
+@stored       = @bs.from_hash('primary_color' => @normalized).to_h_for_storage
+@decoded_val  = Familia::JsonSerializer.parse(@stored['primary_color'])
+@restored     = @bs.from_hash('primary_color' => @decoded_val)
+@restored.primary_color
+#=> '#AABBCC'
+
+## Storage hash holds JSON-encoded uppercase form (no case change in transit)
+@bs.from_hash('primary_color' => @bs.normalize_color('#abc')).to_h_for_storage['primary_color']
+#=> '"#AABBCC"'
+
+## from_hash without explicit normalize preserves user input verbatim (no auto-normalize)
+@bs.from_hash('primary_color' => '#abc').primary_color
+#=> '#abc'
