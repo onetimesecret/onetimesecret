@@ -126,6 +126,20 @@
               :is-initial-view="!record.is_previewed" />
           </section>
 
+          <!-- Memo Section -->
+          <div
+            v-if="record.memo"
+            class="border-t border-gray-200/60 p-4 sm:p-6 dark:border-gray-700/40">
+            <h3 class="flex items-center text-base font-medium text-gray-900 dark:text-white">
+              <OIcon
+                collection="material-symbols"
+                name="notes"
+                class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
+              <span class="mr-2 text-gray-500 dark:text-gray-400">{{ t('incoming.memo_label') }}:</span>
+              <span class="break-words">{{ record.memo }}</span>
+            </h3>
+          </div>
+
           <!-- Recipients Section -->
           <div
             v-if="details.show_recipients"
