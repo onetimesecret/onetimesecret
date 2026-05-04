@@ -75,6 +75,7 @@ module Core
         output['brand_logo_url']              = view_vars['brand_logo_url']
         output['brand_totp_issuer']           = view_vars['brand_totp_issuer']
         output['support_email']               = view_vars['support_email']
+        output['docs_host']                   = view_vars['docs_host']
 
         # Pass development config to frontend (includes domain_context_enabled)
         output['development'] = {
@@ -129,6 +130,7 @@ module Core
             'd9s_enabled' => nil,
             'development' => nil,
             'diagnostics' => nil,
+            'docs_host' => nil,
             'domains' => nil,
             'domains_enabled' => nil,
             'features' => nil,

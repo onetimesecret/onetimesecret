@@ -224,6 +224,24 @@ with_brand_conf({ 'support_email' => 'help@acme.test' }) do
 end
 #=> 'help@acme.test'
 
+## initialize_view_vars exposes 'docs_host'
+vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+vars.key?('docs_host')
+#=> true
+
+## docs_host is a non-empty String (sourced from DOCS_URL env or its default)
+vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+vars['docs_host'].is_a?(String) && !vars['docs_host'].empty?
+#=> true
+
+## docs_host reflects DOCS_URL env var when set
+ENV['DOCS_URL'] = 'https://docs.acme.test/'
+vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+result = vars['docs_host']
+ENV.delete('DOCS_URL')
+result
+#=> 'https://docs.acme.test/'
+
 # ============================================================================
 # Sanity: brand_primary_color reflects override when set
 # ============================================================================
