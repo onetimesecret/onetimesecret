@@ -328,3 +328,131 @@ offenders.map { |p| File.basename(p) }.sort
 ## All 12 expected HTML templates are present (purge audit baseline)
 Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.html.erb')).size
 #=> 12
+
+# ============================================================================
+# Memoization across config mutation (gap 5 — issue #3048)
+# ============================================================================
+#
+# brand_color, support_email, site_product_name MUST be memoized per-instance.
+# Mutating OT.conf['brand'] after the first call must NOT change the cached
+# return value. logo_url is already covered above (lines 134-143). These
+# guard against re-resolution that would let a stale TemplateContext drift
+# mid-render if config flips during background reload.
+
+## brand_color memoizes — mutating OT.conf after first call does not change result
+@_initial_conf = YAML.load(YAML.dump(OT.conf))
+begin
+  conf_copy = YAML.load(YAML.dump(@_initial_conf))
+  conf_copy['brand'] = { 'primary_color' => '#111111' }
+  OT.send(:conf=, conf_copy)
+  ctx = @ctx_class.new({}, 'en')
+  first = ctx.brand_color
+  # Mutate brand conf to a new color
+  next_conf = YAML.load(YAML.dump(conf_copy))
+  next_conf['brand'] = { 'primary_color' => '#222222' }
+  OT.send(:conf=, next_conf)
+  second = ctx.brand_color
+  [first, second]
+ensure
+  OT.send(:conf=, @_initial_conf) rescue nil
+end
+#=> ['#111111', '#111111']
+
+## support_email memoizes — mutating OT.conf after first call does not change result
+@_initial_conf2 = YAML.load(YAML.dump(OT.conf))
+begin
+  conf_copy = YAML.load(YAML.dump(@_initial_conf2))
+  conf_copy['brand'] = { 'support_email' => 'first@acme.test' }
+  OT.send(:conf=, conf_copy)
+  ctx = @ctx_class.new({}, 'en')
+  first = ctx.support_email
+  next_conf = YAML.load(YAML.dump(conf_copy))
+  next_conf['brand'] = { 'support_email' => 'second@acme.test' }
+  OT.send(:conf=, next_conf)
+  second = ctx.support_email
+  [first, second]
+ensure
+  OT.send(:conf=, @_initial_conf2) rescue nil
+end
+#=> ['first@acme.test', 'first@acme.test']
+
+## site_product_name memoizes — mutating OT.conf after first call does not change result
+@_initial_conf3 = YAML.load(YAML.dump(OT.conf))
+begin
+  conf_copy = YAML.load(YAML.dump(@_initial_conf3))
+  conf_copy['brand'] = { 'product_name' => 'FirstName' }
+  OT.send(:conf=, conf_copy)
+  ctx = @ctx_class.new({}, 'en')
+  first = ctx.site_product_name
+  next_conf = YAML.load(YAML.dump(conf_copy))
+  next_conf['brand'] = { 'product_name' => 'SecondName' }
+  OT.send(:conf=, next_conf)
+  second = ctx.site_product_name
+  [first, second]
+ensure
+  OT.send(:conf=, @_initial_conf3) rescue nil
+end
+#=> ['FirstName', 'FirstName']
+
+# ============================================================================
+# TemplateContext fallback when OT.conf is nil (gap 7 — issue #3048)
+# ============================================================================
+#
+# conf_dig must guard against OT.conf being nil so that helpers degrade
+# to GLOBAL_DEFAULTS-level fallbacks instead of raising. Setting @conf
+# directly (rather than via the setter) bypasses any wrapping behavior.
+
+## OT.conf=nil — brand_color falls through to DEFAULTS without raising
+@_saved_for_nil = OT.instance_variable_get(:@conf)
+begin
+  OT.instance_variable_set(:@conf, nil)
+  ctx = @ctx_class.new({}, 'en')
+  ctx.brand_color
+ensure
+  OT.instance_variable_set(:@conf, @_saved_for_nil)
+end
+#=> '#3B82F6'
+
+## OT.conf=nil — support_email falls through to GLOBAL_DEFAULTS (nil)
+@_saved_for_nil2 = OT.instance_variable_get(:@conf)
+begin
+  OT.instance_variable_set(:@conf, nil)
+  ctx = @ctx_class.new({}, 'en')
+  ctx.support_email
+ensure
+  OT.instance_variable_set(:@conf, @_saved_for_nil2)
+end
+#=> nil
+
+## OT.conf=nil — logo_url falls through to GLOBAL_DEFAULTS (nil)
+@_saved_for_nil3 = OT.instance_variable_get(:@conf)
+begin
+  OT.instance_variable_set(:@conf, nil)
+  ctx = @ctx_class.new({}, 'en')
+  ctx.logo_url
+ensure
+  OT.instance_variable_set(:@conf, @_saved_for_nil3)
+end
+#=> nil
+
+## OT.conf=nil — site_product_name falls through to GLOBAL_DEFAULTS ('OTS')
+@_saved_for_nil4 = OT.instance_variable_get(:@conf)
+begin
+  OT.instance_variable_set(:@conf, nil)
+  ctx = @ctx_class.new({}, 'en')
+  ctx.site_product_name
+ensure
+  OT.instance_variable_set(:@conf, @_saved_for_nil4)
+end
+#=> 'OTS'
+
+## OT.conf=nil — site_host degrades to 'localhost'
+@_saved_for_nil5 = OT.instance_variable_get(:@conf)
+begin
+  OT.instance_variable_set(:@conf, nil)
+  ctx = @ctx_class.new({}, 'en')
+  ctx.site_host
+ensure
+  OT.instance_variable_set(:@conf, @_saved_for_nil5)
+end
+#=> 'localhost'
