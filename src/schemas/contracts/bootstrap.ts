@@ -20,7 +20,12 @@ import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
+import {
+  brandSettingsCanonical,
+  cornerStyleValues,
+  fontFamilyValues,
+  homepageConfigCanonical,
+} from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -405,6 +410,26 @@ export const bootstrapSchema = z.object({
   support_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Brand fields (per-installation defaults from OT.conf['brand'])
+  //
+  // Resolution order at the store layer:
+  //   1. domain_branding.<field>           (per-domain, from Redis)
+  //   2. bootstrapStore.brand_<field>      (per-installation, these fields)
+  //   3. NEUTRAL_BRAND_DEFAULTS.<field>    (frontend neutral fallback)
+  //
+  // No `.default()` here by design — defaults flow through
+  // NEUTRAL_BRAND_DEFAULTS at the store layer, not the schema. Eager
+  // `.default()` would short-circuit the nullish-coalescing fallback chain.
+  // ─────────────────────────────────────────────────────────────────────────────
+  brand_primary_color: z.string().nullish(),
+  brand_product_name: z.string().nullish(),
+  brand_corner_style: z.enum(cornerStyleValues).nullish(),
+  brand_font_family: z.enum(fontFamilyValues).nullish(),
+  brand_button_text_light: z.boolean().nullish(),
+  brand_allow_public_homepage: z.boolean().nullish(),
+  brand_allow_public_api: z.boolean().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields
