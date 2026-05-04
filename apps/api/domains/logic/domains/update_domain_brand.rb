@@ -98,30 +98,6 @@ module DomainsAPI::Logic
         success_data
       end
 
-      # Validate URL format for logo/favicon fields.
-      # Accepts https:// URLs or relative paths starting with /.
-      # Enforces max length of 2048 chars to prevent abuse.
-      # Rejects http:// to prevent mixed content and potential SSRF.
-      def valid_url?(url)
-        return false if url.nil? || url.empty?
-        return false if url.length > 2048
-
-        # Reject protocol-relative URLs (//)
-        return false if url.start_with?('//')
-
-        # Allow relative paths starting with / (but not //)
-        return true if url.start_with?('/')
-
-        # Require https:// for absolute URLs with valid host
-        uri = URI.parse(url)
-        return false unless uri.is_a?(URI::HTTPS)
-        return false if uri.host.nil? || uri.host.empty?
-
-        true
-      rescue URI::InvalidURIError
-        false
-      end
-
       private
 
       def validate_domain
@@ -250,7 +226,7 @@ module DomainsAPI::Logic
           url = @brand_settings[url_field]
           next if url.nil?
 
-          unless valid_url?(url)
+          unless Onetime::CustomDomain::BrandSettings.valid_url?(url)
             OT.ld "[UpdateDomainBrand] Error: Invalid URL format for '#{url_field}': #{url}"
             raise_form_error "Invalid #{url_field.tr('_', ' ')} - must be https:// URL or relative path starting with /"
           end
