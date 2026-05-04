@@ -192,6 +192,7 @@ export const receiptBaseCanonical = z.object({
 
   // Recipients and sharing
   recipients: z.array(z.string()).or(z.string()).nullable().optional(),
+  recipient_name: z.string().nullable().optional(),
   share_domain: z.string().nullable().optional(),
 
   // Boolean status flags

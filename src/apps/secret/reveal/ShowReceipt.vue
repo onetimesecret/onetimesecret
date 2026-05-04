@@ -149,7 +149,7 @@
                 collection="material-symbols"
                 name="mail-outline"
                 class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
-              {{ t('web.COMMON.sent_to') }} {{ record.recipients }}
+              {{ t('web.COMMON.sent_to') }} {{ record.recipient_name || record.recipients }}
             </h3>
           </div>
 

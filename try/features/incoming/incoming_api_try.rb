@@ -43,8 +43,9 @@ def enable_incoming_feature(recipient_hash, recipient_email)
   OT.instance_variable_set(:@incoming_recipient_lookup, {
     recipient_hash => recipient_email
   }.freeze)
+  # Match production shape (see SetupIncomingRecipients): {'digest', 'display_name'}
   OT.instance_variable_set(:@incoming_public_recipients, [
-    { hash: recipient_hash, name: 'Test Recipient' }
+    { 'digest' => recipient_hash, 'display_name' => 'Test Recipient' }
   ].freeze)
 end
 
@@ -283,7 +284,7 @@ result = logic.process
 result[:details][:recipient]
 #=> 'test_recipient_hash_abc123'
 
-## CreateIncomingSecret stores obscured recipient on the receipt (not raw email)
+## CreateIncomingSecret stores raw recipient email on the receipt (clean data)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
@@ -295,8 +296,40 @@ logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
 logic.process_params
 logic.raise_concerns
 logic.process
-stored = logic.receipt.recipients.to_s
-!stored.include?(@test_recipient_email) && stored == OT::Utils.obscure_email(@test_recipient_email)
+logic.receipt.recipients == @test_recipient_email
+#=> true
+
+## CreateIncomingSecret stores recipient display_name on the receipt
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Memo for recipient name check',
+    'secret' => 'Secret for recipient name test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+logic.receipt.recipient_name
+#=> 'Test Recipient'
+
+## Receipt safe_dump obscures the recipient email so it does not leak to the frontend
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Safe dump check',
+    'secret' => 'Secret for safe dump test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+dumped = logic.receipt.safe_dump
+!dumped[:recipients].to_s.include?(@test_recipient_email) &&
+  dumped[:recipients] == OT::Utils.obscure_email(@test_recipient_email) &&
+  dumped[:recipient_name] == 'Test Recipient'
 #=> true
 
 ## CreateIncomingSecret works without memo (memo is optional)
@@ -395,7 +428,7 @@ logic.process
 logic.receipt.memo
 #=> 'Stored memo test'
 
-## CreateIncomingSecret stores recipients on receipt (obscured)
+## CreateIncomingSecret stores recipients on receipt (raw email)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
@@ -407,7 +440,7 @@ logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
 logic.process_params
 logic.raise_concerns
 logic.process
-logic.receipt.recipients == OT::Utils.obscure_email(@test_recipient_email)
+logic.receipt.recipients == @test_recipient_email
 #=> true
 
 ## CreateIncomingSecret greenlighted is true after successful process
