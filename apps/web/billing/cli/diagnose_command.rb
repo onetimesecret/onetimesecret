@@ -23,7 +23,7 @@ module Onetime
 
       desc 'Diagnose entitlement resolution for a user or organization'
 
-      argument :email, required: false, desc: 'Customer email address (omit when using --org)'
+      argument :email, required: false, desc: 'Customer email address (required unless --org is provided)'
 
       option :org,
         type: :string,
@@ -44,8 +44,11 @@ module Onetime
         boot_application!
 
         if email.to_s.empty? && org.to_s.empty?
-          puts 'ERROR: provide a customer email argument or --org <extid>'
-          return
+          warn "'ots billing diagnose' was called with no arguments"
+          warn ''
+          warn 'Usage: ots billing diagnose EMAIL [OPTIONS]'
+          warn '   or: ots billing diagnose --org EXTID [OPTIONS]'
+          exit 1
         end
 
         target = org.to_s.empty? ? email : "org=#{org}"
