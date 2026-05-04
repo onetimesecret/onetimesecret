@@ -115,9 +115,13 @@ module Onetime
       field :created
       field :updated
 
+      # Enforcement settings
+      field :enforce_sso_only  # Boolean string ('true'/'false')
+
       def init
-        self.enabled       ||= 'false'
-        self.provider_type ||= 'oidc'
+        self.enabled          ||= 'false'
+        self.provider_type    ||= 'oidc'
+        self.enforce_sso_only ||= 'false'
       end
 
       # Check if SSO is enabled for this domain.
@@ -125,6 +129,13 @@ module Onetime
       # @return [Boolean] true if SSO is active
       def enabled?
         enabled.to_s == 'true'
+      end
+
+      # Check if SSO-only login is enforced (blocking password/other auth).
+      #
+      # @return [Boolean] true if SSO is the only allowed auth method
+      def enforce_sso_only?
+        enforce_sso_only.to_s == 'true'
       end
 
       # Returns metadata for the current provider type.
@@ -369,11 +380,12 @@ module Onetime
           config = new(domain_id: domain_id)
 
           # Set simple fields
-          config.provider_type = attrs[:provider_type] if attrs.key?(:provider_type)
-          config.display_name  = attrs[:display_name] if attrs.key?(:display_name)
-          config.tenant_id     = attrs[:tenant_id] if attrs.key?(:tenant_id)
-          config.issuer        = attrs[:issuer] if attrs.key?(:issuer)
-          config.enabled       = attrs[:enabled].to_s if attrs.key?(:enabled)
+          config.provider_type    = attrs[:provider_type] if attrs.key?(:provider_type)
+          config.display_name     = attrs[:display_name] if attrs.key?(:display_name)
+          config.tenant_id        = attrs[:tenant_id] if attrs.key?(:tenant_id)
+          config.issuer           = attrs[:issuer] if attrs.key?(:issuer)
+          config.enabled          = attrs[:enabled].to_s if attrs.key?(:enabled)
+          config.enforce_sso_only = attrs[:enforce_sso_only].to_s if attrs.key?(:enforce_sso_only)
 
           # Set encrypted fields
           config.client_id     = attrs[:client_id] if attrs.key?(:client_id)

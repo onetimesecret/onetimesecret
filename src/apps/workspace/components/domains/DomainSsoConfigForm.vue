@@ -15,7 +15,7 @@ import {
   SSO_PROVIDER_METADATA,
   type CustomDomainSsoConfig,
   type SsoProviderType,
-} from '@/schemas/shapes/sso-config';
+} from '@/schemas/shapes/domains/sso-config';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
 import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
@@ -678,6 +678,63 @@ aria-hidden="true">*</span>
               :class="[
                 'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
                 formState.enabled ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
+              ]"
+              aria-hidden="true">
+              <OIcon
+                collection="heroicons"
+                name="check"
+                class="size-3 text-brand-600" />
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Enforce SSO Only Toggle -->
+      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div>
+          <label
+            for="domain-sso-enforce-only"
+            class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ t('web.organizations.sso.enforce_sso_only') }}
+          </label>
+          <p
+            id="domain-enforce-sso-only-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.enforce_sso_only_hint') }}
+          </p>
+        </div>
+        <button
+          id="domain-sso-enforce-only"
+          type="button"
+          role="switch"
+          :aria-checked="formState.enforce_sso_only"
+          aria-describedby="domain-enforce-sso-only-hint"
+          @click="updateField('enforce_sso_only', !formState.enforce_sso_only)"
+          :class="[
+            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+            formState.enforce_sso_only ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
+          ]">
+          <span class="sr-only">{{ t('web.organizations.sso.enforce_sso_only') }}</span>
+          <span
+            :class="[
+              'pointer-events-none relative inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+              formState.enforce_sso_only ? 'translate-x-5' : 'translate-x-0',
+            ]">
+            <span
+              :class="[
+                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+                formState.enforce_sso_only ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
+              ]"
+              aria-hidden="true">
+              <OIcon
+                collection="heroicons"
+                name="x-mark"
+                class="size-3 text-gray-400" />
+            </span>
+            <span
+              :class="[
+                'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+                formState.enforce_sso_only ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
               ]"
               aria-hidden="true">
               <OIcon

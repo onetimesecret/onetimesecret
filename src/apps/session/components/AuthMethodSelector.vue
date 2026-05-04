@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { useProductIdentity } from '@/shared/stores/identityStore';
-import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode } from '@/utils/features';
+import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode, isSsoEnforcedForDomain } from '@/utils/features';
 import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
@@ -39,18 +39,23 @@ const ssoOnly = computed(() => isSsoOnlyMode());
 // Extract SSO providers via feature utility
 const ssoProviders = computed(() => getSsoProviders());
 
+// SSO enforcement for custom domains
+const enforceSsoForDomain = computed(() => isSsoEnforcedForDomain());
+
 // SSO-only mode: show only SSO buttons when:
 // - explicit sso_only mode is active, OR
-// - on a custom domain (org members must use SSO)
+// - on a custom domain with enforce_sso_only enabled
 const showSsoOnly = computed(() =>
-  (ssoOnly.value || isCustom.value) && ssoEnabled && ssoProviders.value.length > 0
+  (ssoOnly.value || (isCustom.value && enforceSsoForDomain.value)) && ssoEnabled && ssoProviders.value.length > 0
 );
 
-// Custom domain without SSO configured: show friendly availability message
-// instead of standard auth forms (password auth isn't appropriate here —
-// org members are expected to use domain-level SSO)
+// Custom domain with SSO enforcement but SSO not properly configured:
+// show friendly "SSO required" message instead of standard auth forms.
+// This appears when:
+// - On a custom domain with enforce_sso_only=true
+// - But SSO is disabled OR no providers are configured (misconfiguration)
 const showCustomDomainNoSso = computed(() =>
-  isCustom.value && !showSsoOnly.value
+  isCustom.value && enforceSsoForDomain.value && !showSsoOnly.value
 );
 
 // Show passwordless-first UI when any passwordless method is enabled

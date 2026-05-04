@@ -14,8 +14,10 @@ import {
   SSO_PROVIDER_METADATA,
   ssoProviderTypeSchema,
   customDomainSsoConfigCanonical,
+  patchSsoConfigPayloadSchema,
+  putSsoConfigPayloadSchema,
   type SsoProviderType,
-} from '@/schemas/contracts/sso-config';
+} from '@/schemas/contracts/custom-domain/sso-config';
 
 describe('SSO_PROVIDER_METADATA constant', () => {
   describe('structure', () => {
@@ -27,19 +29,19 @@ describe('SSO_PROVIDER_METADATA constant', () => {
     });
 
     it('each provider has requiresDomainFilter boolean', () => {
-      for (const [provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
+      for (const [_provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
         expect(typeof metadata.requiresDomainFilter).toBe('boolean');
       }
     });
 
     it('each provider has idpControlsAccess boolean', () => {
-      for (const [provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
+      for (const [_provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
         expect(typeof metadata.idpControlsAccess).toBe('boolean');
       }
     });
 
     it('each provider has description string', () => {
-      for (const [provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
+      for (const [_provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
         expect(typeof metadata.description).toBe('string');
         expect(metadata.description.length).toBeGreaterThan(0);
       }
@@ -98,7 +100,7 @@ describe('SSO_PROVIDER_METADATA constant', () => {
     it('requiresDomainFilter and idpControlsAccess are mutually exclusive', () => {
       // If IdP controls access, app-side domain filter is not required
       // If IdP does not control access, domain filter IS required
-      for (const [provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
+      for (const [_provider, metadata] of Object.entries(SSO_PROVIDER_METADATA)) {
         expect(metadata.requiresDomainFilter).toBe(!metadata.idpControlsAccess);
       }
     });
@@ -132,6 +134,25 @@ describe('customDomainSsoConfigCanonical schema', () => {
     });
   });
 
+  describe('enforce_sso_only field', () => {
+    it('declares enforce_sso_only field', () => {
+      expect(customDomainSsoConfigCanonical.shape.enforce_sso_only).toBeDefined();
+    });
+
+    it('enforce_sso_only is a boolean', () => {
+      const result = customDomainSsoConfigCanonical.shape.enforce_sso_only.safeParse(true);
+      expect(result.success).toBe(true);
+
+      const invalidResult = customDomainSsoConfigCanonical.shape.enforce_sso_only.safeParse('true');
+      expect(invalidResult.success).toBe(false);
+    });
+
+    it('enforce_sso_only accepts false value', () => {
+      const result = customDomainSsoConfigCanonical.shape.enforce_sso_only.safeParse(false);
+      expect(result.success).toBe(true);
+    });
+  });
+
   describe('full payload parsing with metadata fields', () => {
     // Schema: customDomainSsoConfigCanonical (keyed by domain_id)
     const validPayload = {
@@ -146,6 +167,7 @@ describe('customDomainSsoConfigCanonical schema', () => {
       allowed_domains: [],
       requires_domain_filter: true,
       idp_controls_access: false,
+      enforce_sso_only: false,
       created_at: 1700000000,
       updated_at: 1700000000,
     };
@@ -175,16 +197,113 @@ describe('customDomainSsoConfigCanonical schema', () => {
       }
     });
 
+    it('parses payload with enforce_sso_only enabled', () => {
+      const enforcePayload = {
+        ...validPayload,
+        enforce_sso_only: true,
+      };
+      const result = customDomainSsoConfigCanonical.safeParse(enforcePayload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enforce_sso_only).toBe(true);
+      }
+    });
+
+    it('parses payload with enforce_sso_only disabled (default)', () => {
+      const result = customDomainSsoConfigCanonical.safeParse(validPayload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enforce_sso_only).toBe(false);
+      }
+    });
+
     it('fails when requires_domain_filter is missing', () => {
-      const { requires_domain_filter, ...incomplete } = validPayload;
+      const { requires_domain_filter: _rdm, ...incomplete } = validPayload;
       const result = customDomainSsoConfigCanonical.safeParse(incomplete);
       expect(result.success).toBe(false);
     });
 
     it('fails when idp_controls_access is missing', () => {
-      const { idp_controls_access, ...incomplete } = validPayload;
+      const { idp_controls_access: _ica, ...incomplete } = validPayload;
       const result = customDomainSsoConfigCanonical.safeParse(incomplete);
       expect(result.success).toBe(false);
+    });
+
+    it('fails when enforce_sso_only is missing', () => {
+      const { enforce_sso_only: _eso, ...incomplete } = validPayload;
+      const result = customDomainSsoConfigCanonical.safeParse(incomplete);
+      expect(result.success).toBe(false);
+    });
+  });
+});
+
+describe('PUT/PATCH payload schemas with enforce_sso_only', () => {
+  describe('patchSsoConfigPayloadSchema', () => {
+    it('accepts enforce_sso_only as optional boolean', () => {
+      const payload = { enforce_sso_only: true };
+      const result = patchSsoConfigPayloadSchema.safeParse(payload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enforce_sso_only).toBe(true);
+      }
+    });
+
+    it('accepts payload without enforce_sso_only (partial update)', () => {
+      const payload = { display_name: 'Updated SSO' };
+      const result = patchSsoConfigPayloadSchema.safeParse(payload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enforce_sso_only).toBeUndefined();
+      }
+    });
+
+    it('rejects non-boolean enforce_sso_only', () => {
+      const payload = { enforce_sso_only: 'true' };
+      const result = patchSsoConfigPayloadSchema.safeParse(payload);
+      expect(result.success).toBe(false);
+    });
+
+    it('accepts enforce_sso_only=false explicitly', () => {
+      const payload = { enforce_sso_only: false };
+      const result = patchSsoConfigPayloadSchema.safeParse(payload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enforce_sso_only).toBe(false);
+      }
+    });
+  });
+
+  describe('putSsoConfigPayloadSchema', () => {
+    const validPutPayload = {
+      provider_type: 'entra_id' as SsoProviderType,
+      display_name: 'Test SSO',
+      client_id: 'client-123',
+      client_secret: 'secret-456',
+      tenant_id: 'tenant-789',
+    };
+
+    it('accepts enforce_sso_only in PUT payload', () => {
+      const payload = { ...validPutPayload, enforce_sso_only: true };
+      const result = putSsoConfigPayloadSchema.safeParse(payload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enforce_sso_only).toBe(true);
+      }
+    });
+
+    it('allows PUT payload without enforce_sso_only (defaults to false)', () => {
+      const result = putSsoConfigPayloadSchema.safeParse(validPutPayload);
+      expect(result.success).toBe(true);
+      // Schema should allow omission; backend defaults to false
+    });
+
+    it('accepts enforce_sso_only=false in PUT payload', () => {
+      const payload = { ...validPutPayload, enforce_sso_only: false };
+      const result = putSsoConfigPayloadSchema.safeParse(payload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enforce_sso_only).toBe(false);
+      }
     });
   });
 });

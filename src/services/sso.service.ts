@@ -19,7 +19,7 @@ import {
   deleteSsoConfigResponseSchema,
   type DeleteSsoConfigResponse,
 } from '@/schemas/api/domains/responses/sso-config';
-import type { CustomDomainSsoConfig, SsoProviderType } from '@/schemas/shapes/sso-config';
+import type { CustomDomainSsoConfig, SsoProviderType } from '@/schemas/shapes/domains/sso-config';
 import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 import axios from 'axios';
 

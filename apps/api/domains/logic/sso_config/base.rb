@@ -82,6 +82,17 @@ module DomainsAPI
 
           url
         end
+
+        # Validate that enforce_sso_only is not enabled when SSO is disabled.
+        #
+        # @param enabled [Boolean] Whether SSO is enabled (effective value for PATCH, direct for PUT)
+        # @param enforce_sso_only [Boolean] Whether SSO-only mode is enforced
+        # @raise [Onetime::FormError] if enforce_sso_only is true but enabled is false
+        def validate_enforce_sso_requires_enabled(enabled, enforce_sso_only)
+          return unless enforce_sso_only && !enabled
+
+          raise_form_error('Enable SSO before enforcing SSO-only mode', field: :enforce_sso_only, error_type: :invalid)
+        end
       end
     end
   end
