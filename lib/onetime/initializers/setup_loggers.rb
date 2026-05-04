@@ -138,7 +138,11 @@ module Onetime
       #   BACKTRACE_LINES - Max backtrace lines to include (default: 3 in prod, unlimited in dev)
       #
       def build_formatter(config)
-        base_formatter = config['formatter']&.to_sym || :color
+        base_formatter = if OT.mode?(:cli)
+                           :color  # Human-readable for CLI
+                         else
+                           config['formatter']&.to_sym || :color
+                         end
         max_lines      = backtrace_limit
 
         # In development/test, use standard formatter with full backtraces
@@ -248,7 +252,9 @@ module Onetime
         overrides = cached_loggers.filter_map do |name, logger|
           "#{name}=#{logger.level}" if logger.level != default
         end
-        warn " default=#{default}, overrides: #{overrides.any? ? overrides.join(', ') : '(none)'}"
+        if Onetime.debug?
+          warn " default=#{default}, overrides2: #{overrides.any? ? overrides.join(', ') : '(none)'}"
+        end
       end
     end
   end
