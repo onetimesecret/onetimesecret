@@ -16,7 +16,7 @@ require 'onetime/models/custom_domain'
 
 ## BrandSettings defines expected members
 @bs.members.sort
-#=> [:allow_public_api, :allow_public_homepage, :button_text_light, :corner_style, :default_ttl, :font_family, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :notify_enabled, :passphrase_required, :primary_color]
+#=> [:allow_public_api, :allow_public_homepage, :button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
 
 ## DEFAULTS constant is accessible and frozen
 [@bs::DEFAULTS.frozen?, @bs::DEFAULTS[:font_family]]
@@ -33,7 +33,7 @@ require 'onetime/models/custom_domain'
 ## from_hash creates instance with defaults
 @settings = @bs.from_hash({})
 [@settings.font_family, @settings.corner_style, @settings.primary_color]
-#=> ['sans', 'rounded', '#dc4a22']
+#=> ['sans', 'rounded', '#3B82F6']
 
 ## from_hash applies custom values
 @custom = @bs.from_hash(primary_color: '#FF0000', font_family: 'serif')
