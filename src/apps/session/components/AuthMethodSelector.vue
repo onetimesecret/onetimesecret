@@ -122,7 +122,7 @@ defineExpose({ currentMode });
         :locale="locale" />
 
       <!-- SSO section when SSO is enabled -->
-      <template v-if="ssoEnabled && ssoProviders.length > 0">
+      <template v-if="ssoConfigured">
         <!-- Divider -->
         <div class="relative" data-testid="auth-sso-divider">
           <div class="absolute inset-0 flex items-center" aria-hidden="true">
