@@ -253,7 +253,7 @@ module Onetime
           "#{name}=#{logger.level}" if logger.level != default
         end
         if Onetime.debug?
-          warn " default=#{default}, overrides2: #{overrides.any? ? overrides.join(', ') : '(none)'}"
+          warn " default=#{default}, overrides: #{overrides.any? ? overrides.join(', ') : '(none)'}"
         end
       end
     end
