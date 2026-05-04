@@ -169,9 +169,13 @@ module Incoming
           passphrase: passphrase,
         )
 
-        # Store incoming-specific fields
+        # Store incoming-specific fields. Obscure the email so the receipt
+        # page (and any other surface that reads receipt.recipients) does
+        # not leak the recipient address back to the sender — they only ever
+        # knew the recipient hash. Matches the pattern used by the regular
+        # email-delivery flow in Receipt::Features::DeprecatedFields.
         receipt.memo       = memo
-        receipt.recipients = recipient_email
+        receipt.recipients = OT::Utils.obscure_email(recipient_email)
 
         # Set domain_id for custom domain requests (#2864)
         if domain_strategy == :custom && display_domain

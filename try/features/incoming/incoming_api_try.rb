@@ -283,6 +283,22 @@ result = logic.process
 result[:details][:recipient]
 #=> 'test_recipient_hash_abc123'
 
+## CreateIncomingSecret stores obscured recipient on the receipt (not raw email)
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Memo for receipt recipient check',
+    'secret' => 'Secret for receipt recipient test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+stored = logic.receipt.recipients.to_s
+!stored.include?(@test_recipient_email) && stored == OT::Utils.obscure_email(@test_recipient_email)
+#=> true
+
 ## CreateIncomingSecret works without memo (memo is optional)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
