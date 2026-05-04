@@ -46,11 +46,15 @@ const DEFAULTS: BootstrapPayload = {
   // Brand fields (per-installation defaults from OT.conf['brand'])
   brand_primary_color: undefined,
   brand_product_name: undefined,
+  brand_product_domain: undefined,
+  brand_support_email: undefined,
   brand_corner_style: undefined,
   brand_font_family: undefined,
   brand_button_text_light: undefined,
   brand_allow_public_homepage: undefined,
   brand_allow_public_api: undefined,
+  brand_logo_url: undefined,
+  brand_totp_issuer: undefined,
 };
 
 /**

@@ -30,6 +30,17 @@ export const AUTHENTICATION_SERIALIZER_FIELDS = [
 // ============================================================================
 export const CONFIG_SERIALIZER_FIELDS = [
   'authentication',
+  'brand_primary_color',
+  'brand_product_name',
+  'brand_product_domain',
+  'brand_support_email',
+  'brand_corner_style',
+  'brand_font_family',
+  'brand_button_text_light',
+  'brand_allow_public_homepage',
+  'brand_allow_public_api',
+  'brand_logo_url',
+  'brand_totp_issuer',
   'd9s_enabled',
   'development',
   'diagnostics',
