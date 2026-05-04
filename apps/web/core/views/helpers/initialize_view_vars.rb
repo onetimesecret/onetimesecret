@@ -196,7 +196,7 @@ module Core
                                       brand_defaults[:primary_color]
         support_email               = brand_config['support_email'] ||
                                       Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
-        docs_host                   = site_config.dig('support', 'host') || 'docs.onetimesecret.com'
+        docs_host                   = site_config.dig('support', 'host') || nil
         brand_corner_style          = brand_config['corner_style'] || brand_defaults[:corner_style]
         brand_font_family           = brand_config['font_family'] || brand_defaults[:font_family]
         brand_button_text_light     = brand_config.fetch('button_text_light', brand_defaults[:button_text_light])

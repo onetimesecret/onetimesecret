@@ -143,9 +143,9 @@ module Onetime
         # Site host configuration helper
         # @return [String]
         def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
+          return 'localhost' unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
+          OT.conf.dig('site', 'host') || 'localhost'
         end
 
         # Site base URI configuration helper
@@ -308,7 +308,7 @@ module Onetime
 
           # Get host from site config
           def site_host
-            @site_host ||= conf_dig('site', 'host') || 'onetimesecret.com'
+            @site_host ||= conf_dig('site', 'host') || 'localhost'
           end
 
           # Get base URI from site config
