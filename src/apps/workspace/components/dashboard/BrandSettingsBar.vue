@@ -17,6 +17,7 @@
     type CornerStyle as CornerStyleType,
     type FontFamily as FontFamilyType,
   } from '@/shared/utils/brand-helpers';
+  import { checkBrandContrast } from '@/utils/brand-palette';
   import { computed } from 'vue';
   import { useI18n, Composer } from 'vue-i18n';
 
@@ -50,6 +51,10 @@
 
   const isDisabled = computed(() => props.isLoading || !props.hasUnsavedChanges);
 
+  const contrastCheck = computed(() => checkBrandContrast(props.modelValue.primary_color ?? ''));
+  const showContrastWarning = computed(() => !contrastCheck.value.passesAA);
+  const contrastRatioDisplay = computed(() => contrastCheck.value.ratio.toFixed(1));
+
   const buttonText = computed(() => props.isLoading ? t('web.LABELS.saving') : t('web.LABELS.save'));
   const handleSubmit = () => emit('submit');
 </script>
@@ -70,11 +75,25 @@
             <!-- Color Picker -->
             <div class="flex min-w-0 shrink items-center gap-4">
               <ColorPicker
-                :model-value="modelValue.primary_color"
+                :model-value="modelValue.primary_color ?? undefined"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
                 name="brand[primary_color]"
                 :label="t('web.branding.brand_color')"
                 id="brand-color" />
+              <!-- WCAG Contrast Warning -->
+              <div
+                v-if="showContrastWarning"
+                class="flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                role="alert">
+                <OIcon
+                  collection="mdi"
+                  name="alert"
+                  class="size-4 shrink-0" />
+                <span class="whitespace-nowrap">
+                  {{ t('web.branding.low_contrast_warning') }}
+                  <span class="font-medium">{{ contrastRatioDisplay }}:1</span>
+                </span>
+              </div>
             </div>
 
             <!-- UI Elements -->

@@ -47,8 +47,7 @@ describe('DefaultLogo', () => {
     }
   });
 
-  const mountComponent = (props: Record<string, unknown> = {}) => {
-    return mount(DefaultLogo, {
+  const mountComponent = (props: Record<string, unknown> = {}) => mount(DefaultLogo, {
       props: {
         isUserPresent: false,
         ...props,
@@ -57,7 +56,6 @@ describe('DefaultLogo', () => {
         plugins: [i18n],
       },
     });
-  };
 
   describe('Text Size Tiers', () => {
     it('uses text-xs for size <= 32', () => {
@@ -255,10 +253,11 @@ describe('DefaultLogo', () => {
       expect(container.exists()).toBe(true);
     });
 
-    it('falls back to i18n aria-label when no prop', () => {
+    it('falls back to neutral brand aria-label when no prop', () => {
       wrapper = mountComponent({});
 
-      const container = wrapper.find('[aria-label="Onetime Secret"]');
+      // Falls back to NEUTRAL_BRAND_DEFAULTS.product_name ("My App")
+      const container = wrapper.find('[aria-label="My App"]');
       expect(container.exists()).toBe(true);
     });
 
