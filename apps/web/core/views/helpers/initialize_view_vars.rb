@@ -166,10 +166,18 @@ module Core
         description          = I18n.t('web.COMMON.description', locale: i18n_locale, default: 'Keep sensitive info out of your chat logs & email')
         keywords             = I18n.t('web.COMMON.keywords', locale: i18n_locale, default: 'secret,password,share,private,link')
 
-        # Use the display domain name for branded instances, otherwise use the default app name.
-        # This provides a default title for initial page load before Vue takes over title management.
+        # Brand config — source of truth for tag-level branding (page_title,
+        # theme-color, etc.) and for default Vue app theming on first paint.
+        brand_config         = OT.conf.fetch('brand', {})
+        brand_product_name   = brand_config['product_name'] ||
+                               Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
+
+        # Use the display domain name for branded instances, otherwise the
+        # configured brand product name. site_name (the deprecated
+        # site.interface.ui.header.branding.site_name) is kept only as a tail
+        # fallback for instances mid-migration; remove once consumers update.
         site_name            = site_config.dig('interface', 'ui', 'header', 'branding', 'site_name')
-        page_title           = display_domain || site_name || 'One-Time Secret'
+        page_title           = display_domain || brand_product_name || site_name
         no_cache             = false
         frontend_host        = development['frontend_host']
         frontend_development = development['enabled']
@@ -179,6 +187,21 @@ module Core
         site_host            = safe_site['host']
         base_scheme          = safe_site['ssl'] == false ? 'http://' : 'https://'
         baseuri              = base_scheme + site_host
+
+        # Brand config exposed to view templates (theme-color, manifest, etc.)
+        # and to first-paint Vue state. BrandSettingsConstants supplies the
+        # neutral fallbacks (#3B82F6, allow_public_* = false) per #3049.
+        brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
+        brand_primary_color         = brand_config['primary_color'] ||
+                                      brand_defaults[:primary_color]
+        support_email               = brand_config['support_email'] ||
+                                      Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
+        docs_host                   = site_config.dig('support', 'host') || 'docs.onetimesecret.com'
+        brand_corner_style          = brand_config['corner_style'] || brand_defaults[:corner_style]
+        brand_font_family           = brand_config['font_family'] || brand_defaults[:font_family]
+        brand_button_text_light     = brand_config.fetch('button_text_light', brand_defaults[:button_text_light])
+        brand_allow_public_homepage = brand_config.fetch('allow_public_homepage', brand_defaults[:allow_public_homepage])
+        brand_allow_public_api      = brand_config.fetch('allow_public_api', brand_defaults[:allow_public_api])
 
         # Return all view variables as a hash
         {
@@ -208,6 +231,15 @@ module Core
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,
+          'brand_primary_color' => brand_primary_color,
+          'brand_product_name' => brand_product_name,
+          'brand_corner_style' => brand_corner_style,
+          'brand_font_family' => brand_font_family,
+          'brand_button_text_light' => brand_button_text_light,
+          'brand_allow_public_homepage' => brand_allow_public_homepage,
+          'brand_allow_public_api' => brand_allow_public_api,
+          'support_email' => support_email,
+          'docs_host' => docs_host,
         }
       end
 
