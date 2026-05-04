@@ -42,12 +42,17 @@ const ssoProviders = computed(() => getSsoProviders());
 // SSO enforcement for custom domains
 const enforceSsoForDomain = computed(() => isSsoEnforcedForDomain());
 
-// SSO-only mode: show only SSO buttons when:
-// - explicit sso_only mode is active, OR
-// - on a custom domain with enforce_sso_only enabled
-const showSsoOnly = computed(() =>
-  (ssoOnly.value || (isCustom.value && enforceSsoForDomain.value)) && ssoEnabled && ssoProviders.value.length > 0
+// SSO is required when either the global sso_only flag is on, or the
+// active custom domain has enforce_sso_only enabled.
+const ssoRequired = computed(
+  () => ssoOnly.value || (isCustom.value && enforceSsoForDomain.value)
 );
+
+// SSO is usable when it's globally enabled and at least one provider is configured.
+const ssoConfigured = computed(() => ssoEnabled && ssoProviders.value.length > 0);
+
+// SSO-only mode: show only SSO buttons when SSO is both required and configured.
+const showSsoOnly = computed(() => ssoRequired.value && ssoConfigured.value);
 
 // Custom domain with SSO enforcement but SSO not properly configured:
 // show friendly "SSO required" message instead of standard auth forms.
