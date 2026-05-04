@@ -170,6 +170,41 @@ describe('brand-palette', () => {
       const palette = generateBrandPalette('#fff');
       expect(Object.keys(palette)).toHaveLength(TOTAL_KEYS);
     });
+
+    it('falls back when given 8-digit hex (alpha channel)', () => {
+      // isValidHex regex is /^#?[0-9a-fA-F]{6}$/ — 8-digit input fails
+      // validation and routes through the default fallback.
+      const palette = generateBrandPalette('#aabbccff');
+      const fallback = generateBrandPalette(null);
+      expect(Object.keys(palette)).toHaveLength(TOTAL_KEYS);
+      expect(palette).toEqual(fallback);
+    });
+
+    it('falls back when input has leading whitespace', () => {
+      // The implementation does not trim — ' #abc' fails validation.
+      const palette = generateBrandPalette(' #3B82F6');
+      const fallback = generateBrandPalette(null);
+      expect(Object.keys(palette)).toHaveLength(TOTAL_KEYS);
+      expect(palette).toEqual(fallback);
+    });
+
+    it('produces byte-identical output for the same input on repeated calls', () => {
+      const a = generateBrandPalette('#3B82F6');
+      const b = generateBrandPalette('#3B82F6');
+      // Stricter than `.toEqual()` — JSON-stringification compares the
+      // serialized form, catching key-order or value-format drift.
+      expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+    });
+
+    it('adjacent hex inputs (#3B82F6 vs #3B82F7) yield distinguishable palettes', () => {
+      // Guards against false collapse from over-aggressive rounding/quantization.
+      const a = generateBrandPalette('#3B82F6');
+      const b = generateBrandPalette('#3B82F7');
+      // The palettes overall must not collide. (Individual shades may
+      // happen to round to the same hex due to gamut clipping; what we
+      // care about is no full-palette collapse.)
+      expect(JSON.stringify(a)).not.toBe(JSON.stringify(b));
+    });
   });
 
   describe('DEFAULT_BRAND_PALETTE', () => {
