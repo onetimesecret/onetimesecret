@@ -81,7 +81,7 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
       txt_validation_host: '_onetime-challenge.secrets.example.com',
       txt_validation_value: 'abc123def456ghi789',
       brand: {
-        primary_color: '#dc4a22',
+        primary_color: '#3B82F6',
         font_family: 'sans',
         corner_style: 'rounded',
         button_text_light: false,

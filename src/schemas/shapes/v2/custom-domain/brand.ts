@@ -40,7 +40,7 @@ export {
  * @example
  * ```typescript
  * const brand = brandSettingsSchema.parse({
- *   primary_color: '#dc4a22',
+ *   primary_color: '#3B82F6',
  *   button_text_light: 'false', // V2 sends as string
  * });
  * ```
