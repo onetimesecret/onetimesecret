@@ -270,6 +270,76 @@ end
 @logic_short_hex.instance_variable_get(:@brand_settings)['primary_color']
 #=> '#1133FF'
 
+# ============================================================================
+# Text-field truncation through the logic class (gap 1 — issue #3048)
+# ============================================================================
+#
+# sanitize_text_fields applies sanitize_plain_text(value, max_length: 500) to
+# product_name, footer_text, instructions_*, description. The 500-char cap
+# protects email-template alt text and page-title rendering from runaway
+# pasted content. These tests confirm the truncation pathway end-to-end:
+# input → process_params → raise_concerns → sanitize_text_fields → @brand_settings.
+#
+# raise_concerns runs the per-field validators (which don't validate text
+# fields) AND the model-level validate!() which also doesn't validate text
+# length, so we expect the call to succeed silently and observe the
+# truncated value on @brand_settings.
+
+## TEST 13: product_name >500 chars truncates to exactly 500
+@logic_long_name = build_logic(
+  extid: @extid,
+  brand: { 'product_name' => 'A' * 600 },
+  strategy_result: @strategy_result,
+)
+@logic_long_name.raise_concerns
+@logic_long_name.instance_variable_get(:@brand_settings)['product_name'].length
+#=> 500
+
+## TEST 13b: truncated product_name is the leading 500 chars (slice from start)
+@logic_long_name.instance_variable_get(:@brand_settings)['product_name']
+#=> 'A' * 500
+
+## TEST 14: description >500 chars truncates to exactly 500
+@logic_long_desc = build_logic(
+  extid: @extid,
+  brand: { 'description' => 'D' * 600 },
+  strategy_result: @strategy_result,
+)
+@logic_long_desc.raise_concerns
+@logic_long_desc.instance_variable_get(:@brand_settings)['description'].length
+#=> 500
+
+## TEST 15: footer_text >500 chars truncates to exactly 500
+@logic_long_footer = build_logic(
+  extid: @extid,
+  brand: { 'footer_text' => 'F' * 600 },
+  strategy_result: @strategy_result,
+)
+@logic_long_footer.raise_concerns
+@logic_long_footer.instance_variable_get(:@brand_settings)['footer_text'].length
+#=> 500
+
+## TEST 16: under-cap text passes through untouched (no padding/no error)
+@logic_short = build_logic(
+  extid: @extid,
+  brand: { 'product_name' => 'Acme' },
+  strategy_result: @strategy_result,
+)
+@logic_short.raise_concerns
+@logic_short.instance_variable_get(:@brand_settings)['product_name']
+#=> 'Acme'
+
+## TEST 17: HTML tags stripped before length check (sanitize then truncate)
+# Input: '<b>X</b>' * 100 = 800 chars; after tag strip 100 chars of 'X' (well under cap)
+@logic_html = build_logic(
+  extid: @extid,
+  brand: { 'product_name' => '<b>X</b>' * 100 },
+  strategy_result: @strategy_result,
+)
+@logic_html.raise_concerns
+@logic_html.instance_variable_get(:@brand_settings)['product_name']
+#=> 'X' * 100
+
 # Teardown — uninstall spy and clean up fixtures
 @uninstall_spy.call if @uninstall_spy
 @domain.destroy! if @domain
