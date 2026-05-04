@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si el teu correu de contacte de facturació és diferent del correu del teu compte d'Onetime Secret, utilitza el correu de contacte de facturació per al compte de la nova regió per mantenir els avantatges de la subscripció.",
+    "text": "Si el teu correu de contacte de facturació és diferent del correu del teu compte d'{product_name}, utilitza el correu de contacte de facturació per al compte de la nova regió per mantenir els avantatges de la subscripció.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

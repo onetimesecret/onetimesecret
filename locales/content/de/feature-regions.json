@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Wenn deine Rechnungskontakt-E-Mail von deiner Onetime Secret Konto-E-Mail abweicht, verwende die Rechnungskontakt-E-Mail für das neue Regionskonto, um deine Abonnementvorteile beizubehalten.",
+    "text": "Wenn deine Rechnungskontakt-E-Mail von deiner {product_name} Konto-E-Mail abweicht, verwende die Rechnungskontakt-E-Mail für das neue Regionskonto, um deine Abonnementvorteile beizubehalten.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

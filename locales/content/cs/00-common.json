@@ -108,7 +108,7 @@
     "text": "Vytvořit účet",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "O nás",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "např. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "O nás",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Stav",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Vždy si ověř, že jsi na oficiálních stránkách Onetime Secret. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako Onetime Secret, aby ukradli tvoje tajemství. Abys předešel/a phishingovým útokům, zkontroluj doménu před vytvořením nových odkazů.",
+    "text": "Vždy si ověř, že jsi na oficiálních stránkách {product_name}. Podvodníci někdy vytvářejí falešné weby, které vypadají přesně jako {product_name}, aby ukradli tvoje tajemství. Abys předešel/a phishingovým útokům, zkontroluj doménu před vytvořením nových odkazů.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

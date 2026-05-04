@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secret을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 한 번만 표시된 후 서버에서 영구적으로 삭제됩니다.",
+    "text": "{product_name}을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 한 번만 표시된 후 서버에서 영구적으로 삭제됩니다.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secret 홈페이지 방문",
+    "text": "{product_name} 홈페이지 방문",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {

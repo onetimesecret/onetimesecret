@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Εάν το email χρέωσης διαφέρει από το email του λογαριασμού σας στο Onetime Secret, χρησιμοποιήστε το email χρέωσης για τον λογαριασμό της νέας περιοχής, ώστε να διατηρήσετε τα πλεονεκτήματα της συνδρομής σας.",
+    "text": "Εάν το email χρέωσης διαφέρει από το email του λογαριασμού σας στο {product_name}, χρησιμοποιήστε το email χρέωσης για τον λογαριασμό της νέας περιοχής, ώστε να διατηρήσετε τα πλεονεκτήματα της συνδρομής σας.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {
