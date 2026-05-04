@@ -50,7 +50,7 @@ const showSsoOnly = computed(() =>
 // instead of standard auth forms (password auth isn't appropriate here —
 // org members are expected to use domain-level SSO)
 const showCustomDomainNoSso = computed(() =>
-  isCustom.value && !showSsoOnly.value
+  ssoEnabled && isCustom.value && !showSsoOnly.value
 );
 
 // Show passwordless-first UI when any passwordless method is enabled
