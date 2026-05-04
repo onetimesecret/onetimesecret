@@ -154,8 +154,10 @@ const schema = z.object({
         {{else}}
         <div class="error-details">
           <p>
-            Error ID: <code>{{error_id}}</code><br />
+            Error ID: <code>{{error_id}}</code>
+            {{#support_email}}<br />
             If this problem persists, please contact {{support_email}}
+            {{/support_email}}
           </p>
         </div>
         {{/if}}
