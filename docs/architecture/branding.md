@@ -41,7 +41,7 @@ Custom domains can define their own brand identity stored in Redis. When present
 **Scope**: Installation-wide defaults
 **Priority**: Medium
 
-Site-wide brand defaults read from `OT.conf['brand']` section at runtime and delivered to the frontend via bootstrap payload. `OT.conf['brand']` is populated from `BRAND_*` ENV vars at boot; no `brand:` block ships in `etc/defaults/config.defaults.yaml`. When the section is absent, this step contributes no values and resolution falls through to step 3.
+Site-wide brand defaults read from `OT.conf['brand']` section at runtime and delivered to the frontend via bootstrap payload. `OT.conf['brand']` is populated by the `brand:` block in `etc/defaults/config.defaults.yaml`, which exposes the `BRAND_*` ENV vars to the runtime config. Every key in that block defaults to `nil` so no OTS-branded values ship in the YAML — neutralization lives in the Ruby resolvers (`BrandSettingsConstants.defaults` / `.global_defaults`), per #3049. When `OT.conf['brand']` is absent (e.g. operators with a pre-#3048 `config.yaml` that doesn't include the block), the resolver falls through to neutral defaults.
 
 **Backend Flow**:
 ```ruby
@@ -198,7 +198,7 @@ domain.save
 
 ### Backend: Setting Site-Wide Defaults via ENV
 
-No `brand:` block ships in `etc/defaults/config.defaults.yaml`. Operators set `BRAND_*` ENV vars; the runtime resolver in `BrandSettingsConstants.global_defaults` reads `OT.conf['brand']` and falls back to neutral when the section is absent.
+A `brand:` block ships in `etc/defaults/config.defaults.yaml` exposing the `BRAND_*` ENV vars; every key defaults to `nil` so no OTS branding is baked into shipped defaults. Operators set `BRAND_*` ENV vars to populate the block. The runtime resolver in `BrandSettingsConstants.global_defaults` reads `OT.conf['brand']` and falls back to neutral when the section is absent or its values are nil.
 
 ```bash
 # Operator override path (set in deployment env, .env file, or process manager)
@@ -259,7 +259,8 @@ useBrandTheme()
 - `apps/web/core/views/serializers/config_serializer.rb` — Bootstrap payload
 - `apps/web/core/templates/partials/head-base.rue` — `theme-color`/`mask-icon` use `{{brand_primary_color}}`
 - `lib/onetime/mail/views/base.rb` — `TemplateContext` helpers (`brand_color`, `logo_url`, `logo_alt`, `product_name`, `support_email`)
-- `etc/defaults/config.defaults.yaml` — Ships **no** `brand:` block (operators set `BRAND_*` ENV vars)
+- `etc/defaults/config.defaults.yaml` — Ships a `brand:` block with all-nil defaults; operators set `BRAND_*` ENV vars to populate it
+- `etc/config.schema.yaml` — Top-level `brand:` schema (all keys optional, validated by `bin/ots validate`)
 
 ### Frontend
 - `src/shared/stores/identityStore.ts` — 3-step fallback implementation
