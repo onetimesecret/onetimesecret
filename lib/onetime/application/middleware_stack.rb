@@ -12,6 +12,7 @@ require_relative '../session'
 require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/csrf_response_header'
+require_relative '../middleware/normalize_content_type'
 require 'otto'
 
 module Onetime
@@ -158,6 +159,11 @@ module Onetime
           require 'middleware/request_id'
           builder.use Rack::RequestId, generator: -> { Familia.generate_trace_id }
 
+          # Recover a parseable Content-Type for clients that send malformed
+          # or duplicate Content-Type headers (e.g. legacy PHP clients that
+          # set text/html before application/x-www-form-urlencoded). See
+          # Onetime::Middleware::NormalizeContentType for the rationale.
+          builder.use Onetime::Middleware::NormalizeContentType
           builder.use Rack::Parser, parsers: @parsers
           # Add session middleware early in the stack (before other middleware)
           session_config = Onetime.session_config
