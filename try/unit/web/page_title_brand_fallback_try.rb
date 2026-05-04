@@ -243,6 +243,36 @@ result
 #=> 'https://docs.acme.test/'
 
 # ============================================================================
+# DOCS_URL fallback regression guard (gap 2 — issue #3048)
+# ============================================================================
+#
+# When DOCS_URL is unset, docs_host must resolve to the hardcoded default
+# 'https://docs.onetimesecret.com/'. The pair-with-DOCS_URL-set test above
+# proves the env override path; this proves the default path so neither
+# end of the precedence chain regresses silently.
+
+## docs_host falls back to default when DOCS_URL is unset
+@_saved_docs_url = ENV.delete('DOCS_URL')
+begin
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['docs_host']
+ensure
+  ENV['DOCS_URL'] = @_saved_docs_url if @_saved_docs_url
+end
+#=> 'https://docs.onetimesecret.com/'
+
+## [regression guard] DOCS_URL fallback default is non-empty https URL
+@_saved_docs_url2 = ENV.delete('DOCS_URL')
+begin
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  result = vars['docs_host']
+  result.is_a?(String) && result.start_with?('https://') && !result.empty?
+ensure
+  ENV['DOCS_URL'] = @_saved_docs_url2 if @_saved_docs_url2
+end
+#=> true
+
+# ============================================================================
 # Sanity: brand_primary_color reflects override when set
 # ============================================================================
 
