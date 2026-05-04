@@ -301,10 +301,12 @@ module Onetime
         # Try Redis cache
         plan = ::Billing::Plan.load(planid)
         if plan
-          ents = plan.entitlements.to_a
+          ents       = plan.entitlements.to_a
           puts '  Source: Redis plan cache'
           puts "  Key:    billing_plan:#{planid}:entitlements"
           puts "  Count:  #{ents.size}"
+          product_id = plan.respond_to?(:stripe_product_id) ? plan.stripe_product_id : nil
+          puts "  Stripe Product: #{product_id.to_s.empty? ? '(none)' : product_id}"
           if verbose && plan.respond_to?(:tier)
             puts "  Tier:   #{plan.tier}"
           end
