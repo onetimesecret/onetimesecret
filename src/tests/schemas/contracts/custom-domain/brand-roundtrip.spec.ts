@@ -308,6 +308,98 @@ describe('CornerStyle enum', () => {
 // Edge cases
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// stripHtmlTags — round-trip persistence
+// -----------------------------------------------------------------------------
+//
+// The schema applies a stripHtmlTags transform to product_name and footer_text.
+// The existing per-field tests above cover one-shot stripping; these tests
+// confirm the stripped form survives serialize → JSON → reparse, and document
+// behavior on entity-encoded inputs (which the regex-based stripper does NOT
+// decode — they pass through as-is, which is the documented contract since
+// server-side Sanitize is the primary defense).
+
+describe('stripHtmlTags round-trip persistence', () => {
+  it('stripped product_name survives JSON round-trip', () => {
+    const tagged = { product_name: '<b>Bold</b> Name' };
+    const first = brandSettingsCanonical.parse(tagged);
+    expect(first.product_name).toBe('Bold Name');
+
+    const serialized = JSON.stringify(first);
+    const reparsed = brandSettingsCanonical.parse(JSON.parse(serialized));
+    expect(reparsed.product_name).toBe('Bold Name');
+    expect(reparsed.product_name).toBe(first.product_name);
+  });
+
+  it('stripped footer_text survives JSON round-trip', () => {
+    const tagged = { footer_text: '<i>foot</i> note' };
+    const first = brandSettingsCanonical.parse(tagged);
+    expect(first.footer_text).toBe('foot note');
+
+    const serialized = JSON.stringify(first);
+    const reparsed = brandSettingsCanonical.parse(JSON.parse(serialized));
+    expect(reparsed.footer_text).toBe('foot note');
+  });
+
+  it('strips a <script> tag in product_name', () => {
+    const result = brandSettingsCanonical.parse({
+      product_name: 'Acme<script>alert(1)</script>',
+    });
+    expect(result.product_name).toBe('Acmealert(1)');
+    expect(result.product_name).not.toContain('<');
+    expect(result.product_name).not.toContain('>');
+  });
+
+  it('entity-encoded tags are NOT decoded by the regex stripper (pass-through)', () => {
+    // Documented behavior: the stripper operates on literal '<' and '>' only.
+    // Entity-encoded forms like &lt;script&gt; pass through; server-side
+    // Sanitize handles this layer of decoding before the data reaches the
+    // frontend in normal flow.
+    const result = brandSettingsCanonical.parse({
+      product_name: '&lt;script&gt;evil&lt;/script&gt;',
+    });
+    expect(result.product_name).toBe('&lt;script&gt;evil&lt;/script&gt;');
+  });
+
+  it('round-trips an object with HTML in both transformed fields', () => {
+    const tagged = {
+      product_name: '<b>Acme</b>',
+      footer_text: '<small>(c) Acme</small>',
+      // include a benign field to confirm round-trip stability for the rest.
+      primary_color: '#3B82F6',
+    };
+    const first = brandSettingsCanonical.parse(tagged);
+    expect(first.product_name).toBe('Acme');
+    expect(first.footer_text).toBe('(c) Acme');
+
+    const reparsed = brandSettingsCanonical.parse(JSON.parse(JSON.stringify(first)));
+    expect(reparsed).toEqual(first);
+  });
+});
+
+// -----------------------------------------------------------------------------
+// URL validators — regression guard for http vs https
+// -----------------------------------------------------------------------------
+//
+// Backend Ruby validates URLs as https-only per #3048. The frontend Zod schema
+// currently uses .url() (no scheme restriction), so http URLs are accepted.
+// These tests pin that behavior so a future tightening (or accidental
+// loosening) is visible in the diff.
+
+describe('logo/favicon URL scheme — frontend allows http (regression guard)', () => {
+  it.each(['logo_url', 'logo_dark_url', 'favicon_url'] as const)(
+    '%s accepts http URL (frontend .url() is scheme-agnostic)',
+    (field) => {
+      const result = brandSettingsCanonical.parse({
+        [field]: 'http://insecure.example.com/asset.png',
+      });
+      expect((result as Record<string, unknown>)[field]).toBe(
+        'http://insecure.example.com/asset.png'
+      );
+    }
+  );
+});
+
 describe('edge cases', () => {
   it('omitting all 7 new fields parses without error', () => {
     const result = brandSettingsCanonical.parse({});
