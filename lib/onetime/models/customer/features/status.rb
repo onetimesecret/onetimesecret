@@ -42,6 +42,14 @@ module Onetime::Customer::Features
       def verified=(value)
         super(Status.canonical_verified(value))
       end
+
+      # Familia's single-field fast writer is used in the Rodauth sync
+      # path (`customer.verified!(rodauth_status_verified?)`) and
+      # bypasses `verified=`, so coerce here as well to keep the on-disk
+      # form canonical regardless of how callers persist the field.
+      def verified!(value)
+        super(Status.canonical_verified(value))
+      end
     end
 
     module ClassMethods
