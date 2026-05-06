@@ -65,9 +65,7 @@ module ColonelAPI
         private
 
         def build_org_data(org)
-          owner      = org.owner
-          created_ts = org.created.to_i
-          updated_ts = org.updated.to_i if org.updated
+          owner = org.owner
 
           {
             org_id: org.objid,
@@ -79,10 +77,8 @@ module ColonelAPI
             member_count: org.member_count,
             domain_count: org.domain_count,
             is_default: org.is_default.to_s == 'true',
-            created: created_ts,
-            created_human: format_timestamp(created_ts),
-            updated: updated_ts,
-            updated_human: format_timestamp(updated_ts),
+            created: org.created.to_i,
+            updated: org.updated&.to_i,
             # Billing fields
             planid: org.planid,
             stripe_customer_id: org.stripe_customer_id,
@@ -94,12 +90,6 @@ module ColonelAPI
             sync_status: compute_sync_status(org),
             sync_status_reason: compute_sync_status_reason(org),
           }
-        end
-
-        def format_timestamp(ts)
-          return nil unless ts && ts.positive?
-
-          Time.at(ts).utc.strftime('%Y-%m-%d %H:%M UTC')
         end
 
         # Compute sync health status based on billing state consistency

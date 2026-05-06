@@ -97,6 +97,15 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const _initialized = ref(false);
   const isLoading = ref(false);
 
+  // Per-list-resource validation error state. Holds the schema name when
+  // gracefulParse fails so views can distinguish "fetch returned nothing"
+  // from "the response did not match the expected schema". Set to null on
+  // each successful fetch.
+  const usersFetchError = ref<string | null>(null);
+  const secretsFetchError = ref<string | null>(null);
+  const customDomainsFetchError = ref<string | null>(null);
+  const organizationsFetchError = ref<string | null>(null);
+
   // Actions
   async function fetch() {
     isLoading.value = true;
@@ -162,9 +171,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       if (!result.ok) {
         users.value = [];
         usersPagination.value = null;
+        usersFetchError.value = 'ColonelUsersResponse';
         return null;
       }
 
+      usersFetchError.value = null;
       if (result.data.details) {
         users.value = result.data.details.users;
         usersPagination.value = result.data.details.pagination;
@@ -194,9 +205,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       if (!result.ok) {
         secrets.value = [];
         secretsPagination.value = null;
+        secretsFetchError.value = 'ColonelSecretsResponse';
         return null;
       }
 
+      secretsFetchError.value = null;
       if (result.data.details) {
         secrets.value = result.data.details.secrets;
         secretsPagination.value = result.data.details.pagination;
@@ -335,9 +348,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       if (!result.ok) {
         customDomains.value = [];
         customDomainsPagination.value = null;
+        customDomainsFetchError.value = 'ColonelCustomDomainsResponse';
         return null;
       }
 
+      customDomainsFetchError.value = null;
       if (result.data.details) {
         customDomains.value = result.data.details.domains;
         customDomainsPagination.value = result.data.details.pagination;
@@ -379,9 +394,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
         organizations.value = [];
         organizationsPagination.value = null;
         organizationsFilters.value = null;
+        organizationsFetchError.value = 'ColonelOrganizationsResponse';
         return null;
       }
 
+      organizationsFetchError.value = null;
       if (result.data.details) {
         organizations.value = result.data.details.organizations;
         organizationsPagination.value = result.data.details.pagination;
@@ -488,6 +505,10 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     organizationsFilters.value = null;
     usageExport.value = null;
     queueMetrics.value = null;
+    usersFetchError.value = null;
+    secretsFetchError.value = null;
+    customDomainsFetchError.value = null;
+    organizationsFetchError.value = null;
   }
 
   /**
@@ -535,6 +556,10 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     usageExport,
     queueMetrics,
     isLoading,
+    usersFetchError,
+    secretsFetchError,
+    customDomainsFetchError,
+    organizationsFetchError,
 
     // Actions
     fetch,

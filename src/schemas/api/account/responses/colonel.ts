@@ -8,6 +8,7 @@
  */
 
 import { feedbackSchema } from '@/schemas/shapes/v3/feedback';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Import system settings schemas from config
@@ -46,10 +47,8 @@ export const colonelUserSchema = z.object({
   email: z.string(),
   role: z.string(),
   verified: z.boolean(),
-  created: z.number(),
-  created_human: z.string(),
-  last_login: z.number().nullable(),
-  last_login_human: z.string(),
+  created: transforms.fromNumber.toDate,
+  last_login: transforms.fromNumber.toDateNullable,
   planid: z.string().nullable(),
   secrets_count: z.number(),
   secrets_created: z.number(),
@@ -83,10 +82,8 @@ export const colonelSecretSchema = z.object({
   shortid: z.string(),
   owner_id: z.string().nullable(),
   state: z.string(),
-  created: z.number(),
-  created_human: z.string(),
-  expiration: z.number().nullable(),
-  expiration_human: z.string().nullable(),
+  created: transforms.fromNumber.toDate,
+  expiration: transforms.fromNumber.toDateNullable,
   lifespan: z.number().nullable(),
   receipt_id: z.string().nullable(),
   age: z.number(),
@@ -107,6 +104,8 @@ export const colonelSecretsDetailsSchema = z.object({
 export const databaseMetricsDetailsSchema = z.object({
   redis_info: z.object({
     redis_version: z.string(),
+    valkey_version: z.string().nullish(),
+    server_name: z.string().nullish(),
     redis_mode: z.string().nullable(),
     os: z.string(),
     uptime_in_seconds: z.number(),
@@ -139,7 +138,7 @@ export const databaseMetricsDetailsSchema = z.object({
   model_counts: z.object({
     customers: z.number(),
     secrets: z.number(),
-    receipt: z.number(),
+    receipts: z.number(),
   }),
 });
 
@@ -148,8 +147,7 @@ export const databaseMetricsDetailsSchema = z.object({
  */
 export const redisMetricsDetailsSchema = z.object({
   redis_info: z.record(z.string(), z.string()),
-  timestamp: z.number(),
-  timestamp_human: z.string(),
+  timestamp: transforms.fromNumber.toDate,
 });
 
 /**
@@ -177,10 +175,8 @@ export const bannedIPsDetailsSchema = z.object({
  */
 export const usageExportDetailsSchema = z.object({
   date_range: z.object({
-    start_date: z.number(),
-    start_date_human: z.string(),
-    end_date: z.number(),
-    end_date_human: z.string(),
+    start_date: transforms.fromNumber.toDate,
+    end_date: transforms.fromNumber.toDate,
     days: z.number(),
   }),
   usage_data: z.object({
@@ -209,10 +205,8 @@ export const colonelCustomDomainSchema = z.object({
   resolving: z.boolean(),
   verification_state: z.string(),
   ready: z.boolean(),
-  created: z.number(),
-  created_human: z.string(),
-  updated: z.number().nullable(),
-  updated_human: z.string(),
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDateNullable,
   org_id: z.string(),
   org_name: z.string(),
   brand: z.object({
@@ -330,10 +324,8 @@ export const colonelOrganizationSchema = z.object({
   member_count: z.number(),
   domain_count: z.number(),
   is_default: z.boolean(),
-  created: z.number(),
-  created_human: z.string(),
-  updated: z.number().nullable(),
-  updated_human: z.string(),
+  created: transforms.fromNumber.toDate,
+  updated: transforms.fromNumber.toDateNullable,
   // Billing fields
   planid: z.string().nullable(),
   stripe_customer_id: z.string().nullable(),

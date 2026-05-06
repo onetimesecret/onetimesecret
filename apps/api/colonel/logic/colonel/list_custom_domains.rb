@@ -77,7 +77,7 @@ module ColonelAPI
               created: domain.created,
               updated: domain.updated,
               org_id: domain.org_id,
-              org_name: org ? org.name : 'Unknown',
+              org_name: org ? org.display_name : 'Unknown',
               brand: brand_data,
               has_logo: has_logo,
               has_icon: has_icon,

@@ -78,9 +78,7 @@ module ColonelAPI
             details: {
               date_range: {
                 start_date: start_date,
-                start_date_human: Time.at(start_date).utc.strftime('%Y-%m-%d'),
                 end_date: end_date,
-                end_date_human: Time.at(end_date).utc.strftime('%Y-%m-%d'),
                 days: ((end_date - start_date) / 86_400.0).ceil,
               },
               usage_data: usage_data,

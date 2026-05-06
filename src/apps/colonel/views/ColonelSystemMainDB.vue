@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { storeToRefs } from 'pinia';
-  import { onMounted } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
@@ -13,6 +13,18 @@
   const { fetchDatabaseMetrics } = store;
 
   onMounted(() => fetchDatabaseMetrics());
+
+  // Valkey reports both valkey_version and a Redis-compat redis_version.
+  // Prefer Valkey when present so the page reflects the real engine
+  // rather than the compatibility shim version (e.g. 7.2.4).
+  const engineName = computed(() =>
+    databaseMetrics.value?.redis_info.valkey_version ? 'Valkey' : 'Redis'
+  );
+  const engineVersion = computed(
+    () =>
+      databaseMetrics.value?.redis_info.valkey_version ??
+      databaseMetrics.value?.redis_info.redis_version
+  );
 </script>
 
 <template>
@@ -25,18 +37,18 @@
 
     <div v-else-if="databaseMetrics">
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Main Database (Redis)</h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Redis server information and statistics</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Main Database ({{ engineName }})</h1>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ engineName }} server information and statistics</p>
       </div>
 
-      <!-- Redis Info -->
+      <!-- Server Info -->
       <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
-        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Redis Server</h2>
+        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{{ engineName }} Server</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div>
             <div class="text-sm text-gray-500 dark:text-gray-400">Version</div>
             <div class="text-lg font-mono text-gray-900 dark:text-white">
-              {{ databaseMetrics.redis_info.redis_version }}
+              {{ engineVersion }}
             </div>
           </div>
           <div>
@@ -146,7 +158,7 @@
           <div>
             <div class="text-sm text-gray-500 dark:text-gray-400">Metadata</div>
             <div class="text-2xl font-bold text-gray-900 dark:text-white">
-              {{ databaseMetrics.model_counts.receipt.toLocaleString() }}
+              {{ databaseMetrics.model_counts.receipts.toLocaleString() }}
             </div>
           </div>
         </div>

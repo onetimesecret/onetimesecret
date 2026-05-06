@@ -74,6 +74,13 @@
         color: 'bg-purple-500',
       },
       {
+        name: t('web.colonel.organizations.title'),
+        description: t('web.colonel.organizations.description'),
+        href: '/colonel/organizations',
+        icon: { collection: 'heroicons', name: 'building-office-2' },
+        color: 'bg-indigo-500',
+      },
+      {
         name: t('web.colonel.bannedIps.title'),
         description: t('web.colonel.bannedIps.description'),
         href: '/colonel/banned-ips',
@@ -106,15 +113,6 @@
         color: 'bg-pink-500',
       });
     }
-
-    // Add Organizations billing admin
-    actions.splice(actions.length - 1, 0, {
-      name: t('web.colonel.organizations.title'),
-      description: t('web.colonel.organizations.description'),
-      href: '/colonel/organizations',
-      icon: { collection: 'heroicons', name: 'building-office-2' },
-      color: 'bg-indigo-500',
-    });
 
     return actions;
   });

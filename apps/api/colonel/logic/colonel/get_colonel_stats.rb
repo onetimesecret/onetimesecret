@@ -40,6 +40,7 @@ module ColonelAPI
           @customer_count  = Onetime::Customer.count
           @receipt_count   = Onetime::Receipt.count
           @secret_count    = Onetime::Secret.count
+          @session_count   = 0 # Session tracking now handled by Rack::Session middleware
           # TODO: Re-enable when Customer.global is implemented
           @secrets_created = 0
           @secrets_shared  = 0

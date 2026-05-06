@@ -1,7 +1,9 @@
 <!-- src/apps/colonel/views/ColonelSecrets.vue -->
 
 <script setup lang="ts">
+  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -9,7 +11,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { secrets, secretsPagination, isLoading } = storeToRefs(store);
+  const { secrets, secretsPagination, isLoading, secretsFetchError } = storeToRefs(store);
   const { fetchSecrets } = store;
 
   onMounted(() => fetchSecrets());
@@ -49,14 +51,19 @@ d="M15 19l-7-7 7-7" />
         </p>
       </div>
 
+      <ColonelFetchError
+        v-if="secretsFetchError"
+        :schema="secretsFetchError"
+        resource="secrets" />
+
       <div
-        v-if="secretsPagination"
+        v-else-if="secretsPagination"
         class="mb-4 text-sm text-gray-600 dark:text-gray-400">
         Showing {{ secrets.length }} of {{ secretsPagination.total_count }} secrets
       </div>
 
       <div
-        v-if="secrets.length > 0"
+        v-if="!secretsFetchError && secrets.length > 0"
         class="overflow-x-auto">
         <table data-testid="colonel-secrets-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
@@ -100,10 +107,10 @@ d="M15 19l-7-7 7-7" />
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                {{ secret.created_human }}
+                {{ formatDisplayDateTime(secret.created) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                {{ secret.expiration_human || 'Never' }}
+                {{ secret.expiration ? formatDisplayDateTime(secret.expiration) : 'Never' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                 {{ Math.floor(secret.age / 86400) }}
@@ -114,7 +121,7 @@ d="M15 19l-7-7 7-7" />
       </div>
 
       <div
-        v-else
+        v-else-if="!secretsFetchError"
         class="text-center py-12 text-gray-500 dark:text-gray-400">
         No secrets found
       </div>

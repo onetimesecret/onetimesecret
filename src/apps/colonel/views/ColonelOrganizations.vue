@@ -11,11 +11,13 @@
 -->
 
 <script setup lang="ts">
+  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import type {
     ColonelOrganization,
     InvestigateOrganizationResult,
   } from '@/schemas/api/account/responses/colonel';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -23,7 +25,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { organizations, organizationsPagination, isLoading } = storeToRefs(store);
+  const { organizations, organizationsPagination, isLoading, organizationsFetchError } = storeToRefs(store);
   const { fetchOrganizations, investigateOrganization } = store;
 
   // Filter state
@@ -157,7 +159,7 @@
       case 'sync_status':
         return getSyncStatusPriority(org.sync_status);
       case 'created':
-        return org.created;
+        return org.created.getTime();
       default:
         return 0;
     }
@@ -329,9 +331,14 @@
         </div>
       </div>
 
+      <ColonelFetchError
+        v-if="organizationsFetchError"
+        :schema="organizationsFetchError"
+        resource="organizations" />
+
       <!-- Empty state -->
       <div
-        v-if="organizations.length === 0"
+        v-else-if="organizations.length === 0"
         class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
         <p class="text-gray-500 dark:text-gray-400">
           {{ t('web.colonel.organizations.noOrganizations') }}
@@ -512,7 +519,7 @@
 
                 <!-- Created -->
                 <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                  {{ org.created_human }}
+                  {{ formatDisplayDateTime(org.created) }}
                 </td>
 
                 <!-- Actions -->
