@@ -309,6 +309,7 @@ class FailingStatusStrategy
     'failing_status'
   end
 end
+@failing_status_strategy = FailingStatusStrategy.new
 
 class PassiveStrategy
   def validate_ownership(_d)
@@ -324,13 +325,21 @@ class PassiveStrategy
     'passthrough'
   end
 end
+@passive_strategy = PassiveStrategy.new
 
-## FailingStatusStrategy (no :data, no :mode) — operation completes successfully
 @failing_status_result = Onetime::Operations::VerifyDomain.new(
   domain: @domain1,
-  strategy: FailingStatusStrategy.new,
+  strategy: @failing_status_strategy,
   persist: true,
 ).call
+
+@passive_result = Onetime::Operations::VerifyDomain.new(
+  domain: @domain2,
+  strategy: @passive_strategy,
+  persist: true,
+).call
+
+## FailingStatusStrategy (no :data, no :mode) — operation completes successfully
 @failing_status_result.success?
 #=> true
 
@@ -339,11 +348,6 @@ end
 #=> false
 
 ## PassiveStrategy (:mode set, no :data) — operation completes successfully
-@passive_result = Onetime::Operations::VerifyDomain.new(
-  domain: @domain2,
-  strategy: PassiveStrategy.new,
-  persist: true,
-).call
 @passive_result.success?
 #=> true
 
