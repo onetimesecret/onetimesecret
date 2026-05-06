@@ -60,7 +60,7 @@
     "content_hash": "00e56551"
   },
   "web.feedback.anonymous_no_reply": {
-    "text": "Heads up: you're not signed in, so we don't have an email address to reply to. If you'd like a response, please sign in first or include your email in the message."
+    "text": "Note: if you'd like a response, please sign or include an email address in the message."
   },
   "web.feedback.authenticated_reply_note": {
     "text": "We'll reply to {email} if a response is needed."
