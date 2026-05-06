@@ -57,7 +57,10 @@ module Onetime
           end
 
           def refresh_domains
-            domains = Onetime::CustomDomain.all.first(batch_size).compact
+            # Pull only the IDs we'll actually process; .all would HGETALL every
+            # domain before slicing. load_multi pipelines the batch fetch.
+            identifiers = Onetime::CustomDomain.instances.revrangeraw(0, batch_size - 1)
+            domains     = Onetime::CustomDomain.load_multi(identifiers).compact
             if domains.empty?
               scheduler_logger.debug '[DomainRefreshJob] No domains to refresh'
               return
