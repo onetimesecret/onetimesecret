@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -35,7 +36,7 @@
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Redis Metrics</h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Complete Redis INFO output ({{ redisMetrics.timestamp_human }})
+          Complete Redis INFO output ({{ formatDisplayDateTime(redisMetrics.timestamp) }})
         </p>
       </div>
 

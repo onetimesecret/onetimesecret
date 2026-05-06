@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -130,10 +131,10 @@ d="M15 19l-7-7 7-7" />
                 {{ user.secrets_count }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                {{ user.created_human }}
+                {{ formatDisplayDateTime(user.created) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                {{ user.last_login_human }}
+                {{ user.last_login ? formatDisplayDateTime(user.last_login) : '—' }}
               </td>
             </tr>
           </tbody>

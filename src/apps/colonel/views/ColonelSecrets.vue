@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -100,10 +101,10 @@ d="M15 19l-7-7 7-7" />
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                {{ secret.created_human }}
+                {{ formatDisplayDateTime(secret.created) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                {{ secret.expiration_human || 'Never' }}
+                {{ secret.expiration ? formatDisplayDateTime(secret.expiration) : 'Never' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                 {{ Math.floor(secret.age / 86400) }}

@@ -16,6 +16,7 @@
     ColonelOrganization,
     InvestigateOrganizationResult,
   } from '@/schemas/api/account/responses/colonel';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -157,7 +158,7 @@
       case 'sync_status':
         return getSyncStatusPriority(org.sync_status);
       case 'created':
-        return org.created;
+        return org.created.getTime();
       default:
         return 0;
     }
@@ -512,7 +513,7 @@
 
                 <!-- Created -->
                 <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                  {{ org.created_human }}
+                  {{ formatDisplayDateTime(org.created) }}
                 </td>
 
                 <!-- Actions -->

@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -153,11 +154,13 @@ d="M15 19l-7-7 7-7" />
             </div>
             <div>
               <span class="text-gray-500 dark:text-gray-400">Created:</span>
-              <p class="text-gray-900 dark:text-white">{{ domain.created_human }}</p>
+              <p class="text-gray-900 dark:text-white">{{ formatDisplayDateTime(domain.created) }}</p>
             </div>
             <div>
               <span class="text-gray-500 dark:text-gray-400">Updated:</span>
-              <p class="text-gray-900 dark:text-white">{{ domain.updated_human }}</p>
+              <p class="text-gray-900 dark:text-white">
+                {{ domain.updated ? formatDisplayDateTime(domain.updated) : '—' }}
+              </p>
             </div>
           </div>
 
