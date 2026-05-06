@@ -46,8 +46,10 @@
                 <!-- Metadata -->
                 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #666666; margin-bottom: 24px; padding: 12px; background-color: #f5f5f5; border-radius: 4px;">
                   <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.from_label') %></strong> <%= h(email_address) %></p>
-                  <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.domain_label') %></strong> <%= h(display_domain) %></p>
-                  <p style="margin: 0;"><strong><%= t('email.feedback_email.strategy_label') %></strong> <%= h(domain_strategy) %></p>
+                  <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.user_id_label') %></strong> <%= h(user_id) %></p>
+                  <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.domain_label') %></strong> <%= h(display_domain) %> (<%= h(domain_strategy) %>)</p>
+                  <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.timezone_label') %></strong> <%= h(tz) %></p>
+                  <p style="margin: 0;"><strong><%= t('email.feedback_email.version_label') %></strong> <%= h(version) %></p>
                 </div>
 
                 <!-- Message -->

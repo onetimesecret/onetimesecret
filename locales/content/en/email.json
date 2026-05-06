@@ -239,6 +239,9 @@
     "text": "From:",
     "content_hash": "dc45d36f"
   },
+  "email.feedback_email.user_id_label": {
+    "text": "User:"
+  },
   "email.feedback_email.domain_label": {
     "text": "Domain:",
     "content_hash": "a4c7de06"
@@ -246,6 +249,12 @@
   "email.feedback_email.strategy_label": {
     "text": "Strategy:",
     "content_hash": "8132ec6b"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "Timezone:"
+  },
+  "email.feedback_email.version_label": {
+    "text": "Version:"
   },
   "email.feedback_email.message_label": {
     "text": "Message:",

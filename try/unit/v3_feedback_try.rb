@@ -43,39 +43,39 @@ OT.boot! :test, false
 }
 
 
-## format_feedback_message returns anon identifier for nil customer
+## feedback_user_id returns anon identifier for nil customer
 strategy_result = MockStrategyResult.anonymous
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-formatted = logic.send(:format_feedback_message)
-# Should contain anon: prefix and session identifier
-formatted.include?('anon:') && formatted.include?('[TZ: America/New_York]')
+logic.send(:feedback_user_id).start_with?('anon:')
 #=> true
 
-## format_feedback_message returns anon identifier for anonymous customer (role=anonymous)
+## feedback_user_id returns anon identifier for anonymous customer (role=anonymous)
 # Even if cust is set but has anonymous role, should be treated as anonymous
 session = MockSession.new
 strategy_result = MockStrategyResult.new(session: session, user: @anonymous_customer, auth_method: 'session')
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-formatted = logic.send(:format_feedback_message)
-# anonymous_user? checks cust.nil? || cust.anonymous?, so anonymous role also returns anon: prefix
-formatted.include?('anon:')
+logic.send(:feedback_user_id).start_with?('anon:')
 #=> true
 
-## format_feedback_message returns extid for authenticated customer
+## feedback_user_id returns extid for authenticated customer
 session = MockSession.new
 strategy_result = MockStrategyResult.authenticated(@authenticated_customer, session: session)
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-formatted = logic.send(:format_feedback_message)
-# Should contain the customer extid
-formatted.include?(@authenticated_customer.extid)
-#=> true
+logic.send(:feedback_user_id)
+#=> @authenticated_customer.extid
 
-## format_feedback_message includes timezone and version in output
+## formatted_for_storage embeds user id, timezone and version metadata
+# The Redis-stored copy keeps a single-line representation for the colonel
+# admin view, even though the email body now renders these as separate
+# fields rather than appending them to the message text.
 session = MockSession.new
 strategy_result = MockStrategyResult.authenticated(@authenticated_customer, session: session)
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-formatted = logic.send(:format_feedback_message)
-formatted.include?('[TZ: America/New_York]') && formatted.include?('[v1.0.0]')
+formatted = logic.send(:formatted_for_storage, 'Hello world')
+formatted.include?('Hello world') &&
+  formatted.include?(@authenticated_customer.extid) &&
+  formatted.include?('[TZ: America/New_York]') &&
+  formatted.include?('[v1.0.0]')
 #=> true
 
 ## send_feedback handles nil sender without crashing

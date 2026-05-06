@@ -43,7 +43,6 @@ module V3
 
       def process
         @greenlighted = true
-        @msg          = format_feedback_message
         OT.ld [:receive_feedback, msg].inspect
 
         begin
@@ -64,24 +63,29 @@ module V3
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
         end
 
-        Onetime::Feedback.add @msg
+        # Stored Redis copy keeps the metadata appended on a single line so the
+        # colonel admin view can read submitter / TZ / version without a join.
+        Onetime::Feedback.add formatted_for_storage(msg)
 
         success_data
       end
 
-      def format_feedback_message
-        # Use extid for authenticated users, session-based identifier for anonymous.
-        # anonymous_user? is from AuthorizationPolicies, checks cust.nil? || cust.anonymous?
-        identifier = if anonymous_user?
-                       # Generate short identifier from session for anonymous users
-                       sess_id = sess.respond_to?(:id) ? sess.id&.public_id : sess.object_id.to_s(16)
-                       "anon:#{sess_id.to_s[0, 8]}"
-                     else
-                       cust.extid
-                     end
-        "#{msg} [#{identifier}] [TZ: #{tz}] [v#{version}]"
+      # Identifier for the submitter. Authenticated users get their extid;
+      # anonymous users get a stable-per-session anon prefix.
+      def feedback_user_id
+        if anonymous_user?
+          sess_id = sess.respond_to?(:id) ? sess.id&.public_id : sess.object_id.to_s(16)
+          "anon:#{sess_id.to_s[0, 8]}"
+        else
+          cust.extid
+        end
       end
-      private :format_feedback_message
+      private :feedback_user_id
+
+      def formatted_for_storage(message)
+        "#{message} [#{feedback_user_id}] [TZ: #{tz}] [v#{version}]"
+      end
+      private :formatted_for_storage
 
       def success_data
         {
@@ -99,22 +103,27 @@ module V3
         # Fall back to site host from config for feedback emails.
         effective_domain = display_domain || OT.conf.dig('site', 'host')
 
-        # Determine sender email - use actual email for authenticated users,
-        # 'anonymous' indicator for guests (nil sender or anonymous flag)
+        # The body shows an obscured form of the submitter's address so a
+        # leaked archive doesn't expose verbatim email addresses. The actual
+        # address still rides on the Reply-To header (set below) so admins can
+        # reply directly.
         is_anonymous = sender.nil? || sender.anonymous?
-        sender_email = is_anonymous ? 'anonymous' : sender.email
+        display_from = is_anonymous ? 'anonymous' : OT::Utils.obscure_email(sender.email)
 
         email_data = {
           recipient_email: recipient_email,
-          email_address: sender_email,
+          email_address: display_from,
+          user_id: feedback_user_id,
+          tz: tz,
+          version: version,
           message: message,
           display_domain: effective_domain,
           domain_strategy: domain_strategy || :default,
           locale: locale || OT.default_locale,
         }
 
-        # When the submitter is authenticated, set Reply-To to their email so
-        # admins can reply directly without copy/pasting from the message body.
+        # When the submitter is authenticated, set Reply-To to their real email
+        # so admins can reply directly without copy/pasting from the body.
         # For anonymous submissions reply_to is omitted so the mailer falls
         # back to the configured from address (no inbox to reply to).
         email_data[:reply_to] = sender.email unless is_anonymous
