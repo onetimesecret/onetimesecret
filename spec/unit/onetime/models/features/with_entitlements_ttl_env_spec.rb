@@ -252,9 +252,9 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
   end
 
   describe 'DEFAULT_FREE_TTL constant' do
-    it 'equals 14 days in seconds' do
-      expect(described_class::DEFAULT_FREE_TTL).to eq(14 * 24 * 60 * 60)
-      expect(described_class::DEFAULT_FREE_TTL).to eq(1_209_600)
+    it 'equals 7 days in seconds' do
+      expect(described_class::DEFAULT_FREE_TTL).to eq(7 * 24 * 60 * 60)
+      expect(described_class::DEFAULT_FREE_TTL).to eq(604_800)
     end
   end
 
@@ -288,8 +288,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     context 'when PLAN_TTL_ANONYMOUS is not set' do
-      it 'limit_for returns default 14 days for secret_lifetime' do
-        expect(org.limit_for('secret_lifetime')).to eq(1_209_600)
+      it 'limit_for returns default 7 days for secret_lifetime' do
+        expect(org.limit_for('secret_lifetime')).to eq(604_800)
       end
     end
 
