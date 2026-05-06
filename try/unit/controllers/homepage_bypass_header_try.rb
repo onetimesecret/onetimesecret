@@ -205,7 +205,10 @@ OT.conf = @test_config
 # TEARDOWN: Remove config override
 # -------------------------------------------------------------------
 
-## Remove the test config override
+## Remove the test config override and the singleton methods so that
+## later test files reading OT.conf get the real attr_reader, not our stub.
 OT.instance_variable_set(:@test_config_override, nil)
+OT.singleton_class.send(:remove_method, :conf) if OT.singleton_class.method_defined?(:conf) || OT.singleton_class.private_method_defined?(:conf)
+OT.singleton_class.send(:remove_method, :conf=) if OT.singleton_class.method_defined?(:conf=) || OT.singleton_class.private_method_defined?(:conf=)
 true
 #=> true

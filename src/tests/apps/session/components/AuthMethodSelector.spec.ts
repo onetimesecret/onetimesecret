@@ -28,12 +28,16 @@ const mockFeatures = {
 // Mock providers list for getSsoProviders()
 const mockProviders = ref<Array<{ route_name: string; display_name: string }>>([]);
 
+// Mock enforce_sso_only flag from domain SSO config
+const mockEnforceSsoOnly = ref(false);
+
 vi.mock('@/utils/features', () => ({
   isMagicLinksEnabled: () => mockFeatures.magicLinksEnabled.value,
   isWebAuthnEnabled: () => mockFeatures.webauthnEnabled.value,
   isSsoEnabled: () => mockFeatures.ssoEnabled.value,
   isSsoOnlyMode: () => mockFeatures.ssoOnlyMode.value,
   getSsoProviders: () => mockProviders.value,
+  isSsoEnforcedForDomain: () => mockEnforceSsoOnly.value,
 }));
 
 // Mock useProductIdentity store — the component uses storeToRefs(useProductIdentity()),
@@ -136,7 +140,6 @@ describe('AuthMethodSelector', () => {
         hasPasswordlessMethods,
         currentMode,
         handleModeChange,
-        locale: props.locale,
       };
     },
     template: `
@@ -204,6 +207,7 @@ describe('AuthMethodSelector', () => {
     mockFeatures.ssoOnlyMode.value = false;
     mockProviders.value = [];
     mockIsCustomRef.value = false;
+    mockEnforceSsoOnly.value = false;
   });
 
   afterEach(() => {
@@ -717,13 +721,19 @@ describe('AuthMethodSelector', () => {
     });
   });
 
-  describe('Custom Domain Authentication (showCustomDomainNoSso)', () => {
+  describe('Custom Domain Authentication with enforce_sso_only (#3057)', () => {
     /**
-     * Tests for the custom domain fallback behavior using the REAL component.
+     * Tests for custom domain authentication behavior using the REAL component.
      *
-     * On custom domains (isCustom=true), the component enforces SSO-only auth.
-     * When SSO is not configured (no providers or SSO disabled), it shows a
-     * friendly "SSO required" message instead of password/passwordless forms.
+     * Custom domains now use the `enforce_sso_only` flag to control whether
+     * SSO is required. This fixes the previous behavior where custom domains
+     * always enforced SSO-only auth regardless of admin preference.
+     *
+     * Behavior with enforce_sso_only:
+     * - enforce_sso_only=true + providers: show SSO-only section
+     * - enforce_sso_only=true + no providers: show "SSO required" message
+     * - enforce_sso_only=false + providers: show password form + SSO buttons
+     * - enforce_sso_only=false + no providers: show password form only
      *
      * The stub does not replicate isCustom logic, so these tests use the
      * real component via dynamic import (same pattern as Multi-Provider tests).
@@ -733,6 +743,7 @@ describe('AuthMethodSelector', () => {
       isCustom: boolean;
       ssoEnabled?: boolean;
       ssoOnlyMode?: boolean;
+      enforceOnly?: boolean;
       providers?: Array<{ route_name: string; display_name: string }>;
       magic?: boolean;
       webauthn?: boolean;
@@ -740,6 +751,7 @@ describe('AuthMethodSelector', () => {
       mockIsCustomRef.value = opts.isCustom;
       mockFeatures.ssoEnabled.value = opts.ssoEnabled ?? false;
       mockFeatures.ssoOnlyMode.value = opts.ssoOnlyMode ?? false;
+      mockEnforceSsoOnly.value = opts.enforceOnly ?? false;
       mockFeatures.magicLinksEnabled.value = opts.magic ?? false;
       mockFeatures.webauthnEnabled.value = opts.webauthn ?? false;
       mockProviders.value = opts.providers ?? [];
@@ -763,10 +775,11 @@ describe('AuthMethodSelector', () => {
       return w;
     };
 
-    it('shows no-sso message on custom domain when SSO is not configured', async () => {
+    it('shows no-sso message on custom domain when enforce_sso_only=true but SSO not configured', async () => {
       wrapper = await mountRealForCustomDomain({
         isCustom: true,
         ssoEnabled: false,
+        enforceOnly: true,
         providers: [],
       });
 
@@ -780,12 +793,13 @@ describe('AuthMethodSelector', () => {
       expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
     });
 
-    it('shows no-sso message on custom domain when SSO is enabled but no providers', async () => {
+    it('shows no-sso message on custom domain when enforce_sso_only=true and SSO enabled but no providers', async () => {
       // SSO enabled in config but providers array is empty — showSsoOnly is false
       // because it requires providers.length > 0, so showCustomDomainNoSso is true
       wrapper = await mountRealForCustomDomain({
         isCustom: true,
         ssoEnabled: true,
+        enforceOnly: true,
         providers: [],
       });
 
@@ -794,10 +808,11 @@ describe('AuthMethodSelector', () => {
       expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
     });
 
-    it('shows SSO-only section on custom domain when SSO is configured with providers', async () => {
+    it('shows SSO-only section on custom domain when enforce_sso_only=true with providers', async () => {
       wrapper = await mountRealForCustomDomain({
         isCustom: true,
         ssoEnabled: true,
+        enforceOnly: true,
         providers: [
           { route_name: 'entra', display_name: 'Microsoft' },
         ],
@@ -809,10 +824,11 @@ describe('AuthMethodSelector', () => {
       expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
     });
 
-    it('shows multiple SSO buttons on custom domain with multiple providers', async () => {
+    it('shows multiple SSO buttons on custom domain with multiple providers and enforce_sso_only=true', async () => {
       wrapper = await mountRealForCustomDomain({
         isCustom: true,
         ssoEnabled: true,
+        enforceOnly: true,
         providers: [
           { route_name: 'entra', display_name: 'Microsoft' },
           { route_name: 'google', display_name: 'Google' },
@@ -824,11 +840,38 @@ describe('AuthMethodSelector', () => {
       expect(ssoButtons.length).toBe(2);
     });
 
+    it('shows password form on custom domain when enforce_sso_only=false (no SSO)', async () => {
+      // Custom domain without SSO enforcement should show password form
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: false,
+        enforceOnly: false,
+        providers: [],
+      });
+
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(false);
+    });
+
+    it('shows password form + SSO on custom domain when enforce_sso_only=false with providers', async () => {
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: false,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+      });
+
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+    });
+
     it('never shows no-sso message on canonical domain regardless of SSO state', async () => {
       // Canonical domain (isCustom=false) without SSO should show standard auth forms
       wrapper = await mountRealForCustomDomain({
         isCustom: false,
         ssoEnabled: false,
+        enforceOnly: false,
         providers: [],
       });
 
@@ -841,6 +884,7 @@ describe('AuthMethodSelector', () => {
       wrapper = await mountRealForCustomDomain({
         isCustom: false,
         ssoEnabled: true,
+        enforceOnly: false,
         providers: [],
       });
 
@@ -855,6 +899,7 @@ describe('AuthMethodSelector', () => {
         isCustom: true,
         ssoEnabled: true,
         ssoOnlyMode: true,
+        enforceOnly: true,
         providers: [],
       });
 
@@ -865,7 +910,8 @@ describe('AuthMethodSelector', () => {
     it('no-sso message contains expected text content', async () => {
       wrapper = await mountRealForCustomDomain({
         isCustom: true,
-        ssoEnabled: false,
+        ssoEnabled: true,
+        enforceOnly: true,
         providers: [],
       });
 
@@ -874,11 +920,13 @@ describe('AuthMethodSelector', () => {
       expect(noSsoMessage.text()).toContain('Contact your administrator');
     });
 
-    it('custom domain with SSO ignores passwordless flags (SSO takes precedence)', async () => {
-      // Even if magic links and webauthn are enabled, custom domain forces SSO-only
+    it('custom domain with enforce_sso_only=true ignores passwordless flags (SSO takes precedence)', async () => {
+      // When enforce_sso_only=true, even if magic links and webauthn are enabled,
+      // custom domain forces SSO-only
       wrapper = await mountRealForCustomDomain({
         isCustom: true,
         ssoEnabled: true,
+        enforceOnly: true,
         providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
         magic: true,
         webauthn: true,
@@ -887,6 +935,439 @@ describe('AuthMethodSelector', () => {
       expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+    });
+
+    it('custom domain with enforce_sso_only=false shows passwordless + SSO', async () => {
+      // When enforce_sso_only=false, custom domain shows all enabled auth methods
+      wrapper = await mountRealForCustomDomain({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: false,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+        magic: true,
+        webauthn: true,
+      });
+
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+    });
+  });
+
+  describe('enforce_sso_only Field Behavior', () => {
+    /**
+     * Tests for the enforce_sso_only domain setting (#3057).
+     *
+     * This field controls whether password auth is disabled for a custom domain
+     * when SSO is configured. The previous behavior always enforced SSO-only on
+     * custom domains, which was incorrect — admins should be able to allow both
+     * SSO and password auth on their custom domains.
+     *
+     * Test matrix: (isCustom x ssoEnabled x enforce_sso_only x hasProviders)
+     * Focus on the behavioral distinction between enforce_sso_only=true/false.
+     */
+
+    const mountRealWithEnforceSsoOnly = async (opts: {
+      isCustom: boolean;
+      ssoEnabled?: boolean;
+      enforceOnly?: boolean;
+      providers?: Array<{ route_name: string; display_name: string }>;
+      magic?: boolean;
+      webauthn?: boolean;
+    }) => {
+      mockIsCustomRef.value = opts.isCustom;
+      mockFeatures.ssoEnabled.value = opts.ssoEnabled ?? false;
+      mockEnforceSsoOnly.value = opts.enforceOnly ?? false;
+      mockFeatures.magicLinksEnabled.value = opts.magic ?? false;
+      mockFeatures.webauthnEnabled.value = opts.webauthn ?? false;
+      mockProviders.value = opts.providers ?? [];
+
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+      });
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, pinia],
+        },
+      });
+
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // enforce_sso_only=true with providers → show SSO only
+    // ─────────────────────────────────────────────────────────────────────────
+
+    it('shows SSO only when enforce_sso_only=true with providers', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: true,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+      });
+
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+    });
+
+    it('shows multiple SSO buttons when enforce_sso_only=true with multiple providers', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: true,
+        providers: [
+          { route_name: 'entra', display_name: 'Microsoft' },
+          { route_name: 'google', display_name: 'Google' },
+        ],
+      });
+
+      const ssoButtons = wrapper.findAll('[data-testid="sso-button"]');
+      expect(ssoButtons.length).toBe(2);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // enforce_sso_only=false with providers → show all auth methods
+    // ─────────────────────────────────────────────────────────────────────────
+
+    it('shows all auth methods when enforce_sso_only=false with providers', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: false,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+      });
+
+      // Should show password form AND SSO buttons
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+    });
+
+    it('shows passwordless + SSO when enforce_sso_only=false and magic links enabled', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: false,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+        magic: true,
+      });
+
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+    });
+
+    it('shows divider between password form and SSO when enforce_sso_only=false', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: false,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+      });
+
+      expect(wrapper.find('[data-testid="auth-sso-divider"]').exists()).toBe(true);
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // enforce_sso_only=true without providers → edge case (show error/fallback)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    it('shows no-sso message when enforce_sso_only=true but no providers configured', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: true,
+        ssoEnabled: true,
+        enforceOnly: true,
+        providers: [],
+      });
+
+      // Should show the "SSO required" message since enforce_sso_only is true
+      // but there are no providers configured (misconfiguration state)
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+    });
+
+    it('shows no-sso message when enforce_sso_only=true and SSO disabled', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: true,
+        ssoEnabled: false,
+        enforceOnly: true,
+        providers: [],
+      });
+
+      // SSO required but not enabled — show the "contact admin" message
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(true);
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // enforce_sso_only behavior on canonical domain (should be ignored)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    it('ignores enforce_sso_only on canonical domain (isCustom=false)', async () => {
+      wrapper = await mountRealWithEnforceSsoOnly({
+        isCustom: false,
+        ssoEnabled: true,
+        enforceOnly: true,
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
+      });
+
+      // enforce_sso_only is a domain-level setting that only applies to custom domains
+      // On canonical domain, standard auth behavior should apply
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Full test matrix (16 cases)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe('Full Test Matrix (isCustom x ssoEnabled x enforceOnly x hasProviders)', () => {
+      /**
+       * Test matrix for enforce_sso_only behavior.
+       *
+       * Key behavior:
+       * - On canonical domain (isCustom=false): enforce_sso_only is ignored, show standard forms
+       * - On custom domain (isCustom=true):
+       *   - enforce_sso_only=false: show standard forms (password/passwordless + SSO if configured)
+       *   - enforce_sso_only=true + providers: show SSO-only section
+       *   - enforce_sso_only=true + no providers: show "SSO required" error message
+       *
+       * The "noSso" message appears ONLY when:
+       *   isCustom=true AND enforce_sso_only=true AND (no providers OR sso disabled)
+       */
+      // prettier-ignore
+      const testMatrix = [
+        // isCustom=false: canonical domain — enforce_sso_only ignored, standard behavior
+        { isCustom: false, ssoEnabled: false, enforceOnly: false, hasProviders: false,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: false, ssoEnabled: false, enforceOnly: false, hasProviders: true,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: false, ssoEnabled: false, enforceOnly: true, hasProviders: false,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: false, ssoEnabled: false, enforceOnly: true, hasProviders: true,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: false, ssoEnabled: true, enforceOnly: false, hasProviders: false,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: false, ssoEnabled: true, enforceOnly: false, hasProviders: true,
+          expected: { form: true, ssoOnly: false, noSso: false, ssoBtn: true } },
+        { isCustom: false, ssoEnabled: true, enforceOnly: true, hasProviders: false,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: false, ssoEnabled: true, enforceOnly: true, hasProviders: true,
+          expected: { form: true, ssoOnly: false, noSso: false, ssoBtn: true } },
+
+        // isCustom=true, enforceOnly=false: custom domain with optional SSO — standard forms
+        { isCustom: true, ssoEnabled: false, enforceOnly: false, hasProviders: false,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: true, ssoEnabled: false, enforceOnly: false, hasProviders: true,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: true, ssoEnabled: true, enforceOnly: false, hasProviders: false,
+          expected: { form: true, ssoOnly: false, noSso: false } },
+        { isCustom: true, ssoEnabled: true, enforceOnly: false, hasProviders: true,
+          expected: { form: true, ssoOnly: false, noSso: false, ssoBtn: true } },
+
+        // isCustom=true, enforceOnly=true: custom domain with SSO required
+        { isCustom: true, ssoEnabled: false, enforceOnly: true, hasProviders: false,
+          expected: { form: false, ssoOnly: false, noSso: true } },
+        { isCustom: true, ssoEnabled: false, enforceOnly: true, hasProviders: true,
+          expected: { form: false, ssoOnly: false, noSso: true } },
+        { isCustom: true, ssoEnabled: true, enforceOnly: true, hasProviders: false,
+          expected: { form: false, ssoOnly: false, noSso: true } },
+        { isCustom: true, ssoEnabled: true, enforceOnly: true, hasProviders: true,
+          expected: { form: false, ssoOnly: true, noSso: false, ssoBtn: true } },
+      ];
+
+      testMatrix.forEach(({ isCustom, ssoEnabled, enforceOnly, hasProviders, expected }) => {
+        const desc = `isCustom=${isCustom}, ssoEnabled=${ssoEnabled}, enforceOnly=${enforceOnly}, hasProviders=${hasProviders}`;
+
+        it(`renders correctly for ${desc}`, async () => {
+          wrapper = await mountRealWithEnforceSsoOnly({
+            isCustom,
+            ssoEnabled,
+            enforceOnly,
+            providers: hasProviders ? [{ route_name: 'entra', display_name: 'Microsoft' }] : [],
+          });
+
+          expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(expected.form);
+          expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(expected.ssoOnly);
+          expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(expected.noSso);
+
+          if (expected.ssoBtn !== undefined) {
+            expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(expected.ssoBtn);
+          }
+        });
+      });
+    });
+  });
+
+  describe('showSsoOnly Decomposition (#3064)', () => {
+    /**
+     * showSsoOnly is composed of two named intermediaries:
+     *   ssoRequired   = ssoOnly || (isCustom && enforceSsoForDomain)
+     *   ssoConfigured = ssoEnabled && ssoProviders.length > 0
+     *   showSsoOnly   = ssoRequired && ssoConfigured
+     *
+     * These tests isolate one sub-condition at a time so a regression points
+     * at the responsible intermediary instead of the combined expression.
+     */
+
+    const PROVIDERS = [{ route_name: 'entra', display_name: 'Microsoft' }];
+
+    const mountReal = async (opts: {
+      isCustom?: boolean;
+      ssoEnabled?: boolean;
+      ssoOnlyMode?: boolean;
+      enforceOnly?: boolean;
+      providers?: Array<{ route_name: string; display_name: string }>;
+    }) => {
+      mockIsCustomRef.value = opts.isCustom ?? false;
+      mockFeatures.ssoEnabled.value = opts.ssoEnabled ?? false;
+      mockFeatures.ssoOnlyMode.value = opts.ssoOnlyMode ?? false;
+      mockEnforceSsoOnly.value = opts.enforceOnly ?? false;
+      mockProviders.value = opts.providers ?? [];
+
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, createTestingPinia({ createSpy: vi.fn })],
+        },
+      });
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    describe('ssoRequired', () => {
+      it('is satisfied by global sso_only flag on canonical domain', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+
+      it('is satisfied by enforce_sso_only on custom domain (without global sso_only)', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          ssoOnlyMode: false,
+          enforceOnly: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+
+      it('is NOT satisfied by enforce_sso_only on canonical domain', async () => {
+        // isCustom=false short-circuits the per-domain branch
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          enforceOnly: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is NOT satisfied when both sso_only and enforce_sso_only are false', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          ssoOnlyMode: false,
+          enforceOnly: false,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is satisfied by global sso_only even on a custom domain without enforce_sso_only', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          enforceOnly: false,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+    });
+
+    describe('ssoConfigured', () => {
+      it('is NOT satisfied when ssoEnabled is false (even with providers and ssoRequired)', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: false,
+          ssoOnlyMode: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is NOT satisfied when providers array is empty (even with ssoEnabled and ssoRequired)', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: [],
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('is satisfied with ssoEnabled and at least one provider', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+    });
+
+    describe('composition', () => {
+      it('renders SSO-only section when both ssoRequired AND ssoConfigured are true', async () => {
+        wrapper = await mountReal({
+          isCustom: true,
+          ssoEnabled: true,
+          enforceOnly: true,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
+      });
+
+      it('does not render SSO-only section when ssoRequired is true but ssoConfigured is false', async () => {
+        // ssoRequired via global flag, but no providers → ssoConfigured false
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: true,
+          providers: [],
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
+
+      it('does not render SSO-only section when ssoConfigured is true but ssoRequired is false', async () => {
+        wrapper = await mountReal({
+          isCustom: false,
+          ssoEnabled: true,
+          ssoOnlyMode: false,
+          enforceOnly: false,
+          providers: PROVIDERS,
+        });
+        expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
+      });
     });
   });
 });

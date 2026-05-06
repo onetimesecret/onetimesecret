@@ -13,7 +13,7 @@ import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { CustomDomainSsoConfig } from '@/schemas/shapes/sso-config';
+import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
 import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
 // -----------------------------------------------------------------------------
@@ -92,6 +92,7 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   allowed_domains: ['acme.com', 'acme.org'],
   requires_domain_filter: false,
   idp_controls_access: true,
+  enforce_sso_only: false,
   created_at: new Date('2025-01-01T00:00:00Z'),
   updated_at: new Date('2025-01-15T10:00:00Z'),
 };
@@ -103,6 +104,12 @@ const mockOidcConfigData: CustomDomainSsoConfig = {
   issuer: 'https://idp.example.com',
   requires_domain_filter: true,
   idp_controls_access: false,
+  enforce_sso_only: false,
+};
+
+const mockEnforceSsoOnlyConfig: CustomDomainSsoConfig = {
+  ...mockSsoConfigData,
+  enforce_sso_only: true,
 };
 
 const mockDisabledConfig: CustomDomainSsoConfig = {
@@ -181,8 +188,27 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: ['acme.com', 'acme.org'],
         enabled: true,
+        enforce_sso_only: false,
       });
       expect(composable.isConfigured.value).toBe(true);
+    });
+
+    it('maps enforce_sso_only from config to formState', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockEnforceSsoOnlyConfig });
+
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.enforce_sso_only).toBe(true);
+    });
+
+    it('maps enforce_sso_only: false from config to formState', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.enforce_sso_only).toBe(false);
     });
 
     it('sets default formState when domain is unconfigured', async () => {
@@ -200,7 +226,17 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: false,
+        enforce_sso_only: false,
       });
+    });
+
+    it('sets default formState with enforce_sso_only: false', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.enforce_sso_only).toBe(false);
     });
 
     it('snapshots savedFormState on load', async () => {
@@ -465,6 +501,7 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: true,
+        enforce_sso_only: false,
       };
 
       await composable.saveConfig();
@@ -473,6 +510,54 @@ describe('useSsoConfig', () => {
         'SSO configuration updated',
         'success',
         'top'
+      );
+    });
+
+    it('includes enforce_sso_only in save payload when true', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        provider_type: 'entra_id',
+        display_name: 'Test',
+        client_id: 'test-id',
+        client_secret: 'test-secret',
+        tenant_id: 'test-tenant',
+        issuer: '',
+        allowed_domains: [],
+        enabled: true,
+        enforce_sso_only: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockSaveConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({
+          enforce_sso_only: true,
+        })
+      );
+    });
+
+    it('includes enforce_sso_only in save payload when false', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockEnforceSsoOnlyConfig });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Change from true to false
+      composable.formState.value = {
+        ...composable.formState.value,
+        enforce_sso_only: false,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockSaveConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({
+          enforce_sso_only: false,
+        })
       );
     });
   });
@@ -511,6 +596,7 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: false,
+        enforce_sso_only: false,
       });
     });
 
@@ -665,6 +751,52 @@ describe('useSsoConfig', () => {
       expect(composable.hasUnsavedChanges.value).toBe(true);
     });
 
+    it('returns true when enforce_sso_only is toggled on', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Initially false per fixture
+      expect(composable.formState.value.enforce_sso_only).toBe(false);
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        enforce_sso_only: true,
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('returns true when enforce_sso_only is toggled off', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockEnforceSsoOnlyConfig });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Initially true per fixture
+      expect(composable.formState.value.enforce_sso_only).toBe(true);
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        enforce_sso_only: false,
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
+    it('returns false when enforce_sso_only is unchanged', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockEnforceSsoOnlyConfig });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Set to same value
+      composable.formState.value = {
+        ...composable.formState.value,
+        enforce_sso_only: true,
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
     it('returns false when allowed_domains has same items in different order', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: { ...mockSsoConfigData, allowed_domains: ['acme.com', 'acme.org'] },
@@ -773,7 +905,26 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: false,
+        enforce_sso_only: false,
       });
+    });
+
+    it('restores enforce_sso_only from savedFormState', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockEnforceSsoOnlyConfig });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Modify enforce_sso_only
+      composable.formState.value = {
+        ...composable.formState.value,
+        enforce_sso_only: false,
+      };
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+
+      composable.discardChanges();
+
+      expect(composable.formState.value.enforce_sso_only).toBe(true);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
     });
   });
 

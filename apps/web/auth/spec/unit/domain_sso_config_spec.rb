@@ -405,6 +405,61 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   end
 
   # ==========================================================================
+  # enforce_sso_only Tests (Issue #3057)
+  # ==========================================================================
+
+  describe '#enforce_sso_only' do
+    describe 'default value' do
+      it 'defaults to false when not explicitly set' do
+        config = build_domain_sso_config(:oidc)
+        expect(config.enforce_sso_only?).to be false
+      end
+    end
+
+    describe '#enforce_sso_only?' do
+      context 'when enforce_sso_only is true' do
+        it 'returns true' do
+          config = build_domain_sso_config(:oidc, enforce_sso_only: 'true')
+          expect(config.enforce_sso_only?).to be true
+        end
+      end
+
+      context 'when enforce_sso_only is false' do
+        it 'returns false' do
+          config = build_domain_sso_config(:oidc, enforce_sso_only: 'false')
+          expect(config.enforce_sso_only?).to be false
+        end
+      end
+
+      context 'when enforce_sso_only is nil' do
+        it 'returns false (nil treated as disabled)' do
+          config = build_domain_sso_config(:oidc)
+          config.enforce_sso_only = nil
+          expect(config.enforce_sso_only?).to be false
+        end
+      end
+    end
+
+    describe 'field accessor' do
+      it 'responds to enforce_sso_only' do
+        config = build_domain_sso_config(:oidc)
+        expect(config).to respond_to(:enforce_sso_only)
+      end
+
+      it 'responds to enforce_sso_only=' do
+        config = build_domain_sso_config(:oidc)
+        expect(config).to respond_to(:enforce_sso_only=)
+      end
+
+      it 'stores and retrieves the value' do
+        config = build_domain_sso_config(:oidc)
+        config.enforce_sso_only = 'true'
+        expect(config.enforce_sso_only).to eq('true')
+      end
+    end
+  end
+
+  # ==========================================================================
   # AAD Encryption Isolation Tests
   # ==========================================================================
   #

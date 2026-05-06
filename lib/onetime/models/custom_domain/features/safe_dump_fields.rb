@@ -53,6 +53,16 @@ module Onetime::CustomDomain::Features
           end
           obj.instance_variable_get(:@_sso_config_cache)&.enabled? || false
         }
+      base.safe_dump_field :sso_enforce_sso_only,
+        ->(obj) {
+          unless obj.instance_variable_defined?(:@_sso_config_cache)
+            obj.instance_variable_set(
+              :@_sso_config_cache,
+              Onetime::CustomDomain::SsoConfig.find_by_domain_id(obj.identifier),
+            )
+          end
+          obj.instance_variable_get(:@_sso_config_cache)&.enforce_sso_only? || false
+        }
 
       # Homepage config - computed from CustomDomain::HomepageConfig lookup
       # Cache is per-object (cleared on GC when the CustomDomain instance

@@ -108,6 +108,7 @@ module Onetime
       end
 
       def format_product_row(product)
+        plan_id               = product.metadata[Billing::Metadata::FIELD_PLAN_ID] || 'N/A'
         tier                  = product.metadata[Billing::Metadata::FIELD_TIER] || 'N/A'
         tenancy               = product.metadata[Billing::Metadata::FIELD_TENANCY] || 'N/A'
         region                = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
@@ -117,9 +118,10 @@ module Onetime
         active                = product.active ? 'yes' : 'no'
 
         format(
-          '%-30s %-30s %-12s %-12s %-10s %-8s %-10s %s',
+          '%-30s %-30s %-25s %-12s %-12s %-10s %-8s %-10s %s',
           product.id,
           product.name[0..29],
+          plan_id[0..24],
           tier[0..11],
           tenancy[0..11],
           region[0..9],

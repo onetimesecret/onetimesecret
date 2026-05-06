@@ -19,6 +19,7 @@ import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
+import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
 import {
   brandSettingsCanonical,
@@ -185,6 +186,7 @@ export const ssoProviderSchema = z.object({
 export const ssoConfigSchema = z.object({
   enabled: z.boolean().default(false),
   providers: z.array(ssoProviderSchema).default([]),
+  enforce_sso_only: z.boolean().default(false),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -397,6 +399,8 @@ export const bootstrapSchema = z.object({
   authentication: authenticationSettingsSchema.default(authenticationSettingsInner.parse({})),
   d9s_enabled: z.boolean().default(false),
   diagnostics: diagnosticsSchema.default(diagnosticsInner.parse({})),
+  docs_host: z.string().default(''),
+  domains: featuresDomainsSchema.optional(),
   domains_enabled: z.boolean().default(false),
   features: featuresSchema.default(featuresSchema.parse({})),
   frontend_development: z.boolean().default(false),
@@ -406,6 +410,7 @@ export const bootstrapSchema = z.object({
   regions_enabled: z.boolean().default(false),
   secret_options: secretOptionsSchema.default(secretOptionsSchema.parse({})),
   site_host: z.string().default(''),
+  support_email: z.string().default(''),
   support_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),

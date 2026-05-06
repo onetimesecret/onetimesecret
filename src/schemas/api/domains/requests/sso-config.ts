@@ -15,7 +15,7 @@ import { z } from 'zod';
 import {
   patchSsoConfigPayloadSchema,
   putSsoConfigPayloadStrictSchema,
-} from '@/schemas/shapes/sso-config';
+} from '@/schemas/shapes/domains/sso-config';
 
 // Re-export response schemas
 export {

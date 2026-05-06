@@ -49,8 +49,8 @@ end
 @help_out.include?('ots billing diagnose')
 #=> true
 
-## --help shows EMAIL argument as required
-@help_out.include?('REQUIRED Customer email address')
+## --help shows EMAIL argument with conditional requirement note
+@help_out.include?('Customer email address (required unless --org is provided)')
 #=> true
 
 ## --help shows --entitlement option

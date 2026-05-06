@@ -54,8 +54,8 @@ export const NEUTRAL_BRAND_DEFAULTS = {
   button_text_light: DEFAULT_BUTTON_TEXT_LIGHT,
   corner_style: CornerStyle.ROUNDED,
   font_family: FontFamily.SANS,
-  allow_public_homepage: true,
-  allow_public_api: true,
+  allow_public_homepage: false,
+  allow_public_api: false,
 } as const;
 
 export type NeutralBrandDefaults = typeof NEUTRAL_BRAND_DEFAULTS;

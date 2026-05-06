@@ -22,7 +22,7 @@ import type {
 import type {
   CustomDomainSsoConfig,
   SsoProviderType,
-} from '@/schemas/shapes/sso-config';
+} from '@/schemas/shapes/domains/sso-config';
 import {
   SsoService,
   type TestSsoConnectionRequest,
@@ -49,6 +49,7 @@ export interface SsoConfigFormState {
   issuer: string;
   allowed_domains: string[];
   enabled: boolean;
+  enforce_sso_only: boolean;
 }
 
 function createDefaultFormState(): SsoConfigFormState {
@@ -61,6 +62,7 @@ function createDefaultFormState(): SsoConfigFormState {
     issuer: '',
     allowed_domains: [],
     enabled: false,
+    enforce_sso_only: false,
   };
 }
 
@@ -91,6 +93,7 @@ function configToFormState(config: CustomDomainSsoConfig): SsoConfigFormState {
     issuer: config.issuer ?? '',
     allowed_domains: config.allowed_domains ?? [],
     enabled: config.enabled,
+    enforce_sso_only: config.enforce_sso_only,
   };
 }
 
@@ -179,6 +182,7 @@ export function useSsoConfig(domainExtId: string) {
       current.tenant_id !== saved.tenant_id ||
       current.issuer !== saved.issuer ||
       current.enabled !== saved.enabled ||
+      current.enforce_sso_only !== saved.enforce_sso_only ||
       !arraysEqual(current.allowed_domains, saved.allowed_domains)
     );
   });
@@ -224,6 +228,7 @@ export function useSsoConfig(domainExtId: string) {
           issuer: formState.value.issuer.trim() || undefined,
           allowed_domains: formState.value.allowed_domains,
           enabled: formState.value.enabled,
+          enforce_sso_only: formState.value.enforce_sso_only,
         };
 
         // Only include client_secret if provided (non-empty)

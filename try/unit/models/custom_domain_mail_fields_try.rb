@@ -100,6 +100,10 @@ OT.info "Cleaned Redis for mail_fields test run"
 @dump_no_mail.key?(:sso_enabled)
 #=> true
 
+## safe_dump includes sso_enforce_sso_only field (Issue #3057)
+@dump_no_mail.key?(:sso_enforce_sso_only)
+#=> true
+
 # --- Cache isolation: fresh instances get fresh lookups ---
 
 ## Enabling mail config mid-flight is reflected in a new safe_dump

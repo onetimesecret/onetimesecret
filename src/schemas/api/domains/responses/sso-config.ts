@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import { createApiResponseSchema } from '@/schemas/api/base';
-import { customDomainSsoConfigSchema } from '@/schemas/shapes/sso-config';
+import { customDomainSsoConfigSchema } from '@/schemas/shapes/domains/sso-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Response-specific details schema

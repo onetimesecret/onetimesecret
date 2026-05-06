@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { useProductIdentity } from '@/shared/stores/identityStore';
-import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode } from '@/utils/features';
+import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode, isSsoEnforcedForDomain } from '@/utils/features';
 import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
@@ -39,18 +39,28 @@ const ssoOnly = computed(() => isSsoOnlyMode());
 // Extract SSO providers via feature utility
 const ssoProviders = computed(() => getSsoProviders());
 
-// SSO-only mode: show only SSO buttons when:
-// - explicit sso_only mode is active, OR
-// - on a custom domain (org members must use SSO)
-const showSsoOnly = computed(() =>
-  (ssoOnly.value || isCustom.value) && ssoEnabled && ssoProviders.value.length > 0
+// SSO enforcement for custom domains
+const enforceSsoForDomain = computed(() => isSsoEnforcedForDomain());
+
+// SSO is required when either the global sso_only flag is on, or the
+// active custom domain has enforce_sso_only enabled.
+const ssoRequired = computed(
+  () => ssoOnly.value || (isCustom.value && enforceSsoForDomain.value)
 );
 
-// Custom domain without SSO configured: show friendly availability message
-// instead of standard auth forms (password auth isn't appropriate here —
-// org members are expected to use domain-level SSO)
+// SSO is usable when it's globally enabled and at least one provider is configured.
+const ssoConfigured = computed(() => ssoEnabled && ssoProviders.value.length > 0);
+
+// SSO-only mode: show only SSO buttons when SSO is both required and configured.
+const showSsoOnly = computed(() => ssoRequired.value && ssoConfigured.value);
+
+// Custom domain with SSO enforcement but SSO not properly configured:
+// show friendly "SSO required" message instead of standard auth forms.
+// This appears when:
+// - On a custom domain with enforce_sso_only=true
+// - But SSO is disabled OR no providers are configured (misconfiguration)
 const showCustomDomainNoSso = computed(() =>
-  isCustom.value && !showSsoOnly.value
+  isCustom.value && enforceSsoForDomain.value && !showSsoOnly.value
 );
 
 // Show passwordless-first UI when any passwordless method is enabled
@@ -112,7 +122,7 @@ defineExpose({ currentMode });
         :locale="locale" />
 
       <!-- SSO section when SSO is enabled -->
-      <template v-if="ssoEnabled && ssoProviders.length > 0">
+      <template v-if="ssoConfigured">
         <!-- Divider -->
         <div class="relative" data-testid="auth-sso-divider">
           <div class="absolute inset-0 flex items-center" aria-hidden="true">

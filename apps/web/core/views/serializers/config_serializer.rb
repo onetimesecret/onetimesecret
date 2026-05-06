@@ -266,6 +266,7 @@ module Core
         def build_tenant_sso_response(config)
           {
             'enabled' => true,
+            'enforce_sso_only' => config.enforce_sso_only?,
             'providers' => [
               {
                 'route_name' => config.platform_route_name,

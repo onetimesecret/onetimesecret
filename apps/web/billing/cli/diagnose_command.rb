@@ -6,7 +6,7 @@ require_relative 'helpers'
 
 module Onetime
   module CLI
-    # Diagnose entitlement resolution for a specific user
+    # Diagnose entitlement resolution for a specific user or organization
     #
     # Walks the full chain: email → customer → org → planid → plan cache →
     # billing.yaml fallback → entitlements. Reports the first break point found.
@@ -14,14 +14,21 @@ module Onetime
     # Usage:
     #   bin/ots billing diagnose user@example.com
     #   bin/ots billing diagnose user@example.com --entitlement custom_mail_sender
+    #   bin/ots billing diagnose --org on8q30gih2uxu2cw77jzh7caq07
+    #   bin/ots billing diagnose --org on8q30gih2uxu2cw77jzh7caq07 --entitlement manage_sso
     #   bin/ots billing diagnose user@example.com --verbose
     #
     class BillingDiagnoseCommand < Command
       include BillingHelpers
 
-      desc 'Diagnose entitlement resolution for a user'
+      desc 'Diagnose entitlement resolution for a user or organization'
 
-      argument :email, required: true, desc: 'Customer email address'
+      argument :email, required: false, desc: 'Customer email address (required unless --org is provided)'
+
+      option :org,
+        type: :string,
+        default: nil,
+        desc: 'Organization extid (e.g., on8q30gih2uxu2cw77jzh7caq07); bypasses email lookup'
 
       option :entitlement,
         type: :string,
@@ -33,24 +40,41 @@ module Onetime
         default: false,
         desc: 'Show all resolution details even when passing'
 
-      def call(email:, entitlement: nil, verbose: false, **)
-        require_sudo
+      def call(email: nil, org: nil, entitlement: nil, verbose: false, **)
         boot_application!
 
-        puts "Diagnosing: #{email}"
+        if email.to_s.empty? && org.to_s.empty?
+          warn "'ots billing diagnose' was called with no arguments"
+          warn ''
+          warn 'Usage: ots billing diagnose EMAIL [OPTIONS]'
+          warn '   or: ots billing diagnose --org EXTID [OPTIONS]'
+          exit 1
+        end
+
+        target = org.to_s.empty? ? email : "org=#{org}"
+        puts "Diagnosing: #{target}"
         puts '=' * 70
         puts
 
         # Step 1: Billing enabled?
         billing_on = check_billing_enabled(verbose)
 
-        # Step 2: Customer lookup
-        customer = check_customer(email)
-        return unless customer
+        # Step 2 & 3: Customer + Organization lookup
+        # When --org is given, resolve the org first and derive the customer
+        # from its owner_id. Otherwise walk email → customer → default org.
+        if org.to_s.empty?
+          customer = check_customer(email)
+          return unless customer
 
-        # Step 3: Organization lookup
-        org = check_organization(customer)
-        return unless org
+          resolved_org = check_organization(customer)
+          return unless resolved_org
+        else
+          resolved_org = check_organization_by_extid(org)
+          return unless resolved_org
+
+          _customer = check_customer_for_org(resolved_org)
+        end
+        org = resolved_org
 
         # Step 4: Plan assignment
         planid = check_planid(org, verbose)
@@ -188,6 +212,59 @@ module Onetime
         org
       end
 
+      def check_organization_by_extid(extid)
+        puts 'ORGANIZATION'
+        puts '-' * 70
+
+        org = Onetime::Organization.find_by_extid(extid)
+        unless org
+          puts "  NOT FOUND: No organization with extid '#{extid}'"
+          puts
+          return nil
+        end
+
+        puts "  Org ID:       #{org.objid}"
+        puts "  ExtID:        #{org.extid}"
+        puts "  Display Name: #{org.display_name}"
+        puts "  Is Default:   #{org.is_default}"
+
+        stripe_cust = org.respond_to?(:stripe_customer_id) ? org.stripe_customer_id : nil
+        stripe_sub  = org.respond_to?(:stripe_subscription_id) ? org.stripe_subscription_id : nil
+        puts "  Stripe Customer:     #{stripe_cust.to_s.empty? ? '(none)' : stripe_cust}"
+        puts "  Stripe Subscription: #{stripe_sub.to_s.empty? ? '(none)' : stripe_sub}"
+        puts
+
+        org
+      end
+
+      def check_customer_for_org(org)
+        puts 'CUSTOMER (resolved from org.owner_id)'
+        puts '-' * 70
+
+        owner_id = org.respond_to?(:owner_id) ? org.owner_id : nil
+        if owner_id.to_s.empty?
+          puts '  (none) — org has no owner_id set'
+          puts
+          return nil
+        end
+
+        customer = Onetime::Customer.load(owner_id)
+
+        unless customer
+          puts "  NOT FOUND: owner_id=#{owner_id} did not resolve to a customer"
+          puts
+          return nil
+        end
+
+        puts "  Email:    #{customer.email || customer.custid}"
+        puts "  Role:     #{customer.role}"
+        puts "  Verified: #{customer.verified}"
+        puts "  ExtID:    #{customer.extid}"
+        puts
+
+        customer
+      end
+
       def check_planid(org, _verbose)
         puts 'PLAN ASSIGNMENT'
         puts '-' * 70
@@ -227,10 +304,11 @@ module Onetime
         # Try Redis cache
         plan = ::Billing::Plan.load(planid)
         if plan
-          ents = plan.entitlements.to_a
+          ents       = plan.entitlements.to_a
           puts '  Source: Redis plan cache'
           puts "  Key:    billing_plan:#{planid}:entitlements"
           puts "  Count:  #{ents.size}"
+          puts "  Stripe Product: #{plan.stripe_product_id.to_s.empty? ? '(none)' : plan.stripe_product_id}"
           if verbose && plan.respond_to?(:tier)
             puts "  Tier:   #{plan.tier}"
           end
