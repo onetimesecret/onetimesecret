@@ -307,28 +307,30 @@ class FailingStatusStrategy
 end
 
 # Seed the domain with a successful prior fetch
-@cached_vhost = '{"status":"ACTIVE_SSL","is_resolving":true}'
-@domain1.vhost = @cached_vhost
+@cached_vhost_hash = { 'status' => 'ACTIVE_SSL', 'is_resolving' => true }
+@domain1.vhost = @cached_vhost_hash.to_json
 @domain1.resolving = 'true'
 @domain1.vhost_fetch_failed_at = nil
 @domain1.save
+@domain1.refresh!
 
 Onetime::Operations::VerifyDomain.new(
   domain: @domain1,
   strategy: FailingStatusStrategy.new,
   persist: true,
 ).call
+@domain1.refresh!
 
-## Atomic update preserves vhost on failed status fetch
-@domain1.vhost
-#=> @cached_vhost
+## Atomic update preserves vhost (parsed) on failed status fetch
+@domain1.parse_vhost
+#=> @cached_vhost_hash
 
 ## Atomic update preserves resolving on failed status fetch
-@domain1.resolving
+@domain1.resolving.to_s
 #=> 'true'
 
 ## Atomic update sets vhost_fetch_failed_at on failure
-@domain1.vhost_fetch_failed_at.to_i.positive?
+!@domain1.vhost_fetch_failed_at.to_s.empty? && @domain1.vhost_fetch_failed_at.to_i.positive?
 #=> true
 
 ## Atomic update clears vhost_fetch_failed_at on next success
@@ -340,8 +342,9 @@ Onetime::Operations::VerifyDomain.new(
 Onetime::Operations::VerifyDomain.new(
   domain: @domain1, strategy: @strategy, persist: true,
 ).call
-@domain1.vhost_fetch_failed_at
-#=> nil
+@domain1.refresh!
+@domain1.vhost_fetch_failed_at.to_s.empty?
+#=> true
 
 ## verified preserved when validate_ownership has no fresh-data indicator
 class FailingValidationStrategy
@@ -367,7 +370,8 @@ Onetime::Operations::VerifyDomain.new(
   strategy: FailingValidationStrategy.new,
   persist: true,
 ).call
-@domain1.verified
+@domain1.refresh!
+@domain1.verified.to_s
 #=> 'true'
 
 ## Passive strategy (mode set, no :data) updates verified via :mode branch
@@ -394,18 +398,19 @@ Onetime::Operations::VerifyDomain.new(
   strategy: PassiveStrategy.new,
   persist: true,
 ).call
+@domain2.refresh!
 
 ## Passive strategy: verified flips to true via :mode
-@domain2.verified
-#=> 'true'
+@domain2.verified.to_s == 'true'
+#=> true
 
 ## Passive strategy: resolving updates from is_resolving
-@domain2.resolving
-#=> 'true'
+@domain2.resolving.to_s == 'true'
+#=> true
 
 ## Passive strategy: vhost_fetch_failed_at cleared (treated as fresh)
-@domain2.vhost_fetch_failed_at
-#=> nil
+@domain2.vhost_fetch_failed_at.to_s.empty?
+#=> true
 
 ## Argument validation - requires domain or domains
 begin
