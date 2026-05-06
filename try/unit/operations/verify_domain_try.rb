@@ -296,6 +296,7 @@ end
 # coercion that obscures the field-level signal.
 # ─────────────────────────────────────────────────────────────────────────
 
+## Issue #3080: FailingStatusStrategy (no :data, no :mode) — operation completes
 class FailingStatusStrategy
   def validate_ownership(_d)
     { validated: true, message: 'OK', data: [] }
@@ -310,7 +311,19 @@ class FailingStatusStrategy
   end
 end
 @failing_status_strategy = FailingStatusStrategy.new
+@failing_status_result   = Onetime::Operations::VerifyDomain.new(
+  domain: @domain1,
+  strategy: @failing_status_strategy,
+  persist: true,
+).call
+@failing_status_result.success?
+#=> true
 
+## Issue #3080: FailingStatusStrategy — Result.is_resolving reflects strategy
+@failing_status_result.is_resolving
+#=> false
+
+## Issue #3080: PassiveStrategy (:mode set, no :data) — operation completes
 class PassiveStrategy
   def validate_ownership(_d)
     { validated: true, message: 'External validation', mode: 'passthrough' }
@@ -326,36 +339,19 @@ class PassiveStrategy
   end
 end
 @passive_strategy = PassiveStrategy.new
-
-@failing_status_result = Onetime::Operations::VerifyDomain.new(
-  domain: @domain1,
-  strategy: @failing_status_strategy,
-  persist: true,
-).call
-
-@passive_result = Onetime::Operations::VerifyDomain.new(
+@passive_result   = Onetime::Operations::VerifyDomain.new(
   domain: @domain2,
   strategy: @passive_strategy,
   persist: true,
 ).call
-
-## FailingStatusStrategy (no :data, no :mode) — operation completes successfully
-@failing_status_result.success?
-#=> true
-
-## FailingStatusStrategy — Result reflects strategy is_resolving
-@failing_status_result.is_resolving
-#=> false
-
-## PassiveStrategy (:mode set, no :data) — operation completes successfully
 @passive_result.success?
 #=> true
 
-## PassiveStrategy — Result.dns_validated is true
+## Issue #3080: PassiveStrategy — Result.dns_validated is true
 @passive_result.dns_validated
 #=> true
 
-## PassiveStrategy — Result.is_resolving is true
+## Issue #3080: PassiveStrategy — Result.is_resolving is true
 @passive_result.is_resolving
 #=> true
 
