@@ -132,17 +132,25 @@ export function getBootstrapSnapshot(): Partial<BootstrapPayload> | null {
  * stay pinned to the values that were on window.__BOOTSTRAP_ME__ at
  * page load and account-settings tabs go stale until full reload.
  *
+ * If called before consumeBootstrapData(), the window state is consumed
+ * first so the merge layers on top of server-injected values rather than
+ * shadowing them with an empty snapshot.
+ *
  * Undefined values are skipped to match update() semantics in bootstrapStore.
  */
 export function updateBootstrapSnapshot(data: Partial<BootstrapPayload>): void {
+  // Consume window state first so we don't lock out server-injected values
+  // by flipping `consumed` to true with an empty snapshot.
+  if (!consumed) {
+    consumeBootstrapData();
+  }
   if (!bootstrapSnapshot) {
     bootstrapSnapshot = {};
-    consumed = true;
   }
   const target = bootstrapSnapshot as Record<string, unknown>;
-  for (const key of Object.keys(data) as Array<keyof BootstrapPayload>) {
-    if (data[key] !== undefined) {
-      target[key as string] = data[key];
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      target[key] = value;
     }
   }
 }
