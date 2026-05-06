@@ -11,6 +11,7 @@
 -->
 
 <script setup lang="ts">
+  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import type {
     ColonelOrganization,
@@ -24,7 +25,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { organizations, organizationsPagination, isLoading } = storeToRefs(store);
+  const { organizations, organizationsPagination, isLoading, organizationsFetchError } = storeToRefs(store);
   const { fetchOrganizations, investigateOrganization } = store;
 
   // Filter state
@@ -330,9 +331,14 @@
         </div>
       </div>
 
+      <ColonelFetchError
+        v-if="organizationsFetchError"
+        :schema="organizationsFetchError"
+        resource="organizations" />
+
       <!-- Empty state -->
       <div
-        v-if="organizations.length === 0"
+        v-else-if="organizations.length === 0"
         class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
         <p class="text-gray-500 dark:text-gray-400">
           {{ t('web.colonel.organizations.noOrganizations') }}

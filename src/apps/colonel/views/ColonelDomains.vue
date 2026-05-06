@@ -1,6 +1,7 @@
 <!-- src/apps/colonel/views/ColonelDomains.vue -->
 
 <script setup lang="ts">
+  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
@@ -10,7 +11,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { customDomains, customDomainsPagination, isLoading } = storeToRefs(store);
+  const { customDomains, customDomainsPagination, isLoading, customDomainsFetchError } = storeToRefs(store);
   const { fetchCustomDomains } = store;
 
   onMounted(() => fetchCustomDomains());
@@ -67,8 +68,13 @@ d="M15 19l-7-7 7-7" />
         </p>
       </div>
 
+      <ColonelFetchError
+        v-if="customDomainsFetchError"
+        :schema="customDomainsFetchError"
+        resource="custom domains" />
+
       <div
-        v-if="customDomains.length === 0"
+        v-else-if="customDomains.length === 0"
         class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
         <p class="text-gray-500 dark:text-gray-400">No custom domains configured</p>
       </div>

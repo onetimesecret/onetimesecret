@@ -1,6 +1,7 @@
 <!-- src/apps/colonel/views/ColonelUsers.vue -->
 
 <script setup lang="ts">
+  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
@@ -10,7 +11,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { users, usersPagination, isLoading } = storeToRefs(store);
+  const { users, usersPagination, isLoading, usersFetchError } = storeToRefs(store);
   const { fetchUsers } = store;
 
   onMounted(() => fetchUsers());
@@ -53,16 +54,22 @@ d="M15 19l-7-7 7-7" />
         </p>
       </div>
 
+      <!-- Validation error: distinguish "schema mismatch" from "no users" -->
+      <ColonelFetchError
+        v-if="usersFetchError"
+        :schema="usersFetchError"
+        resource="users" />
+
       <!-- Pagination info -->
       <div
-        v-if="usersPagination"
+        v-else-if="usersPagination"
         class="mb-4 text-sm text-gray-600 dark:text-gray-400">
         Showing {{ users.length }} of {{ usersPagination.total_count }} users
       </div>
 
       <!-- Users table -->
       <div
-        v-if="users.length > 0"
+        v-if="!usersFetchError && users.length > 0"
         class="overflow-x-auto">
         <table data-testid="colonel-users-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
@@ -143,7 +150,7 @@ d="M15 19l-7-7 7-7" />
 
       <!-- Empty state -->
       <div
-        v-else
+        v-else-if="!usersFetchError"
         class="text-center py-12 text-gray-500 dark:text-gray-400">
         No users found
       </div>
