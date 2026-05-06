@@ -319,18 +319,16 @@ Onetime::Operations::VerifyDomain.new(
   persist: true,
 ).call
 
-@reloaded = Onetime::CustomDomain.find_by_identifier(@domain1.identifier)
-
 ## Atomic update preserves vhost on failed status fetch
-@reloaded.vhost
+@domain1.vhost
 #=> @cached_vhost
 
 ## Atomic update preserves resolving on failed status fetch
-@reloaded.resolving
+@domain1.resolving
 #=> 'true'
 
 ## Atomic update sets vhost_fetch_failed_at on failure
-@reloaded.vhost_fetch_failed_at.to_i.positive?
+@domain1.vhost_fetch_failed_at.to_i.positive?
 #=> true
 
 ## Atomic update clears vhost_fetch_failed_at on next success
@@ -342,8 +340,7 @@ Onetime::Operations::VerifyDomain.new(
 Onetime::Operations::VerifyDomain.new(
   domain: @domain1, strategy: @strategy, persist: true,
 ).call
-@reloaded2 = Onetime::CustomDomain.find_by_identifier(@domain1.identifier)
-@reloaded2.vhost_fetch_failed_at
+@domain1.vhost_fetch_failed_at
 #=> nil
 
 ## verified preserved when validate_ownership has no fresh-data indicator
@@ -370,8 +367,7 @@ Onetime::Operations::VerifyDomain.new(
   strategy: FailingValidationStrategy.new,
   persist: true,
 ).call
-@reloaded3 = Onetime::CustomDomain.find_by_identifier(@domain1.identifier)
-@reloaded3.verified
+@domain1.verified
 #=> 'true'
 
 ## Passive strategy (mode set, no :data) updates verified via :mode branch
@@ -398,18 +394,17 @@ Onetime::Operations::VerifyDomain.new(
   strategy: PassiveStrategy.new,
   persist: true,
 ).call
-@reloaded4 = Onetime::CustomDomain.find_by_identifier(@domain2.identifier)
 
 ## Passive strategy: verified flips to true via :mode
-@reloaded4.verified
+@domain2.verified
 #=> 'true'
 
 ## Passive strategy: resolving updates from is_resolving
-@reloaded4.resolving
+@domain2.resolving
 #=> 'true'
 
 ## Passive strategy: vhost_fetch_failed_at cleared (treated as fresh)
-@reloaded4.vhost_fetch_failed_at
+@domain2.vhost_fetch_failed_at
 #=> nil
 
 ## Argument validation - requires domain or domains
