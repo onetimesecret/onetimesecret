@@ -1,13 +1,29 @@
 // src/utils/features.ts
 
 import { getBootstrapValue } from '@/services/bootstrap.service';
-import { featuresSchema, type Features } from '@/schemas/contracts/bootstrap';
+import {
+  featuresSchema,
+  type AuthenticationSettings,
+  type Features,
+} from '@/schemas/contracts/bootstrap';
 import { debugLog } from '@/utils/debug';
 
 /**
  * Feature detection utilities for checking enabled authentication methods
  * Features are configured on the backend via environment variables and
  * exposed through window.__BOOTSTRAP_ME__, accessed via bootstrap.service.ts
+ *
+ * Two predicate flavours:
+ *
+ * - Pure `*Of(state)` helpers operate on a bootstrap-shape input and are the
+ *   single source of truth for predicate semantics. Use these from reactive
+ *   contexts (Vue computeds reading the bootstrap Pinia store) so visibility
+ *   updates without a page reload.
+ *
+ * - Snapshot-reading wrappers (`hasPassword()`, `isSsoOnlyMode()`, etc.) call
+ *   the `*Of` helpers against the bootstrap snapshot. Use these from non-Vue
+ *   callers (route guards, pre-Pinia consumers); they stay current because
+ *   `bootstrapStore.update()` syncs the snapshot via `updateBootstrapSnapshot`.
  */
 
 // Cached validated features object - parsed once, reused thereafter
@@ -66,13 +82,26 @@ export function isMagicLinksEnabled(): boolean {
 }
 
 /**
+ * Pure predicate: MFA (TOTP + recovery codes) enabled in the given state.
+ */
+export function isMfaEnabledOf(state: { features?: Features }): boolean {
+  return state.features?.mfa === true;
+}
+
+/**
  * Checks if MFA (TOTP + recovery codes) is enabled
  */
 export function isMfaEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const features = getBootstrapValue('features');
-  return features?.mfa === true;
+  return isMfaEnabledOf({ features: getBootstrapValue('features') });
+}
+
+/**
+ * Pure predicate: WebAuthn enabled in the given state.
+ */
+export function isWebAuthnEnabledOf(state: { features?: Features }): boolean {
+  return state.features?.webauthn === true;
 }
 
 /**
@@ -81,8 +110,7 @@ export function isMfaEnabled(): boolean {
 export function isWebAuthnEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const features = getBootstrapValue('features');
-  return features?.webauthn === true;
+  return isWebAuthnEnabledOf({ features: getBootstrapValue('features') });
 }
 
 /**
@@ -193,6 +221,13 @@ export function getRestrictTo(): RestrictTo | null {
 }
 
 /**
+ * Pure predicate: SSO-only mode active in the given state.
+ */
+export function isSsoOnlyModeOf(state: { features?: Features }): boolean {
+  return state.features?.restrict_to === 'sso';
+}
+
+/**
  * Checks if SSO-only mode is active.
  * When true, password-based auth routes are disabled and the sign-in page
  * shows only SSO provider buttons.
@@ -204,7 +239,7 @@ export function getRestrictTo(): RestrictTo | null {
 export function isSsoOnlyMode(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const result = getRestrictTo() === 'sso';
+  const result = isSsoOnlyModeOf({ features: getBootstrapValue('features') });
   debugLog.features('features.isSsoOnlyMode', { restrict_to: getRestrictTo(), result });
   return result;
 }
@@ -235,6 +270,13 @@ export function isWebAuthnOnlyMode(): boolean {
 }
 
 /**
+ * Pure predicate: full auth mode (Rodauth with SQL db) in the given state.
+ */
+export function isFullAuthModeOf(state: { authentication?: AuthenticationSettings }): boolean {
+  return state.authentication?.mode === 'full';
+}
+
+/**
  * Checks if authentication mode is 'full' (Rodauth with SQL db).
  * When mode is 'simple' (or undefined), security features like
  * password change, MFA, sessions, and passkeys are not available.
@@ -243,9 +285,20 @@ export function isFullAuthMode(): boolean {
   if (typeof window === 'undefined') return false;
 
   const authentication = getBootstrapValue('authentication');
-  const result = authentication?.mode === 'full';
+  const result = isFullAuthModeOf({ authentication });
   debugLog.features('features.isFullAuthMode', { mode: authentication?.mode, result });
   return result;
+}
+
+/**
+ * Pure predicate: user has a password set in the given state.
+ *
+ * Accepts an optional `has_password` so the snapshot wrapper can pass through
+ * `getBootstrapValue('has_password')` (which is typed as `boolean | undefined`)
+ * without a coercion at every call site.
+ */
+export function hasPasswordOf(state: { has_password?: boolean }): boolean {
+  return state.has_password === true;
 }
 
 /**
@@ -256,7 +309,7 @@ export function isFullAuthMode(): boolean {
 export function hasPassword(): boolean {
   if (typeof window === 'undefined') return false;
 
-  return getBootstrapValue('has_password') === true;
+  return hasPasswordOf({ has_password: getBootstrapValue('has_password') });
 }
 
 /**

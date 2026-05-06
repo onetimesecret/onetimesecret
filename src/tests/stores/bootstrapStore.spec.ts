@@ -19,6 +19,7 @@ import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 // Mock the bootstrap service
 vi.mock('@/services/bootstrap.service', () => ({
   getBootstrapSnapshot: vi.fn(),
+  updateBootstrapSnapshot: vi.fn(),
   _resetForTesting: vi.fn(),
 }));
 
@@ -169,6 +170,21 @@ describe('bootstrapStore', () => {
       expect(store.email).toBe('updated@example.com');
       // Other fields should remain unchanged
       expect(store.locale).toBe('en');
+    });
+
+    it('syncs the bootstrap.service snapshot so non-Pinia readers stay current', () => {
+      // Regression: features.ts (hasPassword, isSsoOnlyMode, etc.) reads from
+      // the bootstrap.service snapshot, not the Pinia store. After login the
+      // store.update() call must propagate to the snapshot or sidebar tabs
+      // gated by hasPassword() stay hidden until a full page reload.
+      const updateSnapshotMock = vi.mocked(bootstrapService.updateBootstrapSnapshot);
+      updateSnapshotMock.mockClear();
+
+      const payload = { authenticated: true, has_password: true };
+      store.update(payload);
+
+      expect(updateSnapshotMock).toHaveBeenCalledTimes(1);
+      expect(updateSnapshotMock).toHaveBeenCalledWith(payload);
     });
 
     it('does not overwrite fields with undefined values (filterDefined)', () => {
@@ -367,14 +383,14 @@ describe('bootstrapStore', () => {
         cust: mockCustomer,
       };
 
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(refreshedState),
       });
 
       await store.refresh();
 
-      expect(global.fetch).toHaveBeenCalledWith('/bootstrap/me', {
+      expect(globalThis.fetch).toHaveBeenCalledWith('/bootstrap/me', {
         method: 'GET',
         credentials: 'same-origin',
         headers: { Accept: 'application/json' },
@@ -384,7 +400,7 @@ describe('bootstrapStore', () => {
     });
 
     it('throws error on failed fetch', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 500,
       });
@@ -395,13 +411,13 @@ describe('bootstrapStore', () => {
     });
 
     it('throws error on network failure', async () => {
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       await expect(store.refresh()).rejects.toThrow('Network error');
     });
 
     it('updates CSRF token on refresh', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ shrimp: 'new-csrf-token' }),
       });
@@ -1332,7 +1348,7 @@ describe('bootstrapStore', () => {
         shrimp: 'new-token',
       };
 
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(serverResponse),
       });
@@ -1351,7 +1367,7 @@ describe('bootstrapStore', () => {
       store.update({ locale: 'es', billing_enabled: true });
 
       // Server response only updates some fields
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ authenticated: false }),
       });
@@ -1366,7 +1382,7 @@ describe('bootstrapStore', () => {
     });
 
     it('refresh() handles empty response gracefully', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({}),
       });
@@ -1382,7 +1398,7 @@ describe('bootstrapStore', () => {
       const errorCodes = [400, 401, 403, 404, 500, 502, 503];
 
       for (const status of errorCodes) {
-        global.fetch = vi.fn().mockResolvedValue({
+        globalThis.fetch = vi.fn().mockResolvedValue({
           ok: false,
           status,
         });

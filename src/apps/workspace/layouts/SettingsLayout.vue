@@ -13,20 +13,39 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { getSettingsNavigationSections } from '@/apps/workspace/config/settings-navigation';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import {
+  hasPasswordOf,
+  isFullAuthModeOf,
+  isSsoOnlyModeOf,
+  isWebAuthnEnabledOf,
+} from '@/utils/features';
 import { debugLog } from '@/utils/debug';
 
 const { t } = useI18n();
 const route = useRoute();
+const bootstrapStore = useBootstrapStore();
 
-// Flatten navigation sections into tab items
+// Flatten navigation sections into tab items.
+//
+// Reactivity: deriving feature flags from `bootstrapStore` inside the computed
+// registers each accessed field as a dependency. When checkWindowStatus or
+// changePassword updates the store (e.g. has_password flips after first
+// password set), this recomputes and tabs appear without a page reload.
 const tabItems = computed(() => {
-  const sections = getSettingsNavigationSections(t);
+  const features = {
+    hasPassword: hasPasswordOf(bootstrapStore),
+    isFullAuthMode: isFullAuthModeOf(bootstrapStore),
+    isSsoOnlyMode: isSsoOnlyModeOf(bootstrapStore),
+    isWebAuthnEnabled: isWebAuthnEnabledOf(bootstrapStore),
+  };
+  const sections = getSettingsNavigationSections(t, features);
   const allItems = sections.flatMap((section) => section.items);
   const visibleItems = allItems.filter((item) => (item.visible ? item.visible() : true));
   debugLog.features('SettingsLayout.tabItems', {
+    features,
     allItems: allItems.map(i => i.id),
     visibleItems: visibleItems.map(i => i.id),
-    visibility: allItems.map(i => ({ id: i.id, fn: !!i.visible, result: i.visible ? i.visible() : 'default' })),
   });
   return visibleItems;
 });
