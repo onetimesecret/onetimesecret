@@ -481,6 +481,10 @@ emailer:
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
   from_name: <%= ENV['FROM_NAME'] || 'Support' %>
   reply_to: <%= ENV['REPLYTO_EMAIL'] || ENV['FROM_EMAIL'] || nil %>
+  # Recipient ("To:") address for /feedback submissions.
+  # When set, feedback emails are delivered here instead of the first colonel
+  # in the database. Useful for routing to a shared inbox or alias.
+  feedback_to: <%= ENV['FEEDBACK_TO_EMAIL'] || nil %>
   host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   port: <%= ENV['SMTP_PORT'] || 587 %>
   user: <%= ENV['SMTP_USERNAME'] %>

@@ -46,19 +46,21 @@ module V3
         OT.ld [:receive_feedback, msg].inspect
 
         begin
-          # Find the first colonel in the database to send feedback notification
+          # Resolve the recipient. An explicit emailer.feedback_to override
+          # (env: FEEDBACK_TO_EMAIL) wins; otherwise fall back to the first
+          # colonel in the database.
           # Colonels are managed via CLI: bin/ots customers role promote email --role colonel
-          first_colonel = find_first_colonel
-          if first_colonel
-            OT.ld "[receive_feedback] Sending feedback to colonel: #{first_colonel.obscure_email}"
-            send_feedback first_colonel, cust, msg
+          recipient_email = feedback_recipient_email
+          if recipient_email
+            OT.ld "[receive_feedback] Sending feedback to: #{recipient_email}"
+            send_feedback recipient_email, cust, msg
           else
-            OT.ld '[receive_feedback] No colonels found in database, skipping email notification'
+            OT.ld '[receive_feedback] No feedback recipient configured and no colonels found, skipping email notification'
           end
         rescue StandardError => ex
           # We liberally rescue all StandardError exceptions here because we don't
           # want to fail the user's feedback submission if we can't send an email.
-          OT.le "Error sending feedback email to first colonel: #{ex.message}", ex.backtrace
+          OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
         end
 
         Onetime::Feedback.add @msg
@@ -89,7 +91,7 @@ module V3
         }
       end
 
-      def send_feedback(colonel, sender, message)
+      def send_feedback(recipient_email, sender, message)
         OT.ld "[send_feedback] Delivering feedback email (#{message.size} chars)"
 
         # Logic classes don't receive req.env, so display_domain may be nil.
@@ -102,7 +104,7 @@ module V3
         sender_email = is_anonymous ? 'anonymous' : sender.email
 
         email_data = {
-          recipient_email: colonel.email,
+          recipient_email: recipient_email,
           email_address: sender_email,
           message: message,
           display_domain: effective_domain,
@@ -130,6 +132,23 @@ module V3
           # saved in Redis and available via the colonel interface.
         end
       end
+
+      # Resolve the To: address for feedback emails.
+      #
+      # Precedence:
+      #   1. emailer.feedback_to in OT.conf (env: FEEDBACK_TO_EMAIL) — explicit
+      #      override, useful when feedback should land in a shared inbox
+      #      rather than chasing whichever colonel happens to be first.
+      #   2. The first colonel's email (legacy fallback for self-hosted setups
+      #      that haven't configured an override).
+      #   3. nil — no recipient available; the email step is skipped.
+      def feedback_recipient_email
+        configured = OT.conf.dig('emailer', 'feedback_to')
+        return configured if configured.is_a?(String) && !configured.strip.empty?
+
+        find_first_colonel&.email
+      end
+      private :feedback_recipient_email
 
       # Find the first colonel in the database
       # Returns nil if no colonels exist

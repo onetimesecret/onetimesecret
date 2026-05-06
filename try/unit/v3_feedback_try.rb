@@ -79,15 +79,14 @@ formatted.include?('[TZ: America/New_York]') && formatted.include?('[v1.0.0]')
 #=> true
 
 ## send_feedback handles nil sender without crashing
-# Create a mock colonel for receiving feedback
-colonel = Customer.new email: 'colonel@onetimesecret.com'
-colonel.role = 'colonel'
-colonel.verified = true
+# send_feedback now takes a recipient email string directly so the
+# emailer.feedback_to override and colonel-fallback branches share one
+# delivery path.
 strategy_result = MockStrategyResult.anonymous
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
 # This should not raise an error - nil sender is valid
 result = begin
-  logic.send(:send_feedback, colonel, nil, 'Test message')
+  logic.send(:send_feedback, 'colonel@onetimesecret.com', nil, 'Test message')
   :no_error
 rescue StandardError => e
   e.class.name
@@ -169,13 +168,40 @@ data[:reply_to]
 ## send_feedback still runs without raising for authenticated sender
 strategy_result = MockStrategyResult.authenticated(@authenticated_customer, session: MockSession.new)
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-colonel = Customer.new email: 'colonel@onetimesecret.com'
-colonel.role = 'colonel'
 result = begin
-  logic.send(:send_feedback, colonel, @authenticated_customer, 'Test message')
+  logic.send(:send_feedback, 'colonel@onetimesecret.com', @authenticated_customer, 'Test message')
   :no_error
 rescue StandardError => e
   e.class.name
 end
 result
 #=> :no_error
+
+## feedback_recipient_email returns the configured override when set
+# Stash and override emailer.feedback_to to verify the override branch
+strategy_result = MockStrategyResult.anonymous
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+original_emailer = OT.conf['emailer']
+OT.conf['emailer'] = (original_emailer || {}).merge('feedback_to' => 'team@example.com')
+begin
+  logic.send(:feedback_recipient_email)
+ensure
+  OT.conf['emailer'] = original_emailer
+end
+#=> 'team@example.com'
+
+## feedback_recipient_email ignores blank override and falls back to colonel lookup
+# Empty string in config should not short-circuit the colonel lookup.
+strategy_result = MockStrategyResult.anonymous
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+original_emailer = OT.conf['emailer']
+OT.conf['emailer'] = (original_emailer || {}).merge('feedback_to' => '   ')
+begin
+  configured = logic.send(:feedback_recipient_email)
+  # Either nil (no colonel in test DB) or a real colonel address — but never
+  # the blank/whitespace value from config.
+  configured.nil? || (configured.is_a?(String) && !configured.strip.empty?)
+ensure
+  OT.conf['emailer'] = original_emailer
+end
+#=> true
