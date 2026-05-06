@@ -159,9 +159,9 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     end
 
     context 'when PLAN_TTL_ANONYMOUS is not set' do
-      it 'returns default secret_lifetime.max of 14 days' do
+      it 'returns default secret_lifetime.max of 7 days' do
         limits = described_class.free_tier_limits
-        expect(limits['secret_lifetime.max']).to eq(1_209_600)
+        expect(limits['secret_lifetime.max']).to eq(604_800)
       end
 
       it 'returns default organization limits' do
@@ -201,7 +201,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
 
       it 'falls back to default value' do
         limits = described_class.free_tier_limits
-        expect(limits['secret_lifetime.max']).to eq(1_209_600)
+        expect(limits['secret_lifetime.max']).to eq(604_800)
       end
     end
 
