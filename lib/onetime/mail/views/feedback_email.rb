@@ -21,6 +21,10 @@ module Onetime
       #   user_id:          Submitter identifier shown in the email body (extid for
       #                     authenticated users, 'anon:<prefix>' for anonymous).
       #                     Defaults to 'anonymous' when not supplied.
+      #   tz:               Submitter timezone string. Defaults to '' when not
+      #                     supplied.
+      #   version:          App version string shown in the email body. Defaults
+      #                     to '' when not supplied.
       #   baseuri:          Override site base URI
       #
       class FeedbackEmail < Base
@@ -76,6 +80,14 @@ module Onetime
           data[:user_id] || 'anonymous'
         end
 
+        def tz
+          data[:tz] || ''
+        end
+
+        def version
+          data[:version] || ''
+        end
+
         def baseuri
           data[:baseuri] || site_baseuri
         end
@@ -89,6 +101,8 @@ module Onetime
             display_domain: display_domain,
             domain_strategy: domain_strategy,
             user_id: user_id,
+            tz: tz,
+            version: version,
             baseuri: baseuri,
           )
           TemplateContext.new(computed_data, locale).get_binding
