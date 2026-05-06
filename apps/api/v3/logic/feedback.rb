@@ -22,8 +22,9 @@ module V3
       FEEDBACK_RATE_LIMIT_WINDOW = 3600 # 1 hour
 
       # Frontend forms (FeedbackForm.vue, FeedbackModalForm.vue) mirror this
-      # value via FEEDBACK_MAX_MSG_LENGTH so users see a counter and maxlength
-      # warning before the server silently truncates oversized messages.
+      # value via their local MAX_MSG_LENGTH constant so users see a counter
+      # and maxlength warning before the server silently truncates oversized
+      # messages. Keep these in sync.
       MAX_MSG_LENGTH     = 200_000 # Generous upper bound; UI surfaces it to users
       MAX_TZ_LENGTH      = 64
       MAX_VERSION_LENGTH = 32

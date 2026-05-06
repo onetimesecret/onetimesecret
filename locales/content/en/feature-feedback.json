@@ -62,9 +62,6 @@
   "web.feedback.anonymous_no_reply": {
     "text": "Note: if you'd like a response, please sign or include an email address in the message."
   },
-  "web.feedback.authenticated_reply_note": {
-    "text": "We'll reply to {email} if a response is needed."
-  },
   "web.feedback.characters_remaining": {
     "text": "{count} characters remaining"
   },
