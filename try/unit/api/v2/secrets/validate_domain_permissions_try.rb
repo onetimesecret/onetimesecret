@@ -4,10 +4,15 @@
 
 # Tests for V2::Logic::Secrets::BaseSecretAction#validate_domain_permissions
 #
-# The validate_domain_permissions method enforces:
-# - Domain owner / org member: always permitted, regardless of toggle (issue #3073).
-# - Custom domain, non-owner: permitted only when public homepage sharing is enabled.
-# - Canonical domain, non-owner: not permitted (cannot share via someone else's domain).
+# Rules (issue #3073):
+# - Domain owner / org member: always permitted, regardless of toggle.
+# - Authenticated non-owner: never permitted, regardless of toggle.
+#   The Homepage Secrets toggle gates anonymous public intake; it does
+#   not authorize unrelated authenticated users to share via someone
+#   else's domain.
+# - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+# - Anonymous on canonical with share_domain set to a custom domain:
+#   not permitted.
 #
 # Permission denials raise Onetime::Forbidden (HTTP 403), not FormError (422),
 # because they reflect access-control decisions rather than form validation.
@@ -47,7 +52,8 @@ def create_test_logic(customer, share_domain_value: nil, domain_strategy: nil, d
   metadata = {}
   metadata[:domain_strategy] = domain_strategy if domain_strategy
   metadata[:display_domain]  = display_domain  if display_domain
-  strategy_result = MockStrategyResult.new(session: sess, user: customer, metadata: metadata)
+  auth_method = customer.nil? ? 'anonymous' : 'basic'
+  strategy_result = MockStrategyResult.new(session: sess, user: customer, auth_method: auth_method, metadata: metadata)
   params = {
     'secret' => {
       'secret' => 'test secret',
@@ -92,7 +98,10 @@ rescue Onetime::Forbidden => e
 end
 #=> true
 
-## Non-owner on custom domain with public sharing enabled is allowed
+## Authenticated non-owner on custom domain with public sharing enabled is rejected
+# The Homepage Secrets toggle gates anonymous traffic; an authenticated
+# unrelated user does not get to share via someone else's domain just
+# because the public-intake toggle is on.
 set_public_homepage(@domain, true)
 logic = create_test_logic(@other,
   share_domain_value: @domain.display_domain,
@@ -104,11 +113,41 @@ begin
 rescue Onetime::Forbidden => e
   e.message
 end
-#=> :success
+#=~> /You do not have permission to use domain:/
 
-## Non-owner on custom domain with public sharing disabled is rejected
+## Authenticated non-owner on custom domain with public sharing disabled is rejected with permission error
+# Was previously reported as "Public sharing disabled" — corrected to
+# the permission error since the caller is authenticated.
 set_public_homepage(@domain, false)
 logic = create_test_logic(@other,
+  share_domain_value: @domain.display_domain,
+  domain_strategy: :custom,
+  display_domain: @domain.display_domain)
+begin
+  logic.send(:validate_domain_access, @domain.display_domain)
+  :success
+rescue Onetime::Forbidden => e
+  e.message
+end
+#=~> /You do not have permission to use domain:/
+
+## Anonymous on custom domain with public sharing enabled is allowed
+set_public_homepage(@domain, true)
+logic = create_test_logic(nil,
+  share_domain_value: @domain.display_domain,
+  domain_strategy: :custom,
+  display_domain: @domain.display_domain)
+begin
+  logic.send(:validate_domain_access, @domain.display_domain)
+  :success
+rescue Onetime::Forbidden => e
+  e.message
+end
+#=> :success
+
+## Anonymous on custom domain with public sharing disabled is rejected with public-sharing-disabled
+set_public_homepage(@domain, false)
+logic = create_test_logic(nil,
   share_domain_value: @domain.display_domain,
   domain_strategy: :custom,
   display_domain: @domain.display_domain)

@@ -432,23 +432,29 @@ module V1::Logic
       # @param domain_record [CustomDomain] The domain record to validate
       # @raise [FormError] If access is not permitted
       #
-      # Validation Rules:
-      # - Domain owner / org member: always permitted (issue #3073).
-      # - Custom domain, non-owner: permitted only when public homepage sharing
-      #   is enabled.
-      # - Canonical domain, non-owner: not permitted.
+      # Validation Rules (issue #3073):
+      # - Domain owner / org member: always permitted, regardless of toggle.
+      # - Authenticated non-owner: never permitted. The Homepage Secrets toggle
+      #   gates anonymous public intake only.
+      # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+      # - Anonymous on canonical with share_domain set: not permitted.
       def validate_domain_permissions(domain_record)
-        # Owner / org member can always use the domain, regardless of the
-        # Homepage Secrets toggle. The toggle gates anonymous public intake,
-        # not authenticated use by the owner's organization.
+        # Owner / org member can always use the domain.
         return if domain_record.owner?(@cust)
 
+        # Authenticated non-owner: permission denied regardless of toggle.
+        unless cust.nil? || cust.anonymous?
+          OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+          raise_form_error "You do not have permission to use domain: #{share_domain}"
+        end
+
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
         if custom_domain?
           return if domain_record.allow_public_homepage?
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
-        OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+        # Anonymous on canonical domain attempting to use someone else's domain.
         raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
     end

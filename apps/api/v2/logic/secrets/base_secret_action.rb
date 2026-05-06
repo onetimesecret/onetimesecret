@@ -380,18 +380,33 @@ module V2::Logic
       # @param domain_record [CustomDomain] The domain record to validate
       # @raise [Onetime::Forbidden] If access is not permitted
       #
-      # Validation Rules:
-      # - Domain owner / org member: always permitted (issue #3073).
-      # - Custom domain, non-owner: permitted only when public homepage sharing
-      #   is enabled. Otherwise the hostname is private to the owner's org.
-      # - Canonical domain, non-owner: not permitted to share via someone else's
-      #   custom domain by passing share_domain.
+      # Validation Rules (issue #3073):
+      # - Domain owner / org member: always permitted, regardless of toggle.
+      # - Authenticated non-owner: never permitted. The Homepage Secrets toggle
+      #   gates anonymous public intake; it does not let authenticated users
+      #   borrow someone else's domain.
+      # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+      # - Anonymous on the canonical domain (with share_domain set to a custom
+      #   domain): not permitted.
       def validate_domain_permissions(domain_record)
-        # Owner / org member can always use the domain, regardless of the
-        # Homepage Secrets toggle. The toggle gates anonymous public intake,
-        # not authenticated use by the owner's organization.
+        # Owner / org member can always use the domain.
         return if domain_record.owner?(@cust)
 
+        # Authenticated non-owner: permission denied regardless of toggle.
+        # The toggle controls anonymous traffic, not who may share via the
+        # domain when authenticated.
+        unless anonymous_user?
+          secret_logger.warn 'Non-owner attempted domain access',
+            {
+              domain: share_domain,
+              user_id: @cust&.objid,
+              action: 'validate_domain_permissions',
+              result: :non_owner,
+            }
+          raise Onetime::Forbidden, "You do not have permission to use domain: #{share_domain}"
+        end
+
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
         if custom_domain?
           return if domain_record.allow_public_homepage?
 
@@ -405,10 +420,11 @@ module V2::Logic
           raise Onetime::Forbidden, "Public sharing disabled for domain: #{share_domain}"
         end
 
-        secret_logger.warn 'Non-owner attempted domain access',
+        # Anonymous on canonical domain attempting to share via someone else's
+        # custom domain via share_domain.
+        secret_logger.warn 'Anonymous cross-domain access denied',
           {
             domain: share_domain,
-            user_id: @cust&.objid,
             action: 'validate_domain_permissions',
             result: :non_owner,
           }
