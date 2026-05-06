@@ -2,62 +2,39 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../familia/boolean_field_type'
+
 module Onetime::Customer::Features
   module Status
-    # Truthy representations of the `verified` field. Writes are coerced to
-    # canonical 'true' / 'false' strings (see Coercion below); reads remain
-    # tolerant of legacy values like '1' (written by older code paths) so
-    # existing customers do not require a manual Redis migration.
-    TRUTHY_VERIFIED_VALUES = %w[true 1].freeze
-    private_constant :TRUTHY_VERIFIED_VALUES
-
     def self.included(base)
       OT.ld "[features] #{base}: #{name}"
 
       base.extend ClassMethods
       base.include InstanceMethods
 
+      # Pull in the BooleanFieldMacro so `boolean_field :verified` becomes
+      # available alongside the standard `field` declarations. This is the
+      # Familia-idiomatic equivalent of the upstream `encrypted_field`
+      # macro: a custom FieldType handles canonicalization at the type
+      # level, so callers cannot bypass it via the setter, the fast
+      # writer, or by passing the field through Customer.create!.
+      base.extend Onetime::Familia::BooleanFieldMacro
+
       base.field :role
       base.field :joined
-      base.field :verified
+      base.boolean_field :verified
       base.field :verified_by  # 'email', 'stripe_payment', 'autoverify', nil
-
-      # Prepended AFTER `field :verified` so `super` reaches the
-      # Familia-generated writer. This guarantees every write — whether via
-      # `cust.verified = …`, `Customer.create!(verified: …)`, or the fast
-      # writer `cust.verified!(…)` — is normalized to the canonical string
-      # form expected by `verified?`.
-      base.prepend Coercion
-    end
-
-    def self.canonical_verified(value)
-      truthy_verified?(value) ? 'true' : 'false'
-    end
-
-    def self.truthy_verified?(value)
-      TRUTHY_VERIFIED_VALUES.include?(value.to_s.downcase)
-    end
-
-    module Coercion
-      def verified=(value)
-        super(Status.canonical_verified(value))
-      end
-
-      # Familia's single-field fast writer is used in the Rodauth sync
-      # path (`customer.verified!(rodauth_status_verified?)`) and
-      # bypasses `verified=`, so coerce here as well to keep the on-disk
-      # form canonical regardless of how callers persist the field.
-      def verified!(value)
-        super(Status.canonical_verified(value))
-      end
     end
 
     module ClassMethods
     end
 
     module InstanceMethods
+      # Stored form is canonical 'true' / 'false' (see
+      # Onetime::Familia::BooleanFieldType), so the predicate is a plain
+      # string equality check — no truthy-table, no `to_s.downcase`.
       def verified?
-        !anonymous? && Status.truthy_verified?(verified)
+        !anonymous? && verified == 'true'
       end
 
       # Check if account was verified via email confirmation
