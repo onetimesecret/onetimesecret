@@ -299,8 +299,9 @@ export const apiFeaturesSchema = z.object({
   domains: z
     .object({
       enabled: booleanOrString,
+      require_verified: booleanOrString.optional(),
       default: z.string().nullable().optional(),
-      strategy: z.string().nullable().optional(),
+      validation_strategy: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),

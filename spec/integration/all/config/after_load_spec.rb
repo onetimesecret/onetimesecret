@@ -316,7 +316,9 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       processed_config = Onetime::Config.after_load(config)
 
       # Domains config moved from site.domains to features.domains
-      expect(processed_config['features']['domains']).to eq({ 'enabled' => false })
+      expect(processed_config['features']['domains']).to eq(
+        { 'enabled' => false, 'require_verified' => false }
+      )
     end
 
     it 'does not add billing configuration when not present' do
