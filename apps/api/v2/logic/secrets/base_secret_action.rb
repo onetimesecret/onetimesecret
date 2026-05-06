@@ -373,6 +373,29 @@ module V2::Logic
           }
 
         validate_domain_permissions(domain_record)
+        validate_domain_verification(domain_record)
+      end
+
+      # Rejects secret creation against an unverified custom share_domain when
+      # the features.domains.require_verified toggle is on. Canonical domains
+      # are filtered out earlier in process_share_domain via default_domain?.
+      #
+      # @param domain_record [CustomDomain] The domain record to check
+      # @raise [FormError] If require_verified is on and the domain is not
+      #   yet verified
+      def validate_domain_verification(domain_record)
+        return unless OT.conf.dig('features', 'domains', 'require_verified')
+        return if domain_record.verified.to_s == 'true'
+
+        secret_logger.warn 'Unverified custom share_domain rejected',
+          {
+            domain: share_domain,
+            user_id: @cust&.objid,
+            action: 'validate_domain_verification',
+            result: :unverified,
+          }
+        raise_form_error "Custom domain is not verified: #{share_domain}",
+          field: 'share_domain', error_type: 'domain_unverified'
       end
 
       # Validates domain permissions based on context and configuration.

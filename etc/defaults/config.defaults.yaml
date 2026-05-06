@@ -371,6 +371,10 @@ features:
       - <%= ENV['INCOMING_RECIPIENT_4']&.split(',') %>
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
+    # When true, secret creation rejects an unverified custom share_domain
+    # with a form error. When false (default), creation is allowed regardless
+    # of the domain's verification status. Canonical domains are unaffected.
+    require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>

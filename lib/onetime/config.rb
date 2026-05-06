@@ -82,7 +82,14 @@ module Onetime
         },
         'features' => {
           'regions' => { 'enabled' => false },
-          'domains' => { 'enabled' => false },
+          'domains' => {
+            'enabled' => false,
+            # When true, secret creation against an unverified custom
+            # share_domain raises a form error. When false (default),
+            # creation is allowed regardless of the domain's verification
+            # status. Canonical domains are unaffected.
+            'require_verified' => false,
+          },
           'incoming' => {
             'enabled' => false,
             'memo_max_length' => 50,

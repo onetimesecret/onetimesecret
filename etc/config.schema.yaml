@@ -82,6 +82,7 @@ features:
     jurisdictions: list(include('jurisdiction'), required=False)
   domains:
     enabled: any()
+    require_verified: any(str(), bool(), required=False)
     default: str(required=False)
     validation_strategy: str(required=False)
     strict_strategy: bool(required=False)
