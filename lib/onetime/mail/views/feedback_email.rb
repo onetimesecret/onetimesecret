@@ -19,8 +19,17 @@ module Onetime
       # Optional data:
       #   domain_strategy:  How the domain was determined (e.g., 'custom', 'default')
       #   baseuri:          Override site base URI
+      #   user_id:          Submitter identifier (extid / 'anon:NNNN'); rendered
+      #                     in the body alongside the obscured email
+      #   tz:               Submitter timezone string
+      #   version:          Client version string
       #
       class FeedbackEmail < Base
+        # Placeholder rendered when an optional metadata field is absent.
+        # Older queued jobs and minimal test fixtures may not supply
+        # user_id/tz/version, but the templates reference them unconditionally.
+        UNKNOWN_VALUE = '-'
+
         protected
 
         def validate_data!
@@ -70,7 +79,27 @@ module Onetime
           data[:baseuri] || site_baseuri
         end
 
+        def user_id
+          fetch_optional(:user_id)
+        end
+
+        def timezone
+          fetch_optional(:tz)
+        end
+
+        def client_version
+          fetch_optional(:version)
+        end
+
         private
+
+        # Optional metadata may arrive as symbol keys (in-process callers) or
+        # string keys (deserialized from the email job queue). Either is fine;
+        # a missing value falls back to UNKNOWN_VALUE so rendering stays valid.
+        def fetch_optional(key)
+          value = data[key] || data[key.to_s]
+          value.nil? || value.to_s.empty? ? UNKNOWN_VALUE : value
+        end
 
         def template_binding
           computed_data = data.merge(
@@ -79,6 +108,9 @@ module Onetime
             display_domain: display_domain,
             domain_strategy: domain_strategy,
             baseuri: baseuri,
+            user_id: user_id,
+            tz: timezone,
+            version: client_version,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end
