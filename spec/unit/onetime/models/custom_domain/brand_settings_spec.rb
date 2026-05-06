@@ -14,6 +14,14 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
       expected_members = %i[
         logo
         primary_color
+        product_name
+        product_domain
+        support_email
+        footer_text
+        description
+        logo_url
+        logo_dark_url
+        favicon_url
         instructions_pre_reveal
         instructions_reveal
         instructions_post_reveal
@@ -37,7 +45,7 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         expect(described_class::DEFAULTS).to include(
           font_family: 'sans',
           corner_style: 'rounded',
-          primary_color: '#dc4a22'
+          primary_color: '#3B82F6'
         )
       end
 
@@ -87,7 +95,7 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
 
       expect(settings.font_family).to eq('sans')
       expect(settings.corner_style).to eq('rounded')
-      expect(settings.primary_color).to eq('#dc4a22')
+      expect(settings.primary_color).to eq('#3B82F6')
     end
 
     it 'ignores invalid keys' do

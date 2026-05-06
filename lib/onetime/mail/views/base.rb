@@ -143,9 +143,9 @@ module Onetime
         # Site host configuration helper
         # @return [String]
         def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
+          return 'localhost' unless defined?(OT) && OT.respond_to?(:conf)
 
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
+          OT.conf.dig('site', 'host') || 'localhost'
         end
 
         # Site base URI configuration helper
@@ -260,14 +260,55 @@ module Onetime
             @data[:display_domain] || @data[:share_domain] || site_host
           end
 
-          # Get product name from site config
+          # Brand color helper - resolves from per-message data, brand config, or
+          # the neutral default (#3B82F6) defined in BrandSettingsConstants.
+          # @return [String] Hex color string
+          def brand_color
+            @brand_color ||= @data[:brand_color] ||
+                             conf_dig('brand', 'primary_color') ||
+                             Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS[:primary_color]
+          end
+
+          # Support email helper - resolves from brand config or GLOBAL_DEFAULTS.
+          # GLOBAL_DEFAULTS[:support_email] is nil per #3049 — operators must
+          # set BRAND_SUPPORT_EMAIL to populate.
+          # @return [String, nil]
+          def support_email
+            @support_email ||= conf_dig('brand', 'support_email') ||
+                               Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
+          end
+
+          # Logo alt text helper - delegates to product_name so the logo's
+          # accessible name matches the surrounding brand identity.
+          # @return [String]
+          def logo_alt
+            product_name
+          end
+
+          # Logo URL helper - resolves from brand config; nil when no brand
+          # logo is configured. Per #3049 the develop default of
+          # "#{baseuri}/img/onetime-logo-v3-xl.svg" has been neutralized so
+          # shipped/private-label instances don't leak OTS branding. Templates
+          # check truthiness and render a text-only header when nil.
+          # @return [String, nil]
+          def logo_url
+            return @logo_url if defined?(@logo_url)
+
+            @logo_url = conf_dig('brand', 'logo_url') ||
+                        Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:logo_url]
+          end
+
+          # Get product name from brand config, then deprecated site_name,
+          # then GLOBAL_DEFAULTS[:product_name] (= 'OTS').
           def site_product_name
-            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
+            @site_product_name ||= conf_dig('brand', 'product_name') ||
+                                   conf_dig('site', 'interface', 'ui', 'header', 'site_name') ||
+                                   Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
           end
 
           # Get host from site config
           def site_host
-            @site_host ||= conf_dig('site', 'host') || 'onetimesecret.com'
+            @site_host ||= conf_dig('site', 'host') || 'localhost'
           end
 
           # Get base URI from site config

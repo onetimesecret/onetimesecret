@@ -144,8 +144,16 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Powered by Onetime Secret",
-    "source_hash": "935442d0"
+    "text": "Powered by {product_name}",
+    "source_hash": "d8e9f0a1"
+  },
+  "web.branding.low_contrast_warning": {
+    "text": "コントラストが低い",
+    "source_hash": "a1b2c3d4"
+  },
+  "web.branding.contrast_ratio_label": {
+    "text": "コントラスト比",
+    "source_hash": "e5f6a7b8"
   },
   "web.branding.heading_logo": {
     "text": "{0}ロゴ",

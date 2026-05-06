@@ -60,6 +60,23 @@ module Core
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''
 
+        # Branding config for frontend stores. Sourced from view_vars which
+        # InitializeViewVars populates from OT.conf['brand'] with neutral
+        # BrandSettingsConstants defaults per #3049.
+        output['brand_primary_color']         = view_vars['brand_primary_color']
+        output['brand_product_name']          = view_vars['brand_product_name']
+        output['brand_product_domain']        = view_vars['brand_product_domain']
+        output['brand_support_email']         = view_vars['brand_support_email']
+        output['brand_corner_style']          = view_vars['brand_corner_style']
+        output['brand_font_family']           = view_vars['brand_font_family']
+        output['brand_button_text_light']     = view_vars['brand_button_text_light']
+        output['brand_allow_public_homepage'] = view_vars['brand_allow_public_homepage']
+        output['brand_allow_public_api']      = view_vars['brand_allow_public_api']
+        output['brand_logo_url']              = view_vars['brand_logo_url']
+        output['brand_totp_issuer']           = view_vars['brand_totp_issuer']
+        output['support_email']               = view_vars['support_email']
+        output['docs_host']                   = view_vars['docs_host']
+
         # Pass development config to frontend (includes domain_context_enabled)
         output['development'] = {
           'enabled' => development['enabled'] || false,
@@ -99,9 +116,21 @@ module Core
         def output_template
           {
             'authentication' => nil,
+            'brand_primary_color' => nil,
+            'brand_product_name' => nil,
+            'brand_product_domain' => nil,
+            'brand_support_email' => nil,
+            'brand_corner_style' => nil,
+            'brand_font_family' => nil,
+            'brand_button_text_light' => nil,
+            'brand_allow_public_homepage' => nil,
+            'brand_allow_public_api' => nil,
+            'brand_logo_url' => nil,
+            'brand_totp_issuer' => nil,
             'd9s_enabled' => nil,
             'development' => nil,
             'diagnostics' => nil,
+            'docs_host' => nil,
             'domains' => nil,
             'domains_enabled' => nil,
             'features' => nil,
@@ -113,6 +142,7 @@ module Core
             'regions_enabled' => nil,
             'secret_options' => nil,
             'site_host' => nil,
+            'support_email' => nil,
             'support_host' => nil,
             'ui' => nil,
           }

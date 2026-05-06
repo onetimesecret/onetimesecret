@@ -19,8 +19,14 @@ import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
+import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
+import {
+  brandSettingsCanonical,
+  cornerStyleValues,
+  fontFamilyValues,
+  homepageConfigCanonical,
+} from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -393,6 +399,8 @@ export const bootstrapSchema = z.object({
   authentication: authenticationSettingsSchema.default(authenticationSettingsInner.parse({})),
   d9s_enabled: z.boolean().default(false),
   diagnostics: diagnosticsSchema.default(diagnosticsInner.parse({})),
+  docs_host: z.string().default(''),
+  domains: featuresDomainsSchema.optional(),
   domains_enabled: z.boolean().default(false),
   features: featuresSchema.default(featuresSchema.parse({})),
   frontend_development: z.boolean().default(false),
@@ -402,9 +410,34 @@ export const bootstrapSchema = z.object({
   regions_enabled: z.boolean().default(false),
   secret_options: secretOptionsSchema.default(secretOptionsSchema.parse({})),
   site_host: z.string().default(''),
+  support_email: z.string().default(''),
   support_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Brand fields (per-installation defaults from OT.conf['brand'])
+  //
+  // Resolution order at the store layer:
+  //   1. domain_branding.<field>           (per-domain, from Redis)
+  //   2. bootstrapStore.brand_<field>      (per-installation, these fields)
+  //   3. NEUTRAL_BRAND_DEFAULTS.<field>    (frontend neutral fallback)
+  //
+  // No `.default()` here by design — defaults flow through
+  // NEUTRAL_BRAND_DEFAULTS at the store layer, not the schema. Eager
+  // `.default()` would short-circuit the nullish-coalescing fallback chain.
+  // ─────────────────────────────────────────────────────────────────────────────
+  brand_primary_color: z.string().nullish(),
+  brand_product_name: z.string().nullish(),
+  brand_product_domain: z.string().nullish(),
+  brand_support_email: z.string().nullish(),
+  brand_corner_style: z.enum(cornerStyleValues).nullish(),
+  brand_font_family: z.enum(fontFamilyValues).nullish(),
+  brand_button_text_light: z.boolean().nullish(),
+  brand_allow_public_homepage: z.boolean().nullish(),
+  brand_allow_public_api: z.boolean().nullish(),
+  brand_logo_url: z.string().nullish(),
+  brand_totp_issuer: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields

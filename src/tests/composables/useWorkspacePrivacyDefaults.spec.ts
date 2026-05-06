@@ -5,7 +5,7 @@ import { ref, computed, nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import type { BrandSettings } from '@/schemas/shapes/v2/custom-domain';
+import type { BrandSettingsCanonical as BrandSettings } from '@/schemas/contracts/custom-domain';
 
 // Mock formatDuration
 const mockFormatDuration = vi.fn((seconds: number) => {
@@ -71,7 +71,7 @@ describe('useWorkspacePrivacyDefaults', () => {
     }> = {}
   ): UseWorkspacePrivacyDefaultsOptions {
     const defaultBrandSettings: BrandSettings = {
-      primary_color: '#dc4a22',
+      primary_color: '#3B82F6',
       font_family: 'sans',
       corner_style: 'rounded',
       button_text_light: false,

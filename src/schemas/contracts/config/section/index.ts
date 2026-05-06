@@ -7,6 +7,7 @@
  * These are composed into static, mutable, and runtime configs.
  */
 
+export * from './brand';
 export * from './capabilities';
 export * from './development';
 export * from './diagnostics';

@@ -6,6 +6,7 @@
 import { localeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
 import { fontFamilyValues, cornerStyleValues } from '@/schemas/contracts';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { z } from 'zod';
 
 // Re-export UI helpers from shared location for backward compatibility.
@@ -39,7 +40,7 @@ export {
  * @example
  * ```typescript
  * const brand = brandSettingsSchema.parse({
- *   primary_color: '#dc4a22',
+ *   primary_color: '#3B82F6',
  *   button_text_light: 'false', // V2 sends as string
  * });
  * ```
@@ -49,7 +50,7 @@ export const brandSettingschema = z
     primary_color: z
       .string()
       .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
-      .default('#dc4a22'), // Default to Onetime Secret brand colour
+      .default(NEUTRAL_BRAND_DEFAULTS.primary_color), // Neutral default, not OTS brand
     colour: z.string().optional(),
     instructions_pre_reveal: z.string().nullish(),
     instructions_reveal: z.string().nullish(),

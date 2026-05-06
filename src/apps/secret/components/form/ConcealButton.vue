@@ -19,7 +19,8 @@ const { t } = useI18n();
 
   const props = defineProps<Props>();
 
-  const buttonColor = ref(props.primaryColor ?? '#dc4a22');
+  // Use CSS custom property as fallback - allows runtime theming
+  const buttonColor = ref(props.primaryColor || 'var(--color-brand-500)');
 
   // Compute aria attributes based on form validity
   const ariaDescription = computed(() => (props.disabled ? 'form_incomplete_description' : ''));
