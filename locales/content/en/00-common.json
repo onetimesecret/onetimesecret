@@ -1045,6 +1045,10 @@
     "text": "DNS Incorrect",
     "content_hash": "7848d601"
   },
+  "web.STATUS.unverified": {
+    "text": "Unverified",
+    "content_hash": "33c8e8de"
+  },
   "web.STATUS.active": {
     "text": "Active",
     "content_hash": "92340695"

@@ -5,6 +5,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
   import { CustomDomain } from '@/schemas/shapes/v3';
+  import { formatDistanceToNow } from 'date-fns';
   import { computed } from 'vue';
   const { t } = useI18n();
 
@@ -25,7 +26,7 @@
     return '/dashboard';
   });
 
-  const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatus(
+  const { statusIcon, statusColor, isActive, isWarning, isError, isStale } = useDomainStatus(
     () => props.domain
   );
 
@@ -33,9 +34,20 @@
    * Tooltip text that explains the actual status, not just "view status"
    */
   const statusTooltip = computed(() => {
+    if (isStale.value) return t('web.domains.status_tooltip_unverified');
     if (isActive.value) return t('web.domains.status_tooltip_active');
     if (isWarning.value) return t('web.domains.status_tooltip_dns_incorrect');
     return t('web.domains.status_tooltip_not_verified');
+  });
+
+  /**
+   * Humanized "verification check failed N ago" for the staleness row.
+   * Empty string when the last fetch did not fail. See issue #3080.
+   */
+  const fetchFailedHumanized = computed(() => {
+    const failedAt = props.domain?.vhost_fetch_failed_at;
+    if (failedAt == null) return '';
+    return formatDistanceToNow(Number(failedAt) * 1000, { addSuffix: true });
   });
 
   // const formatDate = (dateString: string): string => {
@@ -71,9 +83,9 @@
         :class="[
           'size-4 transition-opacity hover:opacity-80',
           {
-            'text-emerald-600 dark:text-emerald-400': isActive,
-            'text-amber-500 dark:text-amber-400': isWarning,
-            'text-rose-600 dark:text-rose-500': isError,
+            'text-amber-500 dark:text-amber-400': isStale || isWarning,
+            'text-emerald-600 dark:text-emerald-400': !isStale && isActive,
+            'text-rose-600 dark:text-rose-500': !isStale && !isActive && isError,
           },
         ]" />
     </RouterLink>
@@ -149,6 +161,17 @@
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.last_monitored_humanized
+            }}</span>
+          </div>
+
+          <div
+            v-if="domain?.vhost_fetch_failed_at"
+            class="flex flex-col">
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
+              t('web.domains.last_check_failed')
+            }}</span>
+            <span class="text-base text-amber-600 dark:text-amber-400">{{
+              fetchFailedHumanized
             }}</span>
           </div>
         </div>

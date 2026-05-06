@@ -151,6 +151,7 @@ jobs:
   catalog_retry_enabled: any(bool(), str(), required=False)
   dlq_consumer_enabled: any(bool(), str(), required=False)
   expiration_warnings: map(required=False)
+  domain_refresh: map(required=False)
 
 billing:
   enabled: any()
