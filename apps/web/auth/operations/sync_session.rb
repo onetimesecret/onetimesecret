@@ -157,7 +157,7 @@ module Auth
         customer = Onetime::Customer.create!(
           email: @account[:email],
           role: 'customer',
-          verified: rodauth_status_verified? ? '1' : '0',
+          verified: rodauth_status_verified?.to_s,
         )
 
         Auth::Logging.log_operation(

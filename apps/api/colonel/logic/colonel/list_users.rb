@@ -66,7 +66,9 @@ module ColonelAPI
               role: cust.role,
               verified: cust.verified?,
               created: cust.created,
+              created_human: format_timestamp(cust.created),
               last_login: cust.last_login,
+              last_login_human: format_timestamp(cust.last_login),
               planid: cust.planid,
               secrets_count: secrets_count_by_owner[cust.objid] || 0,
               secrets_created: cust.respond_to?(:secrets_created) ? cust.secrets_created : 0,
@@ -103,6 +105,12 @@ module ColonelAPI
           end
 
           counts
+        end
+
+        def format_timestamp(ts)
+          return '' unless ts && ts.to_i.positive?
+
+          Time.at(ts.to_i).utc.strftime('%Y-%m-%d %H:%M UTC')
         end
 
         def success_data
