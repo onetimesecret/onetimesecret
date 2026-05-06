@@ -157,8 +157,13 @@ module Auth
         customer = Onetime::Customer.create!(
           email: @account[:email],
           role: 'customer',
-          verified: rodauth_status_verified?.to_s,
         )
+
+        # Persist verification state via Familia's single-field fast writer.
+        # The Customer model coerces this to canonical 'true'/'false' (see
+        # Customer::Features::Status) so the value matches what `verified?`
+        # checks against.
+        customer.verified!(rodauth_status_verified?)
 
         Auth::Logging.log_operation(
           :customer_created,

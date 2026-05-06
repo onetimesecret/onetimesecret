@@ -4,6 +4,13 @@
 
 module Onetime::Customer::Features
   module Status
+    # Truthy representations of the `verified` field. Writes are coerced to
+    # canonical 'true' / 'false' strings (see Coercion below); reads remain
+    # tolerant of legacy values like '1' (written by older code paths) so
+    # existing customers do not require a manual Redis migration.
+    TRUTHY_VERIFIED_VALUES = %w[true 1].freeze
+    private_constant :TRUTHY_VERIFIED_VALUES
+
     def self.included(base)
       OT.ld "[features] #{base}: #{name}"
 
@@ -14,6 +21,27 @@ module Onetime::Customer::Features
       base.field :joined
       base.field :verified
       base.field :verified_by  # 'email', 'stripe_payment', 'autoverify', nil
+
+      # Prepended AFTER `field :verified` so `super` reaches the
+      # Familia-generated writer. This guarantees every write — whether via
+      # `cust.verified = …`, `Customer.create!(verified: …)`, or the fast
+      # writer `cust.verified!(…)` — is normalized to the canonical string
+      # form expected by `verified?`.
+      base.prepend Coercion
+    end
+
+    def self.canonical_verified(value)
+      truthy_verified?(value) ? 'true' : 'false'
+    end
+
+    def self.truthy_verified?(value)
+      TRUTHY_VERIFIED_VALUES.include?(value.to_s.downcase)
+    end
+
+    module Coercion
+      def verified=(value)
+        super(Status.canonical_verified(value))
+      end
     end
 
     module ClassMethods
@@ -21,7 +49,7 @@ module Onetime::Customer::Features
 
     module InstanceMethods
       def verified?
-        !anonymous? && verified.to_s.eql?('true')
+        !anonymous? && Status.truthy_verified?(verified)
       end
 
       # Check if account was verified via email confirmation
