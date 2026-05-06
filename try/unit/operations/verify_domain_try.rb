@@ -23,8 +23,13 @@ class MockValidationStrategy
   attr_accessor :ownership_result, :status_result, :certificate_result
 
   def initialize
-    @ownership_result = { validated: true, message: 'TXT record matches', data: nil }
-    @status_result = { ready: true, has_ssl: true, is_resolving: true, data: nil }
+    @ownership_result = { validated: true, message: 'TXT record matches', data: [] }
+    @status_result = {
+      ready: true,
+      has_ssl: true,
+      is_resolving: true,
+      data: { 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true },
+    }
     @certificate_result = { status: 'success', message: 'Created', data: nil }
   end
 
@@ -81,8 +86,13 @@ Onetime::Operations::VerifyDomain::BulkResult.ancestors.include?(Data)
 #=> true
 
 ## Single domain verification with mocked strategy - returns Result
-@strategy.ownership_result = { validated: true, message: 'OK', data: nil }
-@strategy.status_result = { ready: true, has_ssl: true, is_resolving: true, data: nil }
+@strategy.ownership_result = { validated: true, message: 'OK', data: [] }
+@strategy.status_result = {
+  ready: true,
+  has_ssl: true,
+  is_resolving: true,
+  data: { 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true },
+}
 @result1 = Onetime::Operations::VerifyDomain.new(
   domain: @domain1,
   strategy: @strategy,
@@ -132,7 +142,7 @@ Onetime::Operations::VerifyDomain::BulkResult.ancestors.include?(Data)
 #=> true
 
 ## Failed DNS validation - updates result correctly
-@strategy.ownership_result = { validated: false, message: 'TXT not found', data: nil }
+@strategy.ownership_result = { validated: false, message: 'TXT not found', data: [] }
 @result3 = Onetime::Operations::VerifyDomain.new(
   domain: @domain3,
   strategy: @strategy,
@@ -181,7 +191,7 @@ end
 ## Error handling - unrecoverable exception bubbles up to Result.error
 class TotallyBrokenStrategy
   def validate_ownership(_domain)
-    { validated: false, message: 'OK', data: nil }
+    { validated: false, message: 'OK', data: [] }
   end
 
   def check_status(_domain)
@@ -204,8 +214,13 @@ end
 #=> false
 
 ## Bulk verification - processes multiple domains
-@strategy.ownership_result = { validated: true, message: 'OK', data: nil }
-@strategy.status_result = { ready: true, has_ssl: true, is_resolving: true, data: nil }
+@strategy.ownership_result = { validated: true, message: 'OK', data: [] }
+@strategy.status_result = {
+  ready: true,
+  has_ssl: true,
+  is_resolving: true,
+  data: { 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true },
+}
 @bulk_result = Onetime::Operations::VerifyDomain.new(
   domains: [@domain1, @domain2],
   strategy: @strategy,
@@ -248,8 +263,13 @@ end
 @domain1.verified = 'false'
 @domain1.resolving = 'false'
 @domain1.save
-@strategy.ownership_result = { validated: true, message: 'OK', data: nil }
-@strategy.status_result = { ready: true, has_ssl: true, is_resolving: true, data: nil }
+@strategy.ownership_result = { validated: true, message: 'OK', data: [] }
+@strategy.status_result = {
+  ready: true,
+  has_ssl: true,
+  is_resolving: true,
+  data: { 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true },
+}
 @result_change = Onetime::Operations::VerifyDomain.new(
   domain: @domain1,
   strategy: @strategy,
@@ -265,6 +285,132 @@ end
 ## BulkResult to_h - produces hash with nested results
 @bulk_result.to_h.keys.sort
 #=> [:duration_seconds, :failed_count, :results, :skipped_count, :total, :verified_count]
+
+# ─────────────────────────────────────────────────────────────────────────
+# Issue #3080: atomic persistence — preserve cached vhost and resolving
+# when the originating API call did not return authoritative data.
+# Track failure with vhost_fetch_failed_at; clear it on next success.
+# ─────────────────────────────────────────────────────────────────────────
+
+class FailingStatusStrategy
+  def validate_ownership(_d)
+    { validated: true, message: 'OK', data: [] }
+  end
+
+  def check_status(_d)
+    { ready: false, has_ssl: false, is_resolving: false, message: 'API down' }
+  end
+
+  def strategy_name
+    'failing_status'
+  end
+end
+
+# Seed the domain with a successful prior fetch
+@cached_vhost = '{"status":"ACTIVE_SSL","is_resolving":true}'
+@domain1.vhost = @cached_vhost
+@domain1.resolving = 'true'
+@domain1.vhost_fetch_failed_at = nil
+@domain1.save
+
+Onetime::Operations::VerifyDomain.new(
+  domain: @domain1,
+  strategy: FailingStatusStrategy.new,
+  persist: true,
+).call
+
+@reloaded = Onetime::CustomDomain.find_by_identifier(@domain1.identifier)
+
+## Atomic update preserves vhost on failed status fetch
+@reloaded.vhost
+#=> @cached_vhost
+
+## Atomic update preserves resolving on failed status fetch
+@reloaded.resolving
+#=> 'true'
+
+## Atomic update sets vhost_fetch_failed_at on failure
+@reloaded.vhost_fetch_failed_at.to_i.positive?
+#=> true
+
+## Atomic update clears vhost_fetch_failed_at on next success
+@strategy.ownership_result = { validated: true, message: 'OK', data: [] }
+@strategy.status_result = {
+  ready: true, has_ssl: true, is_resolving: true,
+  data: { 'status' => 'ACTIVE_SSL', 'is_resolving' => true },
+}
+Onetime::Operations::VerifyDomain.new(
+  domain: @domain1, strategy: @strategy, persist: true,
+).call
+@reloaded2 = Onetime::CustomDomain.find_by_identifier(@domain1.identifier)
+@reloaded2.vhost_fetch_failed_at
+#=> nil
+
+## verified preserved when validate_ownership has no fresh-data indicator
+class FailingValidationStrategy
+  def validate_ownership(_d)
+    # No :data, no :mode — represents Approximated 5xx / network exception
+    { validated: false, message: 'API down' }
+  end
+
+  def check_status(_d)
+    { ready: true, has_ssl: true, is_resolving: true,
+      data: { 'status' => 'ACTIVE_SSL', 'is_resolving' => true } }
+  end
+
+  def strategy_name
+    'failing_validation'
+  end
+end
+
+@domain1.verified = 'true'
+@domain1.save
+Onetime::Operations::VerifyDomain.new(
+  domain: @domain1,
+  strategy: FailingValidationStrategy.new,
+  persist: true,
+).call
+@reloaded3 = Onetime::CustomDomain.find_by_identifier(@domain1.identifier)
+@reloaded3.verified
+#=> 'true'
+
+## Passive strategy (mode set, no :data) updates verified via :mode branch
+class PassiveStrategy
+  def validate_ownership(_d)
+    { validated: true, message: 'External validation', mode: 'passthrough' }
+  end
+
+  def check_status(_d)
+    { ready: true, has_ssl: true, is_resolving: true,
+      mode: 'passthrough', message: 'External management' }
+  end
+
+  def strategy_name
+    'passthrough'
+  end
+end
+
+@domain2.verified = 'false'
+@domain2.resolving = 'false'
+@domain2.save
+Onetime::Operations::VerifyDomain.new(
+  domain: @domain2,
+  strategy: PassiveStrategy.new,
+  persist: true,
+).call
+@reloaded4 = Onetime::CustomDomain.find_by_identifier(@domain2.identifier)
+
+## Passive strategy: verified flips to true via :mode
+@reloaded4.verified
+#=> 'true'
+
+## Passive strategy: resolving updates from is_resolving
+@reloaded4.resolving
+#=> 'true'
+
+## Passive strategy: vhost_fetch_failed_at cleared (treated as fresh)
+@reloaded4.vhost_fetch_failed_at
+#=> nil
 
 ## Argument validation - requires domain or domains
 begin

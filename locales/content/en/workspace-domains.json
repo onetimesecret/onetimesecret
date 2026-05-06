@@ -163,6 +163,22 @@
     "text": "Domain not verified — click to verify",
     "content_hash": "a9806710"
   },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domain status unverified — click to refresh",
+    "content_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Last verification check failed",
+    "content_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "last check failed {0}",
+    "content_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Verify now",
+    "content_hash": "db383efb"
+  },
   "web.domains.click_to_verify": {
     "text": "click to verify",
     "content_hash": "6eae7d9c"

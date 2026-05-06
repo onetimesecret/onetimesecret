@@ -98,6 +98,7 @@ module Onetime
     field :vhost
     field :verified # the txt record matches?
     field :resolving # there's a valid A or CNAME record?
+    field :vhost_fetch_failed_at # epoch seconds; non-nil while last vhost fetch failed
     field :created
     field :updated
     field :_original_value

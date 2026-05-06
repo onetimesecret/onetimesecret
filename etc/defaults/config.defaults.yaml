@@ -684,6 +684,20 @@ jobs:
   # failures or log permanent failures for investigation.
   dlq_consumer_enabled: <%= ENV['JOBS_DLQ_CONSUMER_ENABLED'] != 'false' %>
 
+  # Domain refresh job
+  # Periodically refreshes cached vhost/resolving status for custom domains
+  # so the domains-list page shows current state without depending on a user
+  # visiting the verify page. See issue #3080.
+  # Skips gracefully when no custom domains are registered.
+  domain_refresh:
+    enabled: <%= ENV['JOBS_DOMAIN_REFRESH_ENABLED'] == 'true' || false %>
+    # How often to refresh (rufus-scheduler interval)
+    check_interval: <%= ENV['JOBS_DOMAIN_REFRESH_INTERVAL'] || '30m' %>
+    # Maximum domains processed per run (rate limiting)
+    batch_size: <%= ENV['JOBS_DOMAIN_REFRESH_BATCH_SIZE']&.to_i || 200 %>
+    # Seconds between Approximated API calls within a run
+    rate_limit: <%= ENV['JOBS_DOMAIN_REFRESH_RATE_LIMIT']&.to_f || 0.5 %>
+
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:
