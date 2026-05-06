@@ -1,9 +1,9 @@
-# lib/onetime/familia/boolean_field_type.rb
+# lib/onetime/field_types/boolean_field_type.rb
 #
 # frozen_string_literal: true
 
 module Onetime
-  module Familia
+  module FieldTypes
     # Custom Familia field type that stores boolean-ish values in a canonical
     # 'true' / 'false' string form, regardless of how callers express truth.
     #
@@ -41,7 +41,8 @@ module Onetime
     # This is the reference implementation for adding type-level value
     # coercion to Familia models in this codebase. Future custom field
     # types (timestamp normalization, percentage clamping, enum
-    # validation, …) should follow the same shape:
+    # validation, …) should live alongside this one under
+    # `lib/onetime/field_types/` and follow the same shape:
     #
     #   1. A `FieldType` subclass overriding {#define_setter},
     #      {#serialize}, and {#deserialize} as appropriate.
@@ -51,10 +52,18 @@ module Onetime
     #      `base.extend SomeMacro` then calls the macro inline alongside
     #      regular `field` declarations.
     #
+    # ## Naming note
+    #
+    # The enclosing module is `Onetime::FieldTypes` (not
+    # `Onetime::Familia`) on purpose: nesting our code inside an
+    # `Onetime::Familia` namespace would shadow the top-level `Familia`
+    # constant from anywhere in the `Onetime::*` lexical scope, breaking
+    # `class Foo < Familia::Horreum` lookups across the codebase.
+    #
     # ## Usage
     #
     #   class Customer < ::Familia::Horreum
-    #     extend Onetime::Familia::BooleanFieldMacro
+    #     extend Onetime::FieldTypes::BooleanFieldMacro
     #     boolean_field :verified
     #   end
     #
@@ -130,7 +139,7 @@ module Onetime
     # @example In a feature module
     #   module Status
     #     def self.included(base)
-    #       base.extend Onetime::Familia::BooleanFieldMacro
+    #       base.extend Onetime::FieldTypes::BooleanFieldMacro
     #       base.boolean_field :verified
     #     end
     #   end

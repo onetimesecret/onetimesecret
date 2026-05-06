@@ -1,8 +1,8 @@
-# try/unit/familia/boolean_field_type_try.rb
+# try/unit/field_types/boolean_field_type_try.rb
 #
 # frozen_string_literal: true
 
-# Tests for Onetime::Familia::BooleanFieldType — the custom Familia
+# Tests for Onetime::FieldTypes::BooleanFieldType — the custom Familia
 # field type that canonicalizes boolean-ish values to the strings
 # 'true' / 'false' on every read/write path.
 #
@@ -23,7 +23,7 @@ require_relative '../../support/test_helpers'
 OT.boot! :test, false
 
 # Convenience alias
-BFT = Onetime::Familia::BooleanFieldType
+BFT = Onetime::FieldTypes::BooleanFieldType
 
 # ---------------------------------------------------------------------------
 # 1. canonicalize/1: every documented input shape
@@ -90,7 +90,7 @@ BFT.canonicalize('definitely-not-true')
 #=> 'false'
 
 ## TRUTHY constant lists exactly the expected aliases
-Onetime::Familia::BooleanFieldType::TRUTHY
+Onetime::FieldTypes::BooleanFieldType::TRUTHY
 #=> ['true', '1', 'yes']
 
 # ---------------------------------------------------------------------------
