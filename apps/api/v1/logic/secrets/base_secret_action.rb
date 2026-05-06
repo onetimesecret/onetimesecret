@@ -433,18 +433,20 @@ module V1::Logic
       # @raise [FormError] If access is not permitted
       #
       # Validation Rules:
-      # - On custom domains:
-      #   - Allows access if public sharing is enabled
-      #   - Rejects if public sharing is disabled
-      # - On canonical domain:
-      #   - Requires domain ownership
+      # - Domain owner / org member: always permitted (issue #3073).
+      # - Custom domain, non-owner: permitted only when public homepage sharing
+      #   is enabled.
+      # - Canonical domain, non-owner: not permitted.
       def validate_domain_permissions(domain_record)
+        # Owner / org member can always use the domain, regardless of the
+        # Homepage Secrets toggle. The toggle gates anonymous public intake,
+        # not authenticated use by the owner's organization.
+        return if domain_record.owner?(@cust)
+
         if custom_domain?
           return if domain_record.allow_public_homepage?
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
-
-        return if domain_record.owner?(@cust)
 
         OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
         raise_form_error "You do not have permission to use domain: #{share_domain}"

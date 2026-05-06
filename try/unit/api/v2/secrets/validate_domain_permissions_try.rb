@@ -5,10 +5,12 @@
 # Tests for V2::Logic::Secrets::BaseSecretAction#validate_domain_permissions
 #
 # The validate_domain_permissions method enforces:
-# - On custom domains: allows access if public sharing is enabled
-# - On canonical domain: requires domain ownership
+# - Domain owner / org member: always permitted, regardless of toggle (issue #3073).
+# - Custom domain, non-owner: permitted only when public homepage sharing is enabled.
+# - Canonical domain, non-owner: not permitted (cannot share via someone else's domain).
 #
-# Fix verified: Task #32 added raise_form_error for non-owners on canonical domain
+# Permission denials raise Onetime::Forbidden (HTTP 403), not FormError (422),
+# because they reflect access-control decisions rather than form validation.
 
 require_relative '../../../../support/test_helpers'
 
@@ -68,13 +70,13 @@ rescue Onetime::FormError => e
 end
 #=> :success
 
-## Non-owner on canonical domain raises FormError matching domain permission message
+## Non-owner on canonical domain raises Forbidden matching domain permission message
 # No domain_strategy in metadata -> canonical domain (domain_strategy is nil)
 logic = create_test_logic(@other, share_domain_value: @domain.display_domain)
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
-rescue Onetime::FormError => e
+rescue Onetime::Forbidden => e
   e.message
 end
 #=~> /You do not have permission to use domain:/
@@ -85,7 +87,7 @@ logic = create_test_logic(@other, share_domain_value: @domain.display_domain)
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
-rescue Onetime::FormError => e
+rescue Onetime::Forbidden => e
   e.message.include?("validate-perms")
 end
 #=> true
@@ -99,7 +101,7 @@ logic = create_test_logic(@other,
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
-rescue Onetime::FormError => e
+rescue Onetime::Forbidden => e
   e.message
 end
 #=> :success
@@ -113,19 +115,49 @@ logic = create_test_logic(@other,
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
-rescue Onetime::FormError => e
+rescue Onetime::Forbidden => e
   e.message
 end
 #=~> /Public sharing disabled for domain:/
 
-## Owner can always access their domain regardless of public sharing setting
+## Owner on canonical domain is allowed regardless of public sharing setting
 # No domain_strategy in metadata -> canonical domain (domain_strategy is nil)
 set_public_homepage(@domain, false)
 logic = create_test_logic(@owner, share_domain_value: @domain.display_domain)
 begin
   logic.send(:validate_domain_access, @domain.display_domain)
   :success
-rescue Onetime::FormError => e
+rescue Onetime::Forbidden => e
+  e.message
+end
+#=> :success
+
+## Issue #3073: Owner on custom domain with public sharing disabled is allowed
+# Regression for the bug where the Homepage Secrets toggle blocked authenticated
+# domain owner requests on the custom domain itself.
+set_public_homepage(@domain, false)
+logic = create_test_logic(@owner,
+  share_domain_value: @domain.display_domain,
+  domain_strategy: :custom,
+  display_domain: @domain.display_domain)
+begin
+  logic.send(:validate_domain_access, @domain.display_domain)
+  :success
+rescue Onetime::Forbidden => e
+  e.message
+end
+#=> :success
+
+## Issue #3073: Owner on custom domain with public sharing enabled is also allowed
+set_public_homepage(@domain, true)
+logic = create_test_logic(@owner,
+  share_domain_value: @domain.display_domain,
+  domain_strategy: :custom,
+  display_domain: @domain.display_domain)
+begin
+  logic.send(:validate_domain_access, @domain.display_domain)
+  :success
+rescue Onetime::Forbidden => e
   e.message
 end
 #=> :success
