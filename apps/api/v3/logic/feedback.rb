@@ -21,7 +21,10 @@ module V3
       FEEDBACK_RATE_LIMIT_MAX    = 10
       FEEDBACK_RATE_LIMIT_WINDOW = 3600 # 1 hour
 
-      MAX_MSG_LENGTH     = 199_999 # 200k chars is enough for anyone
+      # Frontend forms (FeedbackForm.vue, FeedbackModalForm.vue) mirror this
+      # value via FEEDBACK_MAX_MSG_LENGTH so users see a counter and maxlength
+      # warning before the server silently truncates oversized messages.
+      MAX_MSG_LENGTH     = 200_000 # Generous upper bound; UI surfaces it to users
       MAX_TZ_LENGTH      = 64
       MAX_VERSION_LENGTH = 32
 
@@ -95,21 +98,30 @@ module V3
 
         # Determine sender email - use actual email for authenticated users,
         # 'anonymous' indicator for guests (nil sender or anonymous flag)
-        sender_email = sender.nil? || sender.anonymous? ? 'anonymous' : sender.email
+        is_anonymous = sender.nil? || sender.anonymous?
+        sender_email = is_anonymous ? 'anonymous' : sender.email
+
+        email_data = {
+          recipient_email: colonel.email,
+          email_address: sender_email,
+          message: message,
+          display_domain: effective_domain,
+          domain_strategy: domain_strategy || :default,
+          locale: locale || OT.default_locale,
+        }
+
+        # When the submitter is authenticated, set Reply-To to their email so
+        # admins can reply directly without copy/pasting from the message body.
+        # For anonymous submissions reply_to is omitted so the mailer falls
+        # back to the configured from address (no inbox to reply to).
+        email_data[:reply_to] = sender.email unless is_anonymous
 
         begin
           # Non-critical: feedback is saved in Redis regardless of email
           # Use :none fallback - don't block or spawn threads for notifications
           Onetime::Jobs::Publisher.enqueue_email(
             :feedback_email,
-            {
-              recipient_email: colonel.email,
-              email_address: sender_email,
-              message: message,
-              display_domain: effective_domain,
-              domain_strategy: domain_strategy || :default,
-              locale: locale || OT.default_locale,
-            },
+            email_data,
             fallback: :none,
           )
         rescue StandardError => ex

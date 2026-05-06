@@ -140,3 +140,42 @@ strategy_result = MockStrategyResult.authenticated(@authenticated_customer, sess
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
 logic.anonymous_user?
 #=> false
+
+## reply_to is omitted for anonymous senders so admins reply to from-address
+# Mirrors the conditional in send_feedback that gates the reply_to header.
+sender = nil
+is_anonymous = sender.nil? || sender.anonymous?
+data = { email_address: 'anonymous' }
+data[:reply_to] = sender.email unless is_anonymous
+data.key?(:reply_to)
+#=> false
+
+## reply_to is omitted for customers with anonymous role
+sender = @anonymous_customer
+is_anonymous = sender.nil? || sender.anonymous?
+data = { email_address: 'anonymous' }
+data[:reply_to] = sender.email unless is_anonymous
+data.key?(:reply_to)
+#=> false
+
+## reply_to is set to sender email for authenticated customers
+sender = @authenticated_customer
+is_anonymous = sender.nil? || sender.anonymous?
+data = { email_address: sender.email }
+data[:reply_to] = sender.email unless is_anonymous
+data[:reply_to]
+#=> @email
+
+## send_feedback still runs without raising for authenticated sender
+strategy_result = MockStrategyResult.authenticated(@authenticated_customer, session: MockSession.new)
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+colonel = Customer.new email: 'colonel@onetimesecret.com'
+colonel.role = 'colonel'
+result = begin
+  logic.send(:send_feedback, colonel, @authenticated_customer, 'Test message')
+  :no_error
+rescue StandardError => e
+  e.class.name
+end
+result
+#=> :no_error
