@@ -104,6 +104,8 @@ export const colonelSecretsDetailsSchema = z.object({
 export const databaseMetricsDetailsSchema = z.object({
   redis_info: z.object({
     redis_version: z.string(),
+    valkey_version: z.string().nullish(),
+    server_name: z.string().nullish(),
     redis_mode: z.string().nullable(),
     os: z.string(),
     uptime_in_seconds: z.number(),
@@ -136,7 +138,7 @@ export const databaseMetricsDetailsSchema = z.object({
   model_counts: z.object({
     customers: z.number(),
     secrets: z.number(),
-    receipt: z.number(),
+    receipts: z.number(),
   }),
 });
 

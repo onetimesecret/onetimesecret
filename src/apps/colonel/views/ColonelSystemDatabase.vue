@@ -156,7 +156,7 @@
           <div>
             <div class="text-sm text-gray-500 dark:text-gray-400">Metadata</div>
             <div class="text-2xl font-bold text-gray-900 dark:text-white">
-              {{ databaseMetrics.model_counts.receipt.toLocaleString() }}
+              {{ databaseMetrics.model_counts.receipts.toLocaleString() }}
             </div>
           </div>
         </div>

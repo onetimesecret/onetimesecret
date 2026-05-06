@@ -55,8 +55,13 @@ module ColonelAPI
           }
 
           # Server stats
+          # valkey_version / server_name are present on Valkey; absent on Redis.
+          # redis_version on Valkey is a compat shim (e.g. 7.2.4) and shouldn't be
+          # surfaced as the canonical version when the real engine is Valkey.
           @redis_info = {
             redis_version: info['redis_version'],
+            valkey_version: info['valkey_version'],
+            server_name: info['server_name'],
             redis_mode: info['redis_mode'],
             os: info['os'],
             uptime_in_seconds: info['uptime_in_seconds'].to_i,
