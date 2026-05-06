@@ -27,6 +27,16 @@ import { storeToRefs } from 'pinia';
   const userTimezone = ref('');
   const feedbackMessage = ref('');
 
+  // Mirror of V3::Logic::ReceiveFeedback::MAX_MSG_LENGTH in
+  // apps/api/v3/logic/feedback.rb. Keep these in sync — the server silently
+  // truncates anything beyond this length.
+  const MAX_MSG_LENGTH = 200_000;
+  const CHAR_WARNING_THRESHOLD = Math.floor(MAX_MSG_LENGTH * 0.9);
+
+  const charactersRemaining = computed(() => MAX_MSG_LENGTH - feedbackMessage.value.length);
+  const showCharacterCounter = computed(() => feedbackMessage.value.length >= CHAR_WARNING_THRESHOLD);
+  const atCharacterLimit = computed(() => feedbackMessage.value.length >= MAX_MSG_LENGTH);
+
   const resetForm = () => {
     feedbackMessage.value = '';
     // Reset other non-hidden form fields here if you have any
@@ -115,12 +125,36 @@ import { storeToRefs } from 'pinia';
           name="msg"
           rows="4"
           required
+          :maxlength="MAX_MSG_LENGTH"
           @keydown="handleKeydown"
           :placeholder="t('web.COMMON.feedback_text')"
           :aria-label="t('web.feedback.enter_your_feedback')"></textarea>
-        <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
+        <div class="mt-2 flex items-center justify-between text-gray-500 dark:text-gray-400">
+          <span
+            v-if="showCharacterCounter"
+            class="text-xs"
+            :class="atCharacterLimit
+              ? 'text-red-600 dark:text-red-400'
+              : 'text-amber-600 dark:text-amber-400'"
+            role="status"
+            aria-live="polite">
+            {{ atCharacterLimit
+              ? t('web.feedback.character_limit_reached')
+              : t('web.feedback.characters_remaining', { count: charactersRemaining }) }}
+          </span>
+          <span v-else></span>
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
+      </div>
+
+      <!-- Reply-availability notice: heads-up for anonymous submitters -->
+      <div
+        v-if="!cust?.objid"
+        class="rounded-md border border-blue-200 bg-blue-50
+          p-3 text-sm text-blue-800
+          dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+        role="note">
+        {{ t('web.feedback.anonymous_no_reply') }}
       </div>
 
       <input
