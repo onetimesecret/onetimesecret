@@ -384,7 +384,7 @@ module V2::Logic
       # @raise [FormError] If require_verified is on and the domain is not
       #   yet verified
       def validate_domain_verification(domain_record)
-        return unless OT.conf.dig('features', 'domains', 'require_verified')
+        return unless OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
         return if domain_record.verified.to_s == 'true'
 
         secret_logger.warn 'Unverified custom share_domain rejected',
