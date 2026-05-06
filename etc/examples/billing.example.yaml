@@ -86,6 +86,10 @@ entitlements:
     category: infrastructure
     description: Can configure custom domains
 
+  extended_default_expiration:
+    category: core
+    description: Extended secret expiration (30 days default)
+
   custom_branding:
     category: branding
     description: Custom branding and styling
@@ -212,6 +216,7 @@ plans:
       - incoming_secrets
       - custom_mail_sender
       - flexible_from_domain
+      - extended_default_expiration
 
     features:
       - web.billing.features.custom_domains
@@ -224,7 +229,7 @@ plans:
       organizations: 1
       members_per_team: 1
       custom_domains: -1       # unlimited
-      secret_lifetime: 1209600 # 14 days in seconds
+      secret_lifetime: 2592000 # 30 days in seconds
       secrets_per_day: -1      # unlimited
 
     # Changes to prices requires a full catalog push && catalog pull. If a price is
@@ -264,6 +269,7 @@ plans:
   #     - incoming_secrets
   #     - custom_mail_sender
   #     - flexible_from_domain
+  #     - extended_default_expiration
   #     - manage_teams
   #     - manage_members
   #
@@ -275,7 +281,7 @@ plans:
   #     organizations: 1
   #     members_per_team: 5
   #     custom_domains: -1       # unlimited
-  #     secret_lifetime: 2592000 # 30 days in seconds
+  #     secret_lifetime: 7776000 # 90 days in seconds
   #     secrets_per_day: -1      # unlimited
   #
   #   prices:

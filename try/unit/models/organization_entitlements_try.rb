@@ -94,7 +94,7 @@ OT.boot! :test
 
 ## SaaS empty planid: limit_for('secret_lifetime') returns DEFAULT_FREE_TTL absent env override
 @org.limit_for('secret_lifetime')
-#=> 1_209_600
+#=> 604_800
 
 ## SAAS PLAN CACHE MISS TEST: billing enabled but plan not in cache returns FREE tier (graceful degradation)
 @org.planid = "nonexistent_plan_#{@timestamp}"
