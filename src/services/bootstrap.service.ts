@@ -125,6 +125,29 @@ export function getBootstrapSnapshot(): Partial<BootstrapPayload> | null {
 }
 
 /**
+ * Merges new values into the bootstrap snapshot.
+ * Called by bootstrapStore.update() so non-Pinia readers (features.ts:
+ * hasPassword, isSsoOnlyMode, etc.) see fresh values after auth state
+ * mutations like login or password change. Without this, those readers
+ * stay pinned to the values that were on window.__BOOTSTRAP_ME__ at
+ * page load and account-settings tabs go stale until full reload.
+ *
+ * Undefined values are skipped to match update() semantics in bootstrapStore.
+ */
+export function updateBootstrapSnapshot(data: Partial<BootstrapPayload>): void {
+  if (!bootstrapSnapshot) {
+    bootstrapSnapshot = {};
+    consumed = true;
+  }
+  const target = bootstrapSnapshot as Record<string, unknown>;
+  for (const key of Object.keys(data) as Array<keyof BootstrapPayload>) {
+    if (data[key] !== undefined) {
+      target[key as string] = data[key];
+    }
+  }
+}
+
+/**
  * Checks if bootstrap data has been consumed.
  * Useful for debugging and conditional initialization logic.
  */
@@ -151,6 +174,7 @@ export const BootstrapService = {
   consume: consumeBootstrapData,
   get: getBootstrapValue,
   getSnapshot: getBootstrapSnapshot,
+  updateSnapshot: updateBootstrapSnapshot,
   isConsumed: isBootstrapConsumed,
   _resetForTesting,
 };

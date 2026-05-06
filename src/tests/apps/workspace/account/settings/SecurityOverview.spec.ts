@@ -41,6 +41,12 @@ const mockWebAuthnEnabled = ref(true);
 vi.mock('@/utils/features', () => ({
   isMfaEnabled: () => mockMfaEnabled.value,
   isWebAuthnEnabled: () => mockWebAuthnEnabled.value,
+  // SecurityOverview reads through the `*Of` predicate variants so it can
+  // recompute reactively from the bootstrap store. The test stubs ignore the
+  // store argument and read the flag refs directly so existing assertions keep
+  // exercising the same MFA/WebAuthn on/off matrix.
+  isMfaEnabledOf: () => mockMfaEnabled.value,
+  isWebAuthnEnabledOf: () => mockWebAuthnEnabled.value,
 }));
 
 // Mock useAccount composable
@@ -135,7 +141,7 @@ describe('SecurityOverview', () => {
   };
 
   // Helper to find card by title text
-  const findCardByTitle = (title: string) => {
+  const _findCardByTitle = (title: string) => {
     const cards = wrapper.findAll('.grid > div');
     return cards.find((card) => card.text().includes(title));
   };

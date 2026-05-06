@@ -1,6 +1,6 @@
 // src/shared/stores/bootstrapStore.ts
 
-import { getBootstrapSnapshot } from '@/services/bootstrap.service';
+import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import {
   bootstrapSchema,
   type BootstrapPayload,
@@ -213,6 +213,11 @@ export const useBootstrapStore = defineStore('bootstrap', {
       this.$patch((state) => {
         Object.assign(state, filterDefined(data));
       });
+
+      // Keep the bootstrap.service snapshot in sync so non-Pinia readers
+      // (features.ts hasPassword/isSsoOnlyMode used by route guards and the
+      // settings sidebar) see fresh values after login or other auth mutations.
+      updateBootstrapSnapshot(data);
 
       console.debug('[BootstrapStore.update] Updated with:', {
         authenticated: data.authenticated,
