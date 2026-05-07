@@ -79,6 +79,9 @@ module Onetime
           }
         end
 
+        # Detect legacy/typo field name variants for plan_id
+        detect_plan_id_variants(product, warnings)
+
         # Check for duplicate plan_ids (will be detected across all products)
         # Individual validation just ensures plan_id exists
         return if product.metadata['plan_id']
@@ -88,6 +91,32 @@ module Onetime
           type: :missing_plan_id,
           message: 'Missing plan_id',
           details: 'Product metadata missing plan_id field',
+        }
+      end
+
+      # Detect legacy or typo field name variants for plan_id
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @param warnings [Array] Warnings collection to append to
+      def detect_plan_id_variants(product, warnings)
+        metadata = product.metadata || {}
+
+        if metadata['planid']
+          warnings << {
+            product_id: product.id,
+            type: :field_variant,
+            message: "Found 'planid', expected 'plan_id'",
+            details: 'Metadata uses wrong field name (missing underscore)',
+          }
+        end
+
+        return unless metadata['plan']
+
+        warnings << {
+          product_id: product.id,
+          type: :field_variant,
+          message: "Found legacy 'plan' field, expected 'plan_id'",
+          details: 'Metadata uses deprecated field name',
         }
       end
 

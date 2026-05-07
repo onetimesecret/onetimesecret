@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'fileutils'
 require 'yaml'
 require_relative 'helpers'
 require_relative '../config'
