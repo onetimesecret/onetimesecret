@@ -39,6 +39,31 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+
+// Copy to clipboard helper
+const copyToClipboard = async (text: string, fieldName: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    showCopyFeedback(fieldName);
+  } catch {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showCopyFeedback(fieldName);
+  }
+};
+
+const copiedField = ref<string | null>(null);
+const showCopyFeedback = (fieldName: string) => {
+  copiedField.value = fieldName;
+  setTimeout(() => {
+    copiedField.value = null;
+  }, 1500);
+};
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -342,11 +367,28 @@ onUnmounted(() => {
           class="border-b border-gray-200 px-4 py-3
             dark:border-gray-700">
           <div class="flex items-center justify-between gap-2">
-            <p
-              class="truncate text-sm font-medium text-gray-900 dark:text-white"
-              :title="cust?.email">
-              {{ cust?.email }}
-            </p>
+            <!-- Email with copy button -->
+            <div class="group/email flex min-w-0 items-center gap-1">
+              <p
+                class="truncate text-sm font-medium text-gray-900 dark:text-white"
+                :title="cust?.email">
+                {{ cust?.email }}
+              </p>
+              <button
+                v-if="cust?.email"
+                @click.stop="copyToClipboard(cust.email, 'email')"
+                :title="copiedField === 'email' ? t('web.COMMON.copied') : t('web.COMMON.copy_email')"
+                class="shrink-0 rounded p-0.5 text-gray-400 transition-all
+                  hover:bg-gray-100 hover:text-gray-600
+                  dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                :class="{ 'text-green-500': copiedField === 'email' }">
+                <OIcon
+                  collection="material-symbols"
+                  :name="copiedField === 'email' ? 'check' : 'content-copy-outline'"
+                  class="size-4"
+                  aria-hidden="true" />
+              </button>
+            </div>
             <!-- Theme Toggle -->
             <button
               @click="toggleDarkMode"
@@ -364,21 +406,41 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </button>
           </div>
-          <p
+          <!-- ExtID with copy button -->
+          <div
             v-if="!awaitingMfa && cust?.objid"
-            class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {{ cust?.extid }}
-          </p>
-          <p
+            class="group/extid mt-0.5 flex items-center gap-1">
+            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
+              {{ cust?.extid }}
+            </p>
+            <button
+              @click.stop="copyToClipboard(cust.extid, 'extid')"
+              :title="copiedField === 'extid' ? t('web.COMMON.copied') : t('web.COMMON.copy_id')"
+              class="shrink-0 rounded p-0.5 text-gray-400 transition-all
+                hover:bg-gray-100 hover:text-gray-600
+                dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              :class="{ 'text-green-500': copiedField === 'extid' }">
+              <OIcon
+                collection="material-symbols"
+                :name="copiedField === 'extid' ? 'check' : 'content-copy-outline'"
+                class="size-3.5"
+                aria-hidden="true" />
+            </button>
+          </div>
+          <!-- Domain context -->
+          <div
             v-if="showDomainContext"
-            class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            class="mt-1.5 flex items-center gap-1.5 rounded bg-gray-100 px-2 py-1
+              dark:bg-gray-700/50">
             <OIcon
               collection="heroicons"
               name="globe-alt"
-              class="size-3 shrink-0"
+              class="size-3.5 shrink-0 text-gray-500 dark:text-gray-400"
               aria-hidden="true" />
-            <span class="truncate">{{ currentContext.displayName }}</span>
-          </p>
+            <span class="truncate text-xs font-medium text-gray-600 dark:text-gray-300">
+              {{ currentContext.displayName }}
+            </span>
+          </div>
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"
