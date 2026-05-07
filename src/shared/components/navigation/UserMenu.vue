@@ -406,41 +406,12 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </button>
           </div>
-          <!-- ExtID with copy button -->
-          <div
-            v-if="!awaitingMfa && cust?.objid"
-            class="group/extid mt-0.5 flex items-center gap-1">
-            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
-              {{ cust?.extid }}
-            </p>
-            <button
-              @click.stop="copyToClipboard(cust.extid, 'extid')"
-              :title="copiedField === 'extid' ? t('web.COMMON.copied') : t('web.COMMON.copy_id')"
-              class="shrink-0 rounded p-0.5 text-gray-400 transition-all
-                hover:bg-gray-100 hover:text-gray-600
-                dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              :class="{ 'text-green-500': copiedField === 'extid' }">
-              <OIcon
-                collection="material-symbols"
-                :name="copiedField === 'extid' ? 'check' : 'content-copy-outline'"
-                class="size-3.5"
-                aria-hidden="true" />
-            </button>
-          </div>
-          <!-- Domain context -->
-          <div
+          <!-- Domain context (subdued, below email) -->
+          <p
             v-if="showDomainContext"
-            class="mt-1.5 flex items-center gap-1.5 rounded bg-gray-100 px-2 py-1
-              dark:bg-gray-700/50">
-            <OIcon
-              collection="heroicons"
-              name="globe-alt"
-              class="size-3.5 shrink-0 text-gray-500 dark:text-gray-400"
-              aria-hidden="true" />
-            <span class="truncate text-xs font-medium text-gray-600 dark:text-gray-300">
-              {{ currentContext.displayName }}
-            </span>
-          </div>
+            class="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
+            {{ currentContext.displayName }}
+          </p>
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"
