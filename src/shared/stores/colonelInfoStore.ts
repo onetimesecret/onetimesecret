@@ -3,14 +3,11 @@
 import {
   type ColonelStatsDetails,
   type ColonelInfoDetails,
-  type ColonelUsersDetails,
   type ColonelUser,
   type Pagination,
-  type ColonelSecretsDetails,
   type ColonelSecret,
   type DatabaseMetricsDetails,
   type RedisMetricsDetails,
-  type BannedIPsDetails,
   type BannedIP,
   type UsageExportDetails,
   type ColonelCustomDomain,
@@ -19,57 +16,14 @@ import {
   type InvestigateOrganizationResult,
   type QueueMetrics,
 } from '@/schemas/api/account/responses/colonel';
-import { type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { responseSchemas } from '@/schemas/api/internal/responses';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
-import { defineStore, PiniaCustomProperties } from 'pinia';
+import { defineStore } from 'pinia';
 import { reactive, ref } from 'vue';
 
 // Use the imported type from schemas
 export type ColonelStats = ColonelStatsDetails;
-
-/**
- * Type definition for ColonelInfoStore.
- */
-export type ColonelInfoStore = {
-  // State
-  _initialized: boolean;
-  record: {} | null; // response is empty object
-  details: ColonelInfoDetails;
-  stats: ColonelStats | null;
-  config: SystemSettingsDetails | null;
-  users: ColonelUser[];
-  usersPagination: Pagination | null;
-  secrets: ColonelSecret[];
-  secretsPagination: Pagination | null;
-  databaseMetrics: DatabaseMetricsDetails | null;
-  redisMetrics: RedisMetricsDetails | null;
-  bannedIPs: BannedIP[];
-  usageExport: UsageExportDetails | null;
-  queueMetrics: QueueMetrics | null;
-
-  // Actions
-  fetchInfo: () => Promise<ColonelInfoDetails>;
-  fetchStats: () => Promise<ColonelStats>;
-  fetchUsers: (
-    page?: number,
-    perPage?: number,
-    roleFilter?: string
-  ) => Promise<ColonelUsersDetails>;
-  fetchSecrets: (page?: number, perPage?: number) => Promise<ColonelSecretsDetails>;
-  fetchDatabaseMetrics: () => Promise<DatabaseMetricsDetails>;
-  fetchRedisMetrics: () => Promise<RedisMetricsDetails>;
-  fetchBannedIPs: () => Promise<BannedIPsDetails>;
-  banIP: (ipAddress: string, reason?: string) => Promise<void>;
-  unbanIP: (ipAddress: string) => Promise<void>;
-  fetchUsageExport: (startDate?: number, endDate?: number) => Promise<UsageExportDetails>;
-  fetchQueueMetrics: () => Promise<QueueMetrics>;
-  fetchConfig: () => Promise<SystemSettingsDetails>;
-  updateConfig: (config: SystemSettingsDetails) => Promise<void>;
-  dispose: () => void;
-  $reset: () => void;
-} & PiniaCustomProperties;
 
 // eslint-disable-next-line max-lines-per-function -- Admin store with many related endpoints
 export const useColonelInfoStore = defineStore('colonel', () => {
@@ -316,36 +270,30 @@ export const useColonelInfoStore = defineStore('colonel', () => {
 
   // Ban an IP address
   async function banIP(ipAddress: string, reason?: string) {
-    loading.bannedIPs = true;
     try {
       await $api.post('/api/colonel/banned-ips', {
         ip_address: ipAddress,
         reason: reason || '',
       });
 
-      // Refresh the banned IPs list
+      // Refresh the banned IPs list (handles its own loading state)
       await fetchBannedIPs();
     } catch (error) {
       console.error('Failed to ban IP:', error);
       throw error;
-    } finally {
-      loading.bannedIPs = false;
     }
   }
 
   // Unban an IP address
   async function unbanIP(ipAddress: string) {
-    loading.bannedIPs = true;
     try {
       await $api.delete(`/api/colonel/banned-ips/${encodeURIComponent(ipAddress)}`);
 
-      // Refresh the banned IPs list
+      // Refresh the banned IPs list (handles its own loading state)
       await fetchBannedIPs();
     } catch (error) {
       console.error('Failed to unban IP:', error);
       throw error;
-    } finally {
-      loading.bannedIPs = false;
     }
   }
 
