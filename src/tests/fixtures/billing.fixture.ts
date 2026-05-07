@@ -78,7 +78,7 @@ export const mockPlans: Record<string, Plan> = {
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
   single_team_monthly: createMockPlan({
-    id: 'identity_plus_v1_monthly',
+    id: 'identity_plus_v1_month',
     stripe_price_id: 'price_single_monthly',
     name: 'Identity Plus',
     tier: 'single_team',
@@ -92,7 +92,7 @@ export const mockPlans: Record<string, Plan> = {
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
   single_team_yearly: createMockPlan({
-    id: 'identity_plus_v1_yearly',
+    id: 'identity_plus_v1_year',
     stripe_price_id: 'price_single_yearly',
     name: 'Identity Plus',
     tier: 'single_team',
@@ -106,7 +106,7 @@ export const mockPlans: Record<string, Plan> = {
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
   multi_team_monthly: createMockPlan({
-    id: 'team_plus_v1_monthly',
+    id: 'team_plus_v1_month',
     stripe_price_id: 'price_multi_monthly',
     name: 'Team Plus',
     tier: 'multi_team',
@@ -126,7 +126,7 @@ export const mockPlans: Record<string, Plan> = {
     ],
   }),
   multi_team_yearly: createMockPlan({
-    id: 'team_plus_v1_yearly',
+    id: 'team_plus_v1_year',
     stripe_price_id: 'price_multi_yearly',
     name: 'Team Plus',
     tier: 'multi_team',
@@ -242,7 +242,7 @@ export function createMockSubscriptionStatus(
 ): SubscriptionStatusResponse {
   return {
     has_active_subscription: true,
-    current_plan: 'identity_plus_v1_monthly',
+    current_plan: 'identity_plus_v1_month',
     current_price_id: 'price_single_monthly',
     subscription_item_id: 'si_test_123',
     subscription_status: 'active',
@@ -277,7 +277,7 @@ export const mockSubscriptionStatuses = {
   }),
   /**
    * Legacy "identity" plan subscriber - Early Supporter with grandfathered pricing.
-   * Note: current_plan is 'identity' (not 'identity_plus_v1_monthly').
+   * Note: current_plan is 'identity' (not 'identity_plus_v1_month').
    */
   legacyIdentity: createMockSubscriptionStatus({
     current_plan: 'identity',
@@ -314,7 +314,7 @@ export const mockOrganizations = {
   /**
    * Legacy "identity" plan - grandfathered Early Supporter plan
    * These customers have single_team tier features but their planid is just 'identity'
-   * (not 'identity_plus_v1_monthly'). Display should show "Identity Plus (Early Supporter)".
+   * (not 'identity_plus_v1_month'). Display should show "Identity Plus (Early Supporter)".
    */
   legacyIdentity: createWireLegacyIdentityOrganization(),
   noOrg: null,
@@ -414,7 +414,7 @@ export function createMockOverviewResponse(
       canceled: false,
     },
     plan: {
-      id: 'identity_plus_v1_monthly',
+      id: 'identity_plus_v1_month',
       name: 'Identity Plus',
       tier: 'single_team',
       interval: 'month',

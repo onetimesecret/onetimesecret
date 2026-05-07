@@ -28,13 +28,13 @@ module Core
         'dedicated' => 'identity_plus_v1',
       }.freeze
 
-      # Maps short billing cycle names to the interval format expected
-      # by PlanResolver (which accepts 'monthly'/'yearly').
+      # Maps billing cycle names to the interval format expected
+      # by PlanResolver (which accepts 'month'/'year', matching Stripe API).
       BILLING_CYCLE_MAP = {
-        'month' => 'monthly',
-        'monthly' => 'monthly',
-        'year' => 'yearly',
-        'yearly' => 'yearly',
+        'month' => 'month',
+        'monthly' => 'month',
+        'year' => 'year',
+        'yearly' => 'year',
       }.freeze
 
       # Redirects users to the billing checkout for the selected plan
@@ -67,7 +67,7 @@ module Core
         product = LEGACY_TIER_MAP[tierid]
 
         # Normalize billing cycle to the interval format expected by the
-        # billing checkout endpoint (month -> monthly, year -> yearly).
+        # billing checkout endpoint (matching Stripe API: month/year).
         interval = BILLING_CYCLE_MAP[billing_cycle]
 
         http_logger.debug 'Legacy plan redirect',

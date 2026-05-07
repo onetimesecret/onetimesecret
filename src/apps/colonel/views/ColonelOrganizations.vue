@@ -209,8 +209,7 @@
     if (!planid) return 'free';
     // Remove common suffixes for cleaner display
     return planid
-      .replace(/_monthly$/, '')
-      .replace(/_yearly$/, '')
+      .replace(/_(month|year)$/, '')
       .replace(/_v\d+$/, '');
   }
 

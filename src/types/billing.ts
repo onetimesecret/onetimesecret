@@ -95,16 +95,46 @@ export function getPlanLabel(planType: PlanType | string): string {
 }
 
 /**
- * Parse a plan ID to a human-readable display name
+ * Exact plan ID to display name mapping.
+ * Keys are base plan IDs (without interval suffix).
+ */
+const PLAN_DISPLAY_NAMES: Record<string, string> = {
+  free: 'Free',
+  free_v1: 'Free',
+  identity: 'Identity',
+  identity_v1: 'Identity',
+  identity_plus: 'Identity Plus',
+  identity_plus_v1: 'Identity Plus',
+  single_team: 'Single Team',
+  single_team_v1: 'Single Team',
+  team_plus: 'Team Plus',
+  team_plus_v1: 'Team Plus',
+  multi_team: 'Team Plus',
+  multi_team_v1: 'Team Plus',
+};
+
+/**
+ * Strip interval suffix from plan ID to get base plan ID.
+ * Handles both old (monthly/yearly) and new (month/year) formats.
+ *
+ * @param planId - Full plan ID (e.g., 'identity_plus_v1_month')
+ * @returns Base plan ID without interval suffix
+ */
+export function normalizePlanId(planId: string): string {
+  return planId.replace(/_(month|year|monthly|yearly)$/, '');
+}
+
+/**
+ * Get display name for a plan ID using exact lookup.
  *
  * Handles plan IDs like:
- * - identity_plus_v1_monthly -> Identity Plus
- * - team_plus_v1_yearly -> Team Plus
- * - single_team_v1_monthly -> Single Team
+ * - identity_plus_v1_month -> Identity Plus
+ * - team_plus_v1_year -> Team Plus
+ * - single_team_v1_month -> Single Team
  * - free_v1 -> Free
  *
- * @param planId - The plan ID from the backend (e.g., 'identity_plus_v1_monthly')
- * @returns A human-readable display name
+ * @param planId - The plan ID from the backend (e.g., 'identity_plus_v1_month')
+ * @returns A human-readable display name, or null if plan ID is unknown
  */
 export function getPlanDisplayName(planId: string): string {
   if (!planId) return 'Free';
@@ -115,30 +145,20 @@ export function getPlanDisplayName(planId: string): string {
     return legacyInfo.displayName;
   }
 
-  // Known plan name mappings (plan ID patterns -> display name)
-  // Order matters: more specific patterns must come before general ones
-  const planPatterns: [RegExp, string][] = [
-    [/^free/i, 'Free'],
-    [/identity_plus/i, 'Identity Plus'],
-    [/team_plus|multi_team/i, 'Team Plus'],
-    [/single_team/i, 'Single Team'],
-    [/identity(?!_plus)/i, 'Identity'], // Other identity-prefixed plans
-  ];
-
-  for (const [pattern, displayName] of planPatterns) {
-    if (pattern.test(planId)) {
-      return displayName;
-    }
+  // Try exact match first
+  if (PLAN_DISPLAY_NAMES[planId]) {
+    return PLAN_DISPLAY_NAMES[planId];
   }
 
-  // Fallback: Convert snake_case to Title Case (removing version/interval suffixes)
-  // e.g., 'some_plan_v1_monthly' -> 'Some Plan'
-  const baseName = planId
-    .replace(/_v\d+.*$/, '') // Remove version and interval suffix
-    .replace(/_/g, ' ') // Convert underscores to spaces
-    .replace(/\b\w/g, (c) => c.toUpperCase()); // Title case
+  // Strip interval suffix and try again
+  const basePlanId = normalizePlanId(planId);
+  if (PLAN_DISPLAY_NAMES[basePlanId]) {
+    return PLAN_DISPLAY_NAMES[basePlanId];
+  }
 
-  return baseName || planId;
+  // Unknown plan ID - return as-is for debugging visibility
+  console.warn(`[billing] Unknown plan ID: ${planId}`);
+  return planId;
 }
 
 export function getSubscriptionStatusLabel(

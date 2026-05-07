@@ -60,7 +60,7 @@ RSpec.describe Billing::BillingService, billing: true do
         )
       end
 
-      let(:mock_plan) { double('Plan', plan_id: 'identity_plus_v1_monthly') }
+      let(:mock_plan) { double('Plan', plan_id: 'identity_plus_v1_month') }
 
       before do
         allow(Billing::Plan).to receive(:find_by_stripe_price_id)
@@ -70,7 +70,7 @@ RSpec.describe Billing::BillingService, billing: true do
 
       it 'prefers catalog lookup over metadata' do
         result = described_class.resolve_plan_id_from_subscription(subscription)
-        expect(result).to eq('identity_plus_v1_monthly')
+        expect(result).to eq('identity_plus_v1_month')
       end
     end
 
@@ -333,8 +333,8 @@ RSpec.describe Billing::BillingService, billing: true do
     end
 
     it 'returns true when stripping interval suffix' do
-      expect(described_class.plans_match?('identity_plus_v1', 'identity_plus_v1_monthly')).to be true
-      expect(described_class.plans_match?('identity_plus_v1', 'identity_plus_v1_yearly')).to be true
+      expect(described_class.plans_match?('identity_plus_v1', 'identity_plus_v1_month')).to be true
+      expect(described_class.plans_match?('identity_plus_v1', 'identity_plus_v1_year')).to be true
     end
 
     it 'returns false for empty values' do
@@ -350,11 +350,11 @@ RSpec.describe Billing::BillingService, billing: true do
       let(:mock_plan) { double('Plan', plan_code: 'identity_plus') }
 
       before do
-        allow(Billing::Plan).to receive(:load).with('identity_plus_v1_monthly').and_return(mock_plan)
+        allow(Billing::Plan).to receive(:load).with('identity_plus_v1_month').and_return(mock_plan)
       end
 
       it 'matches against plan_code' do
-        expect(described_class.plans_match?('identity_plus', 'identity_plus_v1_monthly')).to be true
+        expect(described_class.plans_match?('identity_plus', 'identity_plus_v1_month')).to be true
       end
     end
 
@@ -365,7 +365,7 @@ RSpec.describe Billing::BillingService, billing: true do
       end
 
       it 'treats free_v1 with interval suffix as equivalent to free' do
-        expect(described_class.plans_match?('free', 'free_v1_monthly')).to be true
+        expect(described_class.plans_match?('free', 'free_v1_month')).to be true
       end
 
       it 'does not treat free as equivalent to other plans' do
@@ -376,12 +376,12 @@ RSpec.describe Billing::BillingService, billing: true do
   end
 
   describe '.normalize_plan_id' do
-    it 'strips _monthly suffix' do
-      expect(described_class.normalize_plan_id('identity_plus_v1_monthly')).to eq('identity_plus_v1')
+    it 'strips _month suffix' do
+      expect(described_class.normalize_plan_id('identity_plus_v1_month')).to eq('identity_plus_v1')
     end
 
-    it 'strips _yearly suffix' do
-      expect(described_class.normalize_plan_id('identity_plus_v1_yearly')).to eq('identity_plus_v1')
+    it 'strips _year suffix' do
+      expect(described_class.normalize_plan_id('identity_plus_v1_year')).to eq('identity_plus_v1')
     end
 
     it 'returns original if no interval suffix' do
@@ -462,7 +462,7 @@ RSpec.describe Billing::BillingService, billing: true do
           subscription: {
             id: 'sub_123',
             status: 'active',
-            resolved_plan_id: 'identity_plus_v1_monthly',
+            resolved_plan_id: 'identity_plus_v1_month',
           },
         }
       end

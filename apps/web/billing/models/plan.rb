@@ -529,8 +529,9 @@ module Billing
         region   = product.metadata[Metadata::FIELD_REGION]
 
         # plan_id is required metadata (validated above), append interval suffix
+        # Uses Stripe's interval format directly: 'month' or 'year'
         base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID]
-        plan_id      = "#{base_plan_id}_#{interval}ly"
+        plan_id      = "#{base_plan_id}_#{interval}"
 
         # Extract entitlements from product metadata
         entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
@@ -975,7 +976,7 @@ module Billing
       #
       # Bypasses Stripe API and loads plans directly from YAML configuration.
       # Creates Plan instances in Redis for each plan+interval combination.
-      # Uses plan_id format: "{plan_key}_{interval}ly" (e.g., "identity_plus_v1_monthly").
+      # Uses plan_id format: "{plan_key}_{interval}" (e.g., "identity_plus_v1_month").
       #
       # Uses ConfigResolver to load from spec/billing.test.yaml in test environment.
       #
@@ -1007,10 +1008,10 @@ module Billing
             next
           end
 
-          # Create a Plan instance for each interval (monthly, yearly)
+          # Create a Plan instance for each interval (month, year)
           prices.each do |price|
             interval = price['interval'] # 'month' or 'year'
-            plan_id  = "#{plan_key}_#{interval}ly"
+            plan_id  = "#{plan_key}_#{interval}"
 
             # Extract plan attributes. Region is either a specific code
             # (e.g. 'EU') or nil — there is no "global" default.
@@ -1111,8 +1112,8 @@ module Billing
           return config_plan_to_hash(plan_id, plans_hash[plan_id], plans_hash)
         end
 
-        # Try stripping interval suffix (e.g., "identity_plus_v1_monthly" -> "identity_plus_v1")
-        base_id = plan_id.sub(/_(month|year)ly$/, '')
+        # Try stripping interval suffix (e.g., "identity_plus_v1_month" -> "identity_plus_v1")
+        base_id = plan_id.sub(/_(month|year)$/, '')
         if plans_hash.key?(base_id)
           return config_plan_to_hash(plan_id, plans_hash[base_id], plans_hash)
         end
@@ -1131,9 +1132,9 @@ module Billing
         return [] if plans_hash.empty?
 
         plans_hash.map do |plan_id, plan_def|
-          # For plans with prices, use monthly interval in the ID
+          # For plans with prices, use month interval in the ID
           interval = plan_def['prices']&.first&.dig('interval') || 'month'
-          full_id  = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
+          full_id  = plan_def['prices']&.any? ? "#{plan_id}_#{interval}" : plan_id
 
           config_plan_to_hash(full_id, plan_def, plans_hash)
         end

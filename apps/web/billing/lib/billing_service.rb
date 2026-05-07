@@ -281,7 +281,7 @@ module Billing
     # @param planid [String] Plan ID to normalize
     # @return [String] Normalized plan ID without interval suffix
     def normalize_plan_id(planid)
-      planid.to_s.sub(/_(month|year)ly$/, '')
+      planid.to_s.sub(/_(month|year)$/, '')
     end
 
     # =========================================================================

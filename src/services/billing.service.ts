@@ -258,7 +258,7 @@ export function createBillingService(api: AxiosInstance): typeof BillingService 
   return {
     getOverview: (orgExtId) => api.get(`/billing/api/org/${orgExtId}`).then(r => r.data),
     createCheckoutSession: (orgExtId, plan) => {
-      const intervalSuffix = plan.interval === 'year' ? '_yearly' : '_monthly';
+      const intervalSuffix = plan.interval === 'year' ? '_year' : '_month';
       const product = plan.id.endsWith(intervalSuffix)
         ? plan.id.slice(0, -intervalSuffix.length)
         : plan.id;
@@ -305,8 +305,8 @@ export const BillingService = {
     plan: { id: string; interval: string }
   ): Promise<CheckoutSessionResponse> {
     // Derive product from plan.id by removing interval suffix
-    // plan.id = 'identity_plus_v1_monthly' → product = 'identity_plus_v1'
-    const intervalSuffix = plan.interval === 'year' ? '_yearly' : '_monthly';
+    // plan.id = 'identity_plus_v1_month' → product = 'identity_plus_v1'
+    const intervalSuffix = plan.interval === 'year' ? '_year' : '_month';
     const product = plan.id.endsWith(intervalSuffix)
       ? plan.id.slice(0, -intervalSuffix.length)
       : plan.id;

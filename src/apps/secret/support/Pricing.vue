@@ -128,20 +128,20 @@
   /**
    * Extract product name from plan ID for signup query params.
    * Plan ID format: {product}_v{version}_{interval}
-   * Example: identity_plus_v1_monthly -> identity_plus_v1
+   * Example: identity_plus_v1_month -> identity_plus_v1
    *
-   * @param planId - The full plan ID (e.g., 'identity_plus_v1_monthly')
+   * @param planId - The full plan ID (e.g., 'identity_plus_v1_month')
    * @returns Product identifier without interval (e.g., 'identity_plus_v1')
    */
   const extractProductFromPlanId = (planId: string): string =>
-    // Remove the interval suffix (monthly, yearly, etc.)
-    planId.replace(/_(monthly|yearly|month|year)$/i, '');
+    // Remove the interval suffix (month, year)
+    planId.replace(/_(month|year)$/i, '');
   /**
    * Get the interval name for query params from plan interval.
-   * Uses 'monthly' or 'yearly' format for URL query params.
+   * Uses Stripe API format: 'month' or 'year'.
    */
   const getIntervalForQuery = (plan: BillingPlan): string =>
-    plan.interval === 'year' ? 'yearly' : 'monthly';
+    plan.interval === 'year' ? 'year' : 'month';
 
   /**
    * Build signup URL with product and interval query params.

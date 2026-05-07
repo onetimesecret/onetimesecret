@@ -108,7 +108,7 @@ const {
 
 /**
  * Get the current organization's tier by finding the matching plan.
- * The org has planid (e.g., 'identity_plus_v1_monthly') but we need
+ * The org has planid (e.g., 'identity_plus_v1_month') but we need
  * the tier (e.g., 'single_team') for comparison with available plans.
  */
 const currentTier = computed((): string => {
@@ -124,7 +124,7 @@ const currentTier = computed((): string => {
   if (planid === 'identity') return 'single_team';
 
   // Fallback: try to infer tier from planid naming convention
-  // e.g., 'identity_plus_v1_monthly' -> look for known tier patterns
+  // e.g., 'identity_plus_v1_month' -> look for known tier patterns
   if (planid.includes('multi_team') || planid.includes('team_plus')) return 'multi_team';
   if (planid.includes('single_team') || planid.includes('identity_plus')) return 'single_team';
 
@@ -382,10 +382,10 @@ const handleCompletePendingMigration = async () => {
 
   try {
     // Create a new checkout session for the pending migration target plan.
-    // target_plan_id is in "product_interval" format (e.g. "identity_plus_v1_monthly"),
+    // target_plan_id is in "product_interval" format (e.g. "identity_plus_v1_month"),
     // which createCheckoutSession can derive product + interval from.
     const planId = pendingMigration.value.target_plan_id;
-    const isYearly = planId.endsWith('_yearly');
+    const isYearly = planId.endsWith('_year');
     const interval = isYearly ? 'year' : 'month';
     const response = await BillingService.createCheckoutSession(
       selectedOrg.value.extid,
@@ -451,8 +451,8 @@ onMounted(async () => {
       }
 
       // Find the matching plan based on product and interval
-      // Product is like 'identity_plus_v1', plan.id is like 'identity_plus_v1_monthly'
-      const intervalSuffix = billingInterval.value === 'year' ? 'yearly' : 'monthly';
+      // Product is like 'identity_plus_v1', plan.id is like 'identity_plus_v1_month'
+      const intervalSuffix = billingInterval.value === 'year' ? 'year' : 'month';
       const expectedPlanId = `${productParam}_${intervalSuffix}`;
 
       // Find plan by exact match or prefix match

@@ -127,13 +127,15 @@ module Onetime
             planid = v1_data[:planid] || v1_data['planid'] || self.planid
             return false if Billing::BillingService.free_plan?(planid)
 
-            # Parse plan info (e.g., "identity_plus_monthly" or "identity")
+            # Parse plan info (e.g., "identity_plus_month" or "identity")
             # Note: In v0.23 customer data, planid values never had underscores.
             # Only "free" and "identity" were the available options.
+            # Supports both old (monthly/yearly) and new (month/year) formats.
             plan_parts = planid.to_s.split('_')
             plan_name  = plan_parts.first
-            interval   = plan_parts.last if %w[monthly yearly].include?(plan_parts.last)
-            interval ||= 'monthly' # Default to monthly for legacy "identity" planid
+            interval   = plan_parts.last if %w[month year monthly yearly].include?(plan_parts.last)
+            interval   = interval&.sub(/ly$/, '') # Normalize to month/year
+            interval ||= 'month' # Default to month for legacy "identity" planid
 
             data                 = caboose_hash || {}
             data['payment_link'] = {

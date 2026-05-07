@@ -58,7 +58,7 @@ module Billing
   module PlanResolver
     extend self
 
-    VALID_INTERVALS = %w[monthly yearly].freeze
+    VALID_INTERVALS = %w[month year].freeze
 
     # Result struct for plan resolution
     #
@@ -124,11 +124,11 @@ module Billing
       # Normalize interval
       normalized_interval = normalize_interval(interval)
       unless normalized_interval
-        return error_result("Invalid interval: #{interval}. Must be 'monthly' or 'yearly'")
+        return error_result("Invalid interval: #{interval}. Must be 'month' or 'year'")
       end
 
       # Construct plan_id: product + interval suffix
-      # e.g., 'identity_plus_v1' + 'monthly' => 'identity_plus_v1_monthly'
+      # e.g., 'identity_plus_v1' + 'month' => 'identity_plus_v1_month'
       plan_id = "#{product}_#{normalized_interval}"
 
       # Look up plan in catalog
@@ -182,7 +182,8 @@ module Billing
 
     # Normalize interval to standard format
     #
-    # Accepts various interval formats and normalizes to 'monthly' or 'yearly'.
+    # Accepts various interval formats and normalizes to 'month' or 'year'
+    # (matching Stripe API conventions).
     #
     # @param interval [String] Input interval
     # @return [String, nil] Normalized interval or nil if invalid
@@ -190,9 +191,9 @@ module Billing
     def normalize_interval(interval)
       case interval.to_s.downcase.strip
       when 'monthly', 'month'
-        'monthly'
+        'month'
       when 'yearly', 'year', 'annual', 'annually'
-        'yearly'
+        'year'
       end
     end
 

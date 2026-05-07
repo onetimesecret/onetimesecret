@@ -255,7 +255,7 @@ export function createWireSingleTeamOrganization(
     ...createWireOrganization(createCanonicalOrganization({
       objid: 'org_single_123',
       extid: 'on%org_single_123',
-      planid: 'identity_plus_v1_monthly',
+      planid: 'identity_plus_v1_month',
     })),
     billing_email: 'billing@example.com',
     member_count: 5,
@@ -276,7 +276,7 @@ export function createWireMultiTeamOrganization(
     ...createWireOrganization(createCanonicalOrganization({
       objid: 'org_multi_123',
       extid: 'on%org_multi_123',
-      planid: 'team_plus_v1_monthly',
+      planid: 'team_plus_v1_month',
     })),
     billing_email: 'billing@enterprise.example.com',
     member_count: 15,
