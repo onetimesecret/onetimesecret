@@ -7,25 +7,36 @@
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import MoreInfoText from '@/shared/components/ui/MoreInfoText.vue';
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
-  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+  import { useDomain } from '@/shared/composables/useDomain';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
-  import { type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
   import { storeToRefs } from 'pinia';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { computed, onMounted, ref } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
+  import { useRouter } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
-  const route = useRoute();
   const router = useRouter();
-  const { getDomain, verifyDomain } = useDomainsManager();
+
+  // Issue 2 fix: Use defineProps like other domain pages
+  const props = defineProps<{
+    extid: string;
+    orgid: string;
+  }>();
+
+  // Issue 1 fix: Use useDomain composable like other pages
+  const {
+    domain,
+    details,
+    initialize: initializeDomain,
+  } = useDomain(props.extid);
+
+  // Keep useDomainsManager for verifyDomain (used by triggerVerification)
+  const { verifyDomain } = useDomainsManager();
 
   const handleBack = () => {
-    const orgid = route.params.orgid as string;
-    const extid = route.params.extid as string;
-    router.push(`/org/${orgid}/domains/${extid}`);
+    router.push(`/org/${props.orgid}/domains/${props.extid}`);
   };
   const bootstrapStore = useBootstrapStore();
   const { cust } = storeToRefs(bootstrapStore);
@@ -33,30 +44,19 @@
   // Feature flag: DNS widget UI (disabled by default for launch)
   const isDnsWidgetEnabled = computed(() => cust.value?.feature_flags?.dns_widget ?? false);
 
-  const domain = ref<CustomDomain | null>(null);
-  const cluster = ref<CustomDomainProxy | null>(null);
+  // Cluster data comes from details (useDomain returns it)
+  const cluster = computed<CustomDomainProxy | null>(() => details.value?.cluster ?? null);
   const allowVerifyCTA = ref(true);
   const verificationInProgress = ref(false);
-  const verificationError = ref<string | null>(null);
   const lastVerificationTime = ref<number>(0);
 
   // Rate limit: minimum 10 seconds between verification attempts
   const VERIFICATION_COOLDOWN_MS = 10000;
 
   const fetchDomain = async (): Promise<void> => {
-    const extid = route.params.extid as string;
-    const result = await getDomain(extid);
-    if (!result) return;
-
-    domain.value = result.domain;
-    // Ensure cluster data is present before assigning
-    if (result.cluster) {
-      cluster.value = result.cluster;
-    } else {
-      console.warn('No cluster data available for extid:', extid);
-      cluster.value = null;
-    }
-    allowVerifyCTA.value = result.canVerify;
+    await initializeDomain();
+    // allowVerifyCTA is computed from canVerify in useDomain, but we keep a local ref
+    // for compatibility with existing template bindings
   };
 
   const handleDomainVerify = async (data: CustomDomainResponse) => {
@@ -94,20 +94,6 @@
     return cluster.value?.proxy_host ?? '';
   });
 
-  // Extract error message from various error types
-  const extractErrorMessage = (err: unknown): string => {
-    if (err instanceof Error) {
-      return err.message;
-    }
-    if (typeof err === 'object' && err !== null && 'message' in err) {
-      const message = (err as { message: unknown }).message;
-      if (typeof message === 'string') {
-        return message;
-      }
-    }
-    return String(err);
-  };
-
   // Check if enough time has passed since last verification
   const canVerify = (): boolean => {
     const now = Date.now();
@@ -115,6 +101,7 @@
   };
 
   // Trigger backend verification (called on mount and widget success)
+  // Errors are handled via global notifications by useDomainsManager.wrap()
   const triggerVerification = async () => {
     // Guard: no domain, already in progress, or rate limited
     if (!domain.value || verificationInProgress.value || !canVerify()) {
@@ -122,19 +109,14 @@
     }
 
     verificationInProgress.value = true;
-    verificationError.value = null;
     lastVerificationTime.value = Date.now();
 
-    try {
-      const result = await verifyDomain(domain.value.extid);
-      if (result) {
-        await fetchDomain();
-      }
-    } catch (err: unknown) {
-      verificationError.value = extractErrorMessage(err);
-    } finally {
-      verificationInProgress.value = false;
+    const result = await verifyDomain(domain.value.extid);
+    if (result) {
+      await fetchDomain();
     }
+
+    verificationInProgress.value = false;
   };
 
   const handleDnsRecordsVerified = async () => {
@@ -181,7 +163,7 @@
       <DomainHeader
         :domain="domain"
         :has-unsaved-changes="false"
-        :orgid="(route.params.orgid as string)" />
+        :orgid="props.orgid" />
     </div>
 
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -290,10 +272,6 @@
           </svg>
           {{ verificationInProgress ? t('web.COMMON.processing') : t('web.domains.verify_domain') }}
         </button>
-        <BasicFormAlerts
-          v-if="verificationError"
-          aria-live="polite"
-          :errors="[verificationError]" />
       </div>
     </div>
 

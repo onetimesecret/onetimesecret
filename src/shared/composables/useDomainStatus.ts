@@ -54,10 +54,10 @@ export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain | null>) {
   });
 
   const statusColor = computed(() => {
-    if (isStale.value) return 'text-amber-600';
-    if (isActive.value) return 'text-green-600';
-    if (isWarning.value) return 'text-yellow-600';
-    return 'text-red-600';
+    if (isStale.value) return 'text-amber-500 dark:text-amber-400';
+    if (isActive.value) return 'text-emerald-600 dark:text-emerald-400';
+    if (isWarning.value) return 'text-amber-500 dark:text-amber-400';
+    return 'text-rose-600 dark:text-rose-500';
   });
 
   return {

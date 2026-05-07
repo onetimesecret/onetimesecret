@@ -12,15 +12,14 @@ import { mount, flushPromises, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import DomainSso from '@/apps/workspace/domains/DomainSso.vue';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Mock route params
-const mockRouteParams = { orgid: 'org_123', extid: 'dm_test123' };
+// Mock router
 const mockRouterPush = vi.fn();
 
 vi.mock('vue-router', () => ({
@@ -453,14 +452,15 @@ describe('DomainSso', () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('Navigation', () => {
-    it('navigates back to domains list when back button clicked', async () => {
+    it('navigates back to domain detail page when back button clicked', async () => {
       mockDomain.value = { display_domain: 'example.com' };
-      wrapper = await mountComponent({ orgid: 'org_abc123' });
+      wrapper = await mountComponent({ orgid: 'org_abc123', extid: 'dm_xyz789' });
 
       const backButton = wrapper.find('button[type="button"]');
       await backButton.trigger('click');
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/org/org_abc123/domains');
+      // Should navigate to DomainDetail, not domains list
+      expect(mockRouterPush).toHaveBeenCalledWith('/org/org_abc123/domains/dm_xyz789');
     });
 
     it('shows back button with arrow icon', async () => {
@@ -488,8 +488,6 @@ describe('DomainSso', () => {
       await form.vm.$emit('saved');
       await flushPromises();
 
-      // The success message should be displayed via BasicFormAlerts
-      const alerts = wrapper.find('[data-testid="form-alerts"]');
       // Note: In the actual component, success is set via the @saved handler
       // This test verifies the event listener is connected
       expect(form.emitted('saved')).toBeTruthy();

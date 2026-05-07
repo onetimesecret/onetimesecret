@@ -9,11 +9,18 @@
 
   const { t } = useI18n();
 
-  const props = defineProps<{
-    domain: CustomDomain | null;
-    hasUnsavedChanges: boolean;
-    orgid: string;
-  }>();
+  const props = withDefaults(
+    defineProps<{
+      domain: CustomDomain | null;
+      hasUnsavedChanges: boolean;
+      orgid: string;
+      /** Optional path appended to domain URL for external link (e.g., '/incoming') */
+      externalPath?: string;
+    }>(),
+    {
+      externalPath: '',
+    }
+  );
 
   // Optional chaining on domain is defensive: the only consumer
   // (<RouterLink :to="verifyRoute">) lives inside v-if="domain", so the
@@ -22,7 +29,7 @@
   // prop contract (domain is CustomDomain | null).
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
-  const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
+  const { statusIcon, statusColor, displayStatus } = useDomainStatus(
     () => props.domain
   );
 </script>
@@ -43,7 +50,7 @@
               <span class="truncate">{{ domain.display_domain }}</span>
               <!-- prettier-ignore-attribute class -->
               <a
-                :href="`https://${domain.display_domain}`"
+                :href="`https://${domain.display_domain}${externalPath}`"
                 target="_blank"
                 v-show="!hasUnsavedChanges"
                 rel="noopener noreferrer"
@@ -70,11 +77,7 @@
                 collection="mdi"
                 :name="statusIcon"
                 class="size-4 shrink-0"
-                :class="{
-                  'text-emerald-600 dark:text-emerald-400': isActive,
-                  'text-amber-500 dark:text-amber-400': isWarning,
-                  'text-rose-600 dark:text-rose-500': isError,
-                }" />
+                :class="statusColor" />
               <span class="font-brand text-sm leading-none">{{ displayStatus }}</span>
             </RouterLink>
           </div>
