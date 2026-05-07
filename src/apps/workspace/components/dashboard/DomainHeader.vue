@@ -7,7 +7,7 @@
   import { CustomDomain } from '@/schemas/shapes/v3';
   import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   const props = defineProps<{
     domain: CustomDomain | null;
