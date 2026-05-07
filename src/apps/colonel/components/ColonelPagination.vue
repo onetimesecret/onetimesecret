@@ -2,6 +2,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   pagination: {
@@ -55,7 +58,7 @@ function handlePerPageChange(event: Event) {
   <div class="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600 dark:text-gray-400">
     <!-- Summary -->
     <div>
-      Showing {{ rangeStart }}–{{ rangeEnd }} of {{ pagination.total_count }}
+      {{ t('web.colonel.pagination.showing', { start: rangeStart, end: rangeEnd, total: pagination.total_count }) }}
     </div>
 
     <div class="flex items-center gap-4">
@@ -64,7 +67,7 @@ function handlePerPageChange(event: Event) {
         <label
           for="per-page-select"
           class="sr-only">
-          Items per page
+          {{ t('web.colonel.pagination.itemsPerPage') }}
         </label>
         <select
           id="per-page-select"
@@ -76,14 +79,14 @@ function handlePerPageChange(event: Event) {
             v-for="option in perPageOptions"
             :key="option"
             :value="option">
-            {{ option }} per page
+            {{ t('web.colonel.pagination.perPage', { count: option }) }}
           </option>
         </select>
       </div>
 
       <!-- Page indicator -->
       <div>
-        Page {{ pagination.page }} of {{ pagination.total_pages }}
+        {{ t('web.colonel.pagination.pageOf', { current: pagination.page, total: pagination.total_pages }) }}
       </div>
 
       <!-- Navigation buttons -->
@@ -93,14 +96,14 @@ function handlePerPageChange(event: Event) {
           :disabled="!canGoPrev || loading"
           class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           @click="handlePrev">
-          Prev
+          {{ t('web.COMMON.previous') }}
         </button>
         <button
           type="button"
           :disabled="!canGoNext || loading"
           class="rounded border border-gray-300 px-3 py-1 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           @click="handleNext">
-          Next
+          {{ t('web.COMMON.next') }}
         </button>
       </div>
     </div>

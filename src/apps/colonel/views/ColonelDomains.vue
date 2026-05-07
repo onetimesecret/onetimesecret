@@ -6,7 +6,7 @@
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
@@ -15,19 +15,13 @@
   const { customDomains, customDomainsPagination, loading, customDomainsFetchError } = storeToRefs(store);
   const { fetchCustomDomains } = store;
 
-  const currentPage = ref(1);
-  const perPage = ref(50);
+  onMounted(() => fetchCustomDomains(1, 50));
 
-  onMounted(() => fetchCustomDomains(currentPage.value, perPage.value));
-
-  function handlePageChange(page: number) {
-    currentPage.value = page;
-    fetchCustomDomains(page, perPage.value);
+  function handlePageChange(page: number): void {
+    fetchCustomDomains(page, customDomainsPagination.value?.per_page ?? 50);
   }
 
-  function handlePerPageChange(newPerPage: number) {
-    perPage.value = newPerPage;
-    currentPage.value = 1;
+  function handlePerPageChange(newPerPage: number): void {
     fetchCustomDomains(1, newPerPage);
   }
 

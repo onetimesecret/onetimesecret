@@ -802,5 +802,21 @@
   "web.colonel.feedback.when_you_submit_feedback_well_see": {
     "text": "When you submit feedback, we'll see:",
     "content_hash": "fe77172e"
+  },
+  "web.colonel.pagination.showing": {
+    "text": "Showing {start}–{end} of {total}",
+    "content_hash": "a1b2c3d5"
+  },
+  "web.colonel.pagination.itemsPerPage": {
+    "text": "Items per page",
+    "content_hash": "e5f6g7h9"
+  },
+  "web.colonel.pagination.perPage": {
+    "text": "{count} per page",
+    "content_hash": "i9j0k1l3"
+  },
+  "web.colonel.pagination.pageOf": {
+    "text": "Page {current} of {total}",
+    "content_hash": "m3n4o5p7"
   }
 }
