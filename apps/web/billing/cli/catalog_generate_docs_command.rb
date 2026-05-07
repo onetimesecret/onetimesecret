@@ -17,13 +17,13 @@ module Onetime
 
       option :output,
         type: :string,
-        desc: 'Output file path (default: docs/billing/plan-definitions.md)'
+        desc: 'Output file path (default: apps/web/billing/docs/plan-definitions.md)'
 
       def call(output: nil, **)
         boot_application!
 
         catalog_path = Billing::Config.config_path
-        output_path  = output || File.join('docs', 'billing', 'plan-definitions.md')
+        output_path  = output || File.join('apps', 'web', 'billing', 'docs', 'plan-definitions.md')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"
@@ -40,6 +40,7 @@ module Onetime
 
         markdown = generate_markdown(catalog, entitlements)
 
+        FileUtils.mkdir_p(File.dirname(output_path))
         File.write(output_path, markdown)
 
         puts "✅ Documentation generated: #{output_path}"
