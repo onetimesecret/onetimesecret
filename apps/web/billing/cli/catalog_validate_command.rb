@@ -10,6 +10,10 @@ require_relative '../config'
 module Onetime
   module CLI
     # Validate plan catalog YAML structure using JSON Schema
+    #
+    # NOTE: This command validates local catalog structure only.
+    # For Stripe product metadata validation (field name variants, typos,
+    # unknown fields), run: bin/ots billing products validate
     class BillingCatalogValidateCommand < Command
       include BillingHelpers
 

@@ -174,13 +174,15 @@ module Onetime
         entitlements_count = plan.entitlements&.size || 0
 
         format(
-          '%-20s %-18s %-10s %-10s %-12s %d',
+          '%-20s %-18s %-10s %-10s %-12s %-6d %-26s %s',
           (plan.plan_id || 'N/A')[0..19],
           (plan.tier || 'N/A')[0..17],
           (plan.interval || 'N/A')[0..9],
           amount[0..9],
           (plan.region || 'N/A')[0..11],
           entitlements_count,
+          (plan.stripe_product_id || 'N/A')[0..25],
+          plan.stripe_price_id || 'N/A',
         )
       end
 
