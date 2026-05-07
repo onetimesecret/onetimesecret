@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
-  import { formatDate } from '@/utils/format';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { AxiosError } from 'axios';
   import { storeToRefs } from 'pinia';
   import { onMounted, ref } from 'vue';
@@ -33,7 +33,7 @@
 
     try {
       await banIP(newIP.value, newReason.value);
-      successMessage.value = `IP address ${newIP.value} has been banned`;
+      successMessage.value = t('web.colonel.bannedIps.success.banned', { ip: newIP.value });
       newIP.value = '';
       newReason.value = '';
       showBanForm.value = false;
@@ -49,20 +49,20 @@
       } else if (error instanceof Error) {
         errorMessage.value = error.message;
       } else {
-        errorMessage.value = 'Failed to ban IP address';
+        errorMessage.value = t('web.colonel.bannedIps.error.banFailed');
       }
       console.error('Failed to ban IP:', error);
     }
   };
 
   const handleUnban = async (ipAddress: string) => {
-    if (!confirm(`Unban ${ipAddress}?`)) return;
+    if (!confirm(t('web.colonel.bannedIps.confirmUnban', { ip: ipAddress }))) return;
 
     clearMessages();
 
     try {
       await unbanIP(ipAddress);
-      successMessage.value = `IP address ${ipAddress} has been unbanned`;
+      successMessage.value = t('web.colonel.bannedIps.success.unbanned', { ip: ipAddress });
 
       // Auto-clear success message after 5 seconds
       setTimeout(() => {
@@ -75,7 +75,7 @@
       } else if (error instanceof Error) {
         errorMessage.value = error.message;
       } else {
-        errorMessage.value = 'Failed to unban IP address';
+        errorMessage.value = t('web.colonel.bannedIps.error.unbanFailed');
       }
       console.error('Failed to unban IP:', error);
     }
@@ -115,15 +115,17 @@
 
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Banned IPs</h1>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            {{ t('web.colonel.bannedIps.title') }}
+          </h1>
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Manage IP addresses banned from accessing the system
+            {{ t('web.colonel.bannedIps.description') }}
           </p>
         </div>
         <button
           @click="showBanForm = !showBanForm"
           class="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700">
-          {{ showBanForm ? 'Cancel' : 'Ban IP' }}
+          {{ showBanForm ? t('web.colonel.bannedIps.actions.cancel') : t('web.colonel.bannedIps.actions.ban') }}
         </button>
       </div>
 
@@ -138,7 +140,7 @@
               name="exclamation-triangle"
               class="mr-3 mt-0.5 size-5 text-red-500 dark:text-red-400" />
             <div>
-              <p class="text-sm font-medium text-red-800 dark:text-red-200">Error</p>
+              <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ t('web.COMMON.error') }}</p>
               <p class="mt-1 text-sm text-red-700 dark:text-red-300">
                 {{ errorMessage }}
               </p>
@@ -166,7 +168,7 @@
               name="check-circle"
               class="mr-3 mt-0.5 size-5 text-green-500 dark:text-green-400" />
             <div>
-              <p class="text-sm font-medium text-green-800 dark:text-green-200">Success</p>
+              <p class="text-sm font-medium text-green-800 dark:text-green-200">{{ t('web.COMMON.success') }}</p>
               <p class="mt-1 text-sm text-green-700 dark:text-green-300">
                 {{ successMessage }}
               </p>
@@ -195,7 +197,7 @@
               class="mr-3 size-5 text-blue-500 dark:text-blue-400" />
             <div>
               <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Your Current IP Address
+                {{ t('web.colonel.bannedIps.currentIp') }}
               </p>
               <p class="mt-1 font-mono text-lg font-semibold text-blue-900 dark:text-blue-100">
                 {{ currentIP }}
@@ -208,7 +210,7 @@
               showBanForm = true;
             "
             class="rounded px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-800/50">
-            Quick Ban
+            {{ t('web.colonel.bannedIps.actions.quickBan') }}
           </button>
         </div>
       </div>
@@ -217,11 +219,13 @@
       <div
         v-if="showBanForm"
         class="mb-6 rounded-lg bg-white p-6 dark:bg-gray-800">
-        <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Ban IP Address</h2>
+        <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {{ t('web.colonel.bannedIps.form.title') }}
+        </h2>
         <div class="space-y-4">
           <div>
             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              IP Address *
+              {{ t('web.colonel.bannedIps.form.ipLabel') }} *
             </label>
             <input
               v-model="newIP"
@@ -230,20 +234,20 @@
               class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
           </div>
           <div>
-            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Reason</label
-            >
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('web.colonel.bannedIps.form.reasonLabel') }}
+            </label>
             <input
               v-model="newReason"
               type="text"
-              placeholder="Optional reason"
+              :placeholder="t('web.colonel.bannedIps.form.reasonPlaceholder')"
               class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
           </div>
           <button
             @click="handleBan"
             :disabled="!newIP"
             class="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
-            Ban IP
+            {{ t('web.colonel.bannedIps.actions.ban') }}
           </button>
         </div>
       </div>
@@ -256,23 +260,23 @@
               <tr>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                  IP Address
+                  {{ t('web.colonel.bannedIps.columns.ipAddress') }}
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                  Reason
+                  {{ t('web.colonel.bannedIps.columns.reason') }}
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                  Banned At
+                  {{ t('web.colonel.bannedIps.columns.bannedAt') }}
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                  Banned By
+                  {{ t('web.colonel.bannedIps.columns.bannedBy') }}
                 </th>
                 <th
                   class="px-6 py-3 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                  Actions
+                  {{ t('web.LABELS.actions') }}
                 </th>
               </tr>
             </thead>
@@ -288,7 +292,7 @@
                   {{ ip.reason || '-' }}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                  {{ formatDate(ip.banned_at) }}
+                  {{ formatDisplayDateTime(new Date(ip.banned_at * 1000)) }}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                   {{ ip.banned_by || '-' }}
@@ -297,7 +301,7 @@
                   <button
                     @click="handleUnban(ip.ip_address)"
                     class="text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                    Unban
+                    {{ t('web.colonel.bannedIps.actions.unban') }}
                   </button>
                 </td>
               </tr>
@@ -308,7 +312,7 @@
         <div
           v-if="bannedIPs.length === 0"
           class="py-12 text-center text-gray-500 dark:text-gray-400">
-          No banned IPs
+          {{ t('web.colonel.bannedIps.empty') }}
         </div>
       </div>
     </div>

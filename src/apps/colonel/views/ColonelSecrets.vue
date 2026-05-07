@@ -5,10 +5,16 @@
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
-  import { onMounted } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
+
+  const stateLabels = computed(() => ({
+    new: t('web.colonel.secrets.state.new'),
+    received: t('web.colonel.secrets.state.received'),
+    viewed: t('web.colonel.secrets.state.viewed'),
+  }));
 
   const store = useColonelInfoStore();
   const { secrets, secretsPagination, loading, secretsFetchError } = storeToRefs(store);
@@ -47,9 +53,11 @@
       </div>
 
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Secrets</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          {{ t('web.colonel.secrets.title') }}
+        </h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          View and manage all secrets in the system
+          {{ t('web.colonel.secrets.description') }}
         </p>
       </div>
 
@@ -74,23 +82,23 @@
             <tr>
               <th
                 class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                Short ID
+                {{ t('web.colonel.secrets.columns.shortId') }}
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                State
+                {{ t('web.colonel.secrets.columns.state') }}
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                Created
+                {{ t('web.colonel.secrets.columns.created') }}
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                Expiration
+                {{ t('web.colonel.secrets.columns.expiration') }}
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-                Age (days)
+                {{ t('web.colonel.secrets.columns.age') }}
               </th>
             </tr>
           </thead>
@@ -113,14 +121,14 @@
                     'rounded bg-gray-100 px-2 py-1 text-gray-800 dark:bg-gray-900 dark:text-gray-200':
                       secret.state === 'viewed',
                   }">
-                  {{ secret.state }}
+                  {{ stateLabels[secret.state as keyof typeof stateLabels] || secret.state }}
                 </span>
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 {{ formatDisplayDateTime(secret.created) }}
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                {{ secret.expiration ? formatDisplayDateTime(secret.expiration) : 'Never' }}
+                {{ secret.expiration ? formatDisplayDateTime(secret.expiration) : t('web.colonel.secrets.never') }}
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 {{ Math.floor(secret.age / 86400) }}
@@ -133,7 +141,7 @@
       <div
         v-else-if="!secretsFetchError"
         class="py-12 text-center text-gray-500 dark:text-gray-400">
-        No secrets found
+        {{ t('web.colonel.secrets.empty') }}
       </div>
     </div>
   </div>
