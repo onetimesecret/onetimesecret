@@ -215,7 +215,6 @@ plans:
       - homepage_secrets
       - incoming_secrets
       - custom_mail_sender
-      - flexible_from_domain
       - extended_default_expiration
 
     features:
