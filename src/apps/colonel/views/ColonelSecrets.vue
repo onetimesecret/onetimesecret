@@ -21,7 +21,7 @@
   <div>
     <div
       v-if="isLoading"
-      class="text-center py-12">
+      class="py-12 text-center">
       {{ t('web.LABELS.loading') }}
     </div>
 
@@ -31,14 +31,16 @@
         <router-link
           to="/colonel"
           class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg class="mr-1 size-4"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M15 19l-7-7 7-7" />
+          <svg
+            class="mr-1 size-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7" />
           </svg>
           {{ t('web.COMMON.back') }}
         </router-link>
@@ -65,54 +67,62 @@ d="M15 19l-7-7 7-7" />
       <div
         v-if="!secretsFetchError && secrets.length > 0"
         class="overflow-x-auto">
-        <table data-testid="colonel-secrets-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <table
+          data-testid="colonel-secrets-table"
+          class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                 Short ID
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                 State
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                 Created
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                 Expiration
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                 Age (days)
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="secret in secrets"
               :key="secret.secret_id"
               class="hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+              <td
+                class="whitespace-nowrap px-6 py-4 font-mono text-sm text-gray-900 dark:text-white">
                 {{ secret.shortid }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 <span
                   :class="{
-                    'px-2 py-1 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200':
+                    'rounded bg-green-100 px-2 py-1 text-green-800 dark:bg-green-900 dark:text-green-200':
                       secret.state === 'new',
-                    'px-2 py-1 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200':
+                    'rounded bg-yellow-100 px-2 py-1 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200':
                       secret.state === 'received',
-                    'px-2 py-1 rounded bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200':
+                    'rounded bg-gray-100 px-2 py-1 text-gray-800 dark:bg-gray-900 dark:text-gray-200':
                       secret.state === 'viewed',
                   }">
                   {{ secret.state }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 {{ formatDisplayDateTime(secret.created) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 {{ secret.expiration ? formatDisplayDateTime(secret.expiration) : 'Never' }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 {{ Math.floor(secret.age / 86400) }}
               </td>
             </tr>
@@ -122,7 +132,7 @@ d="M15 19l-7-7 7-7" />
 
       <div
         v-else-if="!secretsFetchError"
-        class="text-center py-12 text-gray-500 dark:text-gray-400">
+        class="py-12 text-center text-gray-500 dark:text-gray-400">
         No secrets found
       </div>
     </div>

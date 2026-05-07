@@ -10,7 +10,6 @@
 
   const bootstrapStore = useBootstrapStore();
   const { ui } = storeToRefs(bootstrapStore);
-
 </script>
 
 <template>
@@ -41,7 +40,7 @@
         class="mb-6" />
 
       <!-- Space divider -->
-      <div class="mb-6 "></div>
+      <div class="mb-6"></div>
     </div>
   </div>
 </template>

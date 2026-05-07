@@ -28,30 +28,29 @@
     icon: { collection: 'heroicons', name: iconName },
   });
 
-  const getEmailsSentStat = () => createStatItem(
-    'web.colonel.stats.emailsSent',
-    stats.value?.counts?.emails_sent?.toLocaleString() || '0',
-    'envelope'
-  );
+  const getEmailsSentStat = () =>
+    createStatItem(
+      'web.colonel.stats.emailsSent',
+      stats.value?.counts?.emails_sent?.toLocaleString() || '0',
+      'envelope'
+    );
 
-  const getTotalSecretsStat = () => createStatItem(
-    'web.colonel.stats.totalSecrets',
-    stats.value?.counts?.secret_count?.toLocaleString() || '0',
-    'lock-closed'
-  );
+  const getTotalSecretsStat = () =>
+    createStatItem(
+      'web.colonel.stats.totalSecrets',
+      stats.value?.counts?.secret_count?.toLocaleString() || '0',
+      'lock-closed'
+    );
 
-  const getTotalCustomersStat = () => createStatItem(
-    'web.colonel.stats.totalCustomers',
-    stats.value?.counts?.customer_count?.toLocaleString() || '0',
-    'users'
-  );
+  const getTotalCustomersStat = () =>
+    createStatItem(
+      'web.colonel.stats.totalCustomers',
+      stats.value?.counts?.customer_count?.toLocaleString() || '0',
+      'users'
+    );
 
   // Helper function to get stats data
-  const getStatsData = () => [
-    getTotalCustomersStat(),
-    getTotalSecretsStat(),
-    getEmailsSentStat(),
-  ];
+  const getStatsData = () => [getTotalCustomersStat(), getTotalSecretsStat(), getEmailsSentStat()];
 
   // Quick stats using real data from the store
   const statsData = computed(getStatsData);

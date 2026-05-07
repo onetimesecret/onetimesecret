@@ -25,7 +25,7 @@
 </script>
 
 <template>
-  <div >
+  <div>
     <div
       v-if="isLoading"
       class="text-center">
@@ -40,26 +40,32 @@
         </p>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+      <div class="rounded-lg bg-white p-6 dark:bg-gray-800">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                   Key
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
                   Value
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
               <tr
                 v-for="item in redisInfoArray"
                 :key="item.key"
                 class="hover:bg-gray-50 dark:hover:bg-gray-800">
-                <td class="px-6 py-2 text-sm font-mono text-gray-900 dark:text-white">{{ item.key }}</td>
-                <td class="px-6 py-2 text-sm font-mono text-gray-600 dark:text-gray-300">{{ item.value }}</td>
+                <td class="px-6 py-2 font-mono text-sm text-gray-900 dark:text-white">
+                  {{ item.key }}
+                </td>
+                <td class="px-6 py-2 font-mono text-sm text-gray-600 dark:text-gray-300">
+                  {{ item.value }}
+                </td>
               </tr>
             </tbody>
           </table>

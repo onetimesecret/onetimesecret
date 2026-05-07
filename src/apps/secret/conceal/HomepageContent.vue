@@ -29,7 +29,7 @@
       :workspace-mode="localReceiptStore.workspaceMode" />
 
     <!-- Space divider -->
-    <div class="mb-6 "></div>
+    <div class="mb-6"></div>
 
     <RecentSecretsTable />
   </div>

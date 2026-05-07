@@ -11,7 +11,8 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { customDomains, customDomainsPagination, isLoading, customDomainsFetchError } = storeToRefs(store);
+  const { customDomains, customDomainsPagination, isLoading, customDomainsFetchError } =
+    storeToRefs(store);
   const { fetchCustomDomains } = store;
 
   onMounted(() => fetchCustomDomains());
@@ -38,7 +39,7 @@
   <div>
     <div
       v-if="isLoading"
-      class="text-center py-12">
+      class="py-12 text-center">
       {{ t('web.LABELS.loading') }}
     </div>
 
@@ -48,14 +49,16 @@
         <router-link
           to="/colonel"
           class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg class="mr-1 size-4"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M15 19l-7-7 7-7" />
+          <svg
+            class="mr-1 size-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7" />
           </svg>
           {{ t('web.COMMON.back') }}
         </router-link>
@@ -149,7 +152,8 @@ d="M15 19l-7-7 7-7" />
           </div>
 
           <!-- Domain details grid -->
-          <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4 text-sm dark:border-gray-700">
+          <div
+            class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4 text-sm dark:border-gray-700">
             <div>
               <span class="text-gray-500 dark:text-gray-400">Organization:</span>
               <p class="font-medium text-gray-900 dark:text-white">{{ domain.org_name }}</p>
@@ -160,7 +164,9 @@ d="M15 19l-7-7 7-7" />
             </div>
             <div>
               <span class="text-gray-500 dark:text-gray-400">Created:</span>
-              <p class="text-gray-900 dark:text-white">{{ formatDisplayDateTime(domain.created) }}</p>
+              <p class="text-gray-900 dark:text-white">
+                {{ formatDisplayDateTime(domain.created) }}
+              </p>
             </div>
             <div>
               <span class="text-gray-500 dark:text-gray-400">Updated:</span>
@@ -204,7 +210,8 @@ d="M15 19l-7-7 7-7" />
             v-if="domain.has_icon"
             class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-700">
             <span class="text-xs text-gray-500 dark:text-gray-400">Favicon:</span>
-            <div class="mt-2 inline-block size-8 overflow-hidden rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+            <div
+              class="mt-2 inline-block size-8 overflow-hidden rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
               <img
                 :src="domain.icon_url ?? undefined"
                 :alt="`${domain.display_domain} favicon`"
