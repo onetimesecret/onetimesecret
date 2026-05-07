@@ -334,7 +334,8 @@ onUnmounted(() => {
         <OIcon
           collection="heroicons"
           :name="isOpen ? 'chevron-up-solid' : 'chevron-down-solid'"
-          class="size-4 transition-transform"
+          class="transition-transform"
+          size="4"
           aria-hidden="true" />
       </div>
 
@@ -367,28 +368,12 @@ onUnmounted(() => {
           class="border-b border-gray-200 px-4 py-3
             dark:border-gray-700">
           <div class="flex items-center justify-between gap-2">
-            <!-- Email with copy button -->
-            <div class="group/email flex min-w-0 items-center gap-1">
-              <p
-                class="truncate text-sm font-medium text-gray-900 dark:text-white"
-                :title="cust?.email">
-                {{ cust?.email }}
-              </p>
-              <button
-                v-if="cust?.email"
-                @click.stop="copyToClipboard(cust.email, 'email')"
-                :title="copiedField === 'email' ? t('web.COMMON.copied') : t('web.COMMON.copy_email')"
-                class="shrink-0 rounded p-0.5 text-gray-400 transition-all
-                  hover:bg-gray-100 hover:text-gray-600
-                  dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                :class="{ 'text-green-500': copiedField === 'email' }">
-                <OIcon
-                  collection="material-symbols"
-                  :name="copiedField === 'email' ? 'check' : 'content-copy-outline'"
-                  class="size-4"
-                  aria-hidden="true" />
-              </button>
-            </div>
+            <!-- Email -->
+            <p
+              class="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-white"
+              :title="cust?.email">
+              {{ cust?.email }}
+            </p>
             <!-- Theme Toggle -->
             <button
               @click="toggleDarkMode"
@@ -406,12 +391,27 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </button>
           </div>
-          <!-- Domain context (subdued, below email) -->
-          <p
+          <!-- Domain context with copy button -->
+          <div
             v-if="showDomainContext"
-            class="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
-            {{ currentContext.displayName }}
-          </p>
+            class="mt-0.5 flex items-center gap-1">
+            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
+              {{ currentContext.displayName }}
+            </p>
+            <button
+              @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
+              :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
+              class="shrink-0 rounded p-0.5 text-gray-400 transition-all
+                hover:bg-gray-100 hover:text-gray-600
+                dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              :class="{ 'text-green-500': copiedField === 'domain' }">
+              <OIcon
+                collection="material-symbols"
+                :name="copiedField === 'domain' ? 'check' : 'content-copy-outline'"
+                class="size-3"
+                aria-hidden="true" />
+            </button>
+          </div>
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"
