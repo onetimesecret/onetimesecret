@@ -1,20 +1,35 @@
 <!-- src/apps/colonel/views/ColonelDomains.vue -->
 
 <script setup lang="ts">
-  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
+  import ColonelListPage from '@/apps/colonel/components/ColonelListPage.vue';
+  import ColonelPagination from '@/apps/colonel/components/ColonelPagination.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { customDomains, loading, customDomainsFetchError } = storeToRefs(store);
+  const { customDomains, customDomainsPagination, loading, customDomainsFetchError } = storeToRefs(store);
   const { fetchCustomDomains } = store;
 
-  onMounted(() => fetchCustomDomains());
+  const currentPage = ref(1);
+  const perPage = ref(50);
+
+  onMounted(() => fetchCustomDomains(currentPage.value, perPage.value));
+
+  function handlePageChange(page: number) {
+    currentPage.value = page;
+    fetchCustomDomains(page, perPage.value);
+  }
+
+  function handlePerPageChange(newPerPage: number) {
+    perPage.value = newPerPage;
+    currentPage.value = 1;
+    fetchCustomDomains(1, newPerPage);
+  }
 
   // Verification state badge colors
   const getStateBadgeClass = (state: string) => {
@@ -39,56 +54,26 @@
 </script>
 
 <template>
-  <div>
+  <ColonelListPage
+    :loading="loading.customDomains"
+    :title="t('web.colonel.customDomains.title')"
+    :description="t('web.colonel.customDomains.description')"
+    :fetch-error="customDomainsFetchError"
+    resource="custom domains">
+    <template
+      v-if="customDomainsPagination"
+      #count>
+      Showing {{ customDomains.length }} of {{ customDomainsPagination.total_count }} domains
+    </template>
+
     <div
-      v-if="loading.customDomains"
-      class="py-12 text-center">
-      {{ t('web.LABELS.loading') }}
+      v-if="customDomains.length === 0"
+      class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.customDomains.empty') }}</p>
     </div>
 
-    <div v-else>
-      <!-- Back navigation -->
-      <div class="mb-4">
-        <router-link
-          to="/colonel"
-          class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg
-            class="mr-1 size-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7" />
-          </svg>
-          {{ t('web.COMMON.back') }}
-        </router-link>
-      </div>
-
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.colonel.customDomains.title') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('web.colonel.customDomains.description') }}
-        </p>
-      </div>
-
-      <ColonelFetchError
-        v-if="customDomainsFetchError"
-        :schema="customDomainsFetchError"
-        resource="custom domains" />
-
+    <template v-else>
       <div
-        v-else-if="customDomains.length === 0"
-        class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
-        <p class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.customDomains.empty') }}</p>
-      </div>
-
-      <div
-        v-else
         data-testid="colonel-domains-table"
         class="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
         <div
@@ -226,6 +211,15 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
+
+      <!-- Pagination -->
+      <ColonelPagination
+        v-if="customDomainsPagination && customDomainsPagination.total_pages > 1"
+        class="mt-6"
+        :pagination="customDomainsPagination"
+        :loading="loading.customDomains"
+        @update:page="handlePageChange"
+        @update:per-page="handlePerPageChange" />
+    </template>
+  </ColonelListPage>
 </template>

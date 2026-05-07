@@ -1,6 +1,7 @@
 <!-- src/apps/colonel/views/ColonelBannedIPs.vue -->
 
 <script setup lang="ts">
+  import ColonelListPage from '@/apps/colonel/components/ColonelListPage.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
@@ -85,51 +86,21 @@
 </script>
 
 <template>
-  <div>
-    <div
-      v-if="loading.bannedIPs"
-      class="py-12 text-center">
-      {{ t('web.LABELS.loading') }}
-    </div>
-
-    <div v-else>
-      <!-- Back navigation -->
-      <div class="mb-4">
-        <router-link
-          to="/colonel"
-          class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg
-            class="mr-1 size-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7" />
-          </svg>
-          {{ t('web.COMMON.back') }}
-        </router-link>
-      </div>
-
-      <div class="mb-6 flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            {{ t('web.colonel.bannedIps.title') }}
-          </h1>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {{ t('web.colonel.bannedIps.description') }}
-          </p>
-        </div>
+  <ColonelListPage
+    :loading="loading.bannedIPs"
+    :title="t('web.colonel.bannedIps.title')"
+    :description="t('web.colonel.bannedIps.description')">
+    <template #header-extra>
+      <div class="-mt-4 mb-6 flex justify-end">
         <button
           @click="showBanForm = !showBanForm"
           class="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700">
           {{ showBanForm ? t('web.colonel.bannedIps.actions.cancel') : t('web.colonel.bannedIps.actions.ban') }}
         </button>
       </div>
+    </template>
 
-      <!-- Error Message -->
+    <!-- Error Message -->
       <div
         v-if="errorMessage"
         class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-700 dark:bg-red-900/20">
@@ -315,6 +286,5 @@
           {{ t('web.colonel.bannedIps.empty') }}
         </div>
       </div>
-    </div>
-  </div>
+  </ColonelListPage>
 </template>

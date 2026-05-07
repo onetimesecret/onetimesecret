@@ -11,7 +11,8 @@
 -->
 
 <script setup lang="ts">
-  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
+  import ColonelListPage from '@/apps/colonel/components/ColonelListPage.vue';
+  import ColonelPagination from '@/apps/colonel/components/ColonelPagination.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import type {
     ColonelOrganization,
@@ -53,7 +54,7 @@
   async function applyFilters(): Promise<void> {
     await fetchOrganizations(
       1,
-      50,
+      organizationsPagination.value?.per_page ?? 50,
       statusFilter.value || undefined,
       syncStatusFilter.value || undefined
     );
@@ -222,66 +223,60 @@
   const unknownCount = computed(
     () => organizations.value.filter((o) => o.sync_status === 'unknown').length
   );
+
+  // Pagination handlers
+  function handlePageChange(page: number): void {
+    fetchOrganizations(
+      page,
+      organizationsPagination.value?.per_page ?? 50,
+      statusFilter.value || undefined,
+      syncStatusFilter.value || undefined
+    );
+  }
+
+  function handlePerPageChange(perPage: number): void {
+    fetchOrganizations(
+      1,
+      perPage,
+      statusFilter.value || undefined,
+      syncStatusFilter.value || undefined
+    );
+  }
 </script>
 
 <template>
-  <div>
-    <div
-      v-if="loading.organizations"
-      class="py-12 text-center">
-      {{ t('web.LABELS.loading') }}
-    </div>
+  <ColonelListPage
+    :loading="loading.organizations"
+    :title="t('web.colonel.organizations.pageTitle')"
+    :fetch-error="organizationsFetchError"
+    resource="organizations">
+    <!-- Complex count with stale/unknown badges -->
+    <template #count>
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        {{ t('web.colonel.organizations.organizationsCount', { count: totalOrganizations }) }}
+        <template v-if="staleCount > 0 || unknownCount > 0">
+          <span class="mx-1">-</span>
+          <span
+            v-if="staleCount > 0"
+            class="font-medium text-yellow-600 dark:text-yellow-400">
+            {{ t('web.colonel.organizations.needAttention', { count: staleCount }) }}
+          </span>
+          <span
+            v-if="staleCount > 0 && unknownCount > 0"
+            class="mx-1"
+            >/</span
+          >
+          <span
+            v-if="unknownCount > 0"
+            class="text-gray-500 dark:text-gray-400">
+            {{ t('web.colonel.organizations.unknownCount', { count: unknownCount }) }}
+          </span>
+        </template>
+      </p>
+    </template>
 
-    <div v-else>
-      <!-- Back navigation -->
-      <div class="mb-4">
-        <router-link
-          to="/colonel"
-          class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg
-            class="mr-1 size-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7" />
-          </svg>
-          {{ t('web.COMMON.back') }}
-        </router-link>
-      </div>
-
-      <!-- Header with status summary -->
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.colonel.organizations.pageTitle') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('web.colonel.organizations.organizationsCount', { count: totalOrganizations }) }}
-          <template v-if="staleCount > 0 || unknownCount > 0">
-            <span class="mx-1">-</span>
-            <span
-              v-if="staleCount > 0"
-              class="font-medium text-yellow-600 dark:text-yellow-400">
-              {{ t('web.colonel.organizations.needAttention', { count: staleCount }) }}
-            </span>
-            <span
-              v-if="staleCount > 0 && unknownCount > 0"
-              class="mx-1"
-              >/</span
-            >
-            <span
-              v-if="unknownCount > 0"
-              class="text-gray-500 dark:text-gray-400">
-              {{ t('web.colonel.organizations.unknownCount', { count: unknownCount }) }}
-            </span>
-          </template>
-        </p>
-      </div>
-
-      <!-- Filters -->
+    <!-- Filter bar -->
+    <template #header-extra>
       <div
         class="mb-6 flex flex-wrap items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <div class="flex items-center gap-2">
@@ -336,24 +331,21 @@
           </button>
         </div>
       </div>
+    </template>
 
-      <ColonelFetchError
-        v-if="organizationsFetchError"
-        :schema="organizationsFetchError"
-        resource="organizations" />
+    <!-- Default slot: table, empty state, investigation panel -->
+    <!-- Empty state -->
+    <div
+      v-if="organizations.length === 0"
+      class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-gray-500 dark:text-gray-400">
+        {{ t('web.colonel.organizations.noOrganizations') }}
+      </p>
+    </div>
 
-      <!-- Empty state -->
+    <!-- Organizations table -->
+    <template v-else>
       <div
-        v-else-if="organizations.length === 0"
-        class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
-        <p class="text-gray-500 dark:text-gray-400">
-          {{ t('web.colonel.organizations.noOrganizations') }}
-        </p>
-      </div>
-
-      <!-- Organizations table -->
-      <div
-        v-else
         class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900">
@@ -801,6 +793,17 @@
           </tbody>
         </table>
       </div>
-    </div>
-  </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="organizationsPagination && organizationsPagination.total_pages > 1"
+        class="mt-4">
+        <ColonelPagination
+          :pagination="organizationsPagination"
+          :loading="loading.organizations"
+          @update:page="handlePageChange"
+          @update:per-page="handlePerPageChange" />
+      </div>
+    </template>
+  </ColonelListPage>
 </template>

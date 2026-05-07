@@ -1,7 +1,8 @@
 <!-- src/apps/colonel/views/ColonelSecrets.vue -->
 
 <script setup lang="ts">
-  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
+  import ColonelListPage from '@/apps/colonel/components/ColonelListPage.vue';
+  import ColonelPagination from '@/apps/colonel/components/ColonelPagination.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
@@ -24,56 +25,21 @@
 </script>
 
 <template>
-  <div>
-    <div
-      v-if="loading.secrets"
-      class="py-12 text-center">
-      {{ t('web.LABELS.loading') }}
-    </div>
+  <ColonelListPage
+    :loading="loading.secrets"
+    :title="t('web.colonel.secrets.title')"
+    :description="t('web.colonel.secrets.description')"
+    :fetch-error="secretsFetchError"
+    resource="secrets">
+    <template
+      v-if="secretsPagination"
+      #count>
+      Showing {{ secrets.length }} of {{ secretsPagination.total_count }} secrets
+    </template>
 
-    <div v-else>
-      <!-- Back navigation -->
-      <div class="mb-4">
-        <router-link
-          to="/colonel"
-          class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg
-            class="mr-1 size-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7" />
-          </svg>
-          {{ t('web.COMMON.back') }}
-        </router-link>
-      </div>
-
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.colonel.secrets.title') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('web.colonel.secrets.description') }}
-        </p>
-      </div>
-
-      <ColonelFetchError
-        v-if="secretsFetchError"
-        :schema="secretsFetchError"
-        resource="secrets" />
-
+    <template #default>
       <div
-        v-else-if="secretsPagination"
-        class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        Showing {{ secrets.length }} of {{ secretsPagination.total_count }} secrets
-      </div>
-
-      <div
-        v-if="!secretsFetchError && secrets.length > 0"
+        v-if="secrets.length > 0"
         class="overflow-x-auto">
         <table
           data-testid="colonel-secrets-table"
@@ -139,10 +105,18 @@
       </div>
 
       <div
-        v-else-if="!secretsFetchError"
+        v-else
         class="py-12 text-center text-gray-500 dark:text-gray-400">
         {{ t('web.colonel.secrets.empty') }}
       </div>
-    </div>
-  </div>
+
+      <ColonelPagination
+        v-if="secretsPagination"
+        class="mt-4"
+        :pagination="secretsPagination"
+        :loading="loading.secrets"
+        @update:page="(page) => fetchSecrets(page, secretsPagination?.per_page ?? 50)"
+        @update:per-page="(perPage) => fetchSecrets(1, perPage)" />
+    </template>
+  </ColonelListPage>
 </template>
