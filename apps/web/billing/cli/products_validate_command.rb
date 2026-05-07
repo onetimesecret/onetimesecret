@@ -14,7 +14,12 @@ module Onetime
 
       desc 'Validate Stripe product metadata completeness'
 
-      def call(**)
+      option :check_field_names,
+        type: :boolean,
+        default: true,
+        desc: 'Check metadata keys against canonical Metadata::FIELD_* constants'
+
+      def call(check_field_names: true, **)
         boot_application!
 
         return unless stripe_configured?
@@ -45,6 +50,7 @@ module Onetime
         # Validate each product and collect structured errors
         products.data.each do |product|
           validate_product(product, errors, warnings)
+          check_field_name_variants(product, warnings) if check_field_names
         end
 
         # Fetch price counts for display
@@ -118,6 +124,37 @@ module Onetime
           message: "Found legacy 'plan' field, expected 'plan_id'",
           details: 'Metadata uses deprecated field name',
         }
+      end
+
+      # Check all metadata keys against canonical Metadata::FIELD_* constants
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @param warnings [Array] Warnings collection to append to
+      def check_field_name_variants(product, warnings)
+        metadata = product.metadata || {}
+        return if metadata.empty?
+
+        # Build set of canonical field names from Metadata constants
+        canonical_fields = ::Billing::Metadata.constants
+          .select { |c| c.to_s.start_with?('FIELD_') }
+          .to_set { |c| ::Billing::Metadata.const_get(c) }
+
+        # Also include limit fields
+        canonical_fields.merge(::Billing::Metadata::LIMIT_FIELDS.keys)
+
+        metadata.each_key do |key|
+          next if canonical_fields.include?(key)
+
+          # Skip known Stripe-managed fields
+          next if %w[complimentary].include?(key)
+
+          warnings << {
+            product_id: product.id,
+            type: :unknown_field,
+            message: "Unknown metadata field '#{key}'",
+            details: 'Field not in Billing::Metadata::FIELD_* constants',
+          }
+        end
       end
 
       def print_products_summary(products, price_counts, errors, warnings)

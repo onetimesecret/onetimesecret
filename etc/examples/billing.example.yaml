@@ -302,11 +302,11 @@ plans:
 stripe_metadata_schema:
   required:
     - app: "onetimesecret"  # Must be exactly this value
+    - plan_id: "Unique plan identifier (must match catalog key)"
     - tier: "Tier identifier (single_account, single_team, multi_team, etc.)"
     - tenancy: "Tenancy type (multi, dedicated)"
 
   optional:
-    - plan_id: "Unique plan identifier (auto-generated if not provided)"
     - region: "Regional scope (e.g., EU, US, CA); omit for global plans"
     - display_order: "Sort order on plans page (lower = earlier, default: 0)"
     - show_on_plans_page: "Visibility on plans page (true/false, default: true)"

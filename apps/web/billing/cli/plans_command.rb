@@ -36,15 +36,17 @@ module Onetime
         end
 
         puts format(
-          '%-20s %-18s %-10s %-10s %-12s %s',
+          '%-20s %-18s %-10s %-10s %-12s %-6s %-26s %s',
           'PLAN ID',
           'TIER',
           'INTERVAL',
           'AMOUNT',
           'REGION',
           'CAPS',
+          'STRIPE PRODUCT',
+          'STRIPE PRICE',
         )
-        puts '-' * 90
+        puts '-' * 150
 
         plans.each do |entry|
           puts format_plan_row(entry)
