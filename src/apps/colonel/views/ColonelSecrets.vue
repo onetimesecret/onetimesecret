@@ -11,7 +11,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { secrets, secretsPagination, isLoading, secretsFetchError } = storeToRefs(store);
+  const { secrets, secretsPagination, loading, secretsFetchError } = storeToRefs(store);
   const { fetchSecrets } = store;
 
   onMounted(() => fetchSecrets());
@@ -20,7 +20,7 @@
 <template>
   <div>
     <div
-      v-if="isLoading"
+      v-if="loading.secrets"
       class="py-12 text-center">
       {{ t('web.LABELS.loading') }}
     </div>

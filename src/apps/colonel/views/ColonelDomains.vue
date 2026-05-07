@@ -11,7 +11,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { customDomains, customDomainsPagination, isLoading, customDomainsFetchError } =
+  const { customDomains, customDomainsPagination, loading, customDomainsFetchError } =
     storeToRefs(store);
   const { fetchCustomDomains } = store;
 
@@ -38,7 +38,7 @@
 <template>
   <div>
     <div
-      v-if="isLoading"
+      v-if="loading.customDomains"
       class="py-12 text-center">
       {{ t('web.LABELS.loading') }}
     </div>

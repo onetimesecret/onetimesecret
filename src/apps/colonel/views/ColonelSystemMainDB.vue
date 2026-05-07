@@ -9,7 +9,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { databaseMetrics, isLoading } = storeToRefs(store);
+  const { databaseMetrics, loading } = storeToRefs(store);
   const { fetchDatabaseMetrics } = store;
 
   onMounted(() => fetchDatabaseMetrics());
@@ -30,7 +30,7 @@
 <template>
   <div>
     <div
-      v-if="isLoading"
+      v-if="loading.databaseMetrics"
       class="text-center">
       {{ t('web.LABELS.loading') }}
     </div>
@@ -131,7 +131,7 @@
             class="rounded border border-gray-200 p-4 dark:border-gray-700">
             <div class="font-semibold text-gray-900 dark:text-white">{{ dbName }}</div>
             <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              <template v-if="typeof dbInfo === 'object' && dbInfo.keys !== undefined">
+              <template v-if="dbInfo !== null && typeof dbInfo === 'object' && dbInfo.keys !== undefined">
                 {{ dbInfo.keys.toLocaleString() }} keys, {{ dbInfo.expires.toLocaleString() }} with
                 TTL
               </template>

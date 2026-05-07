@@ -131,14 +131,14 @@ const workerHealthClass = computed(() => {
 
     <!-- Empty State -->
     <div
-      v-else-if="!colonelStore.isLoading"
+      v-else-if="!colonelStore.loading.queueMetrics"
       class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
       {{ t('web.colonel.noQueueData') }}
     </div>
 
     <!-- Loading State -->
     <div
-      v-if="colonelStore.isLoading"
+      v-if="colonelStore.loading.queueMetrics"
       class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
       {{ t('web.colonel.loadingQueueData') }}
     </div>

@@ -14,7 +14,7 @@
   const { domains_enabled } = storeToRefs(bootstrapStore);
 
   const store = useColonelInfoStore();
-  const { stats, isLoading } = storeToRefs(store);
+  const { stats, loading } = storeToRefs(store);
   const { fetchStats } = store;
 
   onMounted(fetchStats);
@@ -131,7 +131,7 @@
 
     <!-- Loading state -->
     <div
-      v-if="isLoading"
+      v-if="loading.stats"
       class="mb-6 p-4 text-center text-gray-600 dark:text-gray-400">
       {{ t('web.LABELS.loading') }}
     </div>
@@ -155,7 +155,7 @@
 
     <!-- Stats grid -->
     <div
-      v-if="!isLoading"
+      v-if="!loading.stats"
       class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div
         v-for="stat in statsData"
@@ -194,10 +194,10 @@
         {{ t('web.colonel.quickActions') }}
       </h2>
       <div class="space-y-2">
-        <a
+        <router-link
           v-for="action in quickActions"
           :key="action.name"
-          :href="action.href"
+          :to="action.href"
           class="dark:hover:bg-gray-750 group flex items-center justify-between rounded-lg bg-white p-4 shadow transition-all duration-200 hover:shadow-md dark:bg-gray-800">
           <div class="flex items-center space-x-3">
             <div
@@ -222,7 +222,7 @@
             name="arrow-right"
             collection="heroicons"
             class="size-4 text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400" />
-        </a>
+        </router-link>
       </div>
     </div>
   </div>

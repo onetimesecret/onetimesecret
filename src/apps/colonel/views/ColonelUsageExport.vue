@@ -6,7 +6,7 @@
   import { computed, onMounted, ref } from 'vue';
 
   const store = useColonelInfoStore();
-  const { usageExport, isLoading } = storeToRefs(store);
+  const { usageExport, loading } = storeToRefs(store);
   const { fetchUsageExport } = store;
 
   const startDate = ref('');
@@ -99,9 +99,9 @@
         <div class="flex items-end">
           <button
             @click="handleFetch"
-            :disabled="isLoading"
+            :disabled="loading.usageExport"
             class="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50">
-            {{ isLoading ? 'Loading...' : 'Fetch Data' }}
+            {{ loading.usageExport ? 'Loading...' : 'Fetch Data' }}
           </button>
         </div>
       </div>

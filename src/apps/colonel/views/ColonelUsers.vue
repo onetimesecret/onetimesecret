@@ -11,7 +11,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { users, usersPagination, isLoading, usersFetchError } = storeToRefs(store);
+  const { users, usersPagination, loading, usersFetchError } = storeToRefs(store);
   const { fetchUsers } = store;
 
   onMounted(() => fetchUsers());
@@ -20,7 +20,7 @@
 <template>
   <div>
     <div
-      v-if="isLoading"
+      v-if="loading.users"
       class="py-12 text-center">
       {{ t('web.LABELS.loading') }}
     </div>

@@ -10,7 +10,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { redisMetrics, isLoading } = storeToRefs(store);
+  const { redisMetrics, loading } = storeToRefs(store);
   const { fetchRedisMetrics } = store;
 
   const redisInfoArray = computed(() => {
@@ -27,7 +27,7 @@
 <template>
   <div>
     <div
-      v-if="isLoading"
+      v-if="loading.redisMetrics"
       class="text-center">
       {{ t('web.LABELS.loading') }}
     </div>

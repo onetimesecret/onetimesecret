@@ -25,7 +25,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { organizations, organizationsPagination, isLoading, organizationsFetchError } =
+  const { organizations, organizationsPagination, loading, organizationsFetchError } =
     storeToRefs(store);
   const { fetchOrganizations, investigateOrganization } = store;
 
@@ -227,7 +227,7 @@
 <template>
   <div>
     <div
-      v-if="isLoading"
+      v-if="loading.organizations"
       class="py-12 text-center">
       {{ t('web.LABELS.loading') }}
     </div>

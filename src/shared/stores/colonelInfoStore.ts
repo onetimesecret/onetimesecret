@@ -24,7 +24,7 @@ import { responseSchemas } from '@/schemas/api/internal/responses';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 
 // Use the imported type from schemas
 export type ColonelStats = ColonelStatsDetails;
@@ -95,7 +95,21 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const usageExport = ref<UsageExportDetails | null>(null);
   const queueMetrics = ref<QueueMetrics | null>(null);
   const _initialized = ref(false);
-  const isLoading = ref(false);
+
+  // Per-resource loading flags to prevent concurrent fetches from stomping each other
+  const loading = reactive({
+    info: false,
+    stats: false,
+    users: false,
+    secrets: false,
+    databaseMetrics: false,
+    redisMetrics: false,
+    bannedIPs: false,
+    customDomains: false,
+    organizations: false,
+    usageExport: false,
+    queueMetrics: false,
+  });
 
   // Per-list-resource validation error state. Holds the schema name when
   // gracefulParse fails so views can distinguish "fetch returned nothing"
@@ -108,7 +122,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
 
   // Actions
   async function fetch() {
-    isLoading.value = true;
+    loading.info = true;
     try {
       const response = await $api.get('/api/colonel/info');
       const result = gracefulParse(responseSchemas.colonelInfo, response.data, 'ColonelInfoResponse');
@@ -127,13 +141,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       console.error('Failed to fetch colonel info:', error);
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.info = false;
     }
   }
 
   // Lightweight stats-only fetch for dashboard
   async function fetchStats() {
-    isLoading.value = true;
+    loading.stats = true;
     try {
       // Use the dedicated stats endpoint for better performance
       const response = await $api.get('/api/colonel/stats');
@@ -151,13 +165,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       stats.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.stats = false;
     }
   }
 
   // Fetch users list with optional pagination
   async function fetchUsers(page = 1, perPage = 50, roleFilter?: string) {
-    isLoading.value = true;
+    loading.users = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -188,13 +202,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       usersPagination.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.users = false;
     }
   }
 
   // Fetch secrets list with optional pagination
   async function fetchSecrets(page = 1, perPage = 50) {
-    isLoading.value = true;
+    loading.secrets = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -222,13 +236,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       secretsPagination.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.secrets = false;
     }
   }
 
   // Fetch database metrics
   async function fetchDatabaseMetrics() {
-    isLoading.value = true;
+    loading.databaseMetrics = true;
     try {
       const response = await $api.get('/api/colonel/system/database');
       const result = gracefulParse(responseSchemas.databaseMetrics, response.data, 'DatabaseMetricsResponse');
@@ -246,13 +260,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       databaseMetrics.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.databaseMetrics = false;
     }
   }
 
   // Fetch Redis metrics
   async function fetchRedisMetrics() {
-    isLoading.value = true;
+    loading.redisMetrics = true;
     try {
       const response = await $api.get('/api/colonel/system/redis');
       const result = gracefulParse(responseSchemas.redisMetrics, response.data, 'RedisMetricsResponse');
@@ -270,13 +284,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       redisMetrics.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.redisMetrics = false;
     }
   }
 
   // Fetch banned IPs list
   async function fetchBannedIPs() {
-    isLoading.value = true;
+    loading.bannedIPs = true;
     try {
       const response = await $api.get('/api/colonel/banned-ips');
       const result = gracefulParse(responseSchemas.bannedIPs, response.data, 'BannedIPsResponse');
@@ -296,13 +310,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       currentIP.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.bannedIPs = false;
     }
   }
 
   // Ban an IP address
   async function banIP(ipAddress: string, reason?: string) {
-    isLoading.value = true;
+    loading.bannedIPs = true;
     try {
       await $api.post('/api/colonel/banned-ips', {
         ip_address: ipAddress,
@@ -315,13 +329,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       console.error('Failed to ban IP:', error);
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.bannedIPs = false;
     }
   }
 
   // Unban an IP address
   async function unbanIP(ipAddress: string) {
-    isLoading.value = true;
+    loading.bannedIPs = true;
     try {
       await $api.delete(`/api/colonel/banned-ips/${encodeURIComponent(ipAddress)}`);
 
@@ -331,13 +345,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       console.error('Failed to unban IP:', error);
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.bannedIPs = false;
     }
   }
 
   // Fetch custom domains list with optional pagination
   async function fetchCustomDomains(page = 1, perPage = 50) {
-    isLoading.value = true;
+    loading.customDomains = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -365,7 +379,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       customDomainsPagination.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.customDomains = false;
     }
   }
 
@@ -376,7 +390,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     statusFilter?: string,
     syncStatusFilter?: string
   ) {
-    isLoading.value = true;
+    loading.organizations = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -413,7 +427,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       organizationsFilters.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.organizations = false;
     }
   }
 
@@ -434,7 +448,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
 
   // Fetch usage export data
   async function fetchUsageExport(startDate?: number, endDate?: number) {
-    isLoading.value = true;
+    loading.usageExport = true;
     try {
       const params = new URLSearchParams();
       if (startDate) {
@@ -460,13 +474,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       usageExport.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.usageExport = false;
     }
   }
 
   // Fetch queue metrics
   async function fetchQueueMetrics() {
-    isLoading.value = true;
+    loading.queueMetrics = true;
     try {
       const response = await $api.get('/api/colonel/queue');
       const result = gracefulParse(responseSchemas.queueMetrics, response.data, 'QueueMetricsResponse');
@@ -484,7 +498,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       queueMetrics.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.queueMetrics = false;
     }
   }
 
@@ -555,7 +569,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     organizationsFilters,
     usageExport,
     queueMetrics,
-    isLoading,
+    loading,
     usersFetchError,
     secretsFetchError,
     customDomainsFetchError,

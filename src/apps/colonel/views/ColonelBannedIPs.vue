@@ -12,7 +12,7 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { bannedIPs, currentIP, isLoading } = storeToRefs(store);
+  const { bannedIPs, currentIP, loading } = storeToRefs(store);
   const { fetchBannedIPs, banIP, unbanIP } = store;
 
   const newIP = ref('');
@@ -87,7 +87,7 @@
 <template>
   <div>
     <div
-      v-if="isLoading"
+      v-if="loading.bannedIPs"
       class="py-12 text-center">
       {{ t('web.LABELS.loading') }}
     </div>
