@@ -357,6 +357,22 @@ RSpec.describe Billing::BillingService, billing: true do
         expect(described_class.plans_match?('identity_plus', 'identity_plus_v1_monthly')).to be true
       end
     end
+
+    context 'free-tier equivalence (issue #3089)' do
+      it 'treats free and free_v1 as equivalent' do
+        expect(described_class.plans_match?('free', 'free_v1')).to be true
+        expect(described_class.plans_match?('free_v1', 'free')).to be true
+      end
+
+      it 'treats free_v1 with interval suffix as equivalent to free' do
+        expect(described_class.plans_match?('free', 'free_v1_monthly')).to be true
+      end
+
+      it 'does not treat free as equivalent to other plans' do
+        expect(described_class.plans_match?('free', 'identity_plus_v1')).to be false
+        expect(described_class.plans_match?('free_v1', 'identity_plus_v1')).to be false
+      end
+    end
   end
 
   describe '.normalize_plan_id' do

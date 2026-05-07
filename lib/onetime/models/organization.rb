@@ -77,7 +77,7 @@ module Onetime
     # Manual declarations will CLOBBER the auto-generated relationship functionality!
 
     def init
-      @planid ||= 'free'  # Default to free plan
+      @planid ||= 'free_v1'  # Default to canonical free plan
       nil
     end
 
