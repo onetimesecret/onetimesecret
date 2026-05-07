@@ -181,7 +181,7 @@ module Billing
     module ClassMethods
       # Required metadata keys for OTS products (app check is separate)
       # Note: 'interval' comes from the price object, not product metadata
-      REQUIRED_PRODUCT_METADATA = %w[tier region].freeze
+      REQUIRED_PRODUCT_METADATA = %w[plan_id tier region].freeze
 
       # Validate product has all required metadata for plan creation
       #
@@ -528,8 +528,8 @@ module Billing
         tier     = product.metadata[Metadata::FIELD_TIER]
         region   = product.metadata[Metadata::FIELD_REGION]
 
-        # Use explicit plan_id from metadata with interval appended, or fall back to tier
-        base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || tier
+        # plan_id is required metadata (validated above), append interval suffix
+        base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID]
         plan_id      = "#{base_plan_id}_#{interval}ly"
 
         # Extract entitlements from product metadata
