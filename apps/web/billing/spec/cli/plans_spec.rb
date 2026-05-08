@@ -10,7 +10,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Data class for mocking plans (immutable, Ruby 3.2+)
-  MockPlan = Data.define(:plan_id, :tier, :interval, :amount, :currency, :region, :entitlements)
+  MockPlan = Data.define(:plan_id, :tier, :interval, :amount, :currency, :region, :entitlements, :stripe_product_id, :stripe_price_id)
 
   describe Onetime::CLI::BillingPlansCommand do
     subject(:command) { described_class.new }
@@ -25,6 +25,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         currency: 'cad',
         region: 'US',
         entitlements: '["api_access","manage_teams"]',
+        stripe_product_id: 'prod_test123',
+        stripe_price_id: 'price_test123',
       )
     end
 
@@ -37,6 +39,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         currency: 'eur',
         region: 'EU',
         entitlements: '["api_access","manage_teams","custom_domains"]',
+        stripe_product_id: 'prod_eu456',
+        stripe_price_id: 'price_eu456',
       )
     end
 
@@ -52,7 +56,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
 
       it 'displays separator line after headers' do
         output = capture_stdout { command.call }
-        expect(output).to match(/^-{90}$/)
+        expect(output).to match(/^-{150}$/)
       end
 
       it 'formats plan rows with proper alignment' do
@@ -174,6 +178,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             currency: 'cad',
             region: 'US',
             entitlements: '[]',
+            stripe_product_id: 'prod_long',
+            stripe_price_id: 'price_long',
           )
           allow(Billing::Plan).to receive(:list_plans).and_return([long_plan])
 
@@ -203,6 +209,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             currency: 'cad',
             region: 'US',
             entitlements: '[]',
+            stripe_product_id: 'prod_basic',
+            stripe_price_id: 'price_basic',
           )
           allow(Billing::Plan).to receive(:list_plans).and_return([zero_cap_plan])
 
