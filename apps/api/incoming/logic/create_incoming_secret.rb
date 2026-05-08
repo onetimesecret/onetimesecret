@@ -87,7 +87,11 @@ module Incoming
           raise_form_error 'Invalid recipient'
         end
 
-        unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
+        # Corruption guard: email was validated at config time, this catches
+        # data corruption or misconfigured storage. Uses Truemail :regex mode
+        # (no DNS) since this runs on every incoming secret creation.
+        # Flow: POST /api/incoming/secret -> resolve_recipient_and_config -> here
+        unless Truemail.validate(recipient_email.to_s, with: :regex).result.valid?
           OT.le "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
           raise_form_error 'Invalid recipient configuration'
         end

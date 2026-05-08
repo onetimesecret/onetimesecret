@@ -55,10 +55,10 @@ module DomainsAPI
             raise_form_error("Maximum #{max} recipients allowed", field: :recipients, error_type: :invalid)
           end
 
-          # Validate recipient emails
+          # Validate recipient emails with Truemail (write path — admin config)
           @recipients.each do |r|
-            unless r[:email].match?(/\A[^@\s]+@[^@\s]+\.[^@\s]+\z/)
-              raise_form_error("Invalid email format: #{r[:email]}", field: :recipients, error_type: :invalid)
+            unless valid_email?(r[:email])
+              raise_form_error("Invalid email: #{r[:email]}", field: :recipients, error_type: :invalid)
             end
           end
 

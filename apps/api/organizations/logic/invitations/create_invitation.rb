@@ -147,11 +147,6 @@ module OrganizationAPI::Logic
         )
         membership&.admin?
       end
-
-      # Basic email validation
-      def valid_email?(email)
-        email =~ /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
-      end
     end
   end
 end

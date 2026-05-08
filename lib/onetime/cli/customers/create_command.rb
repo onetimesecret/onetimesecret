@@ -183,14 +183,6 @@ module Onetime
         # 20 characters = ~119 bits entropy (log2(62^20))
         SecureRandom.alphanumeric(20)
       end
-
-      # Basic email validation
-      def valid_email?(email)
-        return false if email.nil? || email.empty?
-
-        # Simple regex for email validation
-        email.match?(/\A[^@\s]+@[^@\s]+\.[^@\s]+\z/)
-      end
     end
 
     register 'customers create', CustomersCreateCommand

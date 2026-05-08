@@ -304,6 +304,13 @@ module Onetime
 
       # Validate recipients array.
       #
+      # Flow: PUT /api/domains/:id/incoming/config -> PutIncomingConfig ->
+      #       IncomingConfig#recipients= -> normalize_recipients -> here
+      #
+      # Uses format-only regex (not Truemail) to avoid DNS latency on config
+      # saves. Truemail validation happens at secret-creation time via the
+      # logic layer.
+      #
       # @param recipients_array [Array<Hash>] Normalized recipients
       # @raise [Onetime::Problem] if validation fails
       def validate_recipients!(recipients_array)
@@ -313,7 +320,7 @@ module Onetime
         raise Onetime::Problem, 'Duplicate recipient emails not allowed' if emails.uniq.size != emails.size
 
         recipients_array.each do |r|
-          unless r[:email].match?(/\A[^@\s]+@[^@\s]+\.[^@\s]+\z/)
+          unless r[:email].match?(OT::Utils::EmailFormat::BASIC_FORMAT)
             raise Onetime::Problem, "Invalid email format: #{r[:email]}"
           end
         end
