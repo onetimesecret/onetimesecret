@@ -41,6 +41,31 @@ import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+// Copy to clipboard helper
+const copyToClipboard = async (text: string, fieldName: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    showCopyFeedback(fieldName);
+  } catch {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showCopyFeedback(fieldName);
+  }
+};
+
+const copiedField = ref<string | null>(null);
+const showCopyFeedback = (fieldName: string) => {
+  copiedField.value = fieldName;
+  setTimeout(() => {
+    copiedField.value = null;
+  }, 1500);
+};
+
 const props = defineProps<{
   cust: Customer | null;
   email?: string;  // Used when awaiting MFA (no customer object yet)
@@ -342,8 +367,9 @@ onUnmounted(() => {
           class="border-b border-gray-200 px-4 py-3
             dark:border-gray-700">
           <div class="flex items-center justify-between gap-2">
+            <!-- Email -->
             <p
-              class="truncate text-sm font-medium text-gray-900 dark:text-white"
+              class="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-white"
               :title="cust?.email">
               {{ cust?.email }}
             </p>
@@ -364,21 +390,27 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </button>
           </div>
-          <p
-            v-if="!awaitingMfa && cust?.objid"
-            class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {{ cust?.extid }}
-          </p>
-          <p
+          <!-- Domain context with copy button -->
+          <div
             v-if="showDomainContext"
-            class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-            <OIcon
-              collection="heroicons"
-              name="globe-alt"
-              class="size-3 shrink-0"
-              aria-hidden="true" />
-            <span class="truncate">{{ currentContext.displayName }}</span>
-          </p>
+            class="mt-0.5 flex items-center gap-1">
+            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
+              {{ currentContext.displayName }}
+            </p>
+            <button
+              @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
+              :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
+              class="shrink-0 rounded p-0.5 text-gray-400 transition-all
+                hover:bg-gray-100 hover:text-gray-600
+                dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              :class="{ 'text-green-500': copiedField === 'domain' }">
+              <OIcon
+                collection="material-symbols"
+                :name="copiedField === 'domain' ? 'check' : 'content-copy-outline'"
+                class="size-3"
+                aria-hidden="true" />
+            </button>
+          </div>
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"

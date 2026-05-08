@@ -9,14 +9,8 @@
 
   const { t } = useI18n();
 
-  const {
-    allowPublicHomepage,
-    primaryColor,
-    cornerClass,
-    buttonTextLight,
-    logoUri,
-    displayName,
-  } = useProductIdentity();
+  const { allowPublicHomepage, primaryColor, cornerClass, buttonTextLight, logoUri, displayName } =
+    useProductIdentity();
 
   // Handle logo 404 errors gracefully
   const imageError = ref(false);
@@ -30,7 +24,9 @@
     <!-- Logo + Taglines (centered brand hero for custom domains) -->
     <div class="mb-8 text-center">
       <!-- Logo with error handling - hides if 404 -->
-      <div v-if="logoUri && !imageError" class="mb-24 flex justify-center">
+      <div
+        v-if="logoUri && !imageError"
+        class="mb-24 flex justify-center">
         <img
           :src="logoUri"
           class="h-16 max-w-[200px] object-contain"
@@ -72,7 +68,9 @@
       :with-generate="false" />
 
     <!-- Private: trust signals only -->
-    <div v-else class="space-y-8">
+    <div
+      v-else
+      class="space-y-8">
       <!-- Status Card -->
       <div
         class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-none">

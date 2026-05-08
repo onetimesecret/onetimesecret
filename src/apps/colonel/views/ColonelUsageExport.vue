@@ -6,7 +6,7 @@
   import { computed, onMounted, ref } from 'vue';
 
   const store = useColonelInfoStore();
-  const { usageExport, isLoading } = storeToRefs(store);
+  const { usageExport, loading } = storeToRefs(store);
   const { fetchUsageExport } = store;
 
   const startDate = ref('');
@@ -53,14 +53,16 @@
       <router-link
         to="/colonel"
         class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-        <svg class="mr-1 size-4"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-          <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M15 19l-7-7 7-7" />
+        <svg
+          class="mr-1 size-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7" />
         </svg>
         Back
       </router-link>
@@ -68,32 +70,38 @@ d="M15 19l-7-7 7-7" />
 
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Usage Export</h1>
-      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Export usage data for a specific date range</p>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        Export usage data for a specific date range
+      </p>
     </div>
 
     <!-- Date range selector -->
-    <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg p-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="mb-6 rounded-lg bg-white p-6 dark:bg-gray-800">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Start Date</label
+          >
           <input
             v-model="startDate"
             type="date"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >End Date</label
+          >
           <input
             v-model="endDate"
             type="date"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         </div>
         <div class="flex items-end">
           <button
             @click="handleFetch"
-            :disabled="isLoading"
-            class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-            {{ isLoading ? 'Loading...' : 'Fetch Data' }}
+            :disabled="loading.usageExport"
+            class="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50">
+            {{ loading.usageExport ? 'Loading...' : 'Fetch Data' }}
           </button>
         </div>
       </div>
@@ -101,26 +109,26 @@ d="M15 19l-7-7 7-7" />
 
     <div v-if="usageExport">
       <!-- Summary Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+      <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div class="rounded-lg bg-white p-6 dark:bg-gray-800">
           <div class="text-sm text-gray-500 dark:text-gray-400">Total Secrets</div>
           <div class="text-3xl font-bold text-gray-900 dark:text-white">
             {{ usageExport.usage_data.total_secrets.toLocaleString() }}
           </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+        <div class="rounded-lg bg-white p-6 dark:bg-gray-800">
           <div class="text-sm text-gray-500 dark:text-gray-400">New Users</div>
           <div class="text-3xl font-bold text-gray-900 dark:text-white">
             {{ usageExport.usage_data.total_new_users.toLocaleString() }}
           </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+        <div class="rounded-lg bg-white p-6 dark:bg-gray-800">
           <div class="text-sm text-gray-500 dark:text-gray-400">Avg Secrets/Day</div>
           <div class="text-3xl font-bold text-gray-900 dark:text-white">
             {{ usageExport.usage_data.avg_secrets_per_day.toFixed(1) }}
           </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+        <div class="rounded-lg bg-white p-6 dark:bg-gray-800">
           <div class="text-sm text-gray-500 dark:text-gray-400">Avg Users/Day</div>
           <div class="text-3xl font-bold text-gray-900 dark:text-white">
             {{ usageExport.usage_data.avg_users_per_day.toFixed(1) }}
@@ -129,16 +137,22 @@ d="M15 19l-7-7 7-7" />
       </div>
 
       <!-- Daily breakdown tables -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- Secrets by day -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
-          <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Secrets by Day</h2>
+        <div class="rounded-lg bg-white p-6 dark:bg-gray-800">
+          <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Secrets by Day</h2>
           <div class="max-h-96 overflow-y-auto">
             <table class="min-w-full">
               <thead class="sticky top-0 bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Date</th>
-                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Count</th>
+                  <th
+                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Date
+                  </th>
+                  <th
+                    class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Count
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -146,7 +160,9 @@ d="M15 19l-7-7 7-7" />
                   v-for="item in secretsByDayArray"
                   :key="item.date">
                   <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ item.date }}</td>
-                  <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">{{ item.count }}</td>
+                  <td class="px-4 py-2 text-right text-sm text-gray-900 dark:text-white">
+                    {{ item.count }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -154,14 +170,20 @@ d="M15 19l-7-7 7-7" />
         </div>
 
         <!-- Users by day -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
-          <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">New Users by Day</h2>
+        <div class="rounded-lg bg-white p-6 dark:bg-gray-800">
+          <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">New Users by Day</h2>
           <div class="max-h-96 overflow-y-auto">
             <table class="min-w-full">
               <thead class="sticky top-0 bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Date</th>
-                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Count</th>
+                  <th
+                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Date
+                  </th>
+                  <th
+                    class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
+                    Count
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -169,7 +191,9 @@ d="M15 19l-7-7 7-7" />
                   v-for="item in usersByDayArray"
                   :key="item.date">
                   <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ item.date }}</td>
-                  <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">{{ item.count }}</td>
+                  <td class="px-4 py-2 text-right text-sm text-gray-900 dark:text-white">
+                    {{ item.count }}
+                  </td>
                 </tr>
               </tbody>
             </table>

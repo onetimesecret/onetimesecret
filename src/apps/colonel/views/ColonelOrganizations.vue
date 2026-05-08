@@ -11,7 +11,8 @@
 -->
 
 <script setup lang="ts">
-  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
+  import ColonelListPage from '@/apps/colonel/components/ColonelListPage.vue';
+  import ColonelPagination from '@/apps/colonel/components/ColonelPagination.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import type {
     ColonelOrganization,
@@ -25,7 +26,8 @@
   const { t } = useI18n();
 
   const store = useColonelInfoStore();
-  const { organizations, organizationsPagination, isLoading, organizationsFetchError } = storeToRefs(store);
+  const { organizations, organizationsPagination, loading, organizationsFetchError } =
+    storeToRefs(store);
   const { fetchOrganizations, investigateOrganization } = store;
 
   // Filter state
@@ -52,7 +54,7 @@
   async function applyFilters(): Promise<void> {
     await fetchOrganizations(
       1,
-      50,
+      organizationsPagination.value?.per_page ?? 50,
       statusFilter.value || undefined,
       syncStatusFilter.value || undefined
     );
@@ -215,71 +217,68 @@
   }
 
   const totalOrganizations = computed(() => organizationsPagination.value?.total_count || 0);
-  const staleCount = computed(() =>
-    organizations.value.filter((o) => o.sync_status === 'potentially_stale').length
+  const staleCount = computed(
+    () => organizations.value.filter((o) => o.sync_status === 'potentially_stale').length
   );
-  const unknownCount = computed(() =>
-    organizations.value.filter((o) => o.sync_status === 'unknown').length
+  const unknownCount = computed(
+    () => organizations.value.filter((o) => o.sync_status === 'unknown').length
   );
+
+  // Pagination handlers
+  function handlePageChange(page: number): void {
+    fetchOrganizations(
+      page,
+      organizationsPagination.value?.per_page ?? 50,
+      statusFilter.value || undefined,
+      syncStatusFilter.value || undefined
+    );
+  }
+
+  function handlePerPageChange(perPage: number): void {
+    fetchOrganizations(
+      1,
+      perPage,
+      statusFilter.value || undefined,
+      syncStatusFilter.value || undefined
+    );
+  }
 </script>
 
 <template>
-  <div>
-    <div
-      v-if="isLoading"
-      class="py-12 text-center">
-      {{ t('web.LABELS.loading') }}
-    </div>
+  <ColonelListPage
+    :loading="loading.organizations"
+    :title="t('web.colonel.organizations.pageTitle')"
+    :fetch-error="organizationsFetchError"
+    resource="organizations">
+    <!-- Complex count with stale/unknown badges -->
+    <template #count>
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        {{ t('web.colonel.organizations.organizationsCount', { count: totalOrganizations }) }}
+        <template v-if="staleCount > 0 || unknownCount > 0">
+          <span class="mx-1">-</span>
+          <span
+            v-if="staleCount > 0"
+            class="font-medium text-yellow-600 dark:text-yellow-400">
+            {{ t('web.colonel.organizations.needAttention', { count: staleCount }) }}
+          </span>
+          <span
+            v-if="staleCount > 0 && unknownCount > 0"
+            class="mx-1"
+            >/</span
+          >
+          <span
+            v-if="unknownCount > 0"
+            class="text-gray-500 dark:text-gray-400">
+            {{ t('web.colonel.organizations.unknownCount', { count: unknownCount }) }}
+          </span>
+        </template>
+      </p>
+    </template>
 
-    <div v-else>
-      <!-- Back navigation -->
-      <div class="mb-4">
-        <router-link
-          to="/colonel"
-          class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg
-            class="mr-1 size-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7" />
-          </svg>
-          {{ t('web.COMMON.back') }}
-        </router-link>
-      </div>
-
-      <!-- Header with status summary -->
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.colonel.organizations.pageTitle') }}
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ t('web.colonel.organizations.organizationsCount', { count: totalOrganizations }) }}
-          <template v-if="staleCount > 0 || unknownCount > 0">
-            <span class="mx-1">-</span>
-            <span
-              v-if="staleCount > 0"
-              class="font-medium text-yellow-600 dark:text-yellow-400">
-              {{ t('web.colonel.organizations.needAttention', { count: staleCount }) }}
-            </span>
-            <span
-              v-if="staleCount > 0 && unknownCount > 0"
-              class="mx-1">/</span>
-            <span
-              v-if="unknownCount > 0"
-              class="text-gray-500 dark:text-gray-400">
-              {{ t('web.colonel.organizations.unknownCount', { count: unknownCount }) }}
-            </span>
-          </template>
-        </p>
-      </div>
-
-      <!-- Filters -->
-      <div class="mb-6 flex flex-wrap items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+    <!-- Filter bar -->
+    <template #header-extra>
+      <div
+        class="mb-6 flex flex-wrap items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <div class="flex items-center gap-2">
           <label
             for="sync-status-filter"
@@ -291,7 +290,9 @@
             v-model="syncStatusFilter"
             class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
             <option value="">{{ t('web.colonel.organizations.filters.all') }}</option>
-            <option value="potentially_stale">{{ t('web.colonel.organizations.filters.potentiallyStale') }}</option>
+            <option value="potentially_stale">
+              {{ t('web.colonel.organizations.filters.potentiallyStale') }}
+            </option>
             <option value="unknown">{{ t('web.colonel.organizations.filters.unknown') }}</option>
             <option value="synced">{{ t('web.colonel.organizations.filters.synced') }}</option>
           </select>
@@ -330,24 +331,21 @@
           </button>
         </div>
       </div>
+    </template>
 
-      <ColonelFetchError
-        v-if="organizationsFetchError"
-        :schema="organizationsFetchError"
-        resource="organizations" />
+    <!-- Default slot: table, empty state, investigation panel -->
+    <!-- Empty state -->
+    <div
+      v-if="organizations.length === 0"
+      class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
+      <p class="text-gray-500 dark:text-gray-400">
+        {{ t('web.colonel.organizations.noOrganizations') }}
+      </p>
+    </div>
 
-      <!-- Empty state -->
+    <!-- Organizations table -->
+    <template v-else>
       <div
-        v-else-if="organizations.length === 0"
-        class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
-        <p class="text-gray-500 dark:text-gray-400">
-          {{ t('web.colonel.organizations.noOrganizations') }}
-        </p>
-      </div>
-
-      <!-- Organizations table -->
-      <div
-        v-else
         class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900">
@@ -365,7 +363,8 @@
                     :class="{ 'rotate-180': sortDirection === 'desc' }"
                     fill="currentColor"
                     viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    <path
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                   </svg>
                 </div>
               </th>
@@ -383,7 +382,8 @@
                     :class="{ 'rotate-180': sortDirection === 'desc' }"
                     fill="currentColor"
                     viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    <path
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                   </svg>
                 </div>
               </th>
@@ -401,7 +401,8 @@
                     :class="{ 'rotate-180': sortDirection === 'desc' }"
                     fill="currentColor"
                     viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    <path
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                   </svg>
                 </div>
               </th>
@@ -426,7 +427,8 @@
                     :class="{ 'rotate-180': sortDirection === 'desc' }"
                     fill="currentColor"
                     viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    <path
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                   </svg>
                 </div>
               </th>
@@ -447,7 +449,7 @@
               <tr
                 class="hover:bg-gray-50 dark:hover:bg-gray-700/50"
                 :class="{
-                  'bg-yellow-50/50 dark:bg-yellow-900/10': org.sync_status === 'potentially_stale'
+                  'bg-yellow-50/50 dark:bg-yellow-900/10': org.sync_status === 'potentially_stale',
                 }">
                 <!-- Account (primary identifier) -->
                 <td class="whitespace-nowrap px-4 py-3">
@@ -471,7 +473,7 @@
                       v-if="needsSubscriptionBadge(org.subscription_status)"
                       :class="[
                         'inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium',
-                        getSubscriptionBadgeClass(org.subscription_status)
+                        getSubscriptionBadgeClass(org.subscription_status),
                       ]">
                       {{ org.subscription_status }}
                     </span>
@@ -491,7 +493,8 @@
                 <!-- Status (only badge problems) -->
                 <td class="px-4 py-3">
                   <template v-if="org.sync_status === 'potentially_stale'">
-                    <span class="inline-flex items-center rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200">
+                    <span
+                      class="inline-flex items-center rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200">
                       {{ t('web.colonel.organizations.status.stale') }}
                     </span>
                     <div
@@ -501,7 +504,8 @@
                     </div>
                   </template>
                   <template v-else-if="org.sync_status === 'unknown'">
-                    <span class="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    <span
+                      class="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
                       {{ t('web.colonel.organizations.status.unknown') }}
                     </span>
                   </template>
@@ -512,9 +516,19 @@
 
                 <!-- Usage (members/domains) -->
                 <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                  <span :title="t('web.colonel.organizations.usage.members', { count: org.member_count })">{{ org.member_count }}m</span>
+                  <span
+                    :title="
+                      t('web.colonel.organizations.usage.members', { count: org.member_count })
+                    "
+                    >{{ org.member_count }}m</span
+                  >
                   <span class="mx-1">/</span>
-                  <span :title="t('web.colonel.organizations.usage.domains', { count: org.domain_count })">{{ org.domain_count }}d</span>
+                  <span
+                    :title="
+                      t('web.colonel.organizations.usage.domains', { count: org.domain_count })
+                    "
+                    >{{ org.domain_count }}d</span
+                  >
                 </td>
 
                 <!-- Created -->
@@ -560,7 +574,11 @@
                           stroke-width="2"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                      {{ investigatingOrgs.has(org.extid) ? t('web.colonel.organizations.actions.checking') : t('web.colonel.organizations.actions.investigate') }}
+                      {{
+                        investigatingOrgs.has(org.extid)
+                          ? t('web.colonel.organizations.actions.checking')
+                          : t('web.colonel.organizations.actions.investigate')
+                      }}
                     </button>
 
                     <!-- Expand/collapse button -->
@@ -568,7 +586,9 @@
                       type="button"
                       class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       :aria-expanded="expandedRows.has(org.extid)"
-                      :aria-label="expandedRows.has(org.extid) ? 'Collapse details' : 'Expand details'"
+                      :aria-label="
+                        expandedRows.has(org.extid) ? 'Collapse details' : 'Expand details'
+                      "
                       @click="toggleRowExpansion(org.extid)">
                       <svg
                         class="size-5 transition-transform"
@@ -597,20 +617,29 @@
                   <!-- Stripe IDs -->
                   <div class="mb-4 flex flex-wrap gap-6 text-xs">
                     <div v-if="org.stripe_customer_id">
-                      <span class="font-medium text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.expanded.customer') }}:</span>
-                      <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      <span class="font-medium text-gray-500 dark:text-gray-400"
+                        >{{ t('web.colonel.organizations.expanded.customer') }}:</span
+                      >
+                      <code
+                        class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {{ org.stripe_customer_id }}
                       </code>
                     </div>
                     <div v-if="org.stripe_subscription_id">
-                      <span class="font-medium text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.expanded.subscription') }}:</span>
-                      <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      <span class="font-medium text-gray-500 dark:text-gray-400"
+                        >{{ t('web.colonel.organizations.expanded.subscription') }}:</span
+                      >
+                      <code
+                        class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {{ org.stripe_subscription_id }}
                       </code>
                     </div>
                     <div>
-                      <span class="font-medium text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.expanded.orgId') }}:</span>
-                      <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      <span class="font-medium text-gray-500 dark:text-gray-400"
+                        >{{ t('web.colonel.organizations.expanded.orgId') }}:</span
+                      >
+                      <code
+                        class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {{ org.extid }}
                       </code>
                     </div>
@@ -620,7 +649,8 @@
                   <div
                     v-if="investigationErrors.get(org.extid)"
                     class="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
-                    {{ t('web.colonel.organizations.investigation.failed') }}: {{ investigationErrors.get(org.extid) }}
+                    {{ t('web.colonel.organizations.investigation.failed') }}:
+                    {{ investigationErrors.get(org.extid) }}
                   </div>
 
                   <!-- Investigation results -->
@@ -635,9 +665,18 @@
                         <span
                           :class="[
                             'inline-flex items-center rounded px-2 py-0.5 text-xs font-medium',
-                            getVerdictBadgeClass(getInvestigationResult(org.extid)!.comparison.verdict)
+                            getVerdictBadgeClass(
+                              getInvestigationResult(org.extid)!.comparison.verdict
+                            ),
                           ]">
-                          {{ getInvestigationResult(org.extid)!.comparison.verdict === 'synced' ? t('web.colonel.organizations.investigation.verifiedSynced') : getInvestigationResult(org.extid)!.comparison.verdict === 'mismatch_detected' ? t('web.colonel.organizations.investigation.mismatchFound') : t('web.colonel.organizations.investigation.unableToCompare') }}
+                          {{
+                            getInvestigationResult(org.extid)!.comparison.verdict === 'synced'
+                              ? t('web.colonel.organizations.investigation.verifiedSynced')
+                              : getInvestigationResult(org.extid)!.comparison.verdict ===
+                                  'mismatch_detected'
+                                ? t('web.colonel.organizations.investigation.mismatchFound')
+                                : t('web.colonel.organizations.investigation.unableToCompare')
+                          }}
                         </span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">
                           {{ getInvestigationResult(org.extid)!.investigated_at }}
@@ -664,20 +703,30 @@
                           <span
                             :class="[
                               'inline-flex items-center rounded px-1.5 py-0.5 font-medium',
-                              getSeverityBadgeClass(issue.severity)
+                              getSeverityBadgeClass(issue.severity),
                             ]">
                             {{ issue.severity }}
                           </span>
-                          <span class="font-medium text-gray-700 dark:text-gray-300">{{ issue.field }}</span>
+                          <span class="font-medium text-gray-700 dark:text-gray-300">{{
+                            issue.field
+                          }}</span>
                         </div>
                         <div class="mt-1 grid grid-cols-2 gap-4">
                           <div>
-                            <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.local') }}:</span>
-                            <code class="ml-1 text-gray-900 dark:text-white">{{ issue.local }}</code>
+                            <span class="text-gray-500 dark:text-gray-400"
+                              >{{ t('web.colonel.organizations.investigation.local') }}:</span
+                            >
+                            <code class="ml-1 text-gray-900 dark:text-white">{{
+                              issue.local
+                            }}</code>
                           </div>
                           <div>
-                            <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.stripe') }}:</span>
-                            <code class="ml-1 text-gray-900 dark:text-white">{{ issue.stripe }}</code>
+                            <span class="text-gray-500 dark:text-gray-400"
+                              >{{ t('web.colonel.organizations.investigation.stripe') }}:</span
+                            >
+                            <code class="ml-1 text-gray-900 dark:text-white">{{
+                              issue.stripe
+                            }}</code>
                           </div>
                         </div>
                       </div>
@@ -685,34 +734,54 @@
 
                     <!-- Stripe data summary (when available) -->
                     <div
-                      v-if="getInvestigationResult(org.extid)!.stripe.available && getInvestigationResult(org.extid)!.stripe.subscription"
+                      v-if="
+                        getInvestigationResult(org.extid)!.stripe.available &&
+                        getInvestigationResult(org.extid)!.stripe.subscription
+                      "
                       class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-600">
                       <h5 class="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
                         {{ t('web.colonel.organizations.investigation.stripeDetails') }}
                       </h5>
                       <div class="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.statusLabel') }}:</span>
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >{{ t('web.colonel.organizations.investigation.statusLabel') }}:</span
+                          >
                           <span class="ml-1 font-medium text-gray-900 dark:text-white">
                             {{ getInvestigationResult(org.extid)!.stripe.subscription!.status }}
                           </span>
                         </div>
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.product') }}:</span>
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >{{ t('web.colonel.organizations.investigation.product') }}:</span
+                          >
                           <span class="ml-1 font-medium text-gray-900 dark:text-white">
-                            {{ getInvestigationResult(org.extid)!.stripe.subscription!.product_name || 'N/A' }}
+                            {{
+                              getInvestigationResult(org.extid)!.stripe.subscription!
+                                .product_name || 'N/A'
+                            }}
                           </span>
                         </div>
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.resolvedPlan') }}:</span>
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >{{ t('web.colonel.organizations.investigation.resolvedPlan') }}:</span
+                          >
                           <span class="ml-1 font-medium text-gray-900 dark:text-white">
-                            {{ getInvestigationResult(org.extid)!.stripe.subscription!.resolved_plan_id || '(none)' }}
+                            {{
+                              getInvestigationResult(org.extid)!.stripe.subscription!
+                                .resolved_plan_id || '(none)'
+                            }}
                           </span>
                         </div>
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.priceId') }}:</span>
+                          <span class="text-gray-500 dark:text-gray-400"
+                            >{{ t('web.colonel.organizations.investigation.priceId') }}:</span
+                          >
                           <code class="ml-1 font-mono text-gray-700 dark:text-gray-300">
-                            {{ getInvestigationResult(org.extid)!.stripe.subscription!.price_id || 'N/A' }}
+                            {{
+                              getInvestigationResult(org.extid)!.stripe.subscription!.price_id ||
+                              'N/A'
+                            }}
                           </code>
                         </div>
                       </div>
@@ -724,6 +793,17 @@
           </tbody>
         </table>
       </div>
-    </div>
-  </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="organizationsPagination && organizationsPagination.total_pages > 1"
+        class="mt-4">
+        <ColonelPagination
+          :pagination="organizationsPagination"
+          :loading="loading.organizations"
+          @update:page="handlePageChange"
+          @update:per-page="handlePerPageChange" />
+      </div>
+    </template>
+  </ColonelListPage>
 </template>

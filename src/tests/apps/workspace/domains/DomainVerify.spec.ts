@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import DomainVerify from '@/apps/workspace/domains/DomainVerify.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 // Mock route params
 const mockRouteParams = { extid: 'dm-test-extid' };
@@ -56,23 +56,31 @@ vi.mock('@/apps/workspace/components/domains/VerifyDomainDetails.vue', () => ({
   },
 }));
 
-vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
-  default: {
-    name: 'BasicFormAlerts',
-    template: '<div class="basic-form-alerts" data-testid="basic-form-alerts">{{ errors?.join(", ") }}</div>',
-    props: ['success', 'error', 'errors'],
-  },
+// Mock useDomain composable (used by DomainVerify for domain data)
+const mockDomain = ref<any>(null);
+const mockDetails = ref<any>(null);
+const mockInitialize = vi.fn();
+const mockUseDomainIsLoading = ref(false);
+
+vi.mock('@/shared/composables/useDomain', () => ({
+  useDomain: () => ({
+    domain: mockDomain,
+    details: mockDetails,
+    initialize: mockInitialize,
+    isLoading: mockUseDomainIsLoading,
+    isInitialized: ref(true),
+    error: ref(null),
+    canVerify: computed(() => true),
+  }),
 }));
 
-// Mock useDomainsManager
-const mockGetDomain = vi.fn();
+// Mock useDomainsManager (used by DomainVerify for verifyDomain)
 const mockVerifyDomain = vi.fn();
 const mockIsLoading = ref(false);
 const mockError = ref(null);
 
 vi.mock('@/shared/composables/useDomainsManager', () => ({
   useDomainsManager: () => ({
-    getDomain: mockGetDomain,
     verifyDomain: mockVerifyDomain,
     isLoading: mockIsLoading,
     error: mockError,
@@ -162,12 +170,10 @@ describe('DomainVerify', () => {
     // Reset feature flags to enabled state for tests
     mockCust.value = { feature_flags: { dns_widget: true } };
 
-    // Default mock responses
-    mockGetDomain.mockResolvedValue({
-      domain: createMockDomain(),
-      cluster: createMockCluster(),
-      canVerify: true,
-    });
+    // Default mock data for useDomain
+    mockDomain.value = createMockDomain();
+    mockDetails.value = { cluster: createMockCluster() };
+    mockInitialize.mockResolvedValue(undefined);
     mockVerifyDomain.mockResolvedValue({ success: true });
   });
 
@@ -189,18 +195,15 @@ describe('DomainVerify', () => {
   };
 
   describe('mount and auto-verification', () => {
-    it('fetches domain data on mount', async () => {
+    it('initializes domain data on mount', async () => {
       await mountComponent();
 
-      expect(mockGetDomain).toHaveBeenCalledWith('dm-test-extid');
+      expect(mockInitialize).toHaveBeenCalled();
     });
 
     it('auto-triggers verification on mount when showDnsWidget is true', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ vhost: { last_monitored_unix: 0 } }),
-        cluster: createMockCluster({ validation_strategy: 'approximated' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'approximated' }) };
 
       await mountComponent();
 
@@ -208,11 +211,8 @@ describe('DomainVerify', () => {
     });
 
     it('does NOT auto-trigger verification when domain is already verified', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ vhost: { last_monitored_unix: 1704067200 } }),
-        cluster: createMockCluster(),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 1704067200 } });
+      mockDetails.value = { cluster: createMockCluster() };
 
       await mountComponent();
 
@@ -220,11 +220,8 @@ describe('DomainVerify', () => {
     });
 
     it('does NOT auto-trigger verification when validation_strategy is not approximated', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain(),
-        cluster: createMockCluster({ validation_strategy: 'manual' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain();
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'manual' }) };
 
       await mountComponent();
 
@@ -258,8 +255,8 @@ describe('DomainVerify', () => {
       await dnsWidget.vm.$emit('records-verified');
       await flushPromises();
 
-      // getDomain called once after verification
-      expect(mockGetDomain).toHaveBeenCalledWith('dm-test-extid');
+      // initialize called once after verification to refresh domain data
+      expect(mockInitialize).toHaveBeenCalled();
     });
   });
 
@@ -347,68 +344,13 @@ describe('DomainVerify', () => {
     });
   });
 
-  describe('error handling', () => {
-    it('displays error message after failed verification', async () => {
-      mockVerifyDomain.mockRejectedValue(new Error('Verification failed'));
-
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      const alerts = wrapper.find('[data-testid="basic-form-alerts"]');
-      expect(alerts.exists()).toBe(true);
-      expect(alerts.text()).toContain('Verification failed');
-    });
-
-    it('clears error before new verification attempt', async () => {
-      // First call fails
-      mockVerifyDomain.mockRejectedValueOnce(new Error('First error'));
-      // Second call succeeds
-      mockVerifyDomain.mockResolvedValueOnce({ success: true });
-
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      // Error should be shown
-      expect(wrapper.find('[data-testid="basic-form-alerts"]').exists()).toBe(true);
-
-      // Advance time and retry
-      vi.advanceTimersByTime(11000);
-      const button = wrapper.find('[data-testid="verify-domain-button"]');
-      await button.trigger('click');
-      await flushPromises();
-
-      // Error should be cleared on new attempt (even if we can't verify final state easily)
-      expect(mockVerifyDomain).toHaveBeenCalledTimes(2);
-    });
-
-    it('handles error objects with message property', async () => {
-      mockVerifyDomain.mockRejectedValue({ message: 'API error message' });
-
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      const alerts = wrapper.find('[data-testid="basic-form-alerts"]');
-      expect(alerts.text()).toContain('API error message');
-    });
-
-    it('handles non-Error objects gracefully', async () => {
-      mockVerifyDomain.mockRejectedValue('String error');
-
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      const alerts = wrapper.find('[data-testid="basic-form-alerts"]');
-      expect(alerts.text()).toContain('String error');
-    });
-  });
+  // Note: Inline error handling tests removed - errors are now handled via
+  // global notifications in useDomainsManager.wrap(), not inline BasicFormAlerts
 
   describe('conditional rendering', () => {
     it('shows DnsWidget when domain unverified + approximated strategy', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ vhost: { last_monitored_unix: 0 } }),
-        cluster: createMockCluster({ validation_strategy: 'approximated' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'approximated' }) };
 
       const wrapper = await mountComponent();
 
@@ -417,11 +359,8 @@ describe('DomainVerify', () => {
     });
 
     it('shows VerifyDomainDetails when domain unverified + non-approximated', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ vhost: { last_monitored_unix: 0 } }),
-        cluster: createMockCluster({ validation_strategy: 'manual' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'manual' }) };
 
       const wrapper = await mountComponent();
 
@@ -430,11 +369,8 @@ describe('DomainVerify', () => {
     });
 
     it('shows DomainVerificationInfo when domain is verified', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ vhost: { last_monitored_unix: 1704067200 } }),
-        cluster: createMockCluster(),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 1704067200 } });
+      mockDetails.value = { cluster: createMockCluster() };
 
       const wrapper = await mountComponent();
 
@@ -443,7 +379,8 @@ describe('DomainVerify', () => {
     });
 
     it('shows loading message when domain is null', async () => {
-      mockGetDomain.mockResolvedValue(null);
+      mockDomain.value = null;
+      mockDetails.value = null;
 
       const wrapper = await mountComponent();
 
@@ -454,11 +391,8 @@ describe('DomainVerify', () => {
       // Disable the feature flag
       mockCust.value = { feature_flags: { dns_widget: false } };
 
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ vhost: { last_monitored_unix: 0 } }),
-        cluster: createMockCluster({ validation_strategy: 'approximated' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'approximated' }) };
 
       const wrapper = await mountComponent();
 
@@ -471,11 +405,8 @@ describe('DomainVerify', () => {
       // Enable the feature flag
       mockCust.value = { feature_flags: { dns_widget: true } };
 
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ vhost: { last_monitored_unix: 0 } }),
-        cluster: createMockCluster({ validation_strategy: 'approximated' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'approximated' }) };
 
       const wrapper = await mountComponent();
 
@@ -485,11 +416,8 @@ describe('DomainVerify', () => {
 
   describe('DNS target address computation', () => {
     it('returns proxy_ip for apex domains', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ is_apex: true }),
-        cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ is_apex: true });
+      mockDetails.value = { cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }) };
 
       const wrapper = await mountComponent();
 
@@ -498,11 +426,8 @@ describe('DomainVerify', () => {
     });
 
     it('returns proxy_host for non-apex domains', async () => {
-      mockGetDomain.mockResolvedValue({
-        domain: createMockDomain({ is_apex: false }),
-        cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }),
-        canVerify: true,
-      });
+      mockDomain.value = createMockDomain({ is_apex: false });
+      mockDetails.value = { cluster: createMockCluster({ proxy_ip: '10.0.0.1', proxy_host: 'proxy.test.com' }) };
 
       const wrapper = await mountComponent();
 
@@ -521,15 +446,6 @@ describe('DomainVerify', () => {
       expect(button.attributes('aria-busy')).toBe('true');
     });
 
-    it('error alerts have aria-live attribute', async () => {
-      mockVerifyDomain.mockRejectedValue(new Error('Test error'));
-
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      const alerts = wrapper.find('[data-testid="basic-form-alerts"]');
-      // The parent div with aria-live is in the actual component
-      expect(alerts.exists()).toBe(true);
-    });
+    // Note: error alerts aria-live test removed - inline errors replaced by global notifications
   });
 });

@@ -47,12 +47,14 @@
     <!-- Success Card -->
     <div class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
       <!-- Success Icon & Header -->
-      <div class="bg-gradient-to-br from-green-50 to-emerald-50 px-8 py-12 dark:from-green-950/30 dark:to-emerald-950/30 sm:px-12">
+      <div
+        class="bg-gradient-to-br from-green-50 to-emerald-50 px-8 py-12 dark:from-green-950/30 dark:to-emerald-950/30 sm:px-12">
         <div class="flex flex-col items-center">
           <!-- Success Icon -->
           <div class="relative mb-6">
             <div class="absolute inset-0 rounded-full bg-green-400 opacity-25"></div>
-            <div class="relative flex size-20 items-center justify-center rounded-full bg-green-500 shadow-lg dark:bg-green-600">
+            <div
+              class="relative flex size-20 items-center justify-center rounded-full bg-green-500 shadow-lg dark:bg-green-600">
               <svg
                 class="size-10 text-white"
                 fill="none"
@@ -83,19 +85,26 @@
         <div
           v-if="receiptKey"
           class="mb-8">
-          <label class="mb-3 block text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <label
+            class="mb-3 block text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             {{ t('incoming.reference_id') }}
           </label>
-          <div class="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-gray-50 transition-all duration-200 hover:border-gray-300 dark:border-gray-700 dark:bg-slate-900/50 dark:hover:border-gray-600">
+          <div
+            class="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-gray-50 transition-all duration-200 hover:border-gray-300 dark:border-gray-700 dark:bg-slate-900/50 dark:hover:border-gray-600">
             <div class="flex items-center justify-between gap-2 p-4">
-              <code class="flex-1 select-all break-all font-mono text-sm font-medium text-gray-900 dark:text-white sm:text-base" data-testid="incoming-reference-id">
+              <code
+                class="flex-1 select-all break-all font-mono text-sm font-medium text-gray-900 dark:text-white sm:text-base"
+                data-testid="incoming-reference-id">
                 {{ receiptKey }}
               </code>
               <div class="flex flex-shrink-0 gap-2">
                 <button
                   type="button"
                   class="rounded-lg bg-gray-200 p-2.5 text-gray-600 transition-all duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                  :class="{ 'bg-green-500 hover:bg-green-500 text-white dark:bg-green-600 dark:hover:bg-green-600': copied }"
+                  :class="{
+                    'bg-green-500 text-white hover:bg-green-500 dark:bg-green-600 dark:hover:bg-green-600':
+                      copied,
+                  }"
                   @click="copyToClipboard"
                   :title="copied ? 'Copied!' : 'Copy to clipboard'"
                   data-testid="incoming-copy-reference-btn">
@@ -147,10 +156,12 @@
         </div>
 
         <!-- Information Box -->
-        <div class="mb-8 overflow-hidden rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:border-purple-900/50 dark:from-purple-950/30 dark:to-blue-950/30">
+        <div
+          class="mb-8 overflow-hidden rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50 dark:border-purple-900/50 dark:from-purple-950/30 dark:to-blue-950/30">
           <div class="flex gap-4 p-4">
             <div class="flex-shrink-0">
-              <div class="flex size-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
+              <div
+                class="flex size-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
                 <svg
                   class="size-6 text-purple-600 dark:text-purple-400"
                   fill="currentColor"

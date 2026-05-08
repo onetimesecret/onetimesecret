@@ -106,7 +106,7 @@
     },
     "CurrencyCode": {
       "type": "string",
-      "enum": ["cad", "eur", "cad", "nzd"],
+      "enum": ["cad", "eur", "usd", "nzd", "gbp"],
       "description": "ISO 4217 currency code"
     },
     "LimitValue": {

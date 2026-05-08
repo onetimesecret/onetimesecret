@@ -18,18 +18,11 @@ module Onetime
       #
       # Optional data:
       #   domain_strategy:  How the domain was determined (e.g., 'custom', 'default')
-      #   user_id:          Submitter identifier shown in the email body (extid for
-      #                     authenticated users, 'anon:<prefix>' for anonymous).
-      #                     Defaults to 'anonymous' when not supplied.
-      #   tz:               Submitter timezone string. Defaults to '' when not
-      #                     supplied.
-      #   version:          App version string shown in the email body. Defaults
-      #                     to '' when not supplied.
-      #   baseuri:          Override site base URI
       #   user_id:          Submitter identifier (extid / 'anon:NNNN'); rendered
       #                     in the body alongside the obscured email
       #   tz:               Submitter timezone string
       #   version:          Client version string
+      #   baseuri:          Override site base URI
       #
       class FeedbackEmail < Base
         # Placeholder rendered when an optional metadata field is absent.
@@ -129,9 +122,6 @@ module Onetime
             message: message,
             display_domain: display_domain,
             domain_strategy: domain_strategy,
-            user_id: user_id,
-            tz: tz,
-            version: version,
             baseuri: baseuri,
             user_id: user_id,
             tz: timezone,

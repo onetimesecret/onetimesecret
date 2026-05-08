@@ -42,7 +42,7 @@ enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
 stripe_key: <%= ENV['STRIPE_API_KEY'] || 'nostripekey' %>
 webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
 stripe_api_version: "2025-12-15.clover"
-currency: <%= ENV['BILLING_CURRENCY'] || 'cad' %>
+currency: <%= ENV['BILLING_CURRENCY'] || ENV['CURRENCY'] || 'cad' %>
 
 # Product Matching Configuration
 #
@@ -215,7 +215,6 @@ plans:
       - homepage_secrets
       - incoming_secrets
       - custom_mail_sender
-      - flexible_from_domain
       - extended_default_expiration
 
     features:

@@ -1,118 +1,102 @@
 <!-- src/apps/colonel/views/ColonelSecrets.vue -->
 
 <script setup lang="ts">
-  import ColonelFetchError from '@/apps/colonel/components/ColonelFetchError.vue';
+  import ColonelListPage from '@/apps/colonel/components/ColonelListPage.vue';
+  import ColonelPagination from '@/apps/colonel/components/ColonelPagination.vue';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
-  import { onMounted } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
+  const stateLabels = computed(() => ({
+    new: t('web.colonel.secrets.state.new'),
+    received: t('web.colonel.secrets.state.received'),
+    viewed: t('web.colonel.secrets.state.viewed'),
+  }));
+
   const store = useColonelInfoStore();
-  const { secrets, secretsPagination, isLoading, secretsFetchError } = storeToRefs(store);
+  const { secrets, secretsPagination, loading, secretsFetchError } = storeToRefs(store);
   const { fetchSecrets } = store;
 
   onMounted(() => fetchSecrets());
 </script>
 
 <template>
-  <div>
-    <div
-      v-if="isLoading"
-      class="text-center py-12">
-      {{ t('web.LABELS.loading') }}
-    </div>
+  <ColonelListPage
+    :loading="loading.secrets"
+    :title="t('web.colonel.secrets.title')"
+    :description="t('web.colonel.secrets.description')"
+    :fetch-error="secretsFetchError"
+    resource="secrets">
+    <template
+      v-if="secretsPagination"
+      #count>
+      Showing {{ secrets.length }} of {{ secretsPagination.total_count }} secrets
+    </template>
 
-    <div v-else>
-      <!-- Back navigation -->
-      <div class="mb-4">
-        <router-link
-          to="/colonel"
-          class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <svg class="mr-1 size-4"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M15 19l-7-7 7-7" />
-          </svg>
-          {{ t('web.COMMON.back') }}
-        </router-link>
-      </div>
-
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Secrets</h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          View and manage all secrets in the system
-        </p>
-      </div>
-
-      <ColonelFetchError
-        v-if="secretsFetchError"
-        :schema="secretsFetchError"
-        resource="secrets" />
-
+    <template #default>
       <div
-        v-else-if="secretsPagination"
-        class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        Showing {{ secrets.length }} of {{ secretsPagination.total_count }} secrets
-      </div>
-
-      <div
-        v-if="!secretsFetchError && secrets.length > 0"
+        v-if="secrets.length > 0"
         class="overflow-x-auto">
-        <table data-testid="colonel-secrets-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <table
+          data-testid="colonel-secrets-table"
+          class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                Short ID
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('web.colonel.secrets.columns.shortId') }}
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                State
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('web.colonel.secrets.columns.state') }}
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                Created
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('web.colonel.secrets.columns.created') }}
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                Expiration
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('web.colonel.secrets.columns.expiration') }}
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                Age (days)
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                {{ t('web.colonel.secrets.columns.age') }}
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="secret in secrets"
               :key="secret.secret_id"
               class="hover:bg-gray-50 dark:hover:bg-gray-800">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+              <td
+                class="whitespace-nowrap px-6 py-4 font-mono text-sm text-gray-900 dark:text-white">
                 {{ secret.shortid }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 <span
                   :class="{
-                    'px-2 py-1 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200':
+                    'rounded bg-green-100 px-2 py-1 text-green-800 dark:bg-green-900 dark:text-green-200':
                       secret.state === 'new',
-                    'px-2 py-1 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200':
+                    'rounded bg-yellow-100 px-2 py-1 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200':
                       secret.state === 'received',
-                    'px-2 py-1 rounded bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200':
+                    'rounded bg-gray-100 px-2 py-1 text-gray-800 dark:bg-gray-900 dark:text-gray-200':
                       secret.state === 'viewed',
                   }">
-                  {{ secret.state }}
+                  {{ stateLabels[secret.state as keyof typeof stateLabels] || secret.state }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 {{ formatDisplayDateTime(secret.created) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                {{ secret.expiration ? formatDisplayDateTime(secret.expiration) : 'Never' }}
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                {{ secret.expiration ? formatDisplayDateTime(secret.expiration) : t('web.colonel.secrets.never') }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                 {{ Math.floor(secret.age / 86400) }}
               </td>
             </tr>
@@ -121,10 +105,18 @@ d="M15 19l-7-7 7-7" />
       </div>
 
       <div
-        v-else-if="!secretsFetchError"
-        class="text-center py-12 text-gray-500 dark:text-gray-400">
-        No secrets found
+        v-else
+        class="py-12 text-center text-gray-500 dark:text-gray-400">
+        {{ t('web.colonel.secrets.empty') }}
       </div>
-    </div>
-  </div>
+
+      <ColonelPagination
+        v-if="secretsPagination"
+        class="mt-4"
+        :pagination="secretsPagination"
+        :loading="loading.secrets"
+        @update:page="(page) => fetchSecrets(page, secretsPagination?.per_page ?? 50)"
+        @update:per-page="(perPage) => fetchSecrets(1, perPage)" />
+    </template>
+  </ColonelListPage>
 </template>
