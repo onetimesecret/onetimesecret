@@ -15,10 +15,11 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
     Class.new do
       include Onetime::Models::Features::WithEntitlements
 
-      attr_accessor :planid
+      attr_accessor :planid, :extid
 
-      def initialize(planid)
+      def initialize(planid, extid: 'test_org_abc123')
         @planid = planid
+        @extid = extid
       end
 
       def billing_enabled?
@@ -36,6 +37,7 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
           .to raise_error(Billing::PlanCacheMissError) { |error|
             expect(error.plan_id).to eq('nonexistent_plan_xyz')
             expect(error.context).to eq('WithEntitlements#entitlements')
+            expect(error.organization_id).to eq('test_org_abc123')
           }
       end
     end
@@ -93,6 +95,7 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
             expect(error.plan_id).to eq('nonexistent_plan_xyz')
             expect(error.context).to eq('WithEntitlements#limit_for')
             expect(error.resource).to eq('teams.max')
+            expect(error.organization_id).to eq('test_org_abc123')
           }
       end
     end

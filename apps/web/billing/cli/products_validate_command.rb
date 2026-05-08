@@ -134,16 +134,16 @@ module Onetime
         metadata = product.metadata || {}
         return if metadata.empty?
 
-        # Build set of canonical field names from Metadata constants
-        canonical_fields = ::Billing::Metadata.constants
-          .select { |c| c.to_s.start_with?('FIELD_') }
-          .to_set { |c| ::Billing::Metadata.const_get(c) }
-
-        # Also include limit fields
-        canonical_fields.merge(::Billing::Metadata::LIMIT_FIELDS.keys)
+        # Build set of canonical field names from Metadata constants (memoized)
+        @canonical_fields ||= (
+          ::Billing::Metadata.constants
+            .select { |c| c.to_s.start_with?('FIELD_') }
+            .map { |c| ::Billing::Metadata.const_get(c) } +
+          ::Billing::Metadata::LIMIT_FIELDS.keys
+        ).to_set
 
         metadata.each_key do |key|
-          next if canonical_fields.include?(key)
+          next if @canonical_fields.include?(key)
 
           # Skip known Stripe-managed fields
           next if %w[complimentary].include?(key)

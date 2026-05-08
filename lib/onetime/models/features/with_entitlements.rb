@@ -217,6 +217,7 @@ module Onetime
               'Plan not found in cache or config',
               plan_id: planid,
               context: 'WithEntitlements#entitlements',
+              organization_id: extid,
             )
           end
 
@@ -278,6 +279,7 @@ module Onetime
               plan_id: planid,
               context: 'WithEntitlements#limit_for',
               resource: key,
+              organization_id: extid,
             )
           end
 
