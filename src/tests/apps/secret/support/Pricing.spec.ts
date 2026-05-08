@@ -296,7 +296,7 @@ describe('Pricing.vue', () => {
 
     it('includes product and interval for paid plans', async () => {
       const paidPlan = createMockPlan({
-        id: 'identity_plus_v1_monthly',
+        id: 'identity_plus_v1_month',
         tier: 'single_team',
         interval: 'month',
       });
@@ -306,13 +306,13 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toBe(
-        '/signup?product=identity_plus_v1&interval=monthly'
+        '/signup?product=identity_plus_v1&interval=month'
       );
     });
 
     it('encodes special characters in product name', async () => {
       const planWithSpecialChars = createMockPlan({
-        id: 'plan_with+special&chars_monthly',
+        id: 'plan_with+special&chars_month',
         tier: 'single_team',
         interval: 'month',
       });
@@ -327,17 +327,17 @@ describe('Pricing.vue', () => {
 
     it('uses yearly interval string for year plans', async () => {
       const yearlyPlan = createMockPlan({
-        id: 'identity_plus_v1_yearly',
+        id: 'identity_plus_v1_year',
         tier: 'single_team',
         interval: 'year',
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [yearlyPlan] });
-      mockRouteParamsValue = { interval: 'yearly' };
+      mockRouteParamsValue = { interval: 'year' };
       await mountComponent();
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
-      expect(signupLink.attributes('href')).toContain('interval=yearly');
+      expect(signupLink.attributes('href')).toContain('interval=year');
     });
   });
 
@@ -348,9 +348,9 @@ describe('Pricing.vue', () => {
     // Note: Testing through the component's rendered signup URLs
     // since the function is internal to the component
 
-    it('removes _monthly suffix', async () => {
+    it('removes _month suffix', async () => {
       const plan = createMockPlan({
-        id: 'identity_plus_v1_monthly',
+        id: 'identity_plus_v1_month',
         tier: 'single_team',
         interval: 'month',
       });
@@ -360,23 +360,23 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('product=identity_plus_v1');
-      expect(signupLink.attributes('href')).not.toContain('product=identity_plus_v1_monthly');
+      expect(signupLink.attributes('href')).not.toContain('product=identity_plus_v1_month');
     });
 
-    it('removes _yearly suffix', async () => {
+    it('removes _year suffix', async () => {
       const plan = createMockPlan({
-        id: 'team_plus_v1_yearly',
+        id: 'team_plus_v1_year',
         tier: 'single_team',
         interval: 'year',
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [plan] });
-      mockRouteParamsValue = { interval: 'yearly' };
+      mockRouteParamsValue = { interval: 'year' };
       await mountComponent();
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('product=team_plus_v1');
-      expect(signupLink.attributes('href')).not.toContain('product=team_plus_v1_yearly');
+      expect(signupLink.attributes('href')).not.toContain('product=team_plus_v1_year');
     });
 
     it('handles plans without interval suffix', async () => {

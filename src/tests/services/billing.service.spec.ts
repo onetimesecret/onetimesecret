@@ -304,7 +304,7 @@ describe('BillingService', () => {
 
       const result = await BillingService.createCheckoutSession(
         'org_abc',
-        { id: 'identity_plus_v1_monthly', interval: 'month' }
+        { id: 'identity_plus_v1_month', interval: 'month' }
       );
 
       expect(mockPost).toHaveBeenCalledWith(
@@ -325,7 +325,7 @@ describe('BillingService', () => {
 
       const result = await BillingService.createCheckoutSession(
         'org_abc',
-        { id: 'identity_plus_v1_yearly', interval: 'year' }
+        { id: 'identity_plus_v1_year', interval: 'year' }
       );
 
       expect(mockPost).toHaveBeenCalledWith(

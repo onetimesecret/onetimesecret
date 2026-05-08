@@ -191,18 +191,18 @@ describe('Legacy Plan Utilities', () => {
         expect(getPlanDisplayName(undefined as unknown as string)).toBe('Free');
       });
 
-      it('unknown plan falls back to Title Case conversion', () => {
-        // Should strip version/interval suffix and convert to Title Case
-        expect(getPlanDisplayName('some_plan_v1_monthly')).toBe('Some Plan');
-        expect(getPlanDisplayName('custom_enterprise_v2_yearly')).toBe('Custom Enterprise');
+      it('unknown plan returns plan ID as-is for debugging visibility', () => {
+        // Unknown plans are logged and returned as-is (no Title Case conversion)
+        expect(getPlanDisplayName('some_plan_v1_month')).toBe('some_plan_v1_month');
+        expect(getPlanDisplayName('custom_enterprise_v2_year')).toBe('custom_enterprise_v2_year');
       });
     });
 
     describe('pattern matching order', () => {
       // Verifies that more specific patterns match before general ones
       it('"identity_plus" matches before "identity"', () => {
-        expect(getPlanDisplayName('identity_plus_v1_monthly')).toBe('Identity Plus');
-        expect(getPlanDisplayName('identity_plus_v2_yearly')).toBe('Identity Plus');
+        expect(getPlanDisplayName('identity_plus_v1_month')).toBe('Identity Plus');
+        expect(getPlanDisplayName('identity_plus_v1_year')).toBe('Identity Plus');
       });
 
       it('"identity" exact match shows Early Supporter suffix', () => {
@@ -212,7 +212,7 @@ describe('Legacy Plan Utilities', () => {
 
       it('free pattern takes precedence', () => {
         expect(getPlanDisplayName('free_v1')).toBe('Free');
-        expect(getPlanDisplayName('free_v2_monthly')).toBe('Free');
+        expect(getPlanDisplayName('free_v1_month')).toBe('Free');
       });
     });
   });

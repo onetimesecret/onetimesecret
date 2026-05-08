@@ -100,6 +100,10 @@ module Onetime
           fetch_optional(:version)
         end
 
+        def baseuri
+          data[:baseuri] || site_baseuri
+        end
+
         private
 
         # Optional metadata may arrive as symbol keys (in-process callers) or
