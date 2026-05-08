@@ -395,7 +395,8 @@ module V2::Logic
             result: :unverified,
           }
         raise_form_error "Custom domain is not verified: #{share_domain}",
-          field: 'share_domain', error_type: 'domain_unverified'
+          field: 'share_domain',
+          error_type: 'domain_unverified'
       end
 
       # Validates domain permissions based on context and configuration.

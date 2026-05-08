@@ -37,7 +37,7 @@ module Auth::Config::Features
           if invite_token.empty?
             super()
           else
-            invitation = Onetime::OrganizationMembership.find_by_token(invite_token)
+            invitation   = Onetime::OrganizationMembership.find_by_token(invite_token)
             valid_invite = invitation &&
                            invitation.pending? &&
                            !invitation.expired? &&

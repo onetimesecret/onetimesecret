@@ -82,34 +82,21 @@ module Onetime
           data[:domain_strategy] || 'default'
         end
 
-        # Submitter identifier shown in the email body. Falls back to 'anonymous'
-        # so the template never sees a nil/missing local (the .erb references
-        # this unconditionally).
-        def user_id
-          data[:user_id] || 'anonymous'
-        end
-
-        def tz
-          data[:tz] || ''
-        end
-
-        def version
-          data[:version] || ''
-        end
-
         def baseuri
           data[:baseuri] || site_baseuri
         end
 
+        # Submitter identifier shown in the email body. Falls back to UNKNOWN_VALUE
+        # so the template never sees a nil/missing local.
         def user_id
           fetch_optional(:user_id)
         end
 
-        def timezone
+        def tz
           fetch_optional(:tz)
         end
 
-        def client_version
+        def version
           fetch_optional(:version)
         end
 
@@ -133,9 +120,6 @@ module Onetime
             tz: tz,
             version: version,
             baseuri: baseuri,
-            user_id: user_id,
-            tz: timezone,
-            version: client_version,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

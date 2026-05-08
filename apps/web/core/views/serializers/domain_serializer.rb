@@ -21,6 +21,7 @@ module Core
       #
       # @param view_vars [Hash] The view variables containing domain information
       # @return [Hash] Serialized domain data
+      # rubocop:disable Metrics/PerceivedComplexity -- cohesive domain serialization; splitting would scatter related logic
       def self.serialize(view_vars)
         output          = output_template
         features        = view_vars['features'] || {}
@@ -51,7 +52,7 @@ module Core
 
           # Load homepage config from dedicated model (authoritative source)
           if custom_domain
-            homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(custom_domain.identifier)
+            homepage_config           = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(custom_domain.identifier)
             output['homepage_config'] = if homepage_config
                                           {
                                             'domain_id' => homepage_config.domain_id,
@@ -112,6 +113,7 @@ module Core
 
         output
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       class << self
         # Provides the base template for domain serializer output
