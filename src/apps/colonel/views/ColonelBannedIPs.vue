@@ -216,7 +216,7 @@
           </div>
           <button
             @click="handleBan"
-            :disabled="!newIP"
+            :disabled="!newIP || loading.bannedIPs"
             class="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
             {{ t('web.colonel.bannedIps.actions.ban') }}
           </button>
@@ -271,7 +271,8 @@
                 <td class="px-6 py-4 text-right">
                   <button
                     @click="handleUnban(ip.ip_address)"
-                    class="text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                    :disabled="loading.bannedIPs"
+                    class="text-sm font-medium text-red-600 hover:text-red-800 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300">
                     {{ t('web.colonel.bannedIps.actions.unban') }}
                   </button>
                 </td>

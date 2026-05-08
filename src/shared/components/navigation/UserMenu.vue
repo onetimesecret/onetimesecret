@@ -39,6 +39,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // Copy to clipboard helper
 const copyToClipboard = async (text: string, fieldName: string) => {
@@ -64,7 +65,6 @@ const showCopyFeedback = (fieldName: string) => {
     copiedField.value = null;
   }, 1500);
 };
-import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   cust: Customer | null;
@@ -334,8 +334,7 @@ onUnmounted(() => {
         <OIcon
           collection="heroicons"
           :name="isOpen ? 'chevron-up-solid' : 'chevron-down-solid'"
-          class="transition-transform"
-          size="4"
+          class="size-4 transition-transform"
           aria-hidden="true" />
       </div>
 

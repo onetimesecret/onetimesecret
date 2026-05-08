@@ -270,30 +270,36 @@ export const useColonelInfoStore = defineStore('colonel', () => {
 
   // Ban an IP address
   async function banIP(ipAddress: string, reason?: string) {
+    loading.bannedIPs = true;
     try {
       await $api.post('/api/colonel/banned-ips', {
         ip_address: ipAddress,
         reason: reason || '',
       });
 
-      // Refresh the banned IPs list (handles its own loading state)
+      // Refresh the banned IPs list
       await fetchBannedIPs();
     } catch (error) {
       console.error('Failed to ban IP:', error);
       throw error;
+    } finally {
+      loading.bannedIPs = false;
     }
   }
 
   // Unban an IP address
   async function unbanIP(ipAddress: string) {
+    loading.bannedIPs = true;
     try {
       await $api.delete(`/api/colonel/banned-ips/${encodeURIComponent(ipAddress)}`);
 
-      // Refresh the banned IPs list (handles its own loading state)
+      // Refresh the banned IPs list
       await fetchBannedIPs();
     } catch (error) {
       console.error('Failed to unban IP:', error);
       throw error;
+    } finally {
+      loading.bannedIPs = false;
     }
   }
 
