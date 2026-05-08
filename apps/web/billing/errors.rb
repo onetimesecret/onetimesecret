@@ -32,13 +32,14 @@ module Billing
   # which could mask misconfiguration or catalog sync issues.
   #
   class PlanCacheMissError < OpsProblem
-    attr_reader :plan_id, :context, :resource
+    attr_reader :plan_id, :context, :resource, :organization_id
 
-    def initialize(message = nil, plan_id: nil, context: nil, resource: nil)
-      @plan_id  = plan_id
-      @context  = context
-      @resource = resource
-      message ||= "Plan not found in cache or config: #{plan_id}"
+    def initialize(message = nil, plan_id: nil, context: nil, resource: nil, organization_id: nil)
+      @plan_id         = plan_id
+      @context         = context
+      @resource        = resource
+      @organization_id = organization_id
+      message        ||= "Plan not found in cache or config: #{plan_id}"
       super(message)
     end
   end
