@@ -88,6 +88,9 @@ require_relative 'cli/domains_command'
 require_relative 'cli/org/doctor_command'
 require_relative 'cli/org_command'
 require_relative 'cli/apitoken_command'
+require_relative 'cli/housekeeping_command'
+require_relative 'cli/housekeeping/list_command'
+require_relative 'cli/housekeeping/run_command'
 
 # Load migration CLI commands
 require_relative 'cli/migrations/backfill_email_hash_command'
