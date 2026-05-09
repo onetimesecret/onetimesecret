@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'digest/sha2'
-require 'onetime/security/input_sanitizers'
+require_relative '../../security/input_sanitizers'
 
 #
 # CustomDomain::IncomingConfig - Per-domain incoming secrets recipient storage
