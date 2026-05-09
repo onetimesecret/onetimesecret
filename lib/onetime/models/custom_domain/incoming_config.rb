@@ -107,7 +107,7 @@ module Onetime
       # @return [Array<Hash>] Array of {hash:, name:} hashes
       # @raise [Onetime::Problem] if site.secret is not configured
       def public_recipients
-        site_secret = ensure_site_secret
+        site_secret = self.class.ensure_site_secret
 
         recipients.map do |r|
           { hash: self.class.hash_email(r[:email], site_secret), name: r[:name] }
@@ -120,7 +120,7 @@ module Onetime
       # @return [String, nil] Email address if found, nil otherwise
       # @raise [Onetime::Problem] if site.secret is not configured
       def lookup_recipient_email(hash)
-        site_secret = ensure_site_secret
+        site_secret = self.class.ensure_site_secret
 
         recipients.find do |r|
           self.class.hash_email(r[:email], site_secret) == hash
