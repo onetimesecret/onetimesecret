@@ -2,9 +2,10 @@
 #
 # frozen_string_literal: true
 
+require 'lib/onetime/jobs/publisher'
+require 'lib/onetime/incoming/recipient_resolver'
+
 require_relative 'base'
-require_relative '../../../../lib/onetime/jobs/publisher'
-require_relative '../../../../lib/onetime/incoming/recipient_resolver'
 
 module Incoming
   module Logic

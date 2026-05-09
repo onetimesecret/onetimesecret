@@ -25,6 +25,7 @@ module Onetime
   class CustomDomain < Familia::Horreum
     class IncomingConfig < Familia::Horreum
       include Familia::Features::Autoloader
+      include Onetime::Security::InputSanitizers
 
       SCHEMA = 'models/domain-incoming-config'
 
@@ -90,11 +91,11 @@ module Onetime
 
       # Set the list of recipients.
       #
-      # @param recipients_array [Array<Hash>] Array of {email:, name:} hashes
+      # @param recipients_list [Array<Hash>] Array of {email:, name:} hashes
       # @return [void]
       # @raise [Onetime::Problem] if validation fails
-      def recipients=(recipients_array)
-        normalized = normalize_recipients(recipients_array)
+      def recipients=(recipients_list)
+        normalized = normalize_recipients(recipients_list)
         validate_recipients!(normalized)
 
         self.recipients_json = JSON.generate(normalized)
@@ -106,10 +107,10 @@ module Onetime
       # @return [Array<Hash>] Array of {hash:, name:} hashes
       # @raise [Onetime::Problem] if site.secret is not configured
       def public_recipients
-        site_secret = require_site_secret
+        site_secret = ensure_site_secret
 
         recipients.map do |r|
-          { hash: hash_email(r[:email], site_secret), name: r[:name] }
+          { hash: self.class.hash_email(r[:email], site_secret), name: r[:name] }
         end
       end
 
@@ -119,10 +120,10 @@ module Onetime
       # @return [String, nil] Email address if found, nil otherwise
       # @raise [Onetime::Problem] if site.secret is not configured
       def lookup_recipient_email(hash)
-        site_secret = require_site_secret
+        site_secret = ensure_site_secret
 
         recipients.find do |r|
-          hash_email(r[:email], site_secret) == hash
+          self.class.hash_email(r[:email], site_secret) == hash
         end&.dig(:email)
       end
 
@@ -136,10 +137,10 @@ module Onetime
         current = recipients
         raise Onetime::Problem, "Maximum #{MAX_RECIPIENTS} recipients allowed" if current.size >= MAX_RECIPIENTS
 
-        normalized_email = email.to_s.strip.downcase
-        raise Onetime::Problem, 'Recipient email already exists' if current.any? { |r| r[:email] == normalized_email }
+        normalized_email = sanitize_email(email)
+        raise Onetime::Problem, 'Recipient email already exists' if current.any? { it[:email] == normalized_email }
 
-        current << { email: normalized_email, name: name.to_s.strip }
+        current << { email: normalized_email, name: sanitize_plain_text(name) }
         self.recipients = current
       end
 
@@ -149,11 +150,11 @@ module Onetime
       # @return [void]
       # @raise [Onetime::Problem] if recipient not found
       def remove_recipient(email:)
-        normalized_email = email.to_s.strip.downcase
+        normalized_email = sanitize_email(email)
         current          = recipients
         initial_size     = current.size
 
-        current.reject! { |r| r[:email] == normalized_email }
+        current.reject! { it[:email] == normalized_email }
 
         raise Onetime::Problem, 'Recipient not found' if current.size == initial_size
 
@@ -202,6 +203,49 @@ module Onetime
       # @return [Boolean] true if no validation errors
       def valid?
         validation_errors.empty?
+      end
+
+      private
+
+      # Normalize recipients array.
+      #
+      # @param recipients_list [Array] Raw recipients input
+      # @return [Array<Hash>] Normalized recipients with symbolized keys
+      def normalize_recipients(recipients_list)
+        Array(recipients_list).map do |r|
+          next nil unless r.is_a?(Hash)
+
+          email = sanitize_email(r[:email] || r['email'])
+          name  = sanitize_plain_text(r[:name] || r['name'])
+
+          next nil if email.empty?
+
+          { email: email, name: name.empty? ? email.split('@').first : name }
+        end.compact
+      end
+
+      # Validate recipients array.
+      #
+      # Flow: PUT /api/domains/:id/incoming/config -> PutIncomingConfig ->
+      #       IncomingConfig#recipients= -> normalize_recipients -> here
+      #
+      # Uses format-only regex (not Truemail) to avoid DNS latency on config
+      # saves. Truemail validation happens at secret-creation time via the
+      # logic layer.
+      #
+      # @param recipients_list [Array<Hash>] Normalized recipients
+      # @raise [Onetime::Problem] if validation fails
+      def validate_recipients!(recipients_list)
+        raise Onetime::Problem, "Maximum #{MAX_RECIPIENTS} recipients allowed" if recipients_list.size > MAX_RECIPIENTS
+
+        emails = recipients_list.map { it[:email] }
+        raise Onetime::Problem, 'Duplicate recipient emails not allowed' if emails.uniq.size != emails.size
+
+        recipients_list.each do |r|
+          unless r[:email].match?(OT::Utils::EmailFormat::BASIC_FORMAT)
+            raise Onetime::Problem, "Invalid email format: #{r[:email]}"
+          end
+        end
       end
 
       class << self
@@ -281,69 +325,28 @@ module Onetime
         def count
           instances.size
         end
-      end
 
-      private
-
-      # Normalize recipients array.
-      #
-      # @param recipients_array [Array] Raw recipients input
-      # @return [Array<Hash>] Normalized recipients with symbolized keys
-      def normalize_recipients(recipients_array)
-        Array(recipients_array).map do |r|
-          next nil unless r.is_a?(Hash)
-
-          email = (r[:email] || r['email']).to_s.strip.downcase
-          name  = (r[:name] || r['name']).to_s.strip
-
-          next nil if email.empty?
-
-          { email: email, name: name.empty? ? email.split('@').first : name }
-        end.compact
-      end
-
-      # Validate recipients array.
-      #
-      # Flow: PUT /api/domains/:id/incoming/config -> PutIncomingConfig ->
-      #       IncomingConfig#recipients= -> normalize_recipients -> here
-      #
-      # Uses format-only regex (not Truemail) to avoid DNS latency on config
-      # saves. Truemail validation happens at secret-creation time via the
-      # logic layer.
-      #
-      # @param recipients_array [Array<Hash>] Normalized recipients
-      # @raise [Onetime::Problem] if validation fails
-      def validate_recipients!(recipients_array)
-        raise Onetime::Problem, "Maximum #{MAX_RECIPIENTS} recipients allowed" if recipients_array.size > MAX_RECIPIENTS
-
-        emails = recipients_array.map { |r| r[:email] }
-        raise Onetime::Problem, 'Duplicate recipient emails not allowed' if emails.uniq.size != emails.size
-
-        recipients_array.each do |r|
-          unless r[:email].match?(OT::Utils::EmailFormat::BASIC_FORMAT)
-            raise Onetime::Problem, "Invalid email format: #{r[:email]}"
-          end
+        # Compute SHA256 hash of email with site secret.
+        #
+        # @param email [String] Email address to hash
+        # @param secret [String] Site secret for hashing
+        # @return [String] Hex-encoded SHA256 hash
+        def hash_email(email, secret)
+          Digest::SHA256.hexdigest("#{email}:#{secret}")
         end
-      end
 
-      # Compute SHA256 hash of email with site secret.
-      #
-      # @param email [String] Email address to hash
-      # @param secret [String] Site secret for hashing
-      # @return [String] Hex-encoded SHA256 hash
-      def hash_email(email, secret)
-        Digest::SHA256.hexdigest("#{email}:#{secret}")
-      end
+        # Get site secret or raise if not configured.
+        #
+        # @return [String] The site secret
+        # @raise [Onetime::Problem] if site.secret is not configured
+        def ensure_site_secret
+          return @site_secret unless @site_secret.nil?
 
-      # Get site secret or raise if not configured.
-      #
-      # @return [String] The site secret
-      # @raise [Onetime::Problem] if site.secret is not configured
-      def require_site_secret
-        site_secret = OT.conf.dig('site', 'secret')
-        raise Onetime::Problem, 'site.secret must be configured' if site_secret.to_s.empty?
+          @site_secret = OT.conf.dig('site', 'secret')
+          raise Onetime::Problem, 'site.secret must be configured' if @site_secret.to_s.empty?
 
-        site_secret
+          @site_secret
+        end
       end
     end
   end
