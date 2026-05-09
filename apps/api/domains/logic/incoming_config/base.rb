@@ -2,7 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/custom_domain/incoming_config'
 require 'onetime/application/authorization_policies'
 
 module DomainsAPI

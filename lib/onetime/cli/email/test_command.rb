@@ -8,9 +8,13 @@
 #   ots email test --to user@example.com
 #   ots email test --to user@example.com --dry-run
 #   ots email test --to user@example.com --format json
+#   ots email test --to user@example.com --enqueue
 #
 # Sends by default (no --execute flag needed). Use --dry-run to preview.
 # Bypasses templates — sends a plain-text diagnostic email directly.
+#
+# With --enqueue, sends via the background worker queue instead of direct
+# delivery. Tests that RabbitMQ is running and workers are processing messages.
 
 require 'json'
 require 'socket'
@@ -37,7 +41,12 @@ module Onetime
           aliases: ['f'],
           desc: 'Output format: text or json'
 
-        def call(to:, dry_run: false, format: 'text', **)
+        option :enqueue,
+          type: :boolean,
+          default: false,
+          desc: 'Enqueue via background worker instead of direct send'
+
+        def call(to:, dry_run: false, format: 'text', enqueue: false, **)
           boot_application!
 
           provider  = Onetime::Mail::Mailer.send(:determine_provider)
@@ -52,12 +61,18 @@ module Onetime
           }
 
           if format == 'json'
-            output_json(email, provider, hostname, dry_run)
+            output_json(email, provider, hostname, dry_run, enqueue: enqueue)
           else
-            output_text(email, provider, hostname, dry_run)
+            output_text(email, provider, hostname, dry_run, enqueue: enqueue)
           end
 
-          deliver!(email) unless dry_run
+          return if dry_run
+
+          if enqueue
+            enqueue!(email)
+          else
+            deliver!(email)
+          end
         rescue StandardError => ex
           warn "Error: #{ex.message}"
           exit 1
@@ -80,7 +95,47 @@ module Onetime
           exit 1
         end
 
-        def output_text(email, provider, hostname, dry_run)
+        def enqueue!(email)
+          require_relative '../../../onetime/jobs/publisher'
+
+          start      = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          # Convert to raw email format expected by Publisher
+          raw_email  = {
+            to: email[:to],
+            from: email[:from],
+            subject: email[:subject],
+            body: email[:text_body],
+          }
+          queued     = Onetime::Jobs::Publisher.enqueue_email_raw(raw_email, fallback: :raise)
+          elapsed    = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+          puts
+          if queued
+            puts format('Status:    ENQUEUED (%.2fs)', elapsed)
+            puts 'Queue:     email.message.send'
+            puts
+            puts 'Check worker logs for delivery confirmation.'
+          else
+            # Fallback used (jobs disabled), message was sent synchronously
+            puts format('Status:    SENT SYNC (%.2fs) - jobs disabled', elapsed)
+          end
+        rescue Onetime::Mail::DeliveryError => ex
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+          $stderr.puts
+          warn format('Status:    FAILED (%.2fs)', elapsed)
+          warn "Error:     #{ex.message}"
+          warn
+          warn 'Ensure RabbitMQ is running and bin/ots worker is active.'
+          exit 1
+        rescue StandardError => ex
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+          $stderr.puts
+          warn format('Status:    FAILED (%.2fs)', elapsed)
+          warn "Error:     #{ex.message}"
+          exit 1
+        end
+
+        def output_text(email, provider, hostname, dry_run, enqueue: false)
           puts format('Provider:  %s', provider)
           puts format('Host:      %s', hostname)
           puts format('To:        %s', email[:to])
@@ -91,11 +146,20 @@ module Onetime
           puts email[:text_body]
           puts
           if dry_run
-            puts 'Mode: DRY RUN (omit --dry-run to send)'
+            mode = enqueue ? 'DRY RUN (would enqueue to worker)' : 'DRY RUN (omit --dry-run to send)'
+            puts "Mode: #{mode}"
+          elsif enqueue
+            puts 'Mode: ENQUEUE (via background worker)'
           end
         end
 
-        def output_json(email, provider, hostname, dry_run)
+        def output_json(email, provider, hostname, dry_run, enqueue: false)
+          mode = if dry_run
+            enqueue ? 'dry_run_enqueue' : 'dry_run'
+          else
+            enqueue ? 'enqueue' : 'live'
+          end
+
           result = {
             provider: provider,
             host: hostname,
@@ -103,7 +167,7 @@ module Onetime
             from: email[:from],
             subject: email[:subject],
             text_body: email[:text_body],
-            mode: dry_run ? 'dry_run' : 'live',
+            mode: mode,
           }
           puts JSON.pretty_generate(result)
         end

@@ -41,6 +41,12 @@ module Onetime
       def debug?
         OT.debug?
       end
+
+      def valid_email?(email)
+        return false if email.nil? || email.to_s.empty?
+
+        Truemail.validate(email.to_s).result.valid?
+      end
     end
 
     # Command class that delays boot (for commands that handle boot themselves)
@@ -114,6 +120,7 @@ require_relative 'cli/email/test_command'
 require_relative 'cli/email/templates_command'
 require_relative 'cli/email/preview_command'
 require_relative 'cli/email/config_command'
+require_relative 'cli/email/validate_command'
 
 # Load diagnostics CLI commands
 require_relative 'cli/diagnostics'

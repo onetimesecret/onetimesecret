@@ -2,7 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/custom_domain/incoming_config'
 require_relative 'base'
 require_relative 'serializers'
 

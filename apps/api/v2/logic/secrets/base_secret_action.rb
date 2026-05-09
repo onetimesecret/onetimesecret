@@ -9,9 +9,6 @@ module V2::Logic
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
 
-      # Email validation regex - defined once to avoid recompilation on every call
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
-
       attr_reader :passphrase,
         :secret_value,
         :kind,
@@ -138,28 +135,32 @@ module V2::Logic
         raise NotImplementedError, 'You must implement process_secret'
       end
 
+      # Our passphrase contract: presence determines intent.
+      #   - Param key missing → no passphrase protection (nil)
+      #   - Param key present → use value as-is (including empty string)
+      #
+      # We honour exactly what is included with the request without guessing.
+      # It's the, "if it fits, I sits" design model.
+      #
+      # UX concerns (e.g. preventing accidental empty-passphrase secrets) are
+      # the client's responsibility. The API layer remains value-neutral.
       def process_passphrase
-        # API Contract: Key presence determines intent.
-        #   - Key missing → no passphrase protection (nil)
-        #   - Key present → use value as-is (including empty string)
-        #
-        # The backend honors exactly what the client sends without guessing intent.
-        # "If you send this key, I use its value" - predictable and explicit.
-        #
-        # UX concerns (e.g., preventing accidental empty-passphrase secrets) are
-        # the client's responsibility. The API layer remains value-neutral.
         @passphrase = payload.key?('passphrase') ? payload['passphrase'].to_s : nil
       end
 
+      # Our recipient contract: always a list of sanitized strings.
+      #
+      # Sanitization keeps trash out but does not validate as an email address.
+      #
       def process_recipient
-        payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
-        @recipient           = payload['recipient'].collect do |email_address|
+        # Make sure we're dealing with a list.
+        recipient_list  = [payload['recipient']].flatten.compact.uniq
+        @recipient      = recipient_list.collect do |email_address|
           next if email_address.to_s.empty?
 
-          sanitized_email = sanitize_email(email_address)
-          sanitized_email.scan(EMAIL_REGEX).uniq.first
+          sanitize_email(email_address)
         end.compact.uniq
-        @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
@@ -197,12 +198,25 @@ module V2::Logic
         @share_domain = potential_domain
       end
 
+      # Check each individual recipient email address using
+      # the centralized Truemail-based validation. Depending
+      # on the configuration, this could be a regex, mx, or
+      # full smtp level check.
       def validate_recipient
         return if recipient.empty?
 
-        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if anonymous_user?
-        recipient.each do |recip|
-          raise_form_error "Undeliverable email address: #{recip}", field: 'recipient', error_type: 'invalid_email' unless valid_email?(recip)
+        if anonymous_user?
+          raise_form_error 'An account is required to send emails.',
+            field: 'recipient',
+            error_type: 'requires_account'
+        end
+
+        recipient.each do |email_address|
+          next if valid_email?(email_address)
+
+          raise_form_error "Undeliverable email address: #{email_address}",
+            field: 'recipient',
+            error_type: 'invalid_email'
         end
       end
 

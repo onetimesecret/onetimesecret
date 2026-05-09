@@ -243,12 +243,6 @@ module Onetime
         SecureRandom.alphanumeric(20)
       end
 
-      def valid_email?(email)
-        return false if email.nil? || email.empty?
-
-        email.match?(/\A[^@\s]+@[^@\s]+\.[^@\s]+\z/)
-      end
-
       def base_uri
         host = OT.conf&.dig('site', 'host')
         return 'https://localhost:3000' unless host

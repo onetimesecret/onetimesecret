@@ -48,6 +48,11 @@ module Auth::Config::Hooks
         end
       end
 
+      # When this is part of a regular user signup flow, we'll have already
+      # called Truemail.validate on this address in the CreateAccount logic,
+      # but we call it here as a defensive in depth regardless. It's easier
+      # to call it twice than to try to keep track of the state through
+      # multiple codepaths.
       auth.login_valid_email? do |email|
         validator = Truemail.validate(email)
         is_valid  = super(email) && validator.result.valid?

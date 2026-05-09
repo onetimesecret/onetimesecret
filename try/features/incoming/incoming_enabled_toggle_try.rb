@@ -26,7 +26,6 @@ require 'apps/api/incoming/logic/incoming'
 
 OT.boot! :test, false
 
-require 'onetime/models/custom_domain/incoming_config'
 require_relative '../../../lib/onetime/incoming/recipient_resolver'
 
 IncomingConfig = Onetime::CustomDomain::IncomingConfig
