@@ -15,6 +15,9 @@ require 'onetime/cli'
 
 @cmd = Onetime::CLI::Email::ValidateCommand.new
 
+# Save original Truemail.configuration method for restoration later
+@original_truemail_configuration = Truemail.method(:configuration)
+
 # TRYOUTS
 
 ## ValidateCommand class exists
@@ -80,3 +83,8 @@ Truemail.define_singleton_method(:configuration) { config_mock }
 result = @cmd.send(:extract_list_config)
 [result[:whitelisted_emails], result[:blacklisted_domains]]
 #=> [["allowed@test.com"], ["spam.com"]]
+
+## Restore original Truemail.configuration
+Truemail.define_singleton_method(:configuration, @original_truemail_configuration)
+true
+#=> true
