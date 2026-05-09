@@ -61,11 +61,6 @@ module V1::Logic
       # maxLength: 10000 documented in the OpenAPI definition.
       V1_MAX_SECRET_SIZE = 10_000
 
-      # Basic email shape check for parsing recipient input. Only used
-      # to extract email-shaped tokens from free-text input; actual
-      # validation is done by Truemail in validate_recipient.
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/
-
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
 
@@ -200,12 +195,12 @@ module V1::Logic
         @passphrase = payload['passphrase'].to_s
       end
 
+      # Sanitizes but does not validate as an email address.
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
         @recipient = payload['recipient'].collect { |email_address|
           next if email_address.to_s.empty?
           sanitized_email = sanitize_email(email_address)
-          sanitized_email.scan(EMAIL_REGEX).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
