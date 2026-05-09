@@ -338,15 +338,16 @@ module Onetime
 
         # Get site secret or raise if not configured.
         #
+        # Reads from config on each call (no caching) to ensure tests and
+        # runtime config changes are reflected immediately.
+        #
         # @return [String] The site secret
         # @raise [Onetime::Problem] if site.secret is not configured
         def ensure_site_secret
-          return @site_secret unless @site_secret.to_s.empty?
+          site_secret = OT.conf.dig('site', 'secret')
+          raise Onetime::Problem, 'site.secret must be configured' if site_secret.to_s.empty?
 
-          @site_secret = OT.conf.dig('site', 'secret')
-          raise Onetime::Problem, 'site.secret must be configured' if @site_secret.to_s.empty?
-
-          @site_secret
+          site_secret
         end
       end
     end

@@ -2,8 +2,8 @@
 #
 # frozen_string_literal: true
 
-require 'lib/onetime/jobs/publisher'
-require 'lib/onetime/incoming/recipient_resolver'
+require 'onetime/jobs/publisher'
+require 'onetime/incoming/recipient_resolver'
 
 require_relative 'base'
 
