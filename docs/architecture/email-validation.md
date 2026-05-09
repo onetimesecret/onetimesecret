@@ -22,18 +22,25 @@ Sanitization strips HTML, prevents header injection (`\r\n`), lowercases. Valida
 | Domain allowlist | `allowed_signup_domain?`          | none                      | none                      | none                      |
 | Truemail calls   | 2x (CreateAccount + Rodauth hook) | 1x                        | 1x                        | 1x (corruption guard)     |
 
-The duplicate Truemail call at signup is defense in depth: the Rodauth hook validates independently of the API logic class.
+The duplicate Truemail call at signup is defense in depth: the Rodauth hook validates independently since there's no guarantee of which codepath is calling it.
 
 Incoming has two phases: config-time (admin adds recipients, full validation) and create-time (submitter provides hash, regex-only corruption guard). The create-time check uses `:regex` mode (no DNS) since it runs on every submission.
 
-## When to Use BASIC_FORMAT
+### Choosing a Validation Method
 
-`EmailFormat::BASIC_FORMAT` is a fallback for contexts where Truemail cannot run:
+| Context | Method |
+| ------- | ------ |
+| Signup, invitation, share boundaries | `Logic::Base#valid_email?` (full Truemail) |
+| Corruption guards in booted contexts | `Truemail.validate(email, with: :regex).result.valid?` |
+| Model-layer or pre-boot code | `EmailFormat::BASIC_FORMAT` regex |
 
-1. **Model-layer validation** -- Truemail may not be configured
-2. **Pre-boot code** -- runs before `configure_truemail.rb` executes
+**Full Truemail** (`valid_email?`) for user-input boundaries -- validates format, MX records, optionally SMTP depending on config.
 
-CLI commands boot the application, so they use Truemail. The no-boot subclass (`Onetime::CLI::BaseBoot`) is an explicit opt-out for commands that need to run without full initialization.
+**Truemail `:regex` mode** for corruption guards -- format-only, no DNS, fast enough to run on every request. Use when the email was already validated at config time.
+
+**BASIC_FORMAT** in pre-boot code (code that runs before `configure_truemail.rb` executes).
+
+CLI commands boot the application, so they use Truemail. Unless subclassed from `Onetime::CLI::DelayBootCommand` in which case you know what you doing.
 
 ## Entry Points
 
