@@ -272,8 +272,29 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(Stripe::Checkout::Session).to have_received(:create).with(
         hash_including(
           mode: 'subscription',
-          client_reference_id: organization.objid
+          client_reference_id: organization.objid,
+          allow_promotion_codes: true
         ),
+        anything
+      )
+    end
+
+    it 'allows promotion codes on the checkout session' do
+      mock_session = build_checkout_session(
+        'url' => 'https://checkout.stripe.com/c/pay/cs_test_promo',
+        'id' => 'cs_test_promo'
+      )
+      allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
+      post "/billing/api/org/#{organization.extid}/checkout", {
+        product: product,
+        interval: interval,
+      }.to_json, { 'CONTENT_TYPE' => 'application/json', 'HTTP_X_CSRF_TOKEN' => csrf_token }
+
+      expect(last_response.status).to eq(200)
+
+      expect(Stripe::Checkout::Session).to have_received(:create).with(
+        hash_including(allow_promotion_codes: true),
         anything
       )
     end

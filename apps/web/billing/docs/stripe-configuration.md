@@ -84,6 +84,33 @@ stripe listen --forward-to localhost:3000/billing/webhook
 stripe trigger checkout.session.completed
 ```
 
+## Promotion Codes
+
+Stripe Checkout Sessions created by this application enable
+`allow_promotion_codes: true`, which renders an "Add promotion code" field
+on the Stripe-hosted checkout page during both initial signup
+(`GET /billing/plans/:product/:interval`) and existing-org upgrades
+(`POST /billing/org/:extid/checkout`).
+
+For the field to be useful, promotion codes must first be created in the
+Stripe Dashboard:
+
+1. **Create a coupon:** [Stripe Dashboard → Products → Coupons](https://dashboard.stripe.com/coupons)
+   - Set the discount (percent off or amount off)
+   - Set duration (once, repeating, or forever)
+   - Optionally restrict to specific products
+2. **Create a promotion code** for the coupon
+   - Promotion codes are customer-facing strings (e.g., `WELCOME20`) that
+     customers enter at checkout
+   - One coupon can have many promotion codes
+3. Customers enter the promotion code on the Stripe-hosted checkout page —
+   no extra UI work is required on our side.
+
+**Note on currency:** Amount-off coupons are denominated in a single currency
+and only apply to checkouts in that currency. Percent-off coupons work across
+currencies. See `apps/web/billing/lib/currency_migration_service.rb` for how
+incompatible coupons are surfaced during currency migrations.
+
 ## Regional Setup
 
 For multi-region deployments, create separate products per region with `region` metadata:

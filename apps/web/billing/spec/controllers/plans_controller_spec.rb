@@ -68,6 +68,17 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
     end
 
+    it 'enables promotion codes on the checkout session', :vcr do
+      get "/billing/plans/#{product}/#{interval}"
+
+      expect(last_response.status).to eq(302)
+
+      session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
+      session    = Stripe::Checkout::Session.retrieve(session_id)
+
+      expect(session.allow_promotion_codes).to eq(true)
+    end
+
     it 'creates checkout session with correct plan', :vcr do
       get "/billing/plans/#{product}/#{interval}"
 
