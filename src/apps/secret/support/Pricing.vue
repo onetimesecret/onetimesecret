@@ -145,17 +145,27 @@
 
   /**
    * Build signup URL with product and interval query params.
-   * Free plans go to /signup without params.
+   * Free plans go to /signup without billing params.
    * Paid plans include product and interval for checkout flow.
+   * All variants include redirect=<current path> so the user returns
+   * to this pricing view after authentication.
    */
   const getSignupUrl = (plan: BillingPlan): string => {
-    if (plan.tier === 'free') {
-      return '/signup';
+    const params = new URLSearchParams();
+    if (plan.tier !== 'free') {
+      params.set('product', extractProductFromPlanId(plan.id));
+      params.set('interval', getIntervalForQuery(plan));
     }
-    const product = extractProductFromPlanId(plan.id);
-    const interval = getIntervalForQuery(plan);
-    return `/signup?product=${encodeURIComponent(product)}&interval=${encodeURIComponent(interval)}`;
+    params.set('redirect', route.path);
+    return `/signup?${params.toString()}`;
   };
+
+  /**
+   * Build signin URL preserving the current path as a redirect target.
+   */
+  const signinUrl = computed(
+    () => `/signin?redirect=${encodeURIComponent(route.path)}`
+  );
 
   const loadPlans = async () => {
     isLoadingPlans.value = true;
@@ -256,8 +266,8 @@
             </p>
           </div>
           <RouterLink
-            v-if="signupEnabled"
-            to="/signup"
+            v-if="signupEnabled && freePlan"
+            :to="getSignupUrl(freePlan)"
             class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
             {{ t('web.pricing.get_started_free') }}
           </RouterLink>
@@ -337,7 +347,7 @@
         <p class="text-sm text-gray-600 dark:text-gray-400">
           {{ t('web.pricing.already_have_account') }}
           <RouterLink
-            to="/signin"
+            :to="signinUrl"
             class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
             {{ t('web.pricing.sign_in') }}
           </RouterLink>
