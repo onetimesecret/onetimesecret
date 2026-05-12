@@ -57,10 +57,15 @@ module Onetime
         MAX_TTL = 365 * 24 * 60 * 60
 
         # Default TTL values (in seconds)
-        # Free tier max: 7 days. Paid plans or billing-disabled get 30 days.
+        # Free tier max: 14 days. Paid plans or billing-disabled get 30 days.
         # This also serves as the entitlement gate threshold — requests above
         # this value require the 'extended_default_expiration' entitlement.
-        DEFAULT_FREE_TTL = 604_800  # 7 days
+        #
+        # MUST match `free_v1.limits.secret_lifetime` in etc/billing.yaml so
+        # that a billing-enabled org with an empty planid (cache miss /
+        # unassigned) gets the same 14-day ceiling as the canonical free_v1
+        # plan. See #3111 for the drift bug this constant previously caused.
+        DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
         # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
@@ -123,9 +128,10 @@ module Onetime
         # Results are memoized at class level for consistent behavior and performance.
         #
         # Environment variables:
-        #   PLAN_TTL_ANONYMOUS - Maximum secret TTL for anonymous/free tier users (default: 604800 = 7 days)
+        #   PLAN_TTL_ANONYMOUS - Maximum secret TTL for anonymous/free tier users (default: 1209600 = 14 days)
         #
         # @see https://github.com/onetimesecret/onetimesecret/issues/2390
+        # @see https://github.com/onetimesecret/onetimesecret/issues/3111
         def self.free_tier_limits
           @free_tier_limits ||= {
             'organizations.max' => 5,
