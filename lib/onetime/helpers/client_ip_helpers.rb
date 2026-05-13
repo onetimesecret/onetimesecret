@@ -45,13 +45,12 @@ module Onetime
     # @return [Array<String>, nil]
     def self.extract_forwarded_ips(env, header_type)
       case header_type
-      when 'X-Forwarded-For'
-        extract_x_forwarded_for(env)
       when 'Forwarded'
         extract_rfc7239_forwarded(env)
       when 'Both'
         extract_rfc7239_forwarded(env) || extract_x_forwarded_for(env)
       else
+        # 'X-Forwarded-For' and any unrecognised value fall through here
         extract_x_forwarded_for(env)
       end
     end
