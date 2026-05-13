@@ -22,7 +22,7 @@ module Auth::Config::Hooks
           :login_attempt,
           level: :info,
           email: OT::Utils.obscure_email(email),
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           correlation_id: correlation_id,
         )
       end
@@ -217,7 +217,7 @@ module Auth::Config::Hooks
             :login_failure_empty_database,
             level: :error,
             email: OT::Utils.obscure_email(email),
-            ip: request.ip,
+            ip: request.trusted_client_ip,
             correlation_id: correlation_id,
             diagnostic_hint: diagnostic_hint,
           )
@@ -226,7 +226,7 @@ module Auth::Config::Hooks
             :login_failure,
             level: :warn,
             email: OT::Utils.obscure_email(email),
-            ip: request.ip,
+            ip: request.trusted_client_ip,
             correlation_id: correlation_id,
           )
         end

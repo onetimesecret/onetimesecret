@@ -29,6 +29,8 @@ site:
   host: str()
   ssl: any()
   secret: str()
+  trusted_proxy_depth: any(int(), str(), required=False)
+  trusted_ip_header: str(required=False)
   interface:
     ui:
       enabled: any(bool(), str())
