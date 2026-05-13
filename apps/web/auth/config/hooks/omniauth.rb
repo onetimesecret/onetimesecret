@@ -110,7 +110,7 @@ module Auth::Config::Hooks
           provider: omniauth_provider,
           uid: omniauth_uid,
           email: OT::Utils.obscure_email(omniauth_email),
-          ip: request.ip,
+          ip: request.trusted_client_ip,
         )
       end
 
@@ -263,7 +263,7 @@ module Auth::Config::Hooks
           error_type: error_type,
           error_message: error_msg,
           path: request.path,
-          ip: request.ip,
+          ip: request.trusted_client_ip,
         )
 
         redirect omniauth_failure_redirect

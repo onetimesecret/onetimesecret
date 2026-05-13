@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'rack/content_length'
+require 'onetime/helpers/client_ip_helpers'
 require 'rack/contrib'
 require 'rack/parser'
 require 'rack/protection'

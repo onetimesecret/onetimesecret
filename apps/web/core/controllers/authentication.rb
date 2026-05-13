@@ -40,7 +40,7 @@ module Core
           {
             customer_id: customer_id,
             session_id: session_id,
-            ip: req.ip,
+            ip: req.trusted_client_ip,
           }
 
         # Clear all session data
@@ -56,7 +56,7 @@ module Core
           {
             customer_id: customer_id,
             session_id: session_id,
-            ip: req.ip,
+            ip: req.trusted_client_ip,
           }
 
         if json_requested?
@@ -106,7 +106,7 @@ module Core
               external_id: cust_after.extid,
               role: cust_after.role,
               session_id: session.id&.public_id,
-              ip: req.ip,
+              ip: req.trusted_client_ip,
             }
 
           # Override redirect for colonel role

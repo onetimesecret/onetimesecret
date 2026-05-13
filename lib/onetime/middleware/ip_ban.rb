@@ -19,7 +19,7 @@ module Onetime
 
       def call(env)
         req        = Rack::Request.new(env)
-        ip_address = req.ip
+        ip_address = req.trusted_client_ip
 
         if ip_address && Onetime::BannedIP.banned?(ip_address)
           @logger.warn 'Blocked request from banned IP',

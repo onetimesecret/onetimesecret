@@ -63,7 +63,7 @@ module Auth::Config::Hooks
           level: :debug,
           host: host,
           path: request.path,
-          ip: request.ip,
+          ip: request.trusted_client_ip,
         )
 
         # Attempt to resolve tenant from custom domain
@@ -155,7 +155,7 @@ module Auth::Config::Hooks
             expected_host: expected_host,
             actual_host: request.host,
             actual_domain_id: current_domain&.identifier,
-            ip: request.ip,
+            ip: request.trusted_client_ip,
           )
 
           throw_error_status(403, 'tenant_mismatch', 'Authentication context mismatch')

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'client_ip_helpers'
+
 #
 # Session-based authentication helpers that minimize database/Redis lookups.
 #
@@ -59,7 +61,7 @@ module Onetime
         session['role']             = customer.role  # Store role for permission checks
         session['authenticated']    = true
         session['authenticated_at'] = Familia.now.to_i
-        session['ip_address']       = request.ip
+        session['ip_address']       = request.trusted_client_ip
         session['user_agent']       = request.user_agent
 
         # NOTE: CSRF tokens are managed by Rack::Protection::AuthenticityToken middleware
