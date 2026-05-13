@@ -63,7 +63,7 @@ module Core
           {
             exception: ex,
             url: req.url,
-            ip: req.ip,
+            ip: req.trusted_client_ip,
           }
 
         # Serve Vue entry point - let Vue show login prompt
@@ -79,7 +79,7 @@ module Core
             exception: ex,
             url: req.url,
             method: req.request_method,
-            ip: req.ip,
+            ip: req.trusted_client_ip,
             backtrace: ex.backtrace&.first(20),
           }
 
@@ -158,7 +158,7 @@ module Core
               {
                 url: req.url,
                 method: req.request_method,
-                ip: req.ip,
+                ip: req.trusted_client_ip,
               },
             )
           end

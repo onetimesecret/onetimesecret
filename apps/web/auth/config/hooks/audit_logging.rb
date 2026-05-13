@@ -12,7 +12,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :otp_setup, 'MFA enabled via TOTP'
       auth.audit_log_metadata_for :otp_setup do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           correlation_id: session[:auth_correlation_id] || 'none',
           mfa_method: 'totp',
@@ -24,7 +24,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :otp_disable, 'MFA disabled'
       auth.audit_log_metadata_for :otp_disable do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           mfa_method: 'totp',
         }
@@ -39,7 +39,7 @@ module Auth::Config::Hooks
       end
       auth.audit_log_metadata_for :two_factor_auth_success do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           correlation_id: session[:auth_correlation_id] || 'none',
           mfa_method: 'totp',
@@ -51,7 +51,7 @@ module Auth::Config::Hooks
       end
       auth.audit_log_metadata_for :otp_auth_failure do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           correlation_id: session[:auth_correlation_id] || 'none',
           mfa_method: 'totp',
@@ -66,7 +66,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :add_recovery_codes, 'Recovery codes generated'
       auth.audit_log_metadata_for :add_recovery_codes do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           codes_count: respond_to?(:recovery_codes) ? recovery_codes.length : 0,
         }
@@ -75,7 +75,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :view_recovery_codes, 'Recovery codes viewed'
       auth.audit_log_metadata_for :view_recovery_codes do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           security_note: 'User accessed recovery codes - potential security event',
         }
@@ -86,7 +86,7 @@ module Auth::Config::Hooks
       end
       auth.audit_log_metadata_for :recovery_auth do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           correlation_id: session[:auth_correlation_id] || 'none',
           mfa_method: 'recovery_code',
@@ -111,7 +111,7 @@ module Auth::Config::Hooks
         # Inside block, self is the Rodauth instance
         mfa_enabled = respond_to?(:otp_exists?) && otp_exists?
         metadata    = {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           correlation_id: session[:auth_correlation_id] || 'none',
           mfa_required: mfa_enabled,
@@ -130,7 +130,7 @@ module Auth::Config::Hooks
       end
       auth.audit_log_metadata_for :login_failure do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           email: OT::Utils.obscure_email(param_or_nil('login') || param_or_nil('email')),
           failure_reason: 'invalid_credentials',
@@ -140,7 +140,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :logout, 'Logout'
       auth.audit_log_metadata_for :logout do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
         }
       end
@@ -152,7 +152,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :change_password, 'Password changed'
       auth.audit_log_metadata_for :change_password do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           initiated_by: 'user',
         }
@@ -163,7 +163,7 @@ module Auth::Config::Hooks
       end
       auth.audit_log_metadata_for :reset_password_request do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
         }
       end
@@ -171,7 +171,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :reset_password, 'Password reset completed'
       auth.audit_log_metadata_for :reset_password do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           initiated_by: 'password_reset_flow',
         }
@@ -184,7 +184,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :create_account, 'Account created'
       auth.audit_log_metadata_for :create_account do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           email: OT::Utils.obscure_email(account[:email]),
         }
@@ -193,7 +193,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :verify_account, 'Account verified'
       auth.audit_log_metadata_for :verify_account do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
         }
       end
@@ -201,7 +201,7 @@ module Auth::Config::Hooks
       auth.audit_log_message_for :close_account, 'Account closed'
       auth.audit_log_metadata_for :close_account do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           reason: 'user_initiated',
         }
@@ -216,7 +216,7 @@ module Auth::Config::Hooks
       end
       auth.audit_log_metadata_for :account_lockout do
         {
-          ip: request.ip,
+          ip: request.trusted_client_ip,
           user_agent: request.user_agent,
           lockout_reason: 'max_failed_attempts',
         }
