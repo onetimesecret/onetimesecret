@@ -50,7 +50,9 @@ module Onetime
       when 'Both'
         extract_rfc7239_forwarded(env) || extract_x_forwarded_for(env)
       else
-        # 'X-Forwarded-For' and any unrecognised value fall through here
+        unless header_type == 'X-Forwarded-For'
+          Onetime.ld "[ClientIpHelpers] Unknown trusted_ip_header '#{header_type}', falling back to X-Forwarded-For"
+        end
         extract_x_forwarded_for(env)
       end
     end
