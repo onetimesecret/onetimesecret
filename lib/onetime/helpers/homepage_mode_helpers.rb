@@ -220,13 +220,11 @@ module Onetime
       # @param header_type [String] 'X-Forwarded-For', 'Forwarded', or 'Both'
       # @return [Array<String>, nil] Array of IP addresses or nil
       def extract_forwarded_ips(header_type)
-        if header_type == 'Both' || %w[X-Forwarded-For Forwarded].include?(header_type)
-          Onetime::ClientIpHelpers.extract_forwarded_ips(req.env, header_type)
-        else
+        unless %w[X-Forwarded-For Forwarded Both].include?(header_type)
           http_logger.warn '[homepage_mode] Unknown trusted_ip_header type, using X-Forwarded-For',
             { configured_type: header_type }
-          Onetime::ClientIpHelpers.extract_x_forwarded_for(req.env)
         end
+        Onetime::ClientIpHelpers.extract_forwarded_ips(req.env, header_type)
       end
 
       # Check if IP address matches any configured CIDR
