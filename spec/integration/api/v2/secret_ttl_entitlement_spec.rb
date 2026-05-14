@@ -174,6 +174,59 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
         expect { logic.process_params }.not_to raise_error
       end
     end
+
+    # Regression suite for #3111 — DEFAULT_FREE_TTL drifted from the
+    # free_v1 plan's 14-day secret_lifetime, so users on the free tier
+    # were being told they could only set 7 days even though the plan
+    # promises 14. These tests pin the customer-facing contract: any
+    # request from 7 days + 1 second up to and including 14 days from a
+    # free_v1 org with no extended_default_expiration entitlement must
+    # succeed without an EntitlementRequired surprise.
+    context '#3111 regression: free_v1 ceiling is 14 days, not 7 (no customer annoyance)' do
+      let(:org) do
+        mock_organization(
+          planid: 'free_v1',
+          entitlements: %w[create_secrets api_access],
+          secret_lifetime: FREE_TTL,
+        )
+      end
+
+      it 'accepts a TTL of exactly 14 days without raising' do
+        logic = create_logic(logic_class, params: conceal_params(14 * 24 * 60 * 60), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(14 * 24 * 60 * 60)
+      end
+
+      it 'accepts a TTL of 10 days (above legacy 7-day cap, within new 14-day cap)' do
+        ten_days = 10 * 24 * 60 * 60
+        logic = create_logic(logic_class, params: conceal_params(ten_days), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(ten_days)
+      end
+
+      it 'accepts a TTL of 7 days + 1 second (used to fail with #3111)' do
+        # Before the fix, this would clamp to 7 days and could trigger the
+        # entitlement gate. After the fix, 7d+1s is well below the 14d
+        # ceiling and goes through cleanly.
+        ttl = 604_800 + 1
+        logic = create_logic(logic_class, params: conceal_params(ttl), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(ttl)
+      end
+
+      it 'still rejects a TTL of 14 days + 1 second (new boundary enforced)' do
+        ttl = (14 * 24 * 60 * 60) + 1
+        logic = create_logic(logic_class, params: conceal_params(ttl), org: org)
+        expect { logic.process_params }.to raise_error(Onetime::EntitlementRequired)
+      end
+
+      it 'FREE_TTL constant resolves to 14 days' do
+        # Guards against future regressions where someone reverts the
+        # constant; this spec relies on FREE_TTL pointing at 14 days.
+        expect(FREE_TTL).to eq(14 * 24 * 60 * 60)
+        expect(FREE_TTL).to eq(1_209_600)
+      end
+    end
   end
 
   describe V2::Logic::Secrets::ConcealSecret do
