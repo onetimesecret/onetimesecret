@@ -166,14 +166,18 @@ end
 @stub.chore(:always_noop) { |_obj| nil }
 @stub.add(status: 'mixed_case')
 report = @job.perform(@stub)
+# `report[:model]` is `klass.name`. When the stub class is defined at the
+# top of a tryouts file, instance_eval binds it to the container's
+# singleton class, giving it a name like
+# "#<Class:0x...>::HousekeepingStubModel". Match on suffix.
 [
-  report[:model],
+  report[:model].end_with?('HousekeepingStubModel'),
   report[:scanned],
   report[:chores].key?(:uppercase_status),
   report[:chores].key?(:always_noop),
   report[:chores][:always_noop][:modified],
 ]
-#=> ['HousekeepingStubModel', 1, true, true, 0]
+#=> [true, 1, true, true, 0]
 
 ## perform records modifications when chore returns truthy
 @stub.reset!
