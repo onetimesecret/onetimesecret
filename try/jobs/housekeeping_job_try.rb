@@ -9,6 +9,14 @@
 # tests don't depend on the upstream `feature :housekeeping` being shipped
 # in the locked gem version. HousekeepingJob only cares about the shape of
 # the model interface (.chores, .instances, .load_multi, #tidy!, #identifier).
+#
+# IMPLEMENTATION NOTE: Tryouts evaluates test bodies via
+# `container.instance_eval(string)`. A top-level `class HousekeepingStubModel`
+# in this file is therefore NOT registered on `Object`, so `resolve_model`
+# (which uses `Object.const_get`) can't find it from inside a test body.
+# Tests pass the class object directly to `perform`, which accepts either a
+# String or a Class. The `resolve_model` test uses a real Ruby stdlib
+# constant instead.
 
 require_relative '../support/test_helpers'
 require 'securerandom'
@@ -18,11 +26,6 @@ OT.boot! :test, false
 require_relative '../../lib/onetime/jobs/scheduled/housekeeping_job'
 
 # Minimal stand-in that mirrors the surface HousekeepingJob touches.
-# Top-level, outside the Onetime namespace, so the default model-name
-# fallback (MaintenanceJob::INSTANCE_MODELS) never picks it up.
-# Avoids `class << self` and `Struct.new do ... end` patterns because
-# tryouts' Prism-based parser doesn't reliably register the constant on
-# Object when those forms appear at the file's top level.
 class HousekeepingStubModel
   attr_accessor :status
   attr_reader :identifier
@@ -70,20 +73,21 @@ class HousekeepingStubModel
   end
 end
 
-@job = Onetime::Jobs::Scheduled::HousekeepingJob
+@job  = Onetime::Jobs::Scheduled::HousekeepingJob
+@stub = HousekeepingStubModel
 
 def call_private(method, *args, &block)
   @job.send(method, *args, &block)
 end
 
-HousekeepingStubModel.reset!
-HousekeepingStubModel.chore(:uppercase_status) do |obj|
+@stub.reset!
+@stub.chore(:uppercase_status) do |obj|
   next unless obj.status && obj.status != obj.status.upcase
 
   obj.status = obj.status.upcase
   true
 end
-HousekeepingStubModel.chore(:always_noop) { |_obj| nil }
+@stub.chore(:always_noop) { |_obj| nil }
 
 # TRYOUTS
 
@@ -115,6 +119,10 @@ call_private(:job_cron, @job::JOB_KEY)
 call_private(:resolve_model, 'Onetime::Customer').name
 #=> 'Onetime::Customer'
 
+## resolve_model resolves a top-level stdlib constant
+call_private(:resolve_model, 'String').name
+#=> 'String'
+
 ## resolve_model raises NameError for unknown classes
 begin
   call_private(:resolve_model, 'No::Such::Class')
@@ -124,17 +132,13 @@ rescue NameError
 end
 #=> true
 
-## resolve_model resolves a top-level constant
-call_private(:resolve_model, 'HousekeepingStubModel').name
-#=> 'HousekeepingStubModel'
-
 ## models_with_chores does NOT pick up the stub (it's outside INSTANCE_MODELS)
 @job.models_with_chores.none? { |k| k.name == 'HousekeepingStubModel' }
 #=> true
 
 ## perform raises ArgumentError for models without the housekeeping shape
 begin
-  @job.perform('Onetime::Customer')
+  @job.perform(Onetime::Customer)
   false
 rescue ArgumentError => ex
   ex.message.include?('feature :housekeeping')
@@ -142,9 +146,9 @@ end
 #=> true
 
 ## perform raises ArgumentError for unknown chore name
-HousekeepingStubModel.add(status: 'active')
+@stub.add(status: 'active')
 begin
-  @job.perform('HousekeepingStubModel', :no_such_chore)
+  @job.perform(@stub, :no_such_chore)
   false
 rescue ArgumentError => ex
   ex.message.include?('unknown chore')
@@ -152,16 +156,16 @@ end
 #=> true
 
 ## perform runs all chores on every instance and reports per-chore stats
-HousekeepingStubModel.reset!
-HousekeepingStubModel.chore(:uppercase_status) do |obj|
+@stub.reset!
+@stub.chore(:uppercase_status) do |obj|
   next unless obj.status && obj.status != obj.status.upcase
 
   obj.status = obj.status.upcase
   true
 end
-HousekeepingStubModel.chore(:always_noop) { |_obj| nil }
-HousekeepingStubModel.add(status: 'mixed_case')
-report = @job.perform('HousekeepingStubModel')
+@stub.chore(:always_noop) { |_obj| nil }
+@stub.add(status: 'mixed_case')
+report = @job.perform(@stub)
 [
   report[:model],
   report[:scanned],
@@ -172,15 +176,15 @@ report = @job.perform('HousekeepingStubModel')
 #=> ['HousekeepingStubModel', 1, true, true, 0]
 
 ## perform records modifications when chore returns truthy
-HousekeepingStubModel.reset!
-HousekeepingStubModel.chore(:uppercase_status) do |obj|
+@stub.reset!
+@stub.chore(:uppercase_status) do |obj|
   next unless obj.status && obj.status != obj.status.upcase
 
   obj.status = obj.status.upcase
   true
 end
-target = HousekeepingStubModel.add(status: 'lowercase')
-report = @job.perform('HousekeepingStubModel')
+target = @stub.add(status: 'lowercase')
+report = @job.perform(@stub)
 [
   report[:chores][:uppercase_status][:modified],
   target.status,
@@ -188,30 +192,30 @@ report = @job.perform('HousekeepingStubModel')
 #=> [1, 'LOWERCASE']
 
 ## perform respects the limit option (caps records scanned)
-HousekeepingStubModel.reset!
-HousekeepingStubModel.chore(:noop) { |_| nil }
-3.times { |i| HousekeepingStubModel.add(status: "s#{i}") }
-report = @job.perform('HousekeepingStubModel', limit: 1)
+@stub.reset!
+@stub.chore(:noop) { |_| nil }
+3.times { |i| @stub.add(status: "s#{i}") }
+report = @job.perform(@stub, limit: 1)
 report[:scanned]
 #=> 1
 
 ## perform with an explicit chore name only runs that chore
-HousekeepingStubModel.reset!
-HousekeepingStubModel.chore(:keep)  { |_| true }
-HousekeepingStubModel.chore(:other) { |_| true }
-HousekeepingStubModel.add(status: 'oneoff')
-report = @job.perform('HousekeepingStubModel', :keep)
+@stub.reset!
+@stub.chore(:keep)  { |_| true }
+@stub.chore(:other) { |_| true }
+@stub.add(status: 'oneoff')
+report = @job.perform(@stub, :keep)
 report[:chores].keys
 #=> [:keep]
 
 ## perform counts errors per chore instead of crashing the run
-HousekeepingStubModel.reset!
-HousekeepingStubModel.chore(:always_raises) { |_| raise StandardError, 'boom' }
-HousekeepingStubModel.add(status: 'errors')
-report = @job.perform('HousekeepingStubModel', :always_raises)
+@stub.reset!
+@stub.chore(:always_raises) { |_| raise StandardError, 'boom' }
+@stub.add(status: 'errors')
+report = @job.perform(@stub, :always_raises)
 report[:chores][:always_raises][:errors]
 #=> 1
 
 # TEARDOWN
 
-HousekeepingStubModel.reset!
+@stub.reset!

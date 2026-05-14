@@ -67,17 +67,19 @@ module Onetime
           #     },
           #   }
           #
-          # @param model_class_name [String] fully-qualified model class name
+          # @param model [String, Class] fully-qualified model class name, or
+          #   the class itself (CLI passes strings, in-process callers can pass
+          #   the class directly)
           # @param chore_name [Symbol, String, nil] specific chore, or nil for all
           # @param limit [Integer, nil] cap on records scanned; nil iterates all
           # @return [Hash] stats hash (see above)
           # @raise [ArgumentError] if the model is unknown or has no chores
           # @raise [NameError] if the model class name cannot be resolved
-          def perform(model_class_name, chore_name = nil, limit: nil)
-            klass = resolve_model(model_class_name)
+          def perform(model, chore_name = nil, limit: nil)
+            klass = model.is_a?(Class) ? model : resolve_model(model)
 
             unless klass.respond_to?(:chores)
-              raise ArgumentError, "#{model_class_name} does not enable feature :housekeeping"
+              raise ArgumentError, "#{klass.name} does not enable feature :housekeeping"
             end
 
             chore_keys = resolve_chore_keys(klass, chore_name)
@@ -100,7 +102,7 @@ module Onetime
               end
             end
 
-            { model: model_class_name, scanned: scanned, chores: stats }
+            { model: klass.name, scanned: scanned, chores: stats }
           end
 
           # Discover model classes with at least one registered chore.
