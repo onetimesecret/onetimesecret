@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../scheduled_job'
+require_relative '../maintenance_job'
 
 module Onetime
   module Jobs
@@ -19,30 +19,40 @@ module Onetime
       # Configuration:
       #   jobs.maintenance.housekeeping.enabled: true
       #   jobs.maintenance.housekeeping.cron: '0 2 * * *'   # nightly at 2 AM
+      #   jobs.maintenance.housekeeping.batch_size: 100     # records per pipeline
       #   jobs.maintenance.housekeeping.models:               # optional allowlist
       #     - Onetime::Organization
       #     - Onetime::Customer
       #
-      # When `models:` is omitted, every model that declares
-      # `feature :housekeeping` and registers at least one chore is included.
+      # When `models:` is omitted, every class in
+      # MaintenanceJob::INSTANCE_MODELS that registers at least one chore is
+      # included.
       #
       # Direct invocation (CLI / one-off):
       #   HousekeepingJob.perform('Onetime::Organization')
       #   HousekeepingJob.perform('Onetime::Organization', :standardize_planid)
       #   HousekeepingJob.perform('Onetime::Organization', limit: 50)
       #
-      class HousekeepingJob < ScheduledJob
+      class HousekeepingJob < Onetime::Jobs::MaintenanceJob
         JOB_KEY = 'housekeeping'
+
+        # Default Redis-pipelined batch size for `load_multi`. Override via
+        # `jobs.maintenance.housekeeping.batch_size` (inherited base default
+        # is 500; we use a smaller value because each batch also drives a
+        # per-record chore call, so latency per batch matters more here.)
+        DEFAULT_BATCH_SIZE = 100
 
         class << self
           def schedule(scheduler)
-            return unless job_enabled?
+            return unless job_enabled?(JOB_KEY)
 
-            cron_pattern = job_cron
+            cron_pattern = job_cron(JOB_KEY)
             scheduler_logger.info "[HousekeepingJob] Scheduling with cron: #{cron_pattern}"
 
             cron(scheduler, cron_pattern) do
-              run_scheduled
+              with_stats('HousekeepingJob') do |report|
+                run_all_models(report)
+              end
             end
           end
 
@@ -62,6 +72,7 @@ module Onetime
           # @param limit [Integer, nil] cap on records scanned; nil iterates all
           # @return [Hash] stats hash (see above)
           # @raise [ArgumentError] if the model is unknown or has no chores
+          # @raise [NameError] if the model class name cannot be resolved
           def perform(model_class_name, chore_name = nil, limit: nil)
             klass = resolve_model(model_class_name)
 
@@ -72,21 +83,20 @@ module Onetime
             chore_keys = resolve_chore_keys(klass, chore_name)
             stats      = chore_keys.to_h { |key| [key, { modified: 0, errors: 0 }] }
             scanned    = 0
+            batch_max  = housekeeping_batch_size
 
-            klass.instances.each do |objid|
+            klass.instances.to_a.each_slice(batch_max) do |batch_objids|
               break if limit && scanned >= limit
 
-              record = klass.load(objid)
-              next unless record
+              if limit
+                remaining    = limit - scanned
+                batch_objids = batch_objids.take(remaining)
+              end
 
-              scanned += 1
-
-              chore_keys.each do |key|
-                results = record.tidy!(key)
-                stats[key][:modified] += 1 if results[key]
-              rescue StandardError => ex
-                stats[key][:errors] += 1
-                OT.le "[HousekeepingJob] #{klass}##{record.identifier} chore=#{key} failed: #{ex.message}"
+              records = klass.load_multi(batch_objids).compact
+              records.each do |record|
+                scanned += 1
+                run_chores_for(klass, record, chore_keys, stats)
               end
             end
 
@@ -112,20 +122,31 @@ module Onetime
 
           private
 
+          def run_chores_for(klass, record, chore_keys, stats)
+            chore_keys.each do |key|
+              results = record.tidy!(key)
+              stats[key][:modified] += 1 if results[key]
+            rescue StandardError => ex
+              stats[key][:errors] += 1
+              OT.le "[HousekeepingJob] #{klass}##{record.identifier} chore=#{key} failed: #{ex.message}"
+            end
+          end
+
           # Iterate every model with chores and run all of them. Logs one
           # structured line per model so failures don't bring down the run.
-          def run_scheduled
+          def run_all_models(report)
             models = models_with_chores
             if models.empty?
               scheduler_logger.info '[HousekeepingJob] No models have chores registered; skipping'
+              report[:models] = {}
               return
             end
 
-            models.each do |klass|
-              report = perform(klass.name)
-              scheduler_logger.info "[HousekeepingJob] #{JSON.generate(report)}"
+            report[:models] = models.to_h do |klass|
+              [klass.name, perform(klass.name)]
             rescue StandardError => ex
               scheduler_logger.error "[HousekeepingJob] #{klass.name} failed: #{ex.message}"
+              [klass.name, { error: ex.message }]
             end
           end
 
@@ -146,30 +167,13 @@ module Onetime
             end
           end
 
-          def resolve_model(class_name)
-            class_name.to_s.split('::').reduce(Object) do |mod, name|
-              mod.const_get(name)
-            end
-          end
-
-          def maintenance_config
-            OT.conf.dig('jobs', 'maintenance') || {}
-          end
-
-          def job_config
-            maintenance_config[JOB_KEY] || {}
-          end
-
-          def job_enabled?
-            maintenance_config['enabled'] == true && job_config['enabled'] == true
-          end
-
-          def job_cron
-            job_config['cron'] || '0 2 * * *'
+          def housekeeping_batch_size
+            configured = job_config(JOB_KEY)['batch_size'].to_i
+            configured.positive? ? configured : DEFAULT_BATCH_SIZE
           end
 
           def configured_models
-            list = job_config['models']
+            list = job_config(JOB_KEY)['models']
             return nil unless list.is_a?(Array) && list.any?
 
             list
@@ -179,7 +183,6 @@ module Onetime
           # configured. Mirrors MaintenanceJob::INSTANCE_MODELS so we stay
           # in sync with the canonical iterable models.
           def default_model_names
-            require_relative '../maintenance_job'
             Onetime::Jobs::MaintenanceJob::INSTANCE_MODELS.map { |_label, class_name, _prefix| class_name }
           end
         end

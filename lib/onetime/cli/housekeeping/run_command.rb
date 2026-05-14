@@ -51,7 +51,7 @@ module Onetime
           )
         end
         puts 'Done.'
-      rescue ArgumentError => ex
+      rescue ArgumentError, NameError => ex
         warn ex.message
         exit 1
       end

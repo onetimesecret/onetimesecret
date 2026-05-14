@@ -3,11 +3,12 @@
 # frozen_string_literal: true
 
 # Tests the HousekeepingJob class — its scheduling guard, model discovery,
-# and per-instance chore execution against a stub Familia::Horreum class.
+# and per-instance chore execution.
 #
-# We construct an isolated, non-Onetime model with the upstream
-# `feature :housekeeping` and a couple of `chore :name` blocks, then verify
-# perform() iterates instances, calls tidy!, and aggregates stats.
+# Uses a duck-typed stub class instead of a real Familia::Horreum so the
+# tests don't depend on the upstream `feature :housekeeping` being shipped
+# in the locked gem version. HousekeepingJob only cares about the shape of
+# the model interface (.chores, .instances, .load_multi, #tidy!, #identifier).
 
 require_relative '../support/test_helpers'
 
@@ -22,44 +23,67 @@ def call_private(method, *args, &block)
   @job.send(method, *args, &block)
 end
 
-# A throwaway Horreum model so we don't pollute production keyspace.
-# Familia must already provide :housekeeping for this to load.
-class HousekeepingTryModel < Familia::Horreum
-  feature :housekeeping
-  feature :object_identifier
-
-  prefix :housekeeping_try
-  identifier_field :objid
-
-  field :status
-
-  chore :uppercase_status do |obj|
-    next unless obj.status && obj.status != obj.status.upcase
-
-    obj.status = obj.status.upcase
-    obj.save
-    true
+# Minimal stand-in that mirrors the surface HousekeepingJob touches.
+# Lives outside the Onetime namespace so the default model-name fallback
+# (MaintenanceJob::INSTANCE_MODELS) never picks it up unintentionally.
+class HousekeepingStubModel
+  Record = Struct.new(:identifier, :status) do
+    def tidy!(name = nil)
+      keys = name ? [name.to_sym] : HousekeepingStubModel.chores.keys
+      keys.to_h { |k| [k, HousekeepingStubModel.chores[k].call(self)] }
+    end
   end
 
-  chore :always_noop do |_obj|
-    nil
+  class << self
+    def reset!
+      @chores  = {}
+      @records = []
+    end
+
+    def chores
+      @chores ||= {}
+    end
+
+    def chore(name, &block)
+      chores[name.to_sym] = block
+    end
+
+    def instances
+      records.map(&:identifier)
+    end
+
+    def load_multi(objids)
+      objids.map { |id| records.find { |r| r.identifier == id } }
+    end
+
+    def add(status:)
+      record = Record.new(SecureRandom.hex(8), status)
+      records << record
+      record
+    end
+
+    def records
+      @records ||= []
+    end
   end
 end
 
-@cleanup_objids = []
-@created_records = []
+HousekeepingStubModel.reset!
+HousekeepingStubModel.chore(:uppercase_status) do |obj|
+  next unless obj.status && obj.status != obj.status.upcase
 
-def make_record(status:)
-  rec = HousekeepingTryModel.new(status: status)
-  rec.save
-  @created_records << rec
-  @cleanup_objids << rec.identifier
-  rec
+  obj.status = obj.status.upcase
+  true
 end
+HousekeepingStubModel.chore(:always_noop) { |_obj| nil }
 
 # TRYOUTS
 
-## HousekeepingJob is a ScheduledJob subclass
+## HousekeepingJob inherits from MaintenanceJob
+@job < Onetime::Jobs::MaintenanceJob
+#=> true
+
+## HousekeepingJob is ultimately a ScheduledJob
 @job < Onetime::Jobs::ScheduledJob
 #=> true
 
@@ -67,27 +91,40 @@ end
 @job::JOB_KEY
 #=> 'housekeeping'
 
+## DEFAULT_BATCH_SIZE is a positive integer
+@job::DEFAULT_BATCH_SIZE.positive?
+#=> true
+
 ## job_enabled? returns false when maintenance.housekeeping is not enabled
-call_private(:job_enabled?)
+call_private(:job_enabled?, @job::JOB_KEY)
 #=> false
 
-## job_cron has a sensible default
-call_private(:job_cron)
-#=> '0 2 * * *'
+## job_cron returns the inherited default when unconfigured
+call_private(:job_cron, @job::JOB_KEY)
+#=> '0 4 * * *'
 
-## resolve_model handles top-level constant lookup
-call_private(:resolve_model, 'HousekeepingTryModel').name
-#=> 'HousekeepingTryModel'
+## resolve_model resolves a top-level constant
+call_private(:resolve_model, 'HousekeepingStubModel').name
+#=> 'HousekeepingStubModel'
 
-## resolve_model handles nested namespace
+## resolve_model resolves a nested namespace
 call_private(:resolve_model, 'Onetime::Customer').name
 #=> 'Onetime::Customer'
 
-## models_with_chores skips models without the housekeeping feature
-@job.models_with_chores.none? { |k| k == Onetime::Customer }
+## resolve_model raises NameError for unknown classes
+begin
+  call_private(:resolve_model, 'No::Such::Class')
+  false
+rescue NameError
+  true
+end
 #=> true
 
-## perform raises ArgumentError for models without housekeeping
+## models_with_chores does NOT pick up the stub (it's outside INSTANCE_MODELS)
+@job.models_with_chores.none? { |k| k.name == 'HousekeepingStubModel' }
+#=> true
+
+## perform raises ArgumentError for models without the housekeeping shape
 begin
   @job.perform('Onetime::Customer')
   false
@@ -97,9 +134,9 @@ end
 #=> true
 
 ## perform raises ArgumentError for unknown chore name
-make_record(status: 'active')
+HousekeepingStubModel.add(status: 'active')
 begin
-  @job.perform('HousekeepingTryModel', :no_such_chore)
+  @job.perform('HousekeepingStubModel', :no_such_chore)
   false
 rescue ArgumentError => ex
   ex.message.include?('unknown chore')
@@ -107,61 +144,83 @@ end
 #=> true
 
 ## perform runs all chores on every instance and reports per-chore stats
-record = make_record(status: 'mixed_case')
-report = @job.perform('HousekeepingTryModel')
+HousekeepingStubModel.reset!
+HousekeepingStubModel.chore(:uppercase_status) do |obj|
+  next unless obj.status && obj.status != obj.status.upcase
+
+  obj.status = obj.status.upcase
+  true
+end
+HousekeepingStubModel.chore(:always_noop) { |_obj| nil }
+HousekeepingStubModel.add(status: 'mixed_case')
+report = @job.perform('HousekeepingStubModel')
 [
   report[:model],
-  report[:scanned] >= 1,
+  report[:scanned],
   report[:chores].key?(:uppercase_status),
   report[:chores].key?(:always_noop),
   report[:chores][:always_noop][:modified],
 ]
-#=> ['HousekeepingTryModel', true, true, true, 0]
+#=> ['HousekeepingStubModel', 1, true, true, 0]
 
 ## perform records modifications when chore returns truthy
-target = make_record(status: 'lowercase')
-report = @job.perform('HousekeepingTryModel')
-[
-  report[:chores][:uppercase_status][:modified] >= 1,
-  HousekeepingTryModel.load(target.identifier).status,
-]
-#=> [true, 'LOWERCASE']
+HousekeepingStubModel.reset!
+HousekeepingStubModel.chore(:uppercase_status) do |obj|
+  next unless obj.status && obj.status != obj.status.upcase
 
-## perform respects limit option (caps records scanned)
-report = @job.perform('HousekeepingTryModel', limit: 1)
+  obj.status = obj.status.upcase
+  true
+end
+target = HousekeepingStubModel.add(status: 'lowercase')
+report = @job.perform('HousekeepingStubModel')
+[
+  report[:chores][:uppercase_status][:modified],
+  target.status,
+]
+#=> [1, 'LOWERCASE']
+
+## perform respects the limit option (caps records scanned)
+HousekeepingStubModel.reset!
+HousekeepingStubModel.chore(:noop) { |_| nil }
+3.times { |i| HousekeepingStubModel.add(status: "s#{i}") }
+report = @job.perform('HousekeepingStubModel', limit: 1)
 report[:scanned]
 #=> 1
 
-## perform with explicit chore name only runs that chore
-target = make_record(status: 'oneoff')
-report = @job.perform('HousekeepingTryModel', :uppercase_status)
-[
-  report[:chores].keys,
-  report[:chores][:uppercase_status][:modified] >= 1,
-]
-#=> [[:uppercase_status], true]
+## perform with an explicit chore name only runs that chore
+HousekeepingStubModel.reset!
+HousekeepingStubModel.chore(:keep)  { |_| true }
+HousekeepingStubModel.chore(:other) { |_| true }
+HousekeepingStubModel.add(status: 'oneoff')
+report = @job.perform('HousekeepingStubModel', :keep)
+report[:chores].keys
+#=> [:keep]
 
 ## perform counts errors per chore instead of crashing the run
-class HousekeepingTryModel
-  chore :always_raises do |_obj|
-    raise StandardError, 'boom'
+HousekeepingStubModel.reset!
+HousekeepingStubModel.chore(:always_raises) { |_| raise StandardError, 'boom' }
+HousekeepingStubModel.add(status: 'errors')
+report = @job.perform('HousekeepingStubModel', :always_raises)
+report[:chores][:always_raises][:errors]
+#=> 1
+
+## perform batches via load_multi (verifies the call is made)
+HousekeepingStubModel.reset!
+HousekeepingStubModel.chore(:noop) { |_| nil }
+2.times { |i| HousekeepingStubModel.add(status: "b#{i}") }
+load_multi_calls = 0
+HousekeepingStubModel.singleton_class.prepend(Module.new do
+  define_method(:load_multi) do |objids|
+    Thread.current[:load_multi_calls] ||= 0
+    Thread.current[:load_multi_calls]  += 1
+    super(objids)
   end
-end
-make_record(status: 'errors')
-report = @job.perform('HousekeepingTryModel', :always_raises)
-report[:chores][:always_raises][:errors] >= 1
+end)
+Thread.current[:load_multi_calls] = 0
+@job.perform('HousekeepingStubModel')
+Thread.current[:load_multi_calls].positive?
 #=> true
 
 # TEARDOWN
 
-@created_records.each do |rec|
-  rec.destroy! if rec.respond_to?(:destroy!)
-rescue StandardError
-  nil
-end
-
-@cleanup_objids.each do |objid|
-  HousekeepingTryModel.instances.remove(objid)
-rescue StandardError
-  nil
-end
+HousekeepingStubModel.reset!
