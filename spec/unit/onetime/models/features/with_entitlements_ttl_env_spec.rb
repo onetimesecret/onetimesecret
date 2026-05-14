@@ -459,11 +459,11 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
     context 'FREE_TIER_LIMITS constant (resolved at load time)' do
       it 'secret_lifetime.max equals 14 days' do
         # The legacy constant is captured from free_tier_limits at class
-        # load. The class loaded before this spec ran, so we re-resolve
-        # to confirm the current state matches DEFAULT_FREE_TTL.
-        described_class.reset_free_tier_limits!
-        ENV.delete('PLAN_TTL_ANONYMOUS')
-        limits = described_class.free_tier_limits
+        # load. We verify the constant directly to ensure legacy callers
+        # receive the correct 14-day default. Unlike the memoized method,
+        # the constant is frozen and immutable, so this pins the load-time
+        # contract for backwards-compat consumers.
+        limits = described_class::FREE_TIER_LIMITS
         expect(limits['secret_lifetime.max']).to eq(described_class::DEFAULT_FREE_TTL)
         expect(limits['secret_lifetime.max']).to eq(1_209_600)
       end
