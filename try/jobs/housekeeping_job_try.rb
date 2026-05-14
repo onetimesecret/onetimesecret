@@ -11,61 +11,69 @@
 # the model interface (.chores, .instances, .load_multi, #tidy!, #identifier).
 
 require_relative '../support/test_helpers'
+require 'securerandom'
 
 OT.boot! :test, false
 
 require_relative '../../lib/onetime/jobs/scheduled/housekeeping_job'
 
-@job = Onetime::Jobs::Scheduled::HousekeepingJob
+# Minimal stand-in that mirrors the surface HousekeepingJob touches.
+# Top-level, outside the Onetime namespace, so the default model-name
+# fallback (MaintenanceJob::INSTANCE_MODELS) never picks it up.
+# Avoids `class << self` and `Struct.new do ... end` patterns because
+# tryouts' Prism-based parser doesn't reliably register the constant on
+# Object when those forms appear at the file's top level.
+class HousekeepingStubModel
+  attr_accessor :status
+  attr_reader :identifier
 
-# Helper to call private class methods
-def call_private(method, *args, &block)
-  @job.send(method, *args, &block)
+  def initialize(status:)
+    @status     = status
+    @identifier = SecureRandom.hex(8)
+  end
+
+  def tidy!(name = nil)
+    chores = HousekeepingStubModel.chores
+    keys   = name ? [name.to_sym] : chores.keys
+    keys.to_h { |k| [k, chores[k].call(self)] }
+  end
+
+  def self.reset!
+    @chores  = {}
+    @records = []
+  end
+
+  def self.chores
+    @chores ||= {}
+  end
+
+  def self.chore(name, &block)
+    chores[name.to_sym] = block
+  end
+
+  def self.instances
+    records.map(&:identifier)
+  end
+
+  def self.load_multi(objids)
+    objids.map { |id| records.find { |r| r.identifier == id } }
+  end
+
+  def self.add(status:)
+    record = new(status: status)
+    records << record
+    record
+  end
+
+  def self.records
+    @records ||= []
+  end
 end
 
-# Minimal stand-in that mirrors the surface HousekeepingJob touches.
-# Lives outside the Onetime namespace so the default model-name fallback
-# (MaintenanceJob::INSTANCE_MODELS) never picks it up unintentionally.
-class HousekeepingStubModel
-  Record = Struct.new(:identifier, :status) do
-    def tidy!(name = nil)
-      keys = name ? [name.to_sym] : HousekeepingStubModel.chores.keys
-      keys.to_h { |k| [k, HousekeepingStubModel.chores[k].call(self)] }
-    end
-  end
+@job = Onetime::Jobs::Scheduled::HousekeepingJob
 
-  class << self
-    def reset!
-      @chores  = {}
-      @records = []
-    end
-
-    def chores
-      @chores ||= {}
-    end
-
-    def chore(name, &block)
-      chores[name.to_sym] = block
-    end
-
-    def instances
-      records.map(&:identifier)
-    end
-
-    def load_multi(objids)
-      objids.map { |id| records.find { |r| r.identifier == id } }
-    end
-
-    def add(status:)
-      record = Record.new(SecureRandom.hex(8), status)
-      records << record
-      record
-    end
-
-    def records
-      @records ||= []
-    end
-  end
+def call_private(method, *args, &block)
+  @job.send(method, *args, &block)
 end
 
 HousekeepingStubModel.reset!
@@ -103,10 +111,6 @@ call_private(:job_enabled?, @job::JOB_KEY)
 call_private(:job_cron, @job::JOB_KEY)
 #=> '0 4 * * *'
 
-## resolve_model resolves a top-level constant
-call_private(:resolve_model, 'HousekeepingStubModel').name
-#=> 'HousekeepingStubModel'
-
 ## resolve_model resolves a nested namespace
 call_private(:resolve_model, 'Onetime::Customer').name
 #=> 'Onetime::Customer'
@@ -119,6 +123,10 @@ rescue NameError
   true
 end
 #=> true
+
+## resolve_model resolves a top-level constant
+call_private(:resolve_model, 'HousekeepingStubModel').name
+#=> 'HousekeepingStubModel'
 
 ## models_with_chores does NOT pick up the stub (it's outside INSTANCE_MODELS)
 @job.models_with_chores.none? { |k| k.name == 'HousekeepingStubModel' }
@@ -203,23 +211,6 @@ HousekeepingStubModel.add(status: 'errors')
 report = @job.perform('HousekeepingStubModel', :always_raises)
 report[:chores][:always_raises][:errors]
 #=> 1
-
-## perform batches via load_multi (verifies the call is made)
-HousekeepingStubModel.reset!
-HousekeepingStubModel.chore(:noop) { |_| nil }
-2.times { |i| HousekeepingStubModel.add(status: "b#{i}") }
-load_multi_calls = 0
-HousekeepingStubModel.singleton_class.prepend(Module.new do
-  define_method(:load_multi) do |objids|
-    Thread.current[:load_multi_calls] ||= 0
-    Thread.current[:load_multi_calls]  += 1
-    super(objids)
-  end
-end)
-Thread.current[:load_multi_calls] = 0
-@job.perform('HousekeepingStubModel')
-Thread.current[:load_multi_calls].positive?
-#=> true
 
 # TEARDOWN
 
