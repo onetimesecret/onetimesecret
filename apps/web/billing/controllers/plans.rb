@@ -106,6 +106,11 @@ module Billing
           #
           automatic_tax: { enabled: true },
           tax_id_collection: { enabled: true },  # EU B2B VAT reverse charge
+
+          # Show the "Add promotion code" field on the Stripe-hosted checkout.
+          # Promotion codes must first be created in the Stripe Dashboard
+          # (Products → Coupons → Promotion codes).
+          allow_promotion_codes: true,
         }
 
         # Customer handling for authenticated users

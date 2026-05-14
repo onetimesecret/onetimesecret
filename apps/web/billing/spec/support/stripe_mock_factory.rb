@@ -40,6 +40,7 @@ module StripeMockFactory
       'cancel_url' => 'https://example.com/cancel',
       'subscription' => nil,
       'automatic_tax' => { 'enabled' => true, 'liability' => { 'type' => 'self' }, 'status' => nil },
+      'allow_promotion_codes' => true,
       'metadata' => {},
       'customer_details' => nil,
       'client_reference_id' => nil

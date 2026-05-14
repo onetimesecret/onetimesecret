@@ -23,6 +23,8 @@ bin/ots billing                 # Show help
 bin/ots billing plans           # List cached plans
 bin/ots billing products        # List Stripe products
 bin/ots billing prices          # List Stripe prices
+bin/ots billing coupons         # List Stripe coupons
+bin/ots billing coupon validate # Check if a coupon/promo code is currently valid
 bin/ots billing sync            # Sync from Stripe to cache
 bin/ots billing validate        # Validate product metadata
 ```
@@ -1341,6 +1343,116 @@ bin/ots billing refunds create --charge ch_ABC123xyz --reason fraudulent --yes
 
 ---
 
+### `bin/ots billing coupons`
+
+List all Stripe coupons along with any active promotion codes attached
+to each. Useful for auditing what discount codes exist and whether they
+are currently redeemable.
+
+**Options:**
+- `--limit INTEGER` - Maximum coupons to return (default: 100)
+- `--valid-only` - Show only coupons where `valid=true` (not expired,
+  redemption cap not reached)
+
+**Examples:**
+```bash
+# List every coupon, plus active promo codes attached
+bin/ots billing coupons
+
+# Only show coupons currently redeemable
+bin/ots billing coupons --valid-only
+
+# Larger fetch
+bin/ots billing coupons --limit 250
+```
+
+**Output:**
+```
+COUPON ID              NAME                 DISCOUNT     DURATION     REDEEMED     VALID   PROMO CODES
+--------------------------------------------------------------------------------------------------------------
+WELCOME20              Welcome 20%          20% off      once         12           yes     WELCOME20
+SAVE10                 Save $10             CAD 10.00 of repeating    3/100        yes     SAVE10, SAVE10SUMMER
+LEGACY_LOYALTY         Loyalty 50% off      50% off      forever      87           yes     (none)
+
+Total: 3 coupon(s)
+```
+
+**Column meanings:**
+- `DISCOUNT` — percent off (any currency) or amount off (single-currency)
+- `DURATION` — `once`, `forever`, or `NNmo` for repeating coupons
+- `REDEEMED` — `times_redeemed` or `times_redeemed/max_redemptions`
+- `VALID` — Stripe's `valid` flag (the coupon can still be applied)
+- `PROMO CODES` — comma-separated list of active promotion codes that
+  resolve to this coupon at checkout
+
+---
+
+### `bin/ots billing coupon validate <CODE>`
+
+Look up a coupon or promotion code and report whether it would currently
+apply at checkout, along with all discount, duration, and restriction
+details. The argument can be either the customer-facing promotion code
+string (e.g. `WELCOME20`) or a Stripe coupon ID.
+
+**Arguments:**
+- `code` - The promotion code string or coupon ID to validate
+
+**Examples:**
+```bash
+# Validate a customer-facing promotion code
+bin/ots billing coupon validate WELCOME20
+
+# Validate a coupon by its Stripe ID
+bin/ots billing coupon validate cou_abc123
+```
+
+**Output (valid):**
+```
+Coupon details:
+  Coupon ID:    WELCOME20
+  Name:         Welcome 20%
+  Discount:     20% off
+  Duration:     once
+  Created:      2025-11-12 10:00:00 UTC
+  Redeemed:     12 (no max)
+
+Promotion code:
+  Code:         WELCOME20
+  ID:           promo_1Q...
+  Active:       yes
+
+✓ Code is currently valid and can be applied at checkout
+```
+
+**Output (invalid):**
+```
+Coupon details:
+  Coupon ID:    EXPIRED_OFFER
+  ...
+✗ Code is NOT currently valid:
+  - Coupon is not valid (likely max redemptions reached or redeem_by passed)
+  - Promotion code expired at 2025-04-01 00:00:00 UTC
+```
+
+**What it checks:**
+- Coupon's own `valid` flag (covers `redeem_by` and `max_redemptions`)
+- Promotion code's `active` flag and `expires_at`
+- Promotion-code-specific `max_redemptions`
+- Promotion-code restrictions (first-time customer, minimum order amount)
+
+**Exit code:**
+- `0` if the code is currently valid
+- `1` if the code is invalid, expired, or not found — useful for scripting
+
+**Notes:**
+- Promotion code lookup uses Stripe's API which is case-sensitive. At
+  the customer-facing checkout Stripe matches case-insensitively, but
+  the API lookup here must use the exact stored casing.
+- Test-mode and live-mode codes are entirely separate. Make sure your
+  `STRIPE_API_KEY` matches the environment where the code was created.
+
+---
+
 ### `bin/ots billing test trigger-webhook`
 
 Trigger test webhook events for development/testing. **Requires Stripe CLI.**
@@ -1805,6 +1917,8 @@ bin/ots billing payment-links create \
 | `billing refunds` | List refunds | `--charge`, `--limit` |
 | `billing refunds create` | Create refund | `--charge`, `--amount`, `--reason`, `--yes` |
 | `billing payment-methods set-default` | Set default payment method | `--customer` |
+| `billing coupons` | List Stripe coupons with promo codes | `--valid-only`, `--limit` |
+| `billing coupon validate` | Check if a coupon/promo code is currently valid | - |
 | `billing events` | View recent events | `--type`, `--limit` |
 | `billing test create-customer` | Create test customer with card | `--with-card` |
 | `billing test trigger-webhook` | Trigger test webhook event | `--subscription`, `--customer` |

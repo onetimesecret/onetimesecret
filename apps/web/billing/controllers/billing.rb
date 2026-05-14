@@ -118,6 +118,10 @@ module Billing
           customer_email: org.billing_email || cust.email,
           client_reference_id: org.objid,
           locale: req.env['rack.locale']&.first || 'auto',
+          # Show the "Add promotion code" field on the Stripe-hosted checkout.
+          # Promotion codes must first be created in the Stripe Dashboard
+          # (Products → Coupons → Promotion codes).
+          allow_promotion_codes: true,
           subscription_data: {
             metadata: {
               orgid: org.objid,
