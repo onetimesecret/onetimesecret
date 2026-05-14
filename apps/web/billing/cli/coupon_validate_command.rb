@@ -87,22 +87,22 @@ module Onetime
         puts "  Redeemed:     #{redemption_summary(coupon)}"
         puts
 
-        if promo_code
-          puts 'Promotion code:'
-          puts "  Code:         #{promo_code.code}"
-          puts "  ID:           #{promo_code.id}"
-          puts "  Active:       #{promo_code.active ? 'yes' : 'no'}"
-          if promo_code.expires_at
-            puts "  Expires at:   #{format_timestamp(promo_code.expires_at)}"
-          end
-          if promo_code.max_redemptions
-            puts "  Redeemed:     #{promo_code.times_redeemed}/#{promo_code.max_redemptions}"
-          end
-          if promo_code.customer
-            puts "  Customer:     #{promo_code.customer} (restricted to this customer)"
-          end
-          puts
+        return unless promo_code
+
+        puts 'Promotion code:'
+        puts "  Code:         #{promo_code.code}"
+        puts "  ID:           #{promo_code.id}"
+        puts "  Active:       #{promo_code.active ? 'yes' : 'no'}"
+        if promo_code.expires_at
+          puts "  Expires at:   #{format_timestamp(promo_code.expires_at)}"
         end
+        if promo_code.max_redemptions
+          puts "  Redeemed:     #{promo_code.times_redeemed}/#{promo_code.max_redemptions}"
+        end
+        if promo_code.customer
+          puts "  Customer:     #{promo_code.customer} (restricted to this customer)"
+        end
+        puts
       end
 
       def print_restrictions(coupon, promo_code)
