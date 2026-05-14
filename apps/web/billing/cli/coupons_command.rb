@@ -33,6 +33,14 @@ module Onetime
           return
         end
 
+        # Batch-fetch active promotion codes once and group by coupon ID, so we
+        # avoid one Stripe API call per coupon (N+1).
+        #
+        # NOTE: Stripe caps a single list page at 100. If there are more than
+        # 100 active promotion codes in this account, this command will only
+        # show the first page. Add pagination here if that limit becomes real.
+        promo_codes_by_coupon = group_promotion_codes_by_coupon
+
         puts format(
           '%-22s %-20s %-12s %-12s %-12s %-7s %s',
           'COUPON ID',
@@ -46,7 +54,7 @@ module Onetime
         puts '-' * 110
 
         coupons.each do |coupon|
-          puts format_coupon_row(coupon)
+          puts format_coupon_row(coupon, promo_codes_by_coupon)
         end
 
         puts "\nTotal: #{coupons.size} coupon(s)"
@@ -57,13 +65,13 @@ module Onetime
 
       private
 
-      def format_coupon_row(coupon)
+      def format_coupon_row(coupon, promo_codes_by_coupon)
         name        = coupon.name || coupon.id
         discount    = format_discount(coupon)
         duration    = format_duration(coupon)
         redeemed    = redemption_summary(coupon)
         valid_str   = coupon.valid ? 'yes' : 'no'
-        promo_codes = lookup_promotion_codes(coupon.id)
+        promo_codes = promo_codes_for(coupon.id, promo_codes_by_coupon)
 
         format(
           '%-22s %-20s %-12s %-12s %-12s %-7s %s',
@@ -104,19 +112,20 @@ module Onetime
         end
       end
 
-      # Look up promotion codes attached to this coupon.
-      # Returns a compact comma-separated string of the customer-facing codes,
-      # or '(none)' if there are no active promotion codes.
-      def lookup_promotion_codes(coupon_id)
-        codes = Stripe::PromotionCode.list(coupon: coupon_id, limit: 10)
-        return '(none)' if codes.data.empty?
+      # Fetch active promotion codes in a single API call and return them
+      # grouped by their underlying coupon ID. Any error here propagates up
+      # to the command's top-level rescue so the user sees a real message
+      # rather than silent fallback values.
+      def group_promotion_codes_by_coupon
+        codes = Stripe::PromotionCode.list(active: true, limit: 100).data
+        codes.group_by { |pc| pc.coupon.is_a?(String) ? pc.coupon : pc.coupon.id }
+      end
 
-        active = codes.data.select(&:active).map(&:code)
-        return '(none active)' if active.empty?
+      def promo_codes_for(coupon_id, promo_codes_by_coupon)
+        codes = promo_codes_by_coupon[coupon_id]
+        return '(none active)' if codes.nil? || codes.empty?
 
-        active.join(', ')
-      rescue Stripe::StripeError
-        '?'
+        codes.map(&:code).join(', ')
       end
     end
   end
