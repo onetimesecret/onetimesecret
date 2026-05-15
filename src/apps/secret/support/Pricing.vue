@@ -147,8 +147,8 @@
    * Build signup URL with product and interval query params.
    * Free plans go to /signup without billing params.
    * Paid plans include product and interval for checkout flow.
-   * All variants include redirect=<current path> so the user returns
-   * to this pricing view after authentication.
+   * All variants include redirect=<current fullPath> so the user returns
+   * to this pricing view (with any query/hash preserved) after authentication.
    */
   const getSignupUrl = (plan: BillingPlan): string => {
     const params = new URLSearchParams();
@@ -156,16 +156,17 @@
       params.set('product', extractProductFromPlanId(plan.id));
       params.set('interval', getIntervalForQuery(plan));
     }
-    params.set('redirect', route.path);
+    params.set('redirect', route.fullPath);
     return `/signup?${params.toString()}`;
   };
 
   /**
-   * Build signin URL preserving the current path as a redirect target.
+   * Build signin URL preserving the current fullPath as a redirect target.
    */
-  const signinUrl = computed(
-    () => `/signin?redirect=${encodeURIComponent(route.path)}`
-  );
+  const signinUrl = computed(() => {
+    const params = new URLSearchParams({ redirect: route.fullPath });
+    return `/signin?${params.toString()}`;
+  });
 
   const loadPlans = async () => {
     isLoadingPlans.value = true;

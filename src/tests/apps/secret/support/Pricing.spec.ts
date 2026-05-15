@@ -14,11 +14,14 @@ const mockListPlans = vi.hoisted(() => vi.fn());
 let mockRouteParamsValue: Record<string, string> = {};
 let mockRoutePathValue = '/pricing';
 
-// Mock vue-router
+// Mock vue-router. The mock exposes the same value for `path` and `fullPath`
+// since none of the tests need to distinguish them; tests that exercise
+// query-preserving behavior can set mockRoutePathValue to include a `?...`.
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     get params() { return mockRouteParamsValue; },
     get path() { return mockRoutePathValue; },
+    get fullPath() { return mockRoutePathValue; },
     query: {},
   }),
   RouterLink: {
@@ -359,6 +362,24 @@ describe('Pricing.vue', () => {
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain(
         'redirect=%2Fpricing%2Fidentity_plus%2Fyearly'
+      );
+    });
+
+    it('preserves query string on the current URL in the redirect target', async () => {
+      const paidPlan = createMockPlan({
+        id: 'identity_plus_v1_monthly',
+        tier: 'single_team',
+        interval: 'month',
+      });
+
+      mockListPlans.mockResolvedValueOnce({ plans: [paidPlan] });
+      // route.fullPath (not route.path) includes the query string
+      mockRoutePathValue = '/pricing?utm_source=blog';
+      await mountComponent();
+
+      const signupLink = wrapper.find('[data-testid="signup-link"]');
+      expect(signupLink.attributes('href')).toContain(
+        'redirect=%2Fpricing%3Futm_source%3Dblog'
       );
     });
   });
