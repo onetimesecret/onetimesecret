@@ -227,6 +227,14 @@ module Onetime
         Onetime::ClientIpHelpers.extract_forwarded_ips(req.env, header_type)
       end
 
+      def extract_x_forwarded_for
+        Onetime::ClientIpHelpers.extract_x_forwarded_for(req.env)
+      end
+
+      def extract_rfc7239_forwarded
+        Onetime::ClientIpHelpers.extract_rfc7239_forwarded(req.env)
+      end
+
       # Check if IP address matches any configured CIDR
       #
       # @param ip_string [String] IP address to check
