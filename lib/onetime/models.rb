@@ -15,3 +15,8 @@ require_relative 'models/feedback'
 require_relative 'models/custom_domain/sso_config'
 require_relative 'models/custom_domain/mailer_config'
 require_relative 'models/custom_domain/incoming_config'
+
+# Housekeeping chores - loaded after models so chore DSL is available
+Dir.glob(File.join(__dir__, 'models', '*', 'chores', '*.rb')).each do |chore_file|
+  require chore_file
+end
