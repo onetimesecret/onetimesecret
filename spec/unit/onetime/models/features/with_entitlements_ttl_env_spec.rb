@@ -315,6 +315,10 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
         def billing_enabled?
           true
         end
+
+        def extid
+          'test-org-extid'
+        end
       end
     end
 
@@ -401,7 +405,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
   # planid (or a cache-miss planid) was getting a stricter 7-day ceiling
   # than the published free_v1 14-day limit. These tests pin down the
   # contract so the drift cannot silently return.
-  describe '#3111 regression: free tier TTL parity with free_v1' do
+  describe '#3111 regression: free tier TTL parity with free_v1', billing: true do
     let(:test_class) do
       Class.new do
         include Onetime::Models::Features::WithEntitlements
@@ -414,6 +418,10 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
 
         def billing_enabled?
           true
+        end
+
+        def extid
+          'test-org-extid'
         end
       end
     end
@@ -443,16 +451,17 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
       end
     end
 
-    context 'when planid points to a missing plan (cache miss fallback)' do
+    context 'when planid points to a missing plan (cache miss)' do
       let(:org) { test_class.new('definitely_not_a_real_plan_id') }
 
-      it 'limit_for returns 14 days via FREE_TIER_LIMITS fallback' do
-        # When the plan cache misses, limit_for falls through to
-        # free_tier_limit_for. With #3111 fixed, that fallback yields 14
-        # days, matching the canonical free_v1 plan rather than the
-        # legacy 7-day constant.
-        allow(OT).to receive(:lw) # suppress expected fallback warning
-        expect(org.limit_for('secret_lifetime')).to eq(1_209_600)
+      it 'raises PlanCacheMissError (fail-closed)' do
+        # With #3089 fix, unknown plan IDs raise rather than silently
+        # degrading to free tier. This is an ops problem that should
+        # surface immediately, not be masked by fallback behavior.
+        expect { org.limit_for('secret_lifetime') }.to raise_error(
+          Billing::PlanCacheMissError,
+          /Plan not found in cache or config/
+        )
       end
     end
 

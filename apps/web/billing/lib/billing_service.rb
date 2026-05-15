@@ -260,6 +260,12 @@ module Billing
 
       return true if local_base == stripe_base
 
+      # Free-tier equivalence: 'free' and 'free_v1' are the same plan
+      # Check both raw and normalized forms against FREE_PLAN_IDS
+      local_is_free  = FREE_PLAN_IDS.include?(local_planid.to_s) || FREE_PLAN_IDS.include?(local_base)
+      stripe_is_free = FREE_PLAN_IDS.include?(stripe_planid.to_s) || FREE_PLAN_IDS.include?(stripe_base)
+      return true if local_is_free && stripe_is_free
+
       # Try looking up the plan_code from cache for accurate comparison
       stripe_plan = ::Billing::Plan.load(stripe_planid)
       if stripe_plan&.plan_code

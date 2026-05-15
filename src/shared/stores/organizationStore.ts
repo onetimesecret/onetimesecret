@@ -513,7 +513,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           owner_id: '',
           contact_email: null,
           is_default: bootstrapOrg.is_default,
-          planid: bootstrapOrg.planid ?? 'free',
+          planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           // These fields will be populated when full org is fetched
           created: new Date(),
