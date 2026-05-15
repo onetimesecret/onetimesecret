@@ -91,6 +91,31 @@ module Auth::Config::Hooks
             Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
           end
 
+          # Capture plan intent for email verification flow (issue #3126)
+          # Session-based billing redirect doesn't survive email verification, so we
+          # persist the plan selection on the Customer record with a 24h TTL.
+          product  = request.params['product']
+          interval = request.params['interval']
+
+          if product.to_s.strip != '' && interval.to_s.strip != ''
+            intent = {
+              product: product,
+              interval: interval,
+              captured_at: Time.now.utc.iso8601,
+              source_url: request.fullpath,
+            }.to_json
+
+            customer.pending_plan_intent = intent
+
+            Auth::Logging.log_auth_event(
+              :plan_intent_captured,
+              level: :debug,
+              customer_extid: customer.extid,
+              product: product,
+              interval: interval,
+            )
+          end
+
           # Accept pending invitation if token provided in signup request
           invite_token = request.params['invite_token']
           if invite_token && !invite_token.to_s.strip.empty?
@@ -167,6 +192,68 @@ module Auth::Config::Hooks
 
           Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
             Auth::Operations::VerifyCustomer.new(account: account).call
+          end
+
+          # Surface pending plan intent for checkout redirect (issue #3126)
+          # If the user had selected a plan before signup, redirect them to checkout
+          # after verification completes.
+          Onetime::ErrorHandler.safe_execute('surface_plan_intent', extid: account[:extid]) do
+            customer = Onetime::Customer.find_by_extid(account[:external_id])
+
+            if customer&.pending_plan_intent&.value.to_s.strip != ''
+              begin
+                intent   = JSON.parse(customer.pending_plan_intent.value)
+                product  = intent['product']
+                interval = intent['interval']
+
+                # Lazy-load billing dependencies (may not be available on self-hosted)
+                require_relative '../../../billing/lib/plan_resolver'
+
+                # Validate the plan still exists before redirecting
+                result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
+
+                if result.success?
+                  # Clear intent (single-use)
+                  customer.pending_plan_intent = nil
+
+                  # Store redirect in session for verify_account_redirect
+                  session['plan_checkout_redirect'] = "/billing/plans/#{product}/#{interval}"
+
+                  Auth::Logging.log_auth_event(
+                    :plan_intent_surfaced,
+                    level: :info,
+                    customer_extid: customer.extid,
+                    product: product,
+                    interval: interval,
+                  )
+                else
+                  # Plan no longer valid, clear stale intent
+                  customer.pending_plan_intent = nil
+
+                  Auth::Logging.log_auth_event(
+                    :plan_intent_invalid,
+                    level: :warn,
+                    customer_extid: customer.extid,
+                    product: product,
+                    interval: interval,
+                    error: result.error,
+                  )
+                end
+              rescue JSON::ParserError => ex
+                # Corrupted intent, clear it
+                customer.pending_plan_intent = nil
+
+                Auth::Logging.log_auth_event(
+                  :plan_intent_parse_error,
+                  level: :warn,
+                  customer_extid: customer.extid,
+                  error: ex.message,
+                )
+              rescue LoadError
+                # Billing not available (self-hosted), clear intent
+                customer.pending_plan_intent = nil
+              end
+            end
           end
         end
       end
