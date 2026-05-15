@@ -553,9 +553,9 @@ module Billing
         tier     = product.metadata[Metadata::FIELD_TIER]
         region   = product.metadata[Metadata::FIELD_REGION]
 
-        # plan_id is required and has no fallback. The previous fallback to `tier`
-        # silently produced wrong identities (e.g. "single_team_monthly" instead of
-        # "identity_plus_v1_monthly") whenever catalog metadata was incomplete.
+        # plan_id is required metadata (validated above). Defense-in-depth:
+        # raise rather than silently building "tier_monthly" when the key is
+        # present but blank — key-presence validation alone won't catch that.
         base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID]
         if base_plan_id.nil? || base_plan_id.to_s.strip.empty?
           raise Onetime::ConfigError,

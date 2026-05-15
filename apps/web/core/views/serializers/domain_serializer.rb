@@ -21,6 +21,7 @@ module Core
       #
       # @param view_vars [Hash] The view variables containing domain information
       # @return [Hash] Serialized domain data
+      # rubocop:disable Metrics/PerceivedComplexity -- cohesive domain serialization; splitting would scatter related logic
       def self.serialize(view_vars)
         output                     = output_template
         output['domain_strategy']  = view_vars['domain_strategy']
@@ -35,6 +36,7 @@ module Core
 
         output
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       class << self
         # Provides the base template for domain serializer output

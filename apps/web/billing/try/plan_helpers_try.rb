@@ -396,7 +396,7 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
   contact_email: "new-#{@test_suffix}@example.com",
 )
 @new_org.planid
-#=> 'free'
+#=> 'free_v1'
 
 ## Test: New organization has api_access
 @new_org.can?('api_access')

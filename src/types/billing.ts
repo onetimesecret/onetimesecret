@@ -78,6 +78,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 export function getPlanLabel(planType: PlanType | string): string {
   const labels: Record<string, string> = {
     free: 'Free',
+    free_v1: 'Free',
     single_team: 'Single Team',
     multi_team: 'Multi Team',
     identity_plus: 'Identity Plus',
