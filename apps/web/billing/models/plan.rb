@@ -181,7 +181,7 @@ module Billing
     module ClassMethods
       # Required metadata keys for OTS products (app check is separate)
       # Note: 'interval' comes from the price object, not product metadata
-      REQUIRED_PRODUCT_METADATA = %w[plan_id tier region].freeze
+      REQUIRED_PRODUCT_METADATA = [Metadata::FIELD_PLAN_ID, Metadata::FIELD_TIER, Metadata::FIELD_REGION].freeze
 
       # Legacy field name variants for plan_id seen on older Stripe products.
       # When one of these is present without `plan_id`, surface a migration
