@@ -110,5 +110,26 @@ module Billing
     def self.normalize_limit(value)
       unlimited?(value) ? Float::INFINITY : value.to_i
     end
+
+    # Resolve the deployment's current region for Stripe customer metadata.
+    #
+    # Returns the configured jurisdiction (e.g., 'EU', 'US') when regions are
+    # enabled, or 'global' when regions are disabled. Raises ConfigError if
+    # regions are enabled but no jurisdiction is set — that's a deployment
+    # misconfiguration that must be corrected, not silently defaulted.
+    #
+    # @return [String] Region jurisdiction code, or 'global' if regions disabled
+    # @raise [Onetime::ConfigError] If regions enabled but jurisdiction missing
+    def self.current_region
+      return 'global' unless OT.conf&.dig('features', 'regions', 'enabled')
+
+      jurisdiction = OT.conf&.dig('features', 'regions', 'current_jurisdiction')
+      if jurisdiction.to_s.strip.empty?
+        raise Onetime::ConfigError,
+              'features.regions.enabled is true but features.regions.current_jurisdiction is not set'
+      end
+
+      jurisdiction
+    end
   end
 end
