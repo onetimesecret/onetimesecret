@@ -16,6 +16,7 @@
 # @see https://github.com/onetimesecret/onetimesecret/issues/2471
 
 require 'onetime/utils/email_hash'
+require 'billing/metadata'
 
 module Onetime
   module CLI
@@ -168,12 +169,11 @@ module Onetime
       end
 
       def update_stripe_customer(org, customer, email_hash, idx, total_orgs, dry_run, verbose)
-        region          = OT.conf.dig('site', 'region') || 'default'
         merged_metadata = customer.metadata.to_h.merge(
           'email_hash' => email_hash,
           'email_hash_created_at' => Time.now.to_i.to_s,
           'email_hash_migrated' => 'true',
-          'region' => region,
+          'region' => Billing::Metadata.current_region,
         )
 
         if dry_run

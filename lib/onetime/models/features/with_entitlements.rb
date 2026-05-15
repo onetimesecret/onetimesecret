@@ -216,12 +216,15 @@ module Onetime
               end
             end
 
-            # Final fallback: FREE tier to avoid "No features available". Log
-            # at warn so misconfigured planids surface in dashboards instead
-            # of silently degrading.
-            OT.lw '[WithEntitlements] Plan cache miss for entitlements, using FREE tier fallback',
-              planid: planid
-            WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
+            # Fail-closed: unknown plan ID is an ops problem, not a silent degradation.
+            # This catches catalog misconfigurations and stale planid values that
+            # would otherwise silently grant free-tier access.
+            raise Billing::PlanCacheMissError.new(
+              'Plan not found in cache or config',
+              plan_id: planid,
+              context: 'WithEntitlements#entitlements',
+              organization_id: extid,
+            )
           end
 
           # Get limit for a specific resource
@@ -276,12 +279,14 @@ module Onetime
               end
             end
 
-            # Final fallback: FREE tier limits. Log at warn so misconfigured
-            # planids surface in dashboards instead of silently degrading.
-            OT.lw '[WithEntitlements] Plan cache miss for limit_for, using FREE tier fallback',
-              planid: planid,
-              resource: key
-            free_tier_limit_for(key)
+            # Fail-closed: unknown plan ID is an ops problem, not a silent degradation.
+            raise Billing::PlanCacheMissError.new(
+              'Plan not found in cache or config',
+              plan_id: planid,
+              context: 'WithEntitlements#limit_for',
+              resource: key,
+              organization_id: extid,
+            )
           end
 
           # Check entitlement with detailed response for upgrade messaging

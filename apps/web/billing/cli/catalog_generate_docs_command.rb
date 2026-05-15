@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'fileutils'
 require 'yaml'
 require_relative 'helpers'
 require_relative '../config'
@@ -16,13 +17,13 @@ module Onetime
 
       option :output,
         type: :string,
-        desc: 'Output file path (default: docs/billing/plan-definitions.md)'
+        desc: 'Output file path (default: apps/web/billing/docs/plan-definitions.md)'
 
       def call(output: nil, **)
         boot_application!
 
         catalog_path = Billing::Config.config_path
-        output_path  = output || File.join('docs', 'billing', 'plan-definitions.md')
+        output_path  = output || File.join('apps', 'web', 'billing', 'docs', 'plan-definitions.md')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"
@@ -39,6 +40,7 @@ module Onetime
 
         markdown = generate_markdown(catalog, entitlements)
 
+        FileUtils.mkdir_p(File.dirname(output_path))
         File.write(output_path, markdown)
 
         puts "✅ Documentation generated: #{output_path}"
@@ -171,9 +173,9 @@ module Onetime
         end
 
         # Metadata
-        parts << ('**Tier:** ' + plan_data['tier'])
-        parts << ('**Tenancy:** ' + plan_data['tenancy'])
-        parts << ('**Region:** ' + plan_data['region'])
+        parts << "**Tier:** #{plan_data['tier'] || 'N/A'}"
+        parts << "**Tenancy:** #{plan_data['tenancy'] || 'N/A'}"
+        parts << "**Region:** #{plan_data['region'] || 'N/A'}"
         parts << ''
 
         # Entitlements
@@ -200,21 +202,23 @@ module Onetime
           parts << ''
         end
 
-        # Pricing
-        if plan_data['prices']&.any?
-          parts << '**Pricing:**'
-          plan_data['prices'].each do |price|
-            amount_dollars = (price['amount'] / 100.0).round(2)
-            currency_upper = (price['currency'] || default_currency).upcase
-            interval_label = price['interval'] == 'month' ? 'Monthly' : 'Annual'
-
-            parts << "- #{interval_label}: $#{amount_dollars} #{currency_upper}"
-          end
-        elsif plan_id == 'free_v1'
-          parts << '**Pricing:** Free'
-        end
+        parts.concat(generate_pricing_section(plan_id, plan_data, default_currency))
 
         parts.join("\n")
+      end
+
+      def generate_pricing_section(plan_id, plan_data, default_currency)
+        return ['**Pricing:** Free'] if plan_id == 'free_v1'
+        return [] unless plan_data['prices']&.any?
+
+        lines = ['**Pricing:**']
+        plan_data['prices'].each do |price|
+          amount_dollars = (price['amount'] / 100.0).round(2)
+          currency_upper = (price['currency'] || default_currency).upcase
+          interval_label = price['interval'] == 'month' ? 'Monthly' : 'Annual'
+          lines << "- #{interval_label}: $#{amount_dollars} #{currency_upper}"
+        end
+        lines
       end
 
       def format_limit_value(value)
