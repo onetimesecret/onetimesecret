@@ -126,7 +126,7 @@ module Onetime
 
           def run_chores_for(klass, record, chore_keys, stats)
             chore_keys.each do |key|
-              results = record.tidy!(key)
+              results                = record.do_chores!(key) # requires familia 2.7.1+
               stats[key][:modified] += 1 if results[key]
             rescue StandardError => ex
               stats[key][:errors] += 1

@@ -21,7 +21,7 @@
 # Run via HousekeepingJob:
 #   HousekeepingJob.perform('Onetime::Organization', :standardize_planid)
 #
-Logger = Onetime.get_logger('Chores')
+ChoresLogger = Onetime.get_logger('Chores')
 
 Onetime::Organization.chore :standardize_planid do |org|
   current = org.planid.to_s.strip
@@ -30,26 +30,28 @@ Onetime::Organization.chore :standardize_planid do |org|
   next if current.end_with?('_v1')
 
   # Map legacy values to current catalog
-  canonical = case current
+  corrected_value = case current
               when '', 'free', 'basic'
                 'free_v1'
+              when 'identity', 'identity_plus', 'identity_plus_v1_monthly', 'identity_plus_v1_yearly', 'identity_monthly', 'identity_yearly'
+                'identity_plus_v1'
               else
-                Logger.info 'Skipping unknown planid',
+                ChoresLogger.info 'Skipping unknown planid',
                   chore: :standardize_planid,
                   org_extid: org.extid,
                   planid: current
                 nil
               end
 
-  next unless canonical
+  next unless corrected_value
 
-  Logger.info 'Normalizing planid',
+  ChoresLogger.info 'Normalizing planid',
     chore: :standardize_planid,
     org_extid: org.extid,
     from: current,
-    to: canonical
+    to: corrected_value
 
-  org.planid = canonical
-  org.save
+  # Use the fast writer to update the single field
+  org.planid! corrected_value
   true
 end

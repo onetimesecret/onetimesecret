@@ -8,7 +8,7 @@
 # Uses a duck-typed stub class instead of a real Familia::Horreum so the
 # tests don't depend on the upstream `feature :housekeeping` being shipped
 # in the locked gem version. HousekeepingJob only cares about the shape of
-# the model interface (.chores, .instances, .load_multi, #tidy!, #identifier).
+# the model interface (.chores, .instances, .load_multi, #do_chores!, #identifier).
 #
 # IMPLEMENTATION NOTE: Tryouts evaluates test bodies via
 # `container.instance_eval(string)`. A top-level `class HousekeepingStubModel`
@@ -35,7 +35,7 @@ class HousekeepingStubModel
     @identifier = SecureRandom.hex(8)
   end
 
-  def tidy!(name = nil)
+  def do_chores!(name = nil)
     chores = HousekeepingStubModel.chores
     keys   = name ? [name.to_sym] : chores.keys
     keys.to_h { |k| [k, chores[k].call(self)] }

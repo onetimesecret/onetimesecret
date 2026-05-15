@@ -145,13 +145,13 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(debug_info['checkout_tier']).to eq('single_team')
     end
 
-    it 'does not require authentication', :vcr do
+    it 'redirects unauthenticated users to signup with plan selection' do
       env 'rack.session', {}
 
       get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to match(%r{\Ahttps://[^/]*stripe\.com/})
+      expect(last_response.location).to eq("/signup?product=#{product}&interval=#{interval}")
     end
 
     it 'detects region for plan selection', :vcr do

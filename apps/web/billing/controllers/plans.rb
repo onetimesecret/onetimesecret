@@ -74,6 +74,12 @@ module Billing
           return
         end
 
+        # Unauthenticated users must sign up first; preserve plan selection
+        if cust.nil? || cust.anonymous?
+          res.redirect "/signup?product=#{product}&interval=#{interval}"
+          return
+        end
+
         # Build checkout session parameters
         site_host = Onetime.conf['site']['host']
         is_secure = Onetime.conf.dig('site', 'ssl') != false
