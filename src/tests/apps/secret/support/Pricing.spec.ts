@@ -10,14 +10,18 @@ import type { Plan as BillingPlan } from '@/services/billing.service';
 // Hoisted mock functions - must use vi.hoisted for proper hoisting
 const mockListPlans = vi.hoisted(() => vi.fn());
 
-// Route params - using a mutable object instead of ref for hoisting compatibility
+// Route state - using mutable objects instead of refs for hoisting compatibility
 let mockRouteParamsValue: Record<string, string> = {};
+let mockRoutePathValue = '/pricing';
 
-// Mock vue-router
+// Mock vue-router. The mock exposes the same value for `path` and `fullPath`
+// since none of the tests need to distinguish them; tests that exercise
+// query-preserving behavior can set mockRoutePathValue to include a `?...`.
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     get params() { return mockRouteParamsValue; },
-    path: '/pricing',
+    get path() { return mockRoutePathValue; },
+    get fullPath() { return mockRoutePathValue; },
     query: {},
   }),
   RouterLink: {
@@ -133,6 +137,7 @@ describe('Pricing.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRouteParamsValue = {};
+    mockRoutePathValue = '/pricing';
     mockListPlans.mockResolvedValue({ plans: defaultPlans });
     i18n = createTestI18n();
   });
@@ -280,7 +285,7 @@ describe('Pricing.vue', () => {
   // 3. getSignupUrl Function
   // ============================================================
   describe('getSignupUrl function', () => {
-    it('returns /signup for free tier', async () => {
+    it('returns /signup with redirect for free tier', async () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
@@ -288,13 +293,15 @@ describe('Pricing.vue', () => {
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
-      await mountComponent();
+      await mountComponent({ freePlanStandalone: false });
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
-      expect(signupLink.attributes('href')).toBe('/signup');
+      expect(signupLink.attributes('href')).toBe(
+        '/signup?redirect=%2Fpricing'
+      );
     });
 
-    it('includes product and interval for paid plans', async () => {
+    it('includes product, interval, and redirect for paid plans', async () => {
       const paidPlan = createMockPlan({
         id: 'identity_plus_v1_monthly',
         tier: 'single_team',
@@ -306,7 +313,7 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toBe(
-        '/signup?product=identity_plus_v1&interval=monthly'
+        '/signup?product=identity_plus_v1&interval=monthly&redirect=%2Fpricing'
       );
     });
 
@@ -338,6 +345,42 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('interval=yearly');
+    });
+
+    it('uses current path as the redirect target', async () => {
+      const paidPlan = createMockPlan({
+        id: 'identity_plus_v1_yearly',
+        tier: 'single_team',
+        interval: 'year',
+      });
+
+      mockListPlans.mockResolvedValueOnce({ plans: [paidPlan] });
+      mockRoutePathValue = '/pricing/identity_plus/yearly';
+      mockRouteParamsValue = { product: 'identity_plus', interval: 'yearly' };
+      await mountComponent();
+
+      const signupLink = wrapper.find('[data-testid="signup-link"]');
+      expect(signupLink.attributes('href')).toContain(
+        'redirect=%2Fpricing%2Fidentity_plus%2Fyearly'
+      );
+    });
+
+    it('preserves query string on the current URL in the redirect target', async () => {
+      const paidPlan = createMockPlan({
+        id: 'identity_plus_v1_monthly',
+        tier: 'single_team',
+        interval: 'month',
+      });
+
+      mockListPlans.mockResolvedValueOnce({ plans: [paidPlan] });
+      // route.fullPath (not route.path) includes the query string
+      mockRoutePathValue = '/pricing?utm_source=blog';
+      await mountComponent();
+
+      const signupLink = wrapper.find('[data-testid="signup-link"]');
+      expect(signupLink.attributes('href')).toContain(
+        'redirect=%2Fpricing%3Futm_source%3Dblog'
+      );
     });
   });
 
@@ -637,7 +680,7 @@ describe('Pricing.vue', () => {
       expect(wrapper.text()).toContain('Free');
     });
 
-    it('free plan CTA links to /signup', async () => {
+    it('free plan CTA links to /signup with redirect', async () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
@@ -647,8 +690,8 @@ describe('Pricing.vue', () => {
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
       await mountComponent();
 
-      // Free tier section has a link to /signup
-      const links = wrapper.findAll('a[href="/signup"]');
+      // Free tier banner has a link to /signup with redirect back to /pricing
+      const links = wrapper.findAll('a[href="/signup?redirect=%2Fpricing"]');
       expect(links.length).toBeGreaterThan(0);
     });
 
