@@ -1298,7 +1298,7 @@ module Billing
             amount: plan.amount,
             currency: plan.currency,
             features: plan.features.to_a,
-            limits: plan.limits_hash,
+            limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
           }
         end
 

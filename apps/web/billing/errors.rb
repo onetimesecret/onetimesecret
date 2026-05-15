@@ -22,6 +22,28 @@ module Billing
     end
   end
 
+  # PlanCacheMissError - Raised when a plan_id cannot be resolved
+  #
+  # This error indicates a billing integrity issue where:
+  # - The plan_id is not in Redis cache AND
+  # - The plan_id is not in billing.yaml config
+  #
+  # Fail-closed behavior: We raise rather than silently degrading to free tier,
+  # which could mask misconfiguration or catalog sync issues.
+  #
+  class PlanCacheMissError < OpsProblem
+    attr_reader :plan_id, :context, :resource, :organization_id
+
+    def initialize(message = nil, plan_id: nil, context: nil, resource: nil, organization_id: nil)
+      @plan_id         = plan_id
+      @context         = context
+      @resource        = resource
+      @organization_id = organization_id
+      message        ||= "Plan not found in cache or config: #{plan_id}"
+      super(message)
+    end
+  end
+
   # Raised when the Stripe circuit breaker is open.
   #
   # The circuit breaker opens after consecutive Stripe API failures to prevent

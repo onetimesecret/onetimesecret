@@ -595,6 +595,109 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         expect(email_hash[:to]).to eq(colonel_email)
       end
     end
+
+    context 'with optional metadata fields' do
+      let(:data) do
+        {
+          recipient_email: colonel_email,
+          email_address: test_email,
+          message: 'Test message with metadata',
+          display_domain: 'example.com',
+          user_id: 'cus_abc123',
+          tz: 'America/New_York',
+          version: '1.2.3'
+        }
+      end
+
+      it 'renders user_id in text output' do
+        expect(template.render_text).to include('cus_abc123')
+      end
+
+      it 'renders tz in text output' do
+        expect(template.render_text).to include('America/New_York')
+      end
+
+      it 'renders version in text output' do
+        expect(template.render_text).to include('1.2.3')
+      end
+
+      it 'renders user_id in html output' do
+        expect(template.render_html).to include('cus_abc123')
+      end
+
+      it 'renders tz in html output' do
+        expect(template.render_html).to include('America/New_York')
+      end
+
+      it 'renders version in html output' do
+        expect(template.render_html).to include('1.2.3')
+      end
+    end
+
+    context 'without optional metadata fields' do
+      let(:data) do
+        {
+          recipient_email: colonel_email,
+          email_address: test_email,
+          message: 'Test message without metadata',
+          display_domain: 'example.com'
+        }
+      end
+
+      it 'defaults missing user_id to UNKNOWN_VALUE' do
+        expect(template.user_id).to eq(described_class::UNKNOWN_VALUE)
+      end
+
+      it 'defaults missing tz to UNKNOWN_VALUE' do
+        expect(template.tz).to eq(described_class::UNKNOWN_VALUE)
+      end
+
+      it 'defaults missing version to UNKNOWN_VALUE' do
+        expect(template.version).to eq(described_class::UNKNOWN_VALUE)
+      end
+
+      it 'renders UNKNOWN_VALUE placeholder in text output' do
+        text = template.render_text
+        # The UNKNOWN_VALUE ("-") should appear in the output for missing fields
+        expect(text).to include(described_class::UNKNOWN_VALUE)
+      end
+    end
+
+    context 'with string keys for optional fields (deserialized from job queue)' do
+      # Required fields use symbol keys (validated at construction time),
+      # but optional metadata fields may arrive as strings after JSON
+      # deserialization from the email job queue.
+      let(:data) do
+        {
+          recipient_email: colonel_email,
+          email_address: test_email,
+          message: 'Test message with string keys',
+          display_domain: 'example.com',
+          'user_id' => 'cus_xyz789',
+          'tz' => 'Europe/London',
+          'version' => '2.0.0'
+        }
+      end
+
+      it 'accepts string keys for user_id' do
+        expect(template.user_id).to eq('cus_xyz789')
+      end
+
+      it 'accepts string keys for tz' do
+        expect(template.tz).to eq('Europe/London')
+      end
+
+      it 'accepts string keys for version' do
+        expect(template.version).to eq('2.0.0')
+      end
+
+      it 'renders string-keyed values in text output' do
+        text = template.render_text
+        expect(text).to include('cus_xyz789')
+        expect(text).to include('Europe/London')
+        expect(text).to include('2.0.0')
+      end
+    end
   end
 
   describe 'Template validation' do

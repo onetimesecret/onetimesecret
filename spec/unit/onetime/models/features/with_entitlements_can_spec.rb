@@ -17,10 +17,11 @@ RSpec.describe 'WithEntitlements#can? for extended_default_expiration', billing:
     Class.new do
       include Onetime::Models::Features::WithEntitlements
 
-      attr_accessor :planid
+      attr_accessor :planid, :extid
 
-      def initialize(planid)
+      def initialize(planid, extid: 'test_org_can_spec')
         @planid = planid
+        @extid = extid
       end
 
       def billing_enabled?
@@ -76,11 +77,16 @@ RSpec.describe 'WithEntitlements#can? for extended_default_expiration', billing:
     end
   end
 
-  context 'when planid is unknown (cache miss falls back to FREE_TIER_ENTITLEMENTS)' do
+  context 'when planid is unknown (cache miss is fail-closed)' do
     let(:org) { test_class.new('unknown_plan_id') }
 
-    it 'returns false because the free fallback omits the entitlement' do
-      expect(org.can?('extended_default_expiration')).to be(false)
+    it 'raises PlanCacheMissError instead of silently falling back' do
+      expect { org.can?('extended_default_expiration') }
+        .to raise_error(Billing::PlanCacheMissError) { |error|
+          expect(error.plan_id).to eq('unknown_plan_id')
+          expect(error.context).to eq('WithEntitlements#entitlements')
+          expect(error.organization_id).to eq('test_org_can_spec')
+        }
     end
   end
 

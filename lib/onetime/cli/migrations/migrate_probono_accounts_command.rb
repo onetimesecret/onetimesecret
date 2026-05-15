@@ -226,8 +226,9 @@ module Onetime
           return
         end
 
-        # Skip if org already has an active subscription
-        if org.active_subscription? && !org.planid.to_s.empty? && org.planid != 'free_v1'
+        # Skip if org already has an active subscription (check both 'free' and 'free_v1' as free-tier)
+        free_plan_ids = %w[free free_v1]
+        if org.active_subscription? && !org.planid.to_s.empty? && !free_plan_ids.include?(org.planid.to_s)
           stats[:skipped_has_subscription] += 1
           puts "  #{label} Skipping #{cust.extid} (org already has subscription: #{org.planid})" if verbose
           return
