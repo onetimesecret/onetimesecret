@@ -181,7 +181,12 @@ module Billing
     module ClassMethods
       # Required metadata keys for OTS products (app check is separate)
       # Note: 'interval' comes from the price object, not product metadata
-      REQUIRED_PRODUCT_METADATA = %w[plan_id tier region].freeze
+      REQUIRED_PRODUCT_METADATA = [Metadata::FIELD_PLAN_ID, Metadata::FIELD_TIER, Metadata::FIELD_REGION].freeze
+
+      # Legacy field name variants for plan_id seen on older Stripe products.
+      # When one of these is present without `plan_id`, surface a migration
+      # hint instead of silently deriving plan identity from `tier`.
+      LEGACY_PLAN_ID_FIELDS = %w[planid plan].freeze
 
       # Validate product has all required metadata for plan creation
       #
@@ -189,15 +194,25 @@ module Billing
       # @return [Array<String>] List of missing keys (empty if valid)
       def validate_product_metadata(product)
         metadata = product.metadata || {}
-        missing  = REQUIRED_PRODUCT_METADATA - metadata.keys.map(&:to_s)
+        keys     = metadata.keys.map(&:to_s)
+        missing  = REQUIRED_PRODUCT_METADATA - keys
 
         if missing.any?
+          legacy_field = if missing.include?(Metadata::FIELD_PLAN_ID)
+                           LEGACY_PLAN_ID_FIELDS.find { |f| keys.include?(f) }
+                         end
+          hint = if legacy_field
+                   "rename Stripe metadata key '#{legacy_field}' to 'plan_id'"
+                 else
+                   'Add metadata via Stripe Dashboard or `bin/ots billing products update`'
+                 end
           OT.lw '[Plan.validate_product_metadata] Stripe product not managed by catalog',
             {
               product_id: product.id,
               product_name: product.name,
               missing_keys: missing.join(', '),
-              hint: 'Add metadata via Stripe Dashboard or `bin/ots billing products update',
+              legacy_plan_id_field: legacy_field,
+              hint: hint,
             }
         end
 
@@ -488,7 +503,17 @@ module Billing
             # Skip non-recurring prices
             next unless price.type == 'recurring'
 
-            plan_data = extract_plan_data(product, price)
+            begin
+              plan_data = extract_plan_data(product, price)
+            rescue Onetime::ConfigError => ex
+              OT.le '[Plan.collect_stripe_plans] Skipping product with bad metadata',
+                {
+                  product_id: product.id,
+                  stripe_price_id: price.id,
+                  error: ex.message,
+                }
+              next
+            end
             next if plan_data.nil? # Skip if metadata validation failed
 
             plan_data_list << plan_data
@@ -528,9 +553,15 @@ module Billing
         tier     = product.metadata[Metadata::FIELD_TIER]
         region   = product.metadata[Metadata::FIELD_REGION]
 
-        # plan_id is required metadata (validated above), append interval suffix
+        # plan_id is required metadata (validated above). Defense-in-depth:
+        # raise rather than silently building "tier_monthly" when the key is
+        # present but blank — key-presence validation alone won't catch that.
         base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID]
-        plan_id      = "#{base_plan_id}_#{interval}ly"
+        if base_plan_id.nil? || base_plan_id.to_s.strip.empty?
+          raise Onetime::ConfigError,
+                "missing plan_id metadata for Stripe product #{product.id} (#{product.name})"
+        end
+        plan_id = "#{base_plan_id}_#{interval}ly"
 
         # Extract entitlements from product metadata
         entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
