@@ -47,6 +47,7 @@ module Onetime
     feature :required_fields
     feature :with_organization_billing
     feature :with_entitlements
+    feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
     feature :with_migration_fields

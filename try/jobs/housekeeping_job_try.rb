@@ -138,7 +138,7 @@ end
 
 ## perform raises ArgumentError for models without the housekeeping shape
 begin
-  @job.perform(Onetime::Customer)
+  @job.perform(Onetime::Feedback)
   false
 rescue ArgumentError => ex
   ex.message.include?('feature :housekeeping')

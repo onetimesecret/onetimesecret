@@ -17,6 +17,7 @@ module Onetime
     feature :expiration
     feature :relationships
     feature :required_fields
+    feature :housekeeping
     feature :deprecated_fields
 
     # Migration features - REMOVE after v1→v2 migration complete

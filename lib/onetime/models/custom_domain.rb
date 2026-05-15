@@ -68,6 +68,7 @@ module Onetime
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
     feature :external_identifier, format: 'cd%<id>s' # use builtin extid_lookup index
+    feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
     feature :with_migration_fields
