@@ -198,6 +198,7 @@ module Auth::Config::Hooks
           # If the user had selected a plan before signup, redirect them to checkout
           # after verification completes.
           Onetime::ErrorHandler.safe_execute('surface_plan_intent', extid: account[:extid]) do
+            # account[:external_id] (Rodauth/SQL) == customer.extid (Familia/Redis)
             customer = Onetime::Customer.find_by_extid(account[:external_id])
 
             if customer&.pending_plan_intent&.value.to_s.strip != ''
@@ -213,11 +214,12 @@ module Auth::Config::Hooks
                 result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
 
                 if result.success?
-                  # Clear intent (single-use)
-                  customer.pending_plan_intent = nil
+                  customer.pending_plan_intent.delete!
 
                   # Store redirect in session for verify_account_redirect
-                  session['plan_checkout_redirect'] = "/billing/plans/#{product}/#{interval}"
+                  enc_product                       = URI.encode_www_form_component(product)
+                  enc_interval                      = URI.encode_www_form_component(interval)
+                  session['plan_checkout_redirect'] = "/billing/plans/#{enc_product}/#{enc_interval}"
 
                   Auth::Logging.log_auth_event(
                     :plan_intent_surfaced,
@@ -227,8 +229,7 @@ module Auth::Config::Hooks
                     interval: interval,
                   )
                 else
-                  # Plan no longer valid, clear stale intent
-                  customer.pending_plan_intent = nil
+                  customer.pending_plan_intent.delete!
 
                   Auth::Logging.log_auth_event(
                     :plan_intent_invalid,
@@ -240,8 +241,7 @@ module Auth::Config::Hooks
                   )
                 end
               rescue JSON::ParserError => ex
-                # Corrupted intent, clear it
-                customer.pending_plan_intent = nil
+                customer.pending_plan_intent.delete!
 
                 Auth::Logging.log_auth_event(
                   :plan_intent_parse_error,
@@ -250,8 +250,7 @@ module Auth::Config::Hooks
                   error: ex.message,
                 )
               rescue LoadError
-                # Billing not available (self-hosted), clear intent
-                customer.pending_plan_intent = nil
+                customer.pending_plan_intent.delete!
               end
             end
           end
