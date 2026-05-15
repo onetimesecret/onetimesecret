@@ -167,6 +167,7 @@ RSpec.shared_context 'with_stubbed_checkout' do
         'customer' => params[:customer],
         'client_reference_id' => params[:client_reference_id],
         'locale' => params[:locale],
+        'allow_promotion_codes' => params[:allow_promotion_codes],
         'subscription_data' => subscription_data,
         'subscription' => subscription_obj,
         'line_items' => params[:line_items]&.map { |li| li.transform_keys(&:to_s) },

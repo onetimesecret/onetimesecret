@@ -61,6 +61,11 @@ module Onetime
             bin/ots billing payment-links show      Show payment link details
             bin/ots billing payment-links archive   Archive payment link
 
+          Coupons & Promotion Codes:
+            bin/ots billing coupons                  List all Stripe coupons
+            bin/ots billing coupons --valid-only     List only currently redeemable coupons
+            bin/ots billing coupon validate <CODE>   Check if a code is currently valid
+
           Catalog & Sync:
             bin/ots billing catalog            Manage plan catalog
             bin/ots billing catalog validate   Validate catalog YAML and Stripe consistency

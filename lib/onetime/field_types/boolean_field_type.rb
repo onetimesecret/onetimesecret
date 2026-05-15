@@ -152,8 +152,8 @@ module Onetime
       # @param name [Symbol] field name
       # @param opts [Hash] passed straight to BooleanFieldType.new
       # @return [BooleanFieldType] the registered type instance
-      def boolean_field(name, **opts)
-        register_field_type(BooleanFieldType.new(name, **opts))
+      def boolean_field(name, **)
+        register_field_type(BooleanFieldType.new(name, **))
       end
     end
   end

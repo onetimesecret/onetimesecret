@@ -272,7 +272,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(Stripe::Checkout::Session).to have_received(:create).with(
         hash_including(
           mode: 'subscription',
-          client_reference_id: organization.objid
+          client_reference_id: organization.objid,
+          allow_promotion_codes: true
         ),
         anything
       )

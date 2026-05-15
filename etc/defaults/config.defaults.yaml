@@ -777,6 +777,13 @@ jobs:
       cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
       auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
 
+    # Familia model housekeeping chores (nightly 2 AM)
+    # Iterates models that declare `feature :housekeeping` and runs every
+    # registered chore. Disable when no chores are active.
+    housekeeping:
+      enabled: <%= ENV['JOBS_HOUSEKEEPING_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_HOUSEKEEPING_CRON'] || '0 2 * * *' %>
+
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>
