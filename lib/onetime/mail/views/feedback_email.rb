@@ -110,6 +110,9 @@ module Onetime
             display_domain: display_domain,
             domain_strategy: domain_strategy,
             baseuri: baseuri,
+            user_id: user_id,
+            tz: tz,
+            version: version,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end
