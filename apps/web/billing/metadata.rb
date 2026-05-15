@@ -121,7 +121,9 @@ module Billing
     # @return [String] Region jurisdiction code, or 'global' if regions disabled
     # @raise [Onetime::ConfigError] If regions enabled but jurisdiction missing
     def self.current_region
-      return 'global' unless OT.conf&.dig('features', 'regions', 'enabled')
+      # Compare against the string 'true' so a YAML-supplied string like
+      # "false" (which is truthy in Ruby) doesn't get treated as enabled.
+      return 'global' unless OT.conf&.dig('features', 'regions', 'enabled').to_s == 'true'
 
       jurisdiction = OT.conf&.dig('features', 'regions', 'current_jurisdiction')
       if jurisdiction.to_s.strip.empty?
