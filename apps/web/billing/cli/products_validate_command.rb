@@ -90,14 +90,67 @@ module Onetime
 
         # Check for duplicate plan_ids (will be detected across all products)
         # Individual validation just ensures plan_id exists
-        return if product.metadata['plan_id']
+        unless product.metadata['plan_id']
+          warnings << {
+            product_id: product.id,
+            type: :missing_plan_id,
+            message: 'Missing plan_id',
+            details: 'Product metadata missing plan_id field',
+          }
+        end
+
+        # Validate entitlements format if present
+        validate_entitlements_format(product, warnings)
+
+        # Validate limit_* field values
+        validate_limit_values(product, errors)
+      end
+
+      # Validate entitlements metadata field format
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @param warnings [Array] Warnings collection to append to
+      def validate_entitlements_format(product, warnings)
+        entitlements_str = product.metadata['entitlements']
+        return unless entitlements_str
+
+        entitlements = entitlements_str.split(',').map(&:strip)
+
+        # Build known entitlements set (memoized)
+        @known_entitlements ||= (
+          ::Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS +
+          ::Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+        ).to_set
+
+        unknown = entitlements.reject { |e| @known_entitlements.include?(e) }
+        return if unknown.empty?
 
         warnings << {
           product_id: product.id,
-          type: :missing_plan_id,
-          message: 'Missing plan_id',
-          details: 'Product metadata missing plan_id field',
+          type: :unknown_entitlements,
+          message: "Unknown entitlement(s): #{unknown.join(', ')}",
+          details: 'Entitlement keys not found in WithEntitlements constants',
         }
+      end
+
+      # Validate limit_* metadata field values
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @param errors [Array] Errors collection to append to
+      def validate_limit_values(product, errors)
+        metadata = product.metadata || {}
+
+        metadata.each do |key, value|
+          next unless key.start_with?('limit_')
+          next if value.match?(/\A-?\d+\z/) || value.downcase == 'unlimited'
+
+          errors << {
+            product_id: product.id,
+            type: :invalid_limit_value,
+            message: "Invalid limit value for '#{key}'",
+            details: "Expected integer or 'unlimited', got '#{value}'",
+          }
+        end
       end
 
       # Detect legacy or typo field name variants for plan_id

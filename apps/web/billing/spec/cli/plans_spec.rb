@@ -10,7 +10,15 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Data class for mocking plans (immutable, Ruby 3.2+)
-  MockPlan = Data.define(:plan_id, :tier, :interval, :amount, :currency, :region, :entitlements, :stripe_product_id, :stripe_price_id)
+  MockPlan = Data.define(
+    :plan_id, :tier, :interval, :amount, :currency, :region, :entitlements,
+    :stripe_product_id, :stripe_price_id,
+    :name, :tenancy, :display_order, :active
+  ) do
+    def initialize(name: 'Test Plan', tenancy: 'multi', display_order: '0', active: 'true', **)
+      super
+    end
+  end
 
   describe Onetime::CLI::BillingPlansCommand do
     subject(:command) { described_class.new }
