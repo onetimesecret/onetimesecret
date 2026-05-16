@@ -138,10 +138,13 @@ module ColonelAPI
                 items: user_receipts,
               },
               organizations: organizations,
+              # Counters are Familia::Counter objects (familia 2.8); coerce
+              # to Integer before serialization so JSON's Enumerable path
+              # doesn't try to .each over an opaque Counter.
               stats: {
-                secrets_created: user.respond_to?(:secrets_created) ? user.secrets_created : 0,
-                secrets_shared: user.respond_to?(:secrets_shared) ? user.secrets_shared : 0,
-                emails_sent: user.respond_to?(:emails_sent) ? user.emails_sent : 0,
+                secrets_created: user.respond_to?(:secrets_created) ? user.secrets_created.to_i : 0,
+                secrets_shared: user.respond_to?(:secrets_shared) ? user.secrets_shared.to_i : 0,
+                emails_sent: user.respond_to?(:emails_sent) ? user.emails_sent.to_i : 0,
               },
             },
           }

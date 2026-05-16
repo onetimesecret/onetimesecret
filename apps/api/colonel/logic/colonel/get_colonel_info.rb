@@ -91,9 +91,12 @@ module ColonelAPI
             {
               user_id: this_cust.objid,
               colonel: this_cust.role?(:colonel),
-              secrets_created: this_cust.secrets_created,
-              secrets_shared: this_cust.secrets_shared,
-              emails_sent: this_cust.emails_sent,
+              # Counters are Familia::Counter objects (familia 2.8); coerce
+              # to Integer before serialization so JSON's Enumerable path
+              # doesn't try to .each over an opaque Counter.
+              secrets_created: this_cust.secrets_created.to_i,
+              secrets_shared: this_cust.secrets_shared.to_i,
+              emails_sent: this_cust.emails_sent.to_i,
               verified: this_cust.verified?,
               created: this_cust.created,
             }
