@@ -222,7 +222,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       end
 
       describe 'plan load failure redirect (line 73)' do
-        # This path currently uses string interpolation (needs fix)
+        # This path uses Rack::Utils.build_query (already fixed)
         it 'escapes special characters when plan load returns nil' do
           # Stub PlanResolver to return success but with a plan_id that won't load
           fake_result = double(
@@ -247,7 +247,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       end
 
       describe 'unauthenticated user redirect (line 79)' do
-        # This path currently uses string interpolation (needs fix)
+        # This path uses Rack::Utils.build_query (already fixed)
         it 'escapes special characters for anonymous users with valid plan' do
           # Stub to get past resolution and plan load, but hit the anonymous check
           fake_result = double(
@@ -271,7 +271,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       end
 
       describe 'Stripe error redirect (line 188)' do
-        # This path currently uses string interpolation (needs fix)
+        # This path uses Rack::Utils.build_query (already fixed)
         it 'escapes special characters when Stripe checkout fails' do
           # Need authenticated user with valid plan to reach Stripe call
           fake_result = double(
