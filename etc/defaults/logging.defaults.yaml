@@ -66,6 +66,7 @@ loggers:
   Sequel: info    # Database queries and operations (SQL logged at :trace level)
   Session: info   # Session lifecycle (create, update, destroy)
   Workers: info   # RabbitMQ worker message processing and orchestration
+  Chores: info    # Familia::Horreum models housekeeping chores
 
 # HTTP request logging configuration
 http:

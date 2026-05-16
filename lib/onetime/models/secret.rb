@@ -23,6 +23,7 @@ module Onetime
     feature :secret_state_management
     feature :legacy_encrypted_fields
     feature :deprecated_fields
+    feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
     feature :with_migration_fields

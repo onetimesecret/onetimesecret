@@ -69,8 +69,11 @@ module ColonelAPI
               last_login: cust.last_login,
               planid: cust.planid,
               secrets_count: secrets_count_by_owner[cust.objid] || 0,
-              secrets_created: cust.respond_to?(:secrets_created) ? cust.secrets_created : 0,
-              secrets_shared: cust.respond_to?(:secrets_shared) ? cust.secrets_shared : 0,
+              # Counters are Familia::Counter objects (familia 2.8); coerce
+              # to Integer before serialization so JSON's Enumerable path
+              # doesn't try to .each over an opaque Counter.
+              secrets_created: cust.respond_to?(:secrets_created) ? cust.secrets_created.to_i : 0,
+              secrets_shared: cust.respond_to?(:secrets_shared) ? cust.secrets_shared.to_i : 0,
             }
           end.compact
 

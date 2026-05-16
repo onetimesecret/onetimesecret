@@ -73,6 +73,7 @@ module Onetime
     feature :with_custom_domains
     feature :status
     feature :role_index
+    feature :housekeeping
 
     feature :deprecated_fields
     feature :legacy_encrypted_fields

@@ -53,6 +53,7 @@ module Onetime
     feature :object_identifier
     feature :relationships
     feature :safe_dump
+    feature :housekeeping
 
     prefix :org_membership
     identifier_field :objid

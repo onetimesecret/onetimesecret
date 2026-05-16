@@ -126,8 +126,7 @@ module Onetime
 
           def run_chores_for(klass, record, chore_keys, stats)
             chore_keys.each do |key|
-              results = record.tidy!(key)
-              stats[key][:modified] += 1 if results[key]
+              stats[key][:modified] += 1 if record.do_chore!(key)
             rescue StandardError => ex
               stats[key][:errors] += 1
               OT.le "[HousekeepingJob] #{klass}##{record.identifier} chore=#{key} failed: #{ex.message}"
