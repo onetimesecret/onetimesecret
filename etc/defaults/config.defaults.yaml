@@ -9,6 +9,25 @@ site:
   # location. Changing the secret can lead to unforeseen issues
   # like not being able to decrypt existing secrets.
   secret: <%= ENV['SECRET'] || nil %>
+  # Trusted Reverse Proxy Configuration
+  #
+  # trusted_proxy_depth controls how many proxy hops to skip in X-Forwarded-For
+  # when resolving the real client IP. Affects all IP-based features: ban checks,
+  # session tracking, audit logs, and the Colonel "Your Current IP" display.
+  #
+  # 0 (default): No header trust. Use REMOTE_ADDR only. Safe for direct deployments.
+  # 1: Trust one proxy (standard nginx/Caddy/Traefik setup).
+  # 2+: Trust N proxies (CDN → reverse proxy → app).
+  #
+  # WARNING: Only set trusted_proxy_depth > 0 when:
+  # - The app is behind a trusted reverse proxy
+  # - Direct client access to the app is blocked by a firewall
+  # - The proxy is configured to strip/override client-provided headers
+  #
+  # trusted_ip_header: which header to read the forwarding chain from.
+  # One of: X-Forwarded-For (default), Forwarded, Both
+  trusted_proxy_depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 0 %>
+  trusted_ip_header:   <%= ENV['TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
   # API and UI Configuration
   interface:
     ui:

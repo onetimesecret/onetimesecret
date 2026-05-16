@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'ipaddr'
+require_relative 'client_ip_helpers'
 
 module Onetime
   module Helpers
@@ -214,63 +215,24 @@ module Onetime
 
       # Extract forwarded IPs from configured header type
       #
-      # Supports X-Forwarded-For, Forwarded (RFC 7239), or Both
+      # Delegates to Onetime::ClientIpHelpers for parsing.
       #
       # @param header_type [String] 'X-Forwarded-For', 'Forwarded', or 'Both'
       # @return [Array<String>, nil] Array of IP addresses or nil
       def extract_forwarded_ips(header_type)
-        case header_type
-        when 'X-Forwarded-For'
-          extract_x_forwarded_for
-        when 'Forwarded'
-          extract_rfc7239_forwarded
-        when 'Both'
-          # Try Forwarded first (RFC standard), fallback to X-Forwarded-For
-          extract_rfc7239_forwarded || extract_x_forwarded_for
-        else
+        unless %w[X-Forwarded-For Forwarded Both].include?(header_type)
           http_logger.warn '[homepage_mode] Unknown trusted_ip_header type, using X-Forwarded-For',
-            {
-              configured_type: header_type,
-            }
-          extract_x_forwarded_for
+            { configured_type: header_type }
         end
+        Onetime::ClientIpHelpers.extract_forwarded_ips(req.env, header_type)
       end
 
-      # Extract IPs from X-Forwarded-For header
-      #
-      # Format: X-Forwarded-For: client_ip, proxy1_ip, proxy2_ip
-      #
-      # @return [Array<String>, nil] Array of IP addresses or nil
       def extract_x_forwarded_for
-        header_value = req.env['HTTP_X_FORWARDED_FOR']
-        return nil if header_value.nil? || header_value.empty?
-
-        header_value.split(',').map(&:strip)
+        Onetime::ClientIpHelpers.extract_x_forwarded_for(req.env)
       end
 
-      # Extract IPs from RFC 7239 Forwarded header
-      #
-      # Format: Forwarded: for=client_ip, for=proxy1_ip;by=proxy2_ip
-      #
-      # @return [Array<String>, nil] Array of IP addresses or nil
       def extract_rfc7239_forwarded
-        header_value = req.env['HTTP_FORWARDED']
-        return nil if header_value.nil? || header_value.empty?
-
-        # Parse RFC 7239 Forwarded header
-        ips = []
-        header_value.split(',').each do |segment|
-          segment.split(';').each do |param|
-            next unless param.strip =~ /^for=(.+)$/i
-
-            ip = ::Regexp.last_match(1)
-            # Remove quotes and IPv6 brackets if present
-            ip = ip.gsub(/^["']|["']$/, '').gsub(/^\[|\]$/, '')
-            ips << ip
-          end
-        end
-
-        ips.empty? ? nil : ips
+        Onetime::ClientIpHelpers.extract_rfc7239_forwarded(req.env)
       end
 
       # Check if IP address matches any configured CIDR
