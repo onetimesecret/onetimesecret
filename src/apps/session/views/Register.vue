@@ -36,15 +36,17 @@
     { name: 'GitHub', icon: 'mdi-github' },
   ];
 
-  // Build signin link with preserved query params (email, redirect)
+  // Build signin link with preserved query params (email, redirect, product, interval)
   const signinLink = computed(() => {
     const query: Record<string, string> = {};
-    if (typeof route.query.email === 'string') {
-      query.email = route.query.email;
+    const preserveParams = ['email', 'redirect', 'product', 'interval'];
+
+    for (const param of preserveParams) {
+      if (typeof route.query[param] === 'string') {
+        query[param] = route.query[param];
+      }
     }
-    if (typeof route.query.redirect === 'string') {
-      query.redirect = route.query.redirect;
-    }
+
     return Object.keys(query).length > 0 ? { path: '/signin', query } : '/signin';
   });
 </script>
