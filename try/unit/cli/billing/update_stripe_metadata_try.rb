@@ -1,8 +1,8 @@
-# try/unit/cli/organizations/update_stripe_metadata_try.rb
+# try/unit/cli/billing/update_stripe_metadata_try.rb
 #
 # frozen_string_literal: true
 
-# Tests for CLI command: bin/ots organizations update-stripe-metadata
+# Tests for CLI command: bin/ots billing update-stripe-metadata
 #
 # Command options:
 #   --key KEY      Metadata key (required). Alone = read mode.
@@ -17,7 +17,7 @@
 # semantics, 429 handling) is verified manually per the issue's
 # acceptance criteria.
 #
-# Run: bundle exec try try/unit/cli/organizations/update_stripe_metadata_try.rb
+# Run: bundle exec try try/unit/cli/billing/update_stripe_metadata_try.rb
 
 require_relative '../../../support/test_helpers'
 require 'onetime/cli'
@@ -35,26 +35,26 @@ OT.info 'Cleaned Redis for fresh test run'
 # -------------------------------------------------------------------
 
 ## Command class exists
-defined?(Onetime::CLI::OrganizationsUpdateStripeMetadataCommand)
+defined?(Onetime::CLI::BillingUpdateStripeMetadataCommand)
 #=> 'constant'
 
 ## Inherits from base Command
-Onetime::CLI::OrganizationsUpdateStripeMetadataCommand.ancestors.include?(Onetime::CLI::Command)
+Onetime::CLI::BillingUpdateStripeMetadataCommand.ancestors.include?(Onetime::CLI::Command)
 #=> true
 
 ## Includes BillingHelpers (for with_stripe_retry, stripe_configured?)
-Onetime::CLI::OrganizationsUpdateStripeMetadataCommand.ancestors.include?(Onetime::CLI::BillingHelpers)
+Onetime::CLI::BillingUpdateStripeMetadataCommand.ancestors.include?(Onetime::CLI::BillingHelpers)
 #=> true
 
 ## Can be instantiated
-@cmd = Onetime::CLI::OrganizationsUpdateStripeMetadataCommand.new
+@cmd = Onetime::CLI::BillingUpdateStripeMetadataCommand.new
 @cmd.is_a?(Dry::CLI::Command)
 #=> true
 
-## Registered under 'organizations update-stripe-metadata'
-registry          = Onetime::CLI.get(['organizations', 'update-stripe-metadata'])
+## Registered under 'billing update-stripe-metadata'
+registry          = Onetime::CLI.get(['billing', 'update-stripe-metadata'])
 registered_class  = registry.respond_to?(:command) ? registry.command : registry
-registered_class == Onetime::CLI::OrganizationsUpdateStripeMetadataCommand
+registered_class == Onetime::CLI::BillingUpdateStripeMetadataCommand
 #=> true
 
 # -------------------------------------------------------------------

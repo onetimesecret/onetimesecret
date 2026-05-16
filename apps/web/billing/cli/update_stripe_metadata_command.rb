@@ -1,4 +1,4 @@
-# apps/api/organizations/cli/update_stripe_metadata_command.rb
+# apps/web/billing/cli/update_stripe_metadata_command.rb
 #
 # frozen_string_literal: true
 
@@ -9,21 +9,21 @@
 # customers owned by sibling regions (US/EU/etc.) that share a Stripe account.
 #
 # Usage:
-#   bin/ots organizations update-stripe-metadata --key KEY                         # Read current values
-#   bin/ots organizations update-stripe-metadata --key KEY --value VALUE           # Dry-run update
-#   bin/ots organizations update-stripe-metadata --key KEY --value VALUE --apply   # Apply update
-#   bin/ots organizations update-stripe-metadata --key region --value us-east --apply
-#   bin/ots organizations update-stripe-metadata --key tier --value pro --org ORG_EXTID
-#   bin/ots organizations update-stripe-metadata --key KEY --unset --apply
-#   bin/ots organizations update-stripe-metadata --key KEY --value VALUE --sleep 100
+#   bin/ots billing update-stripe-metadata --key KEY                         # Read current values
+#   bin/ots billing update-stripe-metadata --key KEY --value VALUE           # Dry-run update
+#   bin/ots billing update-stripe-metadata --key KEY --value VALUE --apply   # Apply update
+#   bin/ots billing update-stripe-metadata --key region --value us-east --apply
+#   bin/ots billing update-stripe-metadata --key tier --value pro --org ORG_EXTID
+#   bin/ots billing update-stripe-metadata --key KEY --unset --apply
+#   bin/ots billing update-stripe-metadata --key KEY --value VALUE --sleep 100
 #
 
-require_relative '../../../../apps/web/billing/cli/helpers'
+require_relative 'helpers'
 
 module Onetime
   module CLI
     # Bulk-update Stripe customer metadata for organizations in this region
-    class OrganizationsUpdateStripeMetadataCommand < Command
+    class BillingUpdateStripeMetadataCommand < Command
       include BillingHelpers
 
       desc 'Read or update a Stripe customer metadata key for orgs in this region'
@@ -282,5 +282,4 @@ module Onetime
   end
 end
 
-Onetime::CLI.register 'organizations update-stripe-metadata', Onetime::CLI::OrganizationsUpdateStripeMetadataCommand
-Onetime::CLI.register 'organization update-stripe-metadata', Onetime::CLI::OrganizationsUpdateStripeMetadataCommand
+Onetime::CLI.register 'billing update-stripe-metadata', Onetime::CLI::BillingUpdateStripeMetadataCommand

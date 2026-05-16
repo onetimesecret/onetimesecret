@@ -1,4 +1,4 @@
-# apps/api/organizations/cli/sync_billing_email_command.rb
+# apps/web/billing/cli/sync_billing_email_command.rb
 #
 # frozen_string_literal: true
 
@@ -8,19 +8,19 @@
 # this command pulls those changes back to the Organization model.
 #
 # Usage:
-#   bin/ots organizations sync-billing-email              # Dry run (show changes)
-#   bin/ots organizations sync-billing-email --apply      # Apply billing_email changes
-#   bin/ots organizations sync-billing-email --apply --update-contact-email  # Also update contact_email
-#   bin/ots organizations sync-billing-email --customer cus_xxx  # Sync specific customer
-#   bin/ots organizations sync-billing-email --sleep 100  # Throttle API calls (100ms between calls)
+#   bin/ots billing sync-billing-email              # Dry run (show changes)
+#   bin/ots billing sync-billing-email --apply      # Apply billing_email changes
+#   bin/ots billing sync-billing-email --apply --update-contact-email  # Also update contact_email
+#   bin/ots billing sync-billing-email --customer cus_xxx  # Sync specific customer
+#   bin/ots billing sync-billing-email --sleep 100  # Throttle API calls (100ms between calls)
 #
 
-require_relative '../../../../apps/web/billing/cli/helpers'
+require_relative 'helpers'
 
 module Onetime
   module CLI
     # Sync Organization billing_email from Stripe customer email
-    class OrganizationsSyncBillingEmailCommand < Command
+    class BillingSyncBillingEmailCommand < Command
       include BillingHelpers
 
       desc 'Sync organization billing emails from Stripe customer records'
@@ -214,4 +214,4 @@ module Onetime
   end
 end
 
-Onetime::CLI.register 'organizations sync-billing-email', Onetime::CLI::OrganizationsSyncBillingEmailCommand
+Onetime::CLI.register 'billing sync-billing-email', Onetime::CLI::BillingSyncBillingEmailCommand
