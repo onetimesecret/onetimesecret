@@ -56,7 +56,7 @@ module Billing
             }
           # Preserve plan selection through signup so the auth billing hook
           # can carry it through to checkout after authentication.
-          res.redirect "/signup?product=#{product}&interval=#{interval}"
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
           return
         end
 
@@ -70,13 +70,13 @@ module Billing
               interval: interval,
               plan_id: result.plan_id,
             }
-          res.redirect "/signup?product=#{product}&interval=#{interval}"
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
           return
         end
 
         # Unauthenticated users must sign up first; preserve plan selection
         if cust.nil? || cust.anonymous?
-          res.redirect "/signup?product=#{product}&interval=#{interval}"
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
           return
         end
 
@@ -185,7 +185,7 @@ module Billing
             product: product,
             interval: interval,
           }
-        res.redirect "/signup?product=#{product}&interval=#{interval}"
+        res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
       end
 
       # Welcome page after successful Stripe checkout

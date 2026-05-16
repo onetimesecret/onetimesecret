@@ -21,9 +21,8 @@
 # Run via HousekeepingJob:
 #   HousekeepingJob.perform('Onetime::Organization', :standardize_planid)
 #
-ChoresLogger = Onetime.get_logger('Chores')
-
 Onetime::Organization.chore :standardize_planid do |org|
+  logger  = Onetime.get_logger('Chores')
   current = org.planid.to_s.strip
 
   # Already valid v1 format - skip
@@ -36,7 +35,7 @@ Onetime::Organization.chore :standardize_planid do |org|
               when 'identity', 'identity_plus', 'identity_plus_v1_monthly', 'identity_plus_v1_yearly', 'identity_monthly', 'identity_yearly'
                 'identity_plus_v1'
               else
-                ChoresLogger.info 'Skipping unknown planid',
+                logger.info 'Skipping unknown planid',
                   chore: :standardize_planid,
                   org_extid: org.extid,
                   planid: current
@@ -45,7 +44,7 @@ Onetime::Organization.chore :standardize_planid do |org|
 
   next unless corrected_value
 
-  ChoresLogger.info 'Normalizing planid',
+  logger.info 'Normalizing planid',
     chore: :standardize_planid,
     org_extid: org.extid,
     from: current,

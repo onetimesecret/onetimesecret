@@ -12,7 +12,7 @@
 
 require 'spec_helper'
 
-# Load the chore registration (ChoresLogger is assigned at file load)
+# Load the chore registration
 require_relative '../../../../../../lib/onetime/models/organization/chores/standardize_planid'
 
 RSpec.describe 'Organization chore: standardize_planid' do
@@ -35,8 +35,8 @@ RSpec.describe 'Organization chore: standardize_planid' do
   end
 
   before do
-    # Stub the ChoresLogger constant (assigned at file load time)
-    stub_const('ChoresLogger', mock_logger)
+    # Stub Onetime.get_logger to return our mock (chore calls this inside the block)
+    allow(Onetime).to receive(:get_logger).with('Chores').and_return(mock_logger)
   end
 
   describe 'chore registration' do
