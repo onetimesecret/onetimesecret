@@ -5,9 +5,9 @@
 # Tests for CLI command: bin/ots organizations update-stripe-metadata
 #
 # Command options:
-#   --key KEY      Metadata key to update (required)
-#   --value VAL    New value (required unless --unset)
-#   --unset        Remove the key (mutually exclusive with --value)
+#   --key KEY      Metadata key (required). Alone = read mode.
+#   --value VAL    New value (triggers write mode)
+#   --unset        Remove the key (triggers write mode, mutually exclusive with --value)
 #   --apply        Apply changes (default dry-run)
 #   --org EXTID    Update a single org only
 #   --sleep MS     Throttle Stripe API calls (default 50ms)
@@ -94,17 +94,22 @@ $stdout  = @orig
 @capture.string.include?('mutually exclusive')
 #=> true
 
-## Missing --value (and no --unset) returns false
-@capture = StringIO.new
-$stdout  = @capture
-@result  = @cmd.send(:validate_options!, key: 'region', value: nil, unset: false)
-$stdout  = @orig
+## --key alone (read mode) passes validation
+@result = @cmd.send(:validate_options!, key: 'region', value: nil, unset: false)
 @result
+#=> true
+
+## read_only_mode? returns true when no value and no unset
+@cmd.send(:read_only_mode?, value: nil, unset: false)
+#=> true
+
+## read_only_mode? returns false when value is set
+@cmd.send(:read_only_mode?, value: 'us-east', unset: false)
 #=> false
 
-## --value error message mentions --unset alternative
-@capture.string.include?('--unset')
-#=> true
+## read_only_mode? returns false when unset is true
+@cmd.send(:read_only_mode?, value: nil, unset: true)
+#=> false
 
 ## --key + --value passes validation
 @capture = StringIO.new
@@ -147,12 +152,13 @@ $stdout  = @orig
 # Single-org branch: missing org reports cleanly
 # -------------------------------------------------------------------
 
-## update_single_organization with nonexistent extid prints not-found and returns
+## process_single_organization with nonexistent extid prints not-found and returns
 @capture = StringIO.new
 $stdout  = @capture
 @cmd.instance_variable_set(:@sleep_interval, 0.0)
+@cmd.instance_variable_set(:@read_only, false)
 @cmd.send(
-  :update_single_organization,
+  :process_single_organization,
   "missing_#{@test_suffix}",
   key: 'region',
   value: 'us-east',
@@ -173,11 +179,12 @@ $stdout = @orig
 @bare_org.stripe_customer_id.to_s.empty?
 #=> true
 
-## update_single_organization on an org without Stripe customer reports cleanly
+## process_single_organization on an org without Stripe customer reports cleanly
 @capture = StringIO.new
 $stdout  = @capture
+@cmd.instance_variable_set(:@read_only, false)
 @cmd.send(
-  :update_single_organization,
+  :process_single_organization,
   @bare_org.extid,
   key: 'region',
   value: 'us-east',
@@ -199,11 +206,12 @@ Onetime::Organization.stripe_customer_id_index[@bogus_customer_id] = @bogus_obji
 Onetime::Organization.stripe_customer_id_index[@bogus_customer_id]
 #=> @bogus_objid
 
-## update_all_organizations classifies the orphan row without contacting Stripe
+## process_all_organizations classifies the orphan row without contacting Stripe
 @capture = StringIO.new
 $stdout  = @capture
+@cmd.instance_variable_set(:@read_only, false)
 @cmd.send(
-  :update_all_organizations,
+  :process_all_organizations,
   key: 'region',
   value: 'us-east',
   unset: false,
@@ -229,8 +237,9 @@ $stdout = @orig
 ## Re-run with --unset shows UNSET action in header
 @capture = StringIO.new
 $stdout  = @capture
+@cmd.instance_variable_set(:@read_only, false)
 @cmd.send(
-  :update_all_organizations,
+  :process_all_organizations,
   key: 'region',
   value: nil,
   unset: true,
