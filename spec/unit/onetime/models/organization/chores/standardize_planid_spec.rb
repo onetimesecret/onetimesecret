@@ -49,38 +49,24 @@ RSpec.describe 'Organization chore: standardize_planid' do
     end
   end
 
-  describe 'skip conditions' do
-    context 'when planid already ends with _v1' do
-      let(:current_planid) { 'identity_plus_v1' }
+  describe 'canonical planids (silent skip)' do
+    %w[free_v1 identity_plus_v1 team_plus_v1 legacy_plan_v1 identity].each do |canonical|
+      context "when planid is #{canonical.inspect}" do
+        let(:current_planid) { canonical }
 
-      it 'returns nil (skips)' do
-        expect(chore.call(org)).to be_nil
-      end
+        it 'returns nil (skips)' do
+          expect(chore.call(org)).to be_nil
+        end
 
-      it 'does not call planid!' do
-        expect(org).not_to receive(:planid!)
-        chore.call(org)
-      end
+        it 'does not call planid!' do
+          expect(org).not_to receive(:planid!)
+          chore.call(org)
+        end
 
-      it 'does not log' do
-        expect(mock_logger).not_to receive(:info)
-        chore.call(org)
-      end
-    end
-
-    context 'when planid is free_v1' do
-      let(:current_planid) { 'free_v1' }
-
-      it 'returns nil (skips)' do
-        expect(chore.call(org)).to be_nil
-      end
-    end
-
-    context 'when planid is legacy_plan_v1' do
-      let(:current_planid) { 'legacy_plan_v1' }
-
-      it 'returns nil (skips)' do
-        expect(chore.call(org)).to be_nil
+        it 'does not log' do
+          expect(mock_logger).not_to receive(:info)
+          chore.call(org)
+        end
       end
     end
   end
@@ -145,15 +131,24 @@ RSpec.describe 'Organization chore: standardize_planid' do
         chore.call(org)
       end
     end
+
+    context 'when planid is "free_month" (suffix-stripped)' do
+      let(:current_planid) { 'free_month' }
+
+      it 'normalizes to free_v1' do
+        expect(org).to receive(:planid!).with('free_v1')
+        chore.call(org)
+      end
+    end
   end
 
-  describe 'identity tier mappings' do
+  describe 'identity_plus tier mappings' do
     before do
       allow(org).to receive(:planid!)
     end
 
-    context 'when planid is "identity"' do
-      let(:current_planid) { 'identity' }
+    context 'when planid is "identity_plus"' do
+      let(:current_planid) { 'identity_plus' }
 
       it 'normalizes to identity_plus_v1' do
         expect(org).to receive(:planid!).with('identity_plus_v1')
@@ -165,8 +160,17 @@ RSpec.describe 'Organization chore: standardize_planid' do
       end
     end
 
-    context 'when planid is "identity_plus"' do
-      let(:current_planid) { 'identity_plus' }
+    context 'when planid is "identity_plus_monthly"' do
+      let(:current_planid) { 'identity_plus_monthly' }
+
+      it 'normalizes to identity_plus_v1' do
+        expect(org).to receive(:planid!).with('identity_plus_v1')
+        chore.call(org)
+      end
+    end
+
+    context 'when planid is "identity_plus_yearly"' do
+      let(:current_planid) { 'identity_plus_yearly' }
 
       it 'normalizes to identity_plus_v1' do
         expect(org).to receive(:planid!).with('identity_plus_v1')
@@ -191,21 +195,54 @@ RSpec.describe 'Organization chore: standardize_planid' do
         chore.call(org)
       end
     end
+  end
 
-    context 'when planid is "identity_monthly"' do
-      let(:current_planid) { 'identity_monthly' }
+  describe 'team_plus tier mappings' do
+    before do
+      allow(org).to receive(:planid!)
+    end
 
-      it 'normalizes to identity_plus_v1' do
-        expect(org).to receive(:planid!).with('identity_plus_v1')
+    context 'when planid is "team_plus"' do
+      let(:current_planid) { 'team_plus' }
+
+      it 'normalizes to team_plus_v1' do
+        expect(org).to receive(:planid!).with('team_plus_v1')
         chore.call(org)
       end
     end
 
-    context 'when planid is "identity_yearly"' do
-      let(:current_planid) { 'identity_yearly' }
+    context 'when planid is "team_plus_monthly"' do
+      let(:current_planid) { 'team_plus_monthly' }
 
-      it 'normalizes to identity_plus_v1' do
-        expect(org).to receive(:planid!).with('identity_plus_v1')
+      it 'normalizes to team_plus_v1' do
+        expect(org).to receive(:planid!).with('team_plus_v1')
+        chore.call(org)
+      end
+    end
+
+    context 'when planid is "team_plus_yearly"' do
+      let(:current_planid) { 'team_plus_yearly' }
+
+      it 'normalizes to team_plus_v1' do
+        expect(org).to receive(:planid!).with('team_plus_v1')
+        chore.call(org)
+      end
+    end
+
+    context 'when planid is "team_plus_v1_monthly"' do
+      let(:current_planid) { 'team_plus_v1_monthly' }
+
+      it 'normalizes to team_plus_v1' do
+        expect(org).to receive(:planid!).with('team_plus_v1')
+        chore.call(org)
+      end
+    end
+
+    context 'when planid is "team_plus_v1_yearly"' do
+      let(:current_planid) { 'team_plus_v1_yearly' }
+
+      it 'normalizes to team_plus_v1' do
+        expect(org).to receive(:planid!).with('team_plus_v1')
         chore.call(org)
       end
     end
@@ -248,6 +285,23 @@ RSpec.describe 'Organization chore: standardize_planid' do
         expect(chore.call(org)).to be_nil
       end
     end
+
+    # Identity-prefixed interval variants strip to bare 'identity' which is
+    # canonical (preserved). Suffix-stripping lands them as unknown so that
+    # if they actually appear in production, operators see them surfaced
+    # rather than silently rewritten.
+    context 'when planid is "identity_monthly" (strips to canonical "identity")' do
+      let(:current_planid) { 'identity_monthly' }
+
+      it 'logs as unknown and does not modify' do
+        expect(mock_logger).to receive(:info).with(
+          'Skipping unknown planid',
+          hash_including(planid: 'identity_monthly')
+        )
+        expect(org).not_to receive(:planid!)
+        chore.call(org)
+      end
+    end
   end
 
   describe 'whitespace handling' do
@@ -280,7 +334,7 @@ RSpec.describe 'Organization chore: standardize_planid' do
     end
 
     context 'when modification occurs' do
-      let(:current_planid) { 'identity' }
+      let(:current_planid) { 'identity_plus' }
 
       it 'includes org_extid in log' do
         expect(mock_logger).to receive(:info).with(
@@ -293,7 +347,7 @@ RSpec.describe 'Organization chore: standardize_planid' do
       it 'includes from and to values' do
         expect(mock_logger).to receive(:info).with(
           'Normalizing planid',
-          hash_including(from: 'identity', to: 'identity_plus_v1')
+          hash_including(from: 'identity_plus', to: 'identity_plus_v1')
         )
         chore.call(org)
       end
