@@ -43,11 +43,15 @@ module Onetime
 
       # Legacy planid base values → canonical replacement. Lookup is
       # performed against the value after trailing interval suffixes have
-      # been stripped.
+      # been stripped. `'identity' => 'identity'` collapses interval
+      # variants (`identity_monthly`, `identity_yearly`) onto the bare
+      # canonical value; bare `identity` short-circuits earlier via
+      # CANONICAL_PLANIDS.
       LEGACY_PLANID_MAP = {
         '' => 'free_v1',
         'free' => 'free_v1',
         'basic' => 'free_v1',
+        'identity' => 'identity',
         'identity_plus' => 'identity_plus_v1',
         'team_plus' => 'team_plus_v1',
       }.freeze

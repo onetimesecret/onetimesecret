@@ -286,19 +286,38 @@ RSpec.describe 'Organization chore: standardize_planid' do
       end
     end
 
-    # Identity-prefixed interval variants strip to bare 'identity' which is
-    # canonical (preserved). Suffix-stripping lands them as unknown so that
-    # if they actually appear in production, operators see them surfaced
-    # rather than silently rewritten.
-    context 'when planid is "identity_monthly" (strips to canonical "identity")' do
+  end
+
+  describe 'identity tier mappings' do
+    before do
+      allow(org).to receive(:planid!)
+    end
+
+    # Bare 'identity' is canonical and short-circuits in the canonical-skip
+    # block above; these cases cover the interval-suffixed variants that
+    # strip to 'identity' and normalize to the bare value.
+    context 'when planid is "identity_monthly"' do
       let(:current_planid) { 'identity_monthly' }
 
-      it 'logs as unknown and does not modify' do
+      it 'normalizes to identity' do
+        expect(org).to receive(:planid!).with('identity')
+        chore.call(org)
+      end
+
+      it 'logs the normalization' do
         expect(mock_logger).to receive(:info).with(
-          'Skipping unknown planid',
-          hash_including(planid: 'identity_monthly')
+          'Normalizing planid',
+          hash_including(from: 'identity_monthly', to: 'identity')
         )
-        expect(org).not_to receive(:planid!)
+        chore.call(org)
+      end
+    end
+
+    context 'when planid is "identity_yearly"' do
+      let(:current_planid) { 'identity_yearly' }
+
+      it 'normalizes to identity' do
+        expect(org).to receive(:planid!).with('identity')
         chore.call(org)
       end
     end
