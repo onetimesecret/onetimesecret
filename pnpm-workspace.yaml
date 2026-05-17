@@ -1,0 +1,18 @@
+allowBuilds:
+  '@sentry/cli': true
+  esbuild: true
+  unrs-resolver: true
+  vue-demi: false
+
+overrides:
+  brace-expansion: '1.1.13'
+  flatted: '^3.4.2'
+  yaml: '^2.8.3'
+
+peerDependencyRules:
+  allowedVersions:
+    typescript: '5.9.3'
+    'unplugin-vue-markdown>vite': '8'
+    'vite-plugin-inspect>vite': '8'
+    'vite-dev-rpc>vite': '8'
+    'vite-hot-client>vite': '8'

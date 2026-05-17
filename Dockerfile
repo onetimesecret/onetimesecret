@@ -77,7 +77,7 @@ WORKDIR ${APP_DIR}
 ENV NODE_PATH=${APP_DIR}/node_modules
 
 # Copy dependency manifests
-COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
+COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install Ruby dependencies
 # BUNDLE_WITHOUT excludes dev/test/optional gems from production image
@@ -106,7 +106,7 @@ WORKDIR ${APP_DIR}
 COPY public ./public
 COPY src ./src
 COPY locales ./locales
-COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json vite.config.ts \
      tailwind.config.ts eslint.config.ts ./
 
 # Belt-and-suspenders version patch: if the host-side update-version.sh ran
