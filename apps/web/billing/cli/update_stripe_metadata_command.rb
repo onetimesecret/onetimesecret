@@ -127,32 +127,44 @@ module Onetime
 
         stats = { unchanged: 0, updated: 0, errors: 0, orphaned: 0, read: 0 }
 
-        # NOTE: index.all uses HGETALL — fine for admin-scale (hundreds of orgs).
-        index.all.each do |stripe_customer_id, org_objid|
-          org = Onetime::Organization.load(org_objid)
+        # Check index consistency first (detect orphaned entries)
+        check_index_consistency(index, stats)
 
-          if org.nil?
-            puts format(
-              '%-32s %-30s %-30s %s',
-              "(orphaned: #{org_objid[0..15]}...)",
-              '-',
-              stripe_customer_id,
-              'ERROR: org not found',
-            )
-            stats[:orphaned] += 1
-            next
-          end
+        # Memory-efficient cursor-based iteration (Familia 2.9+)
+        Onetime::Organization.instances.each_record do |org|
+          stripe_customer_id = org.stripe_customer_id.to_s
+          next if stripe_customer_id.empty?
 
           result         = if @read_only
-            read_one(org, stripe_customer_id, key: key)
-          else
-            update_one(org, stripe_customer_id, key: key, value: value, unset: unset, apply: apply)
+                     read_one(org, stripe_customer_id, key: key)
+                   else
+                     update_one(org, stripe_customer_id, key: key, value: value, unset: unset, apply: apply)
                    end
           stats[result] += 1
         end
 
         puts
         print_summary(stats, apply: apply)
+      end
+
+      def check_index_consistency(index, stats)
+        pairs = index.to_a
+        return if pairs.empty?
+
+        orgs = Onetime::Organization.load_multi(pairs.map(&:last))
+
+        pairs.each_with_index do |(stripe_customer_id, org_objid), idx|
+          next unless orgs[idx].nil?
+
+          puts format(
+            '%-32s %-30s %-30s %s',
+            "(orphaned: #{org_objid[0..15]}...)",
+            '-',
+            stripe_customer_id,
+            'ERROR: org not found',
+          )
+          stats[:orphaned] += 1
+        end
       end
 
       def print_summary(stats, apply:)
