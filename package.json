@@ -257,14 +257,6 @@
       "flatted": "^3.4.2",
       "yaml": "^2.8.3"
     },
-    "ignoredBuiltDependencies": [
-      "vue-demi"
-    ],
-    "onlyBuiltDependencies": [
-      "@sentry/cli",
-      "esbuild",
-      "unrs-resolver"
-    ],
     "peerDependencyRules": {
       "allowedVersions": {
         "typescript": "5.9.3",
