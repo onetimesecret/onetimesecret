@@ -250,21 +250,5 @@
     "*.{ts,vue,mjs}": [
       "eslint --quiet --config eslint.config.ts --cache --cache-location ./node_modules/.cache/eslint --fix"
     ]
-  },
-  "pnpm": {
-    "overrides": {
-      "brace-expansion": "1.1.13",
-      "flatted": "^3.4.2",
-      "yaml": "^2.8.3"
-    },
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "typescript": "5.9.3",
-        "unplugin-vue-markdown>vite": "8",
-        "vite-plugin-inspect>vite": "8",
-        "vite-dev-rpc>vite": "8",
-        "vite-hot-client>vite": "8"
-      }
-    }
   }
 }
