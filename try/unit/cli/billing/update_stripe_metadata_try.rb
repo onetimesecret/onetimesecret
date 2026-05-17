@@ -124,6 +124,18 @@ $stdout  = @orig
 @result
 #=> true
 
+## Negative --sleep returns false
+@capture = StringIO.new
+$stdout  = @capture
+@result  = @cmd.send(:validate_options!, key: 'region', value: 'us', unset: false, sleep: -10)
+$stdout  = @orig
+@result
+#=> false
+
+## Negative --sleep prints helpful error
+@capture.string.include?('non-negative')
+#=> true
+
 # -------------------------------------------------------------------
 # truncate helper
 # -------------------------------------------------------------------
@@ -142,11 +154,11 @@ $stdout  = @orig
 
 ## truncate shortens long strings with ellipsis
 @cmd.send(:truncate, 'this-is-a-very-long-value-here', length: 20)
-#=> 'this-is-a-very-lon...'
+#=> 'this-is-a-very-lo...'
 
 ## truncate respects custom length
 @cmd.send(:truncate, 'abcdefghij', length: 5)
-#=> 'abc...'
+#=> 'ab...'
 
 # -------------------------------------------------------------------
 # Single-org branch: missing org reports cleanly
@@ -226,9 +238,9 @@ $stdout = @orig
 @out_str.match(/Orphaned:\s+(\d+)/)[1].to_i >= 1
 #=> true
 
-## Dry-run footer is present
+## Dry-run footer not shown when no updates pending (only orphans)
 @out_str.include?('Run with --apply')
-#=> true
+#=> false
 
 ## Header shows the SET action
 @out_str.include?('SET region=us-east')

@@ -62,7 +62,7 @@ module Onetime
         boot_application!
 
         return unless stripe_configured?
-        return unless validate_options!(key: key, value: value, unset: unset)
+        return unless validate_options!(key: key, value: value, unset: unset, sleep: sleep)
 
         @sleep_interval = sleep / 1000.0
         @read_only      = read_only_mode?(value: value, unset: unset)
@@ -76,7 +76,7 @@ module Onetime
 
       private
 
-      def validate_options!(key:, value:, unset:)
+      def validate_options!(key:, value:, unset:, sleep: 50)
         if key.nil? || key.to_s.strip.empty?
           puts 'Error: --key is required'
           return false
@@ -84,6 +84,11 @@ module Onetime
 
         if unset && !value.nil?
           puts 'Error: --unset is mutually exclusive with --value'
+          return false
+        end
+
+        if sleep.to_f.negative?
+          puts 'Error: --sleep must be non-negative'
           return false
         end
 
@@ -113,9 +118,9 @@ module Onetime
         if @read_only
           read_one(org, stripe_customer_id, key: key)
         else
-          update_one(org, stripe_customer_id, key: key, value: value, unset: unset, apply: apply)
+          result = update_one(org, stripe_customer_id, key: key, value: value, unset: unset, apply: apply)
           puts
-          puts 'Run with --apply to commit changes' unless apply
+          puts 'Run with --apply to commit changes' if !apply && result == :updated
         end
       end
 
@@ -148,6 +153,7 @@ module Onetime
       end
 
       def check_index_consistency(index, stats)
+        # index.to_a uses HGETALL — acceptable up to ~1k orgs
         pairs = index.to_a
         return if pairs.empty?
 
@@ -180,7 +186,7 @@ module Onetime
           puts "  Errors:    #{stats[:errors]}"
           puts "  Orphaned:  #{stats[:orphaned]}"
           puts
-          puts 'Run with --apply to commit changes' unless apply
+          puts 'Run with --apply to commit changes' if !apply && stats[:updated].positive?
         end
       end
 
@@ -222,7 +228,7 @@ module Onetime
         puts format('%-32s %-28s %s', org.extid, stripe_customer_id, current_value || '(not set)')
         :read
       rescue Stripe::StripeError => ex
-        puts format('%-32s %-28s %s', org.extid, stripe_customer_id, "ERROR: #{format_stripe_error('retrieve', ex)[0..40]}")
+        puts format('%-32s %-28s %s', org.extid, stripe_customer_id, "ERROR: #{format_stripe_error('retrieve', ex)[0..60]}")
         :errors
       end
 
@@ -237,9 +243,7 @@ module Onetime
         target_value  = unset ? nil : value
         target_label  = unset ? '(unset)' : value.to_s
 
-        already_matches = unset ? current_value.nil? : current_value.to_s == value.to_s
-
-        status, result = if already_matches
+        status, result = if metadata_matches?(current_value, value, unset: unset)
                            ['unchanged', :unchanged]
                          elsif apply
                            apply_update(stripe_customer_id, key: key, value: target_value, unset: unset)
@@ -264,7 +268,7 @@ module Onetime
           stripe_customer_id,
           '-',
           unset ? '(unset)' : value.to_s,
-          "ERROR: #{format_stripe_error('retrieve', ex)[0..40]}",
+          "ERROR: #{format_stripe_error('retrieve', ex)[0..60]}",
         )
         :errors
       end
@@ -272,23 +276,27 @@ module Onetime
       # Apply the metadata update via Stripe::Customer.update.
       # Stripe merges metadata: keys not present in the update hash are preserved.
       # Setting a key to '' (empty string) removes it.
-      # Throttling lives in update_one so each row sleeps exactly once.
       def apply_update(stripe_customer_id, key:, value:, unset:)
         metadata_param = unset ? { key => '' } : { key => value.to_s }
 
         with_stripe_retry do
           Stripe::Customer.update(stripe_customer_id, metadata: metadata_param)
         end
+        sleep(@sleep_interval) if @sleep_interval.positive?
 
         [unset ? 'UNSET' : 'UPDATED', :updated]
       rescue Stripe::StripeError => ex
-        ["ERROR: #{format_stripe_error('update', ex)[0..40]}", :errors]
+        ["ERROR: #{format_stripe_error('update', ex)[0..60]}", :errors]
+      end
+
+      def metadata_matches?(current_value, target_value, unset:)
+        unset ? current_value.nil? : current_value.to_s == target_value.to_s
       end
 
       def truncate(str, length: 20)
         return '-' if str.nil? || str.empty?
 
-        str.length > length ? "#{str[0..(length - 3)]}..." : str
+        str.length > length ? "#{str[0...(length - 3)]}..." : str
       end
     end
   end
