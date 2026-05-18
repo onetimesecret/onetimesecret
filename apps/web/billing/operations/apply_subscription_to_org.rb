@@ -93,6 +93,63 @@ module Billing
         end
       end
 
+      # Materialize entitlements for org's current planid
+      #
+      # Used by federation claim path and other codepaths that set planid
+      # without going through the full ApplySubscriptionToOrg.call flow.
+      #
+      # @param org [Onetime::Organization] Organization with planid already set
+      # @param raise_on_miss [Boolean] Whether to raise PlanCacheMissError (default: false)
+      # @return [Boolean] True if materialized, false if plan not found
+      def self.materialize_entitlements_for_org(org, raise_on_miss: false)
+        return false unless org.planid && !org.planid.to_s.empty?
+
+        # Try cached plan first
+        plan = Billing::Plan.load(org.planid)
+        if plan
+          org.materialize_entitlements_from_plan(plan)
+          OT.info '[ApplySubscriptionToOrg] Materialized entitlements for org',
+            {
+              org_extid: org.extid,
+              planid: org.planid,
+              entitlements_count: org.materialized_entitlements.size,
+              source: 'cache',
+            }
+          return true
+        end
+
+        # Try config-only plan (e.g., free_v1)
+        config_plan = Billing::Plan.load_from_config(org.planid)
+        if config_plan
+          org.materialize_entitlements_from_config(config_plan)
+          OT.info '[ApplySubscriptionToOrg] Materialized entitlements for org',
+            {
+              org_extid: org.extid,
+              planid: org.planid,
+              entitlements_count: org.materialized_entitlements.size,
+              source: 'config',
+            }
+          return true
+        end
+
+        # Plan not found
+        if raise_on_miss
+          raise Billing::PlanCacheMissError.new(
+            'Cannot materialize entitlements - plan not found',
+            plan_id: org.planid,
+            context: 'ApplySubscriptionToOrg.materialize_entitlements_for_org',
+            organization_id: org.extid,
+          )
+        end
+
+        OT.lw '[ApplySubscriptionToOrg] Plan not found, cannot materialize',
+          {
+            org_extid: org.extid,
+            planid: org.planid,
+          }
+        false
+      end
+
       def initialize(org, subscription, owner: true, planid_override: nil, save: true)
         @org              = org
         @subscription     = subscription
