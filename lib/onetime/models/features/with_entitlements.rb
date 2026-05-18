@@ -152,7 +152,11 @@ module Onetime
 
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
+          base.extend ClassMethods
           base.include InstanceMethods
+        end
+
+        module ClassMethods
         end
 
         module InstanceMethods
