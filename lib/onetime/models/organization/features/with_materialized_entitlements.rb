@@ -134,19 +134,17 @@ module Onetime
           #
           # Order: entitlements_plan + entitlements_grants - entitlements_revokes
           #
-          # Uses Redis set operations for atomicity.
+          # Wraps operations in MULTI/EXEC transaction via Familia#transaction
+          # to prevent race conditions where concurrent reads see partial state.
           #
           # @return [Array<String>] Effective entitlements after reconciliation
           def apply_entitlements
-            # Start with plan entitlements
-            materialized_entitlements.clear
-            entitlements_plan.each { |e| materialized_entitlements.add(e) }
-
-            # Add grants
-            entitlements_grants.each { |e| materialized_entitlements.add(e) }
-
-            # Remove revokes
-            entitlements_revokes.each { |e| materialized_entitlements.delete(e) }
+            transaction do
+              materialized_entitlements.clear
+              entitlements_plan.each { |e| materialized_entitlements.add(e) }
+              entitlements_grants.each { |e| materialized_entitlements.add(e) }
+              entitlements_revokes.each { |e| materialized_entitlements.delete(e) }
+            end
 
             materialized_entitlements.to_a
           end

@@ -98,6 +98,11 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
         yield if block_given?
         true
       end
+
+      # Stub for Familia::Horreum#transaction (MULTI/EXEC wrapper)
+      def transaction
+        yield if block_given?
+      end
     end
   end
 
