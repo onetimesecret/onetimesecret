@@ -6,6 +6,14 @@
 #   - Links shared dev resources from OTS_DEV_CONFIG
 #   - Installs Ruby gems (bundle install)
 #   - Installs Node packages (pnpm install)
+#   - Cleans any pre-existing frontend build output (pnpm run clean)
+#   - Points the Caddy webroot symlink at this checkout's public/web
+#
+# Intentionally does NOT run `pnpm run build`. Production assets in
+# public/web cause confusion about which files are actually being served
+# during development. `pnpm run clean` removes them so this checkout
+# starts in a known, consistent state. The Vite dev server (via bin/dev)
+# serves frontend assets directly.
 #
 # Idempotent: safe to re-run at any time.
 
@@ -61,6 +69,54 @@ set +a
 EOF
         chmod +x ".env.sh"
         echo "Created and marked executable: .env.sh"
+    fi
+}
+
+# Replace the Caddy webroot symlink with this checkout's public/web.
+# Caddy is configured to serve from /var/www/public/web.
+link_caddy_webroot() {
+    local webroot
+    webroot="$(pwd)/public/web"
+    local caddy_link="/var/www/public/web"
+    local caddy_parent="/var/www/public"
+
+    if [[ ! -d "$caddy_parent" ]]; then
+        echo "Skip: $caddy_parent does not exist — caddy webroot symlink not created"
+        return
+    fi
+
+    # Don't clobber a real directory
+    if [[ -e "$caddy_link" && ! -L "$caddy_link" ]]; then
+        echo "Skip: $caddy_link exists and is not a symlink — not replacing"
+        return
+    fi
+
+    # Already correctly linked
+    if [[ -L "$caddy_link" && "$(readlink "$caddy_link")" == "$webroot" ]]; then
+        echo "OK:   $caddy_link -> $webroot"
+        return
+    fi
+
+    local run=""
+    if [[ ! -w "$caddy_parent" ]]; then
+        run="sudo"
+        echo "Note: $caddy_parent requires elevated privileges (sudo)"
+    fi
+
+    # Capture previous target before replacing
+    local prev_target=""
+    if [[ -L "$caddy_link" ]]; then
+        prev_target="$(readlink "$caddy_link")"
+    fi
+
+    $run rm -f "$caddy_link"
+    $run ln -s "$webroot" "$caddy_link"
+
+    if [[ -n "$prev_target" ]]; then
+        echo "Link: $caddy_link -> $webroot"
+        echo "      (was: $prev_target)"
+    else
+        echo "Link: $caddy_link -> $webroot"
     fi
 }
 
@@ -160,9 +216,24 @@ echo "Installing Node packages..."
 pnpm install
 
 echo "---"
+echo "Cleaning frontend build output..."
+pnpm run clean
+
+echo "---"
+echo "Configuring Caddy webroot..."
+link_caddy_webroot
+
+echo "---"
+echo "Setup complete."
+echo ""
+echo "  Note: pnpm run build was NOT run (intentional)."
+echo "  Prior build output was removed; the Vite dev server serves assets directly."
+echo ""
 if [[ "${has_overmind}" = true ]]; then
-    echo "Done. Run 'bin/dev' to start."
+    echo "To start:"
+    echo "  bin/dev                  # standard (shared valkey + postgresql)"
+    echo "  bin/dev --volatile       # isolated (own valkey + sqlite:memory; use in alternate checkouts)"
 else
-    echo "Done. Install overmind to use 'bin/dev', or start services manually:"
+    echo "Install overmind to use bin/dev, or start services manually:"
     echo "  source .env.sh && bundle exec puma -C etc/puma.rb"
 fi
