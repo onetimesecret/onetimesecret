@@ -48,13 +48,13 @@
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
-  // Custom domain logos are larger to emphasize brand identity
-  const isCustomDomainLogo = computed(() => !!domain_logo.value);
+  // Custom logos (API domain branding OR static config) are larger to emphasize brand identity
+  const isCustomLogo = computed(() => !!domain_logo.value || !!headerConfig.value?.branding?.logo?.url);
   // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
   // Custom domain logos remain at 80px, unauthenticated users get 48px
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
-    if (isCustomDomainLogo.value) return 80;
+    if (isCustomLogo.value) return 80;
     return isUserPresent.value ? 40 : 48;
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
@@ -169,10 +169,10 @@
             <img
               id="logo"
               :src="logoConfig.url"
-              class="w-auto transition-transform"
+              class="w-auto object-contain transition-transform"
               :class="[
-                isCustomDomainLogo
-                  ? 'h-20'
+                isCustomLogo
+                  ? 'h-40'
                   : isUserPresent
                     ? 'h-10'
                     : 'h-12'
