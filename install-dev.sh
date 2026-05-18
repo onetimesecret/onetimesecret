@@ -75,8 +75,14 @@ EOF
 # Replace the Caddy webroot symlink with this checkout's public/web.
 # Caddy is configured to serve from /var/www/public/web.
 link_caddy_webroot() {
+    # Canonical absolute path to this checkout's public/web.
+    # pwd -P resolves any symlinks in the checkout path.
     local webroot
-    webroot="$(pwd)/public/web"
+    if [[ -d "public/web" ]]; then
+        webroot="$(cd public/web && pwd -P)"
+    else
+        webroot="$(pwd -P)/public/web"
+    fi
     local caddy_link="/var/www/public/web"
     local caddy_parent="/var/www/public"
 
@@ -91,10 +97,18 @@ link_caddy_webroot() {
         return
     fi
 
-    # Already correctly linked
-    if [[ -L "$caddy_link" && "$(readlink "$caddy_link")" == "$webroot" ]]; then
-        echo "OK:   $caddy_link -> $webroot"
-        return
+    # Already correctly linked? Compare resolved targets so we don't
+    # relink (and prompt for sudo) when an equivalent relative or
+    # non-canonical path is already in place.
+    local prev_target=""
+    if [[ -L "$caddy_link" ]]; then
+        prev_target="$(readlink "$caddy_link")"
+        local prev_resolved
+        prev_resolved="$(readlink -f "$caddy_link" 2>/dev/null || echo "")"
+        if [[ -n "$prev_resolved" && "$prev_resolved" == "$webroot" ]]; then
+            echo "OK:   $caddy_link -> $webroot"
+            return
+        fi
     fi
 
     local run=""
@@ -103,14 +117,9 @@ link_caddy_webroot() {
         echo "Note: $caddy_parent requires elevated privileges (sudo)"
     fi
 
-    # Capture previous target before replacing
-    local prev_target=""
-    if [[ -L "$caddy_link" ]]; then
-        prev_target="$(readlink "$caddy_link")"
-    fi
-
-    $run rm -f "$caddy_link"
-    $run ln -s "$webroot" "$caddy_link"
+    # Atomic replace: ln -snf swaps the symlink in place without a
+    # transient missing-link window between rm and ln.
+    $run ln -snf "$webroot" "$caddy_link"
 
     if [[ -n "$prev_target" ]]; then
         echo "Link: $caddy_link -> $webroot"
@@ -231,8 +240,8 @@ echo "  Prior build output was removed; the Vite dev server serves assets direct
 echo ""
 if [[ "${has_overmind}" = true ]]; then
     echo "To start:"
-    echo "  bin/dev                  # standard (shared valkey + postgresql)"
-    echo "  bin/dev --volatile       # isolated (own valkey + sqlite:memory; use in alternate checkouts)"
+    echo "  bin/dev                  # standard"
+    echo "  bin/dev --volatile       # ephemeral, no persistent data (useful in alternate checkouts)"
 else
     echo "Install overmind to use bin/dev, or start services manually:"
     echo "  source .env.sh && bundle exec puma -C etc/puma.rb"
