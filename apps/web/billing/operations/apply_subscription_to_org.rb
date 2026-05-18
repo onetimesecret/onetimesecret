@@ -17,7 +17,7 @@ module Billing
     # @!attribute reason [String, nil] Human-readable skip/error reason
     MaterializeResult = Data.define(:status, :planid, :entitlements_count, :source, :reason) do
       def success? = status == :materialized
-      def skipped? = status.to_s.start_with?('skipped')
+      def skipped? = [:skipped_no_plan, :skipped_fresh].include?(status)
     end
 
     # ApplySubscriptionToOrg - Shared operation for writing subscription
@@ -32,7 +32,7 @@ module Billing
     # paths produce consistent state — particularly for the
     # complimentary marker and plan resolution.
     #
-    # Usage:
+    # Usage (.call for full subscription apply):
     #   # Owner path (full update with Stripe IDs, auto-save)
     #   ApplySubscriptionToOrg.call(org, subscription, owner: true)
     #
@@ -42,6 +42,23 @@ module Billing
     #   # Migration path (owner + explicit plan when price not in catalog)
     #   ApplySubscriptionToOrg.call(org, subscription, owner: true,
     #     planid_override: 'identity_plus_v1')
+    #
+    # Usage (.materialize_entitlements_for_org for entitlements only):
+    #   # Basic: materialize org's current plan entitlements
+    #   result = ApplySubscriptionToOrg.materialize_entitlements_for_org(org)
+    #
+    #   # CLI batch: skip orgs already up-to-date
+    #   result = ApplySubscriptionToOrg.materialize_entitlements_for_org(org,
+    #     skip_if_fresh: true)
+    #
+    #   # Dry run: preview what would happen without writing
+    #   result = ApplySubscriptionToOrg.materialize_entitlements_for_org(org,
+    #     dry_run: true)
+    #   puts "Would apply #{result.entitlements_count} entitlements"
+    #
+    #   # Fail-closed: raise on missing plan (webhook path)
+    #   ApplySubscriptionToOrg.materialize_entitlements_for_org(org,
+    #     raise_on_miss: true)
     #
     class ApplySubscriptionToOrg
       # @param org [Onetime::Organization] Organization to update
@@ -160,13 +177,19 @@ module Billing
           org.materialize_entitlements_from_config(plan)
         end
 
+        count = org.materialized_entitlements.size
         OT.info '[ApplySubscriptionToOrg] Materialized entitlements for org',
-          { org_extid: org.extid, planid: planid, entitlements_count: org.materialized_entitlements.size, source: source.to_s }
+          {
+            org_extid: org.extid,
+            planid: planid,
+            entitlements_count: count,
+            source: source.to_s,
+          }
 
         MaterializeResult.new(
           status: :materialized,
           planid: planid,
-          entitlements_count: org.materialized_entitlements.size,
+          entitlements_count: count,
           source: source,
           reason: nil,
         )
@@ -186,15 +209,22 @@ module Billing
       private_class_method :skipped_no_plan_result
 
       def self.plan_not_found_result(org, planid, raise_on_miss)
-        if raise_on_miss
-          raise Billing::PlanCacheMissError.new(
-            'Cannot materialize entitlements - plan not found',
-            plan_id: planid,
-            context: 'ApplySubscriptionToOrg.materialize_entitlements_for_org',
-            organization_id: org.extid,
-          )
-        end
+        raise_plan_not_found(org, planid) if raise_on_miss
+        build_plan_not_found_result(org, planid)
+      end
+      private_class_method :plan_not_found_result
 
+      def self.raise_plan_not_found(org, planid)
+        raise Billing::PlanCacheMissError.new(
+          'Cannot materialize entitlements - plan not found',
+          plan_id: planid,
+          context: 'ApplySubscriptionToOrg.materialize_entitlements_for_org',
+          organization_id: org.extid,
+        )
+      end
+      private_class_method :raise_plan_not_found
+
+      def self.build_plan_not_found_result(org, planid)
         OT.lw '[ApplySubscriptionToOrg] Plan not found, cannot materialize',
           { org_extid: org.extid, planid: planid }
 
@@ -206,7 +236,7 @@ module Billing
           reason: "Plan '#{planid}' not in cache or config",
         )
       end
-      private_class_method :plan_not_found_result
+      private_class_method :build_plan_not_found_result
 
       def self.skipped_fresh_result(org, planid, source)
         MaterializeResult.new(
@@ -220,17 +250,20 @@ module Billing
       private_class_method :skipped_fresh_result
 
       def self.would_materialize_result(planid, plan, source)
-        ent_count = source == :cache ? plan.entitlements.size : (plan[:entitlements] || []).size
-
         MaterializeResult.new(
           status: :would_materialize,
           planid: planid,
-          entitlements_count: ent_count,
+          entitlements_count: entitlements_count_for(plan, source),
           source: source,
           reason: nil,
         )
       end
       private_class_method :would_materialize_result
+
+      def self.entitlements_count_for(plan, source)
+        source == :cache ? plan.entitlements.size : (plan[:entitlements] || []).size
+      end
+      private_class_method :entitlements_count_for
 
       def initialize(org, subscription, owner: true, planid_override: nil, save: true)
         @org              = org

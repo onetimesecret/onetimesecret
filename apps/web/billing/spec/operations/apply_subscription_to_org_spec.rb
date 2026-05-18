@@ -861,6 +861,26 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       end
     end
 
+    context 'when org planid is whitespace-only' do
+      # planid.to_s.empty? is false for "   ", so the no-plan guard does not
+      # fire. Plan.load("   ") returns nil, so the result is :plan_not_found.
+      let(:org_whitespace_plan) do
+        double('Organization', planid: '   ', extid: 'on_whitespace_org')
+      end
+
+      before do
+        allow(Billing::Plan).to receive(:load).with('   ').and_return(nil)
+        allow(Billing::Plan).to receive(:load_from_config).with('   ').and_return(nil)
+      end
+
+      it 'returns :plan_not_found (whitespace planid passes the empty? guard)' do
+        result = described_class.materialize_entitlements_for_org(org_whitespace_plan)
+
+        expect(result.status).to eq(:plan_not_found)
+        expect(result.planid).to eq('   ')
+      end
+    end
+
     # ------------------------------------------------------------------
     # :plan_not_found
     # ------------------------------------------------------------------
