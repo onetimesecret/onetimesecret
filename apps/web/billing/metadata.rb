@@ -76,6 +76,9 @@ module Billing
       FIELD_REGION,
     ].freeze
 
+    # Canonical free plan ID (used when canceling subscriptions)
+    FREE_PLAN_ID = 'free_v1'
+
     # Plan IDs that represent free/unpaid tiers
     FREE_PLAN_IDS = %w[free free_v1].freeze
 

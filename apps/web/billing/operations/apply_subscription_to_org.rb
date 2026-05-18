@@ -45,6 +45,29 @@ module Billing
         new(org, subscription, owner: owner, planid_override: planid_override, save: save).call
       end
 
+      # Apply free tier state when subscription is canceled/deleted
+      #
+      # Called by webhook handlers when a subscription is deleted.
+      # Centralizes the cancel path so Phase 2 entitlement materialization
+      # applies to cancellations automatically.
+      #
+      # @param org [Onetime::Organization] Organization to update
+      # @param owner [Boolean] Whether org owned the subscription (clears Stripe IDs)
+      # @param save [Boolean] Whether to call org.save after applying fields
+      # @return [Boolean, nil] Result of org.save, or nil when save: false
+      def self.apply_free_tier(org, owner: true, save: true)
+        org.subscription_status     = 'canceled'
+        org.planid                  = Billing::Metadata::FREE_PLAN_ID
+        org.complimentary           = nil
+        org.subscription_period_end = nil if owner
+
+        if owner
+          org.stripe_subscription_id = nil
+        end
+
+        org.save if save
+      end
+
       def initialize(org, subscription, owner: true, planid_override: nil, save: true)
         @org              = org
         @subscription     = subscription

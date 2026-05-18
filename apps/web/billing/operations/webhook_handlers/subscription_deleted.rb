@@ -79,11 +79,7 @@ module Billing
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
         def clear_federated_org(org, _subscription)
-          org.subscription_status     = 'canceled'
-          org.planid                  = 'free_v1'
-          # Clear subscription_period_end since subscription is gone
-          org.subscription_period_end = nil
-          org.save
+          Billing::Operations::ApplySubscriptionToOrg.apply_free_tier(org, owner: false)
         end
 
         # Check if federation is enabled

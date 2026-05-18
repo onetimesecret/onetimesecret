@@ -1,0 +1,142 @@
+# spec/unit/billing/operations/apply_subscription_to_org_spec.rb
+#
+# frozen_string_literal: true
+
+# Test cases for ApplySubscriptionToOrg.apply_free_tier
+#
+# Centralizes cancel path for subscription deletions. Ensures:
+# - Owner mode clears Stripe IDs and period end
+# - Federated mode preserves Stripe IDs (owned by different org)
+# - Both modes set canceled status, free plan, and clear complimentary
+#
+# Run: pnpm run test:rspec spec/unit/billing/operations/apply_subscription_to_org_spec.rb
+
+require 'spec_helper'
+
+require_relative '../../../../apps/web/billing/metadata'
+require_relative '../../../../apps/web/billing/operations/apply_subscription_to_org'
+
+RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', billing: true do
+  let(:operation) { Billing::Operations::ApplySubscriptionToOrg }
+
+  # Org double with writable attributes
+  let(:org) do
+    instance_double(
+      Onetime::Organization,
+      'subscription_status=' => nil,
+      'planid=' => nil,
+      'complimentary=' => nil,
+      'subscription_period_end=' => nil,
+      'stripe_subscription_id=' => nil
+    )
+  end
+
+  describe 'owner mode (owner: true)' do
+    it 'sets subscription_status to canceled' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:subscription_status=).with('canceled')
+
+      operation.apply_free_tier(org, owner: true)
+    end
+
+    it 'sets planid to FREE_PLAN_ID' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:planid=).with(Billing::Metadata::FREE_PLAN_ID)
+
+      operation.apply_free_tier(org, owner: true)
+    end
+
+    it 'clears complimentary' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:complimentary=).with(nil)
+
+      operation.apply_free_tier(org, owner: true)
+    end
+
+    it 'clears subscription_period_end' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:subscription_period_end=).with(nil)
+
+      operation.apply_free_tier(org, owner: true)
+    end
+
+    it 'clears stripe_subscription_id' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:stripe_subscription_id=).with(nil)
+
+      operation.apply_free_tier(org, owner: true)
+    end
+
+    it 'calls org.save when save: true (default)' do
+      expect(org).to receive(:save).and_return(true)
+
+      result = operation.apply_free_tier(org, owner: true)
+      expect(result).to be true
+    end
+  end
+
+  describe 'federated mode (owner: false)' do
+    it 'sets subscription_status to canceled' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:subscription_status=).with('canceled')
+
+      operation.apply_free_tier(org, owner: false)
+    end
+
+    it 'sets planid to FREE_PLAN_ID' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:planid=).with(Billing::Metadata::FREE_PLAN_ID)
+
+      operation.apply_free_tier(org, owner: false)
+    end
+
+    it 'clears complimentary' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).to receive(:complimentary=).with(nil)
+
+      operation.apply_free_tier(org, owner: false)
+    end
+
+    it 'does NOT clear subscription_period_end' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).not_to receive(:subscription_period_end=)
+
+      operation.apply_free_tier(org, owner: false)
+    end
+
+    it 'does NOT clear stripe_subscription_id' do
+      allow(org).to receive(:save).and_return(true)
+      expect(org).not_to receive(:stripe_subscription_id=)
+
+      operation.apply_free_tier(org, owner: false)
+    end
+  end
+
+  describe 'save behavior' do
+    it 'calls org.save when save: true' do
+      expect(org).to receive(:save).and_return(true)
+
+      result = operation.apply_free_tier(org, owner: true, save: true)
+      expect(result).to be true
+    end
+
+    it 'does NOT call org.save when save: false' do
+      expect(org).not_to receive(:save)
+
+      result = operation.apply_free_tier(org, owner: true, save: false)
+      expect(result).to be_nil
+    end
+
+    it 'returns nil when save: false' do
+      result = operation.apply_free_tier(org, owner: true, save: false)
+      expect(result).to be_nil
+    end
+
+    it 'returns org.save result when save: true' do
+      allow(org).to receive(:save).and_return(false)
+
+      result = operation.apply_free_tier(org, owner: true, save: true)
+      expect(result).to be false
+    end
+  end
+end
