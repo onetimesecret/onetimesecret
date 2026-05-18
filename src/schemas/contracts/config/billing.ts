@@ -118,7 +118,7 @@ export type BillingInterval = z.infer<typeof BillingIntervalSchema>;
  * Currency Code
  * ISO 4217 currency codes
  */
-export const CurrencyCodeSchema = z.enum(['cad', 'eur', 'usd', 'nzd', 'gbp']);
+export const CurrencyCodeSchema = z.enum(['cad', 'eur', 'gbp', 'nzd', 'usd']);
 
 export type CurrencyCode = z.infer<typeof CurrencyCodeSchema>;
 
