@@ -111,6 +111,9 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       allow(Billing::Plan).to receive(:find_by_stripe_price_id)
         .with('price_test')
         .and_return(mock_plan)
+      # Stub Phase 2 materialization (test class doesn't include WithMaterializedEntitlements)
+      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:materialize_entitlements_for_org)
+        .and_return(true)
     end
 
     context 'with valid subscription' do
