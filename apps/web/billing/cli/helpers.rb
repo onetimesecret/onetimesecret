@@ -10,9 +10,6 @@ module Onetime
   module CLI
     # Base module for billing command helpers
     module BillingHelpers
-      # Use constants from Billing::Metadata module to avoid magic strings
-      REQUIRED_METADATA_FIELDS = ::Billing::Metadata::REQUIRED_FIELDS
-
       # Retry configuration for Stripe API calls
       MAX_STRIPE_RETRIES      = 3
       STRIPE_RETRY_BASE_DELAY = 2 # seconds
@@ -191,22 +188,6 @@ module Onetime
 
         dollars = amount_cents.to_f / 100
         "#{currency&.upcase || 'CAD'} #{format('%.2f', dollars)}"
-      end
-
-      def validate_product_metadata(product)
-        errors = []
-
-        REQUIRED_METADATA_FIELDS.each do |field|
-          unless product.metadata[field]
-            errors << "Missing required metadata field: #{field}"
-          end
-        end
-
-        unless product.metadata[Billing::Metadata::FIELD_APP] == Billing::Metadata::APP_NAME
-          errors << "Invalid app metadata (should be '#{Billing::Metadata::APP_NAME}')"
-        end
-
-        errors
       end
 
       def prompt_for_metadata

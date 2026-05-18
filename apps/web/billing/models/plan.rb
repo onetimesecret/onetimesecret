@@ -179,10 +179,6 @@ module Billing
     end
 
     module ClassMethods
-      # Required metadata keys for OTS products (app check is separate)
-      # Note: 'interval' comes from the price object, not product metadata
-      REQUIRED_PRODUCT_METADATA = [Metadata::FIELD_PLAN_ID, Metadata::FIELD_TIER, Metadata::FIELD_REGION].freeze
-
       # Validate product has all required metadata for plan creation
       #
       # Checks both key presence AND non-blank values for all required fields.
@@ -191,12 +187,13 @@ module Billing
       # @param product [Stripe::Product] The Stripe product
       # @return [Hash] { missing: [...], blank: [...] } — both empty if valid
       def validate_product_metadata(product)
+        required = Metadata::REQUIRED_FIELDS
         metadata = product.metadata || {}
         keys     = metadata.keys.map(&:to_s)
-        missing  = REQUIRED_PRODUCT_METADATA - keys
+        missing  = required - keys
 
         # Check present keys for blank values
-        blank = (REQUIRED_PRODUCT_METADATA - missing).select do |key|
+        blank = (required - missing).select do |key|
           metadata[key].to_s.strip.empty?
         end
 
