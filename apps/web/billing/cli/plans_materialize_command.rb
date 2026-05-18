@@ -82,10 +82,13 @@ module Onetime
         stats             = { total: 0, materialized: 0, skipped_no_plan: 0, skipped_up_to_date: 0, skipped_plan_filter: 0, errors: [] }
         progress_interval = [total / 10, 1].max
 
-        # write_size: nil enables serial mode where the block runs outside any pipeline.
-        # Without it, Plan.load returns Redis::Future instead of actual values.
-        Onetime::Organization.instances.each_record(batch_size: 100, write_size: nil) do |org|
-          process_org(org, stats, total, dry_run, verbose, stale, plan, progress_interval)
+        # Preload all plans (only ~5) so no Redis reads happen inside the loop.
+        # This allows both reads and writes to be batched via pipelining.
+        # Includes both Stripe-synced and config-only plans (via upsert_config_only_plans).
+        plans_cache = ::Billing::Plan.list_plans.to_h { |p| [p.plan_id, p] }
+
+        Onetime::Organization.instances.each_record(batch_size: 100) do |org|
+          process_org(org, stats, total, dry_run, verbose, stale, plan, progress_interval, plans_cache)
         end
 
         print_results(stats, dry_run, verbose)
@@ -100,21 +103,14 @@ module Onetime
         org.planid.to_s != plan_filter
       end
 
-      def skip_for_stale_filter?(org, stale_only)
+      def skip_for_stale_filter?(org, stale_only, plans_cache)
         return false unless stale_only
         return false unless org.entitlements_materialized?
 
-        plan = load_plan_for_org(org)
+        plan = plans_cache[org.planid]
         return true unless plan
 
         !org.entitlements_stale?(plan)
-      end
-
-      def load_plan_for_org(org)
-        return nil if org.planid.to_s.empty?
-
-        result = ::Billing::Plan.load_with_fallback(org.planid)
-        result[:plan] || result[:config]
       end
 
       def print_mode_banner(dry_run, all, plan, stale)
@@ -136,7 +132,7 @@ module Onetime
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def process_org(org, stats, total, dry_run, verbose, stale_only, plan_filter, progress_interval)
+      def process_org(org, stats, total, dry_run, verbose, stale_only, plan_filter, progress_interval, plans_cache)
         stats[:total] += 1
         idx            = stats[:total]
 
@@ -153,45 +149,34 @@ module Onetime
           return
         end
 
-        if skip_for_stale_filter?(org, stale_only)
+        if skip_for_stale_filter?(org, stale_only, plans_cache)
           stats[:skipped_up_to_date] += 1
           puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
           print_progress(idx, total, verbose, progress_interval)
           return
         end
 
-        plan_result = ::Billing::Plan.load_with_fallback(org.planid)
-        plan        = plan_result[:plan]
-        config      = plan_result[:config]
+        plan = plans_cache[org.planid]
 
-        unless plan || config
+        unless plan
           stats[:errors] << "#{org.extid}: Plan '#{org.planid}' not found"
           puts "  [#{idx}/#{total}] Error: Plan not found for #{org.extid}" if verbose
           print_progress(idx, total, verbose, progress_interval)
           return
         end
 
-        if !stale_only && org.entitlements_materialized?
-          plan_or_config  = plan || config
-          already_current = plan_or_config ? !org.entitlements_stale?(plan_or_config) : false
-          if already_current
-            stats[:skipped_up_to_date] += 1
-            puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
-            print_progress(idx, total, verbose, progress_interval)
-            return
-          end
+        if !stale_only && org.entitlements_materialized? && !org.entitlements_stale?(plan)
+          stats[:skipped_up_to_date] += 1
+          puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
+          print_progress(idx, total, verbose, progress_interval)
+          return
         end
 
         if dry_run
-          ent_count = plan ? plan.entitlements.size : (config[:entitlements] || []).size
-          puts "  [#{idx}/#{total}] Would materialize: #{org.extid} (#{org.planid}, #{ent_count} entitlements)"
+          puts "  [#{idx}/#{total}] Would materialize: #{org.extid} (#{org.planid}, #{plan.entitlements.size} entitlements)"
         else
           begin
-            if plan
-              org.materialize_entitlements_from_plan(plan)
-            else
-              org.materialize_entitlements_from_config(config)
-            end
+            org.materialize_entitlements_from_plan(plan)
             puts "  [#{idx}/#{total}] Materialized: #{org.extid}" if verbose
           rescue StandardError => ex
             stats[:errors] << "#{org.extid}: #{ex.message}"
@@ -289,8 +274,8 @@ module Onetime
           Notes:
             - Command is idempotent (safe to run multiple times)
             - Skips orgs already up-to-date unless --stale is used
-            - Uses Plan.load_with_fallback for config-only plans (free_v1)
-            - After full migration, legacy Plan.load fallback can be removed
+            - Plans are preloaded before iteration (no Redis reads in loop)
+            - Reports errors for orgs with invalid planid values
 
         USAGE
         true
