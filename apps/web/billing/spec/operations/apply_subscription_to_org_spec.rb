@@ -294,7 +294,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       instance_double(
         Billing::Plan,
         plan_id: 'identity_plus_v1',
-        entitlements: double(to_a: %w[api_access manage_teams]),
+        entitlements: double(to_a: %w[api_access manage_teams], size: 2),
         limits: double(hgetall: { 'teams.max' => '5' }),
       )
     end
@@ -510,6 +510,590 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         expect(free_tier_org).not_to receive(:materialize_entitlements_from_config)
 
         described_class.apply_free_tier(free_tier_org, owner: true)
+      end
+    end
+  end
+
+  # ============================================================================
+  # .materialize_entitlements_for_org
+  # ============================================================================
+
+  describe Billing::Operations::MaterializeResult do
+    let(:result) { described_class.new(status: :materialized, planid: 'p', entitlements_count: 2, source: :cache, reason: nil) }
+    let(:skipped) { described_class.new(status: :skipped_no_plan, planid: nil, entitlements_count: nil, source: nil, reason: 'x') }
+
+    it { expect(result.success?).to be true }
+    it { expect(skipped.success?).to be false }
+    it { expect(skipped.skipped?).to be true }
+    it { expect(result.skipped?).to be false }
+    it { expect(described_class.new(status: :skipped_fresh, planid: 'p', entitlements_count: 3, source: :cache, reason: 'r').skipped?).to be true }
+  end
+
+  # ============================================================================
+  # Private helpers — focused unit tests
+  # ============================================================================
+
+  describe 'private helpers' do
+    let(:plan) do
+      instance_double(
+        Billing::Plan,
+        plan_id: 'identity_plus_v1',
+        entitlements: double(size: 3),
+      )
+    end
+
+    let(:fresh_org) do
+      double('Organization',
+        planid: 'identity_plus_v1',
+        extid: 'on_helper_org',
+        entitlements_materialized?: true,
+        entitlements_stale?: false,
+        materialize_entitlements_from_plan: true,
+        materialize_entitlements_from_config: true,
+        materialized_entitlements: materialized_set,
+      )
+    end
+
+    # ------------------------------------------------------------------------
+    # entitlements_fresh?
+    # ------------------------------------------------------------------------
+    describe '.entitlements_fresh?' do
+      it 'returns true when materialized and not stale' do
+        allow(fresh_org).to receive(:entitlements_materialized?).and_return(true)
+        allow(fresh_org).to receive(:entitlements_stale?).with(plan).and_return(false)
+
+        result = described_class.send(:entitlements_fresh?, fresh_org, plan)
+
+        expect(result).to be true
+      end
+
+      it 'returns false when not materialized' do
+        allow(fresh_org).to receive(:entitlements_materialized?).and_return(false)
+
+        # entitlements_stale? must not be called — && short-circuits
+        expect(fresh_org).not_to receive(:entitlements_stale?)
+
+        result = described_class.send(:entitlements_fresh?, fresh_org, plan)
+
+        expect(result).to be false
+      end
+
+      it 'returns false when materialized but stale' do
+        allow(fresh_org).to receive(:entitlements_materialized?).and_return(true)
+        allow(fresh_org).to receive(:entitlements_stale?).with(plan).and_return(true)
+
+        result = described_class.send(:entitlements_fresh?, fresh_org, plan)
+
+        expect(result).to be false
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # load_plan_for_materialize
+    # ------------------------------------------------------------------------
+    describe '.load_plan_for_materialize' do
+      it 'returns [plan, :cache] on cache hit without calling load_from_config' do
+        allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(plan)
+        expect(Billing::Plan).not_to receive(:load_from_config)
+
+        result_plan, source = described_class.send(:load_plan_for_materialize, 'identity_plus_v1')
+
+        expect(result_plan).to eq(plan)
+        expect(source).to eq(:cache)
+      end
+
+      it 'returns [config_data, :config] on cache miss + config hit' do
+        config_data = { entitlements: %w[create_secrets api_access], limits: {} }
+
+        allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(nil)
+        allow(Billing::Plan).to receive(:load_from_config).with('identity_plus_v1').and_return(config_data)
+
+        result_plan, source = described_class.send(:load_plan_for_materialize, 'identity_plus_v1')
+
+        expect(result_plan).to eq(config_data)
+        expect(source).to eq(:config)
+      end
+
+      it 'returns [nil, nil] when both cache and config miss' do
+        allow(Billing::Plan).to receive(:load).with('unknown_plan').and_return(nil)
+        allow(Billing::Plan).to receive(:load_from_config).with('unknown_plan').and_return(nil)
+
+        result_plan, source = described_class.send(:load_plan_for_materialize, 'unknown_plan')
+
+        expect(result_plan).to be_nil
+        expect(source).to be_nil
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # execute_materialize
+    # ------------------------------------------------------------------------
+    describe '.execute_materialize' do
+      it 'calls materialize_entitlements_from_plan when source is :cache' do
+        expect(fresh_org).to receive(:materialize_entitlements_from_plan).with(plan)
+
+        described_class.send(:execute_materialize, fresh_org, plan, :cache)
+      end
+
+      it 'calls materialize_entitlements_from_config when source is :config' do
+        config_data = { entitlements: %w[create_secrets], limits: {} }
+        expect(fresh_org).to receive(:materialize_entitlements_from_config).with(config_data)
+
+        described_class.send(:execute_materialize, fresh_org, config_data, :config)
+      end
+
+      it 'returns a MaterializeResult with status :materialized' do
+        allow(fresh_org).to receive(:materialize_entitlements_from_plan)
+
+        result = described_class.send(:execute_materialize, fresh_org, plan, :cache)
+
+        expect(result).to be_a(Billing::Operations::MaterializeResult)
+        expect(result.status).to eq(:materialized)
+      end
+
+      it 'returns entitlements_count from org.materialized_entitlements.size' do
+        allow(fresh_org).to receive(:materialize_entitlements_from_plan)
+
+        result = described_class.send(:execute_materialize, fresh_org, plan, :cache)
+
+        expect(result.entitlements_count).to eq(4) # materialized_set.size
+      end
+
+      it 'logs source as a string (not symbol)' do
+        allow(fresh_org).to receive(:materialize_entitlements_from_plan)
+
+        expect(OT).to receive(:info).with(
+          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+          hash_including(source: 'cache'),
+        )
+
+        described_class.send(:execute_materialize, fresh_org, plan, :cache)
+      end
+
+      it 'logs source "config" as a string when source is :config' do
+        config_data = { entitlements: [], limits: {} }
+        allow(fresh_org).to receive(:materialize_entitlements_from_config)
+
+        expect(OT).to receive(:info).with(
+          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+          hash_including(source: 'config'),
+        )
+
+        described_class.send(:execute_materialize, fresh_org, config_data, :config)
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # Result builders
+    # ------------------------------------------------------------------------
+    describe '.skipped_no_plan_result' do
+      subject(:result) { described_class.send(:skipped_no_plan_result) }
+
+      it { expect(result.status).to eq(:skipped_no_plan) }
+      it { expect(result.planid).to be_nil }
+      it { expect(result.entitlements_count).to be_nil }
+      it { expect(result.source).to be_nil }
+      it { expect(result.reason).to eq('Organization has no planid') }
+      it { expect(result.success?).to be false }
+      it { expect(result.skipped?).to be true }
+    end
+
+    describe '.plan_not_found_result' do
+      context 'when raise_on_miss is false' do
+        before { allow(OT).to receive(:lw) }
+
+        subject(:result) { described_class.send(:plan_not_found_result, fresh_org, 'identity_plus_v1', false) }
+
+        it { expect(result.status).to eq(:plan_not_found) }
+        it { expect(result.planid).to eq('identity_plus_v1') }
+        it { expect(result.entitlements_count).to be_nil }
+        it { expect(result.source).to be_nil }
+        it { expect(result.reason).to eq("Plan 'identity_plus_v1' not in cache or config") }
+
+        it 'logs a warning with org_extid and planid' do
+          expect(OT).to receive(:lw).with(
+            '[ApplySubscriptionToOrg] Plan not found, cannot materialize',
+            hash_including(org_extid: 'on_helper_org', planid: 'identity_plus_v1'),
+          )
+
+          described_class.send(:plan_not_found_result, fresh_org, 'identity_plus_v1', false)
+        end
+      end
+
+      context 'when raise_on_miss is true' do
+        it 'raises PlanCacheMissError' do
+          expect {
+            described_class.send(:plan_not_found_result, fresh_org, 'identity_plus_v1', true)
+          }.to raise_error(Billing::PlanCacheMissError)
+        end
+
+        it 'does not call OT.lw before raising' do
+          expect(OT).not_to receive(:lw)
+
+          expect {
+            described_class.send(:plan_not_found_result, fresh_org, 'identity_plus_v1', true)
+          }.to raise_error(Billing::PlanCacheMissError)
+        end
+      end
+    end
+
+    describe '.skipped_fresh_result' do
+      subject(:result) { described_class.send(:skipped_fresh_result, fresh_org, 'identity_plus_v1', :cache) }
+
+      it { expect(result.status).to eq(:skipped_fresh) }
+      it { expect(result.planid).to eq('identity_plus_v1') }
+      it { expect(result.source).to eq(:cache) }
+      it { expect(result.entitlements_count).to eq(4) } # materialized_set.size
+      it { expect(result.reason).to eq('Entitlements already materialized and not stale') }
+      it { expect(result.skipped?).to be true }
+
+      it 'reflects source :config when called with :config' do
+        result = described_class.send(:skipped_fresh_result, fresh_org, 'identity_plus_v1', :config)
+
+        expect(result.source).to eq(:config)
+      end
+    end
+
+    describe '.would_materialize_result' do
+      context 'when source is :cache' do
+        it 'uses plan.entitlements.size for count' do
+          result = described_class.send(:would_materialize_result, 'identity_plus_v1', plan, :cache)
+
+          expect(result.status).to eq(:would_materialize)
+          expect(result.planid).to eq('identity_plus_v1')
+          expect(result.source).to eq(:cache)
+          expect(result.entitlements_count).to eq(3) # plan.entitlements.size
+          expect(result.reason).to be_nil
+        end
+      end
+
+      context 'when source is :config' do
+        it 'uses plan[:entitlements].size for count' do
+          config_data = { entitlements: %w[create_secrets api_access manage_teams], limits: {} }
+
+          result = described_class.send(:would_materialize_result, 'identity_plus_v1', config_data, :config)
+
+          expect(result.entitlements_count).to eq(3)
+          expect(result.source).to eq(:config)
+        end
+
+        it 'falls back to 0 when plan[:entitlements] is nil' do
+          config_data = { limits: {} } # no :entitlements key
+
+          result = described_class.send(:would_materialize_result, 'identity_plus_v1', config_data, :config)
+
+          expect(result.entitlements_count).to eq(0)
+        end
+      end
+    end
+  end
+
+  describe '.materialize_entitlements_for_org' do
+    let(:cache_plan) do
+      instance_double(
+        Billing::Plan,
+        plan_id: 'identity_plus_v1',
+        entitlements: double(size: 2),
+      )
+    end
+
+    let(:config_data) do
+      { entitlements: %w[create_secrets api_access], limits: {} }
+    end
+
+    let(:fresh_org) do
+      double('Organization',
+        planid: 'identity_plus_v1',
+        extid: 'on_fresh_org',
+        entitlements_materialized?: true,
+        entitlements_stale?: false,
+        materialize_entitlements_from_plan: true,
+        materialize_entitlements_from_config: true,
+        materialized_entitlements: materialized_set,
+      )
+    end
+
+    def stub_cache_hit
+      allow(Billing::Plan).to receive(:load)
+        .with('identity_plus_v1')
+        .and_return(cache_plan)
+    end
+
+    def stub_cache_miss_config_hit
+      allow(Billing::Plan).to receive(:load)
+        .with('identity_plus_v1')
+        .and_return(nil)
+      allow(Billing::Plan).to receive(:load_from_config)
+        .with('identity_plus_v1')
+        .and_return(config_data)
+    end
+
+    def stub_both_miss
+      allow(Billing::Plan).to receive(:load).and_return(nil)
+      allow(Billing::Plan).to receive(:load_from_config).and_return(nil)
+    end
+
+    # ------------------------------------------------------------------
+    # :skipped_no_plan
+    # ------------------------------------------------------------------
+    context 'when org has no planid' do
+      let(:org_no_planid) do
+        double('Organization', planid: '', extid: 'on_no_planid')
+      end
+
+      it 'returns :skipped_no_plan without calling Plan.load' do
+        expect(Billing::Plan).not_to receive(:load)
+
+        result = described_class.materialize_entitlements_for_org(org_no_planid)
+
+        expect(result.status).to eq(:skipped_no_plan)
+        expect(result.planid).to be_nil
+        expect(result.entitlements_count).to be_nil
+        expect(result.source).to be_nil
+        expect(result.reason).to eq('Organization has no planid')
+      end
+
+      it 'does not call any materialize method' do
+        expect(org_no_planid).not_to receive(:materialize_entitlements_from_plan)
+        expect(org_no_planid).not_to receive(:materialize_entitlements_from_config)
+
+        described_class.materialize_entitlements_for_org(org_no_planid)
+      end
+    end
+
+    context 'when org planid is whitespace-only' do
+      # planid.to_s.empty? is false for "   ", so the no-plan guard does not
+      # fire. Plan.load("   ") returns nil, so the result is :plan_not_found.
+      let(:org_whitespace_plan) do
+        double('Organization', planid: '   ', extid: 'on_whitespace_org')
+      end
+
+      before do
+        allow(Billing::Plan).to receive(:load).with('   ').and_return(nil)
+        allow(Billing::Plan).to receive(:load_from_config).with('   ').and_return(nil)
+      end
+
+      it 'returns :plan_not_found (whitespace planid passes the empty? guard)' do
+        result = described_class.materialize_entitlements_for_org(org_whitespace_plan)
+
+        expect(result.status).to eq(:plan_not_found)
+        expect(result.planid).to eq('   ')
+      end
+    end
+
+    # ------------------------------------------------------------------
+    # :plan_not_found
+    # ------------------------------------------------------------------
+    context 'when plan is in neither cache nor config' do
+      before { stub_both_miss }
+
+      it 'returns :plan_not_found with reason' do
+        result = described_class.materialize_entitlements_for_org(org)
+
+        expect(result.status).to eq(:plan_not_found)
+        expect(result.planid).to eq('identity_plus_v1')
+        expect(result.entitlements_count).to be_nil
+        expect(result.source).to be_nil
+        expect(result.reason).to eq("Plan 'identity_plus_v1' not in cache or config")
+      end
+
+      it 'logs a warning (does not raise)' do
+        expect(OT).to receive(:lw).with(
+          '[ApplySubscriptionToOrg] Plan not found, cannot materialize',
+          hash_including(org_extid: 'on_test_org', planid: 'identity_plus_v1'),
+        )
+
+        described_class.materialize_entitlements_for_org(org)
+      end
+
+      it 'does not call any materialize method' do
+        expect(org).not_to receive(:materialize_entitlements_from_plan)
+        expect(org).not_to receive(:materialize_entitlements_from_config)
+
+        described_class.materialize_entitlements_for_org(org)
+      end
+
+      context 'with raise_on_miss: true' do
+        it 'raises PlanCacheMissError' do
+          expect {
+            described_class.materialize_entitlements_for_org(org, raise_on_miss: true)
+          }.to raise_error(Billing::PlanCacheMissError)
+        end
+
+        it 'does NOT log a warning before raising' do
+          expect(OT).not_to receive(:lw)
+
+          expect {
+            described_class.materialize_entitlements_for_org(org, raise_on_miss: true)
+          }.to raise_error(Billing::PlanCacheMissError)
+        end
+      end
+    end
+
+    # ------------------------------------------------------------------
+    # :skipped_fresh
+    # ------------------------------------------------------------------
+    context 'with skip_if_fresh: true when entitlements are current' do
+      context 'plan from cache' do
+        before { stub_cache_hit }
+
+        it 'returns :skipped_fresh with source :cache and count from org' do
+          allow(fresh_org).to receive(:entitlements_stale?).with(cache_plan).and_return(false)
+
+          result = described_class.materialize_entitlements_for_org(fresh_org, skip_if_fresh: true)
+
+          expect(result.status).to eq(:skipped_fresh)
+          expect(result.source).to eq(:cache)
+          expect(result.entitlements_count).to eq(4)
+          expect(result.reason).to eq('Entitlements already materialized and not stale')
+        end
+
+        it 'does not materialize' do
+          allow(fresh_org).to receive(:entitlements_stale?).with(cache_plan).and_return(false)
+
+          expect(fresh_org).not_to receive(:materialize_entitlements_from_plan)
+          expect(fresh_org).not_to receive(:materialize_entitlements_from_config)
+
+          described_class.materialize_entitlements_for_org(fresh_org, skip_if_fresh: true)
+        end
+      end
+
+      context 'plan from config' do
+        before { stub_cache_miss_config_hit }
+
+        it 'returns :skipped_fresh with source :config and count from org' do
+          allow(fresh_org).to receive(:entitlements_stale?).with(config_data).and_return(false)
+
+          result = described_class.materialize_entitlements_for_org(fresh_org, skip_if_fresh: true)
+
+          expect(result.status).to eq(:skipped_fresh)
+          expect(result.source).to eq(:config)
+          expect(result.entitlements_count).to eq(4)
+        end
+      end
+    end
+
+    context 'with skip_if_fresh: true when entitlements ARE stale' do
+      before { stub_cache_hit }
+
+      it 'does NOT return :skipped_fresh — proceeds to materialize' do
+        allow(fresh_org).to receive(:entitlements_stale?).with(cache_plan).and_return(true)
+
+        result = described_class.materialize_entitlements_for_org(fresh_org, skip_if_fresh: true)
+
+        expect(result.status).not_to eq(:skipped_fresh)
+      end
+    end
+
+    # ------------------------------------------------------------------
+    # :would_materialize (dry_run)
+    # ------------------------------------------------------------------
+    context 'with dry_run: true' do
+      context 'plan from cache' do
+        before { stub_cache_hit }
+
+        it 'returns :would_materialize with count from plan (not org)' do
+          result = described_class.materialize_entitlements_for_org(org, dry_run: true)
+
+          expect(result.status).to eq(:would_materialize)
+          expect(result.planid).to eq('identity_plus_v1')
+          expect(result.source).to eq(:cache)
+          expect(result.entitlements_count).to eq(2)
+          expect(result.reason).to be_nil
+        end
+
+        it 'does not materialize' do
+          expect(org).not_to receive(:materialize_entitlements_from_plan)
+          expect(org).not_to receive(:materialize_entitlements_from_config)
+
+          described_class.materialize_entitlements_for_org(org, dry_run: true)
+        end
+      end
+
+      context 'plan from config' do
+        before { stub_cache_miss_config_hit }
+
+        it 'returns :would_materialize with count from config entitlements array' do
+          result = described_class.materialize_entitlements_for_org(org, dry_run: true)
+
+          expect(result.status).to eq(:would_materialize)
+          expect(result.source).to eq(:config)
+          expect(result.entitlements_count).to eq(2)
+        end
+      end
+    end
+
+    # ------------------------------------------------------------------
+    # :materialized
+    # ------------------------------------------------------------------
+    context 'when materializing succeeds' do
+      context 'plan from cache' do
+        before { stub_cache_hit }
+
+        it 'returns :materialized with source :cache and count from org' do
+          allow(org).to receive(:materialize_entitlements_from_plan).with(cache_plan)
+
+          result = described_class.materialize_entitlements_for_org(org)
+
+          expect(result.status).to eq(:materialized)
+          expect(result.source).to eq(:cache)
+          expect(result.entitlements_count).to eq(4)
+          expect(result.reason).to be_nil
+          expect(result.success?).to be true
+        end
+
+        it 'calls materialize_entitlements_from_plan with the cached plan' do
+          expect(org).to receive(:materialize_entitlements_from_plan).with(cache_plan)
+
+          described_class.materialize_entitlements_for_org(org)
+        end
+
+        it 'logs the materialization event with string source' do
+          allow(org).to receive(:materialize_entitlements_from_plan)
+
+          expect(OT).to receive(:info).with(
+            '[ApplySubscriptionToOrg] Materialized entitlements for org',
+            hash_including(
+              org_extid: 'on_test_org',
+              planid: 'identity_plus_v1',
+              entitlements_count: 4,
+              source: 'cache',
+            ),
+          )
+
+          described_class.materialize_entitlements_for_org(org)
+        end
+      end
+
+      context 'plan from config' do
+        before { stub_cache_miss_config_hit }
+
+        it 'returns :materialized with source :config' do
+          allow(org).to receive(:materialize_entitlements_from_config).with(config_data)
+
+          result = described_class.materialize_entitlements_for_org(org)
+
+          expect(result.status).to eq(:materialized)
+          expect(result.source).to eq(:config)
+          expect(result.entitlements_count).to eq(4)
+        end
+
+        it 'calls materialize_entitlements_from_config with config data' do
+          expect(org).to receive(:materialize_entitlements_from_config).with(config_data)
+
+          described_class.materialize_entitlements_for_org(org)
+        end
+
+        it 'logs with source "config"' do
+          allow(org).to receive(:materialize_entitlements_from_config)
+
+          expect(OT).to receive(:info).with(
+            '[ApplySubscriptionToOrg] Materialized entitlements for org',
+            hash_including(source: 'config'),
+          )
+
+          described_class.materialize_entitlements_for_org(org)
+        end
       end
     end
   end

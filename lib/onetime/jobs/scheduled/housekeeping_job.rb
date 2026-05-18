@@ -87,19 +87,11 @@ module Onetime
             scanned    = 0
             batch_max  = housekeeping_batch_size
 
-            klass.instances.to_a.each_slice(batch_max) do |batch_objids|
+            klass.instances.each_record(batch_size: batch_max) do |record|
               break if limit && scanned >= limit
 
-              if limit
-                remaining    = limit - scanned
-                batch_objids = batch_objids.take(remaining)
-              end
-
-              records = klass.load_multi(batch_objids).compact
-              records.each do |record|
-                scanned += 1
-                run_chores_for(klass, record, chore_keys, stats)
-              end
+              scanned += 1
+              run_chores_for(klass, record, chore_keys, stats)
             end
 
             { model: klass.name, scanned: scanned, chores: stats }
