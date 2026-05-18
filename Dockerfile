@@ -263,10 +263,10 @@ RUN set -eux && \
     for file in etc/defaults/*.defaults.*; do \
         if [ -f "$file" ]; then \
             target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
-            cp --preserve --no-clobber "$file" "$target"; \
+            cp --preserve --update=none "$file" "$target"; \
         fi; \
     done && \
-    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
     chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
@@ -359,15 +359,15 @@ ENV RACK_ENV=production \
 #   etc/defaults/config.defaults.yaml -> etc/config.yaml
 #   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
 #   etc/defaults/logging.defaults.yaml -> etc/logging.yaml
-# The --no-clobber flag ensures existing files are not overwritten.
+# The --update=none flag ensures existing files are not overwritten.
 RUN set -eux && \
     for file in etc/defaults/*.defaults.*; do \
         if [ -f "$file" ]; then \
             target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
-            cp --preserve --no-clobber "$file" "$target"; \
+            cp --preserve --update=none "$file" "$target"; \
         fi; \
     done && \
-    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
     chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
