@@ -69,18 +69,23 @@ module Onetime
         puts "\nEntitlement Materialization"
         puts '=' * 60
 
-        orgs    = find_target_orgs(all, plan, stale)
         dry_run = !run
+        total   = Onetime::Organization.instances.element_count
 
-        return if orgs.empty?
+        if total.zero?
+          puts 'No organizations found.'
+          return
+        end
 
         print_mode_banner(dry_run, all, plan, stale)
 
-        stats             = { total: 0, materialized: 0, skipped_no_plan: 0, skipped_up_to_date: 0, errors: [] }
-        progress_interval = [orgs.size / 10, 1].max
+        stats             = { total: 0, materialized: 0, skipped_no_plan: 0, skipped_up_to_date: 0, skipped_plan_filter: 0, errors: [] }
+        progress_interval = [total / 10, 1].max
 
-        orgs.each_with_index do |org, idx|
-          process_org(org, idx, orgs.size, stats, dry_run, verbose, stale, progress_interval)
+        # write_size: nil enables serial mode where the block runs outside any pipeline.
+        # Without it, Plan.load returns Redis::Future instead of actual values.
+        Onetime::Organization.instances.each_record(batch_size: 100, write_size: nil) do |org|
+          process_org(org, stats, total, dry_run, verbose, stale, plan, progress_interval)
         end
 
         print_results(stats, dry_run, verbose)
@@ -89,44 +94,20 @@ module Onetime
 
       private
 
-      def find_target_orgs(all, plan_filter, stale_only)
-        puts "\nDiscovering organizations..."
+      def skip_for_plan_filter?(org, plan_filter)
+        return false unless plan_filter
 
-        orgs = if all
-                 load_all_orgs
-               else
-                 load_orgs_by_plan(plan_filter)
-               end
-
-        if stale_only && !orgs.empty?
-          orgs = filter_stale_orgs(orgs)
-        end
-
-        puts "Found #{orgs.size} organizations to process"
-        orgs
+        org.planid.to_s != plan_filter
       end
 
-      def load_all_orgs
-        all_org_ids = Onetime::Organization.instances.all
-        Onetime::Organization.load_multi(all_org_ids).compact
-      end
+      def skip_for_stale_filter?(org, stale_only)
+        return false unless stale_only
+        return false unless org.entitlements_materialized?
 
-      def load_orgs_by_plan(plan_id)
-        all_org_ids = Onetime::Organization.instances.all
-        Onetime::Organization.load_multi(all_org_ids).compact.select do |org|
-          org.planid.to_s == plan_id
-        end
-      end
+        plan = load_plan_for_org(org)
+        return true unless plan
 
-      def filter_stale_orgs(orgs)
-        orgs.select do |org|
-          next true unless org.entitlements_materialized?
-
-          plan = load_plan_for_org(org)
-          next false unless plan
-
-          org.entitlements_stale?(plan)
-        end
+        !org.entitlements_stale?(plan)
       end
 
       def load_plan_for_org(org)
@@ -155,13 +136,27 @@ module Onetime
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def process_org(org, idx, total, stats, dry_run, verbose, stale_only, progress_interval)
+      def process_org(org, stats, total, dry_run, verbose, stale_only, plan_filter, progress_interval)
         stats[:total] += 1
+        idx            = stats[:total]
+
+        if skip_for_plan_filter?(org, plan_filter)
+          stats[:skipped_plan_filter] += 1
+          print_progress(idx, total, verbose, progress_interval)
+          return
+        end
 
         if org.planid.to_s.empty?
           stats[:skipped_no_plan] += 1
-          puts "  [#{idx + 1}/#{total}] Skipping (no planid): #{org.extid}" if verbose
-          print_progress(stats[:total], total, verbose, progress_interval)
+          puts "  [#{idx}/#{total}] Skipping (no planid): #{org.extid}" if verbose
+          print_progress(idx, total, verbose, progress_interval)
+          return
+        end
+
+        if skip_for_stale_filter?(org, stale_only)
+          stats[:skipped_up_to_date] += 1
+          puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
+          print_progress(idx, total, verbose, progress_interval)
           return
         end
 
@@ -171,26 +166,25 @@ module Onetime
 
         unless plan || config
           stats[:errors] << "#{org.extid}: Plan '#{org.planid}' not found"
-          puts "  [#{idx + 1}/#{total}] Error: Plan not found for #{org.extid}" if verbose
-          print_progress(stats[:total], total, verbose, progress_interval)
+          puts "  [#{idx}/#{total}] Error: Plan not found for #{org.extid}" if verbose
+          print_progress(idx, total, verbose, progress_interval)
           return
         end
 
         if !stale_only && org.entitlements_materialized?
-          # Check staleness against plan or config (entitlements_stale? handles both)
           plan_or_config  = plan || config
           already_current = plan_or_config ? !org.entitlements_stale?(plan_or_config) : false
           if already_current
             stats[:skipped_up_to_date] += 1
-            puts "  [#{idx + 1}/#{total}] Skipping (up to date): #{org.extid}" if verbose
-            print_progress(stats[:total], total, verbose, progress_interval)
+            puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
+            print_progress(idx, total, verbose, progress_interval)
             return
           end
         end
 
         if dry_run
           ent_count = plan ? plan.entitlements.size : (config[:entitlements] || []).size
-          puts "  [#{idx + 1}/#{total}] Would materialize: #{org.extid} (#{org.planid}, #{ent_count} entitlements)"
+          puts "  [#{idx}/#{total}] Would materialize: #{org.extid} (#{org.planid}, #{ent_count} entitlements)"
         else
           begin
             if plan
@@ -198,17 +192,17 @@ module Onetime
             else
               org.materialize_entitlements_from_config(config)
             end
-            puts "  [#{idx + 1}/#{total}] Materialized: #{org.extid}" if verbose
+            puts "  [#{idx}/#{total}] Materialized: #{org.extid}" if verbose
           rescue StandardError => ex
             stats[:errors] << "#{org.extid}: #{ex.message}"
-            puts "  [#{idx + 1}/#{total}] Error: #{ex.message}" if verbose
-            print_progress(stats[:total], total, verbose, progress_interval)
+            puts "  [#{idx}/#{total}] Error: #{ex.message}" if verbose
+            print_progress(idx, total, verbose, progress_interval)
             return
           end
         end
 
         stats[:materialized] += 1
-        print_progress(stats[:total], total, verbose, progress_interval)
+        print_progress(idx, total, verbose, progress_interval)
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
@@ -226,8 +220,9 @@ module Onetime
         puts "Materialization #{dry_run ? 'Preview' : 'Complete'}"
         puts '=' * 60
         puts "\nStatistics:"
-        puts '  Total organizations:'.ljust(30) + stats[:total].to_s
+        puts '  Total scanned:'.ljust(30) + stats[:total].to_s
         puts '  Materialized:'.ljust(30) + stats[:materialized].to_s
+        puts '  Skipped (plan filter):'.ljust(30) + stats[:skipped_plan_filter].to_s if stats[:skipped_plan_filter] > 0
         puts '  Skipped (no plan):'.ljust(30) + stats[:skipped_no_plan].to_s
         puts '  Skipped (up to date):'.ljust(30) + stats[:skipped_up_to_date].to_s
 
