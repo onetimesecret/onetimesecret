@@ -37,6 +37,7 @@ RSpec.describe 'Domains Command', type: :cli do
       txt_validation_value: 'v=lettermint',
       validation_record: 'TXT',
       vhost: 'example.com',
+      parse_vhost: { 'host' => 'example.com' },
       allow_public_homepage?: false,
       allow_public_api?: false,
       apex?: true,
@@ -80,7 +81,9 @@ RSpec.describe 'Domains Command', type: :cli do
     end
 
     it 'handles non-existent domain' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).with('notfound.com').and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:find_by_extid).with('notfound.com').and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('notfound.com').and_return(nil)
 
       output = run_cli_command_quietly('domains', 'info', 'notfound.com')
       expect(output[:stdout]).to include('not found')
