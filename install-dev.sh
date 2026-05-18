@@ -19,6 +19,14 @@
 
 set -euo pipefail
 
+# Associative arrays (declare -A) require Bash 4+. macOS ships Bash 3.2,
+# so users invoking `bash install-dev.sh` directly need a modern bash.
+if (( BASH_VERSINFO[0] < 4 )); then
+    echo "Error: This script requires Bash 4+ (found: $BASH_VERSION)"
+    echo "  On macOS: brew install bash, then re-run"
+    exit 1
+fi
+
 OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
 
 # Files/dirs to symlink: local_path -> shared_path
@@ -57,7 +65,7 @@ repair_env_sh() {
 # functionality the shell gods left for us.
 
 # set -a enables automatic export mode. All variable assignments between
-# here and and set +a will be exported to child processes without needing
+# here and set +a will be exported to child processes without needing
 # 'export' keyword.
 set -a
 
@@ -134,14 +142,15 @@ link_resource() {
     local shared_name="$2"
     local target="$OTS_DEV_CONFIG/$shared_name"
 
-    # Validate target is within expected config directory (prevent path traversal)
-    case "$target" in
-        "$OTS_DEV_CONFIG"/*) ;;
-        *) echo "Error: Invalid target path: $target"; return 1 ;;
-    esac
-
     if [[ ! -e "$target" ]]; then
-        echo "Skip: $target does not exist"
+        # Clean up a dangling local symlink that pointed at this
+        # (now-missing) shared target, so the checkout doesn't rot.
+        if [[ -L "$local_path" && "$(readlink "$local_path")" == "$target" ]]; then
+            rm "$local_path"
+            echo "Removed: $local_path (target $target no longer exists)"
+        else
+            echo "Skip: $target does not exist"
+        fi
         return
     fi
 
@@ -194,12 +203,13 @@ fi
 # Repair .env.sh before proceeding with other links
 repair_env_sh
 
-echo "Linking dev resources from $OTS_DEV_CONFIG"
-echo "---"
-
-for local_path in "${!LINKS[@]}"; do
-    link_resource "$local_path" "${LINKS[$local_path]}"
-done
+if [[ -d "$OTS_DEV_CONFIG" ]]; then
+    echo "Linking dev resources from $OTS_DEV_CONFIG"
+    echo "---"
+    for local_path in "${!LINKS[@]}"; do
+        link_resource "$local_path" "${LINKS[$local_path]}"
+    done
+fi
 
 # Fall back to local copies when symlink sources are absent.
 # Remove dangling symlinks first — [[ ! -e ]] is true for broken symlinks
@@ -225,7 +235,7 @@ echo "Installing Node packages..."
 pnpm install
 
 echo "---"
-echo "Cleaning frontend build output..."
+echo "Removing frontend build output (public/web/dist)..."
 pnpm run clean
 
 echo "---"
