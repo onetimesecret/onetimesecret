@@ -217,15 +217,16 @@ module Billing
         { missing: missing, blank: blank }
       end
 
-      # Check if product is a valid OTS product with all required metadata
+      # Check if product belongs to OTS (app=onetimesecret in metadata)
+      #
+      # This only checks ownership, not validity. Products belonging to OTS may
+      # still have invalid metadata; callers should use extract_plan_data for
+      # fail-closed validation.
       #
       # @param product [Stripe::Product] The Stripe product
-      # @return [Boolean] true if valid OTS product
+      # @return [Boolean] true if product has app=onetimesecret metadata
       def valid_ots_product?(product)
-        return false unless product.metadata && product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
-
-        result = validate_product_metadata(product)
-        result[:missing].empty? && result[:blank].empty?
+        product.metadata && product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
       end
 
       # Check whether a Stripe product belongs to the configured region
@@ -443,6 +444,7 @@ module Billing
       # @param progress [Proc, nil] Optional progress callback
       # @return [Array<Hash>] Array of plan data hashes ready for persistence
       # @raise [Stripe::StripeError] If any Stripe API call fails
+      # @raise [Billing::CatalogValidationError] If any managed products have invalid metadata
       def collect_stripe_plans(progress: nil)
         # Ensure Stripe API key is configured (required for console/CLI usage
         # where StripeSetup initializer may not have run)
@@ -457,6 +459,7 @@ module Billing
         )
 
         plan_data_list     = []
+        validation_errors  = []
         products_processed = 0
 
         progress&.call('Fetching products from Stripe...')
@@ -504,12 +507,18 @@ module Billing
             begin
               plan_data = extract_plan_data(product, price)
             rescue Onetime::ConfigError => ex
-              OT.le '[Plan.collect_stripe_plans] Skipping product with bad metadata',
+              OT.le '[Plan.collect_stripe_plans] Product failed validation',
                 {
                   product_id: product.id,
                   stripe_price_id: price.id,
                   error: ex.message,
                 }
+              validation_errors << {
+                product_id: product.id,
+                price_id: price.id,
+                product_name: product.name,
+                error: ex.message,
+              }
               next
             end
 
@@ -524,6 +533,20 @@ module Billing
         end
 
         OT.li "[Plan.collect_stripe_plans] Collected #{plan_data_list.size} plans from Stripe"
+
+        # Fail-closed: abort before returning if any managed products had invalid metadata
+        if validation_errors.any?
+          OT.le '[Plan.collect_stripe_plans] Aborting due to validation failures',
+            {
+              error_count: validation_errors.size,
+              valid_count: plan_data_list.size,
+            }
+          raise Billing::CatalogValidationError.new(
+            "#{validation_errors.size} Stripe products failed metadata validation",
+            errors: validation_errors,
+          )
+        end
+
         plan_data_list
       end
 

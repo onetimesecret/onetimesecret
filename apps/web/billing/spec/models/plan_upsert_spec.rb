@@ -1273,3 +1273,216 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
     end
   end
 end
+
+# ==============================================================================
+# SECTION 4: Plan.collect_stripe_plans fail-closed validation (#3120 Phase 1)
+# ==============================================================================
+
+RSpec.describe 'Billing::Plan.send(:collect_stripe_plans) validation', type: :billing do
+  include PlanUpsertTestHelpers
+
+  # Mock Stripe objects for testing
+  let(:valid_metadata) do
+    {
+      'app' => 'onetimesecret',
+      'plan_id' => 'identity_plus_v1',
+      'tier' => 'identity',
+      'region' => 'US',
+    }
+  end
+
+  let(:invalid_metadata_missing_plan_id) do
+    {
+      'app' => 'onetimesecret',
+      'tier' => 'identity',
+      'region' => 'US',
+    }
+  end
+
+  let(:invalid_metadata_blank_plan_id) do
+    {
+      'app' => 'onetimesecret',
+      'plan_id' => '   ',
+      'tier' => 'identity',
+      'region' => 'US',
+    }
+  end
+
+  def build_mock_product(id:, name:, metadata:)
+    Stripe::StripeObject.construct_from({
+      id: id,
+      name: name,
+      description: "Description for #{name}",
+      metadata: metadata,
+      active: true,
+      marketing_features: [],
+      updated: Time.now.to_i,
+    })
+  end
+
+  def build_mock_price(id:, product_id:, interval: 'month')
+    Stripe::Price.construct_from({
+      id: id,
+      product: product_id,
+      type: 'recurring',
+      currency: 'cad',
+      unit_amount: 2900,
+      active: true,
+      billing_scheme: 'per_unit',
+      nickname: nil,
+      recurring: { interval: interval },
+    })
+  end
+
+  def mock_product_list(*products)
+    list = instance_double(Stripe::ListObject)
+    stub = allow(list).to receive(:auto_paging_each)
+    products.flatten.each { |p| stub = stub.and_yield(p) }
+    list
+  end
+
+  def mock_price_list(*prices)
+    list = instance_double(Stripe::ListObject)
+    stub = allow(list).to receive(:auto_paging_each)
+    prices.flatten.each { |p| stub = stub.and_yield(p) }
+    list
+  end
+
+  before do
+    allow(Billing::Plan).to receive(:ensure_stripe_configured!)
+    # Allow all regions to pass through (no regional isolation in tests)
+    allow(OT.billing_config).to receive(:region).and_return(nil)
+  end
+
+  # --------------------------------------------------------------------------
+  # Single product with bad metadata
+  # --------------------------------------------------------------------------
+
+  describe 'single product with bad metadata' do
+    let(:bad_product) { build_mock_product(id: 'prod_bad', name: 'Bad Product', metadata: invalid_metadata_missing_plan_id) }
+    let(:price) { build_mock_price(id: 'price_bad', product_id: 'prod_bad') }
+
+    before do
+      allow(Stripe::Product).to receive(:list).and_return(mock_product_list(bad_product))
+      allow(Stripe::Price).to receive(:list).and_return(mock_price_list(price))
+    end
+
+    it 'raises CatalogValidationError with one error' do
+      expect { Billing::Plan.send(:collect_stripe_plans) }
+        .to raise_error(Billing::CatalogValidationError) do |e|
+          expect(e.errors.size).to eq(1)
+          expect(e.errors.first[:product_id]).to eq('prod_bad')
+          expect(e.errors.first[:error]).to include('missing metadata')
+        end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Multiple products with bad metadata
+  # --------------------------------------------------------------------------
+
+  describe 'multiple products with bad metadata' do
+    let(:bad_product1) { build_mock_product(id: 'prod_bad1', name: 'Bad Product 1', metadata: invalid_metadata_missing_plan_id) }
+    let(:bad_product2) { build_mock_product(id: 'prod_bad2', name: 'Bad Product 2', metadata: invalid_metadata_blank_plan_id) }
+    let(:price1) { build_mock_price(id: 'price_bad1', product_id: 'prod_bad1') }
+    let(:price2) { build_mock_price(id: 'price_bad2', product_id: 'prod_bad2') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(bad_product1).and_yield(bad_product2)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_bad1')).and_return(mock_price_list(price1))
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_bad2')).and_return(mock_price_list(price2))
+    end
+
+    it 'accumulates all errors before raising' do
+      expect { Billing::Plan.send(:collect_stripe_plans) }
+        .to raise_error(Billing::CatalogValidationError) do |e|
+          expect(e.errors.size).to eq(2)
+          product_ids = e.errors.map { |err| err[:product_id] }
+          expect(product_ids).to contain_exactly('prod_bad1', 'prod_bad2')
+        end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Mix of good and bad products
+  # --------------------------------------------------------------------------
+
+  describe 'mix of good and bad products' do
+    let(:good_product) { build_mock_product(id: 'prod_good', name: 'Good Product', metadata: valid_metadata) }
+    let(:bad_product) { build_mock_product(id: 'prod_bad', name: 'Bad Product', metadata: invalid_metadata_missing_plan_id) }
+    let(:good_price) { build_mock_price(id: 'price_good', product_id: 'prod_good') }
+    let(:bad_price) { build_mock_price(id: 'price_bad', product_id: 'prod_bad') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(good_product).and_yield(bad_product)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good')).and_return(mock_price_list(good_price))
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_bad')).and_return(mock_price_list(bad_price))
+    end
+
+    it 'collects valid plans then raises with bad ones' do
+      expect { Billing::Plan.send(:collect_stripe_plans) }
+        .to raise_error(Billing::CatalogValidationError) do |e|
+          expect(e.errors.size).to eq(1)
+          expect(e.errors.first[:product_id]).to eq('prod_bad')
+        end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # All products valid
+  # --------------------------------------------------------------------------
+
+  describe 'all products valid' do
+    let(:good_product1) { build_mock_product(id: 'prod_good1', name: 'Good Product 1', metadata: valid_metadata) }
+    let(:good_product2) { build_mock_product(id: 'prod_good2', name: 'Good Product 2', metadata: valid_metadata.merge('plan_id' => 'team_plus_v1')) }
+    let(:price1) { build_mock_price(id: 'price_good1', product_id: 'prod_good1') }
+    let(:price2) { build_mock_price(id: 'price_good2', product_id: 'prod_good2') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(good_product1).and_yield(good_product2)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good1')).and_return(mock_price_list(price1))
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good2')).and_return(mock_price_list(price2))
+    end
+
+    it 'returns plan_data_list without raising' do
+      result = Billing::Plan.send(:collect_stripe_plans)
+      expect(result).to be_an(Array)
+      expect(result.size).to eq(2)
+      plan_ids = result.map { |d| d[:plan_id] }
+      expect(plan_ids).to contain_exactly('identity_plus_v1_monthly', 'team_plus_v1_monthly')
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Products skipped for valid reasons (wrong app, wrong region)
+  # --------------------------------------------------------------------------
+
+  describe 'products skipped for valid reasons do not trigger validation error' do
+    let(:other_app_product) { build_mock_product(id: 'prod_other', name: 'Other App', metadata: { 'app' => 'other_app' }) }
+    let(:good_product) { build_mock_product(id: 'prod_good', name: 'Good Product', metadata: valid_metadata) }
+    let(:good_price) { build_mock_price(id: 'price_good', product_id: 'prod_good') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(other_app_product).and_yield(good_product)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good')).and_return(mock_price_list(good_price))
+    end
+
+    it 'skips non-OTS products without error' do
+      result = Billing::Plan.send(:collect_stripe_plans)
+      expect(result.size).to eq(1)
+      expect(result.first[:plan_id]).to eq('identity_plus_v1_monthly')
+    end
+  end
+end
