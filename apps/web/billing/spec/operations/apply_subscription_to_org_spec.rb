@@ -320,11 +320,12 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         allow(org).to receive(:materialize_entitlements_from_plan)
 
         expect(OT).to receive(:info).with(
-          '[ApplySubscriptionToOrg] Materialized entitlements from cached plan',
+          '[ApplySubscriptionToOrg] Materialized entitlements for org',
           hash_including(
             org_extid: 'on_test_org',
             planid: 'identity_plus_v1',
             entitlements_count: 4,
+            source: 'cache',
           ),
         )
 
@@ -362,8 +363,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         subscription = build_subscription
 
         expect(OT).to receive(:info).with(
-          '[ApplySubscriptionToOrg] Materialized entitlements from config plan',
-          hash_including(entitlements_count: 4),
+          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+          hash_including(entitlements_count: 4, source: 'config'),
         )
 
         described_class.call(org, subscription, owner: true)
