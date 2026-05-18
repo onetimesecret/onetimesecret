@@ -8,9 +8,8 @@ require_relative '../../../../../try/support/test_helpers'
 #
 # Covers Phase 1 of the entitlement-resolution consolidation (#3120):
 # - plan_id is required on Stripe product metadata
-# - extract_plan_data no longer falls back to `tier` when plan_id is absent
-# - validate_product_metadata surfaces legacy field-name variants
-#   (`planid`, `plan`) so they get migrated rather than silently mis-resolved.
+# - extract_plan_data raises ConfigError on invalid input (fail-closed)
+# - validate_product_metadata reports missing required fields
 
 require 'apps/web/billing/models/plan'
 
@@ -45,34 +44,30 @@ product = MockProductForExtract.new(
   metadata: { 'tier' => 'single_team', 'region' => 'global' },
 )
 Billing::Plan.validate_product_metadata(product)
-#=> ["plan_id"]
+#=> {:missing=>["plan_id"], :blank=>[]}
 
-## validate_product_metadata returns empty array when all required fields present
+## validate_product_metadata returns empty hash arrays when all required fields present
 product = MockProductForExtract.new(
   id: 'prod_ok',
   name: 'Complete',
   metadata: { 'plan_id' => 'identity_plus_v1', 'tier' => 'single_team', 'region' => 'global' },
 )
 Billing::Plan.validate_product_metadata(product)
-#=> []
+#=> {:missing=>[], :blank=>[]}
 
-## validate_product_metadata still reports plan_id as missing even when legacy `planid` is present
-product = MockProductForExtract.new(
-  id: 'prod_legacy',
-  name: 'Legacy field name',
-  metadata: { 'planid' => 'identity_plus_v1', 'tier' => 'single_team', 'region' => 'global' },
-)
-Billing::Plan.validate_product_metadata(product)
-#=> ["plan_id"]
-
-## extract_plan_data returns nil (not a tier-derived plan_id) when plan_id key is absent
+## extract_plan_data raises ConfigError when plan_id key is absent (fail-closed)
 product = MockProductForExtract.new(
   id: 'prod_missing',
   name: 'Missing plan_id',
   metadata: { 'tier' => 'single_team', 'region' => 'global' },
 )
-Billing::Plan.extract_plan_data(product, build_price)
-#=> nil
+begin
+  Billing::Plan.extract_plan_data(product, build_price)
+  :no_raise
+rescue Onetime::ConfigError => ex
+  ex.message.include?('missing: plan_id') ? :raised : :wrong_message
+end
+#=> :raised
 
 ## extract_plan_data raises ConfigError when plan_id key is present but blank
 product = MockProductForExtract.new(
@@ -84,7 +79,7 @@ begin
   Billing::Plan.extract_plan_data(product, build_price)
   :no_raise
 rescue Onetime::ConfigError => ex
-  ex.message.include?('missing plan_id metadata') ? :raised : :wrong_message
+  ex.message.include?('blank: plan_id') ? :raised : :wrong_message
 end
 #=> :raised
 
