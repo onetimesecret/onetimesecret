@@ -33,8 +33,8 @@ def build_price(interval: 'month')
   )
 end
 
-## REQUIRED_PRODUCT_METADATA now includes plan_id
-Billing::Plan::ClassMethods::REQUIRED_PRODUCT_METADATA.include?('plan_id')
+## Metadata::REQUIRED_FIELDS includes plan_id (canonical source)
+Billing::Metadata::REQUIRED_FIELDS.include?('plan_id')
 #=> true
 
 ## validate_product_metadata reports plan_id as missing when absent

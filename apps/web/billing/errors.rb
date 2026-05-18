@@ -44,6 +44,33 @@ module Billing
     end
   end
 
+  # CatalogValidationError - Raised when Stripe products fail metadata validation
+  #
+  # This error indicates managed products (app=onetimesecret) have invalid or
+  # missing required metadata. The sync aborts before upsert/prune to prevent
+  # data loss from silent skips being mistaken for legitimate deletions.
+  #
+  # All validation failures are accumulated so operators can fix everything
+  # in one pass rather than fix-one-rerun-fix-one.
+  #
+  # @example Handling validation failures
+  #   begin
+  #     Billing::Plan.refresh_from_stripe
+  #   rescue Billing::CatalogValidationError => e
+  #     e.errors.each { |err| puts "#{err[:product_id]}: #{err[:error]}" }
+  #   end
+  #
+  class CatalogValidationError < OpsProblem
+    attr_reader :errors
+
+    # @param message [String] Summary message
+    # @param errors [Array<Hash>] List of validation failures with :product_id, :price_id, :error
+    def initialize(message, errors: [])
+      @errors = errors
+      super(message)
+    end
+  end
+
   # Raised when the Stripe circuit breaker is open.
   #
   # The circuit breaker opens after consecutive Stripe API failures to prevent

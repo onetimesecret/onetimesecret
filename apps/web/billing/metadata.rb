@@ -68,13 +68,12 @@ module Billing
       FIELD_IS_POPULAR => 'is_popular',        # Special handling: boolean
     }.freeze
 
-    # All required metadata fields
+    # Required metadata fields for plan creation (app check is separate gate)
+    # These fields must be present AND non-blank for a product to be valid.
     REQUIRED_FIELDS = [
-      FIELD_APP,
+      FIELD_PLAN_ID,
       FIELD_TIER,
-      FIELD_ENTITLEMENTS,
-      FIELD_TENANCY,
-      FIELD_CREATED,
+      FIELD_REGION,
     ].freeze
 
     # Plan IDs that represent free/unpaid tiers
@@ -128,7 +127,7 @@ module Billing
       jurisdiction = OT.conf&.dig('features', 'regions', 'current_jurisdiction')
       if jurisdiction.to_s.strip.empty?
         raise Onetime::ConfigError,
-              'features.regions.enabled is true but features.regions.current_jurisdiction is not set'
+          'features.regions.enabled is true but features.regions.current_jurisdiction is not set'
       end
 
       jurisdiction

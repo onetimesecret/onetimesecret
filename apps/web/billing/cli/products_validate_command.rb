@@ -68,34 +68,22 @@ module Onetime
       private
 
       def validate_product(product, errors, warnings)
-        required_fields = %w[app plan_id tier region]
-        missing_fields  = required_fields.reject { |field| product.metadata[field] }
-
-        if missing_fields.any?
+        # Validate required metadata using canonical method
+        result = Billing::Plan.validate_product_metadata(product)
+        if result[:missing].any? || result[:blank].any?
+          problems = []
+          problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
+          problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
           errors << {
             product_id: product.id,
-            type: :missing_metadata,
-            message: 'Missing required metadata',
-            details: "Required fields missing: #{missing_fields.join(', ')}",
+            type: :invalid_metadata,
+            message: 'Invalid product metadata',
+            details: problems.join('; '),
             resolution: [
               "Update metadata: bin/ots billing products update #{product.id}",
               'Or archive if not needed',
               "See: #{stripe_dashboard_url(:product, product.id)}",
             ],
-          }
-        end
-
-        # Detect legacy/typo field name variants for plan_id
-        detect_plan_id_variants(product, warnings)
-
-        # Check for duplicate plan_ids (will be detected across all products)
-        # Individual validation just ensures plan_id exists
-        unless product.metadata['plan_id']
-          warnings << {
-            product_id: product.id,
-            type: :missing_plan_id,
-            message: 'Missing plan_id',
-            details: 'Product metadata missing plan_id field',
           }
         end
 
@@ -151,32 +139,6 @@ module Onetime
             details: "Expected integer or 'unlimited', got '#{value}'",
           }
         end
-      end
-
-      # Detect legacy or typo field name variants for plan_id
-      #
-      # @param product [Stripe::Product] The Stripe product
-      # @param warnings [Array] Warnings collection to append to
-      def detect_plan_id_variants(product, warnings)
-        metadata = product.metadata || {}
-
-        if metadata['planid']
-          warnings << {
-            product_id: product.id,
-            type: :field_variant,
-            message: "Found 'planid', expected 'plan_id'",
-            details: 'Metadata uses wrong field name (missing underscore)',
-          }
-        end
-
-        return unless metadata['plan']
-
-        warnings << {
-          product_id: product.id,
-          type: :field_variant,
-          message: "Found legacy 'plan' field, expected 'plan_id'",
-          details: 'Metadata uses deprecated field name',
-        }
       end
 
       # Check all metadata keys against canonical Metadata::FIELD_* constants
