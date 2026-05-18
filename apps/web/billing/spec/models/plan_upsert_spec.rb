@@ -1372,7 +1372,7 @@ RSpec.describe 'Billing::Plan.send(:collect_stripe_plans) validation', type: :bi
         .to raise_error(Billing::CatalogValidationError) do |e|
           expect(e.errors.size).to eq(1)
           expect(e.errors.first[:product_id]).to eq('prod_bad')
-          expect(e.errors.first[:error]).to include('missing metadata')
+          expect(e.errors.first[:error]).to include('missing: plan_id')
         end
     end
   end
