@@ -193,7 +193,7 @@ module Billing
         missing  = REQUIRED_PRODUCT_METADATA - keys
 
         if missing.any?
-          OT.lw '[Plan.validate_product_metadata] Stripe product not managed by catalog',
+          OT.lw '[Plan.validate_product_metadata] Stripe product missing required metadata',
             {
               product_id: product.id,
               product_name: product.name,

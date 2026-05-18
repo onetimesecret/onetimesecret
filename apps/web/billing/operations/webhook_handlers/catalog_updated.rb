@@ -60,6 +60,14 @@ module Billing
           :success
         rescue Billing::CircuitOpenError => ex
           schedule_circuit_retry(ex)
+        rescue Onetime::ConfigError => ex
+          billing_logger.warn '[CatalogUpdated] Skipping product with invalid metadata',
+            {
+              error: ex.message,
+              event_type: @event.type,
+              object_id: @data_object.id,
+            }
+          :success
         rescue StandardError => ex
           billing_logger.error '[CatalogUpdated] Sync failed',
             {
