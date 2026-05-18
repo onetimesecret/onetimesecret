@@ -152,7 +152,7 @@ module Onetime
               materialized_entitlements.clear
               plan_members.each   { |e| materialized_entitlements.add(e) }
               grant_members.each  { |e| materialized_entitlements.add(e) }
-              revoke_members.each { |e| materialized_entitlements.delete(e) }
+              revoke_members.each { |e| materialized_entitlements.remove_element(e) }
             end
 
             materialized_entitlements.to_a
@@ -255,7 +255,7 @@ module Onetime
           def grant_entitlement(entitlement)
             ent    = entitlement.to_s
             # Remove from revokes if present (grant takes precedence)
-            entitlements_revokes.delete(ent)
+            entitlements_revokes.remove_element(ent)
             # Add to grants
             result = entitlements_grants.add(ent)
             # Reconcile
@@ -270,7 +270,7 @@ module Onetime
           def revoke_entitlement(entitlement)
             ent    = entitlement.to_s
             # Remove from grants if present (explicit revoke)
-            entitlements_grants.delete(ent)
+            entitlements_grants.remove_element(ent)
             # Add to revokes
             result = entitlements_revokes.add(ent)
             # Reconcile

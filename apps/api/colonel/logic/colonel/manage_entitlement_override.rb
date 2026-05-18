@@ -53,15 +53,13 @@ module ColonelAPI
           @org_id      = sanitize_identifier(params['org_id'])
           @entitlement = params['entitlement']&.to_s&.strip
 
-          # Action comes from URL path: /entitlements/:action or DELETE /entitlements/overrides
-          @action = if req.request_method == 'DELETE'
-                      'clear'
-                    else
-                      params['action']&.to_s&.downcase
-                    end
+          # Action comes from URL path:
+          # - POST /entitlements/:action  -> params['action'] = 'grant' or 'revoke'
+          # - DELETE /entitlements/overrides -> params['action'] = nil (literal path, not param)
+          url_action = params['action']&.to_s&.downcase
+          @action    = url_action.to_s.empty? ? 'clear' : url_action
 
           raise_form_error('Organization ID is required', field: :org_id) if @org_id.to_s.empty?
-          raise_form_error('Action is required', field: :action) if @action.to_s.empty?
 
           unless %w[grant revoke clear].include?(@action)
             raise_form_error('Action must be grant or revoke', field: :action)
@@ -81,7 +79,7 @@ module ColonelAPI
           # Validate entitlement name is known (optional, but helps catch typos)
           return if @action == 'clear'
 
-          known = Billing::Config.all_entitlements
+          known = Billing::Config.load_entitlements.keys
           return if known.include?(@entitlement)
 
           # Warn but don't block - allows granting future entitlements
@@ -103,13 +101,15 @@ module ColonelAPI
 
         def success_data
           {
-            org_id: @org.objid,
-            extid: @org.extid,
-            entitlement: @entitlement,
-            action: action_past_tense,
-            effective_entitlements: @org.materialized_entitlements.to_a,
-            grants: @org.entitlements_grants.to_a,
-            revokes: @org.entitlements_revokes.to_a,
+            record: {
+              org_id: @org.objid,
+              extid: @org.extid,
+              entitlement: @entitlement,
+              action: action_past_tense,
+              effective_entitlements: @org.materialized_entitlements.to_a,
+              grants: @org.entitlements_grants.to_a,
+              revokes: @org.entitlements_revokes.to_a,
+            },
           }
         end
 

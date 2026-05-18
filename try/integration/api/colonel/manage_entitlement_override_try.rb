@@ -96,13 +96,13 @@ post "/api/colonel/organizations/#{@org.objid}/entitlements/grant",
 last_response.status
 #=> 403
 
-## Anonymous (no session) gets 302 redirect on grant
+## Anonymous (no session) gets 401 on grant (JSON API returns 401, not redirect)
 @test.clear_cookies
 post "/api/colonel/organizations/#{@org.objid}/entitlements/grant",
   { entitlement: 'custom_domains' }.to_json,
   { 'CONTENT_TYPE' => 'application/json' }
 last_response.status
-#=> 302
+#=> 401
 
 # ----------------------------------------------------------------
 # 404 for non-existent org
@@ -196,19 +196,19 @@ resp = JSON.parse(last_response.body)
 # Missing entitlement param
 # ----------------------------------------------------------------
 
-## Grant without entitlement param returns 400
+## Grant without entitlement param returns 422 (FormError)
 post "/api/colonel/organizations/#{@org.objid}/entitlements/grant",
   {}.to_json,
   { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status
-#=> 400
+#=> 422
 
-## Revoke without entitlement param returns 400
+## Revoke without entitlement param returns 422 (FormError)
 post "/api/colonel/organizations/#{@org.objid}/entitlements/revoke",
   {}.to_json,
   { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status
-#=> 400
+#=> 422
 
 # ----------------------------------------------------------------
 # Clear overrides
