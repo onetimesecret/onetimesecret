@@ -11,10 +11,15 @@
 
 import { z } from 'zod';
 
+import { BillingTierSchema } from './config/billing';
+
 /**
  * Plan type schema
+ *
+ * Reuses the authoritative billing tier enum from the catalog config
+ * schema so runtime subscription state and the catalog stay in lockstep.
  */
-export const planTypeSchema = z.enum(['free', 'single_team', 'multi_team']);
+export const planTypeSchema = BillingTierSchema;
 
 export type PlanType = z.infer<typeof planTypeSchema>;
 
