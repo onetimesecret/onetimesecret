@@ -194,7 +194,15 @@ module Onetime
               return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
             end
 
-            # Billing enabled: org with no plan gets FREE tier
+            # Phase 2: Read from materialized org-local state when available
+            # This eliminates the Plan.load call on the request hot path.
+            # Guard: check if WithMaterializedEntitlements is included
+            if respond_to?(:entitlements_materialized?) && entitlements_materialized?
+              return materialized_entitlements.to_a
+            end
+
+            # Legacy path (migration): org hasn't been materialized yet
+            # Fall back to Plan.load chain until all orgs are migrated
             if planid.to_s.empty?
               return WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
             end
@@ -257,7 +265,13 @@ module Onetime
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
 
-            # Billing enabled: org with no plan gets FREE tier limits
+            # Phase 2: Read from materialized org-local limits when available
+            # Guard: check if WithMaterializedEntitlements is included
+            if respond_to?(:entitlements_materialized?) && entitlements_materialized?
+              return materialized_limit_for(key)
+            end
+
+            # Legacy path (migration): org hasn't been materialized yet
             if planid.to_s.empty?
               return free_tier_limit_for(key)
             end

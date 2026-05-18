@@ -8,18 +8,25 @@
 # - Owner mode clears Stripe IDs and period end
 # - Federated mode preserves Stripe IDs (owned by different org)
 # - Both modes set canceled status, free plan, and clear complimentary
+# - Entitlements are materialized from free_v1 plan
 #
 # Run: pnpm run test:rspec spec/unit/billing/operations/apply_subscription_to_org_spec.rb
 
 require 'spec_helper'
 
 require_relative '../../../../apps/web/billing/metadata'
+require_relative '../../../../apps/web/billing/models/plan'
 require_relative '../../../../apps/web/billing/operations/apply_subscription_to_org'
 
 RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', billing: true do
   let(:operation) { Billing::Operations::ApplySubscriptionToOrg }
 
-  # Org double with writable attributes
+  # Mock materialized_entitlements set for size call in logging
+  let(:materialized_entitlements_mock) do
+    double('materialized_entitlements', size: 6)
+  end
+
+  # Org double with writable attributes and materialization support
   let(:org) do
     instance_double(
       Onetime::Organization,
@@ -27,7 +34,10 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
       'planid=' => nil,
       'complimentary=' => nil,
       'subscription_period_end=' => nil,
-      'stripe_subscription_id=' => nil
+      'stripe_subscription_id=' => nil,
+      extid: 'on_test123',
+      materialize_entitlements_from_config: true,
+      materialized_entitlements: materialized_entitlements_mock
     )
   end
 
