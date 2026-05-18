@@ -54,7 +54,22 @@ class HousekeepingStubModel
   end
 
   def self.instances
-    records.map(&:identifier)
+    StubInstances.new(records)
+  end
+
+  # Wrapper that mimics Familia's instances interface with each_record support
+  class StubInstances
+    def initialize(records)
+      @records = records
+    end
+
+    def to_a
+      @records.map(&:identifier)
+    end
+
+    def each_record(batch_size: 100, &block)
+      @records.each(&block)
+    end
   end
 
   def self.load_multi(objids)
