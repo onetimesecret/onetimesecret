@@ -185,24 +185,36 @@ module Billing
 
       # Validate product has all required metadata for plan creation
       #
+      # Checks both key presence AND non-blank values for all required fields.
+      # Returns hash with :missing (keys not present) and :blank (keys with empty values).
+      #
       # @param product [Stripe::Product] The Stripe product
-      # @return [Array<String>] List of missing keys (empty if valid)
+      # @return [Hash] { missing: [...], blank: [...] } — both empty if valid
       def validate_product_metadata(product)
         metadata = product.metadata || {}
         keys     = metadata.keys.map(&:to_s)
         missing  = REQUIRED_PRODUCT_METADATA - keys
 
-        if missing.any?
-          OT.lw '[Plan.validate_product_metadata] Stripe product missing required metadata',
+        # Check present keys for blank values
+        blank = (REQUIRED_PRODUCT_METADATA - missing).select do |key|
+          metadata[key].to_s.strip.empty?
+        end
+
+        problems = []
+        problems << "missing: #{missing.join(', ')}" if missing.any?
+        problems << "blank: #{blank.join(', ')}" if blank.any?
+
+        if problems.any?
+          OT.lw '[Plan.validate_product_metadata] Stripe product invalid metadata',
             {
               product_id: product.id,
               product_name: product.name,
-              missing_keys: missing.join(', '),
+              problems: problems.join('; '),
               hint: 'Add metadata via Stripe Dashboard or `bin/ots billing products update`',
             }
         end
 
-        missing
+        { missing: missing, blank: blank }
       end
 
       # Check if product is a valid OTS product with all required metadata
@@ -212,8 +224,8 @@ module Billing
       def valid_ots_product?(product)
         return false unless product.metadata && product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
 
-        missing = validate_product_metadata(product)
-        missing.empty?
+        result = validate_product_metadata(product)
+        result[:missing].empty? && result[:blank].empty?
       end
 
       # Check whether a Stripe product belongs to the configured region
@@ -527,23 +539,20 @@ module Billing
       # @return [Hash] Plan data ready for persistence
       # @raise [Onetime::ConfigError] If required metadata is missing or blank
       def extract_plan_data(product, price)
-        # Fail-closed: raise on missing required metadata
-        missing = validate_product_metadata(product)
-        if missing.any?
+        # Fail-closed: raise on missing or blank required metadata
+        result   = validate_product_metadata(product)
+        problems = []
+        problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
+        problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
+        if problems.any?
           raise Onetime::ConfigError,
-            "missing metadata for Stripe product #{product.id} (#{product.name}): #{missing.join(', ')}"
+            "invalid metadata for Stripe product #{product.id} (#{product.name}): #{problems.join('; ')}"
         end
 
-        interval = price.recurring.interval # 'month' or 'year'
-        tier     = product.metadata[Metadata::FIELD_TIER]
-        region   = product.metadata[Metadata::FIELD_REGION]
-
-        # Defense-in-depth: reject present-but-blank plan_id
+        interval     = price.recurring.interval # 'month' or 'year'
+        tier         = product.metadata[Metadata::FIELD_TIER]
+        region       = product.metadata[Metadata::FIELD_REGION]
         base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID]
-        if base_plan_id.to_s.strip.empty?
-          raise Onetime::ConfigError,
-            "blank plan_id metadata for Stripe product #{product.id} (#{product.name})"
-        end
         plan_id      = "#{base_plan_id}_#{interval}ly"
 
         # Extract entitlements from product metadata

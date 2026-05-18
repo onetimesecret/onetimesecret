@@ -44,16 +44,16 @@ product = MockProductForExtract.new(
   metadata: { 'tier' => 'single_team', 'region' => 'global' },
 )
 Billing::Plan.validate_product_metadata(product)
-#=> ["plan_id"]
+#=> {:missing=>["plan_id"], :blank=>[]}
 
-## validate_product_metadata returns empty array when all required fields present
+## validate_product_metadata returns empty hash arrays when all required fields present
 product = MockProductForExtract.new(
   id: 'prod_ok',
   name: 'Complete',
   metadata: { 'plan_id' => 'identity_plus_v1', 'tier' => 'single_team', 'region' => 'global' },
 )
 Billing::Plan.validate_product_metadata(product)
-#=> []
+#=> {:missing=>[], :blank=>[]}
 
 ## extract_plan_data raises ConfigError when plan_id key is absent (fail-closed)
 product = MockProductForExtract.new(
@@ -65,7 +65,7 @@ begin
   Billing::Plan.extract_plan_data(product, build_price)
   :no_raise
 rescue Onetime::ConfigError => ex
-  ex.message.include?('missing metadata') ? :raised : :wrong_message
+  ex.message.include?('missing: plan_id') ? :raised : :wrong_message
 end
 #=> :raised
 
@@ -79,7 +79,7 @@ begin
   Billing::Plan.extract_plan_data(product, build_price)
   :no_raise
 rescue Onetime::ConfigError => ex
-  ex.message.include?('blank plan_id') ? :raised : :wrong_message
+  ex.message.include?('blank: plan_id') ? :raised : :wrong_message
 end
 #=> :raised
 
