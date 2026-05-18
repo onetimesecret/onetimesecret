@@ -183,15 +183,27 @@ module Billing
 
       # Build limits hash with symbolic limit names
       #
+      # Reads from org's materialized limits_plan when available,
+      # falls back to Plan.load for unmaterialized orgs.
+      #
       # Returns empty hash if:
       # - Organization has no planid
-      # - Plan not found in cache
+      # - Entitlements not materialized and plan not found in cache
       #
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Limits with nil for infinity
       def build_limits_hash(org)
         return {} if org.planid.to_s.empty?
 
+        # Materialized path: read from org-local storage (no Plan.load)
+        if org.entitlements_materialized?
+          limits = org.limits_plan.hgetall || {}
+          return limits.transform_values do |value|
+            value == 'unlimited' ? nil : value.to_i
+          end
+        end
+
+        # Fallback for unmaterialized orgs
         plan = ::Billing::Plan.load(org.planid)
         return {} unless plan
 

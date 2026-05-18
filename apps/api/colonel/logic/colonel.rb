@@ -45,6 +45,7 @@ require_relative 'colonel/list_custom_domains'
 # Organizations
 require_relative 'colonel/list_organizations'
 require_relative 'colonel/investigate_organization'
+require_relative 'colonel/manage_entitlement_override'
 
 # Usage export
 require_relative 'colonel/export_usage'
