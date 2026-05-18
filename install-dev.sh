@@ -83,14 +83,15 @@ EOF
 # Replace the Caddy webroot symlink with this checkout's public/web.
 # Caddy is configured to serve from /var/www/public/web.
 link_caddy_webroot() {
+    if [[ ! -d "public/web" ]]; then
+        echo "Skip: public/web missing from checkout (unexpected — it is tracked in the repo)"
+        return
+    fi
+
     # Canonical absolute path to this checkout's public/web.
     # pwd -P resolves any symlinks in the checkout path.
     local webroot
-    if [[ -d "public/web" ]]; then
-        webroot="$(cd public/web && pwd -P)"
-    else
-        webroot="$(pwd -P)/public/web"
-    fi
+    webroot="$(cd public/web && pwd -P)"
     local caddy_link="/var/www/public/web"
     local caddy_parent="/var/www/public"
 
@@ -166,21 +167,30 @@ link_resource() {
         return
     fi
 
-    # Remove stale symlink
-    if [[ -L "$local_path" ]]; then
-        rm "$local_path"
-    fi
-
     # Create parent directory if needed
     mkdir -p "$(dirname "$local_path")"
 
-    ln -s "$target" "$local_path"
+    # Atomic replace handles stale symlinks without a missing-link window.
+    ln -snf "$target" "$local_path"
     echo "Link: $local_path -> $target"
 }
 
 # Sanity check
 if [[ ! -f "Gemfile" ]]; then
     echo "Error: Run this from an OTS checkout root"
+    exit 1
+fi
+
+# Required tools — fail fast with actionable guidance rather than
+# erroring midway through bundle/pnpm install.
+missing_required=()
+command -v bundle &>/dev/null || missing_required+=("bundle  (Ruby Bundler):  https://bundler.io/")
+command -v pnpm   &>/dev/null || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
+if (( ${#missing_required[@]} > 0 )); then
+    echo "Error: Required tools missing:"
+    for tool in "${missing_required[@]}"; do
+        echo "  - $tool"
+    done
     exit 1
 fi
 
@@ -195,8 +205,13 @@ fi
 
 # Warn if shared config directory is absent
 if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
-    echo "Warning: $OTS_DEV_CONFIG does not exist — symlinks will be skipped"
-    echo "  Create it and populate with config files, or set OTS_DEV_CONFIG to an existing directory"
+    echo "Warning: $OTS_DEV_CONFIG does not exist — config symlinks will be skipped"
+    echo "  To enable shared dev config, create the directory and populate with:"
+    for shared_name in "${LINKS[@]}"; do
+        echo "    - $shared_name"
+    done
+    echo "    - .env  (optional)"
+    echo "  Or point OTS_DEV_CONFIG at an existing directory."
     echo ""
 fi
 
