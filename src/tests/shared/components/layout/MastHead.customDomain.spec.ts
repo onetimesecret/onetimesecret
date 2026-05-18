@@ -265,7 +265,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(img.attributes('src')).toBe(customLogoUrl);
     });
 
-    it('uses 160px height for custom domain logo without forcing width', async () => {
+    it('uses default 48px height for custom domain logo when prominent is not set', async () => {
       wrapper = mountComponent(
         {},
         {
@@ -278,11 +278,12 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.attributes('height')).toBe('160');
+      // Without prominent=true, custom domain logos use default sizing
+      expect(img.attributes('height')).toBe('48');
       expect(img.attributes('width')).toBeUndefined();
     });
 
-    it('applies responsive height (h-24 mobile, sm:h-40), w-auto, and object-contain classes', async () => {
+    it('applies default h-12, w-auto, and object-contain classes when prominent is not set', async () => {
       wrapper = mountComponent(
         {},
         {
@@ -295,16 +296,12 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      // Responsive sizing: compact on mobile, prominent from sm breakpoint up
-      expect(img.classes()).toContain('h-24');
-      expect(img.classes()).toContain('sm:h-40');
+      // Without prominent=true, default unauthenticated sizing is h-12 (48px)
+      expect(img.classes()).toContain('h-12');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
-      // Regression: old square classes should not be present
-      expect(img.classes()).not.toContain('size-20');
-      // Regression: previous height classes should not be present
-      expect(img.classes()).not.toContain('h-20');
-      expect(img.classes()).not.toContain('h-40'); // non-responsive variant
     });
 
     it('hides site name when custom domain logo is present', async () => {

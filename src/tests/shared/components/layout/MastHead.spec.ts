@@ -258,7 +258,7 @@ describe('MastHead', () => {
   });
 
   describe('Image logo sizing (non-Vue URL)', () => {
-    it('treats a prop-supplied image URL as a custom logo with responsive sizing', async () => {
+    it('uses default sizing for image URLs when prominent is not set', async () => {
       wrapper = mountComponent(
         {
           logo: { url: '/static/brand.png' },
@@ -273,14 +273,13 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-24');
-      expect(img.classes()).toContain('sm:h-40');
+      // Without prominent=true, unauthenticated users get default 48px (h-12)
+      expect(img.classes()).toContain('h-12');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
-      expect(img.attributes('height')).toBe('160');
-      expect(img.attributes('width')).toBeUndefined();
-      // Regression: old square class should not be present
-      expect(img.classes()).not.toContain('size-12');
+      expect(img.attributes('height')).toBe('48');
     });
 
     it('uses compact sizing for authenticated users even with prop-supplied custom logo', async () => {
@@ -386,7 +385,7 @@ describe('MastHead', () => {
       });
     };
 
-    it('renders a non-default static image URL as a custom logo with responsive sizing', async () => {
+    it('uses default sizing for static image URL when prominent is not set', async () => {
       wrapper = mountWithStaticLogoUrl('/img/brand.svg', {
         authenticated: false,
       });
@@ -394,11 +393,13 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-24');
-      expect(img.classes()).toContain('sm:h-40');
+      // Without prominent=true, unauthenticated users get default 48px (h-12)
+      expect(img.classes()).toContain('h-12');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
-      expect(img.attributes('height')).toBe('160');
+      expect(img.attributes('height')).toBe('48');
     });
 
     it('hides the site name by default for non-default static config logos', async () => {
@@ -521,7 +522,7 @@ describe('MastHead', () => {
       expect(img.classes()).not.toContain('h-20');
     });
 
-    it('ignores prominent config for unauthenticated users (always 160px for custom logos)', async () => {
+    it('uses 160px for unauthenticated users when prominent is true', async () => {
       wrapper = mountWithProminentLogo(true, {
         authenticated: false,
         cust: null,
@@ -536,6 +537,23 @@ describe('MastHead', () => {
       expect(img.classes()).toContain('h-24');
       expect(img.classes()).toContain('sm:h-40');
       expect(img.classes()).not.toContain('h-20');
+    });
+
+    it('uses default 48px for unauthenticated users when prominent is false', async () => {
+      wrapper = mountWithProminentLogo(false, {
+        authenticated: false,
+        cust: null,
+        email: null,
+        domain_logo: 'https://example.com/custom-logo.png',
+      });
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('height')).toBe('48');
+      expect(img.classes()).toContain('h-12');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
     });
   });
 

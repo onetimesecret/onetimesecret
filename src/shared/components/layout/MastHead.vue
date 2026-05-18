@@ -43,39 +43,31 @@
   // Default logo component for fallback
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
-  // A URL counts as "custom branding" only when it's set AND differs from the
-  // default Vue logo component (which the stock config always populates).
-  const isCustomLogoUrl = (url: string | null | undefined): boolean =>
-    !!url && url !== DEFAULT_LOGO;
-
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
-  // Custom logos (props override, API domain branding, OR non-default static config)
-  // are larger to emphasize brand identity. Excludes the default Vue logo so a stock
-  // install doesn't enlarge the built-in icon.
+
+  // Custom logo detection (used only for site name visibility, not sizing).
+  // Domain branding or external URLs typically embed their own wordmark.
   const isCustomLogo = computed(() =>
-    isCustomLogoUrl(props.logo?.url)
-    || !!domain_logo.value
-    || isCustomLogoUrl(headerConfig.value?.branding?.logo?.url)
+    !!domain_logo.value
+    || (!!headerConfig.value?.branding?.logo?.url && headerConfig.value.branding.logo.url !== DEFAULT_LOGO)
   );
-  // Opt-in flag for operators who want custom logos to render larger in authenticated views.
-  // Useful for rasterized brand assets that need visual presence alongside context switchers.
+
+  // LOGO_PROMINENT opt-in for larger logo sizing.
   const isProminentLogo = computed(() =>
     headerConfig.value?.branding?.logo?.prominent === true
   );
-  // Authenticated users get a compact 40px logo by default so the org/domain context
-  // switchers (rendered inline in the same flex row) have room and don't wrap below.
-  // When prominent is enabled, authenticated users get an intermediate 80px size.
-  // Unauthenticated users with a custom logo always get the prominent 160px treatment
-  // for branded homepage / disabled views; unauthenticated default gets 48px.
+
+  // Logo sizing: LOGO_PROMINENT controls size, auth state determines the tier.
+  // Default (prominent=false): 48px unauthenticated, 40px authenticated
+  // Prominent (prominent=true): 160px unauthenticated, 80px authenticated
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
-    if (isUserPresent.value) return isProminentLogo.value ? 80 : 40;
-    if (isCustomLogo.value) return 160;
-    return 48;
+    if (isProminentLogo.value) return isUserPresent.value ? 80 : 160;
+    return isUserPresent.value ? 40 : 48;
   };
   // Hide site name whenever a custom logo is in use; custom branding typically embeds
   // its own wordmark, so showing the site name alongside duplicates the brand identity.
@@ -112,13 +104,13 @@
   // case we render the height via an inline style and skip the responsive class.
   const hasExplicitImgSize = computed(() => typeof props.logo?.size === 'number' && props.logo.size > 0);
 
+  // Tailwind height classes mirror getLogoSize() logic.
+  // Prominent: h-20 (80px) authenticated, h-24/sm:h-40 (96px mobile, 160px desktop) unauthenticated
+  // Default: h-10 (40px) authenticated, h-12 (48px) unauthenticated
   const imgHeightClass = computed(() => {
     if (hasExplicitImgSize.value) return null;
-    // Authenticated: compact by default (h-10 = 40px), or intermediate when prominent (h-20 = 80px)
-    if (isUserPresent.value) return isProminentLogo.value ? 'h-20' : 'h-10';
-    // Unauthenticated custom logo: compact on mobile (h-24 = 96px), prominent from sm up (h-40 = 160px)
-    if (isCustomLogo.value) return 'h-24 sm:h-40';
-    return 'h-12';
+    if (isProminentLogo.value) return isUserPresent.value ? 'h-20' : 'h-24 sm:h-40';
+    return isUserPresent.value ? 'h-10' : 'h-12';
   });
 
   const imgInlineStyle = computed(() =>
