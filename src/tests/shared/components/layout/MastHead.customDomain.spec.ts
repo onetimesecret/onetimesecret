@@ -323,7 +323,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(siteName.exists()).toBe(false);
     });
 
-    it('uses 160px size regardless of auth state for custom domain', async () => {
+    it('renders a compact 40px custom domain logo for authenticated users so context switchers fit on the same row', async () => {
       wrapper = mountComponent(
         {},
         {
@@ -338,7 +338,13 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.attributes('height')).toBe('160');
+      // The prominent 160px treatment is reserved for unauthenticated views
+      // (branded homepage / disabled page); authenticated rows must keep room
+      // for the org/domain dropdowns.
+      expect(img.attributes('height')).toBe('40');
+      expect(img.classes()).toContain('h-10');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
     });
   });
 

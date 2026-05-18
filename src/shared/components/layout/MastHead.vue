@@ -61,14 +61,21 @@
     || !!domain_logo.value
     || isCustomLogoUrl(headerConfig.value?.branding?.logo?.url)
   );
-  // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers.
-  // Custom logos render at 160px (h-40) on >=sm viewports to give brand identity prominence;
-  // mobile collapses to 96px (h-24) so the header doesn't dominate small screens.
-  // Unauthenticated users with the default logo get 48px.
+  // Opt-in flag for operators who want custom logos to render larger in authenticated views.
+  // Useful for rasterized brand assets that need visual presence alongside context switchers.
+  const isProminentLogo = computed(() =>
+    headerConfig.value?.branding?.logo?.prominent === true
+  );
+  // Authenticated users get a compact 40px logo by default so the org/domain context
+  // switchers (rendered inline in the same flex row) have room and don't wrap below.
+  // When prominent is enabled, authenticated users get an intermediate 80px size.
+  // Unauthenticated users with a custom logo always get the prominent 160px treatment
+  // for branded homepage / disabled views; unauthenticated default gets 48px.
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
+    if (isUserPresent.value) return isProminentLogo.value ? 80 : 40;
     if (isCustomLogo.value) return 160;
-    return isUserPresent.value ? 40 : 48;
+    return 48;
   };
   // Hide site name whenever a custom logo is in use; custom branding typically embeds
   // its own wordmark, so showing the site name alongside duplicates the brand identity.
@@ -107,9 +114,11 @@
 
   const imgHeightClass = computed(() => {
     if (hasExplicitImgSize.value) return null;
-    // Custom logos: compact on mobile (h-24 = 96px), prominent from sm up (h-40 = 160px)
+    // Authenticated: compact by default (h-10 = 40px), or intermediate when prominent (h-20 = 80px)
+    if (isUserPresent.value) return isProminentLogo.value ? 'h-20' : 'h-10';
+    // Unauthenticated custom logo: compact on mobile (h-24 = 96px), prominent from sm up (h-40 = 160px)
     if (isCustomLogo.value) return 'h-24 sm:h-40';
-    return isUserPresent.value ? 'h-10' : 'h-12';
+    return 'h-12';
   });
 
   const imgInlineStyle = computed(() =>

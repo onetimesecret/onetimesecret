@@ -74,6 +74,12 @@ export const headerLogoSchema = z.object({
   alt: z.string().default(''),
   link_to: z.string().default('/'),
   show_name: z.boolean().optional(),
+  /**
+   * When true, render the logo at a larger size in the authenticated header.
+   * Useful for rasterized brand assets that need visual presence alongside
+   * the org/domain switchers. Defaults to false (compact 40px logo).
+   */
+  prominent: z.boolean().optional(),
 });
 
 export const headerBrandingSchema = z.object({

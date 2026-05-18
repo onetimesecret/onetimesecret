@@ -216,7 +216,7 @@ describe('MastHead', () => {
       expect(logo.attributes('data-size')).toBe('40');
     });
 
-    it('uses responsive sizing (h-24 mobile, sm:h-40 from sm breakpoint) for custom domain logo', async () => {
+    it('uses compact sizing (h-10/40px) for authenticated users with a custom domain logo so context switchers fit on the same row', async () => {
       wrapper = mountComponent(
         {},
         {
@@ -230,14 +230,14 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      // Mobile base size to avoid dominating small viewports
-      expect(img.classes()).toContain('h-24');
-      // Prominent size from sm breakpoint up
-      expect(img.classes()).toContain('sm:h-40');
+      // Authenticated rows must keep room for the org/domain dropdowns;
+      // the prominent h-24/sm:h-40 treatment is reserved for unauthenticated views.
+      expect(img.classes()).toContain('h-10');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
-      // The height attribute is a layout hint matching the larger (sm+) size
-      expect(img.attributes('height')).toBe('160');
+      expect(img.attributes('height')).toBe('40');
     });
 
     it('respects explicit size prop override', async () => {
@@ -283,7 +283,7 @@ describe('MastHead', () => {
       expect(img.classes()).not.toContain('size-12');
     });
 
-    it('treats a prop-supplied image URL as custom for authenticated users too', async () => {
+    it('uses compact sizing for authenticated users even with prop-supplied custom logo', async () => {
       wrapper = mountComponent(
         {
           logo: { url: '/static/brand.png' },
@@ -298,11 +298,13 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-24');
-      expect(img.classes()).toContain('sm:h-40');
+      // Authenticated users always get compact sizing regardless of custom logo
+      expect(img.classes()).toContain('h-10');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
-      expect(img.attributes('height')).toBe('160');
+      expect(img.attributes('height')).toBe('40');
       expect(img.attributes('width')).toBeUndefined();
       // Regression: old square class should not be present
       expect(img.classes()).not.toContain('size-10');
@@ -429,6 +431,111 @@ describe('MastHead', () => {
       const logo = wrapper.find('.default-logo');
       expect(logo.exists()).toBe(true);
       expect(logo.attributes('data-size')).toBe('48');
+    });
+  });
+
+  describe('Prominent logo config (logo.prominent)', () => {
+    const mountWithProminentLogo = (
+      prominent: boolean,
+      storeState: Parameters<typeof mountComponent>[1] = {}
+    ) => {
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+        stubActions: false,
+        initialState: {
+          bootstrap: {
+            authenticated: storeState.authenticated ?? false,
+            awaiting_mfa: storeState.awaiting_mfa ?? false,
+            email: storeState.email ?? null,
+            cust: storeState.cust ?? null,
+            domain_logo: storeState.domain_logo ?? null,
+            ui: {
+              header: {
+                navigation: { enabled: true },
+                branding: {
+                  logo: {
+                    url: storeState.domain_logo ?? 'DefaultLogo.vue',
+                    alt: 'Brand',
+                    prominent,
+                  },
+                  site_name: 'Brand',
+                },
+              },
+            },
+            authentication: { enabled: true, signin: true, signup: true },
+          },
+        },
+      });
+
+      // Manually set isUserPresent based on bootstrap state (same as mountComponent)
+      const authStore = useAuthStore(pinia);
+      const hasAuthenticatedCustomer = storeState.authenticated && storeState.cust;
+      const hasMfaPendingEmail = storeState.awaiting_mfa && storeState.email;
+      (authStore as unknown as { isUserPresent: boolean }).isUserPresent = !!(
+        hasAuthenticatedCustomer || hasMfaPendingEmail
+      );
+
+      return mount(MastHead, {
+        global: {
+          plugins: [pinia, i18n],
+          stubs: { Teleport: true },
+        },
+        props: {},
+        slots: {
+          'context-switchers': '<span>test-context-switchers</span>',
+        },
+      });
+    };
+
+    it('uses intermediate 80px sizing for authenticated users when prominent is true', async () => {
+      wrapper = mountWithProminentLogo(true, {
+        authenticated: true,
+        cust: mockCustomer,
+        email: mockCustomer.email,
+        domain_logo: 'https://example.com/custom-logo.png',
+      });
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('height')).toBe('80');
+      expect(img.classes()).toContain('h-20');
+      expect(img.classes()).not.toContain('h-10');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
+    });
+
+    it('uses compact 40px sizing for authenticated users when prominent is false', async () => {
+      wrapper = mountWithProminentLogo(false, {
+        authenticated: true,
+        cust: mockCustomer,
+        email: mockCustomer.email,
+        domain_logo: 'https://example.com/custom-logo.png',
+      });
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('height')).toBe('40');
+      expect(img.classes()).toContain('h-10');
+      expect(img.classes()).not.toContain('h-20');
+    });
+
+    it('ignores prominent config for unauthenticated users (always 160px for custom logos)', async () => {
+      wrapper = mountWithProminentLogo(true, {
+        authenticated: false,
+        cust: null,
+        email: null,
+        domain_logo: 'https://example.com/custom-logo.png',
+      });
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.attributes('height')).toBe('160');
+      expect(img.classes()).toContain('h-24');
+      expect(img.classes()).toContain('sm:h-40');
+      expect(img.classes()).not.toContain('h-20');
     });
   });
 
