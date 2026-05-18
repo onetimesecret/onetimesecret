@@ -43,25 +43,40 @@
   // Default logo component for fallback
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
+  // A URL counts as "custom branding" only when it's set AND differs from the
+  // default Vue logo component (which the stock config always populates).
+  const isCustomLogoUrl = (url: string | null | undefined): boolean =>
+    !!url && url !== DEFAULT_LOGO;
+
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
-  // Custom domain logos are larger to emphasize brand identity
-  const isCustomDomainLogo = computed(() => !!domain_logo.value);
-  // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
-  // Custom domain logos remain at 80px, unauthenticated users get 48px
+  // Custom logos (props override, API domain branding, OR non-default static config)
+  // are larger to emphasize brand identity. Excludes the default Vue logo so a stock
+  // install doesn't enlarge the built-in icon.
+  const isCustomLogo = computed(() =>
+    isCustomLogoUrl(props.logo?.url)
+    || !!domain_logo.value
+    || isCustomLogoUrl(headerConfig.value?.branding?.logo?.url)
+  );
+  // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers.
+  // Custom logos render at 160px (h-40) on >=sm viewports to give brand identity prominence;
+  // mobile collapses to 96px (h-24) so the header doesn't dominate small screens.
+  // Unauthenticated users with the default logo get 48px.
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
-    if (isCustomDomainLogo.value) return 80;
+    if (isCustomLogo.value) return 160;
     return isUserPresent.value ? 40 : 48;
   };
-  // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  // Priority: props > custom domain (hide by default) > logo.show_name config > site_name presence
+  // Hide site name whenever a custom logo is in use; custom branding typically embeds
+  // its own wordmark, so showing the site name alongside duplicates the brand identity.
+  // Callers can opt back in via the props.logo.showSiteName override.
+  // Priority: props > custom logo (any source, hide by default) > logo.show_name config > site_name presence
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
-    if (domain_logo.value) return false;
+    if (isCustomLogo.value) return false;
 
     const showName = headerConfig.value?.branding?.logo?.show_name;
     return showName ?? !!headerConfig.value?.branding?.site_name;
@@ -84,6 +99,22 @@
 
   // Simplified logo configuration with prop override support
   const logoConfig = computed(getLogoConfig);
+
+  // When a caller passes an explicit pixel size via props.logo.size, we must NOT
+  // apply a Tailwind h-* class (the class would override the pixel value). In that
+  // case we render the height via an inline style and skip the responsive class.
+  const hasExplicitImgSize = computed(() => typeof props.logo?.size === 'number' && props.logo.size > 0);
+
+  const imgHeightClass = computed(() => {
+    if (hasExplicitImgSize.value) return null;
+    // Custom logos: compact on mobile (h-24 = 96px), prominent from sm up (h-40 = 160px)
+    if (isCustomLogo.value) return 'h-24 sm:h-40';
+    return isUserPresent.value ? 'h-10' : 'h-12';
+  });
+
+  const imgInlineStyle = computed(() =>
+    hasExplicitImgSize.value ? { height: `${props.logo!.size}px` } : undefined
+  );
 
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
@@ -169,14 +200,9 @@
             <img
               id="logo"
               :src="logoConfig.url"
-              class="w-auto transition-transform"
-              :class="[
-                isCustomDomainLogo
-                  ? 'h-20'
-                  : isUserPresent
-                    ? 'h-10'
-                    : 'h-12'
-              ]"
+              class="w-auto object-contain transition-transform"
+              :class="imgHeightClass"
+              :style="imgInlineStyle"
               :height="logoConfig.size"
               :alt="logoConfig.alt" />
             <span

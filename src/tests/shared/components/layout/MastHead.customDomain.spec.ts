@@ -20,7 +20,17 @@ vi.mock('@/shared/components/logos/DefaultLogo.vue', () => ({
       <span class="logo-icon" />
       <span v-if="showSiteName" class="site-name">{{ siteName }}</span>
     </div>`,
-    props: ['url', 'alt', 'href', 'size', 'showSiteName', 'siteName', 'ariaLabel', 'isColonelArea', 'isUserPresent'],
+    props: [
+      'url',
+      'alt',
+      'href',
+      'size',
+      'showSiteName',
+      'siteName',
+      'ariaLabel',
+      'isColonelArea',
+      'isUserPresent',
+    ],
   },
 }));
 
@@ -85,32 +95,35 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     }
   });
 
-  const mountComponent = (
-    props: Record<string, unknown> = {},
-    storeState: {
-      authenticated?: boolean;
-      awaiting_mfa?: boolean;
-      email?: string | null;
-      cust?: typeof mockCustomer | null;
-      domain_logo?: string | null;
-      domain_strategy?: string;
-      display_domain?: string;
-      domain_id?: string;
-    } = {}
-  ) => {
+  type StoreState = {
+    authenticated?: boolean;
+    awaiting_mfa?: boolean;
+    email?: string | null;
+    cust?: typeof mockCustomer | null;
+    domain_logo?: string | null;
+    domain_strategy?: string;
+    display_domain?: string;
+    domain_id?: string;
+  };
+
+  const buildBootstrapState = (s: StoreState) => ({
+    authenticated: s.authenticated ?? false,
+    awaiting_mfa: s.awaiting_mfa ?? false,
+    email: s.email ?? null,
+    cust: s.cust ?? null,
+    domain_logo: s.domain_logo ?? null,
+    domain_strategy: s.domain_strategy ?? 'canonical',
+    display_domain: s.display_domain ?? 'onetimesecret.com',
+    domain_id: s.domain_id ?? '',
+  });
+
+  const mountComponent = (props: Record<string, unknown> = {}, storeState: StoreState = {}) => {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       stubActions: false,
       initialState: {
         bootstrap: {
-          authenticated: storeState.authenticated ?? false,
-          awaiting_mfa: storeState.awaiting_mfa ?? false,
-          email: storeState.email ?? null,
-          cust: storeState.cust ?? null,
-          domain_logo: storeState.domain_logo ?? null,
-          domain_strategy: storeState.domain_strategy ?? 'canonical',
-          display_domain: storeState.display_domain ?? 'onetimesecret.com',
-          domain_id: storeState.domain_id ?? '',
+          ...buildBootstrapState(storeState),
           ui: {
             header: {
               navigation: { enabled: true },
@@ -132,8 +145,9 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     const authStore = useAuthStore(pinia);
     const hasAuthenticatedCustomer = storeState.authenticated && storeState.cust;
     const hasMfaPendingEmail = storeState.awaiting_mfa && storeState.email;
-    (authStore as unknown as { isUserPresent: boolean }).isUserPresent =
-      !!(hasAuthenticatedCustomer || hasMfaPendingEmail);
+    (authStore as unknown as { isUserPresent: boolean }).isUserPresent = !!(
+      hasAuthenticatedCustomer || hasMfaPendingEmail
+    );
 
     return mount(MastHead, {
       props: {
@@ -159,11 +173,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
 
   describe('Canonical domain (domain_strategy="canonical")', () => {
     it('renders DefaultLogo component when no custom domain logo', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'canonical',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'canonical',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -171,11 +188,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     });
 
     it('shows site name on canonical domain', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'canonical',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'canonical',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -183,11 +203,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     });
 
     it('uses 48px logo for unauthenticated users on canonical domain', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'canonical',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'canonical',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -195,13 +218,16 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     });
 
     it('uses 40px logo for authenticated users on canonical domain', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-        domain_strategy: 'canonical',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+          domain_strategy: 'canonical',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -217,13 +243,16 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     const customLogoUrl = 'https://cdn.example.com/logos/acme-logo.png';
 
     it('renders img element instead of DefaultLogo when domain_logo is set', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: customLogoUrl,
-        display_domain: 'secrets.acme.com',
-        domain_id: 'cd_acme',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: customLogoUrl,
+          display_domain: 'secrets.acme.com',
+          domain_id: 'cd_acme',
+        }
+      );
 
       await nextTick();
       // Should NOT render DefaultLogo component
@@ -236,42 +265,57 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(img.attributes('src')).toBe(customLogoUrl);
     });
 
-    it('uses 80px height for custom domain logo without forcing width', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: customLogoUrl,
-      });
+    it('uses 160px height for custom domain logo without forcing width', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: customLogoUrl,
+        }
+      );
 
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.attributes('height')).toBe('80');
+      expect(img.attributes('height')).toBe('160');
       expect(img.attributes('width')).toBeUndefined();
     });
 
-    it('applies h-20 and w-auto classes to custom domain logo', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: customLogoUrl,
-      });
+    it('applies responsive height (h-24 mobile, sm:h-40), w-auto, and object-contain classes', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: customLogoUrl,
+        }
+      );
 
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-20');
+      // Responsive sizing: compact on mobile, prominent from sm breakpoint up
+      expect(img.classes()).toContain('h-24');
+      expect(img.classes()).toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
-      // Regression: old square class should not be present
+      expect(img.classes()).toContain('object-contain');
+      // Regression: old square classes should not be present
       expect(img.classes()).not.toContain('size-20');
+      // Regression: previous height classes should not be present
+      expect(img.classes()).not.toContain('h-20');
+      expect(img.classes()).not.toContain('h-40'); // non-responsive variant
     });
 
     it('hides site name when custom domain logo is present', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: customLogoUrl,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: customLogoUrl,
+        }
+      );
 
       await nextTick();
       // Site name should not appear next to custom domain logo by default
@@ -279,19 +323,22 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(siteName.exists()).toBe(false);
     });
 
-    it('uses 80px size regardless of auth state for custom domain', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-        domain_strategy: 'custom',
-        domain_logo: customLogoUrl,
-      });
+    it('uses 160px size regardless of auth state for custom domain', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+          domain_strategy: 'custom',
+          domain_logo: customLogoUrl,
+        }
+      );
 
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.attributes('height')).toBe('80');
+      expect(img.attributes('height')).toBe('160');
     });
   });
 
@@ -301,13 +348,16 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
 
   describe('Custom domain without logo (domain_strategy="custom", domain_logo=null)', () => {
     it('falls back to DefaultLogo when custom domain has no uploaded logo', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: null,
-        display_domain: 'secrets.acme.com',
-        domain_id: 'cd_acme',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+          display_domain: 'secrets.acme.com',
+          domain_id: 'cd_acme',
+        }
+      );
 
       await nextTick();
       // When domain_logo is null, MastHead falls back to the configured logo URL
@@ -317,12 +367,15 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     });
 
     it('shows OTS site name when custom domain has no logo', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: null,
-        display_domain: 'secrets.acme.com',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+          display_domain: 'secrets.acme.com',
+        }
+      );
 
       await nextTick();
       // Without domain_logo, the site name logic does NOT suppress the name
@@ -333,11 +386,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     });
 
     it('uses standard sizing (not 80px) when no custom logo is set', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -353,33 +409,43 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
 
   describe('Logo configuration priority: props > domain_logo > config > default', () => {
     it('props override domain_logo when both are provided', async () => {
-      wrapper = mountComponent({
-        logo: {
-          url: '/custom-override.png',
-          alt: 'Override Logo',
-          size: 48,
-          isUserPresent: false,
+      wrapper = mountComponent(
+        {
+          logo: {
+            url: '/custom-override.png',
+            alt: 'Override Logo',
+            size: 48,
+            isUserPresent: false,
+          },
         },
-      }, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/domain-logo.png',
-      });
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/domain-logo.png',
+        }
+      );
 
       await nextTick();
-      // The img should use the prop override URL, not the domain_logo
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
+      // The img should use the prop override URL, not the domain_logo
       expect(img.attributes('src')).toBe('/custom-override.png');
+      // Explicit prop size is honored via inline style instead of a Tailwind class
+      expect(img.attributes('style')).toContain('height: 48px');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
       expect(img.attributes('height')).toBe('48');
     });
 
     it('domain_logo takes priority over header config logo URL', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/domain-logo.png',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/domain-logo.png',
+        }
+      );
 
       await nextTick();
       // Should use domain_logo, not the header config default
@@ -395,11 +461,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
 
   describe('Accessibility on custom domains', () => {
     it('custom domain logo has alt text', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/logo.png',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/logo.png',
+        }
+      );
 
       await nextTick();
       const img = wrapper.find('img#logo');
@@ -408,11 +477,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     });
 
     it('custom domain logo link has aria-label', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/logo.png',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/logo.png',
+        }
+      );
 
       await nextTick();
       const logoLink = wrapper.find('a[aria-label]');
@@ -420,13 +492,16 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     });
 
     it('navigation has proper aria-label on custom domains', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-        domain_strategy: 'custom',
-        domain_logo: 'https://cdn.example.com/logo.png',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+          domain_strategy: 'custom',
+          domain_logo: 'https://cdn.example.com/logo.png',
+        }
+      );
 
       await nextTick();
       const nav = wrapper.find('nav[role="navigation"]');
@@ -453,13 +528,16 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     it('shows OTS default logo on custom domain when no logo uploaded (current behavior)', async () => {
       // This documents the bug: a customer on secrets.acme.com sees the
       // Onetime Secret logo because MastHead only checks domain_logo, not domain_strategy
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: null,
-        display_domain: 'secrets.acme.com',
-        domain_id: 'cd_acme',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+          display_domain: 'secrets.acme.com',
+          domain_id: 'cd_acme',
+        }
+      );
 
       await nextTick();
 
@@ -474,11 +552,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     it('does not suppress auth navigation on custom domain (correct: auth nav should remain)', async () => {
       // Even on custom domains, sign in/sign up links should still appear
       // if authentication is enabled — this is NOT a bug
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_strategy: 'custom',
-        domain_logo: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+        }
+      );
 
       await nextTick();
       const html = wrapper.html();
@@ -498,7 +579,6 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
     //    (NOT the OTS default logo with "Onetime Secret" branding)
     //
     // Test stubs for when the fix is implemented:
-
     // it('hides DefaultLogo when domain_strategy=custom and no domain_logo', ...)
     // it('does not show "Onetime Secret" site name on custom domain', ...)
     // it('shows neutral placeholder when custom domain has no logo', ...)
