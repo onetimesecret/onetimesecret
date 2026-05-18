@@ -216,7 +216,7 @@ describe('MastHead', () => {
       expect(logo.attributes('data-size')).toBe('40');
     });
 
-    it('uses 160px logo when custom domain logo is present', async () => {
+    it('uses responsive sizing (h-24 mobile, sm:h-40 from sm breakpoint) for custom domain logo', async () => {
       wrapper = mountComponent(
         {},
         {
@@ -228,12 +228,15 @@ describe('MastHead', () => {
       );
 
       await nextTick();
-      // Custom domain logo uses img element with h-40 + w-auto + object-contain
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-40');
+      // Mobile base size to avoid dominating small viewports
+      expect(img.classes()).toContain('h-24');
+      // Prominent size from sm breakpoint up
+      expect(img.classes()).toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
+      // The height attribute is a layout hint matching the larger (sm+) size
       expect(img.attributes('height')).toBe('160');
     });
 
@@ -255,7 +258,7 @@ describe('MastHead', () => {
   });
 
   describe('Image logo sizing (non-Vue URL)', () => {
-    it('treats a prop-supplied image URL as a custom logo (h-40)', async () => {
+    it('treats a prop-supplied image URL as a custom logo with responsive sizing', async () => {
       wrapper = mountComponent(
         {
           logo: { url: '/static/brand.png' },
@@ -270,7 +273,8 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-40');
+      expect(img.classes()).toContain('h-24');
+      expect(img.classes()).toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
       expect(img.attributes('height')).toBe('160');
@@ -294,7 +298,8 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-40');
+      expect(img.classes()).toContain('h-24');
+      expect(img.classes()).toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
       expect(img.attributes('height')).toBe('160');
@@ -303,7 +308,7 @@ describe('MastHead', () => {
       expect(img.classes()).not.toContain('size-10');
     });
 
-    it('respects an explicit prop size override over the custom-logo default', async () => {
+    it('honors an explicit prop size override: omits h-* classes and sets inline height style', async () => {
       wrapper = mountComponent(
         {
           logo: { url: '/static/brand.png', size: 56 },
@@ -316,9 +321,19 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      // Class still reflects custom-logo branding tier, but height attr honors prop
-      expect(img.classes()).toContain('h-40');
+      // Prop size wins visually: no Tailwind height class is applied
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
+      expect(img.classes()).not.toContain('h-40');
+      expect(img.classes()).not.toContain('h-10');
+      expect(img.classes()).not.toContain('h-12');
+      // Inline style enforces the exact pixel size
+      expect(img.attributes('style')).toContain('height: 56px');
+      // Height attribute also reflects the override for pre-load layout reservation
       expect(img.attributes('height')).toBe('56');
+      // Static classes are still present
+      expect(img.classes()).toContain('w-auto');
+      expect(img.classes()).toContain('object-contain');
     });
   });
 
@@ -369,7 +384,7 @@ describe('MastHead', () => {
       });
     };
 
-    it('renders a non-default static image URL as a custom logo (h-40, 160px)', async () => {
+    it('renders a non-default static image URL as a custom logo with responsive sizing', async () => {
       wrapper = mountWithStaticLogoUrl('/img/brand.svg', {
         authenticated: false,
       });
@@ -377,10 +392,25 @@ describe('MastHead', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-40');
+      expect(img.classes()).toContain('h-24');
+      expect(img.classes()).toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
       expect(img.attributes('height')).toBe('160');
+    });
+
+    it('hides the site name by default for non-default static config logos', async () => {
+      // Static-config custom branding typically embeds the wordmark in the image,
+      // so the site name text mark should not appear next to it (matches the
+      // long-standing behavior for per-domain uploaded logos).
+      wrapper = mountWithStaticLogoUrl('/img/brand.svg', {
+        authenticated: false,
+      });
+
+      await nextTick();
+      // Site name span should not be rendered for a static custom image URL
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(false);
     });
 
     it('does NOT treat the default DefaultLogo.vue config as a custom logo (regression)', async () => {

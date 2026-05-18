@@ -282,7 +282,7 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       expect(img.attributes('width')).toBeUndefined();
     });
 
-    it('applies h-40, w-auto, and object-contain classes to custom domain logo', async () => {
+    it('applies responsive height (h-24 mobile, sm:h-40), w-auto, and object-contain classes', async () => {
       wrapper = mountComponent(
         {},
         {
@@ -295,13 +295,16 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-40');
+      // Responsive sizing: compact on mobile, prominent from sm breakpoint up
+      expect(img.classes()).toContain('h-24');
+      expect(img.classes()).toContain('sm:h-40');
       expect(img.classes()).toContain('w-auto');
       expect(img.classes()).toContain('object-contain');
-      // Regression: old square class should not be present
+      // Regression: old square classes should not be present
       expect(img.classes()).not.toContain('size-20');
-      // Regression: previous height class should not be present
+      // Regression: previous height classes should not be present
       expect(img.classes()).not.toContain('h-20');
+      expect(img.classes()).not.toContain('h-40'); // non-responsive variant
     });
 
     it('hides site name when custom domain logo is present', async () => {
@@ -423,10 +426,14 @@ describe('MastHead — Custom Domain Logo Behavior', () => {
       );
 
       await nextTick();
-      // The img should use the prop override URL, not the domain_logo
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
+      // The img should use the prop override URL, not the domain_logo
       expect(img.attributes('src')).toBe('/custom-override.png');
+      // Explicit prop size is honored via inline style instead of a Tailwind class
+      expect(img.attributes('style')).toContain('height: 48px');
+      expect(img.classes()).not.toContain('h-24');
+      expect(img.classes()).not.toContain('sm:h-40');
       expect(img.attributes('height')).toBe('48');
     });
 
