@@ -65,6 +65,20 @@ module Onetime
         domain
       end
 
+      # Load domain by name, extid, or objid
+      def load_domain(identifier)
+        # Try display_domain first, then extid, then objid
+        domain   = Onetime::CustomDomain.load_by_display_domain(identifier)
+        domain ||= Onetime::CustomDomain.find_by_extid(identifier)
+        domain ||= Onetime::CustomDomain.find_by_identifier(identifier)
+
+        unless domain
+          puts "Error: Domain '#{identifier}' not found"
+          return nil
+        end
+        domain
+      end
+
       def load_organization(org_id, silent: false)
         org = Onetime::Organization.load(org_id)
         unless org

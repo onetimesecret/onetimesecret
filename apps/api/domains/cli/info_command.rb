@@ -12,16 +12,16 @@ module Onetime
 
       desc 'Show detailed information about a domain'
 
-      argument :domain_name, type: :string, required: true, desc: 'Domain name'
+      argument :identifier, type: :string, required: true, desc: 'Domain name, extid, or objid'
 
-      def call(domain_name:, **)
+      def call(identifier:, **)
         boot_application!
 
-        domain = load_domain_by_name(domain_name)
+        domain = load_domain(identifier)
         return unless domain
 
         puts '=' * 80
-        puts "Domain Information: #{domain_name}"
+        puts "Domain Information: #{domain.display_domain}"
         puts '=' * 80
         puts
 
@@ -69,12 +69,23 @@ module Onetime
         puts "  Validation Record:    #{domain.validation_record || 'N/A'}"
         puts
 
-        # Vhost configuration
-        puts 'Configuration:'
-        puts "  Vhost:                #{domain.vhost || 'N/A'}"
+        # Branding configuration
+        puts 'Brand Settings:'
         puts "  Allow Public Home:    #{domain.allow_public_homepage? || 'false'}"
         puts "  Allow Public API:     #{domain.allow_public_api? || 'false'}"
         puts "  Apex Domain:          #{domain.apex? || 'false'}"
+        puts
+
+        # Vhost (Approximated) details
+        puts 'Vhost (Approximated):'
+        vhost_data = domain.parse_vhost
+        if vhost_data.nil? || vhost_data.empty?
+          puts '  (not set)'
+        else
+          vhost_data.each do |key, value|
+            puts format('  %-20s %s', "#{key}:", value.to_s)
+          end
+        end
         puts
 
         # Timestamps
@@ -96,3 +107,4 @@ module Onetime
 end
 
 Onetime::CLI.register 'domains info', Onetime::CLI::DomainsInfoCommand
+Onetime::CLI.register 'domains show', Onetime::CLI::DomainsInfoCommand
