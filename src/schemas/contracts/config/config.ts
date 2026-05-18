@@ -67,8 +67,8 @@ export const apiInterfaceSchema = z.object({
                   alt: z.string().optional(),
                   href: z.string().optional(),
                   link_to: z.string().optional(), // Legacy field
-                  show_name: z.boolean().optional(),
-                  prominent: z.boolean().optional(),
+                  show_name: booleanOrString,
+                  prominent: booleanOrString,
                 })
                 .optional(),
               site_name: z.string().optional(),
