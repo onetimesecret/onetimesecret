@@ -140,16 +140,18 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Setup Node.js for locale sync
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version: '22'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Generate locale files
         run: pnpm run locales:sync
+
+      # The billing catalog validate CLI/spec loads
+      # generated/schemas/config/billing.schema.json, which is gitignored
+      # (generated from src/schemas/). spec:fast runs that spec, so the
+      # schema must be generated before the Ruby suite.
+      - name: Generate JSON schemas
+        run: pnpm run schemas:json:generate
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests

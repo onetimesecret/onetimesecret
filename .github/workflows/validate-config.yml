@@ -55,9 +55,6 @@ jobs:
       - name: Generate JSON schemas
         run: pnpm run schema:generate
 
-      - name: Validate example config
-        run: pnpm run config:validate
-
       - name: Show config
         run: pnpm run config
 

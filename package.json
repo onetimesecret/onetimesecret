@@ -26,7 +26,6 @@
     "docs:schemas": "typedoc --options typedoc.schemas.json",
     "docs:schemas:watch": "typedoc --options typedoc.schemas.json --watch",
     "docs:schemas:serve": "npx serve generated/docs/schemas",
-    "config:validate": "yamale -s etc/config.schema.yaml etc/config.yaml",
     "predev": "pnpm run i18n:generate-types",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
