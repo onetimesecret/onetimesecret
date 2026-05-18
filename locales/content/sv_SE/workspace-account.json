@@ -476,7 +476,7 @@
     "source_hash": "1cc77e60"
   },
   "web.settings.api.documentation_description": {
-    "text": "Lär dig integrera Onetime Secret i dina applikationer",
+    "text": "Lär dig integrera {product_name} i dina applikationer",
     "source_hash": "6e8f910f"
   },
   "web.settings.api.rest_api_reference": {

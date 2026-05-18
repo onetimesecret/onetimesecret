@@ -2,8 +2,11 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
+  const { brand_product_name } = storeToRefs(useBootstrapStore());
 </script>
 
 <template>
@@ -22,7 +25,7 @@
           {{ t('web.help.secret_view_faq.what_am_i_looking_at.title') }}
         </h3>
         <p>
-          {{ t('web.help.secret_view_faq.what_am_i_looking_at.description') }}
+          {{ t('web.help.secret_view_faq.what_am_i_looking_at.description', { product_name: brand_product_name }) }}
         </p>
       </div>
 

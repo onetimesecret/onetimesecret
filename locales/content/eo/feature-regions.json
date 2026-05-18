@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se via faktura kontakta retpoŝto diferencas de via Onetime Secret-konta retpoŝto, uzu la fakturan kontaktan retpoŝton por la nova regiona konto por konservi viajn abonajn avantaĝojn.",
+    "text": "Se via faktura kontakta retpoŝto diferencas de via {product_name}-konta retpoŝto, uzu la fakturan kontaktan retpoŝton por la nova regiona konto por konservi viajn abonajn avantaĝojn.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Če se vaš kontaktni e-poštni naslov za obračun razlikuje od e-poštnega naslova računa Onetime Secret, za račun v novi regiji uporabite kontaktni e-poštni naslov za obračun, da obdržite ugodnosti naročnine.",
+    "text": "Če se vaš kontaktni e-poštni naslov za obračun razlikuje od e-poštnega naslova računa {product_name}, za račun v novi regiji uporabite kontaktni e-poštni naslov za obračun, da obdržite ugodnosti naročnine.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

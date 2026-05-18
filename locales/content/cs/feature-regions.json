@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu Onetime Secret, použij fakturační kontaktní e-mail pro účet v novém regionu, aby se zachovaly výhody tvého předplatného.",
+    "text": "Pokud se tvůj fakturační kontaktní e-mail liší od e-mailu tvého účtu {product_name}, použij fakturační kontaktní e-mail pro účet v novém regionu, aby se zachovaly výhody tvého předplatného.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

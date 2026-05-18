@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Você está visualizando uma mensagem segura que foi compartilhada com você através do Onetime Secret. Este conteúdo é exibido apenas uma vez e depois é permanentemente excluído dos nossos servidores.",
+    "text": "Você está visualizando uma mensagem segura que foi compartilhada com você através do {product_name}. Este conteúdo é exibido apenas uma vez e depois é permanentemente excluído dos nossos servidores.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Visitar página inicial do Onetime Secret",
+    "text": "Visitar página inicial do {product_name}",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {

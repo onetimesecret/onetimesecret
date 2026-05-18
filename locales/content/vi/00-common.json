@@ -108,7 +108,7 @@
     "text": "Tạo tài khoản",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Giới thiệu",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "ví dụ {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Giới thiệu",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Trạng thái",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Luôn xác minh bạn đang ở trên trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới.",
+    "text": "Luôn xác minh bạn đang ở trên trang web chính thức của {product_name}. Kẻ lừa đảo đôi khi tạo các trang web giả trông giống hệt {product_name} để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, hãy kiểm tra tên miền trước khi tạo liên kết mới.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

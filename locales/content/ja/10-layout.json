@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。",
+    "text": "{product_name}を通じて共有された安全なメッセージを閲覧しています。この内容は1回のみ表示され、その後サーバーから完全に削除されます。",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Onetime Secretホームページへ",
+    "text": "{product_name}ホームページへ",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {

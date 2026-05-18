@@ -108,7 +108,7 @@
     "text": "Δημιουργία λογαριασμού",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Σχετικά",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "π.χ. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Σχετικά",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Κατάσταση",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του Onetime Secret. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το Onetime Secret για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγξτε τον τομέα πριν δημιουργήσετε νέους συνδέσμους.",
+    "text": "Επαληθεύετε πάντα ότι βρίσκεστε στον επίσημο ιστότοπο του {product_name}. Οι απατεώνες μερικές φορές δημιουργούν ψεύτικους ιστότοπους που μοιάζουν ακριβώς με το {product_name} για να κλέψουν τα μυστικά σας. Για να αποφύγετε επιθέσεις phishing, ελέγξτε τον τομέα πριν δημιουργήσετε νέους συνδέσμους.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

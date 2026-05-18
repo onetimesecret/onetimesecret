@@ -64,7 +64,7 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "Những người sau đây đã dành thời gian để giúp mở rộng phạm vi tiếp cận của Onetime Secret:",
+    "text": "Những người sau đây đã dành thời gian để giúp mở rộng phạm vi tiếp cận của {product_name}:",
     "source_hash": "85a766af"
   },
   "web.translations.translations": {
@@ -84,7 +84,7 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "Từ năm 2012, Onetime Secret đã cung cấp một cách an toàn để chia sẻ thông tin nhạy cảm trên toàn thế giới. Với người dùng ở các khu vực mà tiếng Anh không phải là ngôn ngữ chính, bản dịch chính xác là điều cần thiết để làm cho giao tiếp an toàn có thể tiếp cận được với mọi người.",
+    "text": "Từ năm 2012, {product_name} đã cung cấp một cách an toàn để chia sẻ thông tin nhạy cảm trên toàn thế giới. Với người dùng ở các khu vực mà tiếng Anh không phải là ngôn ngữ chính, bản dịch chính xác là điều cần thiết để làm cho giao tiếp an toàn có thể tiếp cận được với mọi người.",
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {

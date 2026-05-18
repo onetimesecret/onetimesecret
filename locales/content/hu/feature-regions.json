@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Ha a számlázási kapcsolattartó e-mail címe eltér az Onetime Secret fiókjának e-mail címétől, használja a számlázási kapcsolattartó e-mail címét az új régiós fiókhoz az előfizetési előnyök megtartásához.",
+    "text": "Ha a számlázási kapcsolattartó e-mail címe eltér az {product_name} fiókjának e-mail címétől, használja a számlázási kapcsolattartó e-mail címét az új régiós fiókhoz az előfizetési előnyök megtartásához.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

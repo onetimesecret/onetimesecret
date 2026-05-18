@@ -3,7 +3,7 @@
 // V2 wire-format shapes for brand settings.
 // Uses string transforms for boolean fields (V2 sends "true"/"false" strings).
 
-import { localeSchema } from '@/schemas/i18n/locale';
+import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { transforms } from '@/schemas/transforms';
 import { fontFamilyValues, cornerStyleValues } from '@/schemas/contracts';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
@@ -61,7 +61,7 @@ export const brandSettingschema = z
     allow_public_api: transforms.fromString.boolean.default(false),
     font_family: z.enum(fontFamilyValues).default('sans'),
     corner_style: z.enum(cornerStyleValues).default('rounded'),
-    locale: localeSchema.default('en'),
+    locale: localeCodeSchema.default('en'),
     default_ttl: transforms.fromString.number.nullish(),
     passphrase_required: transforms.fromString.boolean.default(false),
     notify_enabled: transforms.fromString.boolean.default(false),
