@@ -6,7 +6,7 @@ require 'spec_helper'
 
 # Unit tests for WithEntitlements Test Mode
 #
-# Tests the Thread.current[:entitlement_test_planid] override mechanism
+# Tests the Thread.current[:entitlement_preview_planid] override mechanism
 # that allows colonels to test features from different plan tiers.
 #
 # NOTE: Tests the Thread.current override mechanism for Issue #2244.
@@ -67,7 +67,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
   after do
     # Clear Thread.current after each test to prevent pollution
-    Thread.current[:entitlement_test_planid] = nil
+    Thread.current[:entitlement_preview_planid] = nil
   end
 
   describe '#entitlements with test mode' do
@@ -84,7 +84,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
     context 'when test planid is set in Thread.current' do
       it 'overrides to identity_v1 entitlements' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         expect(org.entitlements).to include('custom_domains')
         expect(org.entitlements).to include('create_team')
@@ -92,7 +92,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       end
 
       it 'overrides to multi_team_v1 entitlements' do
-        Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+        Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
 
         expect(org.entitlements).to include('api_access')
         expect(org.entitlements).to include('audit_logs')
@@ -102,7 +102,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       it 'overrides even for higher tier actual plans' do
         # Organization with identity_v1 can test as free
         higher_tier_org = test_class.new('identity_v1')
-        Thread.current[:entitlement_test_planid] = 'free'
+        Thread.current[:entitlement_preview_planid] = 'free'
 
         expect(higher_tier_org.entitlements).to match_array(%w[create_secrets basic_sharing])
         expect(higher_tier_org.entitlements).not_to include('custom_domains')
@@ -111,20 +111,20 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
     context 'when test planid is invalid' do
       it 'returns empty array for non-existent plan' do
-        Thread.current[:entitlement_test_planid] = 'nonexistent_plan'
+        Thread.current[:entitlement_preview_planid] = 'nonexistent_plan'
 
         expect(org.entitlements).to eq([])
       end
 
       it 'returns empty array for nil planid' do
-        Thread.current[:entitlement_test_planid] = nil
+        Thread.current[:entitlement_preview_planid] = nil
 
         # Falls back to actual plan
         expect(org.entitlements).to match_array(%w[create_secrets basic_sharing])
       end
 
       it 'returns empty array for empty string planid' do
-        Thread.current[:entitlement_test_planid] = ''
+        Thread.current[:entitlement_preview_planid] = ''
 
         # Falls back to actual plan
         expect(org.entitlements).to match_array(%w[create_secrets basic_sharing])
@@ -133,7 +133,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
     context 'thread isolation' do
       it 'override is isolated to current thread' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         # Create new thread without override
         other_thread_entitlements = nil
@@ -152,12 +152,12 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       end
 
       it 'different threads can have different overrides' do
-        Thread.current[:entitlement_test_planid] = 'free'
+        Thread.current[:entitlement_preview_planid] = 'free'
         main_entitlements = org.entitlements
 
         thread_entitlements = nil
         thread = Thread.new do
-          Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+          Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
           thread_entitlements = org.entitlements
         end
         thread.join
@@ -182,7 +182,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
     context 'when test planid is set' do
       it 'checks against test plan entitlements' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         expect(org.can?('custom_domains')).to be true
         expect(org.can?('create_team')).to be true
@@ -190,7 +190,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       end
 
       it 'handles symbol entitlement names' do
-        Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+        Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
 
         expect(org.can?(:api_access)).to be true
         expect(org.can?(:audit_logs)).to be true
@@ -205,7 +205,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
         expect(premium_org.can?('api_access')).to be true
 
         # Test as free tier
-        Thread.current[:entitlement_test_planid] = 'free'
+        Thread.current[:entitlement_preview_planid] = 'free'
 
         expect(premium_org.can?('api_access')).to be false
         expect(premium_org.can?('create_secrets')).to be true
@@ -222,13 +222,13 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
     context 'when test planid is set' do
       it 'returns test plan limits' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         expect(org.limit_for('teams')).to eq(1)
       end
 
       it 'returns unlimited for multi_team plan' do
-        Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+        Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
 
         expect(org.limit_for('teams')).to eq(Float::INFINITY)
       end
@@ -260,7 +260,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
     context 'when test planid is set' do
       it 'returns test plan check result' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         result = org.check_entitlement('custom_domains')
 
@@ -270,7 +270,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       end
 
       it 'shows upgrade needed for entitlement not in test plan' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         result = org.check_entitlement('api_access')
 
@@ -290,7 +290,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
     context 'when test planid is set' do
       it 'checks against test plan limits' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         expect(org.at_limit?('teams', 0)).to be false
         expect(org.at_limit?('teams', 1)).to be true
@@ -298,7 +298,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       end
 
       it 'never at limit for unlimited plans' do
-        Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+        Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
 
         expect(org.at_limit?('teams', 999)).to be false
       end
@@ -307,18 +307,18 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
 
   describe 'clearing test override' do
     it 'reverts to actual plan when set to nil' do
-      Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+      Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
       expect(org.can?('api_access')).to be true
 
-      Thread.current[:entitlement_test_planid] = nil
+      Thread.current[:entitlement_preview_planid] = nil
       expect(org.can?('api_access')).to be false
     end
 
     it 'reverts to actual plan when set to empty string' do
-      Thread.current[:entitlement_test_planid] = 'identity_v1'
+      Thread.current[:entitlement_preview_planid] = 'identity_v1'
       expect(org.can?('custom_domains')).to be true
 
-      Thread.current[:entitlement_test_planid] = ''
+      Thread.current[:entitlement_preview_planid] = ''
       expect(org.can?('custom_domains')).to be false
     end
   end
@@ -335,7 +335,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       end
 
       it 'returns test plan entitlements when override set' do
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
 
         expect(no_plan_org.entitlements).to include('custom_domains')
       end
@@ -352,7 +352,7 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
       end
 
       it 'returns test plan entitlements when override set' do
-        Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+        Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
 
         expect(empty_plan_org.entitlements).to include('api_access')
       end
@@ -364,21 +364,21 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
         expect(org.can?('api_access')).to be false
 
         # Identity
-        Thread.current[:entitlement_test_planid] = 'identity_v1'
+        Thread.current[:entitlement_preview_planid] = 'identity_v1'
         expect(org.can?('custom_domains')).to be true
         expect(org.can?('api_access')).to be false
 
         # Multi-team
-        Thread.current[:entitlement_test_planid] = 'multi_team_v1'
+        Thread.current[:entitlement_preview_planid] = 'multi_team_v1'
         expect(org.can?('api_access')).to be true
 
         # Back to free
-        Thread.current[:entitlement_test_planid] = 'free'
+        Thread.current[:entitlement_preview_planid] = 'free'
         expect(org.can?('custom_domains')).to be false
         expect(org.can?('api_access')).to be false
 
         # Clear override
-        Thread.current[:entitlement_test_planid] = nil
+        Thread.current[:entitlement_preview_planid] = nil
         expect(org.can?('create_secrets')).to be true
       end
     end

@@ -9,9 +9,9 @@
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
   import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
   import ManagementFooter from '@/shared/components/layout/ManagementFooter.vue';
-  import TestModeBanner from '@/shared/components/ui/TestModeBanner.vue';
+  import PreviewModeBanner from '@/shared/components/ui/PreviewModeBanner.vue';
   import ColonelAdminLayout from '@/apps/colonel/components/layout/ColonelAdminLayout.vue';
-  import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
+  import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
   import type { LayoutProps } from '@/types/ui/layouts';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -24,13 +24,13 @@
     displayPoweredBy: true,
   });
 
-  const { isTestModeActive } = useTestPlanMode();
+  const { isPreviewModeActive } = usePreviewPlanMode();
 </script>
 
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <TestModeBanner v-if="isTestModeActive" />
+      <PreviewModeBanner v-if="isPreviewModeActive" />
       <ManagementHeader v-bind="props" />
     </template>
 

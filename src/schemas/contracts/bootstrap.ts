@@ -478,8 +478,8 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   // Entitlement test mode (colonel only)
   // ─────────────────────────────────────────────────────────────────────────────
-  entitlement_test_planid: z.string().nullish(),
-  entitlement_test_plan_name: z.string().nullish(),
+  entitlement_preview_planid: z.string().nullish(),
+  entitlement_preview_plan_name: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Development

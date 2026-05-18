@@ -1,4 +1,4 @@
-# apps/api/colonel/logic/colonel/set_entitlement_test.rb
+# apps/api/colonel/logic/colonel/set_entitlement_preview.rb
 #
 # frozen_string_literal: true
 
@@ -24,7 +24,7 @@ module ColonelAPI
       #
       # ## Request
       #
-      # POST /api/colonel/entitlement-test
+      # POST /api/colonel/entitlement-preview
       # Body: { planid: "identity_plus_v1_monthly" }  - Set test mode
       #       { planid: null }                         - Clear test mode
       #
@@ -51,7 +51,7 @@ module ColonelAPI
       # - Requires colonel role
       # - Session-scoped (cleared on logout)
       # - Does not modify actual subscription/billing
-      class SetEntitlementTest < ColonelAPI::Logic::Base
+      class SetEntitlementPreview < ColonelAPI::Logic::Base
         # TTL for session test mode Redis keys (matches session TTL)
         SESSION_TEST_TTL = 24 * 60 * 60 # 24 hours
 
@@ -119,11 +119,11 @@ module ColonelAPI
         end
 
         def session_grants_key(session_id)
-          "session:#{session_id}:entitlement_test_grants"
+          "session:#{session_id}:entitlement_preview_grants"
         end
 
         def session_revokes_key(session_id)
-          "session:#{session_id}:entitlement_test_revokes"
+          "session:#{session_id}:entitlement_preview_revokes"
         end
 
         def clear_test_mode(session_id)
@@ -134,9 +134,9 @@ module ColonelAPI
           redis.del(session_revokes_key(session_id))
 
           # Clear session markers
-          sess.delete(:entitlement_test_grants_key)
-          sess.delete(:entitlement_test_revokes_key)
-          sess.delete(:entitlement_test_planid) # Legacy, for transition
+          sess.delete(:entitlement_preview_grants_key)
+          sess.delete(:entitlement_preview_revokes_key)
+          sess.delete(:entitlement_preview_planid) # Legacy, for transition
 
           {
             status: 'cleared',
@@ -170,8 +170,8 @@ module ColonelAPI
           redis.expire(grants_key, SESSION_TEST_TTL)
 
           # Store key names in session for middleware
-          sess[:entitlement_test_grants_key]  = grants_key
-          sess[:entitlement_test_revokes_key] = revokes_key
+          sess[:entitlement_preview_grants_key]  = grants_key
+          sess[:entitlement_preview_revokes_key] = revokes_key
 
           {
             status: 'active',
@@ -187,13 +187,13 @@ module ColonelAPI
         # Fallback for when session ID extraction fails
         def process_without_reconciler
           if @planid.nil? || @planid.empty?
-            sess.delete(:entitlement_test_planid)
+            sess.delete(:entitlement_preview_planid)
             {
               status: 'cleared',
               actual_planid: organization&.planid,
             }
           else
-            sess[:entitlement_test_planid] = @planid
+            sess[:entitlement_preview_planid] = @planid
             {
               status: 'active',
               test_planid: @planid,

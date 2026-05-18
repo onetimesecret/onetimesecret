@@ -1,4 +1,4 @@
-# spec/integration/all/entitlement_test_spec.rb
+# spec/integration/all/entitlement_preview_spec.rb
 #
 # frozen_string_literal: true
 
@@ -10,7 +10,7 @@ require 'colonel/application'
 
 # Integration tests for Colonel Entitlement Test Mode API
 #
-# Tests the /api/colonel/entitlement-test endpoint that allows colonels
+# Tests the /api/colonel/entitlement-preview endpoint that allows colonels
 # to override their organization's plan entitlements for testing purposes.
 #
 # Requires:
@@ -19,7 +19,7 @@ require 'colonel/application'
 # - Session middleware
 # - Organization with colonel customer
 #
-RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integration, billing: true do
+RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integration, billing: true do
   include Rack::Test::Methods
 
   let(:app) do
@@ -63,7 +63,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
 
     # Mock session object
     session = double('Session')
-    allow(session).to receive(:[]).with(:entitlement_test_planid) { session_data[:entitlement_test_planid] }
+    allow(session).to receive(:[]).with(:entitlement_preview_planid) { session_data[:entitlement_preview_planid] }
     allow(session).to receive(:[]=) do |key, value|
       session_data[key] = value
     end
@@ -78,7 +78,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
     allow(strategy_result).to receive(:metadata).and_return({ organization: org })
 
     # Create logic instance with proper arguments
-    logic = ColonelAPI::Logic::Colonel::SetEntitlementTest.new(
+    logic = ColonelAPI::Logic::Colonel::SetEntitlementPreview.new(
       strategy_result,
       params_hash,
     )
@@ -132,7 +132,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
     session_data.clear
   end
 
-  describe 'POST /api/colonel/entitlement-test' do
+  describe 'POST /api/colonel/entitlement-preview' do
     context 'setting test mode' do
       it 'sets test planid in session' do
         logic = create_logic(planid: 'identity_v1')
@@ -141,7 +141,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         logic.raise_concerns
         result = logic.process
 
-        expect(session_data[:entitlement_test_planid]).to eq('identity_v1')
+        expect(session_data[:entitlement_preview_planid]).to eq('identity_v1')
         expect(result[:status]).to eq('active')
       end
 
@@ -192,7 +192,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
     context 'clearing test mode' do
       before do
         # Pre-set test mode in session
-        session_data[:entitlement_test_planid] = 'identity_v1'
+        session_data[:entitlement_preview_planid] = 'identity_v1'
       end
 
       it 'clears test planid with null' do
@@ -202,7 +202,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         logic.raise_concerns
         result = logic.process
 
-        expect(session_data[:entitlement_test_planid]).to be_nil
+        expect(session_data[:entitlement_preview_planid]).to be_nil
         expect(result[:status]).to eq('cleared')
       end
 
@@ -213,7 +213,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         logic.raise_concerns
         result = logic.process
 
-        expect(session_data[:entitlement_test_planid]).to be_nil
+        expect(session_data[:entitlement_preview_planid]).to be_nil
         expect(result[:status]).to eq('cleared')
       end
 
@@ -259,12 +259,12 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         logic.raise_concerns
         result = logic.process
 
-        expect(session_data[:entitlement_test_planid]).to eq('identity_v1')
+        expect(session_data[:entitlement_preview_planid]).to eq('identity_v1')
         expect(result[:status]).to eq('active')
       end
 
       it 'treats empty whitespace as clearing' do
-        session_data[:entitlement_test_planid] = 'identity_v1'
+        session_data[:entitlement_preview_planid] = 'identity_v1'
 
         logic = create_logic(planid: '   ')
 
@@ -272,7 +272,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         logic.raise_concerns
         result = logic.process
 
-        expect(session_data[:entitlement_test_planid]).to be_nil
+        expect(session_data[:entitlement_preview_planid]).to be_nil
         expect(result[:status]).to eq('cleared')
       end
     end
@@ -289,7 +289,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
 
         # Create properly mocked session
         session = double('Session')
-        allow(session).to receive(:[]).with(:entitlement_test_planid).and_return(nil)
+        allow(session).to receive(:[]).with(:entitlement_preview_planid).and_return(nil)
         allow(session).to receive(:[]=)
         allow(session).to receive(:delete)
 
@@ -299,7 +299,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         allow(strategy_result).to receive(:user).and_return(non_colonel)
         allow(strategy_result).to receive(:metadata).and_return({ organization: organization })
 
-        logic = ColonelAPI::Logic::Colonel::SetEntitlementTest.new(
+        logic = ColonelAPI::Logic::Colonel::SetEntitlementPreview.new(
           strategy_result,
           { planid: 'identity_v1' },
         )
@@ -342,14 +342,14 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         logic2 = create_logic(planid: 'multi_team_v1')
 
         # Session should still have previous value until process runs
-        expect(session_data[:entitlement_test_planid]).to eq('identity_v1')
+        expect(session_data[:entitlement_preview_planid]).to eq('identity_v1')
 
         # Second request: change test mode
         logic2.process_params
         logic2.raise_concerns
         logic2.process
 
-        expect(session_data[:entitlement_test_planid]).to eq('multi_team_v1')
+        expect(session_data[:entitlement_preview_planid]).to eq('multi_team_v1')
       end
 
       it 'clears on logout (simulated)' do
@@ -361,7 +361,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         # Simulate logout by clearing session
         session_data.clear
 
-        expect(session_data[:entitlement_test_planid]).to be_nil
+        expect(session_data[:entitlement_preview_planid]).to be_nil
       end
     end
 
@@ -382,7 +382,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         result2 = logic2.process
 
         expect(result2[:test_planid]).to eq('multi_team_v1')
-        expect(session_data[:entitlement_test_planid]).to eq('multi_team_v1')
+        expect(session_data[:entitlement_preview_planid]).to eq('multi_team_v1')
       end
 
       it 'switches from test mode to cleared' do
@@ -399,7 +399,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         result2 = logic2.process
 
         expect(result2[:status]).to eq('cleared')
-        expect(session_data[:entitlement_test_planid]).to be_nil
+        expect(session_data[:entitlement_preview_planid]).to be_nil
       end
     end
 
@@ -423,7 +423,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
         logic.raise_concerns
         result = logic.process
 
-        expect(session_data[:entitlement_test_planid]).to eq('identity_v1')
+        expect(session_data[:entitlement_preview_planid]).to eq('identity_v1')
         expect(result[:status]).to eq('active')
       end
 
@@ -438,7 +438,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
 
           expect(result[:status]).to eq('active')
           expect(result[:test_planid]).to eq(planid)
-          expect(session_data[:entitlement_test_planid]).to eq(planid)
+          expect(session_data[:entitlement_preview_planid]).to eq(planid)
         end
       end
     end
@@ -459,7 +459,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
       end
 
       it 'includes only required fields when clearing' do
-        session_data[:entitlement_test_planid] = 'identity_v1'
+        session_data[:entitlement_preview_planid] = 'identity_v1'
 
         logic = create_logic(planid: nil)
 
@@ -499,8 +499,8 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
   describe 'integration with WithEntitlements' do
     it 'test mode affects entitlement checks (when middleware sets Thread.current)' do
       # This documents the full flow:
-      # 1. API sets session[:entitlement_test_planid]
-      # 2. Middleware copies to Thread.current[:entitlement_test_planid]
+      # 1. API sets session[:entitlement_preview_planid]
+      # 2. Middleware copies to Thread.current[:entitlement_preview_planid]
       # 3. WithEntitlements#entitlements uses Thread.current override
 
       logic = create_logic(planid: 'identity_v1')
@@ -509,10 +509,10 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
       logic.process
 
       # Session has the override
-      expect(session_data[:entitlement_test_planid]).to eq('identity_v1')
+      expect(session_data[:entitlement_preview_planid]).to eq('identity_v1')
 
       # Middleware would copy this to Thread.current (simulated here)
-      Thread.current[:entitlement_test_planid] = session_data[:entitlement_test_planid]
+      Thread.current[:entitlement_preview_planid] = session_data[:entitlement_preview_planid]
 
       # Now WithEntitlements would use the override
       # (This would be the organization model in real use)
@@ -528,7 +528,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
       expect(org.can?('custom_domains')).to be true # override in effect
 
       # Cleanup
-      Thread.current[:entitlement_test_planid] = nil
+      Thread.current[:entitlement_preview_planid] = nil
     end
   end
 end

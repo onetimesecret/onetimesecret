@@ -20,8 +20,8 @@ export const AUTHENTICATION_SERIALIZER_FIELDS = [
   'cust',
   'email',
   'customer_since',
-  'entitlement_test_planid',
-  'entitlement_test_plan_name',
+  'entitlement_preview_planid',
+  'entitlement_preview_plan_name',
 ] as const;
 
 // ============================================================================

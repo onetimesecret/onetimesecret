@@ -7,7 +7,7 @@ import { createTestingPinia } from '@pinia/testing';
 import UserMenu from '@/shared/components/navigation/UserMenu.vue';
 import { nextTick, ref, reactive } from 'vue';
 
-// Mock HeadlessUI components (Menu + Dialog for PlanTestModal)
+// Mock HeadlessUI components (Menu + Dialog for PlanPreviewModal)
 vi.mock('@headlessui/vue', () => ({
   Menu: {
     name: 'Menu',
@@ -36,7 +36,7 @@ vi.mock('@headlessui/vue', () => ({
     template: '<div role="menuitem" v-slot="{ active }"><slot :active="false" /></div>',
     props: ['as', 'disabled'],
   },
-  // Dialog components for PlanTestModal
+  // Dialog components for PlanPreviewModal
   Dialog: {
     name: 'Dialog',
     template: '<div role="dialog"><slot /></div>',
@@ -154,7 +154,7 @@ const i18n = createI18n({
         },
         colonel: {
           admin: 'Colonel',
-          testPlanMode: 'Test Plan Mode',
+          previewPlanMode: 'Test Plan Mode',
         },
         auth: {
           complete_mfa_verification: 'Complete MFA Verification',
@@ -198,8 +198,7 @@ describe('UserMenu', () => {
   const mountComponent = (
     props: Record<string, unknown> = {},
     bootstrapState: Record<string, unknown> = {}
-  ) => {
-    return mount(UserMenu, {
+  ) => mount(UserMenu, {
       props: {
         cust: mockCustomer,
         colonel: false,
@@ -215,8 +214,8 @@ describe('UserMenu', () => {
               bootstrap: {
                 authenticated: true,
                 billing_enabled: bootstrapState.billing_enabled ?? true,
-                entitlement_test_planid: bootstrapState.entitlement_test_planid ?? null,
-                entitlement_test_plan_name: bootstrapState.entitlement_test_plan_name ?? null,
+                entitlement_preview_planid: bootstrapState.entitlement_preview_planid ?? null,
+                entitlement_preview_plan_name: bootstrapState.entitlement_preview_plan_name ?? null,
                 cust: mockCustomer,
               },
             },
@@ -230,7 +229,6 @@ describe('UserMenu', () => {
         },
       },
     });
-  };
 
   describe('Basic Rendering', () => {
     it('renders user menu trigger button', () => {
@@ -269,9 +267,9 @@ describe('UserMenu', () => {
       await nextTick();
 
       const html = wrapper.html().toLowerCase();
-      const hasTestPlanMode = html.includes('test') && html.includes('plan');
+      const hasPreviewPlanMode = html.includes('test') && html.includes('plan');
 
-      expect(hasTestPlanMode).toBe(true);
+      expect(hasPreviewPlanMode).toBe(true);
     });
 
     it('hides "Test Plan Mode" item for non-colonels', async () => {
@@ -284,9 +282,9 @@ describe('UserMenu', () => {
       const html = wrapper.html().toLowerCase();
 
       // Should not contain test plan mode references
-      const hasTestPlanMode = html.includes('test plan') || html.includes('testplanmode');
+      const hasPreviewPlanMode = html.includes('test plan') || html.includes('testplanmode');
 
-      expect(hasTestPlanMode).toBe(false);
+      expect(hasPreviewPlanMode).toBe(false);
     });
 
     it('shows item with beaker icon for colonels', async () => {
@@ -306,7 +304,7 @@ describe('UserMenu', () => {
     it('shows caution variant when test mode is active', async () => {
       wrapper = mountComponent(
         { colonel: true },
-        { entitlement_test_planid: 'identity_v1' }
+        { entitlement_preview_planid: 'identity_v1' }
       );
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
@@ -323,7 +321,7 @@ describe('UserMenu', () => {
     it('shows default variant when test mode is inactive', async () => {
       wrapper = mountComponent(
         { colonel: true },
-        { entitlement_test_planid: null }
+        { entitlement_preview_planid: null }
       );
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
@@ -359,9 +357,9 @@ describe('UserMenu', () => {
       const html = wrapper.html().toLowerCase();
 
       // Test plan mode should not be shown during MFA flow
-      const hasTestPlanMode = html.includes('test plan') || html.includes('testplanmode');
+      const hasPreviewPlanMode = html.includes('test plan') || html.includes('testplanmode');
 
-      expect(hasTestPlanMode).toBe(false);
+      expect(hasPreviewPlanMode).toBe(false);
     });
   });
 
@@ -769,7 +767,7 @@ describe('UserMenu', () => {
 
         // Count dividers (border-t elements within the menu)
         const dividers = menu.findAll('.border-t');
-        const menuItems = menu.findAll('[role="menuitem"]');
+        const _menuItems = menu.findAll('[role="menuitem"]');
 
         // Simplified menu (account, help, logout) should have appropriate dividers:
         // - Divider before help section

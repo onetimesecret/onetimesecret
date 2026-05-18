@@ -182,7 +182,7 @@ module Onetime
 
           # Entitlement test mode middleware (after session, before entitlement checks)
           # Copies session override to Thread.current for colonel testing
-          builder.use Onetime::Middleware::EntitlementTestMode
+          builder.use Onetime::Middleware::EntitlementPreviewMode
 
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header.
