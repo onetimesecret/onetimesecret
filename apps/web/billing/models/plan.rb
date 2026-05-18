@@ -488,6 +488,28 @@ module Billing
             next
           end
 
+          # Validate product metadata once before fetching prices (avoid redundant
+          # API calls and duplicate error entries for products with multiple prices)
+          result = validate_product_metadata(product)
+          if result[:missing].any? || result[:blank].any?
+            problems = []
+            problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
+            problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
+            OT.le '[Plan.collect_stripe_plans] Product failed metadata validation',
+              {
+                product_id: product.id,
+                product_name: product.name,
+                problems: problems.join('; '),
+              }
+            validation_errors << {
+              product_id: product.id,
+              price_id: nil,
+              product_name: product.name,
+              error: "invalid metadata: #{problems.join('; ')}",
+            }
+            next
+          end
+
           # Fetch all active prices for this product
           prices = Stripe::Price.list(
             {
@@ -501,24 +523,8 @@ module Billing
             # Skip non-recurring prices
             next unless price.type == 'recurring'
 
-            begin
-              plan_data = extract_plan_data(product, price)
-            rescue Onetime::ConfigError => ex
-              OT.le '[Plan.collect_stripe_plans] Product failed validation',
-                {
-                  product_id: product.id,
-                  stripe_price_id: price.id,
-                  error: ex.message,
-                }
-              validation_errors << {
-                product_id: product.id,
-                price_id: price.id,
-                product_name: product.name,
-                error: ex.message,
-              }
-              next
-            end
-
+            # Product metadata already validated above; extract_plan_data won't fail
+            plan_data = extract_plan_data(product, price)
             plan_data_list << plan_data
 
             OT.ld "[Plan.collect_stripe_plans] Collected plan: #{plan_data[:plan_id]}",
