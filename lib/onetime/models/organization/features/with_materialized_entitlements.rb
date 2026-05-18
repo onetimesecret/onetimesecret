@@ -73,50 +73,61 @@ module Onetime
           # Copies plan's entitlements and limits to org-local storage,
           # runs reconciliation, and stamps the applied_at field.
           #
+          # Uses save_with_collections to ensure scalar fields persist before
+          # collection operations run. If save fails, collections are untouched.
+          #
           # @param plan [Billing::Plan] Plan to materialize from
           # @return [Boolean] True if materialization succeeded
           def materialize_entitlements_from_plan(plan)
-            # Copy plan entitlements to org
-            entitlements_plan.clear
-            plan.entitlements.each { |e| entitlements_plan.add(e) }
-
-            # Copy plan limits to org
-            limits_plan.clear
-            plan.limits.hgetall.each { |k, v| limits_plan[k] = v }
-
-            # Reconcile: plan + grants - revokes
-            apply_entitlements
-
-            # Stamp with timestamp and content hash
+            # Compute content hash and set scalar field first
             content_hash                      = self.class.entitlements_content_hash(plan.entitlements.to_a)
             self.materialized_entitlements_at = "#{Familia.now.to_i}:#{content_hash}"
 
-            true
+            # Save scalar, then execute collection operations
+            save_with_collections do
+              # Copy plan entitlements to org
+              entitlements_plan.clear
+              plan.entitlements.each { |e| entitlements_plan.add(e) }
+
+              # Copy plan limits to org
+              limits_plan.clear
+              plan.limits.hgetall.each { |k, v| limits_plan[k] = v }
+
+              # Reconcile: plan + grants - revokes
+              apply_entitlements
+            end
           end
 
           # Materialize entitlements from config-only plan data
           #
           # Used for plans that only exist in billing.yaml (e.g., free_v1).
           #
+          # Uses save_with_collections to ensure scalar fields persist before
+          # collection operations run. If save fails, collections are untouched.
+          #
           # @param plan_data [Hash] Plan data from Billing::Plan.load_from_config
           # @return [Boolean] True if materialization succeeded
           def materialize_entitlements_from_config(plan_data)
-            # Copy entitlements
-            entitlements_plan.clear
-            (plan_data[:entitlements] || []).each { |e| entitlements_plan.add(e) }
+            entitlements = plan_data[:entitlements] || []
+            limits       = plan_data[:limits] || {}
 
-            # Copy limits
-            limits_plan.clear
-            (plan_data[:limits] || {}).each { |k, v| limits_plan[k] = v.to_s }
-
-            # Reconcile
-            apply_entitlements
-
-            # Stamp
-            content_hash                      = self.class.entitlements_content_hash(plan_data[:entitlements] || [])
+            # Compute content hash and set scalar field first
+            content_hash                      = self.class.entitlements_content_hash(entitlements)
             self.materialized_entitlements_at = "#{Familia.now.to_i}:#{content_hash}"
 
-            true
+            # Save scalar, then execute collection operations
+            save_with_collections do
+              # Copy entitlements
+              entitlements_plan.clear
+              entitlements.each { |e| entitlements_plan.add(e) }
+
+              # Copy limits
+              limits_plan.clear
+              limits.each { |k, v| limits_plan[k] = v.to_s }
+
+              # Reconcile
+              apply_entitlements
+            end
           end
 
           # Reconcile effective entitlements from sources

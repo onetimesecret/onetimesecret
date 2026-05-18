@@ -92,6 +92,12 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
       def entitlements_grants       = @entitlements_grants
       def entitlements_revokes      = @entitlements_revokes
       def materialized_entitlements = @materialized_entitlements
+
+      # Stub for Familia::Horreum#save_with_collections
+      def save_with_collections(update_expiration: true)
+        yield if block_given?
+        true
+      end
     end
   end
 
