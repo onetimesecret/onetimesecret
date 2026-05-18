@@ -35,6 +35,7 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
     def initialize = @data = Set.new
     def add(v)    = @data.add(v.to_s)
     def delete(v) = @data.delete(v.to_s)
+    alias remove_element delete
     def each(&b)  = @data.each(&b)
     def clear     = @data.clear
     def to_a      = @data.to_a
