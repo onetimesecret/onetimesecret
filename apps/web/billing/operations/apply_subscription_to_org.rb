@@ -232,44 +232,11 @@ module Billing
       # to org fields. This moves entitlement resolution from read time
       # to write time (webhook time).
       #
+      # Delegates to class method with raise_on_miss: true.
       # PlanCacheMissError raised here is correct behavior - webhook
       # handlers retry, and it's visible in observability.
       def materialize_entitlements
-        return unless @org.planid && !@org.planid.to_s.empty?
-
-        # Try cached plan first
-        plan = Billing::Plan.load(@org.planid)
-        if plan
-          @org.materialize_entitlements_from_plan(plan)
-          OT.info '[ApplySubscriptionToOrg] Materialized entitlements from cached plan',
-            {
-              org_extid: @org.extid,
-              planid: @org.planid,
-              entitlements_count: @org.materialized_entitlements.size,
-            }
-          return
-        end
-
-        # Try config-only plan (e.g., free_v1)
-        config_plan = Billing::Plan.load_from_config(@org.planid)
-        if config_plan
-          @org.materialize_entitlements_from_config(config_plan)
-          OT.info '[ApplySubscriptionToOrg] Materialized entitlements from config plan',
-            {
-              org_extid: @org.extid,
-              planid: @org.planid,
-              entitlements_count: @org.materialized_entitlements.size,
-            }
-          return
-        end
-
-        # Neither cache nor config has the plan - fail closed
-        raise Billing::PlanCacheMissError.new(
-          'Cannot materialize entitlements - plan not found',
-          plan_id: @org.planid,
-          context: 'ApplySubscriptionToOrg#materialize_entitlements',
-          organization_id: @org.extid,
-        )
+        self.class.materialize_entitlements_for_org(@org, raise_on_miss: true)
       end
     end
   end

@@ -154,6 +154,7 @@ module Onetime
         end
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       def process_org(org, idx, total, stats, dry_run, verbose, stale_only, progress_interval)
         stats[:total] += 1
 
@@ -176,7 +177,9 @@ module Onetime
         end
 
         if !stale_only && org.entitlements_materialized?
-          already_current = plan ? !org.entitlements_stale?(plan) : false
+          # Check staleness against plan or config (entitlements_stale? handles both)
+          plan_or_config  = plan || config
+          already_current = plan_or_config ? !org.entitlements_stale?(plan_or_config) : false
           if already_current
             stats[:skipped_up_to_date] += 1
             puts "  [#{idx + 1}/#{total}] Skipping (up to date): #{org.extid}" if verbose
@@ -207,6 +210,7 @@ module Onetime
         stats[:materialized] += 1
         print_progress(stats[:total], total, verbose, progress_interval)
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       def print_progress(current, total, verbose, interval)
         return if verbose

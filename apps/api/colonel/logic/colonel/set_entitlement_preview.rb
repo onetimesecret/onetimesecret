@@ -127,7 +127,7 @@ module ColonelAPI
         end
 
         def clear_test_mode(session_id)
-          redis = Familia.redis
+          redis = Familia.dbclient
 
           # Delete session test keys
           redis.del(session_grants_key(session_id))
@@ -145,7 +145,7 @@ module ColonelAPI
         end
 
         def set_test_mode(session_id)
-          redis       = Familia.redis
+          redis       = Familia.dbclient
           grants_key  = session_grants_key(session_id)
           revokes_key = session_revokes_key(session_id)
 
@@ -159,19 +159,21 @@ module ColonelAPI
           # Get test plan entitlements (what we're substituting)
           test_entitlements = @test_plan_config[:entitlements] || []
 
-          # Store session revokes (removes current entitlements)
-          redis.del(revokes_key)
-          current_entitlements.each { |e| redis.sadd(revokes_key, e) }
-          redis.expire(revokes_key, SESSION_TEST_TTL)
+          # Store session revokes and grants using pipelined bulk operations
+          redis.pipelined do |pipe|
+            pipe.del(revokes_key)
+            pipe.sadd(revokes_key, current_entitlements) if current_entitlements.any?
+            pipe.expire(revokes_key, SESSION_TEST_TTL)
 
-          # Store session grants (adds test plan entitlements)
-          redis.del(grants_key)
-          test_entitlements.each { |e| redis.sadd(grants_key, e) }
-          redis.expire(grants_key, SESSION_TEST_TTL)
+            pipe.del(grants_key)
+            pipe.sadd(grants_key, test_entitlements) if test_entitlements.any?
+            pipe.expire(grants_key, SESSION_TEST_TTL)
+          end
 
-          # Store key names in session for middleware
+          # Store key names and planid in session for middleware
           sess[:entitlement_preview_grants_key]  = grants_key
           sess[:entitlement_preview_revokes_key] = revokes_key
+          sess[:entitlement_preview_planid]      = @planid
 
           {
             status: 'active',

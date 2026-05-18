@@ -134,16 +134,25 @@ module Onetime
           #
           # Order: entitlements_plan + entitlements_grants - entitlements_revokes
           #
-          # Wraps operations in MULTI/EXEC transaction via Familia#transaction
-          # to prevent race conditions where concurrent reads see partial state.
+          # Wraps the write operations in MULTI/EXEC via Familia#transaction so
+          # concurrent readers cannot observe partial state. Source-set reads
+          # must happen BEFORE the transaction: Redis returns Redis::Future for
+          # any read issued inside MULTI/pipelined blocks, which would cause
+          # iteration helpers (e.g. SSCAN-backed #each) to fail.
           #
           # @return [Array<String>] Effective entitlements after reconciliation
           def apply_entitlements
+            # Snapshot source sets outside the transaction. Reads inside MULTI
+            # return Redis::Future objects, not real values.
+            plan_members    = entitlements_plan.to_a
+            grant_members   = entitlements_grants.to_a
+            revoke_members  = entitlements_revokes.to_a
+
             transaction do
               materialized_entitlements.clear
-              entitlements_plan.each { |e| materialized_entitlements.add(e) }
-              entitlements_grants.each { |e| materialized_entitlements.add(e) }
-              entitlements_revokes.each { |e| materialized_entitlements.delete(e) }
+              plan_members.each   { |e| materialized_entitlements.add(e) }
+              grant_members.each  { |e| materialized_entitlements.add(e) }
+              revoke_members.each { |e| materialized_entitlements.delete(e) }
             end
 
             materialized_entitlements.to_a
@@ -223,13 +232,19 @@ module Onetime
 
           # Check if materialized entitlements are stale vs a plan
           #
-          # @param plan [Billing::Plan] Plan to compare against
+          # @param plan [Billing::Plan, Hash] Plan object or config hash to compare against
           # @return [Boolean] True if content hash differs
           def entitlements_stale?(plan)
             applied = materialized_entitlements_at_parsed
             return true unless applied
 
-            current_hash = self.class.entitlements_content_hash(plan.entitlements.to_a)
+            # Handle both Plan objects and config Hashes
+            entitlements = if plan.respond_to?(:entitlements)
+                             plan.entitlements.to_a
+                           else
+                             plan[:entitlements] || []
+                           end
+            current_hash = self.class.entitlements_content_hash(entitlements)
             applied[:content_hash] != current_hash
           end
 
