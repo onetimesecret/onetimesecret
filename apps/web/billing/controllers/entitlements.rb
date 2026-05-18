@@ -48,7 +48,7 @@ module Billing
         data = {
           planid: org.planid,
           plan_name: Billing::PlanHelpers.plan_name(org.planid),
-          entitlements: org.entitlements,
+          entitlements: org.entitlements_for_request(session),
           limits: build_limits_hash(org),
           is_legacy: Billing::PlanHelpers.legacy_plan?(org.planid),
           cache_stale: plan_cache_stale,
@@ -101,8 +101,21 @@ module Billing
           return json_error('Entitlement parameter required', status: 400)
         end
 
-        # Use organization's check_entitlement method
-        result = org.check_entitlement(entitlement)
+        # Check entitlement with preview mode support
+        effective_entitlements = org.entitlements_for_request(session)
+        allowed                = effective_entitlements.include?(entitlement.to_s)
+
+        result = {
+          allowed: allowed,
+          entitlement: entitlement.to_s,
+          current_plan: org.planid,
+          upgrade_needed: !allowed,
+        }
+
+        # Add upgrade path if not allowed
+        if !allowed && defined?(Billing::PlanHelpers)
+          result[:upgrade_to] = Billing::PlanHelpers.upgrade_path_for(entitlement, org.planid)
+        end
 
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]

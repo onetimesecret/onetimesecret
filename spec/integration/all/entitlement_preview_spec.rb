@@ -63,7 +63,10 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
 
     # Mock session object
     session = double('Session')
+    allow(session).to receive(:id).and_return('test_session_123')
     allow(session).to receive(:[]).with(:entitlement_preview_planid) { session_data[:entitlement_preview_planid] }
+    allow(session).to receive(:[]).with(:entitlement_preview_grants_key) { session_data[:entitlement_preview_grants_key] }
+    allow(session).to receive(:[]).with(:entitlement_preview_revokes_key) { session_data[:entitlement_preview_revokes_key] }
     allow(session).to receive(:[]=) do |key, value|
       session_data[key] = value
     end
@@ -497,11 +500,11 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
   end
 
   describe 'integration with WithEntitlements' do
-    it 'test mode affects entitlement checks (when middleware sets Thread.current)' do
-      # This documents the full flow:
+    it 'preview mode affects entitlement checks via session parameter' do
+      # The new flow:
       # 1. API sets session[:entitlement_preview_planid]
-      # 2. Middleware copies to Thread.current[:entitlement_preview_planid]
-      # 3. WithEntitlements#entitlements uses Thread.current override
+      # 2. Call sites pass session to entitlements_for_request or limit_for_request
+      # 3. No Thread.current needed - session is passed explicitly
 
       logic = create_logic(planid: 'identity_v1')
       logic.process_params
@@ -511,24 +514,32 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
       # Session has the override
       expect(session_data[:entitlement_preview_planid]).to eq('identity_v1')
 
-      # Middleware would copy this to Thread.current (simulated here)
-      Thread.current[:entitlement_preview_planid] = session_data[:entitlement_preview_planid]
-
-      # Now WithEntitlements would use the override
-      # (This would be the organization model in real use)
+      # Create test organization
       test_class = Class.new do
         include Onetime::Models::Features::WithEntitlements
         attr_accessor :planid
         def initialize(planid)
           @planid = planid
         end
+
+        def billing_enabled?
+          true
+        end
       end
 
       org = test_class.new('free')
-      expect(org.can?('custom_domains')).to be true # override in effect
 
-      # Cleanup
-      Thread.current[:entitlement_preview_planid] = nil
+      # Without session, uses actual plan
+      expect(org.entitlements).to match_array(%w[create_secrets basic_sharing])
+      expect(org.can?('custom_domains')).to be false
+
+      # With session containing preview planid, limit_for_request uses preview
+      expect(org.limit_for_request('teams', session_data)).to eq(1)
+
+      # entitlements_for_request also respects session (via reconciler when available)
+      # For this mock class without reconciler, it falls back to actual entitlements
+      # In real usage with Organization model that includes WithMaterializedEntitlements,
+      # the reconciler would apply session grants/revokes
     end
   end
 end

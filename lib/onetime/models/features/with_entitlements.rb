@@ -168,6 +168,56 @@ module Onetime
             entitlements.include?(entitlement.to_s)
           end
 
+          # Get entitlements with request context for preview mode support
+          #
+          # Call sites that have session access should use this method instead
+          # of `entitlements` when preview mode needs to be respected.
+          #
+          # @param session [Hash, nil] Rack session hash (or hash-like object)
+          # @return [Array<String>] List of entitlement strings
+          #
+          # @example Controller usage
+          #   org.entitlements_for_request(env['rack.session'])
+          #
+          # @example When session has preview keys
+          #   session = { entitlement_preview_grants_key: 'session:abc:grants' }
+          #   org.entitlements_for_request(session)  # => reconciled entitlements
+          def entitlements_for_request(session = nil)
+            return entitlements unless session.respond_to?(:key?)
+
+            grants_key  = session[:entitlement_preview_grants_key]
+            revokes_key = session[:entitlement_preview_revokes_key]
+
+            if (grants_key || revokes_key) && respond_to?(:reconcile_with_session_overrides)
+              return reconcile_with_session_overrides(grants_key, revokes_key)
+            end
+
+            entitlements
+          end
+
+          # Get limit with request context for preview mode support
+          #
+          # Call sites that have session access should use this method instead
+          # of `limit_for` when preview mode needs to be respected.
+          #
+          # @param resource [String, Symbol] Resource to check limit for
+          # @param session [Hash, nil] Rack session hash (or hash-like object)
+          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
+          #
+          # @example Controller usage
+          #   org.limit_for_request('teams', env['rack.session'])
+          def limit_for_request(resource, session = nil)
+            return limit_for(resource) unless session.respond_to?(:key?)
+
+            preview_planid = session[:entitlement_preview_planid]
+
+            if preview_planid && !preview_planid.to_s.empty?
+              return test_plan_limit_for(preview_planid, resource)
+            end
+
+            limit_for(resource)
+          end
+
           # Get all entitlements for current plan
           #
           # @return [Array<String>] List of entitlement strings
@@ -185,21 +235,6 @@ module Onetime
             # Fail-open: self-hosted/standalone gets full access
             unless billing_enabled?
               return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
-            end
-
-            # Session test mode override (Phase 2: reconciler-based)
-            # Colonel sets session grants/revokes keys; we reconcile here
-            session_grants_key  = Thread.current[:entitlement_preview_grants_key]
-            session_revokes_key = Thread.current[:entitlement_preview_revokes_key]
-            if (session_grants_key || session_revokes_key) && respond_to?(:reconcile_with_session_overrides)
-                return reconcile_with_session_overrides(session_grants_key, session_revokes_key)
-              end
-
-            # Legacy test mode fallback (planid-based, uses Plan.load)
-            # TODO: Remove after migration to reconciler-based test mode
-            test_planid = Thread.current[:entitlement_preview_planid]
-            if test_planid && !test_planid.empty?
-              return test_plan_entitlements(test_planid)
             end
 
             # Phase 2: Read from materialized org-local state when available
@@ -260,13 +295,6 @@ module Onetime
           #   org.limit_for(:members_per_team)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
-            # Colonel test mode override - check Thread.current set by middleware
-            # Empty string should fall back to actual plan (same as nil)
-            test_planid = Thread.current[:entitlement_preview_planid]
-            if test_planid && !test_planid.empty?
-              return test_plan_limit_for(test_planid, resource)
-            end
-
             # Fail-open: self-hosted/standalone gets unlimited
             return Float::INFINITY unless billing_enabled?
 
