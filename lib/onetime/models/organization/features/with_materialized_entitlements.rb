@@ -23,6 +23,16 @@ module Onetime
       module WithMaterializedEntitlements
         Familia::Base.add_feature self, :with_materialized_entitlements
 
+        # Compute content hash for entitlement set (for staleness detection)
+        # Defined at module level for testability and use from instance methods.
+        #
+        # @param entitlements [Array<String>] Entitlement strings
+        # @return [String] Short hash of sorted, joined entitlements
+        def self.entitlements_content_hash(entitlements)
+          content = entitlements.sort.join(',')
+          Digest::SHA256.hexdigest(content)[0, 12]
+        end
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
 
@@ -51,13 +61,9 @@ module Onetime
         end
 
         module ClassMethods
-          # Compute content hash for entitlement set (for staleness detection)
-          #
-          # @param entitlements [Array<String>] Entitlement strings
-          # @return [String] Short hash of sorted, joined entitlements
+          # Forward to module-level method for consistency
           def entitlements_content_hash(entitlements)
-            content = entitlements.sort.join(',')
-            Digest::SHA256.hexdigest(content)[0, 12]
+            WithMaterializedEntitlements.entitlements_content_hash(entitlements)
           end
         end
 
@@ -143,6 +149,45 @@ module Onetime
             return 0 if val.nil?
 
             val == 'unlimited' ? Float::INFINITY : val.to_i
+          end
+
+          # Reconcile entitlements with session-scoped overrides
+          #
+          # Used by test mode: computes effective entitlements by applying
+          # session-scoped grants/revokes on top of org's materialized state.
+          # Order: materialized - session_revokes + session_grants
+          #
+          # Revokes before grants enables "reset and substitute":
+          # 1. session_revokes = org's current entitlements (removes all)
+          # 2. session_grants = test plan entitlements (adds replacement)
+          #
+          # @param session_grants_key [String] Redis key for session grants set
+          # @param session_revokes_key [String] Redis key for session revokes set
+          # @return [Array<String>] Effective entitlements for this session
+          def reconcile_with_session_overrides(session_grants_key, session_revokes_key)
+            redis = Familia.redis
+
+            # Start with org's materialized entitlements
+            base = if entitlements_materialized?
+                     materialized_entitlements.to_a
+                   else
+                     # Fallback for unmaterialized orgs
+                     entitlements_plan.to_a
+                   end
+
+            # Apply session revokes (removes test plan's "reset" of current entitlements)
+            if session_revokes_key && redis.exists?(session_revokes_key)
+              session_revokes = redis.smembers(session_revokes_key)
+              base           -= session_revokes
+            end
+
+            # Apply session grants (adds test plan entitlements)
+            if session_grants_key && redis.exists?(session_grants_key)
+              session_grants = redis.smembers(session_grants_key)
+              base          |= session_grants
+            end
+
+            base
           end
 
           # Check if entitlements are materialized

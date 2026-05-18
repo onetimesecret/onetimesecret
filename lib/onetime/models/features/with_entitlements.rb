@@ -182,16 +182,24 @@ module Onetime
           # @example
           #   org.entitlements  # => ["api_access", "custom_domains", "manage_teams"]
           def entitlements
-            # Colonel test mode override - check Thread.current set by middleware
-            # Empty string should fall back to actual plan (same as nil)
-            test_planid = Thread.current[:entitlement_test_planid]
-            if test_planid && !test_planid.empty?
-              return test_plan_entitlements(test_planid)
-            end
-
             # Fail-open: self-hosted/standalone gets full access
             unless billing_enabled?
               return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
+            end
+
+            # Session test mode override (Phase 2: reconciler-based)
+            # Colonel sets session grants/revokes keys; we reconcile here
+            session_grants_key  = Thread.current[:entitlement_test_grants_key]
+            session_revokes_key = Thread.current[:entitlement_test_revokes_key]
+            if (session_grants_key || session_revokes_key) && respond_to?(:reconcile_with_session_overrides)
+                return reconcile_with_session_overrides(session_grants_key, session_revokes_key)
+              end
+
+            # Legacy test mode fallback (planid-based, uses Plan.load)
+            # TODO: Remove after migration to reconciler-based test mode
+            test_planid = Thread.current[:entitlement_test_planid]
+            if test_planid && !test_planid.empty?
+              return test_plan_entitlements(test_planid)
             end
 
             # Phase 2: Read from materialized org-local state when available
