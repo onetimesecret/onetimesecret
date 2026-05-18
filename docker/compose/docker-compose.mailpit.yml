@@ -33,7 +33,7 @@
 
 services:
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit@sha256:0059ef81e492a7192af3816281eed6859eb078bd7bdc58b76757c13e10e53a7d
     container_name: onetime-mailpit
     logging:
       driver: 'json-file'
