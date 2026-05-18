@@ -64,13 +64,13 @@ module Onetime
                sort: 'domain', desc: false, limit: nil, vhost: false, **)
         boot_application!
 
-        all_domain_ids = Onetime::CustomDomain.instances.all
-        all_domains    = all_domain_ids.map do |did|
-          Onetime::CustomDomain.find_by_identifier(did)
-        end.compact
+        # Batch load all domains using Familia v2.9.0's each_record
+        all_domains = []
+        Onetime::CustomDomain.instances.each_record { |domain| all_domains << domain }
 
         # Resolve org_extid to org_id if provided
         resolved_org_id = resolve_org_filter(org_id, org_extid)
+        return if resolved_org_id == :not_found
 
         # Apply filters
         filtered_domains = apply_filters(
@@ -80,6 +80,9 @@ module Onetime
           verified: verified,
           unverified: unverified,
         )
+
+        # Pre-load organizations to avoid N+1 queries during sort/display
+        @org_cache = preload_organizations(filtered_domains)
 
         # Apply sorting
         sorted_domains = sort_domains(filtered_domains, sort, desc)
@@ -106,14 +109,37 @@ module Onetime
 
         org = Onetime::Organization.find_by_extid(org_extid)
         unless org
-          puts "Warning: Organization with extid '#{org_extid}' not found"
-          return nil
+          puts "Error: Organization with extid '#{org_extid}' not found"
+          exit 1
         end
         org.org_id
       end
 
+      def preload_organizations(domains)
+        org_ids = domains.map(&:org_id).compact.uniq
+        cache   = {}
+        org_ids.each do |oid|
+          next if oid.to_s.empty?
+
+          cache[oid] ||= Onetime::Organization.load(oid)
+        end
+        cache
+      end
+
+      def cached_org_info(domain)
+        return '(orphaned)' if domain.org_id.to_s.empty?
+
+        org = @org_cache&.[](domain.org_id)
+        return "(org: #{domain.org_id})" unless org
+
+        org.display_name || org.org_id
+      end
+
       def sort_domains(domains, sort_field, descending)
-        sort_field = 'domain' unless SORT_FIELDS.include?(sort_field)
+        unless SORT_FIELDS.include?(sort_field)
+          puts "Warning: Invalid sort field '#{sort_field}', using 'domain'"
+          sort_field = 'domain'
+        end
 
         sorted = domains.sort_by do |d|
           case sort_field
@@ -124,7 +150,7 @@ module Onetime
           when 'updated'
             d.updated.to_i
           when 'org'
-            get_organization_info(d).downcase
+            cached_org_info(d).downcase
           when 'status'
             d.verification_state.to_s
           end
@@ -162,27 +188,31 @@ module Onetime
         end
       end
 
+      def truncate(str, max_len)
+        str.to_s[0, max_len]
+      end
+
       def format_domain_row_extended(domain, show_vhost: false)
-        org_info = get_organization_info(domain)
+        org_info = cached_org_info(domain)
         status   = domain.verification_state || 'unknown'
-        verified = domain.verified.to_s == 'true' ? 'yes' : 'no'
+        verified = domain.verified == true || domain.verified.to_s == 'true' ? 'yes' : 'no'
 
         if show_vhost
           vhost_json = format_vhost_json(domain)
           format(
             '%-40s %-25s %-12s %-8s  %s',
-            domain.display_domain[0..39],
-            org_info[0..24],
-            status[0..11],
+            truncate(domain.display_domain, 40),
+            truncate(org_info, 25),
+            truncate(status, 12),
             verified,
             vhost_json,
           )
         else
           format(
             '%-40s %-30s %-12s %-10s',
-            domain.display_domain[0..39],
-            org_info[0..29],
-            status[0..11],
+            truncate(domain.display_domain, 40),
+            truncate(org_info, 30),
+            truncate(status, 12),
             verified,
           )
         end
@@ -192,10 +222,10 @@ module Onetime
         vhost_data = domain.parse_vhost
         return '-' if vhost_data.nil? || vhost_data.empty?
 
-        # Compact JSON representation
         JSON.generate(vhost_data)
       rescue StandardError => ex
-        "(error: #{ex.message[0..20]})"
+        OT.le("Vhost JSON error for #{domain.domainid}: #{ex.message}")
+        "(error: #{truncate(ex.message, 50)})"
       end
 
       def display_duplicate_group(display_domain, domains, show_vhost: false)
@@ -218,8 +248,8 @@ module Onetime
           )
         end
         domains.each_with_index do |domain, idx|
-          org_info = get_organization_info(domain)
-          puts format('  [%d] %-37s %-30s', idx + 1, domain.domainid[0..36], org_info)
+          org_info = cached_org_info(domain)
+          puts format('  [%d] %-37s %-30s', idx + 1, truncate(domain.domainid, 37), org_info)
         end
       end
     end
