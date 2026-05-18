@@ -183,11 +183,6 @@ module Billing
       # Note: 'interval' comes from the price object, not product metadata
       REQUIRED_PRODUCT_METADATA = [Metadata::FIELD_PLAN_ID, Metadata::FIELD_TIER, Metadata::FIELD_REGION].freeze
 
-      # Legacy field name variants for plan_id seen on older Stripe products.
-      # When one of these is present without `plan_id`, surface a migration
-      # hint instead of silently deriving plan identity from `tier`.
-      LEGACY_PLAN_ID_FIELDS = %w[planid plan].freeze
-
       # Validate product has all required metadata for plan creation
       #
       # @param product [Stripe::Product] The Stripe product
@@ -198,21 +193,12 @@ module Billing
         missing  = REQUIRED_PRODUCT_METADATA - keys
 
         if missing.any?
-          legacy_field = if missing.include?(Metadata::FIELD_PLAN_ID)
-                           LEGACY_PLAN_ID_FIELDS.find { |f| keys.include?(f) }
-                         end
-          hint = if legacy_field
-                   "rename Stripe metadata key '#{legacy_field}' to 'plan_id'"
-                 else
-                   'Add metadata via Stripe Dashboard or `bin/ots billing products update`'
-                 end
           OT.lw '[Plan.validate_product_metadata] Stripe product not managed by catalog',
             {
               product_id: product.id,
               product_name: product.name,
               missing_keys: missing.join(', '),
-              legacy_plan_id_field: legacy_field,
-              hint: hint,
+              hint: 'Add metadata via Stripe Dashboard or `bin/ots billing products update`',
             }
         end
 
@@ -514,7 +500,6 @@ module Billing
                 }
               next
             end
-            next if plan_data.nil? # Skip if metadata validation failed
 
             plan_data_list << plan_data
 
@@ -534,34 +519,32 @@ module Billing
 
       # Extracts plan data from Stripe product and price objects
       #
-      # @param product [Stripe::Product] Stripe product object
+      # Callers must validate product with valid_ots_product? before calling.
+      # Raises ConfigError on invalid input (missing or blank required metadata).
+      #
+      # @param product [Stripe::Product] Stripe product object (already validated)
       # @param price [Stripe::Price] Stripe price object
-      # @return [Hash, nil] Plan data ready for persistence, or nil if validation fails
+      # @return [Hash] Plan data ready for persistence
+      # @raise [Onetime::ConfigError] If required metadata is missing or blank
       def extract_plan_data(product, price)
-        # Early return if missing required metadata
+        # Fail-closed: raise on missing required metadata
         missing = validate_product_metadata(product)
         if missing.any?
-          OT.le '[Plan.extract_plan_data] Cannot extract plan data - missing metadata',
-            {
-              product_id: product.id,
-              missing_keys: missing,
-            }
-          return nil
+          raise Onetime::ConfigError,
+            "missing metadata for Stripe product #{product.id} (#{product.name}): #{missing.join(', ')}"
         end
 
         interval = price.recurring.interval # 'month' or 'year'
         tier     = product.metadata[Metadata::FIELD_TIER]
         region   = product.metadata[Metadata::FIELD_REGION]
 
-        # plan_id is required metadata (validated above). Defense-in-depth:
-        # raise rather than silently building "tier_monthly" when the key is
-        # present but blank — key-presence validation alone won't catch that.
+        # Defense-in-depth: reject present-but-blank plan_id
         base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID]
-        if base_plan_id.nil? || base_plan_id.to_s.strip.empty?
+        if base_plan_id.to_s.strip.empty?
           raise Onetime::ConfigError,
-                "missing plan_id metadata for Stripe product #{product.id} (#{product.name})"
+            "blank plan_id metadata for Stripe product #{product.id} (#{product.name})"
         end
-        plan_id = "#{base_plan_id}_#{interval}ly"
+        plan_id      = "#{base_plan_id}_#{interval}ly"
 
         # Extract entitlements from product metadata
         entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''

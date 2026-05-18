@@ -16,12 +16,12 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
-  # OTS product with proper metadata
+  # OTS product with proper metadata (all required fields for valid_ots_product?)
   let(:ots_product) do
     build_stripe_product(
       id: 'prod_ots_123',
       name: 'Identity Plus',
-      metadata: { 'app' => 'onetimesecret', 'tier' => 'identity_plus', 'region' => 'v1' }
+      metadata: { 'app' => 'onetimesecret', 'plan_id' => 'identity_plus_v1', 'tier' => 'identity_plus', 'region' => 'global' }
     )
   end
 
@@ -174,7 +174,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         build_stripe_product(
           id: 'prod_ca_999',
           name: 'Identity Plus CA',
-          metadata: { 'app' => 'onetimesecret', 'tier' => 'identity_plus', 'region' => 'CA' }
+          metadata: { 'app' => 'onetimesecret', 'plan_id' => 'identity_plus_v1', 'tier' => 'identity_plus', 'region' => 'CA' }
         )
       end
       let(:event) { build_stripe_event(type: 'product.updated', data_object: ca_product) }
@@ -264,7 +264,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         build_stripe_product(
           id: 'prod_ca_999',
           name: 'Identity Plus CA',
-          metadata: { 'app' => 'onetimesecret', 'tier' => 'identity_plus', 'region' => 'CA' }
+          metadata: { 'app' => 'onetimesecret', 'plan_id' => 'identity_plus_v1', 'tier' => 'identity_plus', 'region' => 'CA' }
         )
       end
       let(:ca_price) do
