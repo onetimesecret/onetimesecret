@@ -58,12 +58,13 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       Class.new do
         include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
 
-        attr_accessor :objid, :stripe_subscription_id, :stripe_customer_id,
+        attr_accessor :objid, :extid, :stripe_subscription_id, :stripe_customer_id,
                       :subscription_status, :subscription_period_end, :planid,
                       :complimentary
 
         def initialize
           @objid = 'test-org-123'
+          @extid = 'test-org-123'
         end
 
         def save
@@ -72,6 +73,21 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
 
         def saved?
           @saved == true
+        end
+
+        # Stub materialization methods (Phase 2) - test class doesn't need full module
+        def materialize_entitlements_from_plan(_plan)
+          @materialized_entitlements = ['api_access']
+          true
+        end
+
+        def materialize_entitlements_from_config(_config)
+          @materialized_entitlements = ['api_access']
+          true
+        end
+
+        def materialized_entitlements
+          @materialized_entitlements ||= []
         end
       end
     end
@@ -111,9 +127,8 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       allow(Billing::Plan).to receive(:find_by_stripe_price_id)
         .with('price_test')
         .and_return(mock_plan)
-      # Stub Phase 2 materialization (test class doesn't include WithMaterializedEntitlements)
-      allow(Billing::Operations::ApplySubscriptionToOrg).to receive(:materialize_entitlements_for_org)
-        .and_return(true)
+      # Stub Plan.load to return cached plan (triggers materialize_entitlements_from_plan path)
+      allow(Billing::Plan).to receive(:load).and_return(mock_plan)
     end
 
     context 'with valid subscription' do
