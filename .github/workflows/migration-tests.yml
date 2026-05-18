@@ -160,7 +160,7 @@ jobs:
           - 2121:6379
 
       postgres:
-        image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
+        image: postgres:17@sha256:538bdb8c6b278f2f09070a4d79f04a83363a795ed23ec0d92d6b70cabc398eae
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -324,7 +324,7 @@ jobs:
           - 2121:6379
 
       postgres:
-        image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
+        image: postgres:17@sha256:538bdb8c6b278f2f09070a4d79f04a83363a795ed23ec0d92d6b70cabc398eae
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
