@@ -16,7 +16,17 @@ vi.mock('@/shared/components/logos/DefaultLogo.vue', () => ({
       <span class="logo-icon" />
       <span v-if="showSiteName" class="site-name">{{ siteName }}</span>
     </div>`,
-    props: ['url', 'alt', 'href', 'size', 'showSiteName', 'siteName', 'ariaLabel', 'isColonelArea', 'isUserPresent'],
+    props: [
+      'url',
+      'alt',
+      'href',
+      'size',
+      'showSiteName',
+      'siteName',
+      'ariaLabel',
+      'isColonelArea',
+      'isUserPresent',
+    ],
   },
 }));
 
@@ -134,8 +144,9 @@ describe('MastHead', () => {
     const hasAuthenticatedCustomer = storeState.authenticated && storeState.cust;
     const hasMfaPendingEmail = storeState.awaiting_mfa && storeState.email;
     // Override the stubbed computed property
-    (authStore as unknown as { isUserPresent: boolean }).isUserPresent =
-      !!(hasAuthenticatedCustomer || hasMfaPendingEmail);
+    (authStore as unknown as { isUserPresent: boolean }).isUserPresent = !!(
+      hasAuthenticatedCustomer || hasMfaPendingEmail
+    );
 
     return mount(MastHead, {
       props: {
@@ -160,11 +171,14 @@ describe('MastHead', () => {
 
   describe('Logo Sizing', () => {
     it('uses 48px logo for unauthenticated users', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        cust: null,
-        email: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          cust: null,
+          email: null,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -172,11 +186,14 @@ describe('MastHead', () => {
     });
 
     it('uses 40px logo for authenticated users', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -184,43 +201,52 @@ describe('MastHead', () => {
     });
 
     it('uses 40px logo for MFA-pending users (partial auth)', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        awaiting_mfa: true,
-        email: mockCustomer.email,
-        cust: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          awaiting_mfa: true,
+          email: mockCustomer.email,
+          cust: null,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
       expect(logo.attributes('data-size')).toBe('40');
     });
 
-    it('uses 80px logo when custom domain logo is present', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-        domain_logo: 'https://example.com/custom-logo.png',
-      });
+    it('uses 160px logo when custom domain logo is present', async () => {
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+          domain_logo: 'https://example.com/custom-logo.png',
+        }
+      );
 
       await nextTick();
-      // Custom domain logo uses img element with h-20 + w-auto (height-only constraint)
+      // Custom domain logo uses img element with h-40 + w-auto + object-contain
       const img = wrapper.find('img#logo');
-      if (img.exists()) {
-        expect(img.classes()).toContain('h-20');
-        expect(img.classes()).toContain('w-auto');
-        expect(img.attributes('height')).toBe('80');
-      }
+      expect(img.exists()).toBe(true);
+      expect(img.classes()).toContain('h-40');
+      expect(img.classes()).toContain('w-auto');
+      expect(img.classes()).toContain('object-contain');
+      expect(img.attributes('height')).toBe('160');
     });
 
     it('respects explicit size prop override', async () => {
-      wrapper = mountComponent({
-        logo: { size: 48, isUserPresent: false },
-      }, {
-        authenticated: true,
-        cust: mockCustomer,
-      });
+      wrapper = mountComponent(
+        {
+          logo: { size: 48, isUserPresent: false },
+        },
+        {
+          authenticated: true,
+          cust: mockCustomer,
+        }
+      );
 
       await nextTick();
       const logo = wrapper.find('.default-logo');
@@ -229,54 +255,163 @@ describe('MastHead', () => {
   });
 
   describe('Image logo sizing (non-Vue URL)', () => {
-    it('uses h-12 and w-auto classes for unauthenticated users with image URL', async () => {
-      wrapper = mountComponent({
-        logo: { url: '/static/brand.png' },
-      }, {
-        authenticated: false,
-        cust: null,
-        email: null,
-      });
+    it('treats a prop-supplied image URL as a custom logo (h-40)', async () => {
+      wrapper = mountComponent(
+        {
+          logo: { url: '/static/brand.png' },
+        },
+        {
+          authenticated: false,
+          cust: null,
+          email: null,
+        }
+      );
 
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-12');
+      expect(img.classes()).toContain('h-40');
       expect(img.classes()).toContain('w-auto');
-      expect(img.attributes('height')).toBeTruthy();
+      expect(img.classes()).toContain('object-contain');
+      expect(img.attributes('height')).toBe('160');
       expect(img.attributes('width')).toBeUndefined();
       // Regression: old square class should not be present
       expect(img.classes()).not.toContain('size-12');
     });
 
-    it('uses h-10 and w-auto classes for authenticated users with image URL', async () => {
-      wrapper = mountComponent({
-        logo: { url: '/static/brand.png' },
-      }, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
+    it('treats a prop-supplied image URL as custom for authenticated users too', async () => {
+      wrapper = mountComponent(
+        {
+          logo: { url: '/static/brand.png' },
+        },
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+        }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      expect(img.classes()).toContain('h-40');
+      expect(img.classes()).toContain('w-auto');
+      expect(img.classes()).toContain('object-contain');
+      expect(img.attributes('height')).toBe('160');
+      expect(img.attributes('width')).toBeUndefined();
+      // Regression: old square class should not be present
+      expect(img.classes()).not.toContain('size-10');
+    });
+
+    it('respects an explicit prop size override over the custom-logo default', async () => {
+      wrapper = mountComponent(
+        {
+          logo: { url: '/static/brand.png', size: 56 },
+        },
+        {
+          authenticated: false,
+        }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+      // Class still reflects custom-logo branding tier, but height attr honors prop
+      expect(img.classes()).toContain('h-40');
+      expect(img.attributes('height')).toBe('56');
+    });
+  });
+
+  describe('Static config logo (ui.header.branding.logo.url)', () => {
+    const mountWithStaticLogoUrl = (
+      logoUrl: string,
+      storeState: Parameters<typeof mountComponent>[1] = {}
+    ) => {
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+        stubActions: false,
+        initialState: {
+          bootstrap: {
+            authenticated: storeState.authenticated ?? false,
+            awaiting_mfa: storeState.awaiting_mfa ?? false,
+            email: storeState.email ?? null,
+            cust: storeState.cust ?? null,
+            domain_logo: storeState.domain_logo ?? null,
+            ui: {
+              header: {
+                navigation: { enabled: true },
+                branding: {
+                  logo: { url: logoUrl, alt: 'Brand' },
+                  site_name: 'Brand',
+                },
+              },
+            },
+            authentication: { enabled: true, signin: true, signup: true },
+          },
+        },
+      });
+
+      const authStore = useAuthStore(pinia);
+      const hasAuthenticatedCustomer = storeState.authenticated && storeState.cust;
+      const hasMfaPendingEmail = storeState.awaiting_mfa && storeState.email;
+      (authStore as unknown as { isUserPresent: boolean }).isUserPresent = !!(
+        hasAuthenticatedCustomer || hasMfaPendingEmail
+      );
+
+      return mount(MastHead, {
+        props: { displayMasthead: true, displayNavigation: true },
+        global: {
+          plugins: [i18n, pinia],
+          stubs: {
+            RouterLink: { template: '<a :href="to"><slot /></a>', props: ['to'] },
+          },
+        },
+      });
+    };
+
+    it('renders a non-default static image URL as a custom logo (h-40, 160px)', async () => {
+      wrapper = mountWithStaticLogoUrl('/img/brand.svg', {
+        authenticated: false,
       });
 
       await nextTick();
       const img = wrapper.find('img#logo');
       expect(img.exists()).toBe(true);
-      expect(img.classes()).toContain('h-10');
+      expect(img.classes()).toContain('h-40');
       expect(img.classes()).toContain('w-auto');
-      expect(img.attributes('height')).toBeTruthy();
-      expect(img.attributes('width')).toBeUndefined();
-      // Regression: old square class should not be present
-      expect(img.classes()).not.toContain('size-10');
+      expect(img.classes()).toContain('object-contain');
+      expect(img.attributes('height')).toBe('160');
+    });
+
+    it('does NOT treat the default DefaultLogo.vue config as a custom logo (regression)', async () => {
+      // Stock install: config.defaults.yaml ships branding.logo.url = 'DefaultLogo.vue'.
+      // This must continue to use the regular guest size (48px), not the 160px custom size.
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          cust: null,
+          email: null,
+        }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-size')).toBe('48');
     });
   });
 
   describe('Context Switchers Slot', () => {
     it('renders context-switchers slot for authenticated users', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+        }
+      );
 
       await nextTick();
 
@@ -287,11 +422,14 @@ describe('MastHead', () => {
     });
 
     it('renders context-switchers slot with responsive gap', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+        }
+      );
 
       await nextTick();
 
@@ -302,11 +440,14 @@ describe('MastHead', () => {
     });
 
     it('does not render context-switchers for unauthenticated users', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        cust: null,
-        email: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          cust: null,
+          email: null,
+        }
+      );
 
       await nextTick();
 
@@ -318,11 +459,14 @@ describe('MastHead', () => {
 
   describe('Navigation Display', () => {
     it('shows sign in/sign up links for unauthenticated users', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        cust: null,
-        email: null,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          cust: null,
+          email: null,
+        }
+      );
 
       await nextTick();
 
@@ -332,11 +476,14 @@ describe('MastHead', () => {
     });
 
     it('shows UserMenu for authenticated users', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-        email: mockCustomer.email,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+          email: mockCustomer.email,
+        }
+      );
 
       await nextTick();
 
@@ -345,12 +492,15 @@ describe('MastHead', () => {
     });
 
     it('hides navigation when displayNavigation is false', async () => {
-      wrapper = mountComponent({
-        displayNavigation: false,
-      }, {
-        authenticated: true,
-        cust: mockCustomer,
-      });
+      wrapper = mountComponent(
+        {
+          displayNavigation: false,
+        },
+        {
+          authenticated: true,
+          cust: mockCustomer,
+        }
+      );
 
       await nextTick();
 
@@ -361,10 +511,13 @@ describe('MastHead', () => {
 
   describe('Custom Domain Logo', () => {
     it('hides site name by default when custom domain logo is present', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_logo: 'https://example.com/brand.png',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_logo: 'https://example.com/brand.png',
+        }
+      );
 
       await nextTick();
 
@@ -378,16 +531,19 @@ describe('MastHead', () => {
     });
 
     it('shows site name when explicitly configured with custom domain logo', async () => {
-      wrapper = mountComponent({
-        logo: {
-          showSiteName: true,
-          siteName: 'Custom Brand',
-          isUserPresent: false,
+      wrapper = mountComponent(
+        {
+          logo: {
+            showSiteName: true,
+            siteName: 'Custom Brand',
+            isUserPresent: false,
+          },
         },
-      }, {
-        authenticated: false,
-        domain_logo: 'https://example.com/brand.png',
-      });
+        {
+          authenticated: false,
+          domain_logo: 'https://example.com/brand.png',
+        }
+      );
 
       await nextTick();
 
@@ -401,10 +557,13 @@ describe('MastHead', () => {
 
   describe('Accessibility', () => {
     it('has proper aria-label on main navigation', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: true,
-        cust: mockCustomer,
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: true,
+          cust: mockCustomer,
+        }
+      );
 
       await nextTick();
 
@@ -413,10 +572,13 @@ describe('MastHead', () => {
     });
 
     it('logo link has aria-label', async () => {
-      wrapper = mountComponent({}, {
-        authenticated: false,
-        domain_logo: 'https://example.com/brand.png',
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          authenticated: false,
+          domain_logo: 'https://example.com/brand.png',
+        }
+      );
 
       await nextTick();
 

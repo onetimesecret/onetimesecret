@@ -43,18 +43,29 @@
   // Default logo component for fallback
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
+  // A URL counts as "custom branding" only when it's set AND differs from the
+  // default Vue logo component (which the stock config always populates).
+  const isCustomLogoUrl = (url: string | null | undefined): boolean =>
+    !!url && url !== DEFAULT_LOGO;
+
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
-  // Custom logos (API domain branding OR static config) are larger to emphasize brand identity
-  const isCustomLogo = computed(() => !!domain_logo.value || !!headerConfig.value?.branding?.logo?.url);
-  // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
-  // Custom domain logos remain at 80px, unauthenticated users get 48px
+  // Custom logos (props override, API domain branding, OR non-default static config)
+  // are larger to emphasize brand identity. Excludes the default Vue logo so a stock
+  // install doesn't enlarge the built-in icon.
+  const isCustomLogo = computed(() =>
+    isCustomLogoUrl(props.logo?.url)
+    || !!domain_logo.value
+    || isCustomLogoUrl(headerConfig.value?.branding?.logo?.url)
+  );
+  // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers.
+  // Custom logos render at 160px (h-40) to give brand identity prominence, unauthenticated users get 48px.
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
-    if (isCustomLogo.value) return 80;
+    if (isCustomLogo.value) return 160;
     return isUserPresent.value ? 40 : 48;
   };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
