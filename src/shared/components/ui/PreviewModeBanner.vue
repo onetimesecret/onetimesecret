@@ -1,8 +1,8 @@
-<!-- src/shared/components/ui/TestModeBanner.vue -->
+<!-- src/shared/components/ui/PreviewModeBanner.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
+import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
 import { ref } from 'vue';
@@ -13,7 +13,7 @@ const bootstrapStore = useBootstrapStore();
 const $api = createApi();
 
 // Test plan mode composable
-const { testPlanName } = useTestPlanMode();
+const { previewPlanName } = usePreviewPlanMode();
 
 const isResetting = ref(false);
 
@@ -21,7 +21,7 @@ const handleReset = async () => {
   isResetting.value = true;
 
   try {
-    await $api.post('/api/colonel/entitlement-test', { planid: null });
+    await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
     // Refresh bootstrap state to clear test mode (no page reload needed)
     await bootstrapStore.refresh();
@@ -46,7 +46,7 @@ const handleReset = async () => {
           class="size-5 text-amber-700 dark:text-amber-400"
           aria-hidden="true" />
         <p class="text-sm font-medium text-amber-900 dark:text-amber-100">
-          {{ t('web.colonel.warningTestMode', { planName: testPlanName }) }}
+          {{ t('web.colonel.warningTestMode', { planName: previewPlanName }) }}
         </p>
       </div>
       <button

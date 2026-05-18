@@ -39,8 +39,8 @@ const DEFAULTS: BootstrapPayload = {
   regions: undefined,
   stripe_customer: undefined,
   stripe_subscriptions: undefined,
-  entitlement_test_planid: undefined,
-  entitlement_test_plan_name: undefined,
+  entitlement_preview_planid: undefined,
+  entitlement_preview_plan_name: undefined,
   organization: undefined,
   development: undefined,
 };

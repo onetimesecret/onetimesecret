@@ -1,4 +1,4 @@
-// src/shared/composables/useTestPlanMode.ts
+// src/shared/composables/usePreviewPlanMode.ts
 
 //
 // Focused composable for colonel test plan mode.
@@ -14,25 +14,25 @@ import { computed } from 'vue';
  * Allows colonels to temporarily override their organization's plan
  * for testing entitlement-gated features.
  */
-export function useTestPlanMode() {
+export function usePreviewPlanMode() {
   const bootstrapStore = useBootstrapStore();
   const {
-    entitlement_test_planid,
-    entitlement_test_plan_name,
+    entitlement_preview_planid,
+    entitlement_preview_plan_name,
     organization,
   } = storeToRefs(bootstrapStore);
 
   /**
    * Get test plan ID from bootstrap store
    */
-  const testPlanId = computed(() => entitlement_test_planid?.value || null);
+  const previewPlanId = computed(() => entitlement_preview_planid?.value || null);
 
   /**
    * Check if test mode is active
    * Returns false for null, undefined, empty string, or whitespace-only
    */
-  const isTestModeActive = computed(() => {
-    const planId = testPlanId.value;
+  const isPreviewModeActive = computed(() => {
+    const planId = previewPlanId.value;
     if (!planId) return false;
     return planId.trim().length > 0;
   });
@@ -40,7 +40,7 @@ export function useTestPlanMode() {
   /**
    * Get test plan name from bootstrap store
    */
-  const testPlanName = computed(() => entitlement_test_plan_name?.value ?? null);
+  const previewPlanName = computed(() => entitlement_preview_plan_name?.value ?? null);
 
   /**
    * Get actual organization plan ID (not the test override)
@@ -48,9 +48,9 @@ export function useTestPlanMode() {
   const actualPlanId = computed(() => organization?.value?.planid);
 
   return {
-    isTestModeActive,
-    testPlanId,
-    testPlanName,
+    isPreviewModeActive,
+    previewPlanId,
+    previewPlanName,
     actualPlanId,
   };
 }

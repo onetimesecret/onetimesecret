@@ -1,8 +1,8 @@
-<!-- src/shared/components/modals/PlanTestModal.vue -->
+<!-- src/shared/components/modals/PlanPreviewModal.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
+import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
 import {
@@ -46,7 +46,7 @@ interface PlansResponse {
 }
 
 // Test plan mode composable
-const { isTestModeActive, testPlanId, testPlanName, actualPlanId } = useTestPlanMode();
+const { isPreviewModeActive, previewPlanId, previewPlanName, actualPlanId } = usePreviewPlanMode();
 
 // Dynamic plan loading
 const plans = ref<Plan[]>([]);
@@ -105,7 +105,7 @@ const handleActivateTestMode = async (planId: string) => {
   error.value = null;
 
   try {
-    await $api.post('/api/colonel/entitlement-test', { planid: planId });
+    await $api.post('/api/colonel/entitlement-preview', { planid: planId });
 
     // Refresh bootstrap store to get updated entitlements (no page reload needed)
     await bootstrapStore.refresh();
@@ -123,7 +123,7 @@ const handleResetToActual = async () => {
   error.value = null;
 
   try {
-    await $api.post('/api/colonel/entitlement-test', { planid: null });
+    await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
     // Refresh bootstrap store to clear test mode (no page reload needed)
     await bootstrapStore.refresh();
@@ -188,11 +188,11 @@ const handleClose = () => {
                     <DialogTitle
                       as="h3"
                       class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-                      {{ t('web.colonel.testPlanMode') }}
+                      {{ t('web.colonel.previewPlanMode') }}
                     </DialogTitle>
                     <div class="mt-2">
                       <p class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ t('web.colonel.testModeDescription') }}
+                        {{ t('web.colonel.previewModeDescription') }}
                       </p>
                     </div>
                   </div>
@@ -234,19 +234,19 @@ const handleClose = () => {
                         </p>
                       </div>
                       <div
-                        v-if="isTestModeActive"
+                        v-if="isPreviewModeActive"
                         class="rounded-full bg-amber-100 px-3 py-1 dark:bg-amber-900/30">
                         <p class="text-xs font-medium text-amber-800 dark:text-amber-400">
-                          {{ t('web.colonel.testModeActive') }}
+                          {{ t('web.colonel.previewModeActive') }}
                         </p>
                       </div>
                     </div>
 
                     <div
-                      v-if="isTestModeActive"
+                      v-if="isPreviewModeActive"
                       class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
                       <p class="text-sm text-gray-600 dark:text-gray-400">
-                        {{ t('web.colonel.testingAsPlan', { planName: testPlanName }) }}
+                        {{ t('web.colonel.testingAsPlan', { planName: previewPlanName }) }}
                       </p>
                     </div>
                   </div>
@@ -310,10 +310,10 @@ const handleClose = () => {
                       v-for="plan in plans"
                       :key="plan.planid"
                       type="button"
-                      :disabled="isLoading || plan.planid === testPlanId"
+                      :disabled="isLoading || plan.planid === previewPlanId"
                       :class="[
                         'w-full rounded-lg border px-4 py-3 text-left transition-colors',
-                        plan.planid === testPlanId
+                        plan.planid === previewPlanId
                           ? 'border-amber-500 bg-amber-50 dark:border-amber-600 dark:bg-amber-900/20'
                           : 'border-gray-300 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700',
                         isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
@@ -326,14 +326,14 @@ const handleClose = () => {
                             <p
                               :class="[
                                 'font-medium',
-                                plan.planid === testPlanId
+                                plan.planid === previewPlanId
                                   ? 'text-amber-900 dark:text-amber-100'
                                   : 'text-gray-900 dark:text-white',
                               ]">
                               {{ plan.name }}
                             </p>
                             <span
-                              v-if="plan.planid === actualPlanId && !isTestModeActive"
+                              v-if="plan.planid === actualPlanId && !isPreviewModeActive"
                               class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
                               Current
                             </span>
@@ -386,7 +386,7 @@ const handleClose = () => {
                         </div>
 
                         <OIcon
-                          v-if="plan.planid === testPlanId"
+                          v-if="plan.planid === previewPlanId"
                           collection="heroicons"
                           name="check-circle-solid"
                           class="size-5 shrink-0 text-amber-600 dark:text-amber-400"
@@ -411,7 +411,7 @@ const handleClose = () => {
               <!-- Actions -->
               <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse sm:gap-3">
                 <button
-                  v-if="isTestModeActive"
+                  v-if="isPreviewModeActive"
                   type="button"
                   :disabled="isLoading"
                   class="inline-flex w-full justify-center rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-700 dark:hover:bg-amber-600 sm:w-auto"

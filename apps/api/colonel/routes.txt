@@ -11,9 +11,9 @@ GET    /info                              ColonelAPI::Logic::Colonel::GetColonel
 GET    /stats                             ColonelAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth role=colonel scope=internal
 GET    /config                            ColonelAPI::Logic::Colonel::GetSystemSettings response=json auth=sessionauth role=colonel scope=internal
 
-# Entitlement Test Mode
+# Entitlement Preview Mode
 GET    /available-plans                   ColonelAPI::Logic::Colonel::GetAvailablePlans response=json auth=sessionauth role=colonel scope=internal
-POST   /entitlement-test                  ColonelAPI::Logic::Colonel::SetEntitlementTest response=json auth=sessionauth role=colonel scope=internal
+POST   /entitlement-preview                  ColonelAPI::Logic::Colonel::SetEntitlementPreview response=json auth=sessionauth role=colonel scope=internal
 
 # Secret Management
 GET    /secrets                           ColonelAPI::Logic::Colonel::ListSecrets response=json auth=sessionauth role=colonel scope=internal
@@ -41,6 +41,10 @@ GET    /domains                           ColonelAPI::Logic::Colonel::ListCustom
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/investigate ColonelAPI::Logic::Colonel::InvestigateOrganization response=json auth=sessionauth role=colonel scope=internal
+
+# Entitlement Overrides (Phase 2: grant/revoke per-org entitlements)
+POST   /organizations/:org_id/entitlements/:action  ColonelAPI::Logic::Colonel::ManageEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
+DELETE /organizations/:org_id/entitlements/overrides ColonelAPI::Logic::Colonel::ManageEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
 
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth role=colonel scope=internal

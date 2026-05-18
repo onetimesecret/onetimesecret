@@ -46,6 +46,7 @@ module Onetime
     feature :external_identifier, format: 'on%<id>s'
     feature :required_fields
     feature :with_organization_billing
+    feature :with_materialized_entitlements
     feature :with_entitlements
     feature :housekeeping
 

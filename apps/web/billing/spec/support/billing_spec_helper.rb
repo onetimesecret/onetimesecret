@@ -128,7 +128,15 @@ module BillingSpecHelper
   # Call this in before(:each) blocks for tests that process subscriptions.
   #
   def stub_test_plan_catalog!
-    # Create a mock plan that responds to plan_id
+    # Mock entitlements set and limits hash for materialization
+    mock_entitlements = double('entitlements_set')
+    allow(mock_entitlements).to receive(:to_a).and_return(%w[secret:create secret:read secret:burn api:access])
+    allow(mock_entitlements).to receive(:each).and_yield('secret:create').and_yield('secret:read').and_yield('secret:burn').and_yield('api:access')
+
+    mock_limits = double('limits_hash')
+    allow(mock_limits).to receive(:hgetall).and_return({ 'secrets_per_day' => '100', 'ttl_max' => '604800' })
+
+    # Create a mock plan that responds to plan_id and materialization methods
     mock_plan = instance_double(
       Billing::Plan,
       plan_id: 'test_plan_v1_monthly',
@@ -138,12 +146,16 @@ module BillingSpecHelper
       interval: 'month',
       amount: '1900',
       currency: 'cad',
+      entitlements: mock_entitlements,
+      limits: mock_limits,
     )
 
     # Mock plan for federation metadata validation
     identity_plus_plan = instance_double(
       Billing::Plan,
       plan_id: 'identity_plus_v1',
+      entitlements: mock_entitlements,
+      limits: mock_limits,
     )
     allow(identity_plus_plan).to receive(:exists?).and_return(true)
 
@@ -159,9 +171,14 @@ module BillingSpecHelper
       .with(satisfy { |id| id&.start_with?('price_test_') })
       .and_return(mock_plan)
 
-    # Stub Plan.load to validate plan IDs used in federation metadata
-    # This is called by PlanValidator.valid_plan_id? for metadata lookups
+    # Stub Plan.load for plan IDs used in materialization and validation
+    # This is called by:
+    # - ApplySubscriptionToOrg.materialize_entitlements_for_org (after planid is set)
+    # - PlanValidator.valid_plan_id? for metadata lookups
     allow(Billing::Plan).to receive(:load).and_call_original
+    allow(Billing::Plan).to receive(:load)
+      .with('test_plan_v1_monthly')
+      .and_return(mock_plan)
     allow(Billing::Plan).to receive(:load)
       .with('identity_plus_v1')
       .and_return(identity_plus_plan)

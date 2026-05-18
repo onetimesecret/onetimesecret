@@ -180,10 +180,6 @@ module Onetime
           # Identity resolution middleware (after session)
           builder.use Onetime::Middleware::IdentityResolution
 
-          # Entitlement test mode middleware (after session, before entitlement checks)
-          # Copies session override to Thread.current for colonel testing
-          builder.use Onetime::Middleware::EntitlementTestMode
-
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header.
           # Otto 2.0 handles exact region matching (fr-FR → fr_FR) and fallback

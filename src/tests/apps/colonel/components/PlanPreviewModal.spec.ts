@@ -1,10 +1,10 @@
-// src/tests/apps/colonel/components/PlanTestModal.spec.ts
+// src/tests/apps/colonel/components/PlanPreviewModal.spec.ts
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
-import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
+import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components
@@ -75,10 +75,10 @@ const i18n = createI18n({
     en: {
       web: {
         colonel: {
-          testPlanMode: 'Test Plan Mode',
-          testModeDescription: 'Temporarily override your plan to test features',
+          previewPlanMode: 'Test Plan Mode',
+          previewModeDescription: 'Temporarily override your plan to test features',
           currentActualPlan: 'Current Actual Plan',
-          testModeActive: 'Test Mode Active',
+          previewModeActive: 'Test Mode Active',
           testingAsPlan: 'Testing as {planName}',
           availablePlans: 'Available Plans',
           resetToActual: 'Reset to Actual Plan',
@@ -92,7 +92,7 @@ const i18n = createI18n({
   },
 });
 
-describe('PlanTestModal', () => {
+describe('PlanPreviewModal', () => {
   let wrapper: VueWrapper;
   let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -108,8 +108,8 @@ describe('PlanTestModal', () => {
     fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
-        entitlement_test_planid: null,
-        entitlement_test_plan_name: null,
+        entitlement_preview_planid: null,
+        entitlement_preview_plan_name: null,
       }),
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -130,14 +130,14 @@ describe('PlanTestModal', () => {
       createSpy: vi.fn,
       initialState: {
         bootstrap: {
-          entitlement_test_planid: bootstrapState.entitlement_test_planid ?? null,
-          entitlement_test_plan_name: bootstrapState.entitlement_test_plan_name ?? null,
+          entitlement_preview_planid: bootstrapState.entitlement_preview_planid ?? null,
+          entitlement_preview_plan_name: bootstrapState.entitlement_preview_plan_name ?? null,
           ...bootstrapState,
         },
       },
     });
 
-    const component = mount(PlanTestModal, {
+    const component = mount(PlanPreviewModal, {
       props: {
         isOpen: true,
         ...props,
@@ -184,8 +184,8 @@ describe('PlanTestModal', () => {
   describe('Current Test Plan Display', () => {
     it('shows test mode badge when override is active', async () => {
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: 'identity_v1',
-        entitlement_test_plan_name: 'Identity Plus',
+        entitlement_preview_planid: 'identity_v1',
+        entitlement_preview_plan_name: 'Identity Plus',
       });
 
       expect(wrapper.text()).toContain('Test Mode Active');
@@ -193,8 +193,8 @@ describe('PlanTestModal', () => {
 
     it('shows current test plan name when testing', async () => {
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: 'identity_v1',
-        entitlement_test_plan_name: 'Identity Plus',
+        entitlement_preview_planid: 'identity_v1',
+        entitlement_preview_plan_name: 'Identity Plus',
       });
 
       expect(wrapper.text()).toContain('Identity Plus');
@@ -202,7 +202,7 @@ describe('PlanTestModal', () => {
 
     it('does not show test mode badge when no override is active', async () => {
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: null,
+        entitlement_preview_planid: null,
       });
 
       expect(wrapper.text()).not.toContain('Test Mode Active');
@@ -210,7 +210,7 @@ describe('PlanTestModal', () => {
 
     it('shows reset button when test mode is active', async () => {
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: 'identity_v1',
+        entitlement_preview_planid: 'identity_v1',
       });
 
       const resetButton = wrapper.findAll('button').find(
@@ -222,7 +222,7 @@ describe('PlanTestModal', () => {
 
     it('does not show reset button when test mode is inactive', async () => {
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: null,
+        entitlement_preview_planid: null,
       });
 
       const resetButton = wrapper.findAll('button').find(
@@ -238,8 +238,8 @@ describe('PlanTestModal', () => {
       mockPost.mockResolvedValueOnce({
         data: {
           status: 'active',
-          test_planid: 'identity_v1',
-          test_plan_name: 'Identity Plus',
+          preview_planid: 'identity_v1',
+          preview_plan_name: 'Identity Plus',
         },
       });
 
@@ -255,7 +255,7 @@ describe('PlanTestModal', () => {
       await nextTick(); // Wait for refresh to complete
 
       expect(mockPost).toHaveBeenCalledWith(
-        '/api/colonel/entitlement-test',
+        '/api/colonel/entitlement-preview',
         { planid: 'identity_v1' }
       );
 
@@ -269,7 +269,7 @@ describe('PlanTestModal', () => {
       });
 
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: 'identity_v1',
+        entitlement_preview_planid: 'identity_v1',
       });
 
       const resetButton = wrapper.findAll('button').find(
@@ -282,7 +282,7 @@ describe('PlanTestModal', () => {
       await nextTick(); // Wait for refresh to complete
 
       expect(mockPost).toHaveBeenCalledWith(
-        '/api/colonel/entitlement-test',
+        '/api/colonel/entitlement-preview',
         { planid: null }
       );
 
@@ -386,7 +386,7 @@ describe('PlanTestModal', () => {
   describe('Visual Indicators', () => {
     it('highlights currently active test plan with amber styling', async () => {
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: 'identity_v1',
+        entitlement_preview_planid: 'identity_v1',
       });
 
       const html = wrapper.html();
@@ -397,7 +397,7 @@ describe('PlanTestModal', () => {
 
     it('shows check icon on active test plan', async () => {
       wrapper = await mountComponent({}, {
-        entitlement_test_planid: 'multi_team_v1',
+        entitlement_preview_planid: 'multi_team_v1',
       });
 
       // The check icon should be present for the active plan
@@ -414,7 +414,7 @@ describe('PlanTestModal', () => {
     });
 
     it('handles bootstrap state errors gracefully', async () => {
-      // The useTestPlanMode composable handles errors internally
+      // The usePreviewPlanMode composable handles errors internally
       wrapper = await mountComponent({}, {});
       expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     });

@@ -43,13 +43,13 @@ module Core
           output['has_password']   = account_has_password?(sess)
 
           # Add entitlement test mode state for colonels
-          if cust.role?(:colonel) && sess[:entitlement_test_planid]
-            test_planid    = sess[:entitlement_test_planid]
+          if cust.role?(:colonel) && sess[:entitlement_preview_planid]
+            test_planid    = sess[:entitlement_preview_planid]
             test_plan_name = resolve_test_plan_name(test_planid)
 
             if test_plan_name
-              output['entitlement_test_planid']    = test_planid
-              output['entitlement_test_plan_name'] = test_plan_name
+              output['entitlement_preview_planid']    = test_planid
+              output['entitlement_preview_plan_name'] = test_plan_name
             end
           end
 
@@ -76,8 +76,8 @@ module Core
             'cust' => nil,
             'email' => nil,
             'customer_since' => nil,
-            'entitlement_test_planid' => nil,
-            'entitlement_test_plan_name' => nil,
+            'entitlement_preview_planid' => nil,
+            'entitlement_preview_plan_name' => nil,
           }
         end
 

@@ -15,6 +15,9 @@ require 'billing/operations/apply_subscription_to_org'
 RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
   let(:period_end) { (Time.now + 30 * 24 * 60 * 60).to_i }
 
+  # materialized_entitlements set double — used in logging assertions
+  let(:materialized_set) { double('materialized_entitlements', size: 4) }
+
   let(:org) do
     double('Organization',
       :subscription_status= => nil,
@@ -23,6 +26,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       :complimentary= => nil,
       :stripe_subscription_id= => nil,
       :stripe_customer_id= => nil,
+      planid: 'identity_plus_v1',
+      extid: 'on_test_org',
+      materialize_entitlements_from_plan: true,
+      materialize_entitlements_from_config: true,
+      materialized_entitlements: materialized_set,
       save: true,
     )
   end
@@ -274,6 +282,235 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       expect(org).to receive(:save)
 
       described_class.call(org, subscription, owner: false)
+    end
+  end
+
+  # ============================================================================
+  # Materialization via .call (Phase 2 — #3134)
+  # ============================================================================
+
+  describe '#materialize_entitlements (called from .call)' do
+    let(:cached_plan) do
+      instance_double(
+        Billing::Plan,
+        plan_id: 'identity_plus_v1',
+        entitlements: double(to_a: %w[api_access manage_teams]),
+        limits: double(hgetall: { 'teams.max' => '5' }),
+      )
+    end
+
+    context 'when plan exists in Redis cache' do
+      before do
+        allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+          .and_return(instance_double(Billing::Plan, plan_id: 'identity_plus_v1'))
+        allow(Billing::Plan).to receive(:load)
+          .with('identity_plus_v1')
+          .and_return(cached_plan)
+      end
+
+      it 'calls materialize_entitlements_from_plan with the cached plan' do
+        subscription = build_subscription
+        expect(org).to receive(:materialize_entitlements_from_plan).with(cached_plan)
+
+        described_class.call(org, subscription, owner: true)
+      end
+
+      it 'logs entitlements_count from materialized set' do
+        subscription = build_subscription
+        allow(org).to receive(:materialize_entitlements_from_plan)
+
+        expect(OT).to receive(:info).with(
+          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+          hash_including(
+            org_extid: 'on_test_org',
+            planid: 'identity_plus_v1',
+            entitlements_count: 4,
+            source: 'cache',
+          ),
+        )
+
+        described_class.call(org, subscription, owner: true)
+      end
+    end
+
+    context 'when plan is config-only (not in Redis cache)' do
+      let(:config_plan_data) do
+        {
+          entitlements: %w[create_secrets api_access],
+          limits: { 'secret_lifetime.max' => '1209600' },
+        }
+      end
+
+      before do
+        allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+          .and_return(instance_double(Billing::Plan, plan_id: 'identity_plus_v1'))
+        allow(Billing::Plan).to receive(:load)
+          .with('identity_plus_v1')
+          .and_return(nil)
+        allow(Billing::Plan).to receive(:load_from_config)
+          .with('identity_plus_v1')
+          .and_return(config_plan_data)
+      end
+
+      it 'calls materialize_entitlements_from_config with config data' do
+        subscription = build_subscription
+        expect(org).to receive(:materialize_entitlements_from_config).with(config_plan_data)
+
+        described_class.call(org, subscription, owner: true)
+      end
+
+      it 'logs entitlements_count from materialized set' do
+        subscription = build_subscription
+
+        expect(OT).to receive(:info).with(
+          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+          hash_including(entitlements_count: 4, source: 'config'),
+        )
+
+        described_class.call(org, subscription, owner: true)
+      end
+    end
+
+    context 'when planid is in neither cache nor config' do
+      before do
+        allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+          .and_return(instance_double(Billing::Plan, plan_id: 'identity_plus_v1'))
+        allow(Billing::Plan).to receive(:load)
+          .with('identity_plus_v1')
+          .and_return(nil)
+        allow(Billing::Plan).to receive(:load_from_config)
+          .with('identity_plus_v1')
+          .and_return(nil)
+      end
+
+      it 'raises PlanCacheMissError (fail-closed)' do
+        subscription = build_subscription
+
+        expect {
+          described_class.call(org, subscription, owner: true)
+        }.to raise_error(Billing::PlanCacheMissError)
+      end
+    end
+
+    context 'when planid is empty after applying' do
+      let(:org_no_plan) do
+        double('Organization',
+          :subscription_status= => nil,
+          :subscription_period_end= => nil,
+          :planid= => nil,
+          :complimentary= => nil,
+          :stripe_subscription_id= => nil,
+          :stripe_customer_id= => nil,
+          planid: nil,
+          extid: 'on_no_plan_org',
+          materialized_entitlements: materialized_set,
+          save: true,
+        )
+      end
+
+      it 'skips materialization when planid is nil' do
+        subscription = Stripe::Subscription.construct_from({
+          id: 'sub_no_plan',
+          object: 'subscription',
+          customer: 'cus_test',
+          status: 'active',
+          metadata: {},
+          items: { data: [] },
+        })
+
+        expect(org_no_plan).not_to receive(:materialize_entitlements_from_plan)
+        expect(org_no_plan).not_to receive(:materialize_entitlements_from_config)
+
+        described_class.call(org_no_plan, subscription, owner: true)
+      end
+    end
+  end
+
+  # ============================================================================
+  # Materialization via .apply_free_tier (cancel path)
+  # ============================================================================
+
+  describe '.apply_free_tier materialization' do
+    let(:free_tier_org) do
+      double('Organization',
+        :subscription_status= => nil,
+        :planid= => nil,
+        :complimentary= => nil,
+        :subscription_period_end= => nil,
+        :stripe_subscription_id= => nil,
+        extid: 'on_cancel_org',
+        materialize_entitlements_from_config: true,
+        materialized_entitlements: materialized_set,
+        save: true,
+      )
+    end
+
+    let(:free_config) do
+      {
+        entitlements: %w[create_secrets view_receipt api_access],
+        limits: { 'secret_lifetime.max' => '1209600' },
+      }
+    end
+
+    context 'when free_v1 is in billing.yaml config' do
+      before do
+        allow(Billing::Plan).to receive(:load_from_config)
+          .with(Billing::Metadata::FREE_PLAN_ID)
+          .and_return(free_config)
+      end
+
+      it 'calls materialize_entitlements_from_config with free plan config' do
+        expect(free_tier_org).to receive(:materialize_entitlements_from_config).with(free_config)
+
+        described_class.apply_free_tier(free_tier_org, owner: true)
+      end
+
+      it 'logs the materialization event' do
+        allow(free_tier_org).to receive(:materialize_entitlements_from_config)
+
+        expect(OT).to receive(:info).with(
+          '[ApplySubscriptionToOrg] Materialized free tier entitlements',
+          hash_including(
+            org_extid: 'on_cancel_org',
+            planid: Billing::Metadata::FREE_PLAN_ID,
+            entitlements_count: 4,
+          ),
+        )
+
+        described_class.apply_free_tier(free_tier_org, owner: true)
+      end
+    end
+
+    context 'when free_v1 is not in billing.yaml config' do
+      before do
+        allow(Billing::Plan).to receive(:load_from_config)
+          .with(Billing::Metadata::FREE_PLAN_ID)
+          .and_return(nil)
+      end
+
+      it 'does NOT raise — logs a warning instead' do
+        expect {
+          described_class.apply_free_tier(free_tier_org, owner: true)
+        }.not_to raise_error
+      end
+
+      it 'logs a warning with org_extid and planid' do
+        expect(OT).to receive(:lw).with(
+          '[ApplySubscriptionToOrg] Free plan not in config, cannot materialize',
+          hash_including(
+            org_extid: 'on_cancel_org',
+            planid: Billing::Metadata::FREE_PLAN_ID,
+          ),
+        )
+
+        described_class.apply_free_tier(free_tier_org, owner: true)
+      end
+
+      it 'does NOT call materialize_entitlements_from_config' do
+        expect(free_tier_org).not_to receive(:materialize_entitlements_from_config)
+
+        described_class.apply_free_tier(free_tier_org, owner: true)
+      end
     end
   end
 end

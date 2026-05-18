@@ -357,12 +357,12 @@ describe('bootstrapStore', () => {
 
     it('updates entitlement test mode (colonel)', () => {
       store.update({
-        entitlement_test_planid: 'test-plan-id',
-        entitlement_test_plan_name: 'Test Plan',
+        entitlement_preview_planid: 'test-plan-id',
+        entitlement_preview_plan_name: 'Test Plan',
       });
 
-      expect(store.entitlement_test_planid).toBe('test-plan-id');
-      expect(store.entitlement_test_plan_name).toBe('Test Plan');
+      expect(store.entitlement_preview_planid).toBe('test-plan-id');
+      expect(store.entitlement_preview_plan_name).toBe('Test Plan');
     });
   });
 
@@ -550,14 +550,14 @@ describe('bootstrapStore', () => {
 
     it('resets entitlement test mode to defaults', () => {
       store.update({
-        entitlement_test_planid: 'test-plan',
-        entitlement_test_plan_name: 'Test Plan',
+        entitlement_preview_planid: 'test-plan',
+        entitlement_preview_plan_name: 'Test Plan',
       });
 
       store.$reset();
 
-      expect(store.entitlement_test_planid).toBeUndefined();
-      expect(store.entitlement_test_plan_name).toBeUndefined();
+      expect(store.entitlement_preview_planid).toBeUndefined();
+      expect(store.entitlement_preview_plan_name).toBeUndefined();
     });
 
     it('resets organization data to defaults', () => {

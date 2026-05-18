@@ -4,11 +4,6 @@
 
 # Unit tests for WithOrganizationBilling module.
 #
-# Tests the extract_plan_id_from_subscription method which uses catalog-first
-# approach with fail-closed behavior via PlanValidator:
-# - Catalog lookup by price_id (authoritative, raises CatalogMissError on miss)
-# - Metadata used only for drift detection (NOT as fallback)
-#
 # Run: pnpm run test:rspec spec/unit/onetime/models/organization/with_organization_billing_spec.rb
 
 require 'spec_helper'
@@ -20,30 +15,6 @@ require_relative '../../../../../apps/web/billing/lib/plan_validator'
 require_relative '../../../../../apps/web/billing/operations/apply_subscription_to_org'
 
 RSpec.describe 'WithOrganizationBilling', billing: true do
-  # Test class that includes the module under test
-  let(:test_class) do
-    Class.new do
-      include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
-
-      attr_accessor :objid
-
-      def initialize
-        @objid = 'test-org-123'
-      end
-
-      # Make private methods accessible for testing
-      def test_extract_plan_id(subscription)
-        extract_plan_id_from_subscription(subscription)
-      end
-
-      def test_extract_metadata_plan_id(subscription)
-        extract_metadata_plan_id(subscription)
-      end
-    end
-  end
-
-  let(:org) { test_class.new }
-
   # Build a minimal Stripe::Subscription for testing
   def build_subscription(price_id: 'price_test', subscription_metadata: {}, price_metadata: {})
     Stripe::Subscription.construct_from({
@@ -78,146 +49,6 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
     mock_plan
   end
 
-  describe '#extract_plan_id_from_subscription' do
-    # These tests verify catalog-first fail-closed behavior
-    # PlanValidator.resolve_plan_id is the authoritative source
-
-    context 'when price_id is in catalog (happy path)' do
-      before do
-        mock_catalog_plan(price_id: 'price_test', plan_id: 'identity_plus_v1_monthly')
-      end
-
-      let(:subscription) { build_subscription(price_id: 'price_test') }
-
-      it 'returns the plan_id from catalog' do
-        expect(org.test_extract_plan_id(subscription)).to eq('identity_plus_v1_monthly')
-      end
-
-      it 'logs successful catalog resolution' do
-        expect(OT).to receive(:info).with(
-          '[Organization.extract_plan_id_from_subscription] Resolved plan from catalog',
-          hash_including(
-            plan_id: 'identity_plus_v1_monthly',
-            price_id: 'price_test'
-          )
-        )
-        org.test_extract_plan_id(subscription)
-      end
-    end
-
-    context 'when price_id is NOT in catalog (fail-closed)' do
-      before do
-        allow(Billing::Plan).to receive(:find_by_stripe_price_id)
-          .with('price_unknown')
-          .and_return(nil)
-      end
-
-      let(:subscription) do
-        build_subscription(
-          price_id: 'price_unknown',
-          subscription_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'from_metadata' }
-        )
-      end
-
-      it 'raises CatalogMissError (does NOT fall back to metadata)' do
-        expect { org.test_extract_plan_id(subscription) }
-          .to raise_error(Billing::CatalogMissError)
-      end
-    end
-
-    context 'when metadata differs from catalog (drift detection)' do
-      before do
-        mock_catalog_plan(price_id: 'price_test', plan_id: 'correct_plan_v1')
-      end
-
-      let(:subscription) do
-        build_subscription(
-          price_id: 'price_test',
-          subscription_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'stale_plan' }
-        )
-      end
-
-      it 'returns catalog value (not metadata)' do
-        expect(org.test_extract_plan_id(subscription)).to eq('correct_plan_v1')
-      end
-
-      it 'logs drift warning' do
-        expect(OT).to receive(:lw).with(
-          '[Organization.extract_plan_id_from_subscription] Drift detected - using catalog value',
-          hash_including(
-            catalog_plan_id: 'correct_plan_v1',
-            metadata_plan_id: 'stale_plan'
-          )
-        )
-        allow(OT).to receive(:info)
-        org.test_extract_plan_id(subscription)
-      end
-    end
-  end
-
-  describe '#extract_metadata_plan_id' do
-    # This method is for drift detection only - NOT authoritative
-
-    context 'when plan_id is in price metadata' do
-      let(:subscription) do
-        build_subscription(
-          price_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'from_price' }
-        )
-      end
-
-      it 'returns price metadata value' do
-        expect(org.test_extract_metadata_plan_id(subscription)).to eq('from_price')
-      end
-    end
-
-    context 'when plan_id is only in subscription metadata' do
-      let(:subscription) do
-        build_subscription(
-          subscription_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'from_subscription' },
-          price_metadata: {}
-        )
-      end
-
-      it 'falls back to subscription metadata' do
-        expect(org.test_extract_metadata_plan_id(subscription)).to eq('from_subscription')
-      end
-    end
-
-    context 'when subscription metadata is nil' do
-      let(:subscription) do
-        Stripe::Subscription.construct_from({
-          id: 'sub_nil_meta',
-          object: 'subscription',
-          customer: 'cus_test',
-          status: 'active',
-          metadata: nil,
-          items: {
-            data: [{
-              price: {
-                id: 'price_test',
-                product: 'prod_test',
-                metadata: { Billing::Metadata::FIELD_PLAN_ID => 'from_price' },
-              },
-              current_period_end: (Time.now + 30 * 24 * 60 * 60).to_i,
-            }],
-          },
-        })
-      end
-
-      it 'returns price metadata value' do
-        expect(org.test_extract_metadata_plan_id(subscription)).to eq('from_price')
-      end
-    end
-
-    context 'when no metadata has plan_id' do
-      let(:subscription) { build_subscription }
-
-      it 'returns nil' do
-        expect(org.test_extract_metadata_plan_id(subscription)).to be_nil
-      end
-    end
-  end
-
   # ==========================================================================
   # update_from_stripe_subscription tests
   # ==========================================================================
@@ -227,12 +58,13 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       Class.new do
         include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
 
-        attr_accessor :objid, :stripe_subscription_id, :stripe_customer_id,
+        attr_accessor :objid, :extid, :stripe_subscription_id, :stripe_customer_id,
                       :subscription_status, :subscription_period_end, :planid,
                       :complimentary
 
         def initialize
           @objid = 'test-org-123'
+          @extid = 'test-org-123'
         end
 
         def save
@@ -241,6 +73,21 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
 
         def saved?
           @saved == true
+        end
+
+        # Stub materialization methods (Phase 2) - test class doesn't need full module
+        def materialize_entitlements_from_plan(_plan)
+          @materialized_entitlements = ['api_access']
+          true
+        end
+
+        def materialize_entitlements_from_config(_config)
+          @materialized_entitlements = ['api_access']
+          true
+        end
+
+        def materialized_entitlements
+          @materialized_entitlements ||= []
         end
       end
     end
@@ -280,6 +127,8 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       allow(Billing::Plan).to receive(:find_by_stripe_price_id)
         .with('price_test')
         .and_return(mock_plan)
+      # Stub Plan.load to return cached plan (triggers materialize_entitlements_from_plan path)
+      allow(Billing::Plan).to receive(:load).and_return(mock_plan)
     end
 
     context 'with valid subscription' do
