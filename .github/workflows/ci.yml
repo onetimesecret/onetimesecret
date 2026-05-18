@@ -398,6 +398,12 @@ jobs:
       - name: Generate locale files
         run: pnpm run locales:sync
 
+      # smoke:ruby runs spec:apps:web_billing, which includes the catalog
+      # validate spec that loads generated/schemas/config/billing.schema.json
+      # (gitignored, generated from src/schemas/).
+      - name: Generate JSON schemas
+        run: pnpm run schemas:json:generate
+
       - name: Run smoke test
         shell: bash
         env:
