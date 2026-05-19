@@ -26,7 +26,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
     # Sample plan data structure for mocking
     let(:sample_plan) do
       MockPlan.new(
-        plan_id: 'single_team_monthly_us',
+        plan_id: 'single_team_us',
         tier: 'single_team',
         interval: 'month',
         amount: '2900',
@@ -40,7 +40,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
 
     let(:sample_plan_eu) do
       MockPlan.new(
-        plan_id: 'multi_team_yearly_eu',
+        plan_id: 'multi_team_eu',
         tier: 'multi_team',
         interval: 'year',
         amount: '99900',
@@ -70,7 +70,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
       it 'formats plan rows with proper alignment' do
         output = capture_stdout { command.call }
         # Plan ID should be displayed
-        expect(output).to include('single_team_monthly')
+        expect(output).to include('single_team_us')
         # Tier should be displayed
         expect(output).to include('single_team')
         # Interval should be displayed
@@ -88,8 +88,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan, sample_plan_eu])
         output = capture_stdout { command.call }
 
-        expect(output).to include('single_team_monthly')
-        expect(output).to include('multi_team_yearly')
+        expect(output).to include('single_team_us')
+        expect(output).to include('multi_team_eu')
         expect(output).to match(/Total: 2 plan entr/)
       end
 
@@ -140,8 +140,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         it 'then displays refreshed plans' do
           output = capture_stdout { command.call(refresh: true) }
           expect(output).to include('Refreshing plans from Stripe')
-          expect(output).to include('single_team_monthly')
-          expect(output).to include('multi_team_yearly')
+          expect(output).to include('single_team_us')
+          expect(output).to include('multi_team_eu')
         end
 
         it 'adds blank line after refresh messages' do
@@ -210,7 +210,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
 
         it 'handles zero-entitlement plans' do
           zero_cap_plan = MockPlan.new(
-            plan_id: 'basic_monthly_us',
+            plan_id: 'basic_us',
             tier: 'basic',
             interval: 'month',
             amount: '0',
@@ -225,7 +225,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
           output = capture_stdout { command.call }
           # Amount column shows 0.00, CAPS column shows entitlement count
           expect(output).to match(/CAD 0\.00/)
-          expect(output).to include('basic_monthly_us')
+          expect(output).to include('basic_us')
         end
       end
     end

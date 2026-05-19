@@ -30,7 +30,7 @@ RSpec.describe Billing::Plan, type: :billing do
   describe 'field definitions' do
     let(:plan) do
       Billing::Plan.new(
-        plan_id: 'identity_plus_v1_monthly',
+        plan_id: 'identity_plus_v1',
         stripe_price_id: 'price_test_123',
         stripe_product_id: 'prod_test_456',
         name: 'Identity Plus',
@@ -49,33 +49,23 @@ RSpec.describe Billing::Plan, type: :billing do
     it 'has required fields for API response' do
       expect(plan).to respond_to(:plan_id)
       expect(plan).to respond_to(:tier)
-      expect(plan).to respond_to(:interval)
-      expect(plan).to respond_to(:amount)
       expect(plan).to respond_to(:currency)
       expect(plan).to respond_to(:display_order)
       expect(plan).to respond_to(:show_on_plans_page)
+      # NOTE: interval and amount are now in nested prices hash
+      expect(plan).to respond_to(:prices_hash)
     end
 
     it 'stores tier as string' do
       expect(plan.tier).to eq('single_team')
-    end
-
-    it 'stores interval as string' do
-      expect(plan.interval).to eq('month')
-    end
-
-    it 'stores amount as string' do
-      expect(plan.amount).to eq('1499')
     end
   end
 
   describe '#limits_hash' do
     let(:plan) do
       plan = Billing::Plan.new(
-        plan_id: 'test_plan_monthly',
+        plan_id: 'test_plan',
         tier: 'single_team',
-        interval: 'month',
-        amount: '1499',
         currency: 'cad',
       )
       plan.save
@@ -121,10 +111,8 @@ RSpec.describe Billing::Plan, type: :billing do
   describe '#entitlements' do
     let(:plan) do
       plan = Billing::Plan.new(
-        plan_id: 'test_plan_monthly',
+        plan_id: 'test_plan',
         tier: 'single_team',
-        interval: 'month',
-        amount: '1499',
         currency: 'cad',
       )
       plan.save
@@ -159,8 +147,8 @@ RSpec.describe Billing::Plan, type: :billing do
 
   describe '.load_from_config' do
     it 'loads plan from config' do
-      # The config has identity_plus_v1 which becomes identity_plus_v1_monthly
-      plan = Billing::Plan.load_from_config('identity_plus_v1_monthly')
+      # The config has identity_plus_v1 as the plan key (family-keyed)
+      plan = Billing::Plan.load_from_config('identity_plus_v1')
 
       expect(plan).not_to be_nil
       # Tier could be single_account or single_team depending on config
@@ -172,8 +160,8 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(plan).to be_nil
     end
 
-    it 'strips interval suffix when looking up base plan' do
-      # identity_plus_v1 should be found even when requested as identity_plus_v1_monthly
+    it 'strips interval suffix when looking up base plan (backward compatibility)' do
+      # identity_plus_v1 should be found even when requested with old suffixed format
       plan = Billing::Plan.load_from_config('identity_plus_v1_monthly')
       expect(plan).not_to be_nil
       expect(plan[:tier]).not_to be_nil
@@ -234,9 +222,9 @@ RSpec.describe Billing::Plan, type: :billing do
       Billing::Plan.load_all_from_config
 
       plans = Billing::Plan.list_plans
-      intervals = plans.map(&:interval).uniq
-      expect(intervals).to include('month')
-      expect(intervals).to include('year')
+      all_intervals = plans.flat_map(&:available_intervals).uniq
+      expect(all_intervals).to include(:month)
+      expect(all_intervals).to include(:year)
     end
   end
 
@@ -254,10 +242,10 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(plan.tier).to eq('single_team')
     end
 
-    it 'normalizes interval suffix (monthly -> month)' do
+    it 'returns plan with requested interval available' do
       plan = Billing::Plan.get_plan('single_team', 'monthly', 'EU')
       plan ||= Billing::Plan.get_plan('single_team', 'monthly', nil)
-      expect(plan&.interval).to eq('month')
+      expect(plan&.available_intervals).to include(:month)
     end
 
     it 'returns nil for unknown tier' do
@@ -272,13 +260,10 @@ RSpec.describe Billing::Plan, type: :billing do
 
     let(:plan) do
       plan = Billing::Plan.new(
-        plan_id: 'team_plus_v1_yearly',
-        stripe_price_id: 'price_yearly_123',
+        plan_id: 'team_plus_v1',
         stripe_product_id: 'prod_team_456',
         name: 'Team Plus',
         tier: 'multi_team',
-        interval: 'year',
-        amount: '14388', # $143.88/year
         currency: 'cad',
         region: 'US',
         tenancy: 'multi',
@@ -287,6 +272,12 @@ RSpec.describe Billing::Plan, type: :billing do
         description: 'For growing teams',
       )
       plan.save
+      plan.prices['year'] = JSON.generate({
+        stripe_price_id: 'price_yearly_123',
+        amount: 14388,
+        currency: 'cad',
+        interval: 'year',
+      })
       plan.entitlements.add('create_secrets')
       plan.entitlements.add('api_access')
       plan.entitlements.add('manage_teams')
@@ -305,12 +296,12 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(plan.tier).to eq('multi_team')
     end
 
-    it 'provides interval for filtering' do
-      expect(plan.interval).to eq('year')
+    it 'provides available intervals for filtering' do
+      expect(plan.available_intervals).to include(:year)
     end
 
-    it 'provides amount in cents' do
-      expect(plan.amount.to_i).to eq(14_388)
+    it 'provides amount in cents via prices_hash' do
+      expect(plan.prices_hash[:year][:amount]).to eq(14_388)
     end
 
     it 'provides entitlements for feature display' do
@@ -335,13 +326,17 @@ RSpec.describe Billing::Plan, type: :billing do
 
     let(:yearly_plan) do
       plan = Billing::Plan.new(
-        plan_id: 'identity_plus_yearly',
+        plan_id: 'identity_plus_v1',
         tier: 'single_team',
-        interval: 'year',
-        amount: '14388', # $143.88/year
         currency: 'cad',
       )
       plan.save
+      plan.prices['year'] = JSON.generate({
+        stripe_price_id: 'price_yearly_identity',
+        amount: 14388,
+        currency: 'cad',
+        interval: 'year',
+      })
       plan
     end
 
@@ -349,13 +344,13 @@ RSpec.describe Billing::Plan, type: :billing do
       yearly_plan.destroy! if yearly_plan.exists?
     end
 
-    it 'stores yearly amount' do
-      expect(yearly_plan.amount.to_i).to eq(14_388)
+    it 'stores yearly amount in prices_hash' do
+      expect(yearly_plan.prices_hash[:year][:amount]).to eq(14_388)
     end
 
     it 'can calculate monthly equivalent' do
       # 14388 / 12 = 1199 ($11.99/month)
-      monthly_equiv = yearly_plan.amount.to_i / 12
+      monthly_equiv = yearly_plan.prices_hash[:year][:amount] / 12
       expect(monthly_equiv).to eq(1199)
     end
 

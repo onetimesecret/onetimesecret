@@ -87,8 +87,8 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
             category: core
             description: Can create basic secrets
         plans:
-          broken_v1:
-            name: "Broken"
+          team_plus_v1:
+            name: "Team Plus"
             tier: single_team
             entitlements:
               - create_secrets
@@ -118,10 +118,40 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
             category: core
             description: Can create basic secrets
         plans:
-          broken_v1:
-            name: "Broken"
-            tier: single_team
+          free_v1:
+            name: "Free"
+            tier: free
             grandfathered_until: "not-a-date"
+            entitlements:
+              - create_secrets
+            limits:
+              organizations: 1
+              members_per_team: 1
+              custom_domains: 1
+              secret_lifetime: 100
+            prices: []
+      YAML
+
+      output, status = run_command
+
+      expect(output).to include('VALIDATION FAILED')
+      expect(status).to eq(1)
+    end
+
+    it 'fails when plan ID does not match canonical format' do
+      # Issue #3135: Plan IDs must match pattern ^(free|identity_plus|team_plus|legacy_plan)_v\d+$|^identity$
+      # This prevents suffixed variants like identity_plus_v1_monthly from polluting the catalog.
+      write_fixture(<<~YAML)
+        schema_version: "1.0"
+        app_identifier: "onetimesecret"
+        entitlements:
+          create_secrets:
+            category: core
+            description: Can create basic secrets
+        plans:
+          identity_plus_v1_monthly:
+            name: "Identity Plus Monthly"
+            tier: single_account
             entitlements:
               - create_secrets
             limits:
@@ -131,13 +161,44 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
               secret_lifetime: 100
             prices:
               - interval: month
-                amount: 100
+                amount: 900
       YAML
 
       output, status = run_command
 
       expect(output).to include('VALIDATION FAILED')
+      expect(output).to include('Schema validation:')
       expect(status).to eq(1)
+    end
+
+    it 'passes when plan ID matches canonical format' do
+      write_fixture(<<~YAML)
+        schema_version: "1.0"
+        app_identifier: "onetimesecret"
+        entitlements:
+          create_secrets:
+            category: core
+            description: Can create basic secrets
+        plans:
+          identity_plus_v1:
+            name: "Identity Plus"
+            tier: single_account
+            entitlements:
+              - create_secrets
+            limits:
+              organizations: 1
+              members_per_team: 1
+              custom_domains: 1
+              secret_lifetime: 100
+            prices:
+              - interval: month
+                amount: 900
+      YAML
+
+      output, status = run_command
+
+      expect(output).to include('VALIDATION PASSED')
+      expect(status).to eq(0)
     end
   end
 end

@@ -136,19 +136,27 @@ module BillingSpecHelper
     mock_limits = double('limits_hash')
     allow(mock_limits).to receive(:hgetall).and_return({ 'secrets_per_day' => '100', 'ttl_max' => '604800' })
 
+    # Mock prices hash (new schema: prices keyed by interval)
+    mock_prices = double('prices_hash')
+    allow(mock_prices).to receive(:hgetall).and_return({
+      'month' => { 'stripe_price_id' => 'price_test', 'amount' => '1900' }.to_json,
+    })
+
     # Create a mock plan that responds to plan_id and materialization methods
+    # NOTE: plan_id uses family-keyed format (no interval suffix)
+    # NOTE: stripe_price_id/interval/amount moved to nested prices hash
     mock_plan = instance_double(
       Billing::Plan,
-      plan_id: 'test_plan_v1_monthly',
-      stripe_price_id: 'price_test',
+      plan_id: 'test_plan_v1',
       stripe_product_id: 'prod_test',
       tier: 'single_team',
-      interval: 'month',
-      amount: '1900',
       currency: 'cad',
       entitlements: mock_entitlements,
       limits: mock_limits,
+      prices: mock_prices,
     )
+    allow(mock_plan).to receive(:destroy!).and_return(true)
+    allow(mock_plan).to receive(:exists?).and_return(true)
 
     # Mock plan for federation metadata validation
     identity_plus_plan = instance_double(
@@ -156,7 +164,9 @@ module BillingSpecHelper
       plan_id: 'identity_plus_v1',
       entitlements: mock_entitlements,
       limits: mock_limits,
+      prices: mock_prices,
     )
+    allow(identity_plus_plan).to receive(:destroy!).and_return(true)
     allow(identity_plus_plan).to receive(:exists?).and_return(true)
 
     # Stub find_by_stripe_price_id to return mock plan for test price IDs
@@ -175,9 +185,10 @@ module BillingSpecHelper
     # This is called by:
     # - ApplySubscriptionToOrg.materialize_entitlements_for_org (after planid is set)
     # - PlanValidator.valid_plan_id? for metadata lookups
+    # NOTE: plan_id uses family-keyed format (no interval suffix)
     allow(Billing::Plan).to receive(:load).and_call_original
     allow(Billing::Plan).to receive(:load)
-      .with('test_plan_v1_monthly')
+      .with('test_plan_v1')
       .and_return(mock_plan)
     allow(Billing::Plan).to receive(:load)
       .with('identity_plus_v1')

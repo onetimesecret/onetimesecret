@@ -132,7 +132,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       operation.call
       org = customer.organization_instances.to_a.first
       # Catalog-first: plan_id comes from catalog, not metadata
-      expect(org.planid).to eq('test_plan_v1_monthly')
+      expect(org.planid).to eq('test_plan_v1')
     end
 
     it 'does not log drift warning (ApplySubscriptionToOrg resolves from catalog silently)' do
@@ -170,7 +170,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       operation.call
       org = customer.organization_instances.to_a.first
       # Catalog-first: plan_id comes from catalog, not price metadata
-      expect(org.planid).to eq('test_plan_v1_monthly')
+      expect(org.planid).to eq('test_plan_v1')
     end
   end
 

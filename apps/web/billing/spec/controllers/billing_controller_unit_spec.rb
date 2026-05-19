@@ -43,14 +43,13 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       expect(data).to have_key('plans')
       expect(data['plans']).to be_an(Array)
 
-      # Verify plan structure from test config
+      # Verify plan structure from test config (family-keyed with nested prices)
       unless data['plans'].empty?
         plan = data['plans'].first
         expect(plan).to have_key('id')
         expect(plan).to have_key('name')
         expect(plan).to have_key('tier')
-        expect(plan).to have_key('interval')
-        expect(plan).to have_key('amount')
+        expect(plan).to have_key('prices')
         expect(plan).to have_key('currency')
         expect(plan).to have_key('features')
         expect(plan).to have_key('limits')

@@ -210,7 +210,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
     end
 
     context 'with organization that has a plan' do
-      let(:test_plan_id) { 'identity_plus_v1_monthly' }
+      let(:test_plan_id) { 'identity_plus_v1' }
 
       before do
         organization.planid = test_plan_id
