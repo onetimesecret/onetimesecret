@@ -61,6 +61,7 @@ RSpec.describe Core::Controllers::Welcome do
     allow(request).to receive(:query_string).and_return(env['QUERY_STRING'])
     allow(request).to receive(:locale).and_return('en')
     allow(request).to receive(:app_path) { |path| path }
+    allow(request).to receive(:trusted_client_ip).and_return('127.0.0.1')
     request
   end
 
