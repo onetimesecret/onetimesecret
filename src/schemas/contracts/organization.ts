@@ -22,6 +22,8 @@
 
 import { z } from 'zod';
 
+import { CanonicalPlanIdSchema } from './config/billing';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Organization canonical schema
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,8 +67,8 @@ export const organizationCanonical = z.object({
   /** Whether this is an auto-created default workspace (prevents deletion). */
   is_default: z.boolean(),
 
-  /** Subscription plan ID (defaults to 'free'). */
-  planid: z.string(),
+  /** Subscription plan ID (defaults to 'free_v1'). */
+  planid: CanonicalPlanIdSchema,
 
   /** Organization creation timestamp (Unix epoch seconds). */
   created: z.number(),

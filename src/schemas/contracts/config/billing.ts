@@ -51,6 +51,32 @@ import { z } from 'zod';
  */
 export const CATALOG_SCHEMA_VERSION = '1.0';
 
+/**
+ * Canonical Plan ID Pattern
+ *
+ * Enforces the naming convention for plan IDs to prevent suffixed variants
+ * (e.g., `identity_plus_v1_monthly`) from polluting the catalog.
+ *
+ * Valid: free_v1, identity_plus_v1, team_plus_v1, legacy_plan_v1, identity
+ * Invalid: identity_plus_v1_monthly, free_v1_year, custom_plan
+ *
+ * @see https://github.com/onetimesecret/onetimesecret/issues/3135 Section 9
+ */
+export const CANONICAL_PLAN_ID_PATTERN = /^(free|identity_plus|team_plus|legacy_plan)_v\d+$|^identity$/;
+
+/**
+ * Canonical Plan ID Schema
+ *
+ * Reusable schema for validating plan IDs at API boundaries.
+ * Use this for fields like `planid`, `target_plan_id`, etc.
+ */
+export const CanonicalPlanIdSchema = z
+  .string()
+  .regex(CANONICAL_PLAN_ID_PATTERN)
+  .describe('Plan ID in canonical format: {base}_v{N} or "identity"');
+
+export type CanonicalPlanId = z.infer<typeof CanonicalPlanIdSchema>;
+
 // =============================================================================
 // Entitlement Schemas
 // =============================================================================
@@ -284,7 +310,13 @@ export const BillingConfigSchema = z.looseObject({
     .describe('System-wide entitlement definitions'),
 
   plans: z
-    .record(z.string(), PlanDefinitionSchema)
+    .record(
+      z
+        .string()
+        .regex(CANONICAL_PLAN_ID_PATTERN)
+        .describe('Plan ID must match canonical format: {base}_v{N} or "identity"'),
+      PlanDefinitionSchema
+    )
     .describe('Plan definitions by plan_id (legacy plans use legacy: true flag)'),
 
   stripe_metadata_schema: StripeMetadataSchemaDefinition.optional().describe(

@@ -11,7 +11,7 @@
 
 import { z } from 'zod';
 
-import { BillingTierSchema } from './config/billing';
+import { BillingTierSchema, CanonicalPlanIdSchema } from './config/billing';
 
 /**
  * Plan type schema
@@ -236,7 +236,7 @@ export const pendingMigrationSchema = z.object({
   target_price_id: z.string(),
   target_plan_name: z.string(),
   target_currency: z.string(),
-  target_plan_id: z.string(),
+  target_plan_id: CanonicalPlanIdSchema,
   effective_after: z.number(),
 });
 
