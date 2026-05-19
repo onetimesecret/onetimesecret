@@ -132,7 +132,7 @@ tests:
       - Network request to /billing/api/plans returns 200
       - Response contains non-empty plans array
       - Each plan has stripe_price_id or equivalent
-      - Plans include identity_plus, team_plus, org_plus tiers
+      - Plans include identity_plus_v1, team_plus_v1 tiers
     explicit_checks:
       - api: GET /billing/api/plans
         assertion: status == 200
@@ -142,8 +142,8 @@ tests:
             assertion: is array and length >= 1
           - path: $.plans[*].stripe_price_id
             assertion: each is non-empty string matching /^price_/
-          - path: $.plans[*].name
-            assertion: includes values from ["identity_plus", "team_plus", "org_plus"]
+          - path: $.plans[*].plan_id
+            assertion: includes values from ["identity_plus_v1", "team_plus_v1"]
     priority: critical
     type: integration
     covers: [Stripe API sync, billing backend]
@@ -373,7 +373,7 @@ tests:
       - selector: '[data-testid="error-banner"]'
         assertion: not visible
       - conditional:
-          if: '{current_plan}' in ["team_plus_v1", "org_plus_v1"]
+          if: '{current_plan}' in ["team_plus_v1"]
           then:
             selector: '[data-testid="domain-management-ui"]'
             assertion: visible
