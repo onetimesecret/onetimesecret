@@ -39,9 +39,10 @@ module Billing
   #
   # ## Plan ID Format
   #
-  # Plan IDs combine tier, interval, and region:
-  #   - single_team_monthly_us_east
-  #   - multi_team_yearly_eu_west
+  # Plan IDs are family-based (unsuffixed), e.g., `identity_plus_v1`.
+  # Each Plan stores multiple interval variants in a nested `prices` structure:
+  #   plan.prices[:month]  # => { stripe_price_id: '...', amount: 999, ... }
+  #   plan.prices[:year]   # => { stripe_price_id: '...', amount: 9999, ... }
   #
   # ## Data Storage
   #
@@ -50,6 +51,7 @@ module Billing
   # - `set :features` - Marketing features (unique, unordered)
   # - `hashkey :limits` - Resource quotas with flattened keys
   # - `stringkey :stripe_data_snapshot` - Cached Stripe Product+Price JSON
+  # - `hashkey :prices` - Interval-keyed price data (month/year)
   #
   # Limits use flattened keys to support future expansion:
   #   - "teams.max" => "1" (allows adding "teams.min", "teams.default" later)
@@ -63,18 +65,15 @@ module Billing
 
     feature :safe_dump
 
-    identifier_field :plan_id    # Computed: product_interval
+    identifier_field :plan_id    # Family ID (unsuffixed, e.g., "identity_plus_v1")
 
-    # Plan entry fields
-    field :plan_id                  # Computed: product_interval
-    field :stripe_price_id          # Stripe Price ID (price_xxx)
+    # Plan entry fields (family-level)
+    field :plan_id                  # Family ID (unsuffixed, e.g., "identity_plus_v1")
     field :stripe_product_id        # Stripe Product ID (prod_xxx)
     field :stripe_updated_at        # Stripe's updated timestamp (for idempotency)
     field :name                     # Product name
     field :tier                     # e.g., 'single_team', 'multi_team'
-    field :interval                 # 'month' or 'year'
-    field :amount                   # Price in cents
-    field :currency                 # 'cad', 'eur', etc.
+    field :currency                 # 'cad', 'eur', etc. (from product metadata)
     field :region                   # EU, CA, US, NZ, etc
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)
@@ -85,13 +84,7 @@ module Billing
     field :is_popular               # Boolean: show "Most Popular" badge
     field :plan_name_label          # Display label next to plan name (e.g., "For Teams")
     field :includes_plan            # Plan ID this plan includes (for "Includes everything in X" display)
-
-    # Additional Stripe Price fields
-    field :active                   # Boolean: whether price is available for new subscriptions
-    field :billing_scheme           # 'per_unit' or 'tiered'
-    field :usage_type               # 'licensed' or 'metered'
-    field :trial_period_days        # Trial period in days (null if none)
-    field :nickname                 # Internal nickname for the price
+    field :active                   # Boolean: whether any price is available for new subscriptions
 
     # Cache management
     field :last_synced_at           # Timestamp of last Stripe sync
@@ -104,6 +97,7 @@ module Billing
     set :entitlements
     set :features
     hashkey :limits
+    hashkey :prices                  # Interval-keyed price data (JSON per interval)
     stringkey :stripe_data_snapshot  # Cached Stripe Product+Price JSON for recovery
 
     def init
@@ -112,6 +106,7 @@ module Billing
       @is_soft_deleted   ||= false
       @active            ||= true
       @limits_hash         = nil  # Memoization cache
+      @prices_hash         = nil  # Memoization cache
     end
 
     # Get limits as hash with infinity conversion
@@ -135,7 +130,49 @@ module Billing
     # Clear memoization cache when plan is reloaded
     def reload
       @limits_hash = nil
+      @prices_hash = nil
       super
+    end
+
+    # Get prices as hash with parsed interval data
+    #
+    # Each interval key maps to price attributes:
+    #   - stripe_price_id, amount, currency, billing_scheme, usage_type,
+    #     trial_period_days, nickname, active
+    #
+    # @return [Hash{Symbol => Hash}] Interval-keyed price data
+    # @example
+    #   plan.prices_hash[:month]  # => { stripe_price_id: 'price_xxx', amount: 999, ... }
+    #   plan.prices_hash[:year]   # => { stripe_price_id: 'price_yyy', amount: 9999, ... }
+    def prices_hash
+      @prices_hash ||= begin
+        raw = prices.hgetall || {}
+        raw.transform_keys(&:to_sym).transform_values do |json_str|
+          JSON.parse(json_str, symbolize_names: true)
+        end
+      end
+    end
+
+    # Get price data for a specific interval
+    #
+    # @param interval [Symbol, String] :month or :year
+    # @return [Hash, nil] Price attributes or nil if interval not available
+    def price_for(interval)
+      prices_hash[interval.to_sym]
+    end
+
+    # List all available intervals for this plan
+    #
+    # @return [Array<Symbol>] Available intervals (e.g., [:month, :year])
+    def available_intervals
+      prices_hash.keys
+    end
+
+    # Get all Stripe price IDs for this plan
+    #
+    # @return [Array<String>] List of Stripe price IDs across all intervals
+    def all_stripe_price_ids
+      prices_hash.values.map { |p| p[:stripe_price_id] }.compact
     end
 
     # Check if plan should show "Most Popular" badge
@@ -150,15 +187,18 @@ module Billing
 
     # Calculate monthly equivalent amount for display
     #
-    # For yearly plans, divides the total amount by 12.
-    # For monthly plans, returns the amount unchanged.
+    # Uses monthly price if available, otherwise calculates from yearly price.
+    # For yearly-only plans, divides the total amount by 12.
     #
-    # @return [Integer] Monthly equivalent price in cents
+    # @return [Integer] Monthly equivalent price in cents, or 0 if no prices
     def monthly_equivalent_amount
-      amt = amount.to_i
-      return amt if interval != 'year'
+      monthly = price_for(:month)
+      return monthly[:amount].to_i if monthly
 
-      (amt / 12.0).round
+      yearly = price_for(:year)
+      return 0 unless yearly
+
+      (yearly[:amount].to_i / 12.0).round
     end
 
     # Parse cached Stripe data snapshot
@@ -391,14 +431,11 @@ module Billing
 
           plan.name               = plan_def['name']
           plan.tier               = tier
-          plan.interval           = nil  # Free plans have no interval
-          plan.amount             = '0'
           plan.currency           = OT.billing_config.currency
           plan.tenancy            = tenancy
           plan.display_order      = display_order.to_s
           plan.show_on_plans_page = 'true'
           plan.description        = plan_def['description']
-          plan.stripe_price_id    = nil  # No Stripe price
           plan.stripe_product_id  = nil  # No Stripe product
           plan.active             = 'true'
           plan.plan_code          = plan_def['plan_code']
@@ -445,6 +482,9 @@ module Billing
       # No Redis writes occur during this phase. If any Stripe API call fails,
       # the exception propagates up and no cache modifications happen.
       #
+      # Returns one entry per plan family (e.g., `identity_plus_v1`), with
+      # interval variants (month/year) merged into the `prices` hash.
+      #
       # @param progress [Proc, nil] Optional progress callback
       # @return [Array<Hash>] Array of plan data hashes ready for persistence
       # @raise [Stripe::StripeError] If any Stripe API call fails
@@ -462,9 +502,10 @@ module Billing
           },
         )
 
-        plan_data_list     = []
-        validation_errors  = []
-        products_processed = 0
+        # Accumulator for merging interval variants into single plan entries
+        plan_data_by_family = {}
+        validation_errors   = []
+        products_processed  = 0
 
         progress&.call('Fetching products from Stripe...')
 
@@ -532,17 +573,35 @@ module Billing
 
             # Product metadata already validated above; extract_plan_data won't fail
             plan_data = extract_plan_data(product, price)
-            plan_data_list << plan_data
+            plan_id   = plan_data[:plan_id]
+            interval  = price.recurring.interval.to_sym
 
-            OT.ld "[Plan.collect_stripe_plans] Collected plan: #{plan_data[:plan_id]}",
+            if plan_data_by_family.key?(plan_id)
+              # Merge this interval's price data into existing plan entry
+              existing              = plan_data_by_family[plan_id]
+              existing[:prices]     = existing[:prices].merge(plan_data[:prices])
+              existing[:active]     = 'true' if plan_data[:active] == 'true' # Any active price makes plan active
+
+              # Merge stripe_snapshot prices
+              existing[:stripe_snapshot][:prices] =
+                existing[:stripe_snapshot][:prices].merge(plan_data[:stripe_snapshot][:prices])
+            else
+              # First interval variant for this plan family
+              plan_data_by_family[plan_id] = plan_data
+            end
+
+            OT.ld "[Plan.collect_stripe_plans] Collected price for plan: #{plan_id}",
               {
+                interval: interval,
                 stripe_price_id: price.id,
                 amount: price.unit_amount,
               }
           end
         end
 
-        OT.li "[Plan.collect_stripe_plans] Collected #{plan_data_list.size} plans from Stripe"
+        plan_data_list = plan_data_by_family.values
+
+        OT.li "[Plan.collect_stripe_plans] Collected #{plan_data_list.size} plan families from Stripe"
 
         # Fail-closed: abort before returning if any managed products had invalid metadata
         if validation_errors.any?
@@ -582,11 +641,10 @@ module Billing
             "invalid metadata for Stripe product #{product.id} (#{product.name}): #{problems.join('; ')}"
         end
 
-        interval     = price.recurring.interval # 'month' or 'year'
-        tier         = product.metadata[Metadata::FIELD_TIER]
-        region       = product.metadata[Metadata::FIELD_REGION]
-        base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID]
-        plan_id      = "#{base_plan_id}_#{interval}ly"
+        interval = price.recurring.interval # 'month' or 'year'
+        tier     = product.metadata[Metadata::FIELD_TIER]
+        region   = product.metadata[Metadata::FIELD_REGION]
+        plan_id  = product.metadata[Metadata::FIELD_PLAN_ID] # Family ID (unsuffixed)
 
         # Extract entitlements from product metadata
         entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
@@ -633,7 +691,7 @@ module Billing
         includes_plan_raw = product.metadata[Metadata::FIELD_INCLUDES_PLAN]
         includes_plan     = includes_plan_raw.to_s.strip.empty? ? nil : includes_plan_raw
 
-        # Build stripe snapshot for recovery
+        # Build stripe snapshot for recovery (includes all prices for this product)
         stripe_snapshot = {
           product: {
             id: product.id,
@@ -642,28 +700,39 @@ module Billing
             metadata: product.metadata.to_h,
             marketing_features: product.marketing_features&.map(&:name) || [],
           },
-          price: {
-            id: price.id,
-            type: price.type,
-            currency: price.currency,
-            unit_amount: price.unit_amount,
-            recurring: {
-              interval: price.recurring.interval,
+          prices: {
+            interval.to_sym => {
+              id: price.id,
+              type: price.type,
+              currency: price.currency,
+              unit_amount: price.unit_amount,
+              recurring: {
+                interval: price.recurring.interval,
+              },
             },
           },
           cached_at: Time.now.to_i,
         }
 
+        # Per-interval price data (to be merged into prices hash)
+        price_data = {
+          stripe_price_id: price.id,
+          amount: price.unit_amount.to_s,
+          currency: price.currency,
+          billing_scheme: price.billing_scheme,
+          usage_type: price.recurring&.usage_type || 'licensed',
+          trial_period_days: price.recurring&.trial_period_days&.to_s,
+          nickname: price.nickname,
+          active: price.active.to_s,
+        }
+
         {
           plan_id: plan_id,
-          stripe_price_id: price.id,
           stripe_product_id: product.id,
           stripe_updated_at: product.updated.to_s, # Unix timestamp for stale update detection
           name: product.name,
           tier: tier,
-          interval: interval,
-          amount: price.unit_amount.to_s,
-          currency: price.currency,
+          currency: product.metadata[Metadata::FIELD_CURRENCY] || price.currency,
           region: region,
           tenancy: tenancy,
           display_order: display_order,
@@ -674,14 +743,12 @@ module Billing
           plan_name_label: plan_name_label,
           includes_plan: includes_plan,
           active: price.active.to_s,
-          billing_scheme: price.billing_scheme,
-          usage_type: price.recurring&.usage_type || 'licensed',
-          trial_period_days: price.recurring&.trial_period_days&.to_s,
-          nickname: price.nickname,
           entitlements: entitlements,
           features: product.marketing_features&.map(&:name) || [],
           limits: limits,
           stripe_snapshot: stripe_snapshot,
+          # Nested price data keyed by interval
+          prices: { interval.to_sym => price_data },
         }
       end
 
@@ -727,13 +794,10 @@ module Billing
 
         plan = existing || new(plan_id: plan_id)
 
-        # Apply scalar fields from plan_data
-        plan.stripe_price_id    = plan_data[:stripe_price_id]
+        # Apply family-level scalar fields from plan_data
         plan.stripe_product_id  = plan_data[:stripe_product_id]
         plan.name               = plan_data[:name]
         plan.tier               = plan_data[:tier]
-        plan.interval           = plan_data[:interval]
-        plan.amount             = plan_data[:amount]
         plan.currency           = plan_data[:currency]
         plan.region             = plan_data[:region]
         plan.tenancy            = plan_data[:tenancy]
@@ -745,10 +809,6 @@ module Billing
         plan.plan_name_label    = plan_data[:plan_name_label]
         plan.includes_plan      = plan_data[:includes_plan]
         plan.active             = plan_data[:active]
-        plan.billing_scheme     = plan_data[:billing_scheme]
-        plan.usage_type         = plan_data[:usage_type]
-        plan.trial_period_days  = plan_data[:trial_period_days]
-        plan.nickname           = plan_data[:nickname]
         plan.last_synced_at     = Time.now.to_i.to_s
 
         # Store stripe_updated_at for future stale update comparison
@@ -779,6 +839,15 @@ module Billing
           val              = value == -1 ? 'unlimited' : value.to_s
           plan.limits[key] = val
         end
+
+        # Merge prices into hashkey (interval => JSON price data)
+        # For updates, merge new intervals with existing; for new plans, set all
+        plan_data[:prices]&.each do |interval, price_data|
+          plan.prices[interval.to_s] = price_data.to_json
+        end
+
+        # Clear memoization cache so prices_hash reflects new data
+        plan.instance_variable_set(:@prices_hash, nil)
 
         # Store Stripe data snapshot for recovery
         if plan_data[:stripe_snapshot]
@@ -879,27 +948,27 @@ module Billing
 
       # Get plan by tier, interval, and region
       #
-      # Searches cached plans by tier/interval/region fields instead of
-      # direct plan_id lookup. Primarily used in tests to find plans by
-      # entitlement tier without knowing exact product names.
+      # Searches cached plans by tier/region fields and verifies the plan
+      # has the requested interval available in its prices hash.
+      # Primarily used in tests to find plans by entitlement tier.
       #
       # For production code, prefer Plan.load(plan_id) for direct O(1) lookup
       # or find_by_stripe_price_id(price_id) when resolving from Stripe data.
       #
       # @param tier [String] Entitlement tier (e.g., 'single_team', 'single_identity')
-      # @param interval [String] Billing interval ('monthly' or 'yearly')
+      # @param interval [String] Billing interval ('monthly' or 'yearly' or 'month' or 'year')
       # @param region [String, nil] Region code (e.g., 'EU', 'NZ') or nil when
       #   regionalization is not applicable. There is no "global" region.
       # @return [Plan, nil] Cached plan or nil if not found
       def get_plan(tier, interval, region = nil)
         # Normalize interval to singular form (monthly -> month)
-        interval = interval.to_s.sub(/ly$/, '')
+        interval_sym = interval.to_s.sub(/ly$/, '').to_sym
 
-        # Search through all cached plans for matching tier/interval/region
+        # Search through all cached plans for matching tier/region with requested interval
         list_plans.find do |plan|
           plan.tier == tier &&
-            plan.interval == interval &&
-            plan.region == region
+            plan.region == region &&
+            plan.available_intervals.include?(interval_sym)
         end
       end
 
@@ -973,12 +1042,15 @@ module Billing
 
       # Build price_id to plan hash from current plan list
       #
+      # Maps all Stripe price IDs (across all intervals) to their parent Plan.
+      # A Plan with both monthly and yearly prices has two cache entries.
+      #
       # @return [Hash<String, Plan>] Price ID to Plan mapping
       def build_stripe_price_id_cache
         list_plans.each_with_object({}) do |plan, hash|
-          next unless plan&.stripe_price_id
-
-          hash[plan.stripe_price_id] = plan
+          plan.all_stripe_price_ids.each do |price_id|
+            hash[price_id] = plan
+          end
         end
       end
 
@@ -1061,8 +1133,8 @@ module Billing
       # Load all plans from billing.yaml config into Redis cache
       #
       # Bypasses Stripe API and loads plans directly from YAML configuration.
-      # Creates Plan instances in Redis for each plan+interval combination.
-      # Uses plan_id format: "{plan_key}_{interval}ly" (e.g., "identity_plus_v1_monthly").
+      # Creates one Plan instance per family (e.g., "identity_plus_v1") with
+      # interval variants stored in the nested `prices` hashkey.
       #
       # Uses ConfigResolver to load from spec/billing.test.yaml in test environment.
       #
@@ -1086,97 +1158,113 @@ module Billing
             next
           end
 
-          prices = plan_def['prices'] || []
+          prices_list = plan_def['prices'] || []
 
-          # Skip plans without prices (e.g., free tier)
-          if prices.empty?
+          # Skip plans without prices (e.g., free tier - handled by upsert_config_only_plans)
+          if prices_list.empty?
             OT.ld "[Plan.load_all_from_config] Skipping plan without prices: #{plan_key}"
             next
           end
 
-          # Create a Plan instance for each interval (monthly, yearly)
-          prices.each do |price|
-            interval = price['interval'] # 'month' or 'year'
-            plan_id  = "#{plan_key}_#{interval}ly"
+          # Family-keyed: one Plan per plan_key with nested prices
+          plan_id = plan_key.to_s
 
-            # Extract plan attributes. Region is either a specific code
-            # (e.g. 'EU') or nil — there is no "global" default.
-            tier               = plan_def['tier']
-            region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
-            tenancy            = plan_def['tenancy'] || 'multi'
-            display_order      = plan_def['display_order'] || 0
-            show_on_plans_page = plan_def['show_on_plans_page'] == true
-            entitlements_list  = plan_def['entitlements'] || []
+          # Extract family-level attributes
+          tier               = plan_def['tier']
+          region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
+          tenancy            = plan_def['tenancy'] || 'multi'
+          display_order      = plan_def['display_order'] || 0
+          show_on_plans_page = plan_def['show_on_plans_page'] == true
+          entitlements_list  = plan_def['entitlements'] || []
+          features_list      = plan_def['features'] || []
 
-            # Convert limits to flattened format (e.g., "teams" -> "teams.max")
-            limits_hash = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
-            limits_hash = limits_hash.transform_values do |v|
-              v.nil? || v == -1 ? 'unlimited' : v.to_s
-            end
+          # Convert limits to flattened format (e.g., "teams" -> "teams.max")
+          limits_hash = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
+          limits_hash = limits_hash.transform_values do |v|
+            v.nil? || v == -1 ? 'unlimited' : v.to_s
+          end
 
-            # Create Plan instance
-            # Currency: per-price overrides top-level config default
-            plan_currency = price['currency'] || OT.billing_config.currency
+          # Build nested prices hash from all intervals
+          prices_data = {}
+          prices_list.each do |price|
+            interval       = price['interval'].to_sym # :month or :year
+            plan_currency  = price['currency'] || OT.billing_config.currency
 
-            plan = new(
-              plan_id: plan_id,
-              stripe_price_id: price.key?('price_id') ? price['price_id'] : nil,
-              stripe_product_id: nil,
-              name: plan_def['name'],
-              tier: tier,
-              interval: interval,
+            prices_data[interval] = {
+              stripe_price_id: price['price_id'],
               amount: price['amount'].to_s,
               currency: plan_currency,
-              region: region,
-              tenancy: tenancy,
-              display_order: display_order.to_s,
-              show_on_plans_page: show_on_plans_page.to_s,
-              description: plan_def['description'],
-            )
-
-            # Populate additional fields
-            plan.active            = 'true'
-            plan.billing_scheme    = 'per_unit'
-            plan.usage_type        = 'licensed'
-            plan.trial_period_days = nil
-            plan.nickname          = nil
-            plan.plan_code         = plan_def['plan_code']
-            plan.is_popular        = (plan_def['is_popular'] == true).to_s
-            plan.plan_name_label   = plan_def['plan_name_label']
-            plan.includes_plan     = plan_def['includes_plan']
-            plan.last_synced_at    = Time.now.to_i.to_s
-
-            # Save scalar fields before writing collections (sets, hashkeys)
-            # which write directly to Redis and expect the parent to exist.
-            next unless plan.save
-
-            # Populate collections after save (these write directly to Redis)
-            plan.entitlements.clear
-            entitlements_list.each { |ent| plan.entitlements.add(ent) }
-
-            features_list = plan_def['features'] || []
-            plan.features.clear
-            features_list.each { |feat| plan.features.add(feat) }
-
-            plan.limits.clear
-            limits_hash.each do |key, val|
-              plan.limits[key] = val
-            end
-
-            # No stripe_data_snapshot for config-based plans
-            plan.stripe_data_snapshot.value = nil
-
-            OT.ld "[Plan.load_all_from_config] Cached plan: #{plan_id}",
-              {
-                tier: tier,
-                interval: interval,
-                amount: price['amount'],
-                currency: plan_currency,
-              }
-
-            plans_count += 1
+              billing_scheme: 'per_unit',
+              usage_type: 'licensed',
+              trial_period_days: nil,
+              nickname: nil,
+              active: 'true',
+            }
           end
+
+          # Use first price's currency as family currency (they should match)
+          family_currency = prices_list.first['currency'] || OT.billing_config.currency
+
+          # Create Plan instance with family-level fields only
+          plan = new(
+            plan_id: plan_id,
+            stripe_product_id: nil,
+            name: plan_def['name'],
+            tier: tier,
+            currency: family_currency,
+            region: region,
+            tenancy: tenancy,
+            display_order: display_order.to_s,
+            show_on_plans_page: show_on_plans_page.to_s,
+            description: plan_def['description'],
+          )
+
+          # Populate additional family-level fields
+          plan.active          = 'true'
+          plan.plan_code       = plan_def['plan_code']
+          plan.is_popular      = (plan_def['is_popular'] == true).to_s
+          plan.plan_name_label = plan_def['plan_name_label']
+          plan.includes_plan   = plan_def['includes_plan']
+          plan.last_synced_at  = Time.now.to_i.to_s
+
+          # Save scalar fields before writing collections (sets, hashkeys)
+          # which write directly to Redis and expect the parent to exist.
+          unless plan.save
+            OT.le "[Plan.load_all_from_config] Save FAILED for plan: #{plan_id}"
+            next
+          end
+
+          # Populate collections after save (these write directly to Redis)
+          plan.entitlements.clear
+          entitlements_list.each { |ent| plan.entitlements.add(ent) }
+
+          plan.features.clear
+          features_list.each { |feat| plan.features.add(feat) }
+
+          plan.limits.clear
+          limits_hash.each { |key, val| plan.limits[key] = val }
+
+          # Populate prices hashkey with JSON per interval
+          plan.prices.clear
+          prices_data.each do |interval, price_data|
+            plan.prices[interval.to_s] = price_data.to_json
+          end
+
+          # No stripe_data_snapshot for config-based plans
+          plan.stripe_data_snapshot.value = nil
+
+          OT.ld "[Plan.load_all_from_config] Cached plan: #{plan_id}",
+            {
+              tier: tier,
+              intervals: prices_data.keys,
+              currency: family_currency,
+            }
+
+          plans_count += 1
         end
+
+        # Rebuild price ID cache after loading
+        rebuild_stripe_price_id_cache
 
         OT.li "[Plan.load_all_from_config] Cached #{plans_count} plans from config"
         plans_count
@@ -1187,7 +1275,10 @@ module Billing
       # Used as fallback when Stripe cache is empty (dev/test environments).
       # Returns an ephemeral Plan-like hash (not persisted to Redis).
       #
-      # @param plan_id [String] Plan ID (with or without interval suffix)
+      # Accepts both family IDs (e.g., "identity_plus_v1") and legacy suffixed
+      # IDs (e.g., "identity_plus_v1_monthly") for backward compatibility.
+      #
+      # @param plan_id [String] Plan ID (family ID or legacy suffixed)
       # @return [Hash, nil] Plan hash with :name, :entitlements, :limits or nil
       def load_from_config(plan_id)
         plans_hash = Billing::Config.load_plans
@@ -1210,7 +1301,7 @@ module Billing
       # Load all plans from billing.yaml config
       #
       # Used as fallback when Stripe cache is empty (dev/test environments).
-      # Creates one entry per plan (deduped by tier, preferring monthly).
+      # Returns one entry per plan family (unsuffixed IDs).
       #
       # @return [Array<Hash>] Array of plan hashes
       def list_plans_from_config
@@ -1218,11 +1309,8 @@ module Billing
         return [] if plans_hash.empty?
 
         plans_hash.map do |plan_id, plan_def|
-          # For plans with prices, use monthly interval in the ID
-          interval = plan_def['prices']&.first&.dig('interval') || 'month'
-          full_id  = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
-
-          config_plan_to_hash(full_id, plan_def, plans_hash)
+          # Family-keyed: use plan_id directly (no interval suffix)
+          config_plan_to_hash(plan_id.to_s, plan_def, plans_hash)
         end
       end
 
