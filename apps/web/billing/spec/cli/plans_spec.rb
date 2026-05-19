@@ -10,6 +10,11 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Data class for mocking plans (immutable, Ruby 3.2+)
+  #
+  # Provides the family-keyed Plan interface used by `format_plan_row`:
+  # `available_intervals`, `price_for(interval)`, and `all_stripe_price_ids`
+  # are derived from the single `interval`/`amount`/`stripe_price_id` triple
+  # so existing test data stays terse.
   MockPlan = Data.define(
     :plan_id, :tier, :interval, :amount, :currency, :region, :entitlements,
     :stripe_product_id, :stripe_price_id,
@@ -17,6 +22,24 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
   ) do
     def initialize(name: 'Test Plan', tenancy: 'multi', display_order: '0', active: 'true', **)
       super
+    end
+
+    def available_intervals
+      [interval.to_sym]
+    end
+
+    def price_for(requested_interval)
+      return nil unless requested_interval.to_sym == interval.to_sym
+
+      {
+        stripe_price_id: stripe_price_id,
+        amount: amount,
+        currency: currency,
+      }
+    end
+
+    def all_stripe_price_ids
+      [stripe_price_id].compact
     end
   end
 

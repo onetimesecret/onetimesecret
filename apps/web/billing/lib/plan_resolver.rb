@@ -127,37 +127,45 @@ module Billing
         return error_result("Invalid interval: #{interval}. Must be 'monthly' or 'yearly'")
       end
 
-      # Construct plan_id: product + interval suffix
-      # e.g., 'identity_plus_v1' + 'monthly' => 'identity_plus_v1_monthly'
-      plan_id = "#{product}_#{normalized_interval}"
+      # Plan IDs are family-keyed (unsuffixed). The product param IS the plan_id.
+      # Interval variants live inside the plan's prices hash, keyed by :month/:year.
+      plan_id      = product.to_s
+      interval_sym = normalized_interval.sub(/ly$/, '').to_sym  # 'monthly' -> :month
 
       # Look up plan in catalog
       plan = Billing::Plan.load(plan_id)
-      unless plan&.exists?
-        # Try config fallback for dev/test environments
-        config_plan = Billing::Plan.load_from_config(plan_id)
-        if config_plan
-          return Result.new(
-            success: true,
-            plan_id: plan_id,
-            tier: config_plan[:tier],
-            billing_cycle: normalized_interval,
-            plan: nil,
-            error: nil,
+      if plan&.exists?
+        # Verify the plan has a price for the requested interval
+        unless plan.available_intervals.include?(interval_sym)
+          return error_result(
+            "Plan #{plan_id} has no #{normalized_interval} price (available: #{plan.available_intervals.join(', ')})",
           )
         end
 
-        return error_result("Plan not found: #{plan_id}")
+        return Result.new(
+          success: true,
+          plan_id: plan.plan_id,
+          tier: plan.tier,
+          billing_cycle: normalized_interval,
+          plan: plan,
+          error: nil,
+        )
       end
 
-      Result.new(
-        success: true,
-        plan_id: plan.plan_id,
-        tier: plan.tier,
-        billing_cycle: normalized_interval,
-        plan: plan,
-        error: nil,
-      )
+      # Try config fallback for dev/test environments
+      config_plan = Billing::Plan.load_from_config(plan_id)
+      if config_plan
+        return Result.new(
+          success: true,
+          plan_id: plan_id,
+          tier: config_plan[:tier],
+          billing_cycle: normalized_interval,
+          plan: nil,
+          error: nil,
+        )
+      end
+
+      error_result("Plan not found: #{plan_id}")
     end
 
     # Check if plan selection params are present and valid

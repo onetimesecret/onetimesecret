@@ -16,45 +16,41 @@ require_relative '../../../apps/web/billing/lib/plan_resolver'
 def setup_test_plan
   return if @plan_loaded
 
-  # Create a test plan in the cache
+  # Plans are now family-keyed with interval variants nested in `prices`.
   plan = Billing::Plan.new(
-    plan_id: 'identity_plus_v1_monthly',
-    stripe_price_id: 'price_test_identity_monthly',
+    plan_id: 'identity_plus_v1',
     stripe_product_id: 'prod_test_identity',
     name: 'Identity Plus',
     tier: 'identity',
-    interval: 'month',
-    amount: '1500',
     currency: 'cad',
     region: 'global'
   )
   plan.active = 'true'
   plan.save
 
-  # Also create yearly variant
-  yearly_plan = Billing::Plan.new(
-    plan_id: 'identity_plus_v1_yearly',
+  monthly_data = {
+    stripe_price_id: 'price_test_identity_monthly',
+    amount: '1500',
+    currency: 'cad',
+    active: 'true',
+  }
+  yearly_data = {
     stripe_price_id: 'price_test_identity_yearly',
-    stripe_product_id: 'prod_test_identity',
-    name: 'Identity Plus',
-    tier: 'identity',
-    interval: 'year',
     amount: '15000',
     currency: 'cad',
-    region: 'global'
-  )
-  yearly_plan.active = 'true'
-  yearly_plan.save
+    active: 'true',
+  }
+  plan.prices['month'] = monthly_data.to_json
+  plan.prices['year']  = yearly_data.to_json
+  plan.instance_variable_set(:@prices_hash, nil)
 
   @plan_loaded = true
 end
 
 # Teardown
 def teardown_test_plan
-  %w[identity_plus_v1_monthly identity_plus_v1_yearly].each do |plan_id|
-    plan = Billing::Plan.load(plan_id)
-    plan&.destroy! if plan&.exists?
-  end
+  plan = Billing::Plan.load('identity_plus_v1')
+  plan&.destroy! if plan&.exists?
   @plan_loaded = false
 end
 
@@ -65,10 +61,10 @@ result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'm
 result.success?
 #=> true
 
-## Resolve returns correct plan_id
+## Resolve returns family-keyed plan_id (no interval suffix)
 result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'monthly')
 result.plan_id
-#=> 'identity_plus_v1_monthly'
+#=> 'identity_plus_v1'
 
 ## Resolve returns correct tier
 result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'monthly')
@@ -83,7 +79,7 @@ result.billing_cycle
 ## Resolve handles yearly interval
 result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'yearly')
 [result.success?, result.plan_id, result.billing_cycle]
-#=> [true, 'identity_plus_v1_yearly', 'yearly']
+#=> [true, 'identity_plus_v1', 'yearly']
 
 ## Resolve normalizes month to monthly
 result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'month')

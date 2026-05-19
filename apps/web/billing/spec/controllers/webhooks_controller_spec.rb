@@ -85,10 +85,11 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
           data: { object: {} },
         }.to_json
 
-        # Generate signature with timestamp older than tolerance (5 minutes)
-        # Note: Stripe's library validates the timestamp in the signature header,
-        # which results in SignatureVerificationError (not our custom timestamp check)
-        old_timestamp     = (Time.now - 600).to_i
+        # Generate signature with timestamp older than tolerance.
+        # WebhookValidator sets tolerance to MAX_EVENT_AGE (24 hours) to allow
+        # Stripe's retry window, so the signature must be older than that to
+        # trigger SignatureVerificationError from Stripe's library.
+        old_timestamp     = (Time.now - (25 * 3600)).to_i
         expired_signature = generate_stripe_signature(
           payload: payload,
           secret: webhook_secret,
