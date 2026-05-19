@@ -38,6 +38,11 @@ module Onetime
         default: false,
         desc: 'Only materialize orgs where entitlements are stale vs current plan'
 
+      option :force,
+        type: :boolean,
+        default: false,
+        desc: 'Force re-materialization even if entitlements are up to date'
+
       option :run,
         type: :boolean,
         default: false,
@@ -55,7 +60,7 @@ module Onetime
         aliases: ['h'],
         desc: 'Show help message'
 
-      def call(all: false, plan: nil, stale: false, run: false, verbose: false, help: false, **)
+      def call(all: false, plan: nil, stale: false, force: false, run: false, verbose: false, help: false, **)
         return show_usage_help if help
 
         boot_application!
@@ -77,7 +82,7 @@ module Onetime
           return
         end
 
-        print_mode_banner(dry_run, all, plan, stale)
+        print_mode_banner(dry_run, all, plan, stale, force)
 
         stats             = { total: 0, materialized: 0, skipped_no_plan: 0, skipped_up_to_date: 0, skipped_plan_filter: 0, errors: [] }
         progress_interval = [total / 10, 1].max
@@ -88,7 +93,7 @@ module Onetime
         plans_cache = ::Billing::Plan.list_plans.to_h { |p| [p.plan_id, p] }
 
         Onetime::Organization.instances.each_record(batch_size: 100) do |org|
-          process_org(org, stats, total, dry_run, verbose, stale, plan, progress_interval, plans_cache)
+          process_org(org, stats, total, dry_run, verbose, stale, force, plan, progress_interval, plans_cache)
         end
 
         print_results(stats, dry_run, verbose)
@@ -103,7 +108,8 @@ module Onetime
         org.planid.to_s != plan_filter
       end
 
-      def skip_for_stale_filter?(org, stale_only, plans_cache)
+      def skip_for_stale_filter?(org, stale_only, force, plans_cache)
+        return false if force
         return false unless stale_only
         return false unless org.entitlements_materialized?
 
@@ -113,13 +119,14 @@ module Onetime
         !org.entitlements_stale?(plan)
       end
 
-      def print_mode_banner(dry_run, all, plan, stale)
+      def print_mode_banner(dry_run, all, plan, stale, force)
         scope  = if all
                   'all organizations'
                 else
                   "organizations on plan '#{plan}'"
                 end
         scope += ' (stale only)' if stale
+        scope += ' (force)' if force
 
         if dry_run
           puts "\nDRY RUN MODE - No changes will be made"
@@ -132,7 +139,7 @@ module Onetime
       end
 
       # rubocop:disable Metrics/PerceivedComplexity
-      def process_org(org, stats, total, dry_run, verbose, stale_only, plan_filter, progress_interval, plans_cache)
+      def process_org(org, stats, total, dry_run, verbose, stale_only, force, plan_filter, progress_interval, plans_cache)
         stats[:total] += 1
         idx            = stats[:total]
 
@@ -149,7 +156,7 @@ module Onetime
           return
         end
 
-        if skip_for_stale_filter?(org, stale_only, plans_cache)
+        if skip_for_stale_filter?(org, stale_only, force, plans_cache)
           stats[:skipped_up_to_date] += 1
           puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
           print_progress(idx, total, verbose, progress_interval)
@@ -165,7 +172,7 @@ module Onetime
           return
         end
 
-        if !stale_only && org.entitlements_materialized? && !org.entitlements_stale?(plan)
+        if !force && !stale_only && org.entitlements_materialized? && !org.entitlements_stale?(plan)
           stats[:skipped_up_to_date] += 1
           puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
           print_progress(idx, total, verbose, progress_interval)
@@ -254,6 +261,7 @@ module Onetime
             --all                 Materialize all organizations (migration mode)
             --plan=<plan_id>      Materialize only organizations on this plan
             --stale               Only materialize orgs where entitlements are stale
+            --force               Force re-materialization even if up to date
             --run                 Execute materialization (default is dry-run)
             --verbose, -v         Show detailed progress for each organization
             --help, -h            Show this help message
@@ -270,6 +278,9 @@ module Onetime
 
             # Only update stale orgs (efficient for large deployments)
             bin/ots billing plans materialize --all --stale --run
+
+            # Force re-materialize all orgs (ignore up-to-date checks)
+            bin/ots billing plans materialize --all --force --run
 
           Notes:
             - Command is idempotent (safe to run multiple times)

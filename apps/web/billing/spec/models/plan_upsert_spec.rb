@@ -1486,3 +1486,73 @@ RSpec.describe 'Billing::Plan.send(:collect_stripe_plans) validation', type: :bi
     end
   end
 end
+
+RSpec.describe 'Billing::Plan.generate_base_plan_entries', type: :billing do
+  describe 'base plan entry generation' do
+    let(:monthly_plan_data) do
+      {
+        plan_id: 'identity_plus_v1_monthly',
+        interval: 'month',
+        entitlements: %w[create_secrets custom_domains],
+        limits: { teams: 1 },
+        name: 'Identity Plus',
+      }
+    end
+
+    let(:yearly_plan_data) do
+      {
+        plan_id: 'identity_plus_v1_yearly',
+        interval: 'year',
+        entitlements: %w[create_secrets custom_domains],
+        limits: { teams: 1 },
+        name: 'Identity Plus',
+      }
+    end
+
+    let(:team_monthly_data) do
+      {
+        plan_id: 'team_plus_v1_monthly',
+        interval: 'month',
+        entitlements: %w[create_secrets custom_domains manage_teams],
+        limits: { teams: 5 },
+        name: 'Team Plus',
+      }
+    end
+
+    it 'generates base entries from interval-suffixed plans' do
+      plan_data_list = [monthly_plan_data, yearly_plan_data]
+      result = Billing::Plan.send(:generate_base_plan_entries, plan_data_list)
+
+      expect(result.size).to eq(1)
+      expect(result.first[:plan_id]).to eq('identity_plus_v1')
+      expect(result.first[:interval]).to be_nil
+      expect(result.first[:entitlements]).to eq(%w[create_secrets custom_domains])
+    end
+
+    it 'generates one base entry per unique base plan_id' do
+      plan_data_list = [monthly_plan_data, yearly_plan_data, team_monthly_data]
+      result = Billing::Plan.send(:generate_base_plan_entries, plan_data_list)
+
+      expect(result.size).to eq(2)
+      plan_ids = result.map { |p| p[:plan_id] }
+      expect(plan_ids).to contain_exactly('identity_plus_v1', 'team_plus_v1')
+    end
+
+    it 'skips entries that already lack interval suffix' do
+      base_only = { plan_id: 'free_v1', interval: nil, entitlements: [] }
+      plan_data_list = [monthly_plan_data, base_only]
+      result = Billing::Plan.send(:generate_base_plan_entries, plan_data_list)
+
+      expect(result.size).to eq(1)
+      expect(result.first[:plan_id]).to eq('identity_plus_v1')
+    end
+
+    it 'uses first encountered entry as template' do
+      plan_data_list = [monthly_plan_data, yearly_plan_data]
+      result = Billing::Plan.send(:generate_base_plan_entries, plan_data_list)
+
+      # Should use monthly (first encountered) as template
+      expect(result.first[:name]).to eq('Identity Plus')
+    end
+  end
+end
