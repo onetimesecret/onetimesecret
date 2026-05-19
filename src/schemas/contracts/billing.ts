@@ -237,6 +237,7 @@ export const pendingMigrationSchema = z.object({
   target_plan_name: z.string(),
   target_currency: z.string(),
   target_plan_id: CanonicalPlanIdSchema,
+  target_interval: z.enum(['month', 'year']).optional(),
   effective_after: z.number(),
 });
 

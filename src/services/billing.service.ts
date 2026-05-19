@@ -176,6 +176,7 @@ export interface SubscriptionStatusResponse {
     target_plan_name: string;
     target_currency: string;
     target_plan_id: string;
+    target_interval?: 'month' | 'year';
     effective_after: number;
   } | null;
 }

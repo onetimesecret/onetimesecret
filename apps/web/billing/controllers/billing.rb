@@ -1146,11 +1146,17 @@ module Billing
           price_id = org.migration_target_price_id
           plan     = ::Billing::Plan.find_by_stripe_price_id(price_id)
 
+          # Find which interval this price_id belongs to
+          target_interval = plan&.prices_hash&.find do |_interval, data|
+            data[:stripe_price_id] == price_id
+          end&.first&.to_s || 'month'
+
           {
             target_price_id: price_id,
             target_plan_name: plan&.name || 'Unknown',
             target_currency: plan&.currency || 'unknown',
             target_plan_id: plan&.plan_id,
+            target_interval: target_interval,
             effective_after: org.migration_effective_after.to_i,
           }
         end
