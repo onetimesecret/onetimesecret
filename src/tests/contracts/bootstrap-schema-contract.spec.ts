@@ -14,7 +14,6 @@ import { featuresSchema, organizationSchema } from '@/schemas/contracts/bootstra
 import { bootstrapUiSchema, BOOTSTRAP_UI_DEFAULTS } from './bootstrap-test-schema';
 import {
   ALL_SERIALIZER_FIELDS,
-  ALL_BOOTSTRAP_FIELDS,
   AUTHENTICATION_SERIALIZER_FIELDS,
   CONFIG_SERIALIZER_FIELDS,
   DOMAIN_SERIALIZER_FIELDS,
@@ -22,8 +21,6 @@ import {
   MESSAGES_SERIALIZER_FIELDS,
   ORGANIZATION_SERIALIZER_FIELDS,
   SYSTEM_SERIALIZER_FIELDS,
-  NON_SERIALIZER_FIELDS,
-  TEMPLATE_ONLY_FIELDS,
 } from './bootstrap-serializer-fields';
 
 // ============================================================================
@@ -93,11 +90,6 @@ describe('Bootstrap schema contract (serializer fields)', () => {
   describe('serializer field coverage', () => {
     // Authentication serializer fields
     describe('AuthenticationSerializer fields', () => {
-      const relevantPayloadKeys = BOOTSTRAP_PAYLOAD_KEYS.filter(
-        (k) =>
-          AUTHENTICATION_SERIALIZER_FIELDS.includes(k as any) || k in INTENTIONAL_EXCLUSIONS
-      );
-
       it.each(
         AUTHENTICATION_SERIALIZER_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS))
       )('BootstrapPayload declares authentication field "%s"', (field) => {
@@ -308,7 +300,7 @@ describe('Bootstrap Zod schema validation', () => {
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: false,
-        planid: 'plan_abc',
+        planid: 'identity_plus_v1',
         current_user_role: 'admin' as const,
       };
 
@@ -404,7 +396,7 @@ describe('Bootstrap realistic payload parsing', () => {
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: false,
-        planid: 'plan_pro',
+        planid: 'identity_plus_v1',
         current_user_role: 'owner' as const,
       },
       supported_locales: ['en', 'es', 'fr'],
