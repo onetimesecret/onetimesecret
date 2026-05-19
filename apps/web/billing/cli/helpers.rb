@@ -167,19 +167,37 @@ module Onetime
       end
 
       def format_plan_row(plan)
-        amount             = format_amount(plan.amount, plan.currency)
         entitlements_count = plan.entitlements&.size || 0
+
+        # Family-keyed plans have nested prices; show intervals available
+        intervals         = plan.available_intervals.join(',')
+        intervals_display = intervals.empty? ? 'N/A' : intervals
+
+        # Show monthly amount if available, else yearly, else N/A
+        monthly = plan.price_for(:month)
+        yearly  = plan.price_for(:year)
+        amount  = if monthly
+                    format_amount(monthly[:amount], monthly[:currency])
+                  elsif yearly
+                    format_amount(yearly[:amount], yearly[:currency])
+                  else
+                    'N/A'
+                  end
+
+        # Show all stripe price IDs (comma-separated)
+        price_ids         = plan.all_stripe_price_ids.join(',')
+        price_ids_display = price_ids.empty? ? 'N/A' : price_ids
 
         format(
           '%-20s %-18s %-10s %-10s %-12s %-6d %-26s %s',
           (plan.plan_id || 'N/A')[0..19],
           (plan.tier || 'N/A')[0..17],
-          (plan.interval || 'N/A')[0..9],
+          intervals_display[0..9],
           amount[0..9],
           (plan.region || 'N/A')[0..11],
           entitlements_count,
           (plan.stripe_product_id || 'N/A')[0..25],
-          plan.stripe_price_id || 'N/A',
+          price_ids_display,
         )
       end
 
