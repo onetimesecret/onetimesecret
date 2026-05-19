@@ -382,11 +382,10 @@ const handleCompletePendingMigration = async () => {
 
   try {
     // Create a new checkout session for the pending migration target plan.
-    // target_plan_id is in "product_interval" format (e.g. "identity_plus_v1_monthly"),
-    // which createCheckoutSession can derive product + interval from.
+    // target_plan_id is a family ID (e.g. "identity_plus_v1").
+    // target_interval provides the billing interval.
     const planId = pendingMigration.value.target_plan_id;
-    const isYearly = planId.endsWith('_yearly');
-    const interval = isYearly ? 'year' : 'month';
+    const interval = pendingMigration.value.target_interval ?? 'month';
     const response = await BillingService.createCheckoutSession(
       selectedOrg.value.extid,
       {
@@ -450,14 +449,10 @@ onMounted(async () => {
         billingInterval.value = 'month';
       }
 
-      // Find the matching plan based on product and interval
-      // Product is like 'identity_plus_v1', plan.id is like 'identity_plus_v1_monthly'
-      const intervalSuffix = billingInterval.value === 'year' ? 'yearly' : 'monthly';
-      const expectedPlanId = `${productParam}_${intervalSuffix}`;
-
-      // Find plan by exact match or prefix match
+      // Find the matching plan based on product (family ID like 'identity_plus_v1')
+      // Plan IDs are now family-keyed without interval suffix
       const matchingPlan = plans.value.find(
-        p => p.id === expectedPlanId || p.id.startsWith(productParam)
+        p => p.id === productParam || p.id.startsWith(productParam)
       );
 
       if (matchingPlan) {
