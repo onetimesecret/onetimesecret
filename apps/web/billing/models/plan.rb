@@ -377,7 +377,8 @@ module Billing
       #
       # Called AFTER refresh_from_stripe to add plans with `prices: []` in billing.yaml.
       # These plans are not synced from Stripe since they have no prices, but should
-      # still appear in the plan catalog for display on pricing pages.
+      # still appear in the plan catalog for entitlement materialization and display
+      # on pricing pages.
       #
       # Since this runs after prune_stale_plans, config-only plans are upserted fresh
       # each sync cycle with active=true, ensuring they persist in the catalog.
