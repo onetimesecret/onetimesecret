@@ -304,7 +304,7 @@ tests:
       - selector: '[data-testid="org-selector"]'
         assertion: visible and enabled
       - action: click '[data-testid="org-selector"]'
-        assertion: '[data-testid="org-option"]' count >= 1
+        assertion: "'[data-testid=\"org-option\"]' count >= 1"
       - selector: text="No invoices yet"
         assertion: visible (expected for free user)
     priority: high
@@ -373,7 +373,7 @@ tests:
       - selector: '[data-testid="error-banner"]'
         assertion: not visible
       - conditional:
-          if: '{current_plan}' in ["team_plus_v1"]
+          if: "'{current_plan}' in [\"team_plus_v1\"]"
           then:
             selector: '[data-testid="domain-management-ui"]'
             assertion: visible
@@ -530,7 +530,7 @@ tests:
       - action: click '[data-testid="plan-select-button"][data-plan="identity_plus"]'
       - wait: either '[data-testid="checkout-modal"]' visible OR url contains "checkout.stripe.com"
       - conditional:
-          if: '[data-testid="checkout-modal"]' visible
+          if: "'[data-testid=\"checkout-modal\"]' visible"
           then:
             - selector: '[data-testid="payment-form"]'
               assertion: visible
@@ -573,7 +573,7 @@ tests:
           selector: '[data-testid="plan-card"][data-plan="team_plus"] [data-testid="feature-item"]'
           count: true
           store_as: team_feature_count
-      - assertion: '{team_feature_count}' > '{identity_feature_count}' >= '{free_feature_count}'
+      - assertion: "'{team_feature_count}' > '{identity_feature_count}' >= '{free_feature_count}'"
         description: Higher tiers have more features than lower tiers
       - selector: '[data-testid="plan-card"][data-plan="free"] [data-testid="current-plan-badge"]'
         assertion: visible
