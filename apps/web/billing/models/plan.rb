@@ -284,6 +284,13 @@ module Billing
           return 0
         end
 
+        # PHASE 1b: Generate base plan entries (no interval suffix)
+        # These alias entries allow orgs to use canonical plan_ids (e.g., 'identity_plus_v1')
+        # while preserving interval-suffixed entries for checkout pricing lookup.
+        base_entries = generate_base_plan_entries(plan_data_list)
+        plan_data_list.concat(base_entries)
+        OT.li "[Plan.refresh_from_stripe] Generated #{base_entries.size} base plan entries"
+
         progress&.call("Upserting #{plan_data_list.size} plans...")
 
         # PHASE 2: Upsert all plans (NO clear_cache!)
@@ -837,6 +844,37 @@ module Billing
 
         OT.li "[Plan.prune_stale_plans] Pruned #{pruned_count} stale plans" if pruned_count.positive?
         pruned_count
+      end
+
+      # Generate base plan entries (no interval suffix) from interval-suffixed plans
+      #
+      # Creates alias entries keyed by base plan_id (e.g., 'identity_plus_v1') that
+      # mirror the entitlements/limits of the interval-suffixed entries. This allows
+      # org.planid to use the canonical no-suffix format while preserving interval-
+      # suffixed entries for checkout (PlanResolver needs them for pricing lookup).
+      #
+      # @param plan_data_list [Array<Hash>] Plan data with interval-suffixed plan_ids
+      # @return [Array<Hash>] Additional base plan entries to upsert
+      def generate_base_plan_entries(plan_data_list)
+        base_entries = {}
+
+        plan_data_list.each do |plan_data|
+          plan_id      = plan_data[:plan_id]
+          base_plan_id = plan_id.sub(/_(month|year)ly\z/, '')
+
+          # Skip if this is already a base entry (no suffix stripped)
+          next if base_plan_id == plan_id
+
+          # Use first encountered entry as template (monthly/yearly have same entitlements)
+          next if base_entries.key?(base_plan_id)
+
+          base_entries[base_plan_id] = plan_data.merge(
+            plan_id: base_plan_id,
+            interval: nil,
+          )
+        end
+
+        base_entries.values
       end
 
       # Get plan by tier, interval, and region
