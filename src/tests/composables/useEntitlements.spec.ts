@@ -150,12 +150,12 @@ describe('useEntitlements', () => {
       expect(can('api_access')).toBe(false);
       expect(planId.value).toBe('free_v1');
 
-      org.value = createMockOrganization({ entitlements: ['api_access'], planid: 'team_plus_v1_monthly' });
+      org.value = createMockOrganization({ entitlements: ['api_access'], planid: 'team_plus_v1' });
       await nextTick();
 
       expect(entitlements.value).toContain('api_access');
       expect(can('api_access')).toBe(true);
-      expect(planId.value).toBe('team_plus_v1_monthly');
+      expect(planId.value).toBe('team_plus_v1');
     });
   });
 

@@ -122,12 +122,28 @@ const createTestI18n = () => createI18n({
   });
 
 // Test fixtures
+// Plan IDs are now family-keyed without interval suffix
+// Backend returns separate plan objects for monthly/yearly with the same id
 const defaultPlans: BillingPlan[] = [
   mockPlans.free,
-  mockPlans.single_team_monthly,
-  mockPlans.single_team_yearly,
-  mockPlans.multi_team_monthly,
-  mockPlans.multi_team_yearly,
+  mockPlans.single_team,
+  createMockPlan({
+    ...mockPlans.single_team,
+    id: 'identity_plus_v1',
+    interval: 'year',
+    amount: 29000,
+    monthly_equivalent_amount: 2417,
+    stripe_price_id: 'price_single_yearly',
+  }),
+  mockPlans.multi_team,
+  createMockPlan({
+    ...mockPlans.multi_team,
+    id: 'team_plus_v1',
+    interval: 'year',
+    amount: 99000,
+    monthly_equivalent_amount: 8250,
+    stripe_price_id: 'price_multi_yearly',
+  }),
 ];
 
 describe('Pricing.vue', () => {
@@ -303,7 +319,7 @@ describe('Pricing.vue', () => {
 
     it('includes product, interval, and redirect for paid plans', async () => {
       const paidPlan = createMockPlan({
-        id: 'identity_plus_v1_monthly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'month',
       });
@@ -319,7 +335,7 @@ describe('Pricing.vue', () => {
 
     it('encodes special characters in product name', async () => {
       const planWithSpecialChars = createMockPlan({
-        id: 'plan_with+special&chars_monthly',
+        id: 'plan_with+special&chars_v1',
         tier: 'single_team',
         interval: 'month',
       });
@@ -329,12 +345,12 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       const href = signupLink.attributes('href');
-      expect(href).toContain('product=plan_with%2Bspecial%26chars');
+      expect(href).toContain('product=plan_with%2Bspecial%26chars_v1');
     });
 
     it('uses yearly interval string for year plans', async () => {
       const yearlyPlan = createMockPlan({
-        id: 'identity_plus_v1_yearly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'year',
       });
@@ -349,7 +365,7 @@ describe('Pricing.vue', () => {
 
     it('uses current path as the redirect target', async () => {
       const paidPlan = createMockPlan({
-        id: 'identity_plus_v1_yearly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'year',
       });
@@ -367,7 +383,7 @@ describe('Pricing.vue', () => {
 
     it('preserves query string on the current URL in the redirect target', async () => {
       const paidPlan = createMockPlan({
-        id: 'identity_plus_v1_monthly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'month',
       });
@@ -390,10 +406,11 @@ describe('Pricing.vue', () => {
   describe('extractProductFromPlanId utility', () => {
     // Note: Testing through the component's rendered signup URLs
     // since the function is internal to the component
+    // Plan IDs are now family-keyed without interval suffix
 
-    it('removes _monthly suffix', async () => {
+    it('passes through family-keyed plan ID as product', async () => {
       const plan = createMockPlan({
-        id: 'identity_plus_v1_monthly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'month',
       });
@@ -403,12 +420,11 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('product=identity_plus_v1');
-      expect(signupLink.attributes('href')).not.toContain('product=identity_plus_v1_monthly');
     });
 
-    it('removes _yearly suffix', async () => {
+    it('handles year interval with family-keyed plan ID', async () => {
       const plan = createMockPlan({
-        id: 'team_plus_v1_yearly',
+        id: 'team_plus_v1',
         tier: 'single_team',
         interval: 'year',
       });
@@ -419,10 +435,9 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('product=team_plus_v1');
-      expect(signupLink.attributes('href')).not.toContain('product=team_plus_v1_yearly');
     });
 
-    it('handles plans without interval suffix', async () => {
+    it('handles plan ID with version number', async () => {
       const plan = createMockPlan({
         id: 'basic_plan_v2',
         tier: 'single_team',
@@ -499,7 +514,7 @@ describe('Pricing.vue', () => {
 
     it('shows empty state for interval with no matching plans', async () => {
       // Only monthly plans
-      const monthlyOnlyPlans = [mockPlans.single_team_monthly];
+      const monthlyOnlyPlans = [mockPlans.single_team];
       mockListPlans.mockResolvedValueOnce({ plans: monthlyOnlyPlans });
       mockRouteParamsValue = { interval: 'yearly' };
 
@@ -664,7 +679,7 @@ describe('Pricing.vue', () => {
         amount: 0,
       });
       const paidPlanYearly = createMockPlan({
-        id: 'identity_plus_v1_yearly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'year',
         amount: 29000,
