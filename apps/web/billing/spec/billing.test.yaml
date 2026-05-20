@@ -116,7 +116,7 @@ plans:
   # This matches the tier used in controller specs
   identity_plus_v1:
     name: 'Identity Plus'
-    tier: single_team
+    tier: single_account
     tenancy: multi
     region: EU # IMPORTANT: Must match mock_region! in tests
     display_order: 10
@@ -157,7 +157,7 @@ plans:
   # Tests verify that plans with legacy: true are detected correctly
   identity:
     name: 'Identity (Legacy)'
-    tier: single_team
+    tier: single_account
     tenancy: multi
     region: EU
     display_order: 99
