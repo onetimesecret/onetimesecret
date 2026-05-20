@@ -160,8 +160,8 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(plan).to be_nil
     end
 
-    it 'returns nil for non-canonical plan IDs' do
-      plan = Billing::Plan.load_from_config('noncanonical_plan_v1')
+    it 'returns nil for non-canonical plan IDs (legacy interval-suffixed format)' do
+      plan = Billing::Plan.load_from_config('identity_plus_v1_monthly')
       expect(plan).to be_nil
     end
   end
