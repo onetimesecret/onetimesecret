@@ -206,8 +206,11 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
     it 'uses cursor-based each_record, not the materializing .all' do
       instances = double('instances', element_count: 0)
       allow(instances).to receive(:each_record)
-      allow(instances).not_to receive(:all)
       allow(Onetime::Customer).to receive(:instances).and_return(instances)
+
+      # Lock in the SSCAN-backed scan: .all (SMEMBERS) would block
+      # Redis on large customer sets.
+      expect(instances).not_to receive(:all)
 
       described_class.find_eligible_customers
 
