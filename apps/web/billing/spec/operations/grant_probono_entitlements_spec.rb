@@ -24,6 +24,12 @@ require 'billing/operations/grant_probono_entitlements'
 RSpec.describe Billing::Operations::GrantProbonoEntitlements do
   let(:customer_email) { 'probono@example.com' }
 
+  # All stubs below use symbol keys because they are method names being
+  # defined on the double, not data keys. Setters (`planid=`,
+  # `complimentary=`) use the rocket form `:method= => value` since
+  # Ruby's `key:` shorthand only accepts identifier-shaped names; that
+  # is why they cluster at the bottom of each `double()` call.
+
   let(:customer) do
     double('Customer',
       extid: 'cust_ext_1',
