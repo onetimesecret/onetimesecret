@@ -23,7 +23,17 @@ jobs:
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
     # if: ${{ !startsWith(github.head_ref, 'deps/') }}
     runs-on: ubuntu-latest
-    # Skip bot-created PRs (renovate, dependabot, etc.) - they show as 'name[bot]' in github.actor
+    # Run only when ALL of the following are true:
+    #   1. Author is not a bot (renovate, dependabot, etc. surface as 'name[bot]' in github.actor).
+    #   2. PR head is not from a fork. Fork PRs run without access to repository
+    #      secrets, so CLAUDE_CODE_OAUTH_TOKEN is empty and the action would fail.
+    #      External contributions should be reviewed manually or via a maintainer-triggered
+    #      workflow that runs against the merged ref.
+    #   3. The event is one of:
+    #        - a freshly opened PR (always reviewed on open),
+    #        - a 'claude-review' label being added (manual trigger), or
+    #        - a push to a PR that already carries the 'claude-review' label
+    #          (so subsequent commits keep getting reviewed without re-labeling).
     if: ${{
       !endsWith(github.actor, '[bot]') &&
       !github.event.pull_request.head.repo.fork &&
