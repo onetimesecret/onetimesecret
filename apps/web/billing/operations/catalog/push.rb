@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'stripe_retry'
+require_relative 'stripe_reader'
 
 module Billing
   module Operations
@@ -72,8 +73,18 @@ module Billing
           report("Region filter: #{region_filter || '(none)'}")
           report("Plans to process: #{plans.keys.join(', ')}")
 
-          existing_products = fetch_existing_products(app_identifier, match_fields, region_filter, plans)
-          existing_prices   = fetch_existing_prices(existing_products)
+          override_product_ids = plans.values
+            .map { |plan_def| plan_def['stripe_product_id'] }
+            .compact
+            .to_set
+
+          existing_products = StripeReader.fetch_products(
+            app_identifier: app_identifier,
+            region_filter: region_filter,
+            match_fields: match_fields,
+            override_product_ids: override_product_ids,
+          )
+          existing_prices   = StripeReader.fetch_prices(existing_products)
 
           changes = analyze_changes(plans, existing_products, existing_prices, match_fields, catalog_currency)
 
@@ -122,44 +133,6 @@ module Billing
           catalog.empty? ? nil : catalog
         end
 
-        def fetch_existing_products(app_identifier, match_fields, region_filter, plans = {})
-          products             = {}
-          override_product_ids = plans.values
-            .map { |plan_def| plan_def['stripe_product_id'] }
-            .compact
-            .to_set
-
-          StripeRetry.with_retry do
-            Stripe::Product.list(active: true, limit: 100).auto_paging_each do |product|
-              has_app_match      = product.metadata['app'] == app_identifier
-              has_override_match = override_product_ids.include?(product.id)
-
-              next unless has_app_match || has_override_match
-
-              if region_filter && !has_override_match && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
-                next
-              end
-
-              key = build_match_key_from_metadata(product.metadata, match_fields)
-
-              if key
-                products[key] = product
-              elsif has_override_match
-                products["__id__#{product.id}"] = product
-              end
-            end
-          end
-
-          products
-        end
-
-        def build_match_key_from_metadata(metadata, match_fields)
-          values = match_fields.map { |f| metadata[f]&.to_s }
-          return nil if values.any?(&:nil?)
-
-          values.join('|')
-        end
-
         def build_match_key_from_plan(plan_id, plan_def, match_fields)
           values = match_fields.map do |field|
             field == 'plan_id' ? plan_id : plan_def[field]&.to_s
@@ -167,27 +140,6 @@ module Billing
           return nil if values.any?(&:nil?)
 
           values.join('|')
-        end
-
-        def fetch_existing_prices(products)
-          prices      = {}
-          product_ids = products.values.map(&:id)
-
-          return prices if product_ids.empty?
-
-          StripeRetry.with_retry do
-            Stripe::Price.list(active: true, limit: 100).auto_paging_each do |price|
-              next unless product_ids.include?(price.product)
-
-              match_key = products.find { |_k, p| p.id == price.product }&.first
-              next unless match_key
-
-              prices[match_key] ||= []
-              prices[match_key] << price
-            end
-          end
-
-          prices
         end
 
         def analyze_changes(plans, existing_products, existing_prices, match_fields, catalog_currency)

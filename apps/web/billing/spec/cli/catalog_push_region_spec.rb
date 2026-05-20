@@ -7,6 +7,9 @@
 # NOTE: These tests now target Operations::Catalog::Push directly, as the
 # CLI command is a thin wrapper. For CLI interface tests, see catalog_push_spec.rb.
 #
+# Region filtering tests (Bug #1) now target StripeReader since fetch_existing_products
+# was extracted there. Metadata tests (Bug #2) remain on Push.
+#
 # Covers:
 #   Bug #1 (P0): fetch_existing_products used raw != for region comparison
 #   Bug #2 (P1): build_syncable_metadata wrote nil.to_s -> "" erasing Stripe metadata
@@ -15,6 +18,7 @@
 
 require_relative '../support/billing_spec_helper'
 require_relative '../../operations/catalog/push'
+require_relative '../../operations/catalog/stripe_reader'
 
 # ==============================================================================
 # SECTION 1: build_syncable_metadata - nil region handling (Bug #2)
@@ -91,12 +95,10 @@ RSpec.describe 'Catalog::Push region handling in metadata', :billing_cli do
 end
 
 # ==============================================================================
-# SECTION 2: fetch_existing_products region filtering (Bug #1)
+# SECTION 2: StripeReader.fetch_products region filtering (Bug #1)
 # ==============================================================================
 
-RSpec.describe 'Catalog::Push fetch_existing_products region filtering', :billing_cli do
-  let(:operation) { Billing::Operations::Catalog::Push.new(dry_run: true, plan_filter: nil, skip_prices: true, progress: nil) }
-
+RSpec.describe 'StripeReader.fetch_products region filtering', :billing_cli do
   def mock_stripe_product(id:, plan_id:, region:)
     metadata = {
       'app' => 'onetimesecret',
@@ -105,8 +107,6 @@ RSpec.describe 'Catalog::Push fetch_existing_products region filtering', :billin
     }
     double("Stripe::Product(#{id})", id: id, name: "Plan #{plan_id}", metadata: metadata)
   end
-
-  let(:match_fields) { ['plan_id'] }
 
   let(:nz_product) { mock_stripe_product(id: 'prod_nz', plan_id: 'identity_nz_v1', region: 'NZ') }
   let(:nz_lower_product) { mock_stripe_product(id: 'prod_nz2', plan_id: 'starter_v1', region: 'nz') }
@@ -124,7 +124,10 @@ RSpec.describe 'Catalog::Push fetch_existing_products region filtering', :billin
   end
 
   it 'includes products matching region filter with same case' do
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ')
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'NZ',
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_nz')
   end
@@ -132,38 +135,56 @@ RSpec.describe 'Catalog::Push fetch_existing_products region filtering', :billin
   it 'includes products matching region filter case-insensitively (Bug #1 fix)' do
     # Product has region "nz" (lowercase), filter is "NZ" (uppercase)
     # Before the fix, raw != comparison would reject this product
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ')
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'NZ',
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_nz2')
   end
 
   it 'excludes products from non-matching regions' do
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ')
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'NZ',
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).not_to include('prod_eu')
   end
 
   it 'includes all products when region filter is nil (pass-through)' do
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, nil)
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: nil,
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_nz', 'prod_nz2', 'prod_eu')
   end
 
   it 'matches lowercase filter against uppercase product region' do
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'nz')
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'nz',
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_nz')
     expect(product_ids).not_to include('prod_eu')
   end
 
   it 'excludes products with nil region when filter is set (fail-closed)' do
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ')
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'NZ',
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).not_to include('prod_none')
   end
 
   it 'includes products with nil region when filter is nil (pass-through)' do
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, nil)
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: nil,
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_none')
   end
@@ -173,9 +194,7 @@ end
 # SECTION 3: Override products bypass region filter (Issue #3157)
 # ==============================================================================
 
-RSpec.describe 'Catalog::Push override + region interaction', :billing_cli do
-  let(:operation) { Billing::Operations::Catalog::Push.new(dry_run: true, plan_filter: nil, skip_prices: true, progress: nil) }
-
+RSpec.describe 'StripeReader override + region interaction', :billing_cli do
   def mock_stripe_product(id:, plan_id:, region:, app: 'onetimesecret')
     metadata = { 'app' => app, 'plan_id' => plan_id }
     metadata['region'] = region if region
@@ -191,14 +210,8 @@ RSpec.describe 'Catalog::Push override + region interaction', :billing_cli do
   # Product with correct region for baseline
   let(:nz_product) { mock_stripe_product(id: 'prod_nz', plan_id: 'identity_v1', region: 'NZ') }
 
-  # Plans hash keyed by plan_id (as fetch_existing_products expects)
-  let(:plans) do
-    {
-      'legacy_v1' => { 'plan_id' => 'legacy_v1', 'stripe_product_id' => 'prod_override_legacy' },
-      'starter_v1' => { 'plan_id' => 'starter_v1' }, # No override
-      'identity_v1' => { 'plan_id' => 'identity_v1' },
-    }
-  end
+  # Override product IDs extracted from plans with stripe_product_id
+  let(:override_product_ids) { Set.new(['prod_override_legacy']) }
 
   before do
     product_list = double('ProductList')
@@ -212,7 +225,12 @@ RSpec.describe 'Catalog::Push override + region interaction', :billing_cli do
   it 'includes override product without region metadata when region filter is set (Issue #3157 fix)' do
     # Product has explicit stripe_product_id override but no region metadata
     # Before the fix, region filter would exclude this product
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ', plans)
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'NZ',
+      match_fields: match_fields,
+      override_product_ids: override_product_ids,
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_override_legacy')
   end
@@ -220,13 +238,23 @@ RSpec.describe 'Catalog::Push override + region interaction', :billing_cli do
   it 'excludes app-matched products with wrong region when they have no override (regression)' do
     # Product matches app but has EU region while filter is NZ, and no override
     # This should still be filtered out (existing behavior preserved)
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ', plans)
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'NZ',
+      match_fields: match_fields,
+      override_product_ids: override_product_ids,
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).not_to include('prod_wrong_region')
   end
 
   it 'includes products with correct region as baseline' do
-    result = operation.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ', plans)
+    result = Billing::Operations::Catalog::StripeReader.fetch_products(
+      app_identifier: 'onetimesecret',
+      region_filter: 'NZ',
+      match_fields: match_fields,
+      override_product_ids: override_product_ids,
+    )
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_nz')
   end
