@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'stripe_retry'
+
 module Billing
   module Operations
     module Catalog
@@ -45,8 +47,9 @@ module Billing
         end
 
         def call
-          errors        = []
-          cache_cleared = false
+          cache_cleared       = false
+          plans_synced        = 0
+          config_plans_loaded = 0
 
           if @clear_cache
             report('Clearing existing plan cache...')
@@ -57,9 +60,9 @@ module Billing
 
           report('Pulling from Stripe to Redis cache...')
 
-          plans_synced = Billing::Plan.refresh_from_stripe(
-            progress: @progress,
-          )
+          plans_synced = StripeRetry.with_retry do
+            Billing::Plan.refresh_from_stripe(progress: @progress)
+          end
 
           config_plans_loaded = Billing::Plan.upsert_config_only_plans
 
@@ -69,16 +72,21 @@ module Billing
             plans_pruned: 0,
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
-            errors: errors,
           )
         rescue Stripe::StripeError => ex
           Result.new(
             success: false,
+            plans_synced: plans_synced,
+            config_plans_loaded: config_plans_loaded,
+            cache_cleared: cache_cleared,
             errors: ["Stripe error: #{ex.message}"],
           )
         rescue StandardError => ex
           Result.new(
             success: false,
+            plans_synced: plans_synced,
+            config_plans_loaded: config_plans_loaded,
+            cache_cleared: cache_cleared,
             errors: ["#{ex.class}: #{ex.message}"],
           )
         end
