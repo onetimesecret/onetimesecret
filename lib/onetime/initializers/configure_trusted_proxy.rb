@@ -42,11 +42,10 @@ module Onetime
       def execute(_context)
         config = load_config
 
-        unless config[:enabled]
-          Rack::Request.forwarded_priority = []
-          app_logger.debug '[init] Trusted proxy disabled, using REMOTE_ADDR only'
-          return
-        end
+        # No-op if trusted proxy support is not enabled. This allows us to avoid
+        # changing default Rack behavior that trusts X-Forwarded-For when
+        # REMOTE_ADDR is private (according to RFC1918).
+        return unless config[:enabled]
 
         case config[:mode]
         when 'depth'

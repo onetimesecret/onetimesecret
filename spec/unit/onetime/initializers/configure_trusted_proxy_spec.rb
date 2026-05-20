@@ -46,20 +46,38 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
         })
       end
 
-      it 'sets forwarded_priority to empty array' do
+      it 'does not modify Rack::Request.forwarded_priority' do
+        original_priority = Rack::Request.forwarded_priority
         instance.execute(context)
-        expect(Rack::Request.forwarded_priority).to eq([])
+        expect(Rack::Request.forwarded_priority).to eq(original_priority)
       end
 
-      it 'logs that proxy is disabled' do
+      it 'does not log any debug messages' do
         instance.execute(context)
-        expect(logger).to have_received(:debug).with(/Trusted proxy disabled/)
+        expect(logger).not_to have_received(:debug)
       end
 
       it 'does not modify ip_filter' do
         original_filter = Rack::Request.ip_filter
         instance.execute(context)
         expect(Rack::Request.ip_filter).to eq(original_filter)
+      end
+
+      it 'preserves Rack defaults for request.ip resolution' do
+        # Behavioral test: disabled mode should allow Rack's default IP resolution
+        # Rack default: forwarded_priority = [:forwarded, :x_forwarded]
+        instance.execute(context)
+
+        # Verify Rack can still parse X-Forwarded-For with default settings
+        env = {
+          'REMOTE_ADDR' => '10.0.0.1',
+          'HTTP_X_FORWARDED_FOR' => '203.0.113.50, 10.0.0.1'
+        }
+        request = Rack::Request.new(env)
+
+        # With defaults, Rack trusts private IPs and returns first non-private
+        # This verifies we haven't broken Rack's built-in proxy handling
+        expect(request.ip).to eq('203.0.113.50')
       end
     end
 
@@ -75,9 +93,10 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
         })
       end
 
-      it 'treats depth=0 as disabled' do
+      it 'treats depth=0 as disabled and preserves Rack defaults' do
+        original_priority = Rack::Request.forwarded_priority
         instance.execute(context)
-        expect(Rack::Request.forwarded_priority).to eq([])
+        expect(Rack::Request.forwarded_priority).to eq(original_priority)
       end
     end
 
@@ -184,9 +203,16 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
         allow(OT).to receive(:conf).and_return({})
       end
 
-      it 'defaults to disabled without error' do
+      it 'defaults to disabled and preserves Rack defaults' do
+        original_priority = Rack::Request.forwarded_priority
         expect { instance.execute(context) }.not_to raise_error
-        expect(Rack::Request.forwarded_priority).to eq([])
+        expect(Rack::Request.forwarded_priority).to eq(original_priority)
+      end
+
+      it 'does not modify ip_filter' do
+        original_filter = Rack::Request.ip_filter
+        instance.execute(context)
+        expect(Rack::Request.ip_filter).to eq(original_filter)
       end
     end
 
@@ -701,6 +727,186 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
         expect(filter.call('not-an-ip')).to be false
         expect(filter.call('')).to be false
         expect(filter.call('256.256.256.256')).to be false
+      end
+    end
+
+    # ==========================================================================
+    # Regression guards for config edge cases
+    # ==========================================================================
+    context 'when network key exists but trusted_proxy is nil' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'network' => {
+              'trusted_proxy' => nil
+            }
+          }
+        })
+      end
+
+      it 'treats nil config as disabled and preserves Rack defaults' do
+        original_priority = Rack::Request.forwarded_priority
+        expect { instance.execute(context) }.not_to raise_error
+        expect(Rack::Request.forwarded_priority).to eq(original_priority)
+      end
+    end
+
+    context 'when network key exists but is empty hash' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'network' => {}
+          }
+        })
+      end
+
+      it 'treats missing trusted_proxy as disabled' do
+        original_priority = Rack::Request.forwarded_priority
+        instance.execute(context)
+        expect(Rack::Request.forwarded_priority).to eq(original_priority)
+      end
+    end
+
+    context 'when enabled is truthy but not boolean true' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'network' => {
+              'trusted_proxy' => {
+                'enabled' => 'yes',  # String, not boolean
+                'mode' => 'filter'
+              }
+            }
+          }
+        })
+      end
+
+      it 'treats non-boolean truthy values as disabled (strict boolean check)' do
+        original_priority = Rack::Request.forwarded_priority
+        instance.execute(context)
+        expect(Rack::Request.forwarded_priority).to eq(original_priority)
+      end
+    end
+  end
+
+  # ============================================================================
+  # Integration test: initializer + middleware chain behavior
+  # ============================================================================
+  describe 'integration: middleware chain IP resolution' do
+    let(:instance) { described_class.new }
+    let(:context) { {} }
+    let(:logger) { instance_double('Logger', debug: nil, warn: nil) }
+
+    before do
+      allow(instance).to receive(:app_logger).and_return(logger)
+      @saved_forwarded_priority = Rack::Request.forwarded_priority
+      @saved_ip_filter = Rack::Request.ip_filter
+      @saved_ip_method = Rack::Request.instance_method(:ip)
+    end
+
+    after do
+      Rack::Request.forwarded_priority = @saved_forwarded_priority
+      Rack::Request.ip_filter = @saved_ip_filter
+      original_method = @saved_ip_method
+      Rack::Request.class_eval do
+        define_method(:ip, original_method)
+      end
+    end
+
+    context 'filter mode with custom CIDRs' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'network' => {
+              'trusted_proxy' => {
+                'enabled' => true,
+                'mode' => 'filter',
+                'cidrs' => ['203.0.113.0/24']
+              }
+            }
+          }
+        })
+        instance.execute(context)
+      end
+
+      it 'resolves client IP through trusted proxy chain' do
+        # Simulates: client 198.51.100.50 -> CDN 203.0.113.10 -> app
+        env = {
+          'REMOTE_ADDR' => '203.0.113.10',
+          'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 203.0.113.10'
+        }
+        request = Rack::Request.new(env)
+
+        # 203.0.113.10 is trusted (custom CIDR), so Rack returns 198.51.100.50
+        expect(request.ip).to eq('198.51.100.50')
+      end
+
+      it 'stops at untrusted proxy' do
+        # Simulates: client -> untrusted proxy 8.8.8.8 -> trusted proxy -> app
+        env = {
+          'REMOTE_ADDR' => '10.0.0.1',
+          'HTTP_X_FORWARDED_FOR' => '1.1.1.1, 8.8.8.8, 10.0.0.1'
+        }
+        request = Rack::Request.new(env)
+
+        # 10.0.0.1 is trusted (RFC1918), 8.8.8.8 is not, so returns 8.8.8.8
+        expect(request.ip).to eq('8.8.8.8')
+      end
+    end
+
+    context 'depth mode with ClientIpHelpers' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'network' => {
+              'trusted_proxy' => {
+                'enabled' => true,
+                'mode' => 'depth',
+                'depth' => 2
+              }
+            }
+          }
+        })
+        instance.execute(context)
+      end
+
+      it 'uses ClientIpHelpers for IP extraction' do
+        env = {
+          'REMOTE_ADDR' => '10.0.0.1',
+          'HTTP_X_FORWARDED_FOR' => '1.1.1.1, 2.2.2.2, 10.0.0.1'
+        }
+        request = Rack::Request.new(env)
+
+        # depth=2 means skip 2 rightmost entries from XFF chain
+        # Chain: ['1.1.1.1', '2.2.2.2', '10.0.0.1'] (length=3)
+        # forwarded[0...-2].last -> ['1.1.1.1'].last -> '1.1.1.1'
+        expect(request.ip).to eq('1.1.1.1')
+      end
+    end
+
+    context 'disabled mode preserves standard Rack behavior' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'network' => {
+              'trusted_proxy' => {
+                'enabled' => false
+              }
+            }
+          }
+        })
+        instance.execute(context)
+      end
+
+      it 'uses Rack default IP resolution' do
+        env = {
+          'REMOTE_ADDR' => '10.0.0.1',
+          'HTTP_X_FORWARDED_FOR' => '203.0.113.50, 10.0.0.1'
+        }
+        request = Rack::Request.new(env)
+
+        # Rack defaults trust RFC1918, returns first non-private IP
+        expect(request.ip).to eq('203.0.113.50')
       end
     end
   end

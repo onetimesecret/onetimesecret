@@ -205,5 +205,15 @@ RSpec.describe Onetime::ClientIpHelpers do
       e = env('HTTP_FORWARDED' => '')
       expect(described_class.extract_rfc7239_forwarded(e)).to be_nil
     end
+
+    it 'extracts IPs from complex header with by= params' do
+      e = env('HTTP_FORWARDED' => 'for=203.0.113.0;by=198.51.100.0, for=192.0.2.0')
+      expect(described_class.extract_rfc7239_forwarded(e)).to eq(%w[203.0.113.0 192.0.2.0])
+    end
+
+    it 'handles case-insensitive for parameter' do
+      e = env('HTTP_FORWARDED' => 'For=203.0.113.0, FOR=198.51.100.0')
+      expect(described_class.extract_rfc7239_forwarded(e)).to eq(%w[203.0.113.0 198.51.100.0])
+    end
   end
 end

@@ -1,4 +1,4 @@
-# try/unit/helpers/homepage_mode/forwarded_headers_try.rb
+# try/unit/helpers/client_ip/forwarded_headers_try.rb
 #
 # frozen_string_literal: true
 
@@ -7,6 +7,7 @@ require_relative '../../../support/test_helpers'
 OT.boot! :test
 
 require 'rack/mock'
+require 'onetime/helpers/client_ip_helpers'
 
 ## RFC 7239 Forwarded Header Extraction
 env = {
