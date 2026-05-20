@@ -59,16 +59,16 @@ Billing::Plan.instances.size
 
 ## Get available intervals
 @retrieved.available_intervals.sort
-#=> [:month, :year]
+#=> ['month', 'year']
 
 ## Get monthly price data via price_for
-@monthly_price = @retrieved.price_for(:month)
-@monthly_price[:amount]
+@monthly_price = @retrieved.price_for('month')
+@monthly_price['amount']
 #=> '2900'
 
 ## Get yearly price data via price_for
-@yearly_price = @retrieved.price_for(:year)
-@yearly_price[:amount]
+@yearly_price = @retrieved.price_for('year')
+@yearly_price['amount']
 #=> '29000'
 
 ## Get plan using tier, interval, region

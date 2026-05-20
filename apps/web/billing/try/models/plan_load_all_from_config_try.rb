@@ -69,24 +69,24 @@ Billing::Plan.instances.size
 
 ## Verify plan has both intervals available
 @plan.available_intervals.sort
-#=> [:month, :year]
+#=> ['month', 'year']
 
 ## Verify monthly price data
-@monthly_price = @plan.price_for(:month)
-@monthly_price[:amount]
+@monthly_price = @plan.price_for('month')
+@monthly_price['amount']
 #=> '1200'
 
 ## Verify monthly stripe_price_id
-@monthly_price[:stripe_price_id]
+@monthly_price['stripe_price_id']
 #=> 'price_test_monthly'
 
 ## Verify yearly price data
-@yearly_price = @plan.price_for(:year)
-@yearly_price[:amount]
+@yearly_price = @plan.price_for('year')
+@yearly_price['amount']
 #=> '12000'
 
 ## Verify yearly stripe_price_id
-@yearly_price[:stripe_price_id]
+@yearly_price['stripe_price_id']
 #=> 'price_test_yearly'
 
 ## Verify entitlements match config

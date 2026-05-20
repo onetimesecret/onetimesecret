@@ -31,11 +31,11 @@ module Billing
   # ## Terminology: interval vs billing_cycle
   #
   # Following Stripe's conventions:
-  #   - `interval` = Stripe price frequency symbols (:month, :year)
+  #   - `interval` = Stripe price frequency strings ('month', 'year')
   #   - `billing_cycle` = adverb form for UI/API ('monthly', 'yearly')
   #
   # The frontend sends `interval` in various forms (month, monthly, year,
-  # yearly, annual, annually). We normalize to Stripe symbols internally,
+  # yearly, annual, annually). We normalize to Stripe strings internally,
   # then convert to adverb form for Result.billing_cycle.
   #
   # ## Usage
@@ -57,9 +57,6 @@ module Billing
   #
   module PlanResolver
     extend self
-
-    # Internal representation follows Stripe convention
-    VALID_INTERVAL_SYMBOLS = [:month, :year].freeze
 
     # Canonical plan ID format: lowercase alphanumeric with underscores, ending in version
     # Examples: identity_plus_v1, team_v2, starter_v1
@@ -119,8 +116,8 @@ module Billing
     # them to checkout parameters by looking up the plan in the catalog.
     #
     # Interval normalization: Accepts 'month', 'monthly', 'year', 'yearly',
-    # 'annual', 'annually'. Internally normalizes to Stripe symbols (:month,
-    # :year) for price lookups, then converts to adverb form ('monthly',
+    # 'annual', 'annually'. Internally normalizes to Stripe strings ('month',
+    # 'year') for price lookups, then converts to adverb form ('monthly',
     # 'yearly') for Result.billing_cycle. This catches easy human errors
     # mixing up "month" with "monthly" while keeping the UI-friendly form.
     #
@@ -145,20 +142,20 @@ module Billing
       end
 
       # Plan IDs are family-keyed (unsuffixed). The product param IS the plan_id.
-      # Interval variants live inside the plan's prices hash, keyed by :month/:year.
+      # Interval variants live inside the plan's prices hash, keyed by 'month'/'year'.
       plan_id      = product.to_s
-      interval_sym = normalized_interval  # Already :month or :year from normalize_interval
+      interval_str = normalized_interval  # Already 'month' or 'year' from normalize_interval
 
-      # For external API: convert symbol back to adverb form
-      billing_cycle = { month: 'monthly', year: 'yearly' }.fetch(interval_sym)
+      # For external API: convert to adverb form
+      billing_cycle = { 'month' => 'monthly', 'year' => 'yearly' }.fetch(interval_str)
 
       # Look up plan in catalog
       plan = Billing::Plan.load(plan_id)
       if plan&.exists?
         # Verify the plan has a price for the requested interval
-        unless plan.available_intervals.include?(interval_sym)
+        unless plan.available_intervals.include?(interval_str)
           return error_result(
-            "Plan #{plan_id} has no #{interval_sym} price (available: #{plan.available_intervals.join(', ')})",
+            "Plan #{plan_id} has no #{interval_str} price (available: #{plan.available_intervals.join(', ')})",
           )
         end
 
@@ -221,17 +218,17 @@ module Billing
     # Normalize interval to Stripe's convention
     #
     # Accepts various interval formats (adverb forms common in UI text)
-    # and normalizes to Stripe's :month/:year symbols.
+    # and normalizes to Stripe's 'month'/'year' strings.
     #
     # @param interval [String] Input interval
-    # @return [Symbol, nil] :month, :year, or nil if invalid
+    # @return [String, nil] 'month', 'year', or nil if invalid
     #
     def normalize_interval(interval)
       case interval.to_s.downcase.strip
       when 'monthly', 'month'
-        :month
+        'month'
       when 'yearly', 'year', 'annual', 'annually'
-        :year
+        'year'
       end
     end
 
