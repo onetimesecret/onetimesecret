@@ -121,8 +121,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       # Mock catalog to return plan for price_test (catalog-first behavior)
       mock_plan = instance_double(
         Billing::Plan,
-        plan_id: 'identity_plus_v1',
-        stripe_price_id: 'price_test'
+        plan_id: 'identity_plus_v1'
       )
       allow(Billing::Plan).to receive(:find_by_stripe_price_id)
         .with('price_test')
