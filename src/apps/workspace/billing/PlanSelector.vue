@@ -108,7 +108,7 @@ const {
 
 /**
  * Get the current organization's tier by finding the matching plan.
- * The org has planid (e.g., 'identity_plus_v1_monthly') but we need
+ * The org has planid (canonical family ID like 'identity_plus_v1') and we need
  * the tier (e.g., 'single_team') for comparison with available plans.
  */
 const currentTier = computed((): string => {
@@ -122,11 +122,6 @@ const currentTier = computed((): string => {
   // Handle legacy plans that aren't in the active plans list
   // Legacy 'identity' plan has team features equivalent to single_team tier
   if (planid === 'identity') return 'single_team';
-
-  // Fallback: try to infer tier from planid naming convention
-  // e.g., 'identity_plus_v1_monthly' -> look for known tier patterns
-  if (planid.includes('multi_team') || planid.includes('team_plus')) return 'multi_team';
-  if (planid.includes('single_team') || planid.includes('identity_plus')) return 'single_team';
 
   return 'free';
 });

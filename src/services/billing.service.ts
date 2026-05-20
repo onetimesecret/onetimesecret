@@ -258,13 +258,8 @@ export interface ReactivateSubscriptionResponse {
 export function createBillingService(api: AxiosInstance): typeof BillingService {
   return {
     getOverview: (orgExtId) => api.get(`/billing/api/org/${orgExtId}`).then(r => r.data),
-    createCheckoutSession: (orgExtId, plan) => {
-      const intervalSuffix = plan.interval === 'year' ? '_yearly' : '_monthly';
-      const product = plan.id.endsWith(intervalSuffix)
-        ? plan.id.slice(0, -intervalSuffix.length)
-        : plan.id;
-      return api.post(`/billing/api/org/${orgExtId}/checkout`, { product, interval: plan.interval }).then(r => r.data);
-    },
+    createCheckoutSession: (orgExtId, plan) =>
+      api.post(`/billing/api/org/${orgExtId}/checkout`, { product: plan.id, interval: plan.interval }).then(r => r.data),
     listInvoices: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/invoices`).then(r => r.data),
     listPlans: () => api.get('/billing/api/plans').then(r => r.data),
     getSubscriptionStatus: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/subscription`).then(r => r.data),
@@ -291,29 +286,16 @@ export const BillingService = {
   /**
    * Create a checkout session for subscribing to or changing a plan
    *
-   * Terminology:
-   * - `product`: The plan product ID without interval suffix (e.g., 'identity_plus_v1')
-   * - `interval`: The billing interval ('month' or 'year')
-   *
-   * The product is derived from plan.id by removing the interval suffix.
-   *
    * @param orgExtId - Organization external ID
-   * @param plan - Plan object with id and interval
+   * @param plan - Plan object with id (family ID like 'identity_plus_v1') and interval
    * @returns Checkout session URL and ID
    */
   async createCheckoutSession(
     orgExtId: string,
     plan: { id: string; interval: string }
   ): Promise<CheckoutSessionResponse> {
-    // Derive product from plan.id by removing interval suffix
-    // plan.id = 'identity_plus_v1_monthly' → product = 'identity_plus_v1'
-    const intervalSuffix = plan.interval === 'year' ? '_yearly' : '_monthly';
-    const product = plan.id.endsWith(intervalSuffix)
-      ? plan.id.slice(0, -intervalSuffix.length)
-      : plan.id;
-
     const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/checkout`, {
-      product,
+      product: plan.id,
       interval: plan.interval,
     });
     return response.data;

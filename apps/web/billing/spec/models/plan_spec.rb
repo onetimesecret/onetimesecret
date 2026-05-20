@@ -160,11 +160,11 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(plan).to be_nil
     end
 
-    it 'strips interval suffix when looking up base plan (backward compatibility)' do
-      # identity_plus_v1 should be found even when requested with old suffixed format
+    it 'returns nil for legacy suffixed plan IDs (no backward compatibility)' do
+      # Canonical plan IDs are family-keyed (no interval suffix)
+      # Legacy suffixed IDs (e.g., identity_plus_v1_monthly) are no longer supported
       plan = Billing::Plan.load_from_config('identity_plus_v1_monthly')
-      expect(plan).not_to be_nil
-      expect(plan[:tier]).not_to be_nil
+      expect(plan).to be_nil
     end
   end
 
@@ -189,7 +189,8 @@ RSpec.describe Billing::Plan, type: :billing do
     it 'includes tier field' do
       plans = Billing::Plan.list_plans_from_config
       tiers = plans.map { |p| p[:tier] }.compact
-      expect(tiers).to include('single_team')
+      # Config defines identity_plus_v1 with single_account tier
+      expect(tiers).to include('single_account')
     end
   end
 
@@ -215,7 +216,8 @@ RSpec.describe Billing::Plan, type: :billing do
 
       plans = Billing::Plan.list_plans
       tiers = plans.map(&:tier).uniq
-      expect(tiers).to include('single_team')
+      # Config defines plans with single_account tier (identity_plus_v1)
+      expect(tiers).to include('single_account')
     end
 
     it 'loads plans with both monthly and yearly intervals' do
@@ -234,17 +236,21 @@ RSpec.describe Billing::Plan, type: :billing do
     end
 
     it 'finds plan by tier, interval, and region' do
-      # Region is either a specific code or nil (no "global" default).
-      # Try configured region first, then nil for non-regionalized deployments.
-      plan = Billing::Plan.get_plan('single_team', 'monthly', 'EU')
-      plan ||= Billing::Plan.get_plan('single_team', 'monthly', nil)
+      # Find any plan to determine the actual region from config
+      plans = Billing::Plan.list_plans
+      actual_region = plans.first&.region
+
+      # Config defines identity_plus_v1 with single_account tier
+      plan = Billing::Plan.get_plan('single_account', 'monthly', actual_region)
       expect(plan).not_to be_nil
-      expect(plan.tier).to eq('single_team')
+      expect(plan.tier).to eq('single_account')
     end
 
     it 'returns plan with requested interval available' do
-      plan = Billing::Plan.get_plan('single_team', 'monthly', 'EU')
-      plan ||= Billing::Plan.get_plan('single_team', 'monthly', nil)
+      plans = Billing::Plan.list_plans
+      actual_region = plans.first&.region
+
+      plan = Billing::Plan.get_plan('single_account', 'monthly', actual_region)
       expect(plan&.available_intervals).to include(:month)
     end
 

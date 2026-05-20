@@ -285,12 +285,16 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
     end
 
     it 'plans are retrievable by tier and billing cycle' do
-      skip 'Plan cache empty' if ::Billing::Plan.list_plans.empty?
+      plans = ::Billing::Plan.list_plans
+      skip 'Plan cache empty' if plans.empty?
 
-      # Test common tier/billing cycle combinations
-      plan = ::Billing::Plan.get_plan('single_team', 'monthly', 'EU')
+      # Get actual tier and region from loaded plans (config-dependent)
+      sample_plan = plans.find { |p| p.tier != 'free' }
+      skip 'No paid plans in cache' unless sample_plan
+
+      plan = ::Billing::Plan.get_plan(sample_plan.tier, 'monthly', sample_plan.region)
       expect(plan).not_to be_nil,
-        'Could not retrieve single_team monthly plan. ' \
+        "Could not retrieve #{sample_plan.tier} monthly plan. " \
         'Check Plan.get_plan lookup logic and cache keys.'
     end
   end

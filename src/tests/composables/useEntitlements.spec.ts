@@ -54,7 +54,7 @@ describe('useEntitlements', () => {
         { key: 'api_access', display_name: 'web.billing.entitlements.api_access', category: 'infrastructure' },
         { key: 'custom_domains', display_name: 'web.billing.entitlements.custom_domains', category: 'infrastructure' },
       ],
-      plans: [{ plan_id: 'identity_v1', name: 'Identity Plus', entitlements: ['api_access', 'custom_domains'] }],
+      plans: [{ plan_id: 'identity_plus_v1', name: 'Identity Plus', entitlements: ['api_access', 'custom_domains'] }],
     },
   };
 
@@ -227,7 +227,7 @@ describe('useEntitlements', () => {
       mockGet.mockResolvedValueOnce({
         data: {
           entitlements: [{ key: 'audit_logs', display_name: 'Audit Logs', category: 'security' }],
-          plans: [{ plan_id: 'multi_team_v1', name: 'Team Plus', entitlements: ['audit_logs'] }],
+          plans: [{ plan_id: 'team_plus_v1', name: 'Team Plus', entitlements: ['audit_logs'] }],
         },
       });
       const useEntitlements = await importFresh();
@@ -236,13 +236,14 @@ describe('useEntitlements', () => {
 
       await initDefinitions();
       await nextTick();
-      expect(upgradePath('audit_logs')).toBe('multi_team_v1');
+      expect(upgradePath('audit_logs')).toBe('team_plus_v1');
     });
 
-    it('falls back to hardcoded mapping when store not initialized', async () => {
+    it('returns null when store not initialized (no fallback)', async () => {
       const useEntitlements = await importFresh();
       const { upgradePath } = useEntitlements(ref(createMockOrganization({ entitlements: [] })));
-      expect(upgradePath('audit_logs')).toBe('multi_team_v1');
+      // No fallback - callers must ensure initDefinitions() runs first
+      expect(upgradePath('audit_logs')).toBeNull();
     });
   });
 

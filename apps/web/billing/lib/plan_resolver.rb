@@ -47,7 +47,7 @@ module Billing
   #   )
   #
   #   if result.success?
-  #     # result.plan_id => 'identity_plus_v1_monthly'
+  #     # result.plan_id => 'identity_plus_v1' (canonical family ID)
   #     # result.tier => 'identity'
   #     # result.billing_cycle => 'monthly'
   #     # result.checkout_url => '/billing/api/org/:extid/checkout'
@@ -63,7 +63,7 @@ module Billing
     # Result struct for plan resolution
     #
     # @attr success [Boolean] Whether resolution succeeded
-    # @attr plan_id [String, nil] Full plan ID with interval suffix
+    # @attr plan_id [String, nil] Canonical family ID (e.g., 'identity_plus_v1')
     # @attr tier [String, nil] Plan tier from catalog
     # @attr billing_cycle [String, nil] Billing cycle (monthly/yearly)
     # @attr plan [Billing::Plan, nil] The resolved plan object

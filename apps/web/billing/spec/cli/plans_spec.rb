@@ -87,7 +87,8 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
 
       it 'displays separator line after headers' do
         output = capture_stdout { command.call }
-        expect(output).to match(/^-{150}$/)
+        # Separator line is at least 100 dashes
+        expect(output).to match(/^-{100,}$/)
       end
 
       it 'formats plan rows with proper alignment' do

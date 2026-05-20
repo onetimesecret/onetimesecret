@@ -916,37 +916,6 @@ module Billing
         pruned_count
       end
 
-      # Generate base plan entries (no interval suffix) from interval-suffixed plans
-      #
-      # Creates alias entries keyed by base plan_id (e.g., 'identity_plus_v1') that
-      # mirror the entitlements/limits of the interval-suffixed entries. This allows
-      # org.planid to use the canonical no-suffix format while preserving interval-
-      # suffixed entries for checkout (PlanResolver needs them for pricing lookup).
-      #
-      # @param plan_data_list [Array<Hash>] Plan data with interval-suffixed plan_ids
-      # @return [Array<Hash>] Additional base plan entries to upsert
-      def generate_base_plan_entries(plan_data_list)
-        base_entries = {}
-
-        plan_data_list.each do |plan_data|
-          plan_id      = plan_data[:plan_id]
-          base_plan_id = plan_id.sub(/_(month|year)ly\z/, '')
-
-          # Skip if this is already a base entry (no suffix stripped)
-          next if base_plan_id == plan_id
-
-          # Use first encountered entry as template (monthly/yearly have same entitlements)
-          next if base_entries.key?(base_plan_id)
-
-          base_entries[base_plan_id] = plan_data.merge(
-            plan_id: base_plan_id,
-            interval: nil,
-          )
-        end
-
-        base_entries.values
-      end
-
       # Get plan by tier, interval, and region
       #
       # Searches cached plans by tier/region fields and verifies the plan
@@ -1276,27 +1245,14 @@ module Billing
       # Used as fallback when Stripe cache is empty (dev/test environments).
       # Returns an ephemeral Plan-like hash (not persisted to Redis).
       #
-      # Accepts both family IDs (e.g., "identity_plus_v1") and legacy suffixed
-      # IDs (e.g., "identity_plus_v1_monthly") for backward compatibility.
-      #
-      # @param plan_id [String] Plan ID (family ID or legacy suffixed)
+      # @param plan_id [String] Canonical family ID (e.g., "identity_plus_v1")
       # @return [Hash, nil] Plan hash with :name, :entitlements, :limits or nil
       def load_from_config(plan_id)
         plans_hash = Billing::Config.load_plans
         return nil if plans_hash.empty?
+        return nil unless plans_hash.key?(plan_id)
 
-        # Try exact match first (e.g., "free_v1")
-        if plans_hash.key?(plan_id)
-          return config_plan_to_hash(plan_id, plans_hash[plan_id], plans_hash)
-        end
-
-        # Try stripping interval suffix (e.g., "identity_plus_v1_monthly" -> "identity_plus_v1")
-        base_id = plan_id.sub(/_(month|year)ly$/, '')
-        if plans_hash.key?(base_id)
-          return config_plan_to_hash(plan_id, plans_hash[base_id], plans_hash)
-        end
-
-        nil
+        config_plan_to_hash(plan_id, plans_hash[plan_id], plans_hash)
       end
 
       # Load all plans from billing.yaml config
