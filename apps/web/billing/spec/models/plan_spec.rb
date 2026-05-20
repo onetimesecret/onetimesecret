@@ -194,6 +194,8 @@ RSpec.describe Billing::Plan, type: :billing do
 
   describe '.load_all_from_config' do
     before do
+      # Allow real Plan.load for config loading tests (overrides stub_test_plan_catalog!)
+      allow(Billing::Plan).to receive(:load).and_call_original
       Billing::Plan.clear_cache
     end
 
@@ -230,6 +232,8 @@ RSpec.describe Billing::Plan, type: :billing do
 
   describe '.get_plan' do
     before do
+      # Allow real Plan.load for config loading tests (overrides stub_test_plan_catalog!)
+      allow(Billing::Plan).to receive(:load).and_call_original
       Billing::Plan.load_all_from_config
     end
 
@@ -366,6 +370,8 @@ RSpec.describe Billing::Plan, type: :billing do
     # Higher tiers should include all features from lower tiers
 
     before do
+      # Allow real Plan.load for config loading tests (overrides stub_test_plan_catalog!)
+      allow(Billing::Plan).to receive(:load).and_call_original
       Billing::Plan.load_all_from_config
     end
 

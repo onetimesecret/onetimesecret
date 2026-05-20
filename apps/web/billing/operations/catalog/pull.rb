@@ -4,6 +4,8 @@
 
 require_relative 'stripe_retry'
 require_relative 'stripe_reader'
+require_relative 'config_loader'
+require_relative 'plan_persister'
 require_relative '../../lib/stripe_circuit_breaker'
 
 module Billing
@@ -64,7 +66,7 @@ module Billing
           stripe_key = Onetime.billing_config.stripe_key
           if stripe_key.to_s.strip.empty?
             OT.lw '[Pull] Skipping Stripe sync: No API key configured'
-            config_plans_loaded = Billing::Plan.upsert_config_only_plans
+            config_plans_loaded = ConfigLoader.upsert_config_only_plans
             return Result.new(
               success: true,
               plans_synced: 0,
@@ -79,7 +81,7 @@ module Billing
             sync_from_stripe
           end
 
-          config_plans_loaded = Billing::Plan.upsert_config_only_plans
+          config_plans_loaded = ConfigLoader.upsert_config_only_plans
 
           Result.new(
             success: true,
@@ -141,7 +143,7 @@ module Billing
           not_persisted = []
 
           plan_data_list.each do |plan_data|
-            plan = Billing::Plan.upsert_from_stripe_data(plan_data)
+            plan = PlanPersister.upsert_from_stripe_data(plan_data)
             upserted_ids << plan.plan_id
             not_persisted << plan.plan_id unless Billing::Plan.instances.member?(plan.plan_id)
           end
@@ -153,13 +155,13 @@ module Billing
           end
 
           # Prune stale plans not in current Stripe catalog
-          pruned_count = Billing::Plan.prune_stale_plans(upserted_ids)
+          pruned_count = PlanPersister.prune_stale_plans(upserted_ids)
 
           # Rebuild lookup cache for O(1) price_id lookups
-          Billing::Plan.rebuild_stripe_price_id_cache
+          PlanPersister.rebuild_stripe_price_id_cache
 
           # Update global sync timestamp
-          Billing::Plan.update_catalog_sync_timestamp
+          PlanPersister.update_catalog_sync_timestamp
 
           OT.li "[Pull] Synced #{saved_count}/#{upserted_ids.size} plans " \
                 "(#{not_persisted.size} not persisted), pruned #{pruned_count}"

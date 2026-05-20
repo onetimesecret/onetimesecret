@@ -5,6 +5,8 @@
 require_relative '../../support/billing_spec_helper'
 require_relative '../../../operations/catalog/pull'
 require_relative '../../../operations/catalog/stripe_reader'
+require_relative '../../../operations/catalog/plan_persister'
+require_relative '../../../operations/catalog/config_loader'
 
 RSpec.describe Billing::Operations::Catalog::Pull, :billing do
   describe '.call' do
@@ -96,12 +98,17 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
         stripe_snapshot: { product: {}, prices: { month: {} } },
         prices: { month: {} },
       })
-      allow(Billing::Plan).to receive(:upsert_from_stripe_data).and_return(mock_plan)
+      # Stub PlanPersister methods (extracted from Plan)
+      allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data).and_return(mock_plan)
+      allow(Billing::Operations::Catalog::PlanPersister).to receive(:prune_stale_plans).and_return(0)
+      allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
+      allow(Billing::Operations::Catalog::PlanPersister).to receive(:update_catalog_sync_timestamp)
+
+      # Stub ConfigLoader methods (extracted from Plan)
+      allow(Billing::Operations::Catalog::ConfigLoader).to receive(:upsert_config_only_plans).and_return(1)
+
+      # Stub remaining Plan methods
       allow(Billing::Plan).to receive(:instances).and_return(double(member?: true))
-      allow(Billing::Plan).to receive(:prune_stale_plans).and_return(0)
-      allow(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
-      allow(Billing::Plan).to receive(:update_catalog_sync_timestamp)
-      allow(Billing::Plan).to receive(:upsert_config_only_plans).and_return(1)
       allow(Billing::Plan).to receive(:clear_cache)
     end
 
@@ -137,22 +144,22 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       end
 
       it 'upserts plans to Redis' do
-        expect(Billing::Plan).to receive(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
         result
       end
 
       it 'prunes stale plans' do
-        expect(Billing::Plan).to receive(:prune_stale_plans).with(['test_plan_v1'])
+        expect(Billing::Operations::Catalog::PlanPersister).to receive(:prune_stale_plans).with(['test_plan_v1'])
         result
       end
 
       it 'rebuilds price ID cache' do
-        expect(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
+        expect(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
         result
       end
 
       it 'updates catalog sync timestamp' do
-        expect(Billing::Plan).to receive(:update_catalog_sync_timestamp)
+        expect(Billing::Operations::Catalog::PlanPersister).to receive(:update_catalog_sync_timestamp)
         result
       end
     end
@@ -200,7 +207,7 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       end
 
       it 'still loads config-only plans' do
-        expect(Billing::Plan).to receive(:upsert_config_only_plans)
+        expect(Billing::Operations::Catalog::ConfigLoader).to receive(:upsert_config_only_plans)
         result
       end
     end
