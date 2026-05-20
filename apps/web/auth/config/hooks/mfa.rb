@@ -54,7 +54,7 @@ module Auth::Config::Hooks
             attempt_type: attempt_type,
             has_otp_code: has_otp_code,
             has_password: has_password,
-            ip: request.trusted_client_ip,
+            ip: request.ip,
             request_method: request.request_method,
           )
         else
@@ -63,7 +63,7 @@ module Auth::Config::Hooks
             :mfa_setup_route_start,
             level: :debug,
             account_id: session_value,
-            ip: request.trusted_client_ip,
+            ip: request.ip,
             request_method: request.request_method,
           )
         end
@@ -124,7 +124,7 @@ module Auth::Config::Hooks
           log_metric: true,
           account_id: account_id,
           email: account[:email],
-          ip: request.trusted_client_ip,
+          ip: request.ip,
           duration_ms: duration_ms,
           correlation_id: correlation_id,
         )
@@ -173,7 +173,7 @@ module Auth::Config::Hooks
           log_metric: true,
           account_id: account_id,
           email: account[:email],
-          ip: request.trusted_client_ip,
+          ip: request.ip,
         )
         # Rodauth handles session cleanup automatically
       end
@@ -236,7 +236,7 @@ module Auth::Config::Hooks
             account_id: session_value,
             email: account&.[](:email),
             has_otp_code: has_otp_code,
-            ip: request.trusted_client_ip,
+            ip: request.ip,
             correlation_id: correlation_id,
           )
         else
@@ -245,7 +245,7 @@ module Auth::Config::Hooks
             :mfa_verification_route_start,
             level: :debug,
             account_id: session_value,
-            ip: request.trusted_client_ip,
+            ip: request.ip,
             correlation_id: correlation_id,
           )
         end
@@ -291,7 +291,7 @@ module Auth::Config::Hooks
           log_metric: true,
           account_id: account_id,
           email: account[:email],
-          ip: request.trusted_client_ip,
+          ip: request.ip,
           duration_ms: duration_ms,
           correlation_id: correlation_id,
         )
@@ -314,7 +314,7 @@ module Auth::Config::Hooks
           log_metric: true,
           account_id: account_id,
           email: account[:email],
-          ip: request.trusted_client_ip,
+          ip: request.ip,
           has_recovery_code: !recovery_code.to_s.empty?,
           correlation_id: correlation_id,
         )
@@ -336,7 +336,7 @@ module Auth::Config::Hooks
           log_metric: true,
           account_id: account_id,
           email: account[:email],
-          ip: request.trusted_client_ip,
+          ip: request.ip,
           codes_count: codes_count,
         )
       end
@@ -355,7 +355,7 @@ module Auth::Config::Hooks
           log_metric: true,
           account_id: account_id,
           email: account[:email],
-          ip: request.trusted_client_ip,
+          ip: request.ip,
         )
       end
     end

@@ -175,14 +175,14 @@ module Onetime
             email: session['email'],
             session_id: session.id&.private_id,
             expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
-            ip_address: session['ip_address'] || request.trusted_client_ip,
+            ip_address: session['ip_address'] || request.ip,
           },
         }
       end
 
       def resolve_anonymous_identity(request, _env)
         logger.debug '[IdentityResolution] Resolved anonymous identity',
-          ip: request.trusted_client_ip,
+          ip: request.ip,
           path: request.path_info
 
         {
@@ -190,7 +190,7 @@ module Onetime
           source: 'anonymous',
           authenticated: false,
           metadata: {
-            ip_address: request.trusted_client_ip,
+            ip_address: request.ip,
             user_agent: request.user_agent,
           },
         }

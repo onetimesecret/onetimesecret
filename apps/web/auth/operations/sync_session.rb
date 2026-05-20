@@ -222,7 +222,7 @@ module Auth
 
       # Tracks request metadata in the session
       def track_request_metadata
-        @session['ip_address'] = @request.trusted_client_ip
+        @session['ip_address'] = @request.ip
         @session['user_agent'] = @request.user_agent
       end
 

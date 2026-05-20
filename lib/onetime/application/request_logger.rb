@@ -78,7 +78,7 @@ module Onetime
         payload[:path]       = request.path if capture?(:path)
         payload[:status]     = status if capture?(:status)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
-        payload[:ip]         = request.trusted_client_ip if capture?(:ip)
+        payload[:ip]         = request.ip if capture?(:ip)
         payload[:params]     = redact_params(request.params) if capture?(:params)
         # Rack::Session::SessionId is not JSON-serializable under strict mode;
         # prefer public_id (hex digest safe to log) and fall back to to_s.

@@ -231,7 +231,7 @@ module V1
       header_details = collect_proxy_header_details(req.env)
 
       details = [
-        req.trusted_client_ip,
+        req.ip,
         "#{req.request_method} #{req.path_info}?#{req.query_string}",
         "Proxy[#{header_details}]",
       ]
@@ -375,7 +375,7 @@ module V1
             {
               url: req.url,
               method: req.request_method,
-              ip: req.trusted_client_ip,
+              ip: req.ip,
             },
           )
         end
