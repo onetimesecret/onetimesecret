@@ -181,9 +181,9 @@ module Billing
             has_errors = errors.any? { |e| e.include?("Plan #{plan_id}:") || e.include?("/plans/#{plan_id}") }
 
             if has_errors
-              invalid_plans << { id: plan_id, name: data['name'], tier: data['tier'] }
+              invalid_plans << { id: plan_id, name: data['name'], tier: data['tier'], display_order: data['display_order'] || 0 }
             else
-              valid_plans << { id: plan_id, name: data['name'], tier: data['tier'] }
+              valid_plans << { id: plan_id, name: data['name'], tier: data['tier'], display_order: data['display_order'] || 0 }
             end
           end
 

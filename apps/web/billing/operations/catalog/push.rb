@@ -95,7 +95,7 @@ module Billing
             )
           end
 
-          apply_changes(changes, app_identifier)
+          apply_changes(changes, app_identifier, catalog_currency)
 
           Result.new(
             success: true,
@@ -368,11 +368,11 @@ module Billing
           end
         end
 
-        def apply_changes(changes, app_identifier)
+        def apply_changes(changes, app_identifier, catalog_currency)
           new_products = {}
 
           changes[:products_to_create].each do |item|
-            product                      = create_product(item[:plan_id], item[:plan_def], app_identifier)
+            product                      = create_product(item[:plan_id], item[:plan_def], app_identifier, catalog_currency)
             new_products[item[:plan_id]] = product if product
           end
 
@@ -388,8 +388,8 @@ module Billing
           end
         end
 
-        def create_product(plan_id, plan_def, app_identifier)
-          metadata           = build_create_metadata(plan_id, plan_def, app_identifier)
+        def create_product(plan_id, plan_def, app_identifier, catalog_currency)
+          metadata           = build_create_metadata(plan_id, plan_def, app_identifier, catalog_currency)
           marketing_features = (plan_def['features'] || []).map { |f| { name: f } }
 
           product = StripeRetry.with_retry do
@@ -456,7 +456,7 @@ module Billing
           report("  ERROR creating price: #{ex.message}")
         end
 
-        def build_create_metadata(plan_id, plan_def, app_identifier)
+        def build_create_metadata(plan_id, plan_def, app_identifier, catalog_currency)
           limits = plan_def['limits'] || {}
 
           metadata = {
@@ -483,7 +483,7 @@ module Billing
             metadata[field_name] = serialized if serialized
           end
 
-          metadata[Billing::Metadata::FIELD_CURRENCY] = OT.billing_config.currency
+          metadata[Billing::Metadata::FIELD_CURRENCY] = catalog_currency
 
           Billing::Metadata::LIMIT_FIELDS.each do |field_name, yaml_key|
             value                = limits[yaml_key]

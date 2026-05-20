@@ -22,12 +22,11 @@ module Billing
         Result = Data.define(
           :success,
           :plans_synced,
-          :plans_pruned,
           :config_plans_loaded,
           :cache_cleared,
           :errors,
         ) do
-          def initialize(success:, plans_synced: 0, plans_pruned: 0, config_plans_loaded: 0, cache_cleared: false, errors: [])
+          def initialize(success:, plans_synced: 0, config_plans_loaded: 0, cache_cleared: false, errors: [])
             super
           end
         end
@@ -69,7 +68,6 @@ module Billing
           Result.new(
             success: true,
             plans_synced: plans_synced,
-            plans_pruned: 0,
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
           )

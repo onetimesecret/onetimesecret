@@ -2,26 +2,18 @@
 #
 # frozen_string_literal: true
 
-# Specs for `bin/ots billing catalog validate`.
+# Specs for `bin/ots billing catalog validate` CLI wrapper.
 #
-# Validates the billing catalog YAML against the Zod-generated JSON Schema
-# at generated/schemas/config/billing.schema.json.
-#
-# These run under spec:fast (no :integration tag, no Stripe/VCR): the
-# command performs local schema validation only and never calls Stripe.
-#
-# Run: pnpm run test:rspec apps/web/billing/spec/cli/catalog_validate_command_spec.rb
+# These test the CLI's public interface and delegation to operations.
+# For detailed logic tests, see: spec/operations/catalog/validate_spec.rb
 
 require_relative '../support/billing_spec_helper'
-require 'tempfile'
 require 'onetime/cli'
 require_relative '../../cli/catalog_validate_command'
 
 RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
   subject(:command) { Onetime::CLI::BillingCatalogValidateCommand.new }
 
-  # The command calls `exit` to signal pass/fail. Capture stdout and the
-  # resulting exit status.
   def run_command(**kwargs)
     old_stdout = $stdout
     $stdout    = StringIO.new
@@ -37,7 +29,6 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
   end
 
   before do
-    # OT is already booted by billing_spec_helper; avoid re-booting in-process.
     allow(command).to receive(:boot_application!)
   end
 
@@ -49,155 +40,134 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
     end
   end
 
-  describe '#call with a valid catalog' do
-    # No config_path stub: ConfigResolver resolves the real test catalog
-    # (apps/web/billing/spec/billing.test.yaml) under RACK_ENV=test.
-    it 'passes validation against the current billing catalog' do
-      output, status = run_command
+  describe '#call' do
+    context 'when validation succeeds with no warnings' do
+      let(:valid_result) do
+        Billing::Operations::Catalog::Validate::Result.new(
+          success: true,
+          valid: true,
+          plans_validated: 3,
+          plan_summary: { valid: [{ id: 'test_v1', name: 'Test', tier: 'free' }], invalid: [], has_free_tier: true },
+        )
+      end
 
-      expect(output).to include('VALIDATION PASSED')
-      expect(status).to eq(0)
-    end
-  end
+      before do
+        allow(Billing::Operations::Catalog::Validate).to receive(:call).and_return(valid_result)
+      end
 
-  describe '#call with an invalid catalog' do
-    let(:fixture) { Tempfile.new(['billing_invalid', '.yaml']) }
+      it 'reports VALIDATION PASSED' do
+        output, status = run_command
+        expect(output).to include('VALIDATION PASSED')
+        expect(status).to eq(0)
+      end
 
-    before do
-      allow(Billing::Config).to receive(:config_path).and_return(fixture.path)
-      allow(Billing::Config).to receive(:config_exists?).and_return(true)
-    end
-
-    after do
-      fixture.close
-      fixture.unlink
-    end
-
-    def write_fixture(yaml)
-      fixture.write(yaml)
-      fixture.flush
-    end
-
-    it 'fails when a limit is negative beyond the -1 unlimited sentinel' do
-      write_fixture(<<~YAML)
-        schema_version: "1.0"
-        app_identifier: "onetimesecret"
-        entitlements:
-          create_secrets:
-            category: core
-            description: Can create basic secrets
-        plans:
-          team_plus_v1:
-            name: "Team Plus"
-            tier: single_team
-            entitlements:
-              - create_secrets
-            limits:
-              organizations: -2
-              members_per_team: 1
-              custom_domains: 1
-              secret_lifetime: 100
-            prices:
-              - interval: month
-                amount: 100
-      YAML
-
-      output, status = run_command
-
-      expect(output).to include('VALIDATION FAILED')
-      expect(output).to include('Schema validation:')
-      expect(status).to eq(1)
+      it 'shows plan summary' do
+        output, _status = run_command
+        expect(output).to include('VALID (1)')
+        expect(output).to include('Test')
+      end
     end
 
-    it 'fails when grandfathered_until is not an ISO date' do
-      write_fixture(<<~YAML)
-        schema_version: "1.0"
-        app_identifier: "onetimesecret"
-        entitlements:
-          create_secrets:
-            category: core
-            description: Can create basic secrets
-        plans:
-          free_v1:
-            name: "Free"
-            tier: free
-            grandfathered_until: "not-a-date"
-            entitlements:
-              - create_secrets
-            limits:
-              organizations: 1
-              members_per_team: 1
-              custom_domains: 1
-              secret_lifetime: 100
-            prices: []
-      YAML
+    context 'when validation succeeds with warnings (non-strict)' do
+      let(:warnings_result) do
+        Billing::Operations::Catalog::Validate::Result.new(
+          success: true,
+          valid: true,
+          plans_validated: 2,
+          warnings: ['Plan test_v1: Missing yearly pricing'],
+          plan_summary: { valid: [], invalid: [], has_free_tier: false },
+        )
+      end
 
-      output, status = run_command
+      before do
+        allow(Billing::Operations::Catalog::Validate).to receive(:call).and_return(warnings_result)
+      end
 
-      expect(output).to include('VALIDATION FAILED')
-      expect(status).to eq(1)
+      it 'passes with warnings' do
+        output, status = run_command
+        expect(output).to include('VALIDATION PASSED (warnings only)')
+        expect(output).to include('1 warning(s)')
+        expect(status).to eq(0)
+      end
     end
 
-    it 'fails when plan ID does not match canonical format' do
-      # Issue #3135: Plan IDs must match canonical pattern
-      write_fixture(<<~YAML)
-        schema_version: "1.0"
-        app_identifier: "onetimesecret"
-        entitlements:
-          create_secrets:
-            category: core
-            description: Can create basic secrets
-        plans:
-          invalid_plan_format:
-            name: "Invalid Plan"
-            tier: single_account
-            entitlements:
-              - create_secrets
-            limits:
-              organizations: 1
-              members_per_team: 1
-              custom_domains: 1
-              secret_lifetime: 100
-            prices:
-              - interval: month
-                amount: 900
-      YAML
+    context 'when validation succeeds with warnings (strict mode)' do
+      let(:warnings_result) do
+        Billing::Operations::Catalog::Validate::Result.new(
+          success: true,
+          valid: false,  # strict mode makes warnings fail
+          plans_validated: 2,
+          warnings: ['Plan test_v1: Missing yearly pricing'],
+          plan_summary: { valid: [], invalid: [], has_free_tier: false },
+        )
+      end
 
-      output, status = run_command
+      before do
+        allow(Billing::Operations::Catalog::Validate).to receive(:call).and_return(warnings_result)
+      end
 
-      expect(output).to include('VALIDATION FAILED')
-      expect(output).to include('Schema validation:')
-      expect(status).to eq(1)
+      it 'passes strict: true to operation' do
+        expect(Billing::Operations::Catalog::Validate).to receive(:call) do |args|
+          expect(args[:strict]).to be(true)
+          warnings_result
+        end
+
+        run_command(strict: true)
+      end
+
+      it 'fails in strict mode with warnings' do
+        output, status = run_command(strict: true)
+        expect(output).to include('VALIDATION FAILED')
+        expect(output).to include('warning(s) in strict mode')
+        expect(status).to eq(1)
+      end
     end
 
-    it 'passes when plan ID matches canonical format' do
-      write_fixture(<<~YAML)
-        schema_version: "1.0"
-        app_identifier: "onetimesecret"
-        entitlements:
-          create_secrets:
-            category: core
-            description: Can create basic secrets
-        plans:
-          identity_plus_v1:
-            name: "Identity Plus"
-            tier: single_account
-            entitlements:
-              - create_secrets
-            limits:
-              organizations: 1
-              members_per_team: 1
-              custom_domains: 1
-              secret_lifetime: 100
-            prices:
-              - interval: month
-                amount: 900
-      YAML
+    context 'when validation fails with errors' do
+      let(:error_result) do
+        Billing::Operations::Catalog::Validate::Result.new(
+          success: true,
+          valid: false,
+          plans_validated: 1,
+          errors: ['Schema validation: /plans/bad_plan: required property name is missing'],
+          plan_summary: { valid: [], invalid: [{ id: 'bad_plan', name: nil, tier: nil }], has_free_tier: false },
+        )
+      end
 
-      output, status = run_command
+      before do
+        allow(Billing::Operations::Catalog::Validate).to receive(:call).and_return(error_result)
+      end
 
-      expect(output).to include('VALIDATION PASSED')
-      expect(status).to eq(0)
+      it 'reports VALIDATION FAILED' do
+        output, status = run_command
+        expect(output).to include('VALIDATION FAILED')
+        expect(output).to include('1 error(s) found')
+        expect(status).to eq(1)
+      end
+
+      it 'shows error details' do
+        output, _status = run_command
+        expect(output).to include('Schema validation:')
+      end
+    end
+
+    context 'when operation itself fails' do
+      let(:failure_result) do
+        Billing::Operations::Catalog::Validate::Result.new(
+          success: false,
+          errors: ['Catalog file not found: /path/to/billing.yaml'],
+        )
+      end
+
+      before do
+        allow(Billing::Operations::Catalog::Validate).to receive(:call).and_return(failure_result)
+      end
+
+      it 'displays error and exits 1' do
+        output, status = run_command
+        expect(output).to include('Error: Catalog file not found')
+        expect(status).to eq(1)
+      end
     end
   end
 end

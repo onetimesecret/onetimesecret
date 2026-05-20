@@ -104,7 +104,7 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
   describe 'Result struct' do
     it 'has expected fields' do
       result = described_class::Result.new(success: true)
-      expect(result).to respond_to(:success, :plans_synced, :plans_pruned,
+      expect(result).to respond_to(:success, :plans_synced,
                                    :config_plans_loaded, :cache_cleared, :errors)
     end
 
