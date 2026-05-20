@@ -60,6 +60,11 @@ module Billing
 
     VALID_INTERVALS = %w[monthly yearly].freeze
 
+    # Canonical plan ID format: lowercase alphanumeric with underscores, ending in version
+    # Examples: identity_plus_v1, team_v2, starter_v1
+    # Rejects: identity_plus_v1_monthly (interval suffix), Identity_Plus_V1 (uppercase)
+    CANONICAL_PLAN_ID_PATTERN = /\A[a-z][a-z0-9]*(?:_[a-z0-9]+)*_v\d+\z/
+
     # Result struct for plan resolution
     #
     # @attr success [Boolean] Whether resolution succeeded
@@ -127,6 +132,11 @@ module Billing
         return error_result("Invalid interval: #{interval}. Must be 'monthly' or 'yearly'")
       end
 
+      # Validate canonical plan ID format (rejects interval-suffixed IDs)
+      unless canonical_plan_id?(product)
+        return error_result("Invalid plan ID format: #{product}. Expected format like 'identity_plus_v1'")
+      end
+
       # Plan IDs are family-keyed (unsuffixed). The product param IS the plan_id.
       # Interval variants live inside the plan's prices hash, keyed by :month/:year.
       plan_id      = product.to_s
@@ -181,9 +191,19 @@ module Billing
     def valid_params?(product:, interval:)
       return false if product.nil? || product.to_s.strip.empty?
       return false if interval.nil? || interval.to_s.strip.empty?
+      return false unless canonical_plan_id?(product)
 
       normalized = normalize_interval(interval)
       !normalized.nil?
+    end
+
+    # Check if product matches canonical plan ID format
+    #
+    # @param product [String] Product identifier to validate
+    # @return [Boolean] True if format is valid
+    #
+    def canonical_plan_id?(product)
+      CANONICAL_PLAN_ID_PATTERN.match?(product.to_s)
     end
 
     private

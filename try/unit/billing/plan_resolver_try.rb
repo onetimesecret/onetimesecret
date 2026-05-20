@@ -136,13 +136,23 @@ result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'w
 [result.success?, result.error.include?('Invalid interval')]
 #=> [false, true]
 
-## Resolve returns failure for unknown plan
-result = Billing::PlanResolver.resolve(product: 'unknown_plan', interval: 'monthly')
+## Resolve returns failure for interval-suffixed plan ID
+result = Billing::PlanResolver.resolve(product: 'identity_plus_v1_monthly', interval: 'monthly')
+[result.success?, result.error.include?('Invalid plan ID format')]
+#=> [false, true]
+
+## Resolve returns failure for uppercase plan ID
+result = Billing::PlanResolver.resolve(product: 'Identity_Plus_V1', interval: 'monthly')
+[result.success?, result.error.include?('Invalid plan ID format')]
+#=> [false, true]
+
+## Resolve returns failure for unknown plan (with valid canonical format)
+result = Billing::PlanResolver.resolve(product: 'unknown_plan_v1', interval: 'monthly')
 [result.success?, result.error.include?('Plan not found')]
 #=> [false, true]
 
 ## Result failed? returns true for failed resolution
-result = Billing::PlanResolver.resolve(product: 'unknown', interval: 'monthly')
+result = Billing::PlanResolver.resolve(product: 'unknown_v1', interval: 'monthly')
 result.failed?
 #=> true
 
@@ -151,8 +161,8 @@ result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'm
 result.failed?
 #=> false
 
-## valid_params? returns true for valid params
-Billing::PlanResolver.valid_params?(product: 'any_product', interval: 'monthly')
+## valid_params? returns true for valid params (canonical format)
+Billing::PlanResolver.valid_params?(product: 'any_product_v1', interval: 'monthly')
 #=> true
 
 ## valid_params? returns false for missing product
@@ -160,11 +170,83 @@ Billing::PlanResolver.valid_params?(product: nil, interval: 'monthly')
 #=> false
 
 ## valid_params? returns false for missing interval
-Billing::PlanResolver.valid_params?(product: 'product', interval: nil)
+Billing::PlanResolver.valid_params?(product: 'product_v1', interval: nil)
 #=> false
 
 ## valid_params? returns false for invalid interval
-Billing::PlanResolver.valid_params?(product: 'product', interval: 'weekly')
+Billing::PlanResolver.valid_params?(product: 'product_v1', interval: 'weekly')
+#=> false
+
+## valid_params? returns false for non-canonical plan ID (suffixed)
+Billing::PlanResolver.valid_params?(product: 'identity_plus_v1_monthly', interval: 'monthly')
+#=> false
+
+## valid_params? returns false for non-canonical plan ID (uppercase)
+Billing::PlanResolver.valid_params?(product: 'Identity_Plus_V1', interval: 'monthly')
+#=> false
+
+## canonical_plan_id? rejects plan ID starting with digit
+Billing::PlanResolver.canonical_plan_id?('1identity_v1')
+#=> false
+
+## canonical_plan_id? accepts minimal valid ID (single char before version)
+Billing::PlanResolver.canonical_plan_id?('a_v1')
+#=> true
+
+## canonical_plan_id? accepts numeric segments after underscore
+Billing::PlanResolver.canonical_plan_id?('plan_123_v1')
+#=> true
+
+## canonical_plan_id? rejects double underscores
+Billing::PlanResolver.canonical_plan_id?('plan__v1')
+#=> false
+
+## canonical_plan_id? rejects trailing underscore without version
+Billing::PlanResolver.canonical_plan_id?('plan_')
+#=> false
+
+## canonical_plan_id? rejects missing version suffix
+Billing::PlanResolver.canonical_plan_id?('identity_plus')
+#=> false
+
+## canonical_plan_id? rejects version without underscore
+Billing::PlanResolver.canonical_plan_id?('planv1')
+#=> false
+
+## canonical_plan_id? accepts version zero
+Billing::PlanResolver.canonical_plan_id?('plan_v0')
+#=> true
+
+## canonical_plan_id? accepts multi-digit version
+Billing::PlanResolver.canonical_plan_id?('plan_v999')
+#=> true
+
+## canonical_plan_id? rejects hyphens
+Billing::PlanResolver.canonical_plan_id?('identity-plus-v1')
+#=> false
+
+## canonical_plan_id? rejects dots
+Billing::PlanResolver.canonical_plan_id?('identity.plus.v1')
+#=> false
+
+## canonical_plan_id? rejects embedded spaces
+Billing::PlanResolver.canonical_plan_id?('plan v1')
+#=> false
+
+## canonical_plan_id? rejects unicode characters
+Billing::PlanResolver.canonical_plan_id?('plan_火_v1')
+#=> false
+
+## canonical_plan_id? rejects yearly suffix variant
+Billing::PlanResolver.canonical_plan_id?('identity_plus_v1_yearly')
+#=> false
+
+## canonical_plan_id? rejects _month suffix (Stripe interval format)
+Billing::PlanResolver.canonical_plan_id?('identity_plus_v1_month')
+#=> false
+
+## canonical_plan_id? rejects _year suffix (Stripe interval format)
+Billing::PlanResolver.canonical_plan_id?('identity_plus_v1_year')
 #=> false
 
 ## checkout_params returns hash for successful resolution
