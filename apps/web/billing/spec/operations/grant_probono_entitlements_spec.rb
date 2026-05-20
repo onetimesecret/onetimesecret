@@ -155,50 +155,63 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
     let(:cust_eligible)   { double('Customer', planid: 'identity') }
     let(:cust_ineligible) { double('Customer', planid: 'identity_plus_v1') }
 
-    before do
-      allow(Onetime::Customer).to receive(:instances)
-        .and_return(double(all: %w[c1 c2 c3]))
-      allow(Onetime::Customer).to receive(:load_multi)
-        .with(%w[c1 c2 c3])
-        .and_return([cust_eligible, cust_ineligible, cust_eligible])
+    # Stub Familia's cursor-based iterator. each_record yields one
+    # record at a time, just like the real implementation.
+    def stub_each_record(records)
+      instances = double('instances', element_count: records.size)
+      allow(instances).to receive(:each_record) do |**_kwargs, &block|
+        records.each(&block)
+      end
+      allow(Onetime::Customer).to receive(:instances).and_return(instances)
     end
 
     it 'returns only eligible customers' do
+      stub_each_record([cust_eligible, cust_ineligible, cust_eligible])
+
       result = described_class.find_eligible_customers
 
       expect(result).to eq([cust_eligible, cust_eligible])
     end
 
-    it 'yields progress for each batch' do
+    it 'yields the final progress at scanned == total' do
+      stub_each_record([cust_eligible, cust_ineligible, cust_eligible])
+
       progress = []
-      described_class.find_eligible_customers do |scanned, total|
+      described_class.find_eligible_customers(batch_size: 100) do |scanned, total|
         progress << [scanned, total]
       end
 
       expect(progress).to eq([[3, 3]])
     end
 
-    it 'caps scanned count at total when batch overshoots' do
-      allow(Onetime::Customer).to receive(:instances)
-        .and_return(double(all: %w[c1 c2]))
-      allow(Onetime::Customer).to receive(:load_multi)
-        .with(%w[c1 c2])
-        .and_return([cust_eligible, cust_eligible])
+    it 'yields progress at each batch boundary and at the end' do
+      stub_each_record(Array.new(5) { cust_ineligible })
 
       progress = []
-      described_class.find_eligible_customers(batch_size: 5) do |scanned, total|
+      described_class.find_eligible_customers(batch_size: 2) do |scanned, total|
         progress << [scanned, total]
       end
 
-      expect(progress).to eq([[2, 2]])
+      # Boundaries at 2, 4; final yield at 5 (scanned == total)
+      expect(progress).to eq([[2, 5], [4, 5], [5, 5]])
     end
 
-    it 'compacts nil entries from load_multi' do
-      allow(Onetime::Customer).to receive(:load_multi)
-        .and_return([cust_eligible, nil, cust_eligible])
+    it 'returns empty when no eligible customers exist' do
+      stub_each_record([cust_ineligible, cust_ineligible])
 
       result = described_class.find_eligible_customers
-      expect(result).to eq([cust_eligible, cust_eligible])
+      expect(result).to be_empty
+    end
+
+    it 'uses cursor-based each_record, not the materializing .all' do
+      instances = double('instances', element_count: 0)
+      allow(instances).to receive(:each_record)
+      allow(instances).not_to receive(:all)
+      allow(Onetime::Customer).to receive(:instances).and_return(instances)
+
+      described_class.find_eligible_customers
+
+      expect(instances).to have_received(:each_record).with(batch_size: 100)
     end
   end
 
@@ -298,27 +311,34 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
       described_class.call(customer)
     end
 
-    it 'clears customer.planid only after materialize succeeds' do
+    it 'materializes before marking complimentary, then clears customer planid' do
       call_order = []
-      allow(org).to receive(:save) { call_order << :org_save }
       allow(Billing::Operations::ApplySubscriptionToOrg)
         .to receive(:materialize_entitlements_for_org) do
           call_order << :materialize
           materialize_result
         end
+      allow(org).to receive(:complimentary=) { |_| call_order << :complimentary_set }
+      allow(org).to receive(:save) { call_order << :org_save }
       allow(customer).to receive(:planid=) { |_| call_order << :clear_customer_planid }
       allow(customer).to receive(:save) { call_order << :customer_save }
 
       described_class.call(customer)
 
-      expect(call_order).to eq(%i[org_save materialize clear_customer_planid customer_save])
+      # Materialize must precede the complimentary write+save, so a
+      # failure in materialize cannot leave org marked complimentary.
+      expect(call_order).to eq(
+        %i[materialize complimentary_set org_save clear_customer_planid customer_save],
+      )
     end
 
-    it 'leaves customer.planid untouched when materialize raises' do
+    it 'leaves org.complimentary and customer.planid untouched when materialize raises' do
       allow(Billing::Operations::ApplySubscriptionToOrg)
         .to receive(:materialize_entitlements_for_org)
         .and_raise(Billing::PlanCacheMissError.new('plan missing', plan_id: 'identity'))
 
+      expect(org).not_to receive(:complimentary=)
+      expect(org).not_to receive(:save)
       expect(customer).not_to receive(:planid=)
       expect(customer).not_to receive(:save)
 

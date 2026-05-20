@@ -112,7 +112,11 @@ module Onetime
       rescue StandardError => ex
         stats[:errors] << "#{cust.extid}: #{ex.message}"
         puts "  #{label} Error: #{ex.message}"
-        OT.le "[GrantProBonoEntitlements] Error for #{cust.extid}: #{ex.message}"
+        # Include backtrace in the structured log so unexpected
+        # failures across large batches are diagnosable; keep the
+        # terminal output a single line for the operator.
+        backtrace = (ex.backtrace || []).join("\n")
+        OT.le "[GrantProBonoEntitlements] Error for #{cust.extid}: #{ex.message}\n#{backtrace}"
       end
 
       def update_stats(stats, result)

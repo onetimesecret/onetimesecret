@@ -70,19 +70,22 @@ module Billing
 
       # Scan all customers and return those eligible for the grant.
       #
-      # @param batch_size [Integer] How many IDs to load per round-trip
-      # @yieldparam scanned [Integer] Cumulative count of IDs processed
-      # @yieldparam total [Integer] Total IDs to process
+      # Uses Familia's cursor-based each_record (SSCAN under the hood)
+      # rather than loading every customer ID into memory at once.
+      #
+      # @param batch_size [Integer] Cursor batch size for each_record
+      # @yieldparam scanned [Integer] Cumulative count of customers processed
+      # @yieldparam total [Integer] Total customers to process
       # @return [Array<Onetime::Customer>]
       def self.find_eligible_customers(batch_size: DEFAULT_BATCH_SIZE)
-        all_ids  = Onetime::Customer.instances.all
-        total    = all_ids.size
         eligible = []
+        total    = Onetime::Customer.instances.element_count
+        scanned  = 0
 
-        all_ids.each_slice(batch_size).with_index do |batch_ids, batch_idx|
-          customers = Onetime::Customer.load_multi(batch_ids).compact
-          eligible.concat(filter_eligible(customers))
-          yield [(batch_idx + 1) * batch_size, total].min, total if block_given?
+        Onetime::Customer.instances.each_record(batch_size: batch_size) do |cust|
+          scanned += 1
+          eligible << cust if LEGACY_PROBONO_PLANIDS.include?(cust.planid.to_s)
+          yield scanned, total if block_given? && (scanned == total || (scanned % batch_size).zero?)
         end
 
         eligible
@@ -137,15 +140,26 @@ module Billing
         !@force && org.complimentary.to_s == 'true'
       end
 
-      # Order matters: org fields first (so materialize reads the new
-      # planid), then materialize, then clear customer.planid last so a
-      # mid-flight failure leaves the legacy marker visible for retry.
+      # Ordering invariant for idempotency on partial failure:
+      #
+      # 1. Set planid on the in-memory org so materialize reads the
+      #    target plan.
+      # 2. Materialize first — if it raises, the org has not been
+      #    marked complimentary, so the next run is not blocked by
+      #    blocked_by_complimentary?. (materialize internally persists
+      #    org.planid + entitlements via save_with_collections; the
+      #    complimentary marker stays nil until step 3.)
+      # 3. Set complimentary and save explicitly only after a
+      #    successful materialize.
+      # 4. Clear customer.planid last so a mid-flight failure leaves
+      #    the legacy marker visible for retry.
       def execute_grant(org)
-        org.planid        = TARGET_PLANID
-        org.complimentary = 'true'
-        org.save
+        org.planid = TARGET_PLANID
 
         ApplySubscriptionToOrg.materialize_entitlements_for_org(org, raise_on_miss: true)
+
+        org.complimentary = 'true'
+        org.save
 
         @customer.planid = nil
         @customer.save
