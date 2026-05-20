@@ -78,14 +78,34 @@ module Onetime
 
         return if parsed_ranges.empty?
 
-        # Extend Rack's default filter to include custom ranges
+        # Extend Rack's default filter to also trust the configured CIDRs.
+        #
+        # Hot path: invoked once per forwarded-header hop on every request.
+        # Two perf-relevant choices:
+        #
+        #   1. Parse `ip` once, up front. IPAddr#include?(String) coerces via
+        #      IPAddr.new on every call, so N ranges would mean N parses.
+        #      Hoisting the parse turns this into 1 parse + N integer compares.
+        #
+        #   2. Rescue is narrowed to IPAddr::InvalidAddressError. Malformed IPs
+        #      are expected input — `ip` may be REMOTE_ADDR (trusted) or any
+        #      hop value from an attacker-controlled X-Forwarded-For/Forwarded
+        #      header. Anything other than InvalidAddressError (NoMethodError,
+        #      etc.) is a real bug and should surface, not be masked as "not
+        #      trusted".
+        #
+        # No per-request logging by design. Because `ip` can come from a
+        # forwarded header, anything emitted here is an attacker-controlled
+        # log-flood vector. Boot-time validation above already reports
+        # malformed CIDRs from config, which is the actionable case.
         default_filter          = Rack::Request.ip_filter
         Rack::Request.ip_filter = ->(ip) do
-          default_filter.call(ip) || parsed_ranges.any? do |range|
-                                                                    range.include?(ip)
-          rescue StandardError
-                                                                    false
-          end
+          return true if default_filter.call(ip)
+
+          parsed_ip = IPAddr.new(ip)
+          parsed_ranges.any? { it.include?(parsed_ip) }
+        rescue IPAddr::InvalidAddressError
+          false
         end
       end
     end
