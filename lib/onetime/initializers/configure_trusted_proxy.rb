@@ -9,53 +9,116 @@ module Onetime
   module Initializers
     # ConfigureTrustedProxy initializer
     #
-    # Configures Rack::Request's built-in IP resolution to handle deployments
-    # behind reverse proxies (Kubernetes ingress, cloud load balancers, etc.).
+    # Configures Rack::Request's IP resolution for deployments behind reverse
+    # proxies (Kubernetes ingress, cloud load balancers, CDNs, etc.).
     #
     # Configuration (etc/config.yaml or config.defaults.yaml):
-    #   site.trusted_proxy_depth:
-    #     0 = don't trust forwarded headers (default, safe for direct exposure)
-    #     1+ = trust forwarded headers; Rack filters out RFC1918 proxy IPs
     #
-    #   site.trusted_proxy_cidrs: (optional)
-    #     Additional CIDR ranges to trust as proxies beyond RFC1918 defaults.
-    #     Example: ["203.0.113.0/24", "2001:db8::/32"]
+    #   site:
+    #     network:
+    #       trusted_proxy:
+    #         enabled: true/false
+    #         mode: filter/depth
+    #         header: X-Forwarded-For/Forwarded/Both
+    #         cidrs: []      # filter mode: additional CIDRs beyond RFC1918
+    #         depth: 1       # depth mode: hops to skip from right
     #
-    # How it works:
-    #   - depth=0: Disables X-Forwarded-For/Forwarded parsing entirely
-    #   - depth>0: Rack walks headers in reverse, skipping IPs matching ip_filter
-    #   - Rack's default ip_filter already trusts 10.x, 172.16-31.x, 192.168.x, etc.
+    # Modes:
+    #   - 'filter' (default): Rack walks X-Forwarded-For right-to-left, skipping
+    #     RFC1918 (10.x, 172.16-31.x, 192.168.x) automatically. Returns first
+    #     non-private IP. Add non-RFC1918 proxy ranges via `cidrs`.
+    #
+    #   - 'depth': Position-based counting. Skip exactly N rightmost hops.
+    #     Use when: CDN has public IP, variable proxy depth, or you need
+    #     deterministic hop selection regardless of IP class.
+    #
+    # Backwards compatibility:
+    #   Falls back to legacy config (site.trusted_proxy_depth) if new structure
+    #   is not present. Legacy depth>0 maps to filter mode.
     #
     class ConfigureTrustedProxy < Onetime::Boot::Initializer
       @provides = [:trusted_proxy]
 
       def execute(_context)
-        site_config  = OT.conf['site'] || {}
-        depth        = site_config['trusted_proxy_depth'].to_i
-        custom_cidrs = Array(site_config['trusted_proxy_cidrs'])
+        config = load_config
 
-        if depth <= 0
-          # Don't trust any forwarded headers - use REMOTE_ADDR only
+        unless config[:enabled]
           Rack::Request.forwarded_priority = []
-          app_logger.debug '[init] Trusted proxy disabled (depth=0), using REMOTE_ADDR only'
+          app_logger.debug '[init] Trusted proxy disabled, using REMOTE_ADDR only'
           return
         end
 
-        # depth > 0: Trust forwarded headers
-        # Rack's default ip_filter handles RFC1918 ranges automatically.
-        # Configure header priority based on trusted_ip_header setting.
-        header_pref                      = site_config['trusted_ip_header'] || 'X-Forwarded-For'
-        Rack::Request.forwarded_priority = header_priority_for(header_pref)
-
-        # Add custom trusted CIDRs if configured
-        if custom_cidrs.any?
-          configure_custom_cidrs(custom_cidrs)
+        case config[:mode]
+        when 'depth'
+          configure_depth_mode(config)
+        else
+          configure_filter_mode(config)
         end
-
-        app_logger.debug "[init] Trusted proxy enabled: header=#{header_pref}, custom_cidrs=#{custom_cidrs.size}"
       end
 
       private
+
+      def load_config
+        site_config   = OT.conf['site'] || {}
+        network       = site_config['network'] || {}
+        trusted_proxy = network['trusted_proxy'] || {}
+
+        # New nested config takes precedence
+        if trusted_proxy.key?('enabled')
+          {
+            enabled: trusted_proxy['enabled'] == true,
+            mode: trusted_proxy['mode'] || 'filter',
+            header: trusted_proxy['header'] || 'X-Forwarded-For',
+            cidrs: Array(trusted_proxy['cidrs']),
+            depth: trusted_proxy['depth'].to_i.clamp(1, 10),
+          }
+        else
+          # Legacy fallback: site.trusted_proxy_depth / site.trusted_ip_header
+          legacy_depth = site_config['trusted_proxy_depth'].to_i
+          {
+            enabled: legacy_depth > 0,
+            mode: 'filter',
+            header: site_config['trusted_ip_header'] || 'X-Forwarded-For',
+            cidrs: Array(site_config['trusted_proxy_cidrs']),
+            depth: legacy_depth.clamp(1, 10),
+          }
+        end
+      end
+
+      # Filter mode: Rack's built-in IP-based filtering
+      #
+      # Rack walks X-Forwarded-For right-to-left, skipping IPs that match
+      # ip_filter (RFC1918 by default). Returns first non-matching IP.
+      def configure_filter_mode(config)
+        Rack::Request.forwarded_priority = header_priority_for(config[:header])
+
+        if config[:cidrs].any?
+          configure_custom_cidrs(config[:cidrs])
+        end
+
+        app_logger.debug "[init] Trusted proxy: mode=filter, header=#{config[:header]}, cidrs=#{config[:cidrs].size}"
+      end
+
+      # Depth mode: Position-based counting
+      #
+      # Disables Rack's built-in parsing and overrides Rack::Request#ip
+      # to use ClientIpHelpers.extract with explicit hop counting.
+      def configure_depth_mode(config)
+        # Disable Rack's forwarded header parsing
+        Rack::Request.forwarded_priority = []
+
+        depth  = config[:depth]
+        header = config[:header]
+
+        # Override Rack::Request#ip to use position-based extraction
+        Rack::Request.class_eval do
+          define_method(:ip) do
+            Onetime::ClientIpHelpers.extract(env, depth: depth, header: header)
+          end
+        end
+
+        app_logger.debug "[init] Trusted proxy: mode=depth, depth=#{depth}, header=#{header}"
+      end
 
       def header_priority_for(header_pref)
         case header_pref
@@ -81,23 +144,8 @@ module Onetime
         # Extend Rack's default filter to also trust the configured CIDRs.
         #
         # Hot path: invoked once per forwarded-header hop on every request.
-        # Two perf-relevant choices:
-        #
-        #   1. Parse `ip` once, up front. IPAddr#include?(String) coerces via
-        #      IPAddr.new on every call, so N ranges would mean N parses.
-        #      Hoisting the parse turns this into 1 parse + N integer compares.
-        #
-        #   2. Rescue is narrowed to IPAddr::InvalidAddressError. Malformed IPs
-        #      are expected input — `ip` may be REMOTE_ADDR (trusted) or any
-        #      hop value from an attacker-controlled X-Forwarded-For/Forwarded
-        #      header. Anything other than InvalidAddressError (NoMethodError,
-        #      etc.) is a real bug and should surface, not be masked as "not
-        #      trusted".
-        #
-        # No per-request logging by design. Because `ip` can come from a
-        # forwarded header, anything emitted here is an attacker-controlled
-        # log-flood vector. Boot-time validation above already reports
-        # malformed CIDRs from config, which is the actionable case.
+        # Parse `ip` once up front — IPAddr#include?(String) coerces via
+        # IPAddr.new on every call, so N ranges would mean N parses.
         default_filter          = Rack::Request.ip_filter
         Rack::Request.ip_filter = ->(ip) do
           return true if default_filter.call(ip)

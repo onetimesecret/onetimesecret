@@ -12,6 +12,83 @@ RSpec.describe Onetime::ClientIpHelpers do
     { 'REMOTE_ADDR' => remote_addr }.merge(overrides)
   end
 
+  describe '.extract' do
+    context 'with depth 0 (no proxy trust)' do
+      it 'returns REMOTE_ADDR regardless of X-Forwarded-For' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42, 10.244.8.0')
+        expect(described_class.extract(e, depth: 0, header: 'X-Forwarded-For'))
+          .to eq('10.244.8.0')
+      end
+
+      it 'returns REMOTE_ADDR when depth is nil' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42')
+        expect(described_class.extract(e, depth: nil, header: 'X-Forwarded-For'))
+          .to eq('10.244.8.0')
+      end
+    end
+
+    context 'with depth 1 (single reverse proxy)' do
+      it 'strips the rightmost proxy hop and returns the client IP' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42, 10.244.8.0')
+        expect(described_class.extract(e, depth: 1, header: 'X-Forwarded-For'))
+          .to eq('203.0.113.42')
+      end
+
+      it 'works with all-private IP chains (k8s)' do
+        e = env('HTTP_X_FORWARDED_FOR' => '10.0.1.55, 10.244.8.0')
+        expect(described_class.extract(e, depth: 1, header: 'X-Forwarded-For'))
+          .to eq('10.0.1.55')
+      end
+
+      it 'falls back to REMOTE_ADDR when header is absent' do
+        expect(described_class.extract(env, depth: 1, header: 'X-Forwarded-For'))
+          .to eq('10.244.8.0')
+      end
+
+      it 'returns first IP when chain is shorter than depth' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42')
+        expect(described_class.extract(e, depth: 1, header: 'X-Forwarded-For'))
+          .to eq('203.0.113.42')
+      end
+    end
+
+    context 'with depth 2 (CDN + reverse proxy)' do
+      it 'strips two rightmost hops' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42, 198.51.100.1, 10.244.8.0')
+        expect(described_class.extract(e, depth: 2, header: 'X-Forwarded-For'))
+          .to eq('203.0.113.42')
+      end
+
+      it 'returns first IP when chain has exactly depth IPs' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42, 10.244.8.0')
+        expect(described_class.extract(e, depth: 2, header: 'X-Forwarded-For'))
+          .to eq('203.0.113.42')
+      end
+    end
+
+    context 'with Forwarded header (RFC 7239)' do
+      it 'extracts client IP from Forwarded header' do
+        e = env('HTTP_FORWARDED' => 'for=203.0.113.42, for=10.244.8.0')
+        expect(described_class.extract(e, depth: 1, header: 'Forwarded'))
+          .to eq('203.0.113.42')
+      end
+    end
+
+    context 'with malformed header values' do
+      it 'returns REMOTE_ADDR for empty X-Forwarded-For' do
+        e = env('HTTP_X_FORWARDED_FOR' => '')
+        expect(described_class.extract(e, depth: 1, header: 'X-Forwarded-For'))
+          .to eq('10.244.8.0')
+      end
+
+      it 'ignores blank entries from comma-split' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42,  , 10.244.8.0')
+        expect(described_class.extract(e, depth: 1, header: 'X-Forwarded-For'))
+          .to eq('203.0.113.42')
+      end
+    end
+  end
+
   describe '.extract_forwarded_ips' do
     context 'with X-Forwarded-For header' do
       it 'extracts IPs from the header' do
