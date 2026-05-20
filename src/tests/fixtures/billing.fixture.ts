@@ -77,8 +77,8 @@ export const mockPlans: Record<string, Plan> = {
     limits: { teams: 1, members_per_team: 10 },
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
-  single_team_monthly: createMockPlan({
-    id: 'identity_plus_v1_monthly',
+  single_team: createMockPlan({
+    id: 'identity_plus_v1',
     stripe_price_id: 'price_single_monthly',
     name: 'Identity Plus',
     tier: 'single_team',
@@ -91,22 +91,8 @@ export const mockPlans: Record<string, Plan> = {
     limits: { teams: 1, members_per_team: 10 },
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
-  single_team_yearly: createMockPlan({
-    id: 'identity_plus_v1_yearly',
-    stripe_price_id: 'price_single_yearly',
-    name: 'Identity Plus',
-    tier: 'single_team',
-    interval: 'year',
-    amount: 29000,
-    display_order: 11,
-    plan_code: 'identity_plus_v1',
-    monthly_equivalent_amount: 2417,
-    features: ['Custom domains', 'API access', 'Branding'],
-    limits: { teams: 1, members_per_team: 10 },
-    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-  }),
-  multi_team_monthly: createMockPlan({
-    id: 'team_plus_v1_monthly',
+  multi_team: createMockPlan({
+    id: 'team_plus_v1',
     stripe_price_id: 'price_multi_monthly',
     name: 'Team Plus',
     tier: 'multi_team',
@@ -114,27 +100,6 @@ export const mockPlans: Record<string, Plan> = {
     amount: 9900,
     display_order: 20,
     plan_code: 'team_plus_v1',
-    features: ['All Identity Plus features', 'Multiple teams', 'SSO', 'Audit logs'],
-    limits: { teams: 5, members_per_team: 25 },
-    entitlements: [
-      'api_access',
-      'custom_domains',
-      'custom_branding',
-      'manage_teams',
-      'manage_members',
-      'audit_logs',
-    ],
-  }),
-  multi_team_yearly: createMockPlan({
-    id: 'team_plus_v1_yearly',
-    stripe_price_id: 'price_multi_yearly',
-    name: 'Team Plus',
-    tier: 'multi_team',
-    interval: 'year',
-    amount: 99000,
-    display_order: 21,
-    plan_code: 'team_plus_v1',
-    monthly_equivalent_amount: 8250,
     features: ['All Identity Plus features', 'Multiple teams', 'SSO', 'Audit logs'],
     limits: { teams: 5, members_per_team: 25 },
     entitlements: [
@@ -242,7 +207,7 @@ export function createMockSubscriptionStatus(
 ): SubscriptionStatusResponse {
   return {
     has_active_subscription: true,
-    current_plan: 'identity_plus_v1_monthly',
+    current_plan: 'identity_plus_v1',
     current_price_id: 'price_single_monthly',
     subscription_item_id: 'si_test_123',
     subscription_status: 'active',
@@ -414,7 +379,7 @@ export function createMockOverviewResponse(
       canceled: false,
     },
     plan: {
-      id: 'identity_plus_v1_monthly',
+      id: 'identity_plus_v1',
       name: 'Identity Plus',
       tier: 'single_team',
       interval: 'month',

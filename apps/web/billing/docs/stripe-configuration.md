@@ -36,7 +36,7 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
 ```json
 {
   "app": "onetimesecret",
-  "plan_id": "identity_v1",
+  "plan_id": "identity_plus_v1",
   "entitlements": "create_secrets,create_team,custom_domains",
   "limit_teams": "1",
   "limit_members_per_team": "-1"
@@ -118,7 +118,7 @@ For multi-region deployments, create separate products per region with `region` 
 ```json
 {
   "app": "onetimesecret",
-  "plan_id": "identity_v1",
+  "plan_id": "identity_plus_v1",
   "region": "us-east",
   ...
 }

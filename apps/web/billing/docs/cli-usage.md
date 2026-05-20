@@ -51,8 +51,8 @@ bin/ots billing plans --refresh
 ```
 PLAN ID              TIER               INTERVAL   AMOUNT     REGION       CAPS
 ------------------------------------------------------------------------------
-identity_v1          single_team        month      USD 9.00   us-east      3
-dedicated_v1         multi_team         month      USD 29.00  global       5
+identity_plus_v1     single_team        month      USD 9.00   us-east      3
+team_plus_v1         multi_team         month      USD 29.00  global       5
 
 Total: 2 plan(s)
 ```
@@ -80,8 +80,8 @@ bin/ots billing products --no-active-only
 ```
 ID                     NAME                                     PLAN_ID            TIER         REGION   ACTIVE
 --------------------------------------------------------------------------------------------------------------
-prod_ABC123xyz         Identity Plan                            identity_v1        single_team  us-east  yes
-prod_DEF456abc         Dedicated Plan                           dedicated_v1       multi_team   global   yes
+prod_ABC123xyz         Identity Plus                            identity_plus_v1   single_team  us-east  yes
+prod_DEF456abc         Team Plus                                team_plus_v1       multi_team   global   yes
 
 Total: 2 product(s)
 ```
@@ -97,7 +97,7 @@ Create a new Stripe product with required metadata.
 
 **Options:**
 - `--interactive` - Interactive mode with prompts for all fields
-- `--plan-id STRING` - Plan identifier (e.g., identity_v1)
+- `--plan-id STRING` - Plan identifier (e.g., identity_plus_v1)
 - `--tier STRING` - Tier name (e.g., single_team, multi_team)
 - `--region STRING` - Region code (e.g., us-east, global)
 - `--capabilities STRING` - Comma-separated capabilities
@@ -118,17 +118,17 @@ Create a new Stripe product with required metadata.
 **Interactive Mode:**
 ```bash
 bin/ots billing products create --interactive
-Product name: Identity Plan
-Plan ID (e.g., identity_v1): identity_v1
+Product name: Identity Plus
+Plan ID (e.g., identity_plus_v1): identity_plus_v1
 Tier (e.g., single_team, multi_team): single_team
 Region (e.g., us-east, global): us-east
 Capabilities (comma-separated): create_secrets,create_team,custom_domains
 Limit teams (-1 for unlimited): 1
 Limit members per team (-1 for unlimited): -1
 
-Creating product 'Identity Plan' with metadata:
+Creating product 'Identity Plus' with metadata:
   app: onetimesecret
-  plan_id: identity_v1
+  plan_id: identity_plus_v1
   tier: single_team
   region: us-east
   capabilities: create_secrets,create_team,custom_domains
@@ -139,7 +139,7 @@ Proceed? (y/n): y
 
 Product created successfully:
   ID: prod_ABC123xyz
-  Name: Identity Plan
+  Name: Identity Plus
 
 Next steps:
   bin/ots billing prices create --product prod_ABC123xyz
@@ -148,8 +148,8 @@ Next steps:
 **Command-Line Mode:**
 ```bash
 bin/ots billing products create \
-  "Enterprise Plan" \
-  --plan-id enterprise_v1 \
+  "Team Plus" \
+  --plan-id team_plus_v1 \
   --tier multi_team \
   --region global \
   --capabilities "create_secrets,create_team,custom_domains,api_access"
@@ -170,13 +170,13 @@ bin/ots billing products show prod_ABC123xyz
 
 Product Details:
   ID: prod_ABC123xyz
-  Name: Identity Plan
+  Name: Identity Plus
   Active: yes
   Description: Professional plan for individuals
 
 Metadata:
   app: onetimesecret
-  plan_id: identity_v1
+  plan_id: identity_plus_v1
   tier: single_team
   region: us-east
   capabilities: create_secrets,create_team,custom_domains
@@ -536,7 +536,7 @@ All products **must** include these metadata fields:
 | Field | Description | Example Values |
 |-------|-------------|----------------|
 | `app` | Application identifier | `onetimesecret` |
-| `plan_id` | Unique plan identifier | `identity_v1`, `dedicated_v2` |
+| `plan_id` | Unique plan identifier | `identity_plus_v1`, `team_plus_v1` |
 | `tier` | Plan tier classification | `single_team`, `multi_team`, `enterprise` |
 | `region` | Geographic region | `us-east`, `eu-west`, `global` |
 | `capabilities` | Comma-separated features | `create_secrets,create_team,custom_domains` |

@@ -164,9 +164,20 @@ module Billing
       # Build requested plan info from catalog
       target_plan = ::Billing::Plan.find_by_stripe_price_id(requested_price_id)
       if target_plan
+        # Find which interval this price_id belongs to
+        target_interval = nil
+        target_amount   = nil
+        target_plan.prices_hash.each do |interval, price_data|
+          next unless price_data[:stripe_price_id] == requested_price_id
+
+          target_interval = interval
+          target_amount   = price_data[:amount].to_i
+          break
+        end
+
         result[:requested_plan] = {
           name: target_plan.name,
-          price_formatted: format_price(target_plan.amount.to_i, requested_currency, target_plan.interval),
+          price_formatted: format_price(target_amount, requested_currency, target_interval.to_s),
           price_id: requested_price_id,
         }
       end

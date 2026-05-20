@@ -12,7 +12,7 @@
 // NOTE: These tests exercise extracted logic from PlanSelector.vue.
 // They do not mount the component to avoid complex Vue/Pinia/i18n setup.
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { Plan as BillingPlan, SubscriptionStatusResponse } from '@/services/billing.service';
 
 // --- Extracted logic from PlanSelector.vue ---
@@ -118,7 +118,8 @@ const createPendingMigration = (
   target_price_id: 'price_eur_456',
   target_plan_name: 'Identity Plus (EU)',
   target_currency: 'eur',
-  target_plan_id: 'identity_plus_v1_monthly',
+  target_plan_id: 'identity_plus_v1',
+  target_interval: 'month',
   effective_after: Math.floor(Date.now() / 1000) + 86400 * 30,
   ...overrides,
 });

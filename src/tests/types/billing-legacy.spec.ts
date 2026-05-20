@@ -31,24 +31,20 @@ describe('Legacy Plan Utilities', () => {
     });
 
     describe('returns false for current plans', () => {
-      it('returns false for "identity_plus_v1_monthly"', () => {
-        expect(isLegacyPlan('identity_plus_v1_monthly')).toBe(false);
-      });
-
-      it('returns false for "identity_plus_v1_yearly"', () => {
-        expect(isLegacyPlan('identity_plus_v1_yearly')).toBe(false);
+      it('returns false for "identity_plus_v1"', () => {
+        expect(isLegacyPlan('identity_plus_v1')).toBe(false);
       });
 
       it('returns false for "free_v1"', () => {
         expect(isLegacyPlan('free_v1')).toBe(false);
       });
 
-      it('returns false for "team_plus_v1_monthly"', () => {
-        expect(isLegacyPlan('team_plus_v1_monthly')).toBe(false);
+      it('returns false for "team_plus_v1"', () => {
+        expect(isLegacyPlan('team_plus_v1')).toBe(false);
       });
 
-      it('returns false for "single_team_v1_monthly"', () => {
-        expect(isLegacyPlan('single_team_v1_monthly')).toBe(false);
+      it('returns false for "single_team_v1"', () => {
+        expect(isLegacyPlan('single_team_v1')).toBe(false);
       });
     });
 
@@ -113,16 +109,16 @@ describe('Legacy Plan Utilities', () => {
     });
 
     describe('returns null for non-legacy plans', () => {
-      it('returns null for "identity_plus_v1_monthly"', () => {
-        expect(getLegacyPlanInfo('identity_plus_v1_monthly')).toBeNull();
+      it('returns null for "identity_plus_v1"', () => {
+        expect(getLegacyPlanInfo('identity_plus_v1')).toBeNull();
       });
 
       it('returns null for "free_v1"', () => {
         expect(getLegacyPlanInfo('free_v1')).toBeNull();
       });
 
-      it('returns null for "team_plus_v1_monthly"', () => {
-        expect(getLegacyPlanInfo('team_plus_v1_monthly')).toBeNull();
+      it('returns null for "team_plus_v1"', () => {
+        expect(getLegacyPlanInfo('team_plus_v1')).toBeNull();
       });
 
       it('returns null for empty string', () => {
@@ -147,12 +143,8 @@ describe('Legacy Plan Utilities', () => {
     });
 
     describe('current plan display names (existing behavior preserved)', () => {
-      it('"identity_plus_v1_monthly" returns "Identity Plus"', () => {
-        expect(getPlanDisplayName('identity_plus_v1_monthly')).toBe('Identity Plus');
-      });
-
-      it('"identity_plus_v1_yearly" returns "Identity Plus"', () => {
-        expect(getPlanDisplayName('identity_plus_v1_yearly')).toBe('Identity Plus');
+      it('"identity_plus_v1" returns "Identity Plus"', () => {
+        expect(getPlanDisplayName('identity_plus_v1')).toBe('Identity Plus');
       });
 
       it('"free_v1" returns "Free"', () => {
@@ -163,16 +155,16 @@ describe('Legacy Plan Utilities', () => {
         expect(getPlanDisplayName('free')).toBe('Free');
       });
 
-      it('"team_plus_v1_monthly" returns "Team Plus"', () => {
-        expect(getPlanDisplayName('team_plus_v1_monthly')).toBe('Team Plus');
+      it('"team_plus_v1" returns "Team Plus"', () => {
+        expect(getPlanDisplayName('team_plus_v1')).toBe('Team Plus');
       });
 
-      it('"multi_team_v1_monthly" returns "Team Plus"', () => {
-        expect(getPlanDisplayName('multi_team_v1_monthly')).toBe('Team Plus');
+      it('"multi_team_v1" returns "Team Plus"', () => {
+        expect(getPlanDisplayName('multi_team_v1')).toBe('Team Plus');
       });
 
-      it('"single_team_v1_monthly" returns "Single Team"', () => {
-        expect(getPlanDisplayName('single_team_v1_monthly')).toBe('Single Team');
+      it('"single_team_v1" returns "Single Team"', () => {
+        expect(getPlanDisplayName('single_team_v1')).toBe('Single Team');
       });
     });
 
@@ -192,17 +184,18 @@ describe('Legacy Plan Utilities', () => {
       });
 
       it('unknown plan falls back to Title Case conversion', () => {
-        // Should strip version/interval suffix and convert to Title Case
-        expect(getPlanDisplayName('some_plan_v1_monthly')).toBe('Some Plan');
-        expect(getPlanDisplayName('custom_enterprise_v2_yearly')).toBe('Custom Enterprise');
+        // Should strip version suffix and convert to Title Case
+        // Plan IDs are now family-keyed without interval suffix
+        expect(getPlanDisplayName('some_plan_v1')).toBe('Some Plan');
+        expect(getPlanDisplayName('custom_enterprise_v2')).toBe('Custom Enterprise');
       });
     });
 
     describe('pattern matching order', () => {
       // Verifies that more specific patterns match before general ones
       it('"identity_plus" matches before "identity"', () => {
-        expect(getPlanDisplayName('identity_plus_v1_monthly')).toBe('Identity Plus');
-        expect(getPlanDisplayName('identity_plus_v2_yearly')).toBe('Identity Plus');
+        expect(getPlanDisplayName('identity_plus_v1')).toBe('Identity Plus');
+        expect(getPlanDisplayName('identity_plus_v2')).toBe('Identity Plus');
       });
 
       it('"identity" exact match shows Early Supporter suffix', () => {
@@ -212,7 +205,7 @@ describe('Legacy Plan Utilities', () => {
 
       it('free pattern takes precedence', () => {
         expect(getPlanDisplayName('free_v1')).toBe('Free');
-        expect(getPlanDisplayName('free_v2_monthly')).toBe('Free');
+        expect(getPlanDisplayName('free_v2')).toBe('Free');
       });
     });
   });
@@ -257,13 +250,12 @@ describe('PlanSelector currentTier Logic', () => {
    */
 
   // Mock plan data for testing
+  // Plan IDs are now family-keyed without interval suffix
   type MockPlan = { id: string; tier: string };
   const mockPlans: MockPlan[] = [
     { id: 'free_v1', tier: 'free' },
-    { id: 'identity_plus_v1_monthly', tier: 'single_team' },
-    { id: 'identity_plus_v1_yearly', tier: 'single_team' },
-    { id: 'team_plus_v1_monthly', tier: 'multi_team' },
-    { id: 'team_plus_v1_yearly', tier: 'multi_team' },
+    { id: 'identity_plus_v1', tier: 'single_team' },
+    { id: 'team_plus_v1', tier: 'multi_team' },
   ];
 
   /**
@@ -301,8 +293,8 @@ describe('PlanSelector currentTier Logic', () => {
 
     it('returns correct tier for plans in the list', () => {
       expect(getCurrentTier('free_v1', mockPlans)).toBe('free');
-      expect(getCurrentTier('identity_plus_v1_monthly', mockPlans)).toBe('single_team');
-      expect(getCurrentTier('team_plus_v1_monthly', mockPlans)).toBe('multi_team');
+      expect(getCurrentTier('identity_plus_v1', mockPlans)).toBe('single_team');
+      expect(getCurrentTier('team_plus_v1', mockPlans)).toBe('multi_team');
     });
 
     it('returns "single_team" for legacy "identity" planid', () => {
@@ -312,10 +304,10 @@ describe('PlanSelector currentTier Logic', () => {
 
     it('infers tier from naming convention for unknown plans', () => {
       // Plans not in list but follow naming convention
-      expect(getCurrentTier('identity_plus_v2_monthly', mockPlans)).toBe('single_team');
-      expect(getCurrentTier('team_plus_v2_yearly', mockPlans)).toBe('multi_team');
-      expect(getCurrentTier('multi_team_v1_monthly', mockPlans)).toBe('multi_team');
-      expect(getCurrentTier('single_team_v1_monthly', mockPlans)).toBe('single_team');
+      expect(getCurrentTier('identity_plus_v2', mockPlans)).toBe('single_team');
+      expect(getCurrentTier('team_plus_v2', mockPlans)).toBe('multi_team');
+      expect(getCurrentTier('multi_team_v1', mockPlans)).toBe('multi_team');
+      expect(getCurrentTier('single_team_v1', mockPlans)).toBe('single_team');
     });
   });
 
@@ -380,12 +372,12 @@ describe('OrganizationsSettings Badge Logic', () => {
       expect(hasPaidPlan('identity')).toBe(true);
     });
 
-    it('returns true for "identity_plus_v1_monthly"', () => {
-      expect(hasPaidPlan('identity_plus_v1_monthly')).toBe(true);
+    it('returns true for "identity_plus_v1"', () => {
+      expect(hasPaidPlan('identity_plus_v1')).toBe(true);
     });
 
-    it('returns true for "team_plus_v1_monthly"', () => {
-      expect(hasPaidPlan('team_plus_v1_monthly')).toBe(true);
+    it('returns true for "team_plus_v1"', () => {
+      expect(hasPaidPlan('team_plus_v1')).toBe(true);
     });
 
     it('returns false for "free_v1"', () => {
@@ -410,8 +402,8 @@ describe('OrganizationsSettings Badge Logic', () => {
       expect(displayName).toContain('Early Supporter');
     });
 
-    it('current "identity_plus_v1_monthly" shows "Identity Plus" (no suffix)', () => {
-      const displayName = getPlanDisplayName('identity_plus_v1_monthly');
+    it('current "identity_plus_v1" shows "Identity Plus" (no suffix)', () => {
+      const displayName = getPlanDisplayName('identity_plus_v1');
       expect(displayName).toBe('Identity Plus');
       expect(displayName).not.toContain('Early Supporter');
     });
@@ -446,7 +438,7 @@ describe('OrganizationsSettings Badge Logic', () => {
     });
 
     it('paid non-legacy org shows PRO badge', () => {
-      const badges = getBadges({ planid: 'identity_plus_v1_monthly', is_default: false });
+      const badges = getBadges({ planid: 'identity_plus_v1', is_default: false });
       expect(badges).toContain('PRO');
     });
 

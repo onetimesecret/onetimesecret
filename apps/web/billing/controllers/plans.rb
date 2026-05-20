@@ -80,6 +80,23 @@ module Billing
           return
         end
 
+        # Get the price for the requested interval
+        interval_sym = interval.to_s.sub(/ly$/, '').to_sym  # 'monthly' -> :month
+        price_data   = plan.price_for(interval_sym)
+
+        unless price_data&.dig(:stripe_price_id)
+          billing_logger.warn 'No price found for interval',
+            {
+              plan_id: plan.plan_id,
+              interval: interval,
+              available_intervals: plan.available_intervals,
+            }
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
+          return
+        end
+
+        stripe_price_id = price_data[:stripe_price_id]
+
         # Build checkout session parameters
         site_host = Onetime.conf['site']['host']
         is_secure = Onetime.conf.dig('site', 'ssl') != false
@@ -91,7 +108,7 @@ module Billing
         session_params = {
           mode: 'subscription',
           line_items: [{
-            price: plan.stripe_price_id,
+            price: stripe_price_id,
             quantity: 1,
           }],
           success_url: success_url,

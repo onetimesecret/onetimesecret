@@ -183,7 +183,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
     end
 
     it 'preserves existing planid when metadata resolution returns nil' do
-      # Subscription with no valid plan_id in metadata — resolve_plan_id_for_federation returns nil
+      # Subscription with no valid plan_id in metadata — federated path reads nil from metadata
       allow(Billing::PlanValidator).to receive(:valid_plan_id?).and_return(false)
 
       subscription = Stripe::Subscription.construct_from({
@@ -207,7 +207,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       # Status fields are still applied
       expect(org).to receive(:subscription_status=).with('active')
 
-      # planid= is NOT called because resolve_plan_id_for_federation returns nil
+      # planid= is NOT called because metadata['plan_id'] is nil
       # and the guard `@org.planid = plan_id if plan_id` prevents the write
       expect(org).not_to receive(:planid=)
 

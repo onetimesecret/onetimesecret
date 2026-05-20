@@ -103,6 +103,22 @@ module Billing
           return json_error('Plan not found', status: 404)
         end
 
+        # Get the price for the requested interval
+        interval_sym = interval.to_s.sub(/ly$/, '').to_sym  # 'monthly' -> :month
+        price_data   = plan.price_for(interval_sym)
+
+        unless price_data&.dig(:stripe_price_id)
+          billing_logger.warn 'No price found for interval',
+            {
+              plan_id: plan.plan_id,
+              interval: interval,
+              available_intervals: plan.available_intervals,
+            }
+          return json_error("No price available for #{interval} billing", status: 400)
+        end
+
+        stripe_price_id = price_data[:stripe_price_id]
+
         # Build checkout session parameters
         success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
         cancel_url  = "#{billing_base_url}/billing/#{org.extid}/plans"
@@ -110,7 +126,7 @@ module Billing
         session_params = {
           mode: 'subscription',
           line_items: [{
-            price: plan.stripe_price_id,
+            price: stripe_price_id,
             quantity: 1,
           }],
           success_url: success_url,
@@ -217,7 +233,7 @@ module Billing
               org,
               currencies[:existing_currency],
               currencies[:requested_currency],
-              plan.stripe_price_id,
+              stripe_price_id,
             )
           rescue StandardError => assess_ex
             billing_logger.error 'Failed to assess migration during currency conflict',
@@ -335,28 +351,30 @@ module Billing
         plans = ::Billing::Plan.list_plans.compact
 
         # Build lookup for resolving includes_plan_name
-        # Plan IDs include interval suffix (e.g., "identity_v1_monthly"), but includes_plan
-        # references the base ID (e.g., "identity_v1"). Map both for flexibility.
-        plan_names_by_id = plans.each_with_object({}) do |plan, lookup|
-          lookup[plan.plan_id] = plan.name
-          # Also index by base ID (strip interval suffix)
-          base_id              = plan.plan_id.sub(/_(month|year)ly$/, '')
-          lookup[base_id]      = plan.name
-        end
+        # Plan IDs are family-keyed (unsuffixed, e.g., "identity_v1") so direct
+        # lookup works for includes_plan references.
+        plan_names_by_id = plans.to_h { |plan| [plan.plan_id, plan.name] }
 
         # Filter by show_on_plans_page and sort by display_order (ascending - lower values first)
         plan_data = plans
           .select { |plan| plan.show_on_plans_page.to_s == 'true' }
           .map do |plan|
+            # Build prices hash for API response (interval => price data)
+            prices = plan.prices_hash.transform_values do |price_data|
+              {
+                stripe_price_id: price_data[:stripe_price_id],
+                amount: price_data[:amount].to_i,
+                currency: price_data[:currency],
+              }
+            end
+
             {
               id: plan.plan_id,
-              stripe_price_id: plan.stripe_price_id,  # nil for free/config-only plans
               name: plan.name,
               tier: plan.tier,
-              interval: plan.interval,
-              amount: plan.amount.to_i,
               currency: plan.currency,
               region: plan.region,
+              prices: prices,
               features: plan.features.to_a,
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
@@ -613,7 +631,7 @@ module Billing
         #
         # 1. STRIPE SUBSCRIPTION
         #    - items[].price.id → updated to new_price_id (e.g., 'price_team_plus_monthly')
-        #    - metadata.plan_id → updated to new plan_id (e.g., 'team_plus_v1_monthly')
+        #    - metadata.plan_id → updated to family ID (e.g., 'team_plus_v1')
         #    - metadata.tier → updated to new tier (e.g., 'multi_team')
         #
         # 2. LOCAL ORGANIZATION RECORD (Redis via Familia)
@@ -1128,11 +1146,17 @@ module Billing
           price_id = org.migration_target_price_id
           plan     = ::Billing::Plan.find_by_stripe_price_id(price_id)
 
+          # Find which interval this price_id belongs to
+          target_interval = plan&.prices_hash&.find do |_interval, data|
+            data[:stripe_price_id] == price_id
+          end&.first&.to_s || 'month'
+
           {
             target_price_id: price_id,
             target_plan_name: plan&.name || 'Unknown',
             target_currency: plan&.currency || 'unknown',
             target_plan_id: plan&.plan_id,
+            target_interval: target_interval,
             effective_after: org.migration_effective_after.to_i,
           }
         end
@@ -1290,13 +1314,21 @@ module Billing
           plan = ::Billing::Plan.load(org.planid)
           return nil unless plan
 
+          # Build prices hash for API response (interval => price data)
+          prices = plan.prices_hash.transform_values do |price_data|
+            {
+              stripe_price_id: price_data[:stripe_price_id],
+              amount: price_data[:amount].to_i,
+              currency: price_data[:currency],
+            }
+          end
+
           {
             id: plan.plan_id,
             name: plan.name,
             tier: plan.tier,
-            interval: plan.interval,
-            amount: plan.amount,
             currency: plan.currency,
+            prices: prices,
             features: plan.features.to_a,
             limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
           }
