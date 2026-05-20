@@ -79,7 +79,7 @@ module Onetime
               duration: duration / 1_000_000.0,  # Convert microseconds to seconds for SemanticLogger
               user_id: user_id,
               auth_strategy: auth_strategy,
-              ip: req.trusted_client_ip,
+              ip: req.ip,
               user_agent: req.user_agent&.slice(0, 100),
             }
         end
