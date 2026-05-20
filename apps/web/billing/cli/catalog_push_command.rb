@@ -165,7 +165,8 @@ module Onetime
             next unless has_app_match || has_override_match
 
             # Region filtering: skip products not matching our region context
-            if region_filter && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
+            # Skip region filter for explicit overrides (they need metadata bootstrapping)
+            if region_filter && !has_override_match && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
               next
             end
 
@@ -252,7 +253,7 @@ module Onetime
 
           if existing
             # Check if product needs update
-            updates = detect_product_updates(existing, plan_def, catalog_currency)
+            updates = detect_product_updates(plan_id, existing, plan_def, catalog_currency)
             unless updates.empty?
               changes[:products_to_update] << {
                 plan_id: plan_id,
@@ -322,7 +323,7 @@ module Onetime
         existing_products[match_key]
       end
 
-      def detect_product_updates(existing, plan_def, catalog_currency = 'cad')
+      def detect_product_updates(plan_id, existing, plan_def, catalog_currency = 'cad')
         updates = {}
 
         # Check name
@@ -338,7 +339,7 @@ module Onetime
         end
 
         # Check metadata fields using registry from Billing::Metadata
-        metadata_fields = build_syncable_metadata(plan_def, catalog_currency)
+        metadata_fields = build_syncable_metadata(plan_id, plan_def, catalog_currency)
 
         metadata_fields.each do |field, expected|
           current = existing.metadata[field]
@@ -358,11 +359,13 @@ module Onetime
       # nil/blank region is intentionally omitted (not written as "") to
       # avoid erasing existing Stripe metadata. See RegionNormalizer.
       #
+      # @param plan_id [String] The plan identifier
       # @param plan_def [Hash] Plan definition from catalog
       # @return [Hash<String, String>] Metadata fields for comparison
-      def build_syncable_metadata(plan_def, catalog_currency = 'cad')
-        metadata_fields = {}
-        limits          = plan_def['limits'] || {}
+      def build_syncable_metadata(plan_id, plan_def, catalog_currency = 'cad')
+        metadata_fields                                   = {}
+        metadata_fields[Billing::Metadata::FIELD_PLAN_ID] = plan_id
+        limits                                            = plan_def['limits'] || {}
 
         # Add all syncable fields from registry (always include for update detection)
         Billing::Metadata::SYNCABLE_FIELDS.each do |field_name, yaml_key|

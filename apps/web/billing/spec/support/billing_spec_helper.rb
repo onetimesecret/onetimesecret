@@ -154,8 +154,8 @@ module BillingSpecHelper
     # Create a mock plan that responds to plan_id and materialization methods
     # NOTE: plan_id uses family-keyed format (no interval suffix)
     # NOTE: stripe_price_id/interval/amount moved to nested prices hash
-    mock_price_data = { stripe_price_id: 'price_test', amount: '1200', currency: 'cad' }
-    mock_prices_hash = { month: mock_price_data, year: mock_price_data }
+    mock_price_data = { 'stripe_price_id' => 'price_test', 'amount' => '1200', 'currency' => 'cad' }
+    mock_prices_hash = { 'month' => mock_price_data, 'year' => mock_price_data }
 
     mock_plan = instance_double(
       Billing::Plan,
@@ -169,11 +169,11 @@ module BillingSpecHelper
       limits_hash: mock_limits_hash,
       prices: mock_prices,
       prices_hash: mock_prices_hash,
-      available_intervals: %i[month year],
+      available_intervals: %w[month year],
     )
     allow(mock_plan).to receive(:destroy!).and_return(true)
     allow(mock_plan).to receive(:exists?).and_return(true)
-    allow(mock_plan).to receive(:price_for) { |interval| mock_prices_hash[interval.to_sym] }
+    allow(mock_plan).to receive(:price_for) { |interval| mock_prices_hash[interval.to_s] }
 
     # Mock plan for federation metadata validation
     # Entitlements/limits mirror billing.test.yaml's identity_plus_v1 so
@@ -214,11 +214,11 @@ module BillingSpecHelper
       limits_hash: identity_plus_limits_hash,
       prices: mock_prices,
       prices_hash: mock_prices_hash,
-      available_intervals: %i[month year],
+      available_intervals: %w[month year],
     )
     allow(identity_plus_plan).to receive(:destroy!).and_return(true)
     allow(identity_plus_plan).to receive(:exists?).and_return(true)
-    allow(identity_plus_plan).to receive(:price_for) { |interval| mock_prices_hash[interval.to_sym] }
+    allow(identity_plus_plan).to receive(:price_for) { |interval| mock_prices_hash[interval.to_s] }
 
     # Stub find_by_stripe_price_id to return mock plan for test price IDs
     allow(Billing::Plan).to receive(:find_by_stripe_price_id).and_call_original

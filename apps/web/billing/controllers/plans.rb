@@ -84,7 +84,7 @@ module Billing
         interval_sym = interval.to_s.sub(/ly$/, '').to_sym  # 'monthly' -> :month
         price_data   = plan.price_for(interval_sym)
 
-        unless price_data&.dig(:stripe_price_id)
+        unless price_data&.dig('stripe_price_id')
           billing_logger.warn 'No price found for interval',
             {
               plan_id: plan.plan_id,
@@ -95,7 +95,7 @@ module Billing
           return
         end
 
-        stripe_price_id = price_data[:stripe_price_id]
+        stripe_price_id = price_data['stripe_price_id']
 
         # Build checkout session parameters
         site_host = Onetime.conf['site']['host']

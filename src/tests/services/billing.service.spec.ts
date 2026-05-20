@@ -30,7 +30,7 @@ describe('BillingService', () => {
       const mockResponse = {
         data: {
           has_active_subscription: true,
-          current_plan: 'identity_plus_v1_monthly',
+          current_plan: 'identity_plus_v1',
           current_price_id: 'price_123',
           subscription_item_id: 'si_123',
           subscription_status: 'active',
@@ -230,7 +230,7 @@ describe('BillingService', () => {
       const mockResponse = {
         data: {
           success: true,
-          new_plan: 'team_plus_v1_monthly',
+          new_plan: 'team_plus_v1',
           status: 'active',
           current_period_end: 1704067200,
         },
@@ -250,7 +250,7 @@ describe('BillingService', () => {
       const mockResponse = {
         data: {
           success: true,
-          new_plan: 'multi_team_v1_yearly',
+          new_plan: 'team_plus_v1',
           status: 'active',
           current_period_end: 1735689600,
         },
@@ -260,7 +260,7 @@ describe('BillingService', () => {
       const result = await BillingService.changePlan('org_test', 'price_yearly');
 
       expect(result.success).toBe(true);
-      expect(result.new_plan).toBe('multi_team_v1_yearly');
+      expect(result.new_plan).toBe('team_plus_v1');
       expect(result.status).toBe('active');
     });
 
@@ -304,7 +304,7 @@ describe('BillingService', () => {
 
       const result = await BillingService.createCheckoutSession(
         'org_abc',
-        { id: 'identity_plus_v1_monthly', interval: 'month' }
+        { id: 'identity_plus_v1', interval: 'month' }
       );
 
       expect(mockPost).toHaveBeenCalledWith(
@@ -325,7 +325,7 @@ describe('BillingService', () => {
 
       const result = await BillingService.createCheckoutSession(
         'org_abc',
-        { id: 'identity_plus_v1_yearly', interval: 'year' }
+        { id: 'identity_plus_v1', interval: 'year' }
       );
 
       expect(mockPost).toHaveBeenCalledWith(

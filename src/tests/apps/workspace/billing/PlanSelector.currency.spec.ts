@@ -97,7 +97,7 @@ function isButtonDisabled(
 // --- Test fixtures ---
 
 const createMockPlan = (overrides: Partial<BillingPlan> = {}): BillingPlan => ({
-  id: 'identity_plus_v1_monthly',
+  id: 'identity_plus_v1',
   stripe_price_id: 'price_abc123',
   name: 'Identity Plus',
   tier: 'single_team',

@@ -54,11 +54,9 @@ export const CATALOG_SCHEMA_VERSION = '1.0';
 /**
  * Canonical Plan ID Pattern
  *
- * Enforces the naming convention for plan IDs to prevent suffixed variants
- * (e.g., `identity_plus_v1_monthly`) from polluting the catalog.
+ * Enforces the naming convention for plan IDs.
  *
  * Valid: free_v1, identity_plus_v1, team_plus_v1, legacy_plan_v1, identity
- * Invalid: identity_plus_v1_monthly, free_v1_year, custom_plan
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/3135 Section 9
  */

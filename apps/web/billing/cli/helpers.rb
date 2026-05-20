@@ -174,12 +174,12 @@ module Onetime
         intervals_display = intervals.empty? ? 'N/A' : intervals
 
         # Show monthly amount if available, else yearly, else N/A
-        monthly = plan.price_for(:month)
-        yearly  = plan.price_for(:year)
+        monthly = plan.price_for('month')
+        yearly  = plan.price_for('year')
         amount  = if monthly
-                    format_amount(monthly[:amount], monthly[:currency])
+                    format_amount(monthly['amount'], monthly['currency'])
                   elsif yearly
-                    format_amount(yearly[:amount], yearly[:currency])
+                    format_amount(yearly['amount'], yearly['currency'])
                   else
                     'N/A'
                   end

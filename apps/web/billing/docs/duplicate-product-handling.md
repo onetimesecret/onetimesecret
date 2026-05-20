@@ -98,7 +98,7 @@ Skip duplicate detection entirely:
 
 ```bash
 bin/ots billing products create "Identity Plus" \
-  --plan-id=identity_v1_monthly \
+  --plan-id=identity_plus_v1 \
   --force
 ```
 

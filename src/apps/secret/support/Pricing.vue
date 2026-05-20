@@ -110,7 +110,7 @@
   /**
    * Check if plan should be highlighted based on URL product parameter.
    * Matches the product param against the plan ID prefix.
-   * Example: product='identity_plus' matches plan.id='identity_plus_v1_monthly'
+   * Example: product='identity_plus' matches plan.id='identity_plus_v1'
    */
   const isPlanHighlighted = (plan: BillingPlan): boolean => {
     if (!highlightedProduct.value) return false;

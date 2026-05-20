@@ -276,8 +276,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
           # Need authenticated user with valid plan to reach Stripe call
           plan_double = double(
             plan_id: 'identity_plus_v1',
-            price_for: { stripe_price_id: 'price_test', amount: '1200', currency: 'cad' },
-            available_intervals: [:month],
+            price_for: { 'stripe_price_id' => 'price_test', 'amount' => '1200', 'currency' => 'cad' },
+            available_intervals: ['month'],
           )
           fake_result = double(
             success?: true,

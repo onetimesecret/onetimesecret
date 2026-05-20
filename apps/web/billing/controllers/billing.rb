@@ -107,7 +107,7 @@ module Billing
         interval_sym = interval.to_s.sub(/ly$/, '').to_sym  # 'monthly' -> :month
         price_data   = plan.price_for(interval_sym)
 
-        unless price_data&.dig(:stripe_price_id)
+        unless price_data&.dig('stripe_price_id')
           billing_logger.warn 'No price found for interval',
             {
               plan_id: plan.plan_id,
@@ -117,7 +117,7 @@ module Billing
           return json_error("No price available for #{interval} billing", status: 400)
         end
 
-        stripe_price_id = price_data[:stripe_price_id]
+        stripe_price_id = price_data['stripe_price_id']
 
         # Build checkout session parameters
         success_url = "#{billing_base_url}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
@@ -362,9 +362,9 @@ module Billing
             # Build prices hash for API response (interval => price data)
             prices = plan.prices_hash.transform_values do |price_data|
               {
-                stripe_price_id: price_data[:stripe_price_id],
-                amount: price_data[:amount].to_i,
-                currency: price_data[:currency],
+                stripe_price_id: price_data['stripe_price_id'],
+                amount: price_data['amount'].to_i,
+                currency: price_data['currency'],
               }
             end
 
@@ -1148,7 +1148,7 @@ module Billing
 
           # Find which interval this price_id belongs to
           target_interval = plan&.prices_hash&.find do |_interval, data|
-            data[:stripe_price_id] == price_id
+            data['stripe_price_id'] == price_id
           end&.first&.to_s || 'month'
 
           {
@@ -1317,9 +1317,9 @@ module Billing
           # Build prices hash for API response (interval => price data)
           prices = plan.prices_hash.transform_values do |price_data|
             {
-              stripe_price_id: price_data[:stripe_price_id],
-              amount: price_data[:amount].to_i,
-              currency: price_data[:currency],
+              stripe_price_id: price_data['stripe_price_id'],
+              amount: price_data['amount'].to_i,
+              currency: price_data['currency'],
             }
           end
 

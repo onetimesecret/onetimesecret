@@ -199,9 +199,9 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
       expect(plan.is_popular).to eq(plan_data[:is_popular])
 
       # Price-level fields now in nested prices hash
-      monthly_price = plan.prices_hash[:month]
+      monthly_price = plan.prices_hash['month']
       expect(monthly_price).not_to be_nil
-      expect(monthly_price[:amount]).to eq('999')
+      expect(monthly_price['amount']).to eq('999')
     end
 
     it 'populates entitlements set' do
@@ -306,7 +306,7 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
 
       expect(plan.name).to eq('Updated Name')
       # Amount is now in nested prices hash
-      expect(plan.prices_hash[:month][:amount]).to eq('1999')
+      expect(plan.prices_hash['month']['amount']).to eq('1999')
     end
 
     it 'replaces entitlements set completely' do

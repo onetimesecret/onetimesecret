@@ -168,10 +168,10 @@ module Billing
         target_interval = nil
         target_amount   = nil
         target_plan.prices_hash.each do |interval, price_data|
-          next unless price_data[:stripe_price_id] == requested_price_id
+          next unless price_data['stripe_price_id'] == requested_price_id
 
           target_interval = interval
-          target_amount   = price_data[:amount].to_i
+          target_amount   = price_data['amount'].to_i
           break
         end
 

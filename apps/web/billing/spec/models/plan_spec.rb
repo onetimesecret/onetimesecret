@@ -160,9 +160,7 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(plan).to be_nil
     end
 
-    it 'returns nil for legacy suffixed plan IDs (no backward compatibility)' do
-      # Canonical plan IDs are family-keyed (no interval suffix)
-      # Legacy suffixed IDs (e.g., identity_plus_v1_monthly) are no longer supported
+    it 'returns nil for non-canonical plan IDs (legacy interval-suffixed format)' do
       plan = Billing::Plan.load_from_config('identity_plus_v1_monthly')
       expect(plan).to be_nil
     end
@@ -225,8 +223,8 @@ RSpec.describe Billing::Plan, type: :billing do
 
       plans = Billing::Plan.list_plans
       all_intervals = plans.flat_map(&:available_intervals).uniq
-      expect(all_intervals).to include(:month)
-      expect(all_intervals).to include(:year)
+      expect(all_intervals).to include('month')
+      expect(all_intervals).to include('year')
     end
   end
 
@@ -251,7 +249,7 @@ RSpec.describe Billing::Plan, type: :billing do
       actual_region = plans.first&.region
 
       plan = Billing::Plan.get_plan('single_account', 'monthly', actual_region)
-      expect(plan&.available_intervals).to include(:month)
+      expect(plan&.available_intervals).to include('month')
     end
 
     it 'returns nil for unknown tier' do
@@ -303,11 +301,11 @@ RSpec.describe Billing::Plan, type: :billing do
     end
 
     it 'provides available intervals for filtering' do
-      expect(plan.available_intervals).to include(:year)
+      expect(plan.available_intervals).to include('year')
     end
 
     it 'provides amount in cents via prices_hash' do
-      expect(plan.prices_hash[:year][:amount]).to eq(14_388)
+      expect(plan.prices_hash['year']['amount']).to eq(14_388)
     end
 
     it 'provides entitlements for feature display' do
@@ -351,12 +349,12 @@ RSpec.describe Billing::Plan, type: :billing do
     end
 
     it 'stores yearly amount in prices_hash' do
-      expect(yearly_plan.prices_hash[:year][:amount]).to eq(14_388)
+      expect(yearly_plan.prices_hash['year']['amount']).to eq(14_388)
     end
 
     it 'can calculate monthly equivalent' do
       # 14388 / 12 = 1199 ($11.99/month)
-      monthly_equiv = yearly_plan.prices_hash[:year][:amount] / 12
+      monthly_equiv = yearly_plan.prices_hash['year']['amount'] / 12
       expect(monthly_equiv).to eq(1199)
     end
 

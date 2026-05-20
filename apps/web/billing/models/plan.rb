@@ -41,8 +41,8 @@ module Billing
   #
   # Plan IDs are family-based (unsuffixed), e.g., `identity_plus_v1`.
   # Each Plan stores multiple interval variants in a nested `prices` structure:
-  #   plan.prices[:month]  # => { stripe_price_id: '...', amount: 999, ... }
-  #   plan.prices[:year]   # => { stripe_price_id: '...', amount: 9999, ... }
+  #   plan.prices['month']  # => JSON string of { stripe_price_id: '...', amount: 999, ... }
+  #   plan.prices['year']   # => JSON string of { stripe_price_id: '...', amount: 9999, ... }
   #
   # ## Data Storage
   #
@@ -140,30 +140,28 @@ module Billing
     #   - stripe_price_id, amount, currency, billing_scheme, usage_type,
     #     trial_period_days, nickname, active
     #
-    # @return [Hash{Symbol => Hash}] Interval-keyed price data
+    # @return [Hash{String => Hash}] Interval-keyed price data
     # @example
-    #   plan.prices_hash[:month]  # => { stripe_price_id: 'price_xxx', amount: 999, ... }
-    #   plan.prices_hash[:year]   # => { stripe_price_id: 'price_yyy', amount: 9999, ... }
+    #   plan.prices_hash['month']  # => { 'stripe_price_id' => 'price_xxx', 'amount' => 999, ... }
+    #   plan.prices_hash['year']   # => { 'stripe_price_id' => 'price_yyy', 'amount' => 9999, ... }
     def prices_hash
       @prices_hash ||= begin
         raw = prices.hgetall || {}
-        raw.transform_keys(&:to_sym).transform_values do |json_str|
-          JSON.parse(json_str, symbolize_names: true)
-        end
+        raw.transform_values { |json_str| JSON.parse(json_str) }
       end
     end
 
     # Get price data for a specific interval
     #
-    # @param interval [Symbol, String] :month or :year
+    # @param interval [String] 'month' or 'year'
     # @return [Hash, nil] Price attributes or nil if interval not available
     def price_for(interval)
-      prices_hash[interval.to_sym]
+      prices_hash[interval.to_s]
     end
 
     # List all available intervals for this plan
     #
-    # @return [Array<Symbol>] Available intervals (e.g., [:month, :year])
+    # @return [Array<String>] Available intervals (e.g., ['month', 'year'])
     def available_intervals
       prices_hash.keys
     end
@@ -172,7 +170,7 @@ module Billing
     #
     # @return [Array<String>] List of Stripe price IDs across all intervals
     def all_stripe_price_ids
-      prices_hash.values.map { |p| p[:stripe_price_id] }.compact
+      prices_hash.values.map { |p| p['stripe_price_id'] }.compact
     end
 
     # Check if plan should show "Most Popular" badge
@@ -192,13 +190,13 @@ module Billing
     #
     # @return [Integer] Monthly equivalent price in cents, or 0 if no prices
     def monthly_equivalent_amount
-      monthly = price_for(:month)
-      return monthly[:amount].to_i if monthly
+      monthly = price_for('month')
+      return monthly['amount'].to_i if monthly
 
-      yearly = price_for(:year)
+      yearly = price_for('year')
       return 0 unless yearly
 
-      (yearly[:amount].to_i / 12.0).round
+      (yearly['amount'].to_i / 12.0).round
     end
 
     # Parse cached Stripe data snapshot
@@ -932,13 +930,13 @@ module Billing
       # @return [Plan, nil] Cached plan or nil if not found
       def get_plan(tier, interval, region = nil)
         # Normalize interval to singular form (monthly -> month)
-        interval_sym = interval.to_s.sub(/ly$/, '').to_sym
+        interval_str = interval.to_s.sub(/ly$/, '')
 
         # Search through all cached plans for matching tier/region with requested interval
         list_plans.find do |plan|
           plan.tier == tier &&
             plan.region == region &&
-            plan.available_intervals.include?(interval_sym)
+            plan.available_intervals.include?(interval_str)
         end
       end
 

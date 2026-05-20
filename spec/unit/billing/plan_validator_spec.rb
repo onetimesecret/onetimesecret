@@ -146,13 +146,13 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
 
     describe 'plan_id in catalog (Stripe-synced)' do
       before do
-        mock_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
-        allow(Billing::Plan).to receive(:load).with('identity_plus_v1_monthly').and_return(mock_plan)
+        mock_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+        allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(mock_plan)
         allow(mock_plan).to receive(:exists?).and_return(true)
       end
 
       it 'returns true' do
-        expect(validator.valid_plan_id?('identity_plus_v1_monthly')).to be true
+        expect(validator.valid_plan_id?('identity_plus_v1')).to be true
       end
     end
 
@@ -201,9 +201,9 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
       # These are examples of valid plan IDs that should exist
       %w[
         free_v1
-        identity_plus_v1_monthly
-        identity_plus_v1_yearly
-        multi_team_v1_monthly
+        identity_plus_v1
+        identity_plus_v1
+        team_plus_v1
       ].each do |plan_id|
         it "validates '#{plan_id}' when present in catalog" do
           mock_plan = instance_double(Billing::Plan, plan_id: plan_id)
@@ -256,8 +256,8 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
     let(:validator) { Billing::PlanValidator }
 
     before do
-      plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
-      plan2 = instance_double(Billing::Plan, plan_id: 'multi_team_v1_yearly')
+      plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+      plan2 = instance_double(Billing::Plan, plan_id: 'team_plus_v1')
       allow(Billing::Plan).to receive(:list_plans).and_return([plan1, plan2])
 
       allow(Billing::Config).to receive(:load_plans).and_return({
@@ -267,7 +267,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
 
     it 'includes plan_ids from Stripe catalog' do
       result = validator.available_plan_ids
-      expect(result).to include('identity_plus_v1_monthly', 'multi_team_v1_yearly')
+      expect(result).to include('identity_plus_v1', 'team_plus_v1')
     end
 
     it 'includes plan_ids from static config' do
@@ -282,25 +282,25 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
 
     describe 'deduplication: same plan_id in both catalog and static config' do
       before do
-        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
-        plan2 = instance_double(Billing::Plan, plan_id: 'multi_team_v1_yearly')
+        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+        plan2 = instance_double(Billing::Plan, plan_id: 'team_plus_v1')
         allow(Billing::Plan).to receive(:list_plans).and_return([plan1, plan2])
 
-        # identity_plus_v1_monthly appears in BOTH catalog and static config
+        # identity_plus_v1 appears in BOTH catalog and static config
         allow(Billing::Config).to receive(:load_plans).and_return({
-          'identity_plus_v1_monthly' => { 'tier' => 'plus' },
+          'identity_plus_v1' => { 'tier' => 'plus' },
           'legacy_v1' => { 'tier' => 'legacy' },
         })
       end
 
       it 'includes the duplicated plan_id only once' do
         result = validator.available_plan_ids
-        expect(result.count('identity_plus_v1_monthly')).to eq(1)
+        expect(result.count('identity_plus_v1')).to eq(1)
       end
 
       it 'includes all unique plan_ids' do
         result = validator.available_plan_ids
-        expect(result).to contain_exactly('identity_plus_v1_monthly', 'legacy_v1', 'multi_team_v1_yearly')
+        expect(result).to contain_exactly('identity_plus_v1', 'legacy_v1', 'team_plus_v1')
       end
     end
   end
@@ -457,7 +457,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::UpdateUserPlan', billing: true do
     end
 
     context 'when plan_id is valid (in catalog)' do
-      let(:plan_id) { 'identity_plus_v1_monthly' }
+      let(:plan_id) { 'identity_plus_v1' }
 
       before do
         mock_plan = instance_double(Billing::Plan, plan_id: plan_id)
@@ -485,14 +485,14 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::UpdateUserPlan', billing: true do
       end
 
       it 'available_plan_ids provides list for error messages' do
-        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
+        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
         allow(Billing::Plan).to receive(:list_plans).and_return([plan1])
         allow(Billing::Config).to receive(:load_plans).and_return({
           'legacy_v1' => { 'tier' => 'legacy' },
         })
 
         result = Billing::PlanValidator.available_plan_ids
-        expect(result).to include('identity_plus_v1_monthly', 'legacy_v1')
+        expect(result).to include('identity_plus_v1', 'legacy_v1')
       end
     end
 
