@@ -4,17 +4,10 @@
 
 # Grant pro-bono entitlements directly to legacy identity-plan customers.
 #
-# Legacy pro-bono accounts have customer.planid='identity' but no
-# corresponding organization-level entitlements. With materialized
-# entitlements and the 'identity' plan in the catalog, the modern
-# billing system no longer requires a Stripe subscription to express
-# this state. This command:
-#
-# 1. Finds customers with planid='identity'
-# 2. Locates each customer's default organization
-# 3. Sets org.planid='identity', org.complimentary='true'
-# 4. Materializes the org's entitlements from the 'identity' plan
-# 5. Clears the legacy customer.planid field
+# Thin CLI wrapper around Billing::Operations::GrantProbonoEntitlements,
+# which holds the business logic (default-org resolution, skip
+# decisions, planid/complimentary writes, materialization, customer
+# planid clearing).
 #
 # Usage:
 #   bin/ots migrations grant-probono-entitlements           # Dry run
@@ -28,9 +21,6 @@ module Onetime
   module CLI
     class GrantProbonoEntitlementsCommand < Command
       desc 'Grant pro-bono entitlements to legacy identity-plan customers'
-
-      LEGACY_PROBONO_PLANIDS = %w[identity].freeze
-      TARGET_PLANID          = 'identity'
 
       option :run,
         type: :boolean,
@@ -58,26 +48,18 @@ module Onetime
         return show_usage_help if help
 
         boot_application!
-        require 'billing/operations/apply_subscription_to_org'
+        require 'billing/operations/grant_probono_entitlements'
 
         puts "\nPro-Bono Entitlement Grant"
         puts '=' * 60
 
-        dry_run = !run
-
-        customers = find_probono_customers
+        dry_run   = !run
+        customers = scan_for_customers
         return if customers.empty?
 
         print_mode_banner(dry_run, force)
 
-        stats = {
-          total: 0,
-          granted: 0,
-          skipped_no_org: 0,
-          skipped_already_complimentary: 0,
-          errors: [],
-        }
-
+        stats = init_stats
         customers.each_with_index do |cust, idx|
           process_customer(cust, idx, customers.size, stats, dry_run, verbose, force)
         end
@@ -88,31 +70,73 @@ module Onetime
 
       private
 
-      def find_probono_customers
+      def init_stats
+        {
+          total: 0,
+          granted: 0,
+          skipped_no_org: 0,
+          skipped_already_complimentary: 0,
+          errors: [],
+        }
+      end
+
+      def scan_for_customers
         puts "\nScanning customers for legacy pro-bono planid values..."
 
-        all_ids    = Onetime::Customer.instances.all
-        total      = all_ids.size
-        probono    = []
-        batch_size = 100
-
-        all_ids.each_slice(batch_size).with_index do |batch_ids, batch_idx|
-          customers = Onetime::Customer.load_multi(batch_ids).compact
-          customers.each do |cust|
-            probono << cust if LEGACY_PROBONO_PLANIDS.include?(cust.planid.to_s)
+        customers = Billing::Operations::GrantProbonoEntitlements
+          .find_eligible_customers do |scanned, total|
+            print "\r  Scanned #{scanned}/#{total} customers..." if total >= 100
           end
-          processed = [(batch_idx + 1) * batch_size, total].min
-          print "\r  Scanned #{processed}/#{total} customers..." unless total < 100
-        end
-        print "\r" + (' ' * 60) + "\r" unless total < 100
+        print "\r" + (' ' * 60) + "\r"
 
-        if probono.empty?
-          puts "\nNo legacy pro-bono accounts found (planid in #{LEGACY_PROBONO_PLANIDS})."
+        if customers.empty?
+          legacy_planids = Billing::Operations::GrantProbonoEntitlements::LEGACY_PROBONO_PLANIDS
+          puts "\nNo legacy pro-bono accounts found (planid in #{legacy_planids})."
         else
-          puts "\nDiscovered #{probono.size} legacy pro-bono accounts"
+          puts "\nDiscovered #{customers.size} legacy pro-bono accounts"
         end
 
-        probono
+        customers
+      end
+
+      def process_customer(cust, idx, total, stats, dry_run, verbose, force)
+        stats[:total] += 1
+        label          = "[#{idx + 1}/#{total}]"
+
+        result = Billing::Operations::GrantProbonoEntitlements.call(
+          cust, dry_run: dry_run, force: force,
+        )
+
+        update_stats(stats, result)
+        report_result(result, label, verbose)
+      rescue StandardError => ex
+        stats[:errors] << "#{cust.extid}: #{ex.message}"
+        puts "  #{label} Error: #{ex.message}"
+        OT.le "[GrantProBonoEntitlements] Error for #{cust.extid}: #{ex.message}"
+      end
+
+      def update_stats(stats, result)
+        case result.status
+        when :granted, :would_grant         then stats[:granted] += 1
+        when :skipped_no_org                then stats[:skipped_no_org] += 1
+        when :skipped_already_complimentary then stats[:skipped_already_complimentary] += 1
+        end
+      end
+
+      def report_result(result, label, verbose)
+        return unless verbose
+
+        message = case result.status
+                  when :would_grant
+                    "Would grant: #{result.customer_extid} -> org #{result.org_extid}"
+                  when :granted
+                    "Granted: #{result.customer_extid} -> org #{result.org_extid}"
+                  when :skipped_no_org
+                    "Skipping #{result.customer_extid} (no organization)"
+                  when :skipped_already_complimentary
+                    "Skipping #{result.customer_extid} (org already complimentary)"
+                  end
+        puts "  #{label} #{message}" if message
       end
 
       def print_mode_banner(dry_run, force)
@@ -123,67 +147,6 @@ module Onetime
           puts "\nLIVE MODE - Granting entitlements"
           puts '  (--force: will re-materialize already-complimentary orgs)' if force
         end
-      end
-
-      def process_customer(cust, idx, total, stats, dry_run, verbose, force)
-        stats[:total] += 1
-        label          = "[#{idx + 1}/#{total}]"
-
-        org = default_org_for(cust)
-        unless org
-          stats[:skipped_no_org] += 1
-          puts "  #{label} Skipping #{cust.extid} (no organization)" if verbose
-          return
-        end
-
-        if !force && org.complimentary.to_s == 'true'
-          stats[:skipped_already_complimentary] += 1
-          puts "  #{label} Skipping #{cust.extid} (org already complimentary)" if verbose
-          return
-        end
-
-        if dry_run
-          puts "  #{label} Would grant: #{cust.extid} (#{cust.email}) -> org #{org.extid}"
-          stats[:granted] += 1
-          return
-        end
-
-        grant_account!(cust, org)
-        stats[:granted] += 1
-        puts "  #{label} Granted: #{cust.extid} -> org #{org.extid}" if verbose
-      rescue StandardError => ex
-        stats[:errors] << "#{cust.extid}: #{ex.message}"
-        puts "  #{label} Error: #{ex.message}"
-        OT.le "[GrantProBonoEntitlements] Error for #{cust.extid}: #{ex.message}"
-      end
-
-      # Pick the customer's default org using the same priority as
-      # OrganizationLoader: explicit default_org_id, then is_default flag,
-      # then first org. Avoids importing the loader's session-aware logic.
-      def default_org_for(cust)
-        orgs = cust.organization_instances.to_a
-        return nil if orgs.empty?
-
-        if cust.default_org_id.to_s.length.positive?
-          explicit = orgs.find { |o| o.objid == cust.default_org_id }
-          return explicit if explicit
-        end
-
-        orgs.find { |o| o.is_default } || orgs.first
-      end
-
-      def grant_account!(cust, org)
-        org.planid        = TARGET_PLANID
-        org.complimentary = 'true'
-        org.save
-
-        result = Billing::Operations::ApplySubscriptionToOrg
-          .materialize_entitlements_for_org(org, raise_on_miss: true)
-
-        cust.planid = nil
-        cust.save
-
-        result
       end
 
       def print_results(stats, dry_run)
@@ -264,6 +227,7 @@ module Onetime
             - Command is idempotent (safe to run multiple times)
             - Skips orgs already marked complimentary unless --force
             - Requires the 'identity' plan to be defined in billing.yaml
+            - Business logic lives in Billing::Operations::GrantProbonoEntitlements
 
         USAGE
         true
