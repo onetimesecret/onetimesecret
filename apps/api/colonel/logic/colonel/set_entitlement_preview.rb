@@ -25,15 +25,15 @@ module ColonelAPI
       # ## Request
       #
       # POST /api/colonel/entitlement-preview
-      # Body: { planid: "identity_plus_v1_monthly" }  - Set test mode
-      #       { planid: null }                         - Clear test mode
+      # Body: { planid: "identity_plus_v1" }  - Set test mode
+      #       { planid: null }                - Clear test mode
       #
       # ## Response
       #
       # Active override:
       # {
       #   status: "active",
-      #   test_planid: "identity_plus_v1_monthly",
+      #   test_planid: "identity_plus_v1",
       #   test_plan_name: "Identity Plus",
       #   actual_planid: "free_v1",
       #   entitlements: ["create_secrets", "custom_domains", ...],

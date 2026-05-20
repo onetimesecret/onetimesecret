@@ -19,6 +19,7 @@ import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
+import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
 import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
@@ -329,7 +330,7 @@ export const organizationSchema = z
     extid: z.string(),
     display_name: z.string(),
     is_default: z.boolean(),
-    planid: z.string().nullish(),
+    planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
   })
   .nullable();

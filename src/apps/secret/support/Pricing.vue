@@ -110,7 +110,7 @@
   /**
    * Check if plan should be highlighted based on URL product parameter.
    * Matches the product param against the plan ID prefix.
-   * Example: product='identity_plus' matches plan.id='identity_plus_v1_monthly'
+   * Example: product='identity_plus' matches plan.id='identity_plus_v1'
    */
   const isPlanHighlighted = (plan: BillingPlan): boolean => {
     if (!highlightedProduct.value) return false;
@@ -125,17 +125,6 @@
     return t('web.pricing.start_trial');
   };
 
-  /**
-   * Extract product name from plan ID for signup query params.
-   * Plan ID format: {product}_v{version}_{interval}
-   * Example: identity_plus_v1_monthly -> identity_plus_v1
-   *
-   * @param planId - The full plan ID (e.g., 'identity_plus_v1_monthly')
-   * @returns Product identifier without interval (e.g., 'identity_plus_v1')
-   */
-  const extractProductFromPlanId = (planId: string): string =>
-    // Remove the interval suffix (monthly, yearly, etc.)
-    planId.replace(/_(monthly|yearly|month|year)$/i, '');
   /**
    * Get the interval name for query params from plan interval.
    * Uses 'monthly' or 'yearly' format for URL query params.
@@ -153,7 +142,7 @@
   const getSignupUrl = (plan: BillingPlan): string => {
     const params = new URLSearchParams();
     if (plan.tier !== 'free') {
-      params.set('product', extractProductFromPlanId(plan.id));
+      params.set('product', plan.id);
       params.set('interval', getIntervalForQuery(plan));
     }
     params.set('redirect', route.fullPath);

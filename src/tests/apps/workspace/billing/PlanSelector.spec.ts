@@ -614,21 +614,22 @@ describe('PlanSelector Logic', () => {
     describe('free plan CTA link', () => {
       it('free plan action is disabled in PlanSelector (no checkout for free)', () => {
         // PlanSelector disables the button for free plans
-        // From PlanSelector.vue: :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.id === 'free'"
+        // PlanSelector.vue disables button when isPlanCurrent || isCreatingCheckout || free
         const freePlan = createMockPlan({
           id: 'free',
           tier: 'free',
         });
 
         // Simulate the disable condition from PlanSelector
-        const isButtonDisabled = (plan: BillingPlan, isPlanCurrent: boolean, isCreatingCheckout: boolean): boolean =>
-          isPlanCurrent || isCreatingCheckout || plan.id === 'free';
+        const isButtonDisabled = (
+          plan: BillingPlan, isPlanCurrent: boolean, isCreatingCheckout: boolean
+        ): boolean => isPlanCurrent || isCreatingCheckout || plan.id === 'free';
 
         expect(isButtonDisabled(freePlan, false, false)).toBe(true);
       });
 
       it('free plan does not trigger checkout flow', () => {
-        // From PlanSelector.vue: if (isPlanCurrent(plan) || !selectedOrg.value?.extid || plan.tier === 'free') return;
+        // PlanSelector.vue skips checkout for free tier
         const freePlan = createMockPlan({
           id: 'free_v1',
           tier: 'free',
@@ -708,10 +709,10 @@ describe('PlanSelector Logic', () => {
     });
 
     describe('free plan deduplication', () => {
-      it('free plan is deduplicated by plan_code', () => {
+      it('plans with same plan_code are deduplicated', () => {
         const plans = [
-          createMockPlan({ id: 'free_v1_monthly', tier: 'free' }),
-          createMockPlan({ id: 'free_v1_yearly', tier: 'free' }),
+          createMockPlan({ id: 'free_v1', tier: 'free' }),
+          createMockPlan({ id: 'free_v1', tier: 'free' }),
         ] as (BillingPlan & { plan_code?: string })[];
 
         plans[0].plan_code = 'free_v1';
@@ -720,10 +721,10 @@ describe('PlanSelector Logic', () => {
         const deduplicated = deduplicatePlans(plans);
 
         expect(deduplicated).toHaveLength(1);
-        expect(deduplicated[0].id).toBe('free_v1_monthly'); // First one kept
+        expect(deduplicated[0].id).toBe('free_v1');
       });
 
-      it('free plan without plan_code uses id for deduplication', () => {
+      it('plan without plan_code uses id for deduplication', () => {
         const plans = [
           createMockPlan({ id: 'free_v1', tier: 'free' }),
         ];

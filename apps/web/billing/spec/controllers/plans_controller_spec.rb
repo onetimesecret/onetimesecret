@@ -274,10 +274,15 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
         # This path uses Rack::Utils.build_query (already fixed)
         it 'escapes special characters when Stripe checkout fails' do
           # Need authenticated user with valid plan to reach Stripe call
+          plan_double = double(
+            plan_id: 'identity_plus_v1',
+            price_for: { 'stripe_price_id' => 'price_test', 'amount' => '1200', 'currency' => 'cad' },
+            available_intervals: ['month'],
+          )
           fake_result = double(
             success?: true,
-            plan: double(plan_id: 'identity_plus_v1_month', stripe_price_id: 'price_test'),
-            plan_id: 'identity_plus_v1_month',
+            plan: plan_double,
+            plan_id: 'identity_plus_v1',
             tier: 'single_team',
             error: nil
           )
@@ -405,7 +410,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       default_org = orgs.find { |o| o.is_default }
       expect(default_org).not_to be_nil
-      expect(default_org.display_name).to include(new_customer.email)
+      # CreateDefaultWorkspace names new orgs "Default Workspace" (see f5edcf7cc)
+      expect(default_org.display_name).to eq('Default Workspace')
       created_organizations.concat(orgs)
     end
   end

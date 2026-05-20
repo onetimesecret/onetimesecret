@@ -330,8 +330,8 @@ Billing::PlanHelpers.legacy_plan?('identity_monthly')
 Billing::PlanHelpers.legacy_plan?('identity_yearly')
 #=> true
 
-## Test: Non-legacy plan with interval suffix
-Billing::PlanHelpers.legacy_plan?('identity_plus_v1_monthly')
+## Test: Non-legacy plan (canonical form)
+Billing::PlanHelpers.legacy_plan?('identity_plus_v1')
 #=> false
 
 ## Test: Empty plan_id returns false

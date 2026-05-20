@@ -194,7 +194,7 @@ const routes: Array<RouteRecordRaw> = [
   // Deep-link routes for external sites to link directly to specific plans
   // URL pattern: /pricing/:product/:interval
   // Examples: /pricing/identity_plus/month, /pricing/team_plus/year
-  // Resolves to plan ID: {product}_v{version}_{interval} (e.g., identity_plus_v1_monthly)
+  // Plan ID is the canonical family form (e.g., identity_plus_v1), interval is separate
   {
     path: '/pricing/:product',
     name: 'PricingProduct',

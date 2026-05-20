@@ -68,7 +68,7 @@ const mockOrganizations = vi.fn(() => [
   {
     objid: 'org_1', extid: 'org_ext_1', display_name: 'Test Org',
     description: null, owner_id: 'cust_1', contact_email: 'test@example.com',
-    planid: 'identity_plus_v1_monthly', is_default: true,
+    planid: 'identity_plus_v1', is_default: true,
     created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
   },
 ]);
@@ -161,7 +161,7 @@ describe('InvoiceList', () => {
       {
         objid: 'org_1', extid: 'org_ext_1', display_name: 'Test Org',
         description: null, owner_id: 'cust_1', contact_email: 'test@example.com',
-        planid: 'identity_plus_v1_monthly', is_default: true,
+        planid: 'identity_plus_v1', is_default: true,
         created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
       },
     ]);

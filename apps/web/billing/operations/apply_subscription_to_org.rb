@@ -316,8 +316,10 @@ module Billing
 
                     Billing::PlanValidator.resolve_plan_id(price_id)
                   else
-                    # Federated path: metadata lookup (logs on miss, no raise)
-                    Billing::PlanValidator.resolve_plan_id_for_federation(@subscription)
+                    # Federated path: read canonical plan_id directly from metadata
+                    # Cross-region price IDs aren't in the local catalog, so we can't
+                    # use catalog lookup. Metadata contains the canonical family ID.
+                    @subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
                   end
 
         @org.planid = plan_id if plan_id

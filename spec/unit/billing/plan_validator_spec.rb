@@ -35,8 +35,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
       before do
         mock_plan = instance_double(
           Billing::Plan,
-          plan_id: 'identity_plus_v1_monthly',
-          stripe_price_id: 'price_1ABC123'
+          plan_id: 'identity_plus_v1'
         )
         allow(Billing::Plan).to receive(:find_by_stripe_price_id)
           .with('price_1ABC123')
@@ -44,7 +43,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
       end
 
       it 'returns the plan_id from catalog' do
-        expect(validator.resolve_plan_id('price_1ABC123')).to eq('identity_plus_v1_monthly')
+        expect(validator.resolve_plan_id('price_1ABC123')).to eq('identity_plus_v1')
       end
 
       it 'does not raise any error' do
@@ -102,41 +101,35 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
 
     describe 'multiple plans in catalog: correct selection' do
       before do
-        monthly_plan = instance_double(
+        # Plans are family-keyed (no interval suffix) - different prices map to same plan
+        identity_plan = instance_double(
           Billing::Plan,
-          plan_id: 'identity_plus_v1_monthly',
-          stripe_price_id: 'price_monthly_123'
-        )
-        yearly_plan = instance_double(
-          Billing::Plan,
-          plan_id: 'identity_plus_v1_yearly',
-          stripe_price_id: 'price_yearly_456'
+          plan_id: 'identity_plus_v1'
         )
         team_plan = instance_double(
           Billing::Plan,
-          plan_id: 'multi_team_v1_monthly',
-          stripe_price_id: 'price_team_789'
+          plan_id: 'team_plus_v1'
         )
 
         allow(Billing::Plan).to receive(:find_by_stripe_price_id) do |price_id|
           {
-            'price_monthly_123' => monthly_plan,
-            'price_yearly_456' => yearly_plan,
+            'price_monthly_123' => identity_plan,
+            'price_yearly_456' => identity_plan,
             'price_team_789' => team_plan,
           }[price_id]
         end
       end
 
       it 'returns correct plan for monthly price' do
-        expect(validator.resolve_plan_id('price_monthly_123')).to eq('identity_plus_v1_monthly')
+        expect(validator.resolve_plan_id('price_monthly_123')).to eq('identity_plus_v1')
       end
 
       it 'returns correct plan for yearly price' do
-        expect(validator.resolve_plan_id('price_yearly_456')).to eq('identity_plus_v1_yearly')
+        expect(validator.resolve_plan_id('price_yearly_456')).to eq('identity_plus_v1')
       end
 
       it 'returns correct plan for team price' do
-        expect(validator.resolve_plan_id('price_team_789')).to eq('multi_team_v1_monthly')
+        expect(validator.resolve_plan_id('price_team_789')).to eq('team_plus_v1')
       end
     end
   end
@@ -153,13 +146,13 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
 
     describe 'plan_id in catalog (Stripe-synced)' do
       before do
-        mock_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
-        allow(Billing::Plan).to receive(:load).with('identity_plus_v1_monthly').and_return(mock_plan)
+        mock_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+        allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(mock_plan)
         allow(mock_plan).to receive(:exists?).and_return(true)
       end
 
       it 'returns true' do
-        expect(validator.valid_plan_id?('identity_plus_v1_monthly')).to be true
+        expect(validator.valid_plan_id?('identity_plus_v1')).to be true
       end
     end
 
@@ -208,9 +201,9 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
       # These are examples of valid plan IDs that should exist
       %w[
         free_v1
-        identity_plus_v1_monthly
-        identity_plus_v1_yearly
-        multi_team_v1_monthly
+        identity_plus_v1
+        identity_plus_v1
+        team_plus_v1
       ].each do |plan_id|
         it "validates '#{plan_id}' when present in catalog" do
           mock_plan = instance_double(Billing::Plan, plan_id: plan_id)
@@ -263,8 +256,8 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
     let(:validator) { Billing::PlanValidator }
 
     before do
-      plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
-      plan2 = instance_double(Billing::Plan, plan_id: 'multi_team_v1_yearly')
+      plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+      plan2 = instance_double(Billing::Plan, plan_id: 'team_plus_v1')
       allow(Billing::Plan).to receive(:list_plans).and_return([plan1, plan2])
 
       allow(Billing::Config).to receive(:load_plans).and_return({
@@ -274,7 +267,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
 
     it 'includes plan_ids from Stripe catalog' do
       result = validator.available_plan_ids
-      expect(result).to include('identity_plus_v1_monthly', 'multi_team_v1_yearly')
+      expect(result).to include('identity_plus_v1', 'team_plus_v1')
     end
 
     it 'includes plan_ids from static config' do
@@ -289,25 +282,25 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
 
     describe 'deduplication: same plan_id in both catalog and static config' do
       before do
-        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
-        plan2 = instance_double(Billing::Plan, plan_id: 'multi_team_v1_yearly')
+        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
+        plan2 = instance_double(Billing::Plan, plan_id: 'team_plus_v1')
         allow(Billing::Plan).to receive(:list_plans).and_return([plan1, plan2])
 
-        # identity_plus_v1_monthly appears in BOTH catalog and static config
+        # identity_plus_v1 appears in BOTH catalog and static config
         allow(Billing::Config).to receive(:load_plans).and_return({
-          'identity_plus_v1_monthly' => { 'tier' => 'plus' },
+          'identity_plus_v1' => { 'tier' => 'plus' },
           'legacy_v1' => { 'tier' => 'legacy' },
         })
       end
 
       it 'includes the duplicated plan_id only once' do
         result = validator.available_plan_ids
-        expect(result.count('identity_plus_v1_monthly')).to eq(1)
+        expect(result.count('identity_plus_v1')).to eq(1)
       end
 
       it 'includes all unique plan_ids' do
         result = validator.available_plan_ids
-        expect(result).to contain_exactly('identity_plus_v1_monthly', 'legacy_v1', 'multi_team_v1_yearly')
+        expect(result).to contain_exactly('identity_plus_v1', 'legacy_v1', 'team_plus_v1')
       end
     end
   end
@@ -325,8 +318,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
     before do
       mock_plan = instance_double(
         Billing::Plan,
-        plan_id: 'identity_plus_v1_monthly',
-        stripe_price_id: 'price_drift_test'
+        plan_id: 'identity_plus_v1'
       )
       allow(Billing::Plan).to receive(:find_by_stripe_price_id)
         .with('price_drift_test')
@@ -337,7 +329,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
       it 'returns nil when plan_ids are identical' do
         result = validator.detect_drift(
           price_id: 'price_drift_test',
-          metadata_plan_id: 'identity_plus_v1_monthly'
+          metadata_plan_id: 'identity_plus_v1'
         )
         expect(result).to be_nil
       end
@@ -351,7 +343,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
         )
 
         expect(result).to eq({
-          catalog_plan_id: 'identity_plus_v1_monthly',
+          catalog_plan_id: 'identity_plus_v1',
           metadata_plan_id: 'old_stale_plan',
           price_id: 'price_drift_test',
         })
@@ -365,7 +357,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
         expect(logger).to receive(:warn).with(
           '[PlanValidator] Drift detected: metadata differs from catalog',
           hash_including(
-            catalog_plan_id: 'identity_plus_v1_monthly',
+            catalog_plan_id: 'identity_plus_v1',
             metadata_plan_id: 'wrong_plan',
             price_id: 'price_drift_test'
           )
@@ -386,7 +378,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
         )
 
         expect(result).to eq({
-          catalog_plan_id: 'identity_plus_v1_monthly',
+          catalog_plan_id: 'identity_plus_v1',
           metadata_plan_id: nil,
           price_id: 'price_drift_test',
         })
@@ -400,7 +392,7 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
         expect(logger).to receive(:warn).with(
           '[PlanValidator] Drift detected: metadata differs from catalog',
           hash_including(
-            catalog_plan_id: 'identity_plus_v1_monthly',
+            catalog_plan_id: 'identity_plus_v1',
             metadata_plan_id: nil
           )
         )
@@ -465,7 +457,7 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::UpdateUserPlan', billing: true do
     end
 
     context 'when plan_id is valid (in catalog)' do
-      let(:plan_id) { 'identity_plus_v1_monthly' }
+      let(:plan_id) { 'identity_plus_v1' }
 
       before do
         mock_plan = instance_double(Billing::Plan, plan_id: plan_id)
@@ -493,14 +485,14 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::UpdateUserPlan', billing: true do
       end
 
       it 'available_plan_ids provides list for error messages' do
-        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1_monthly')
+        plan1 = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
         allow(Billing::Plan).to receive(:list_plans).and_return([plan1])
         allow(Billing::Config).to receive(:load_plans).and_return({
           'legacy_v1' => { 'tier' => 'legacy' },
         })
 
         result = Billing::PlanValidator.available_plan_ids
-        expect(result).to include('identity_plus_v1_monthly', 'legacy_v1')
+        expect(result).to include('identity_plus_v1', 'legacy_v1')
       end
     end
 
@@ -573,252 +565,5 @@ RSpec.describe 'Billing::CatalogMissError', billing: true do
   it 'stores the price_id for programmatic access' do
     error = Billing::CatalogMissError.new('Not found', price_id: 'price_123')
     expect(error.price_id).to eq('price_123')
-  end
-end
-
-# ==============================================================================
-# SECTION 8: Billing::PlanValidator.resolve_plan_id_for_federation
-# ==============================================================================
-#
-# Federation plan resolution from metadata (not catalog) for cross-region orgs.
-# Unlike resolve_plan_id, this method does NOT raise on failure - it returns nil
-# and logs an error because retries don't help when metadata is missing.
-#
-RSpec.describe 'Billing::PlanValidator.resolve_plan_id_for_federation', billing: true do
-  let(:validator) { Billing::PlanValidator }
-
-  def build_subscription(subscription_metadata: {}, price_metadata: {})
-    Stripe::Subscription.construct_from({
-      id: 'sub_federation_test',
-      object: 'subscription',
-      customer: 'cus_test',
-      status: 'active',
-      metadata: subscription_metadata,
-      items: {
-        data: [{
-          price: {
-            id: 'price_cross_region_xyz',
-            product: 'prod_cross_region',
-            metadata: price_metadata,
-          },
-          current_period_end: (Time.now + 30 * 24 * 60 * 60).to_i,
-        }],
-      },
-    })
-  end
-
-  describe 'happy path: plan_id found in subscription metadata' do
-    before do
-      # Mock valid_plan_id? to return true for the test plan
-      mock_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
-      allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(mock_plan)
-      allow(mock_plan).to receive(:exists?).and_return(true)
-    end
-
-    let(:subscription) do
-      build_subscription(
-        subscription_metadata: { 'plan_id' => 'identity_plus_v1' },
-        price_metadata: {}
-      )
-    end
-
-    it 'returns the plan_id from subscription metadata' do
-      expect(validator.resolve_plan_id_for_federation(subscription)).to eq('identity_plus_v1')
-    end
-
-    it 'logs successful resolution' do
-      logger = instance_double(SemanticLogger::Logger)
-      allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
-      allow(logger).to receive(:debug)
-
-      expect(logger).to receive(:debug).with(
-        '[PlanValidator.resolve_plan_id_for_federation] Found in subscription metadata',
-        hash_including(plan_id: 'identity_plus_v1')
-      )
-
-      validator.resolve_plan_id_for_federation(subscription)
-    end
-  end
-
-  describe 'fallback: plan_id found in price metadata' do
-    before do
-      # Mock valid_plan_id? to return true for price metadata plan
-      mock_plan = instance_double(Billing::Plan, plan_id: 'multi_team_v1')
-      allow(Billing::Plan).to receive(:load).with('multi_team_v1').and_return(mock_plan)
-      allow(mock_plan).to receive(:exists?).and_return(true)
-
-      # Subscription metadata plan_id is NOT valid (or missing)
-      allow(Billing::Plan).to receive(:load).with(nil).and_return(nil)
-    end
-
-    let(:subscription) do
-      build_subscription(
-        subscription_metadata: {},
-        price_metadata: { 'plan_id' => 'multi_team_v1' }
-      )
-    end
-
-    it 'returns the plan_id from price metadata when not in subscription metadata' do
-      expect(validator.resolve_plan_id_for_federation(subscription)).to eq('multi_team_v1')
-    end
-
-    it 'logs that plan_id was found in price metadata' do
-      logger = instance_double(SemanticLogger::Logger)
-      allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
-      allow(logger).to receive(:debug)
-
-      expect(logger).to receive(:debug).with(
-        '[PlanValidator.resolve_plan_id_for_federation] Found in price metadata',
-        hash_including(plan_id: 'multi_team_v1')
-      )
-
-      validator.resolve_plan_id_for_federation(subscription)
-    end
-  end
-
-  describe 'failure: no valid plan_id anywhere' do
-    before do
-      # Neither metadata location has a valid plan_id
-      allow(Billing::Plan).to receive(:load).and_return(nil)
-      allow(Billing::Config).to receive(:load_plans).and_return({})
-    end
-
-    let(:subscription) do
-      build_subscription(
-        subscription_metadata: {},
-        price_metadata: {}
-      )
-    end
-
-    it 'returns nil (does NOT raise)' do
-      expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
-    end
-
-    it 'logs warn with subscription details (no PII)' do
-      logger = instance_double(SemanticLogger::Logger)
-      allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
-      allow(logger).to receive(:debug)
-      allow(logger).to receive(:warn)
-
-      expect(logger).to receive(:warn).with(
-        '[PlanValidator.resolve_plan_id_for_federation] No valid plan_id in metadata',
-        hash_including(
-          subscription_id: 'sub_federation_test',
-          subscription_plan_id: nil,
-          price_id: 'price_cross_region_xyz',
-          price_plan_id: nil
-        )
-      )
-
-      validator.resolve_plan_id_for_federation(subscription)
-    end
-  end
-
-  describe 'invalid plan_id: exists in metadata but fails validation' do
-    before do
-      # Plan exists in metadata but valid_plan_id? returns false
-      allow(Billing::Plan).to receive(:load).with('nonexistent_plan').and_return(nil)
-      allow(Billing::Config).to receive(:load_plans).and_return({})
-    end
-
-    let(:subscription) do
-      build_subscription(
-        subscription_metadata: { 'plan_id' => 'nonexistent_plan' },
-        price_metadata: {}
-      )
-    end
-
-    it 'returns nil when plan_id is invalid' do
-      expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
-    end
-
-    it 'does not raise an error' do
-      expect { validator.resolve_plan_id_for_federation(subscription) }.not_to raise_error
-    end
-  end
-
-  describe 'subscription metadata takes precedence over price metadata' do
-    before do
-      # Both locations have valid plan_ids
-      mock_sub_plan = instance_double(Billing::Plan, plan_id: 'identity_plus_v1')
-      mock_price_plan = instance_double(Billing::Plan, plan_id: 'multi_team_v1')
-
-      allow(Billing::Plan).to receive(:load).with('identity_plus_v1').and_return(mock_sub_plan)
-      allow(mock_sub_plan).to receive(:exists?).and_return(true)
-      allow(Billing::Plan).to receive(:load).with('multi_team_v1').and_return(mock_price_plan)
-      allow(mock_price_plan).to receive(:exists?).and_return(true)
-    end
-
-    let(:subscription) do
-      build_subscription(
-        subscription_metadata: { 'plan_id' => 'identity_plus_v1' },
-        price_metadata: { 'plan_id' => 'multi_team_v1' }
-      )
-    end
-
-    it 'returns subscription metadata plan_id, ignoring price metadata' do
-      expect(validator.resolve_plan_id_for_federation(subscription)).to eq('identity_plus_v1')
-    end
-  end
-
-  describe 'empty items.data array (no subscription items)' do
-    before do
-      allow(Billing::Plan).to receive(:load).and_return(nil)
-      allow(Billing::Config).to receive(:load_plans).and_return({})
-    end
-
-    let(:subscription) do
-      Stripe::Subscription.construct_from({
-        id: 'sub_empty_items',
-        object: 'subscription',
-        customer: 'cus_test',
-        status: 'active',
-        metadata: {},
-        items: {
-          data: [],
-        },
-      })
-    end
-
-    it 'returns nil without raising' do
-      expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
-    end
-
-    it 'does not crash on safe navigation through empty items' do
-      expect { validator.resolve_plan_id_for_federation(subscription) }.not_to raise_error
-    end
-  end
-
-  describe 'price exists but price.metadata is nil or empty' do
-    before do
-      allow(Billing::Plan).to receive(:load).and_return(nil)
-      allow(Billing::Config).to receive(:load_plans).and_return({})
-    end
-
-    context 'when price.metadata is an empty hash' do
-      let(:subscription) do
-        build_subscription(
-          subscription_metadata: {},
-          price_metadata: {}
-        )
-      end
-
-      it 'returns nil' do
-        expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
-      end
-    end
-
-    context 'when subscription metadata has invalid plan but price metadata is empty' do
-      let(:subscription) do
-        build_subscription(
-          subscription_metadata: { 'plan_id' => 'bogus_plan' },
-          price_metadata: {}
-        )
-      end
-
-      it 'returns nil when neither metadata source has a valid plan_id' do
-        expect(validator.resolve_plan_id_for_federation(subscription)).to be_nil
-      end
-    end
   end
 end

@@ -190,8 +190,8 @@ const formatEntitlement = (ent: string): string => {
 ## Don't Do This
 
 ```typescript
-// ❌ Don't check plan IDs
-if (org.planid === 'identity_v1') { }
+// ❌ Don't check plan IDs directly
+if (org.planid === 'identity_plus_v1') { }
 
 // ❌ Don't hardcode plan names
 <p>Upgrade to Identity Plus</p>

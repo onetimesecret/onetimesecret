@@ -97,13 +97,12 @@ export function getPlanLabel(planType: PlanType | string): string {
 /**
  * Parse a plan ID to a human-readable display name
  *
- * Handles plan IDs like:
- * - identity_plus_v1_monthly -> Identity Plus
- * - team_plus_v1_yearly -> Team Plus
- * - single_team_v1_monthly -> Single Team
+ * Handles canonical plan IDs like:
+ * - identity_plus_v1 -> Identity Plus
+ * - team_plus_v1 -> Team Plus
  * - free_v1 -> Free
  *
- * @param planId - The plan ID from the backend (e.g., 'identity_plus_v1_monthly')
+ * @param planId - The canonical plan ID (e.g., 'identity_plus_v1')
  * @returns A human-readable display name
  */
 export function getPlanDisplayName(planId: string): string {
@@ -131,10 +130,10 @@ export function getPlanDisplayName(planId: string): string {
     }
   }
 
-  // Fallback: Convert snake_case to Title Case (removing version/interval suffixes)
-  // e.g., 'some_plan_v1_monthly' -> 'Some Plan'
+  // Fallback: Convert snake_case to Title Case (removing version suffix)
+  // e.g., 'some_plan_v1' -> 'Some Plan'
   const baseName = planId
-    .replace(/_v\d+.*$/, '') // Remove version and interval suffix
+    .replace(/_v\d+$/, '') // Remove version suffix
     .replace(/_/g, ' ') // Convert underscores to spaces
     .replace(/\b\w/g, (c) => c.toUpperCase()); // Title case
 
