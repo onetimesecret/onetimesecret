@@ -88,10 +88,10 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(price_list).to receive(:auto_paging_each).and_yield(recurring_price)
         allow(Stripe::Price).to receive(:list).with(product: 'prod_ots_123', active: true).and_return(price_list)
 
-        # Stub upsert methods
+        # Stub upsert methods (handler calls PlanPersister directly)
         allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
-        allow(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
 
       include_examples 'handles event successfully'
@@ -108,12 +108,12 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       it 'upserts plan data for recurring prices' do
         operation.call
-        expect(Billing::Plan).to have_received(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).to have_received(:upsert_from_stripe_data)
       end
 
       it 'rebuilds the price ID cache' do
         operation.call
-        expect(Billing::Plan).to have_received(:rebuild_stripe_price_id_cache)
+        expect(Billing::Operations::Catalog::PlanPersister).to have_received(:rebuild_stripe_price_id_cache)
       end
 
       it 'does NOT call full refresh_from_stripe' do
@@ -137,8 +137,8 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(Stripe::Price).to receive(:list).with(product: 'prod_ots_123', active: true).and_return(price_list)
 
         allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
-        allow(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
 
       include_examples 'handles event successfully'
@@ -146,7 +146,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       it 'performs incremental sync for the product' do
         operation.call
         expect(Stripe::Product).to have_received(:retrieve).with('prod_ots_123')
-        expect(Billing::Plan).to have_received(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).to have_received(:upsert_from_stripe_data)
       end
     end
 
@@ -156,14 +156,14 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       before do
         allow(Stripe::Product).to receive(:retrieve).with('prod_other_456').and_return(other_product)
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
       end
 
       include_examples 'handles event successfully'
 
       it 'does not upsert non-OTS products' do
         operation.call
-        expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).not_to have_received(:upsert_from_stripe_data)
       end
     end
 
@@ -182,7 +182,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       before do
         allow(Stripe::Product).to receive(:retrieve).with('prod_ca_999').and_return(ca_product)
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
         # Configure the deployment to be isolated to NZ
         allow(Onetime.billing_config).to receive(:region).and_return('NZ')
       end
@@ -191,7 +191,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       it 'does not upsert a product from a different region' do
         operation.call
-        expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).not_to have_received(:upsert_from_stripe_data)
       end
     end
   end
@@ -207,8 +207,8 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(Stripe::Price).to receive(:retrieve).with('price_ots_monthly').and_return(recurring_price)
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
         allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
-        allow(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
 
       include_examples 'handles event successfully'
@@ -221,7 +221,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       it 'upserts the single plan' do
         operation.call
-        expect(Billing::Plan).to have_received(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).to have_received(:upsert_from_stripe_data)
       end
     end
 
@@ -233,8 +233,8 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(Stripe::Price).to receive(:retrieve).with('price_ots_monthly').and_return(recurring_price)
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
         allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
-        allow(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
 
       include_examples 'handles event successfully'
@@ -247,14 +247,14 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       before do
         allow(Stripe::Price).to receive(:retrieve).with('price_one_time').and_return(one_time_price)
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
       end
 
       include_examples 'handles event successfully'
 
       it 'does not upsert one-time prices' do
         operation.call
-        expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).not_to have_received(:upsert_from_stripe_data)
       end
     end
 
@@ -286,7 +286,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       before do
         allow(Stripe::Price).to receive(:retrieve).with('price_ca_monthly').and_return(ca_price)
         allow(Stripe::Product).to receive(:retrieve).with('prod_ca_999').and_return(ca_product)
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
         # Configure the deployment to be isolated to NZ
         allow(Onetime.billing_config).to receive(:region).and_return('NZ')
       end
@@ -295,7 +295,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       it 'does not upsert a price whose product belongs to a different region' do
         operation.call
-        expect(Billing::Plan).not_to have_received(:upsert_from_stripe_data)
+        expect(Billing::Operations::Catalog::PlanPersister).not_to have_received(:upsert_from_stripe_data)
       end
     end
   end
@@ -321,7 +321,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       before do
         allow(Billing::Plan).to receive(:list_plans).and_return([mock_plan])
-        allow(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
 
       include_examples 'handles event successfully'
@@ -334,7 +334,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       it 'rebuilds the price ID cache' do
         operation.call
-        expect(Billing::Plan).to have_received(:rebuild_stripe_price_id_cache)
+        expect(Billing::Operations::Catalog::PlanPersister).to have_received(:rebuild_stripe_price_id_cache)
       end
     end
 
@@ -364,7 +364,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
           allow(Billing::Plan).to receive(:find_by_stripe_price_id)
             .with('price_deleted')
             .and_return(mock_plan)
-          allow(Billing::Plan).to receive(:rebuild_stripe_price_id_cache)
+          allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
         end
 
         include_examples 'handles event successfully'
@@ -399,18 +399,19 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         object: 'plan',
       })
     end
+    let(:pull_result) { double(plans_synced: 5, config_plans_loaded: 2) }
 
     describe 'plan.created' do
       let(:event) { build_stripe_event(type: 'plan.created', data_object: plan_object) }
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
-      before { allow(Billing::Plan).to receive(:refresh_from_stripe).and_return(true) }
+      before { allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result) }
 
       include_examples 'handles event successfully'
 
-      it 'calls full refresh_from_stripe for legacy plan events' do
+      it 'calls full Pull.call for legacy plan events' do
         operation.call
-        expect(Billing::Plan).to have_received(:refresh_from_stripe)
+        expect(Billing::Operations::Catalog::Pull).to have_received(:call)
       end
     end
 
@@ -418,13 +419,13 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       let(:event) { build_stripe_event(type: 'plan.updated', data_object: plan_object) }
       let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
 
-      before { allow(Billing::Plan).to receive(:refresh_from_stripe).and_return(true) }
+      before { allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result) }
 
       include_examples 'handles event successfully'
 
-      it 'calls full refresh_from_stripe for legacy plan events' do
+      it 'calls full Pull.call for legacy plan events' do
         operation.call
-        expect(Billing::Plan).to have_received(:refresh_from_stripe)
+        expect(Billing::Operations::Catalog::Pull).to have_received(:call)
       end
     end
   end
@@ -457,7 +458,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(Stripe::Price).to receive(:list).and_return(price_list)
 
         allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test' })
-        allow(Billing::Plan).to receive(:upsert_from_stripe_data)
+        allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
           .and_raise(StandardError, 'Redis connection failed')
       end
 
