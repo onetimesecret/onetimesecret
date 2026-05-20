@@ -134,6 +134,51 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
       end
     end
 
+    context 'legacy config: with CIDRs + Forwarded header' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'trusted_proxy_depth' => 1,
+            'trusted_ip_header' => 'Forwarded',
+            'trusted_proxy_cidrs' => ['203.0.113.0/24']
+          }
+        })
+      end
+
+      it 'uses Forwarded header priority' do
+        instance.execute(context)
+        expect(Rack::Request.forwarded_priority).to eq([:forwarded])
+      end
+
+      it 'configures custom CIDRs' do
+        instance.execute(context)
+        filter = Rack::Request.ip_filter
+        expect(filter.call('203.0.113.50')).to be true
+      end
+    end
+
+    context 'legacy config: with invalid CIDRs' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'trusted_proxy_depth' => 1,
+            'trusted_proxy_cidrs' => ['not-valid', '203.0.113.0/24']
+          }
+        })
+      end
+
+      it 'logs warning for invalid CIDR' do
+        instance.execute(context)
+        expect(logger).to have_received(:warn).with(/Invalid trusted_proxy_cidr 'not-valid'/)
+      end
+
+      it 'continues with valid CIDRs' do
+        instance.execute(context)
+        filter = Rack::Request.ip_filter
+        expect(filter.call('203.0.113.50')).to be true
+      end
+    end
+
     context 'when site config is missing entirely' do
       before do
         allow(OT).to receive(:conf).and_return({})
@@ -444,6 +489,96 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
             header: 'X-Forwarded-For'
           )
         end
+      end
+
+      context 'with header: Forwarded (RFC 7239)' do
+        before do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'network' => {
+                'trusted_proxy' => {
+                  'enabled' => true,
+                  'mode' => 'depth',
+                  'depth' => 1,
+                  'header' => 'Forwarded'
+                }
+              }
+            }
+          })
+        end
+
+        it 'passes Forwarded header to ClientIpHelpers' do
+          allow(Onetime::ClientIpHelpers).to receive(:extract).and_return('1.2.3.4')
+          instance.execute(context)
+
+          env = { 'REMOTE_ADDR' => '127.0.0.1' }
+          Rack::Request.new(env).ip
+
+          expect(Onetime::ClientIpHelpers).to have_received(:extract).with(
+            env,
+            depth: 1,
+            header: 'Forwarded'
+          )
+        end
+      end
+
+      context 'with header: Both' do
+        before do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'network' => {
+                'trusted_proxy' => {
+                  'enabled' => true,
+                  'mode' => 'depth',
+                  'depth' => 1,
+                  'header' => 'Both'
+                }
+              }
+            }
+          })
+        end
+
+        it 'passes Both header to ClientIpHelpers' do
+          allow(Onetime::ClientIpHelpers).to receive(:extract).and_return('1.2.3.4')
+          instance.execute(context)
+
+          env = { 'REMOTE_ADDR' => '127.0.0.1' }
+          Rack::Request.new(env).ip
+
+          expect(Onetime::ClientIpHelpers).to have_received(:extract).with(
+            env,
+            depth: 1,
+            header: 'Both'
+          )
+        end
+      end
+    end
+
+    # ==========================================================================
+    # Unrecognized mode falls through to filter
+    # ==========================================================================
+    context 'when mode is unrecognized' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'site' => {
+            'network' => {
+              'trusted_proxy' => {
+                'enabled' => true,
+                'mode' => 'unknown-garbage'
+              }
+            }
+          }
+        })
+      end
+
+      it 'falls through to filter mode' do
+        instance.execute(context)
+        expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
+      end
+
+      it 'logs as filter mode' do
+        instance.execute(context)
+        expect(logger).to have_received(:debug).with(/mode=filter/)
       end
     end
 

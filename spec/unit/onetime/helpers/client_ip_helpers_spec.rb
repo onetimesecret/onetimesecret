@@ -86,6 +86,26 @@ RSpec.describe Onetime::ClientIpHelpers do
         expect(described_class.extract(e, depth: 1, header: 'X-Forwarded-For'))
           .to eq('203.0.113.42')
       end
+
+      it 'returns REMOTE_ADDR for whitespace-only header' do
+        e = env('HTTP_X_FORWARDED_FOR' => '   ,   ,   ')
+        expect(described_class.extract(e, depth: 1, header: 'X-Forwarded-For'))
+          .to eq('10.244.8.0')
+      end
+    end
+
+    context 'with depth greater than chain length' do
+      it 'returns first IP when depth exceeds chain by 1' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42')
+        expect(described_class.extract(e, depth: 2, header: 'X-Forwarded-For'))
+          .to eq('203.0.113.42')
+      end
+
+      it 'returns first IP when depth greatly exceeds chain' do
+        e = env('HTTP_X_FORWARDED_FOR' => '203.0.113.42, 10.0.0.1')
+        expect(described_class.extract(e, depth: 10, header: 'X-Forwarded-For'))
+          .to eq('203.0.113.42')
+      end
     end
   end
 
