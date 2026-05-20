@@ -298,7 +298,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
     it 'returns 400 when plan is not found' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        product: 'nonexistent_product',
+        product: 'nonexistent_v1',
         interval: 'monthly',
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
