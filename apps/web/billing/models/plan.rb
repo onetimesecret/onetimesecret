@@ -322,13 +322,6 @@ module Billing
           return 0
         end
 
-        # PHASE 1b: Generate base plan entries (no interval suffix)
-        # These alias entries allow orgs to use canonical plan_ids (e.g., 'identity_plus_v1')
-        # while preserving interval-suffixed entries for checkout pricing lookup.
-        base_entries = generate_base_plan_entries(plan_data_list)
-        plan_data_list.concat(base_entries)
-        OT.li "[Plan.refresh_from_stripe] Generated #{base_entries.size} base plan entries"
-
         progress&.call("Upserting #{plan_data_list.size} plans...")
 
         # PHASE 2: Upsert all plans (NO clear_cache!)
