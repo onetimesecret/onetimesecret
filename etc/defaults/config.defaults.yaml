@@ -9,25 +9,6 @@ site:
   # location. Changing the secret can lead to unforeseen issues
   # like not being able to decrypt existing secrets.
   secret: <%= ENV['SECRET'] || nil %>
-  # Trusted Reverse Proxy Configuration
-  #
-  # trusted_proxy_depth controls how many proxy hops to skip in X-Forwarded-For
-  # when resolving the real client IP. Affects all IP-based features: ban checks,
-  # session tracking, audit logs, and the Colonel "Your Current IP" display.
-  #
-  # 0 (default): No header trust. Use REMOTE_ADDR only. Safe for direct deployments.
-  # 1: Trust one proxy (standard nginx/Caddy/Traefik setup).
-  # 2+: Trust N proxies (CDN → reverse proxy → app).
-  #
-  # WARNING: Only set trusted_proxy_depth > 0 when:
-  # - The app is behind a trusted reverse proxy
-  # - Direct client access to the app is blocked by a firewall
-  # - The proxy is configured to strip/override client-provided headers
-  #
-  # trusted_ip_header: which header to read the forwarding chain from.
-  # One of: X-Forwarded-For (default), Forwarded, Both
-  trusted_proxy_depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 0 %>
-  trusted_ip_header:   <%= ENV['TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
   # API and UI Configuration
   interface:
     ui:
@@ -361,6 +342,63 @@ site:
     # ENV: CSP_ENABLED (default: false)
     csp:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
+
+  # Network Configuration
+  # Settings for proxy trust, client IP resolution, and network-level behavior.
+  network:
+    # Trusted Proxy Configuration
+    #
+    # Controls how client IPs are resolved when behind reverse proxies
+    # (Kubernetes ingress, cloud load balancers, CDNs, etc.).
+    #
+    # Affects all IP-based features: ban checks, session tracking,
+    # audit logs, and the Colonel "Your Current IP" display.
+    #
+    # WARNING: Only enable when:
+    # - The app is behind a trusted reverse proxy
+    # - Direct client access is blocked by firewall
+    # - The proxy strips/overwrites client-provided X-Forwarded-For headers
+    #
+    trusted_proxy:
+      # Master switch. When false, all forwarded headers are ignored
+      # and REMOTE_ADDR is used directly.
+      enabled: <%= ENV['TRUSTED_PROXY_ENABLED'] == 'true' %>
+
+      # How to resolve client IP behind proxies:
+      #
+      # 'filter' (default): Rack walks X-Forwarded-For right-to-left,
+      #   automatically skipping RFC1918 private IPs (10.x, 172.16-31.x,
+      #   192.168.x). Returns first non-private IP. Works for most k8s/cloud
+      #   deployments where proxies have internal IPs.
+      #
+      # 'depth': Position-based counting. Skip exactly N rightmost hops.
+      #   Use when:
+      #   - CDN has a public IP (not RFC1918)
+      #   - Variable proxy depth that filter can't handle
+      #   - You need deterministic hop selection regardless of IP class
+      #
+      # When filter and depth differ:
+      #   - CDN with public IP: filter returns CDN IP (add to cidrs or use depth)
+      #   - Variable hop count: filter handles automatically; depth fails if wrong
+      #   - Spoofed private IP in header: filter skips it; depth trusts if in range
+      #
+      mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>
+
+      # Which header to read the forwarding chain from.
+      # - X-Forwarded-For: Most common (nginx, Caddy, AWS ALB)
+      # - Forwarded: RFC 7239 standard
+      # - Both: Try Forwarded first, fall back to X-Forwarded-For
+      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
+
+      # Filter mode only: Additional CIDR ranges to trust as proxies
+      # beyond RFC1918 defaults. Use when your CDN or proxy has public IPs.
+      # Example: ["203.0.113.0/24", "2001:db8::/32"]
+      cidrs: <%= ENV['TRUSTED_PROXY_CIDRS']&.split(',')&.map(&:strip) || [] %>
+
+      # Depth mode only: Number of proxy hops to skip from the right.
+      # 1 = standard single reverse proxy (nginx/Caddy)
+      # 2 = CDN → reverse proxy → app
+      depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
 features:
   regions:
