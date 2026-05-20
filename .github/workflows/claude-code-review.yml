@@ -26,6 +26,7 @@ jobs:
     # Skip bot-created PRs (renovate, dependabot, etc.) - they show as 'name[bot]' in github.actor
     if: ${{
       !endsWith(github.actor, '[bot]') &&
+      !github.event.pull_request.head.repo.fork &&
       (
         (github.event.action == 'opened') ||
         (github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
