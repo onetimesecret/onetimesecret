@@ -188,9 +188,13 @@ module Onetime
         price_ids         = plan.all_stripe_price_ids.join(',')
         price_ids_display = price_ids.empty? ? 'N/A' : price_ids
 
+        # App identifier from constant (all OTS plans share this)
+        app = Billing::Metadata::APP_NAME
+
         format(
-          '%-20s %-18s %-10s %-10s %-12s %-6d %-26s %s',
+          '%-20s %-12s %-18s %-10s %-10s %-12s %-6d %-26s %s',
           (plan.plan_id || 'N/A')[0..19],
+          app[0..11],
           (plan.tier || 'N/A')[0..17],
           intervals_display[0..9],
           amount[0..9],
