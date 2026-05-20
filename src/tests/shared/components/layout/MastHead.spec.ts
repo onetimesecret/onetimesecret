@@ -710,6 +710,180 @@ describe('MastHead', () => {
     });
   });
 
+  describe('Site name visibility priority (regression #3160)', () => {
+    /**
+     * Priority chain in getShowSiteName():
+     *   1. props.logo.showSiteName            (caller-site override)
+     *   2. domain_logo.value                  (multi-tenant: always hide)
+     *   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit)
+     *   4. isCustomStaticLogo.value           (heuristic: non-default LOGO_URL)
+     *   5. !!site_name                        (default tied to SITE_NAME)
+     *
+     * #3160: in v0.25.3 step 4 ran ahead of step 3, so operators setting
+     * LOGO_URL + LOGO_SHOW_NAME=true silently lost their wordmark.
+     */
+    const mountWithBranding = (
+      branding: {
+        logoUrl: string;
+        showName: boolean;
+        siteName: string;
+      },
+      storeState: Parameters<typeof mountComponent>[1] = {},
+      props: Record<string, unknown> = {}
+    ) => {
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+        stubActions: false,
+        initialState: {
+          bootstrap: {
+            authenticated: storeState.authenticated ?? false,
+            awaiting_mfa: storeState.awaiting_mfa ?? false,
+            email: storeState.email ?? null,
+            cust: storeState.cust ?? null,
+            domain_logo: storeState.domain_logo ?? null,
+            ui: {
+              header: {
+                navigation: { enabled: true },
+                branding: {
+                  logo: {
+                    url: branding.logoUrl,
+                    alt: 'Brand',
+                    show_name: branding.showName,
+                  },
+                  site_name: branding.siteName,
+                },
+              },
+            },
+            authentication: { enabled: true, signin: true, signup: true },
+          },
+        },
+      });
+
+      const authStore = useAuthStore(pinia);
+      const hasAuthenticatedCustomer = storeState.authenticated && storeState.cust;
+      const hasMfaPendingEmail = storeState.awaiting_mfa && storeState.email;
+      (authStore as unknown as { isUserPresent: boolean }).isUserPresent = !!(
+        hasAuthenticatedCustomer || hasMfaPendingEmail
+      );
+
+      return mount(MastHead, {
+        props: { displayMasthead: true, displayNavigation: true, ...props },
+        global: {
+          plugins: [i18n, pinia],
+          stubs: {
+            RouterLink: { template: '<a :href="to"><slot /></a>', props: ['to'] },
+          },
+        },
+      });
+    };
+
+    it('renders site name when LOGO_URL is custom AND show_name is true (core #3160 regression)', async () => {
+      // The original bug: isCustomStaticLogo heuristic short-circuited ahead of
+      // the explicit operator opt-in, so the wordmark vanished even though
+      // LOGO_SHOW_NAME=true was configured.
+      wrapper = mountWithBranding(
+        {
+          logoUrl: '/img/brand.svg',
+          showName: true,
+          siteName: 'Acme Vault',
+        },
+        { authenticated: false }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(true);
+      expect(siteName.text()).toBe('Acme Vault');
+    });
+
+    it('hides site name when LOGO_URL is custom AND show_name is false', async () => {
+      // Explicit operator opt-out must win over the SITE_NAME default.
+      wrapper = mountWithBranding(
+        {
+          logoUrl: '/img/brand.svg',
+          showName: false,
+          siteName: 'Acme Vault',
+        },
+        { authenticated: false }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(false);
+    });
+
+    it('renders site name for the stock DefaultLogo when show_name is true', async () => {
+      // Default install (Vue component logo) must still honor an explicit
+      // LOGO_SHOW_NAME=true; the stub exposes data-show-site-name for assertion.
+      wrapper = mountWithBranding(
+        {
+          logoUrl: 'DefaultLogo.vue',
+          showName: true,
+          siteName: 'Onetime Secret',
+        },
+        { authenticated: false }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('true');
+    });
+
+    it('hides site name when domain_logo is set even if static show_name is true (multi-tenant invariant)', async () => {
+      // Per-tenant domain_logo (step 2) must override LOGO_SHOW_NAME (step 3):
+      // the platform-wide site name has no business appearing on a tenant page.
+      wrapper = mountWithBranding(
+        {
+          logoUrl: '/img/brand.svg',
+          showName: true,
+          siteName: 'Acme Vault',
+        },
+        {
+          authenticated: false,
+          domain_logo: 'https://tenant.example.com/logo.png',
+        }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(false);
+    });
+
+    it('hides site name when props.logo.showSiteName=false even with LOGO_URL and show_name=true', async () => {
+      // props.logo.showSiteName (step 1) is the top of the priority chain;
+      // an explicit false from a caller must beat both LOGO_SHOW_NAME and the
+      // custom-logo heuristic.
+      wrapper = mountWithBranding(
+        {
+          logoUrl: '/img/brand.svg',
+          showName: true,
+          siteName: 'Acme Vault',
+        },
+        { authenticated: false },
+        {
+          logo: { showSiteName: false, isUserPresent: false },
+        }
+      );
+
+      await nextTick();
+      const img = wrapper.find('img#logo');
+      expect(img.exists()).toBe(true);
+
+      const siteName = wrapper.find('span.font-brand.text-lg');
+      expect(siteName.exists()).toBe(false);
+    });
+  });
+
   describe('Accessibility', () => {
     it('has proper aria-label on main navigation', async () => {
       wrapper = mountComponent(
