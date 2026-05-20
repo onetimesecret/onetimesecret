@@ -9,6 +9,9 @@ require_relative '../../lib/test_support/billing_helpers'
 #
 # Tests loading all plans from billing.yaml config into Redis cache.
 # Uses spec/billing.test.yaml via ConfigResolver when RACK_ENV=test.
+#
+# Design note: Plans are family-keyed (e.g., "identity_plus_v1") with
+# interval variants stored in a nested `prices` hashkey.
 
 ## Setup: Load billing models
 require 'apps/web/billing/models/plan'
@@ -26,118 +29,124 @@ Billing::Plan.instances.size
 @count.class
 #=> Integer
 
-## Should load 2 plans (identity_plus_v1_monthly + identity_plus_v1_yearly)
+## Should load 1 plan family (identity_plus_v1 with month+year prices)
 # Free tier has no prices so it's skipped
 @count
-#=> 2
+#=> 1
 
-## Verify plans were saved to Redis
+## Verify plan was saved to Redis
 Billing::Plan.instances.size
-#=> 2
+#=> 1
 
 ## List all loaded plans
 @plans = Billing::Plan.list_plans
 @plans.size
-#=> 2
+#=> 1
 
-## Verify monthly plan exists
-@monthly = Billing::Plan.load('identity_plus_v1_monthly')
-@monthly.nil?
+## Verify plan exists (family-keyed, no interval suffix)
+@plan = Billing::Plan.load('identity_plus_v1')
+@plan.nil?
 #=> false
 
-## Verify monthly plan attributes
-@monthly.plan_id
-#=> 'identity_plus_v1_monthly'
+## Verify plan_id (family-keyed)
+@plan.plan_id
+#=> 'identity_plus_v1'
 
 ## Verify tier
-@monthly.tier
+@plan.tier
 #=> 'single_team'
 
-## Verify interval
-@monthly.interval
-#=> 'month'
-
 ## Verify region
-@monthly.region
+@plan.region
 #=> 'EU'
 
 ## Verify name
-@monthly.name
+@plan.name
 #=> 'Identity Plus'
 
-## Verify amount (in cents)
-@monthly.amount
+## Verify currency (family-level)
+@plan.currency
+#=> 'cad'
+
+## Verify plan has both intervals available
+@plan.available_intervals.sort
+#=> [:month, :year]
+
+## Verify monthly price data
+@monthly_price = @plan.price_for(:month)
+@monthly_price[:amount]
 #=> '1200'
 
-## Verify currency
-@monthly.currency
-#=> 'cad'
+## Verify monthly stripe_price_id
+@monthly_price[:stripe_price_id]
+#=> 'price_test_monthly'
+
+## Verify yearly price data
+@yearly_price = @plan.price_for(:year)
+@yearly_price[:amount]
+#=> '12000'
+
+## Verify yearly stripe_price_id
+@yearly_price[:stripe_price_id]
+#=> 'price_test_yearly'
 
 ## Verify entitlements match config (derive expected count from source of truth)
 @config_plans = Billing::Config.load_plans
 @expected_entitlements = @config_plans.dig('identity_plus_v1', 'entitlements') || []
-@monthly.entitlements.size == @expected_entitlements.size
+@plan.entitlements.size == @expected_entitlements.size
 #=> true
 
 ## Verify all config entitlements were loaded
-@expected_entitlements.all? { |e| @monthly.entitlements.member?(e) }
+@expected_entitlements.all? { |e| @plan.entitlements.member?(e) }
 #=> true
 
 ## Verify entitlements include core values
-@monthly.entitlements.member?('create_secrets')
+@plan.entitlements.member?('create_secrets')
 #=> true
 
 ## Verify limits were loaded (all config limits present as .max keys)
 @config_limits = @config_plans.dig('identity_plus_v1', 'limits') || {}
 @expected_limit_keys = @config_limits.keys.map { |k| "#{k}.max" }.sort
-@monthly.limits_hash.keys.sort == @expected_limit_keys
+@plan.limits_hash.keys.sort == @expected_limit_keys
 #=> true
 
 ## Verify unlimited custom_domains limit
-@monthly.limits_hash['custom_domains.max']
+@plan.limits_hash['custom_domains.max']
 #=> Float::INFINITY
 
 ## Verify members_per_team limit
-@monthly.limits_hash['members_per_team.max']
+@plan.limits_hash['members_per_team.max']
 #=> 10
-
-## Verify yearly plan exists
-@yearly = Billing::Plan.load('identity_plus_v1_yearly')
-@yearly.nil?
-#=> false
-
-## Verify yearly plan attributes
-@yearly.plan_id
-#=> 'identity_plus_v1_yearly'
-
-## Verify yearly interval
-@yearly.interval
-#=> 'year'
-
-## Verify yearly amount
-@yearly.amount
-#=> '12000'
 
 ## Verify get_plan works with tier/interval/region
 @plan_via_get = Billing::Plan.get_plan('single_team', 'monthly', 'EU')
 @plan_via_get.plan_id
-#=> 'identity_plus_v1_monthly'
+#=> 'identity_plus_v1'
+
+## Verify get_plan works with yearly interval
+@plan_via_yearly = Billing::Plan.get_plan('single_team', 'yearly', 'EU')
+@plan_via_yearly.plan_id
+#=> 'identity_plus_v1'
+
+## Same plan returned for both intervals (family-keyed)
+@plan_via_get.plan_id == @plan_via_yearly.plan_id
+#=> true
 
 ## Test clearing and reloading (clear_first: false)
 @before_count = Billing::Plan.instances.size
 @reload_count = Billing::Plan.load_all_from_config(clear_first: false)
 @after_count  = Billing::Plan.instances.size
 [@before_count, @reload_count, @after_count]
-#=> [2, 2, 2]
+#=> [1, 1, 1]
 
 ## Test clearing and reloading (clear_first: true, default)
 @reload_count = Billing::Plan.load_all_from_config
 @reload_count
-#=> 2
+#=> 1
 
 ## Verify instances were updated after reload
 Billing::Plan.instances.size
-#=> 2
+#=> 1
 
 ## Teardown: Clear cache
 Billing::Plan.clear_cache
