@@ -20,6 +20,21 @@ module Auth::Config::Hooks
         existing_account = db[:accounts].where(email: email).first
 
         if existing_account
+          diagnostic_hint = <<~HINT.strip
+            Registration blocked: Account exists in authdb but may be missing from
+            Redis. This can occur after clearing Redis without resetting authdb.
+            Consider: (1) deleting the account from authdb, or (2) resetting both
+            databases together.
+          HINT
+
+          Auth::Logging.log_auth_event(
+            :registration_blocked_auth_db_conflict,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            account_id: existing_account[:id],
+            diagnostic_hint: diagnostic_hint,
+          )
+
           set_error_flash(create_account_error_flash)
           request.env['rodauth.error_flash'] = create_account_error_flash
           throw_rodauth_error

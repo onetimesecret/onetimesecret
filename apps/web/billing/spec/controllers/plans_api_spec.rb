@@ -5,8 +5,8 @@
 # Tests for the Plans API focused on billing page fixes
 #
 # Covers the issues being fixed:
-# - Plan deduplication by plan_code
-# - Required fields for frontend (tier, is_popular, monthly_equivalent_amount)
+# - Flat per-interval records (each plan+interval is a separate record)
+# - Required fields for frontend (tier, interval, stripe_price_id, amount, currency, monthly_equivalent_amount)
 # - Plans sorted by display_order
 # - Correct field types and values
 
@@ -58,8 +58,11 @@ RSpec.describe 'Plans API Response', type: :integration do
         expect(plan).to have_key('id')
         expect(plan).to have_key('name')
         expect(plan).to have_key('tier')
-        expect(plan).to have_key('prices')
+        expect(plan).to have_key('interval')
+        expect(plan).to have_key('stripe_price_id')
+        expect(plan).to have_key('amount')
         expect(plan).to have_key('currency')
+        expect(plan).to have_key('monthly_equivalent_amount')
         expect(plan).to have_key('display_order')
         expect(plan).to have_key('entitlements')
         expect(plan).to have_key('limits')
@@ -74,28 +77,50 @@ RSpec.describe 'Plans API Response', type: :integration do
         expect(plan['tier']).to match(/free|single_account|single_team|multi_team/)
       end
 
-      it 'includes prices hash with interval-keyed data' do
+      it 'includes interval as top-level string field' do
         skip 'No plans in cache' if response_plans.empty?
 
         plan = response_plans.first
-        prices = plan['prices']
-        expect(prices).to be_a(Hash)
-        # Should have at least one interval (month or year)
-        intervals = prices.keys
-        expect(intervals).to all(match(/^(month|year)$/))
+        expect(plan['interval']).to be_a(String)
+        expect(plan['interval']).to match(/^(month|year)$/)
       end
 
-      it 'includes amount in prices for each interval' do
+      it 'includes amount as top-level field' do
         skip 'No plans in cache' if response_plans.empty?
 
         plan = response_plans.first
-        prices = plan['prices']
-        next if prices.nil? || prices.empty?
+        expect(plan['amount'].to_i).to be >= 0
+      end
 
-        # Each interval should have an amount
-        prices.each_value do |price_data|
-          expect(price_data['amount'].to_i).to be >= 0
-        end
+      it 'includes stripe_price_id as top-level field' do
+        skip 'No plans in cache' if response_plans.empty?
+
+        # Find a paid plan (free plans may not have stripe_price_id)
+        paid_plan = response_plans.find { |p| p['tier'] != 'free' }
+        skip 'No paid plans in cache' if paid_plan.nil?
+
+        expect(paid_plan['stripe_price_id']).to be_a(String)
+      end
+
+      it 'includes monthly_equivalent_amount for yearly records' do
+        skip 'No plans in cache' if response_plans.empty?
+
+        yearly_plan = response_plans.find { |p| p['interval'] == 'year' && p['tier'] != 'free' }
+        skip 'No yearly plans in cache' if yearly_plan.nil?
+
+        # Yearly records should have monthly_equivalent_amount calculated
+        expect(yearly_plan).to have_key('monthly_equivalent_amount')
+        expect(yearly_plan['monthly_equivalent_amount']).to be_a(Integer)
+      end
+
+      it 'monthly records have null monthly_equivalent_amount' do
+        skip 'No plans in cache' if response_plans.empty?
+
+        monthly_plan = response_plans.find { |p| p['interval'] == 'month' }
+        skip 'No monthly plans in cache' if monthly_plan.nil?
+
+        # Monthly records don't need monthly_equivalent_amount (or it's null)
+        expect(monthly_plan['monthly_equivalent_amount']).to be_nil
       end
 
       it 'includes display_order as numeric for sorting' do
@@ -132,6 +157,20 @@ RSpec.describe 'Plans API Response', type: :integration do
         display_orders = response_plans.map { |p| p['display_order'] }
         expect(display_orders).to eq(display_orders.sort)
       end
+
+      it 'same plan id appears multiple times for different intervals' do
+        skip 'No plans in cache' if response_plans.empty?
+
+        # Group by plan id to verify same plan appears with different intervals
+        grouped = response_plans.group_by { |p| p['id'] }
+        plan_with_multiple = grouped.find { |_id, plans| plans.size > 1 }
+
+        skip 'No plans with multiple intervals' if plan_with_multiple.nil?
+
+        _plan_id, plans = plan_with_multiple
+        intervals = plans.map { |p| p['interval'] }.uniq
+        expect(intervals.size).to be > 1
+      end
     end
 
     context 'tier-based logic support' do
@@ -141,6 +180,7 @@ RSpec.describe 'Plans API Response', type: :integration do
       end
 
       it 'single_team tier should have base entitlements' do
+        # Find any single_team record (may be multiple for different intervals)
         single_team = response_plans.find { |p| p['tier'] == 'single_team' }
         skip 'No single_team plan in response' if single_team.nil?
 
@@ -149,6 +189,7 @@ RSpec.describe 'Plans API Response', type: :integration do
       end
 
       it 'multi_team tier should have more entitlements than single_team' do
+        # Find any record of each tier (same plan data regardless of interval)
         single_team = response_plans.find { |p| p['tier'] == 'single_team' }
         multi_team = response_plans.find { |p| p['tier'] == 'multi_team' }
 
@@ -195,6 +236,7 @@ RSpec.describe 'Plans API Response', type: :integration do
       end
 
       it 'includes teams.max limit' do
+        # Find any single_team record
         single_team = response_plans.find { |p| p['tier'] == 'single_team' }
         skip 'No single_team plan' if single_team.nil?
 
@@ -236,29 +278,46 @@ RSpec.describe 'Plans API Response', type: :integration do
       Billing::Plan.load_all_from_config
     end
 
-    it 'returns plans with interval-keyed prices' do
+    it 'returns flat records with interval as top-level field' do
       get '/billing/api/plans'
       plans = JSON.parse(last_response.body)['plans']
 
       skip 'No plans in cache' if plans.empty?
 
-      # Each plan should have a prices hash with at least one interval
-      all_intervals = plans.flat_map { |p| (p['prices'] || {}).keys }.uniq
+      # Each record should have an interval field
+      all_intervals = plans.map { |p| p['interval'] }.uniq
       expect(all_intervals).not_to be_empty
       expect(all_intervals).to all(match(/^(month|year)$/))
     end
 
-    it 'same tier plan has price data for available intervals' do
+    it 'same plan id appears for each available interval' do
       get '/billing/api/plans'
       plans = JSON.parse(last_response.body)['plans']
 
-      single_team_plans = plans.select { |p| p['tier'] == 'single_team' }
-      skip 'No single_team plans' if single_team_plans.empty?
+      # Find plans that have both monthly and yearly pricing
+      grouped = plans.group_by { |p| p['id'] }
+      plan_with_both = grouped.find { |_id, recs| recs.map { |r| r['interval'] }.uniq.size > 1 }
 
-      plan = single_team_plans.first
-      prices = plan['prices'] || {}
-      # Should have at least one interval (month or year)
-      expect(prices.keys.size).to be >= 1
+      skip 'No plans with multiple intervals' if plan_with_both.nil?
+
+      _plan_id, records = plan_with_both
+      intervals = records.map { |r| r['interval'] }
+      expect(intervals).to include('month')
+      expect(intervals).to include('year')
+    end
+
+    it 'frontend can filter monthly plans by interval field' do
+      get '/billing/api/plans'
+      plans = JSON.parse(last_response.body)['plans']
+
+      skip 'No plans in cache' if plans.empty?
+
+      # Simulate frontend filtering
+      monthly_only = plans.select { |p| p['interval'] == 'month' }
+      yearly_only = plans.select { |p| p['interval'] == 'year' }
+
+      # Both filters should work (may have different counts)
+      expect(monthly_only + yearly_only).to match_array(plans)
     end
   end
 
@@ -270,18 +329,23 @@ RSpec.describe 'Plans API Response', type: :integration do
       JSON.parse(last_response.body)['plans']
     end
 
-    it 'plans with yearly price have amount greater than monthly' do
+    it 'yearly record amount is greater than corresponding monthly amount' do
       skip 'No plans in cache' if response_plans.empty?
 
-      plans_with_both = response_plans.select do |p|
-        prices = p['prices'] || {}
-        prices.key?('month') && prices.key?('year')
+      # Group by plan id to find plans with both intervals
+      grouped = response_plans.group_by { |p| p['id'] }
+      plan_with_both = grouped.find do |_id, records|
+        records.map { |r| r['interval'] }.uniq.sort == %w[month year]
       end
-      skip 'No plans with both intervals' if plans_with_both.empty?
 
-      plan = plans_with_both.first
-      monthly_amount = plan['prices']['month']['amount'].to_i
-      yearly_amount = plan['prices']['year']['amount'].to_i
+      skip 'No plans with both intervals' if plan_with_both.nil?
+
+      _plan_id, records = plan_with_both
+      monthly_record = records.find { |r| r['interval'] == 'month' }
+      yearly_record = records.find { |r| r['interval'] == 'year' }
+
+      monthly_amount = monthly_record['amount'].to_i
+      yearly_amount = yearly_record['amount'].to_i
 
       # Yearly should be >= 10x monthly (accounting for discounts)
       expect(yearly_amount).to be >= monthly_amount * 10
@@ -294,13 +358,26 @@ RSpec.describe 'Plans API Response', type: :integration do
         # Skip free plans
         next if plan['tier'] == 'free'
 
-        prices = plan['prices'] || {}
-        prices.each_value do |price_data|
-          amount = price_data['amount'].to_i
-          expect(amount).to be > 0
-          expect(amount).to be_an(Integer)
-        end
+        amount = plan['amount'].to_i
+        expect(amount).to be > 0
+        expect(amount).to be_an(Integer)
       end
+    end
+
+    it 'monthly_equivalent_amount is less than yearly amount' do
+      skip 'No plans in cache' if response_plans.empty?
+
+      yearly_paid = response_plans.find { |p| p['interval'] == 'year' && p['tier'] != 'free' }
+      skip 'No yearly paid plans' if yearly_paid.nil?
+
+      yearly_amount = yearly_paid['amount'].to_i
+      monthly_equiv = yearly_paid['monthly_equivalent_amount']
+
+      skip 'No monthly_equivalent_amount' if monthly_equiv.nil?
+
+      # Monthly equivalent should be yearly / 12 (roughly)
+      expect(monthly_equiv).to be < yearly_amount
+      expect(monthly_equiv).to be > 0
     end
   end
 

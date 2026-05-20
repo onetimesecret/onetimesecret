@@ -355,38 +355,39 @@ module Billing
         # lookup works for includes_plan references.
         plan_names_by_id = plans.to_h { |plan| [plan.plan_id, plan.name] }
 
-        # Filter by show_on_plans_page and sort by display_order (ascending - lower values first)
+        # Filter by show_on_plans_page and flatten to one record per interval
+        # Frontend expects flat records with top-level interval, amount, stripe_price_id
         plan_data = plans
           .select { |plan| plan.show_on_plans_page.to_s == 'true' }
-          .map do |plan|
-            # Build prices hash for API response (interval => price data)
-            prices = plan.prices_hash.transform_values do |price_data|
+          .flat_map do |plan|
+            # Skip plans with no prices (free plans filtered by show_on_plans_page anyway)
+            next [] if plan.prices_hash.empty?
+
+            # prices_hash uses STRING keys from JSON parse
+            plan.prices_hash.map do |interval, price_data|
               {
+                id: plan.plan_id,
+                name: plan.name,
+                tier: plan.tier,
+                interval: interval,
                 stripe_price_id: price_data['stripe_price_id'],
                 amount: price_data['amount'].to_i,
-                currency: price_data['currency'],
+                currency: price_data['currency'] || plan.currency,
+                region: plan.region,
+                features: plan.features.to_a,
+                limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
+                entitlements: plan.entitlements.to_a,
+                display_order: plan.display_order.to_i,
+                plan_code: plan.plan_code,
+                is_popular: plan.popular?,
+                plan_name_label: plan.plan_name_label,
+                includes_plan: plan.includes_plan,
+                includes_plan_name: plan_names_by_id[plan.includes_plan],
+                monthly_equivalent_amount: (interval == 'year' ? (price_data['amount'].to_i / 12.0).round : nil),
               }
             end
-
-            {
-              id: plan.plan_id,
-              name: plan.name,
-              tier: plan.tier,
-              currency: plan.currency,
-              region: plan.region,
-              prices: prices,
-              features: plan.features.to_a,
-              limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
-              entitlements: plan.entitlements.to_a,
-              display_order: plan.display_order.to_i,
-              plan_code: plan.plan_code,
-              is_popular: plan.popular?,
-              plan_name_label: plan.plan_name_label,
-              includes_plan: plan.includes_plan,
-              includes_plan_name: plan_names_by_id[plan.includes_plan],
-            }
           end
-          .sort_by { |p| p[:display_order] } # Ascending: Free (0) → Identity Plus (10) → Org Max (40)
+          .sort_by { |p| [p[:display_order], p[:interval] == 'month' ? 0 : 1] }
 
         json_response({ plans: plan_data })
       rescue StandardError => ex
