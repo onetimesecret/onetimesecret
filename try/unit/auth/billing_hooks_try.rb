@@ -177,7 +177,7 @@ info = instance.build_billing_redirect_info('identity_plus_v1', nil, billing_ena
 
 ## build_billing_redirect_info validates plan exists via PlanResolver
 instance = MockRodauthInstance.new
-info = instance.build_billing_redirect_info('unknown_plan', 'monthly', billing_enabled: true)
+info = instance.build_billing_redirect_info('nonexistent_v1', 'monthly', billing_enabled: true)
 [info[:valid], info[:error].include?('Plan not found')]
 #=> [false, true]
 
