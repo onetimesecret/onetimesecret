@@ -101,8 +101,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
       session: session,
       authenticated?: false,
       nonce: nonce,
-      strategy_result: strategy_result,
-      trusted_client_ip: '127.0.0.1'
+      strategy_result: strategy_result
     ).tap do |req|
       # Allow env to respond to fetch for i18n helpers
       allow(req.env).to receive(:fetch).and_call_original
