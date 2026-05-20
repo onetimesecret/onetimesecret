@@ -9,12 +9,8 @@ module Billing
     module Catalog
       # Consolidated Stripe data fetching for catalog operations.
       #
-      # Entry point for `Stripe::Product.list` and `Stripe::Price.list`
-      # in the catalog sync path. Currently used by Push; Pull delegates
-      # to `Plan.refresh_from_stripe` which has its own Stripe calls.
-      #
-      # TODO(#3152 Phase 3): Wire Pull through StripeReader when moving
-      # `refresh_from_stripe` orchestration out of Plan.
+      # Single entry point for `Stripe::Product.list` and `Stripe::Price.list`
+      # in the catalog sync path. Used by both Pull and Push operations.
       #
       # @example
       #   products = StripeReader.fetch_products(app_identifier: 'onetimesecret')

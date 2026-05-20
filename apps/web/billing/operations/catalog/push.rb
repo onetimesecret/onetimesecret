@@ -106,13 +106,13 @@ module Billing
             )
           end
 
-          apply_changes(changes, app_identifier, catalog_currency)
+          actual = apply_changes(changes, app_identifier, catalog_currency)
 
           Result.new(
             success: true,
-            products_created: changes[:products_to_create].size,
-            products_updated: changes[:products_to_update].size,
-            prices_created: changes[:prices_to_create].size,
+            products_created: actual[:products_created],
+            products_updated: actual[:products_updated],
+            prices_created: actual[:prices_created],
           )
         rescue Stripe::StripeError => ex
           Result.new(success: false, errors: ["Stripe error: #{ex.message}"])
@@ -320,24 +320,37 @@ module Billing
           end
         end
 
+        # Apply changes to Stripe and return actual success counts
+        #
+        # @return [Hash] Actual counts: { products_created:, products_updated:, prices_created: }
         def apply_changes(changes, app_identifier, catalog_currency)
-          new_products = {}
+          new_products     = {}
+          products_created = 0
+          products_updated = 0
+          prices_created   = 0
 
           changes[:products_to_create].each do |item|
-            product                      = create_product(item[:plan_id], item[:plan_def], app_identifier, catalog_currency)
-            new_products[item[:plan_id]] = product if product
+            product = create_product(item[:plan_id], item[:plan_def], app_identifier, catalog_currency)
+            if product
+              new_products[item[:plan_id]] = product
+              products_created            += 1
+            end
           end
 
           changes[:products_to_update].each do |item|
-            update_product(item[:product], item[:plan_def], item[:updates])
+            if update_product(item[:product], item[:plan_def], item[:updates])
+              products_updated += 1
+            end
           end
 
           changes[:prices_to_create].each do |item|
             product_id = item[:product_id] || new_products[item[:plan_id]]&.id
             next unless product_id
 
-            create_price(product_id, item)
+            prices_created += 1 if create_price(product_id, item)
           end
+
+          { products_created: products_created, products_updated: products_updated, prices_created: prices_created }
         end
 
         def create_product(plan_id, plan_def, app_identifier, catalog_currency)
@@ -378,14 +391,16 @@ module Billing
 
           params[:metadata] = metadata_updates unless metadata_updates.empty?
 
-          return if params.empty?
+          return false if params.empty?
 
           StripeRetry.with_retry do
             Stripe::Product.update(existing.id, params)
           end
           report("  Updated product: #{existing.id}")
+          true
         rescue Stripe::StripeError => ex
           report("  ERROR updating #{existing.id}: #{ex.message}")
+          false
         end
 
         def create_price(product_id, price_def)
@@ -404,8 +419,10 @@ module Billing
             Stripe::Price.create(params)
           end
           report("  Created price: #{price_def[:amount]}/#{price_def[:interval]} for #{price_def[:plan_id]}")
+          true
         rescue Stripe::StripeError => ex
           report("  ERROR creating price: #{ex.message}")
+          false
         end
 
         def build_create_metadata(plan_id, plan_def, app_identifier, catalog_currency)

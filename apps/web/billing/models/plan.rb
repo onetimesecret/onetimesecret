@@ -8,7 +8,7 @@ require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
 require_relative '../region_normalizer'
-require_relative '../lib/stripe_circuit_breaker'
+require_relative '../operations/catalog/pull'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -268,7 +268,7 @@ module Billing
       #
       # Returns true when no region is configured (backward-compatible pass-through).
       # When a region is configured, the product's region metadata must match case-insensitively.
-      # Called by both collect_stripe_plans (refresh path) and the webhook handler.
+      # Called by Pull operation (refresh path) and the webhook handler.
       #
       # @param product [Stripe::Product] The Stripe product
       # @return [Boolean] true if the product matches the configured region (or no region set)
@@ -292,76 +292,23 @@ module Billing
       # 3. **Prune phase**: Plans not in current Stripe catalog are soft-deleted
       # 4. **Cache rebuild**: Price ID lookup cache is refreshed
       #
-      # The catalog is NEVER cleared during sync, eliminating the empty-window
-      # race condition that occurred with the previous clear-then-rebuild pattern.
-      # If Stripe API fails during fetch, no cache modifications occur.
+      # Delegates to Operations::Catalog::Pull for the actual sync.
       #
-      # @param progress [Proc, nil] Optional progress callback (called with status messages)
+      # @param progress [Proc, nil] Optional progress callback
       # @return [Integer] Number of plans synced
-      # @raise [Stripe::StripeError] If Stripe API call fails during fetch phase
+      # @raise [Stripe::StripeError] If Stripe API call fails
       # @raise [Billing::CircuitOpenError] If circuit breaker is open
       def refresh_from_stripe(progress: nil)
-        # Skip Stripe sync in CI/test environments without API key
-        stripe_key = Onetime.billing_config.stripe_key
-        if stripe_key.to_s.strip.empty?
-          OT.lw '[Plan.refresh_from_stripe] Skipping Stripe sync: No API key configured'
-          return 0
+        result = Billing::Operations::Catalog::Pull.call(progress: progress)
+
+        unless result.success
+          error_msg = result.errors.first || 'Unknown error'
+          raise Stripe::StripeError, error_msg if error_msg.include?('Stripe')
+
+          raise StandardError, error_msg
         end
 
-        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync (upsert pattern)'
-
-        # PHASE 1: Fetch all data from Stripe into memory
-        # No Redis writes occur during this phase
-        # Circuit breaker protects against cascade failures during Stripe outages
-        plan_data_list = Billing::StripeCircuitBreaker.call do
-          collect_stripe_plans(progress: progress)
-        end
-
-        if plan_data_list.empty?
-          OT.lw '[Plan.refresh_from_stripe] No valid plans fetched from Stripe'
-          return 0
-        end
-
-        progress&.call("Upserting #{plan_data_list.size} plans...")
-
-        # PHASE 2: Upsert all plans (NO clear_cache!)
-        # Each plan is created or updated individually, ensuring the catalog
-        # is never empty during sync
-        upserted_ids    = []
-        not_persisted   = []
-        plan_data_list.each do |plan_data|
-          plan = upsert_from_stripe_data(plan_data)
-          upserted_ids << plan.plan_id
-
-          # Plans not in instances were either skipped by the stale check
-          # or failed to save. Both cases are logged inside upsert_from_stripe_data
-          # with appropriate severity (ld for skips, le for failures).
-          # O(log n) per call but catalog is small (~20 plans max).
-          not_persisted << plan.plan_id unless instances.member?(plan.plan_id)
-        end
-
-        saved_count = upserted_ids.size - not_persisted.size
-
-        if not_persisted.any?
-          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}",
-            {
-              region: Onetime.billing_config.region,
-            }
-        end
-
-        # PHASE 3: Prune stale plans not in current Stripe catalog
-        # Soft-deletes plans that are no longer active in Stripe
-        pruned_count = prune_stale_plans(upserted_ids)
-
-        # PHASE 4: Rebuild lookup cache for O(1) price_id lookups
-        rebuild_stripe_price_id_cache
-
-        # PHASE 5: Update global sync timestamp for O(1) freshness checks
-        update_catalog_sync_timestamp
-
-        OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
-              "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
-        saved_count
+        result.plans_synced
       end
 
       # Upsert config-only plans (free tier, etc.) that have no Stripe prices
@@ -466,152 +413,6 @@ module Billing
         OT.li "[Plan.upsert_config_only_plans] Upserted #{upserted_count} config-only plans"
         upserted_count
       end
-
-      private
-
-      # Fetches all plan data from Stripe API into memory
-      #
-      # No Redis writes occur during this phase. If any Stripe API call fails,
-      # the exception propagates up and no cache modifications happen.
-      #
-      # Returns one entry per plan family (e.g., `identity_plus_v1`), with
-      # interval variants (month/year) merged into the `prices` hash.
-      #
-      # @param progress [Proc, nil] Optional progress callback
-      # @return [Array<Hash>] Array of plan data hashes ready for persistence
-      # @raise [Stripe::StripeError] If any Stripe API call fails
-      # @raise [Billing::CatalogValidationError] If any managed products have invalid metadata
-      def collect_stripe_plans(progress: nil)
-        # Ensure Stripe API key is configured (required for console/CLI usage
-        # where StripeSetup initializer may not have run)
-        ensure_stripe_configured!
-
-        # Fetch all active products with onetimesecret metadata
-        products = Stripe::Product.list(
-          {
-            active: true,
-            limit: RECORD_LIMIT,
-          },
-        )
-
-        # Accumulator for merging interval variants into single plan entries
-        plan_data_by_family = {}
-        validation_errors   = []
-        products_processed  = 0
-
-        progress&.call('Fetching products from Stripe...')
-
-        products.auto_paging_each do |product|
-          products_processed += 1
-          progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed == 1 || products_processed % 5 == 0
-
-          # Skip products that aren't valid OTS products (wrong app or missing required metadata)
-          unless valid_ots_product?(product)
-            OT.ld '[Plan.collect_stripe_plans] Skipping invalid product',
-              {
-                product_id: product.id,
-                product_name: product.name,
-                app: product.metadata[Metadata::FIELD_APP],
-              }
-            next
-          end
-
-          # Skip products from a different region when regional isolation is configured
-          unless correct_region?(product)
-            OT.ld '[Plan.collect_stripe_plans] Skipping product from wrong region',
-              {
-                product_id: product.id,
-                product_name: product.name,
-                product_region: product.metadata[Metadata::FIELD_REGION],
-                configured_region: Onetime.billing_config.region,
-              }
-            next
-          end
-
-          # Validate product metadata once before fetching prices (avoid redundant
-          # API calls and duplicate error entries for products with multiple prices)
-          result = validate_product_metadata(product)
-          if result[:missing].any? || result[:blank].any?
-            problems = []
-            problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
-            problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
-            OT.le '[Plan.collect_stripe_plans] Product failed metadata validation',
-              {
-                product_id: product.id,
-                product_name: product.name,
-                problems: problems.join('; '),
-              }
-            validation_errors << {
-              product_id: product.id,
-              price_id: nil,
-              product_name: product.name,
-              error: "invalid metadata: #{problems.join('; ')}",
-            }
-            next
-          end
-
-          # Fetch all active prices for this product
-          prices = Stripe::Price.list(
-            {
-              product: product.id,
-              active: true,
-              limit: 100,
-            },
-          )
-
-          prices.auto_paging_each do |price|
-            # Skip non-recurring prices
-            next unless price.type == 'recurring'
-
-            # Product metadata already validated above; extract_plan_data won't fail
-            plan_data = extract_plan_data(product, price)
-            plan_id   = plan_data[:plan_id]
-            interval  = price.recurring.interval.to_sym
-
-            if plan_data_by_family.key?(plan_id)
-              # Merge this interval's price data into existing plan entry
-              existing              = plan_data_by_family[plan_id]
-              existing[:prices]     = existing[:prices].merge(plan_data[:prices])
-              existing[:active]     = 'true' if plan_data[:active] == 'true' # Any active price makes plan active
-
-              # Merge stripe_snapshot prices
-              existing[:stripe_snapshot][:prices] =
-                existing[:stripe_snapshot][:prices].merge(plan_data[:stripe_snapshot][:prices])
-            else
-              # First interval variant for this plan family
-              plan_data_by_family[plan_id] = plan_data
-            end
-
-            OT.ld "[Plan.collect_stripe_plans] Collected price for plan: #{plan_id}",
-              {
-                interval: interval,
-                stripe_price_id: price.id,
-                amount: price.unit_amount,
-              }
-          end
-        end
-
-        plan_data_list = plan_data_by_family.values
-
-        OT.li "[Plan.collect_stripe_plans] Collected #{plan_data_list.size} plan families from Stripe"
-
-        # Fail-closed: abort before returning if any managed products had invalid metadata
-        if validation_errors.any?
-          OT.le '[Plan.collect_stripe_plans] Aborting due to validation failures',
-            {
-              error_count: validation_errors.size,
-              valid_count: plan_data_list.size,
-            }
-          raise Billing::CatalogValidationError.new(
-            "#{validation_errors.size} Stripe products failed metadata validation",
-            errors: validation_errors,
-          )
-        end
-
-        plan_data_list
-      end
-
-      public
 
       # Extracts plan data from Stripe product and price objects
       #

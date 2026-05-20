@@ -3,14 +3,17 @@
 # frozen_string_literal: true
 
 require_relative 'stripe_retry'
+require_relative 'stripe_reader'
+require_relative '../../lib/stripe_circuit_breaker'
 
 module Billing
   module Operations
     module Catalog
       # Pull products and prices from Stripe to Redis cache.
       #
-      # Wraps Plan.refresh_from_stripe and Plan.upsert_config_only_plans
-      # for CLI and programmatic use. Never writes to stdout directly.
+      # Fetches products and prices via StripeReader (wrapped in circuit breaker),
+      # transforms them into plan data hashes, and persists to Redis.
+      # Never writes to stdout directly.
       #
       # @example
       #   result = Pull.call(region: 'ca', progress: ->(msg) { print "\r#{msg}" })
@@ -57,10 +60,23 @@ module Billing
             report('Cache cleared')
           end
 
+          # Skip Stripe sync if no API key configured
+          stripe_key = Onetime.billing_config.stripe_key
+          if stripe_key.to_s.strip.empty?
+            OT.lw '[Pull] Skipping Stripe sync: No API key configured'
+            config_plans_loaded = Billing::Plan.upsert_config_only_plans
+            return Result.new(
+              success: true,
+              plans_synced: 0,
+              config_plans_loaded: config_plans_loaded,
+              cache_cleared: cache_cleared,
+            )
+          end
+
           report('Pulling from Stripe to Redis cache...')
 
           plans_synced = StripeRetry.with_retry do
-            Billing::Plan.refresh_from_stripe(progress: @progress)
+            sync_from_stripe
           end
 
           config_plans_loaded = Billing::Plan.upsert_config_only_plans
@@ -79,6 +95,14 @@ module Billing
             cache_cleared: cache_cleared,
             errors: ["Stripe error: #{ex.message}"],
           )
+        rescue Billing::CatalogValidationError => ex
+          Result.new(
+            success: false,
+            plans_synced: plans_synced,
+            config_plans_loaded: config_plans_loaded,
+            cache_cleared: cache_cleared,
+            errors: [ex.message],
+          )
         rescue StandardError => ex
           Result.new(
             success: false,
@@ -90,6 +114,156 @@ module Billing
         end
 
         private
+
+        # Synchronize Stripe catalog to Redis using StripeReader
+        #
+        # Stripe API calls are wrapped in circuit breaker to prevent cascade
+        # failures during Stripe outages.
+        #
+        # @return [Integer] Number of plans synced
+        def sync_from_stripe
+          report('Fetching products from Stripe...')
+
+          # PHASE 1: Fetch all data from Stripe (circuit breaker protected)
+          plan_data_list = Billing::StripeCircuitBreaker.call do
+            fetch_and_collect_plan_data
+          end
+
+          if plan_data_list.empty?
+            OT.lw '[Pull] No valid plans collected from Stripe'
+            return 0
+          end
+
+          report("Upserting #{plan_data_list.size} plans...")
+
+          # Upsert all plans
+          upserted_ids  = []
+          not_persisted = []
+
+          plan_data_list.each do |plan_data|
+            plan = Billing::Plan.upsert_from_stripe_data(plan_data)
+            upserted_ids << plan.plan_id
+            not_persisted << plan.plan_id unless Billing::Plan.instances.member?(plan.plan_id)
+          end
+
+          saved_count = upserted_ids.size - not_persisted.size
+
+          if not_persisted.any?
+            OT.lw "[Pull] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}"
+          end
+
+          # Prune stale plans not in current Stripe catalog
+          pruned_count = Billing::Plan.prune_stale_plans(upserted_ids)
+
+          # Rebuild lookup cache for O(1) price_id lookups
+          Billing::Plan.rebuild_stripe_price_id_cache
+
+          # Update global sync timestamp
+          Billing::Plan.update_catalog_sync_timestamp
+
+          OT.li "[Pull] Synced #{saved_count}/#{upserted_ids.size} plans " \
+                "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
+          saved_count
+        end
+
+        # Fetch products and prices from Stripe, return plan data hashes
+        #
+        # Called inside circuit breaker. All Stripe API calls happen here.
+        #
+        # @return [Array<Hash>] Plan data hashes ready for upsert
+        def fetch_and_collect_plan_data
+          products = StripeReader.fetch_products(
+            app_identifier: Billing::Metadata::APP_NAME,
+            region_filter: @region || Onetime.billing_config.region,
+          )
+
+          if products.empty?
+            OT.lw '[Pull] No valid products fetched from Stripe'
+            return []
+          end
+
+          report("Fetching prices for #{products.size} products...")
+          prices_by_key = StripeReader.fetch_prices(products)
+
+          collect_plan_data(products, prices_by_key)
+        end
+
+        # Collect plan data from StripeReader output
+        #
+        # Groups products by plan_id (family), merges interval variants,
+        # and validates metadata.
+        #
+        # @param products [Hash<String, Stripe::Product>] Products keyed by match_key (plan_id)
+        # @param prices_by_key [Hash<String, Array<Stripe::Price>>] Prices grouped by match_key
+        # @return [Array<Hash>] Plan data hashes ready for upsert_from_stripe_data
+        def collect_plan_data(products, prices_by_key)
+          plan_data_by_family = {}
+          validation_errors   = []
+          products_processed  = 0
+
+          products.each do |match_key, product|
+            products_processed += 1
+            if products_processed == 1 || products_processed % 5 == 0
+              report("Processing product #{products_processed}: #{product.name[0..40]}...")
+            end
+
+            # Validate product metadata
+            result = Billing::Plan.validate_product_metadata(product)
+            if result[:missing].any? || result[:blank].any?
+              problems = []
+              problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
+              problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
+              OT.le '[Pull] Product failed metadata validation',
+                { product_id: product.id, product_name: product.name, problems: problems.join('; ') }
+              validation_errors << {
+                product_id: product.id,
+                price_id: nil,
+                product_name: product.name,
+                error: "invalid metadata: #{problems.join('; ')}",
+              }
+              next
+            end
+
+            # Get prices for this product
+            prices = prices_by_key[match_key] || []
+            next if prices.empty?
+
+            prices.each do |price|
+              # Skip non-recurring prices
+              next unless price.type == 'recurring'
+
+              # Extract plan data using Plan's helper
+              plan_data = Billing::Plan.extract_plan_data(product, price)
+              plan_id   = plan_data[:plan_id]
+
+              if plan_data_by_family.key?(plan_id)
+                # Merge this interval's price data into existing plan entry
+                existing          = plan_data_by_family[plan_id]
+                existing[:prices] = existing[:prices].merge(plan_data[:prices])
+                existing[:active] = 'true' if plan_data[:active] == 'true'
+
+                # Merge stripe_snapshot prices
+                existing[:stripe_snapshot][:prices] =
+                  existing[:stripe_snapshot][:prices].merge(plan_data[:stripe_snapshot][:prices])
+              else
+                # First interval variant for this plan family
+                plan_data_by_family[plan_id] = plan_data
+              end
+            end
+          end
+
+          # Fail-closed: abort if any managed products had invalid metadata
+          if validation_errors.any?
+            OT.le '[Pull] Aborting due to validation failures',
+              { error_count: validation_errors.size, valid_count: plan_data_by_family.size }
+            raise Billing::CatalogValidationError.new(
+              "#{validation_errors.size} Stripe products failed metadata validation",
+              errors: validation_errors,
+            )
+          end
+
+          plan_data_by_family.values
+        end
 
         def report(message)
           @progress&.call(message)
