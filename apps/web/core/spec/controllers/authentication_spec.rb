@@ -29,7 +29,7 @@ RSpec.describe Core::Controllers::Authentication do
   end
   let(:req) do
     request = double('Request')
-    allow(request).to receive_messages(env: env, ip: '127.0.0.1', trusted_client_ip: '127.0.0.1', locale: 'en')
+    allow(request).to receive_messages(env: env, ip: '127.0.0.1', locale: 'en')
     allow(request).to receive(:app_path) { |path| path }
     request
   end

@@ -24,7 +24,6 @@ RSpec.shared_context 'rack_test_context' do
       post?: false,
       path_info: '/test',
       ip: '127.0.0.1',
-      trusted_client_ip: '127.0.0.1',
       env: {
         'REMOTE_ADDR' => '127.0.0.1',
         'HTTP_HOST' => 'example.com',

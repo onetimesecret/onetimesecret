@@ -41,7 +41,6 @@ RSpec.describe V1::ControllerHelpers do
       url: 'https://example.com/api/v1/secrets',
       request_method: 'POST',
       ip: '192.168.1.100',
-      trusted_client_ip: '192.168.1.100',
       path_info: '/api/v1/secrets',
       env: {
         'HTTP_USER_AGENT' => 'TestAgent/1.0',
