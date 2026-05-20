@@ -139,8 +139,7 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
     end
 
     it 'fails when plan ID does not match canonical format' do
-      # Issue #3135: Plan IDs must match pattern ^(free|identity_plus|team_plus|legacy_plan)_v\d+$|^identity$
-      # This prevents suffixed variants like identity_plus_v1_monthly from polluting the catalog.
+      # Issue #3135: Plan IDs must match canonical pattern
       write_fixture(<<~YAML)
         schema_version: "1.0"
         app_identifier: "onetimesecret"
@@ -149,8 +148,8 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
             category: core
             description: Can create basic secrets
         plans:
-          identity_plus_v1_monthly:
-            name: "Identity Plus Monthly"
+          invalid_plan_format:
+            name: "Invalid Plan"
             tier: single_account
             entitlements:
               - create_secrets

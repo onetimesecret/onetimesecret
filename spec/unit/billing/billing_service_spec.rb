@@ -60,7 +60,7 @@ RSpec.describe Billing::BillingService, billing: true do
         )
       end
 
-      let(:mock_plan) { double('Plan', plan_id: 'identity_plus_v1_monthly') }
+      let(:mock_plan) { double('Plan', plan_id: 'identity_plus_v1') }
 
       before do
         allow(Billing::Plan).to receive(:find_by_stripe_price_id)
@@ -70,7 +70,7 @@ RSpec.describe Billing::BillingService, billing: true do
 
       it 'prefers catalog lookup over metadata' do
         result = described_class.resolve_plan_id_from_subscription(subscription)
-        expect(result).to eq('identity_plus_v1_monthly')
+        expect(result).to eq('identity_plus_v1')
       end
     end
 
@@ -327,72 +327,6 @@ RSpec.describe Billing::BillingService, billing: true do
     end
   end
 
-  describe '.plans_match?' do
-    it 'returns true for exact match' do
-      expect(described_class.plans_match?('identity_plus_v1', 'identity_plus_v1')).to be true
-    end
-
-    it 'returns true when stripping interval suffix' do
-      expect(described_class.plans_match?('identity_plus_v1', 'identity_plus_v1_monthly')).to be true
-      expect(described_class.plans_match?('identity_plus_v1', 'identity_plus_v1_yearly')).to be true
-    end
-
-    it 'returns false for empty values' do
-      expect(described_class.plans_match?('', 'identity_plus_v1')).to be false
-      expect(described_class.plans_match?('identity_plus_v1', '')).to be false
-    end
-
-    it 'returns false for different plan versions' do
-      expect(described_class.plans_match?('identity_plus', 'identity_plus_v1')).to be false
-    end
-
-    context 'when plan has plan_code in cache' do
-      let(:mock_plan) { double('Plan', plan_code: 'identity_plus') }
-
-      before do
-        allow(Billing::Plan).to receive(:load).with('identity_plus_v1_monthly').and_return(mock_plan)
-      end
-
-      it 'matches against plan_code' do
-        expect(described_class.plans_match?('identity_plus', 'identity_plus_v1_monthly')).to be true
-      end
-    end
-
-    context 'free-tier equivalence (issue #3089)' do
-      it 'treats free and free_v1 as equivalent' do
-        expect(described_class.plans_match?('free', 'free_v1')).to be true
-        expect(described_class.plans_match?('free_v1', 'free')).to be true
-      end
-
-      it 'treats free_v1 with interval suffix as equivalent to free' do
-        expect(described_class.plans_match?('free', 'free_v1_monthly')).to be true
-      end
-
-      it 'does not treat free as equivalent to other plans' do
-        expect(described_class.plans_match?('free', 'identity_plus_v1')).to be false
-        expect(described_class.plans_match?('free_v1', 'identity_plus_v1')).to be false
-      end
-    end
-  end
-
-  describe '.normalize_plan_id' do
-    it 'strips _monthly suffix' do
-      expect(described_class.normalize_plan_id('identity_plus_v1_monthly')).to eq('identity_plus_v1')
-    end
-
-    it 'strips _yearly suffix' do
-      expect(described_class.normalize_plan_id('identity_plus_v1_yearly')).to eq('identity_plus_v1')
-    end
-
-    it 'returns original if no interval suffix' do
-      expect(described_class.normalize_plan_id('identity_plus_v1')).to eq('identity_plus_v1')
-    end
-
-    it 'handles nil gracefully' do
-      expect(described_class.normalize_plan_id(nil)).to eq('')
-    end
-  end
-
   describe '.free_plan?' do
     it 'returns true for free plan IDs' do
       expect(described_class.free_plan?('free')).to be true
@@ -462,7 +396,7 @@ RSpec.describe Billing::BillingService, billing: true do
           subscription: {
             id: 'sub_123',
             status: 'active',
-            resolved_plan_id: 'identity_plus_v1_monthly',
+            resolved_plan_id: 'identity_plus_v1',
           },
         }
       end

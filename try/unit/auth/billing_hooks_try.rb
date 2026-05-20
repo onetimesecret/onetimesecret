@@ -70,43 +70,34 @@ def setup_test_plans
 
   BillingTestHelpers.ensure_familia_configured!
 
-  # Create test plans for PlanResolver validation
+  # Create test plan with both monthly and yearly prices
   plan = Billing::Plan.new(
-    plan_id: 'identity_plus_v1_monthly',
-    stripe_price_id: 'price_test_identity_monthly',
+    plan_id: 'identity_plus_v1',
     stripe_product_id: 'prod_test_identity',
     name: 'Identity Plus',
     tier: 'identity',
-    interval: 'month',
-    amount: '1500',
     currency: 'cad',
     region: 'global'
   )
   plan.active = 'true'
-  plan.save
-
-  yearly_plan = Billing::Plan.new(
-    plan_id: 'identity_plus_v1_yearly',
+  plan.prices[:month] = {
+    stripe_price_id: 'price_test_identity_monthly',
+    amount: '1500',
+    interval: 'month'
+  }
+  plan.prices[:year] = {
     stripe_price_id: 'price_test_identity_yearly',
-    stripe_product_id: 'prod_test_identity',
-    name: 'Identity Plus',
-    tier: 'identity',
-    interval: 'year',
     amount: '15000',
-    currency: 'cad',
-    region: 'global'
-  )
-  yearly_plan.active = 'true'
-  yearly_plan.save
+    interval: 'year'
+  }
+  plan.save
 
   @plans_created = true
 end
 
 def teardown_test_plans
-  %w[identity_plus_v1_monthly identity_plus_v1_yearly].each do |plan_id|
-    plan = Billing::Plan.load(plan_id)
-    plan&.destroy! if plan&.exists?
-  end
+  plan = Billing::Plan.load('identity_plus_v1')
+  plan&.destroy! if plan&.exists?
   @plans_created = false
 end
 

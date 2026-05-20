@@ -242,7 +242,7 @@ export const mockSubscriptionStatuses = {
   }),
   /**
    * Legacy "identity" plan subscriber - Early Supporter with grandfathered pricing.
-   * Note: current_plan is 'identity' (not 'identity_plus_v1_monthly').
+   * Note: current_plan is 'identity' (not 'identity_plus_v1').
    */
   legacyIdentity: createMockSubscriptionStatus({
     current_plan: 'identity',
@@ -279,7 +279,7 @@ export const mockOrganizations = {
   /**
    * Legacy "identity" plan - grandfathered Early Supporter plan
    * These customers have single_team tier features but their planid is just 'identity'
-   * (not 'identity_plus_v1_monthly'). Display should show "Identity Plus (Early Supporter)".
+   * (not 'identity_plus_v1'). Display should show "Identity Plus (Early Supporter)".
    */
   legacyIdentity: createWireLegacyIdentityOrganization(),
   noOrg: null,

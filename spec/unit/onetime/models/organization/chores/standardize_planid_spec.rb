@@ -178,23 +178,6 @@ RSpec.describe 'Organization chore: standardize_planid' do
       end
     end
 
-    context 'when planid is "identity_plus_v1_monthly"' do
-      let(:current_planid) { 'identity_plus_v1_monthly' }
-
-      it 'normalizes to identity_plus_v1' do
-        expect(org).to receive(:planid!).with('identity_plus_v1')
-        chore.call(org)
-      end
-    end
-
-    context 'when planid is "identity_plus_v1_yearly"' do
-      let(:current_planid) { 'identity_plus_v1_yearly' }
-
-      it 'normalizes to identity_plus_v1' do
-        expect(org).to receive(:planid!).with('identity_plus_v1')
-        chore.call(org)
-      end
-    end
   end
 
   describe 'team_plus tier mappings' do
@@ -229,23 +212,6 @@ RSpec.describe 'Organization chore: standardize_planid' do
       end
     end
 
-    context 'when planid is "team_plus_v1_monthly"' do
-      let(:current_planid) { 'team_plus_v1_monthly' }
-
-      it 'normalizes to team_plus_v1' do
-        expect(org).to receive(:planid!).with('team_plus_v1')
-        chore.call(org)
-      end
-    end
-
-    context 'when planid is "team_plus_v1_yearly"' do
-      let(:current_planid) { 'team_plus_v1_yearly' }
-
-      it 'normalizes to team_plus_v1' do
-        expect(org).to receive(:planid!).with('team_plus_v1')
-        chore.call(org)
-      end
-    end
   end
 
   describe 'unknown planid handling' do
