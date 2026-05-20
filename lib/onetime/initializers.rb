@@ -21,6 +21,7 @@ require_relative 'initializers/set_secrets'
 require_relative 'initializers/configure_domains'
 require_relative 'initializers/configure_truemail'
 require_relative 'initializers/configure_rhales'
+require_relative 'initializers/configure_trusted_proxy'
 require_relative 'initializers/load_fortunes'
 
 # Dependent initializers
