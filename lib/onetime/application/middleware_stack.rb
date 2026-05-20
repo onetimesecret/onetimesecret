@@ -8,7 +8,6 @@ require 'rack/parser'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
-require_relative '../helpers/client_ip_helpers'
 require_relative '../session'
 require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'

@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'logger'
-require_relative 'helpers/client_ip_helpers'
 require_relative '../middleware/handle_invalid_percent_encoding'
 require_relative '../middleware/handle_invalid_utf8'
 require_relative '../middleware/detect_host'
