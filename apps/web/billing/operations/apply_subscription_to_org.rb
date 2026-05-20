@@ -23,10 +23,9 @@ module Billing
     # ApplySubscriptionToOrg - Shared operation for writing subscription
     # state to an Organization.
     #
-    # Three codepaths set billing fields on organizations:
+    # Two codepaths set billing fields on organizations:
     # 1. Webhook owner path (update_from_stripe_subscription)
     # 2. Webhook federated path (update_federated_org)
-    # 3. Migration tooling (migrate_account!)
     #
     # This operation extracts the common field-setting logic so all
     # paths produce consistent state — particularly for the
@@ -39,7 +38,7 @@ module Billing
     #   # Federated path (no Stripe IDs, caller saves after marking federated)
     #   ApplySubscriptionToOrg.call(org, subscription, owner: false, save: false)
     #
-    #   # Migration path (owner + explicit plan when price not in catalog)
+    #   # Explicit-plan path (when the resolved price isn't in the catalog)
     #   ApplySubscriptionToOrg.call(org, subscription, owner: true,
     #     planid_override: 'identity_plus_v1')
     #
@@ -65,8 +64,7 @@ module Billing
       # @param subscription [Stripe::Subscription] Stripe subscription
       # @param owner [Boolean] Whether org owns the subscription (gets Stripe IDs)
       # @param planid_override [String, nil] Explicit plan ID, skips catalog
-      #   resolution. Use for migration tooling where the price may not be
-      #   in the catalog yet.
+      #   resolution. Use when the resolved price isn't in the catalog yet.
       # @param save [Boolean] Whether to call org.save after applying fields.
       #   Set to false when the caller needs to set additional fields before
       #   saving (e.g., federation marking).
