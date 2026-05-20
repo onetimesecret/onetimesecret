@@ -2,42 +2,17 @@
 #
 # frozen_string_literal: true
 
-require 'ipaddr'
-
 module Onetime
-  # Site-wide trusted-proxy-aware client IP resolution.
+  # Forwarded header parsing utilities.
   #
-  # All request.ip / req.ip callers should use trusted_client_ip (via the
-  # RackExtension mixin) so that deployments behind Kubernetes ingress or
-  # other RFC-1918 proxy chains return the real visitor IP instead of the
-  # ingress pod address.
+  # Provides methods to extract IP addresses from X-Forwarded-For and
+  # RFC 7239 Forwarded headers. Used by HomepageModeHelpers for CIDR-based
+  # homepage mode detection.
   #
-  # Configuration (etc/defaults/config.defaults.yaml):
-  #   site.trusted_proxy_depth  — 0 disables header trust (default, safe)
-  #   site.trusted_ip_header    — 'X-Forwarded-For' | 'Forwarded' | 'Both'
+  # For standard IP resolution, use Rack::Request#ip which is configured
+  # at boot time via ConfigureTrustedProxy initializer.
   #
   module ClientIpHelpers
-    # Extract the client IP from a Rack env hash.
-    #
-    # @param env    [Hash]    Rack environment
-    # @param depth  [Integer] Number of trusted proxies to skip (0 = no trust)
-    # @param header [String]  Which header to read ('X-Forwarded-For' | 'Forwarded' | 'Both')
-    # @return [String, nil]   Client IP address
-    def self.extract(env, depth:, header:)
-      return env['REMOTE_ADDR'] if depth.nil? || depth <= 0
-
-      forwarded = extract_forwarded_ips(env, header)
-      return env['REMOTE_ADDR'] unless forwarded && !forwarded.empty?
-
-      ip = if forwarded.length > depth
-        forwarded[0...-depth].last
-      else
-        forwarded.first
-      end
-
-      ip || env['REMOTE_ADDR']
-    end
-
     # Parse forwarded IPs from the appropriate request header.
     #
     # @param env         [Hash]   Rack environment
@@ -50,9 +25,6 @@ module Onetime
       when 'Both'
         extract_rfc7239_forwarded(env) || extract_x_forwarded_for(env)
       else
-        unless header_type == 'X-Forwarded-For'
-          Onetime.ld "[ClientIpHelpers] Unknown trusted_ip_header '#{header_type}', falling back to X-Forwarded-For"
-        end
         extract_x_forwarded_for(env)
       end
     end
@@ -84,35 +56,5 @@ module Onetime
 
       ips.empty? ? nil : ips
     end
-
-    # Read site-level trusted_proxy_depth from OT config (integer, default 0).
-    def self.site_depth
-      OT.conf&.dig('site', 'trusted_proxy_depth').to_i
-    end
-
-    # Read site-level trusted_ip_header from OT config (string, default 'X-Forwarded-For').
-    def self.site_header
-      OT.conf&.dig('site', 'trusted_ip_header') || 'X-Forwarded-For'
-    end
-
-    # Mixin for Rack::Request — adds #trusted_client_ip.
-    #
-    # Included into Rack::Request at load time so it is available in all
-    # contexts: Otto controllers, Rodauth hooks, middleware, and any code
-    # that holds a Rack::Request instance.
-    #
-    module RackExtension
-      def trusted_client_ip
-        Onetime::ClientIpHelpers.extract(
-          env,
-          depth: Onetime::ClientIpHelpers.site_depth,
-          header: Onetime::ClientIpHelpers.site_header,
-        )
-      end
-    end
   end
 end
-
-# Apply RackExtension to Rack::Request at load time so trusted_client_ip is
-# available in all contexts: Otto controllers, Rodauth hooks, and middleware.
-Rack::Request.include(Onetime::ClientIpHelpers::RackExtension)
