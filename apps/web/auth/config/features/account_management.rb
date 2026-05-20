@@ -20,6 +20,13 @@ module Auth::Config::Features
         # This prevents verify_account from requiring password fields
         auth.verify_account_set_password? false
 
+        # Redirect after email verification (issue #3126)
+        # If user had selected a plan before signup, redirect to checkout.
+        # Otherwise, redirect to account page.
+        auth.verify_account_redirect do
+          session.delete('plan_checkout_redirect') || '/account'
+        end
+
         # Suppress verification email only for valid invite signups.
         # The invite link proves email ownership, so no extra verification needed.
         #
@@ -37,7 +44,7 @@ module Auth::Config::Features
           if invite_token.empty?
             super()
           else
-            invitation = Onetime::OrganizationMembership.find_by_token(invite_token)
+            invitation   = Onetime::OrganizationMembership.find_by_token(invite_token)
             valid_invite = invitation &&
                            invitation.pending? &&
                            !invitation.expired? &&

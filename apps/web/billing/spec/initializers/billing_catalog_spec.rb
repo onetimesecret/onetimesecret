@@ -109,7 +109,7 @@ RSpec.describe Billing::Initializers::BillingCatalog do
       it 'logs the fallback' do
         expect(logger).to receive(:warn).with(
           'Stripe sync failed, falling back to billing.yaml',
-          hash_including(exception: an_instance_of(Stripe::APIConnectionError))
+          hash_including(message: 'Network error')
         )
         expect(logger).to receive(:info).with('Loaded 5 plans from billing.yaml fallback')
         initializer.execute(nil)

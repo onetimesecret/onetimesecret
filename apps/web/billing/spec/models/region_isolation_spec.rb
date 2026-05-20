@@ -374,7 +374,7 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
       count = Billing::Plan.load_all_from_config
       expect(count).to eq(1)
 
-      plan = Billing::Plan.load('nz_plan_v1_monthly')
+      plan = Billing::Plan.load('nz_plan_v1')
       expect(plan).not_to be_nil
       expect(plan.region).to eq('NZ')
     end
@@ -382,8 +382,8 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     it 'skips EU and US plans' do
       Billing::Plan.load_all_from_config
 
-      expect(Billing::Plan.load('eu_plan_v1_monthly')).to be_nil
-      expect(Billing::Plan.load('us_plan_v1_monthly')).to be_nil
+      expect(Billing::Plan.load('eu_plan_v1')).to be_nil
+      expect(Billing::Plan.load('us_plan_v1')).to be_nil
     end
   end
 
@@ -401,8 +401,8 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     it 'skips NZ and US plans' do
       Billing::Plan.load_all_from_config
 
-      expect(Billing::Plan.load('nz_plan_v1_monthly')).to be_nil
-      expect(Billing::Plan.load('us_plan_v1_monthly')).to be_nil
+      expect(Billing::Plan.load('nz_plan_v1')).to be_nil
+      expect(Billing::Plan.load('us_plan_v1')).to be_nil
     end
   end
 
@@ -420,9 +420,9 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     it 'includes plans from all regions' do
       Billing::Plan.load_all_from_config
 
-      expect(Billing::Plan.load('nz_plan_v1_monthly')).not_to be_nil
-      expect(Billing::Plan.load('eu_plan_v1_monthly')).not_to be_nil
-      expect(Billing::Plan.load('us_plan_v1_monthly')).not_to be_nil
+      expect(Billing::Plan.load('nz_plan_v1')).not_to be_nil
+      expect(Billing::Plan.load('eu_plan_v1')).not_to be_nil
+      expect(Billing::Plan.load('us_plan_v1')).not_to be_nil
     end
   end
 
@@ -454,7 +454,7 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
       count = Billing::Plan.load_all_from_config
       expect(count).to eq(1)
 
-      plan = Billing::Plan.load('nz_lower_v1_monthly')
+      plan = Billing::Plan.load('nz_lower_v1')
       expect(plan).not_to be_nil
     end
   end

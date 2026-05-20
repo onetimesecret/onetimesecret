@@ -31,12 +31,12 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useTheme } from '@/shared/composables/useTheme';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
-import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
+import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { type Customer } from '@/schemas/shapes/v3';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
+import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -77,10 +77,10 @@ const { t } = useI18n();
 const { logout } = useAuth();
 const { isDarkMode, toggleDarkMode } = useTheme();
 
-const isPlanTestModalOpen = ref(false);
+const isPlanPreviewModalOpen = ref(false);
 
 // Test plan mode composable
-const { isTestModeActive } = useTestPlanMode();
+const { isPreviewModeActive } = usePreviewPlanMode();
 
 const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
@@ -121,13 +121,13 @@ interface MenuItem {
   onClick?: () => void | Promise<void>;
 }
 
-const openPlanTestModal = () => {
-  isPlanTestModalOpen.value = true;
+const openPlanPreviewModal = () => {
+  isPlanPreviewModalOpen.value = true;
   closeMenu();
 };
 
-const closePlanTestModal = () => {
-  isPlanTestModalOpen.value = false;
+const closePlanPreviewModal = () => {
+  isPlanPreviewModalOpen.value = false;
 };
 
 const menuItems = computed<MenuItem[]>(() => [
@@ -151,11 +151,11 @@ const menuItems = computed<MenuItem[]>(() => [
     condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value },
   {
     id: 'test-plan',
-    label: t('web.colonel.testPlanMode'),
+    label: t('web.colonel.previewPlanMode'),
     icon: { collection: 'heroicons', name: 'beaker' },
-    variant: isTestModeActive.value ? 'caution' : 'default',
+    variant: isPreviewModeActive.value ? 'caution' : 'default',
     condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
-    onClick: openPlanTestModal,
+    onClick: openPlanPreviewModal,
   },
   {
     id: 'help',
@@ -493,8 +493,8 @@ onUnmounted(() => {
     </Transition>
 
     <!-- Plan Test Modal -->
-    <PlanTestModal
-      :is-open="isPlanTestModalOpen"
-      @close="closePlanTestModal" />
+    <PlanPreviewModal
+      :is-open="isPlanPreviewModalOpen"
+      @close="closePlanPreviewModal" />
   </div>
 </template>

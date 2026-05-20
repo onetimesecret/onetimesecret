@@ -60,14 +60,14 @@ RSpec.shared_context 'with_test_plans' do
     end
   end
 
-  # Helper: Get test plan ID for tier/interval/region
+  # Helper: Get test plan ID for tier/region (family-keyed, no interval suffix)
   #
   # @param tier [String] Plan tier
-  # @param interval [String] Billing interval ('monthly' or 'yearly')
+  # @param _interval [String] Ignored (kept for API compatibility)
   # @param region [String] Region code (defaults to 'EU')
-  # @return [String] Plan ID in format: tier_region_interval
-  def test_plan_id(tier, interval = 'monthly', region = 'EU')
-    "#{tier}_#{region}_#{interval}".downcase
+  # @return [String] Plan ID in format: tier_region (family-keyed)
+  def test_plan_id(tier, _interval = nil, region = 'EU')
+    "#{tier}_#{region}".downcase
   end
 
   # Helper: Load test entitlements from config

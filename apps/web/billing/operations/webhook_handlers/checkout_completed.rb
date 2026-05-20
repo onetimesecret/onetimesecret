@@ -4,6 +4,7 @@
 
 require_relative 'base_handler'
 require 'onetime/utils/email_hash'
+require_relative '../../metadata'
 require_relative '../../../auth/operations/create_default_workspace'
 
 module Billing
@@ -197,7 +198,7 @@ module Billing
             merged_metadata   = existing_metadata.merge(
               'email_hash' => email_hash,
               'email_hash_created_at' => Time.now.to_i.to_s,
-              'region' => OT.conf.dig('site', 'region') || 'default',
+              'region' => Billing::Metadata.current_region,
             )
             Stripe::Customer.update(stripe_customer_id, metadata: merged_metadata)
 

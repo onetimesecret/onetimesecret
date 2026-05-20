@@ -20,6 +20,21 @@ module Auth::Config::Hooks
         existing_account = db[:accounts].where(email: email).first
 
         if existing_account
+          diagnostic_hint = <<~HINT.strip
+            Registration blocked: Account exists in authdb but may be missing from
+            Redis. This can occur after clearing Redis without resetting authdb.
+            Consider: (1) deleting the account from authdb, or (2) resetting both
+            databases together.
+          HINT
+
+          Auth::Logging.log_auth_event(
+            :registration_blocked_auth_db_conflict,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            account_id: existing_account[:id],
+            diagnostic_hint: diagnostic_hint,
+          )
+
           set_error_flash(create_account_error_flash)
           request.env['rodauth.error_flash'] = create_account_error_flash
           throw_rodauth_error
@@ -89,6 +104,31 @@ module Auth::Config::Hooks
         if customer.is_a?(Onetime::Customer)
           Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
             Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+          end
+
+          # Capture plan intent for email verification flow (issue #3126)
+          # Session-based billing redirect doesn't survive email verification, so we
+          # persist the plan selection on the Customer record with a 24h TTL.
+          product  = request.params['product']
+          interval = request.params['interval']
+
+          if product.to_s.strip != '' && interval.to_s.strip != ''
+            intent = {
+              product: product,
+              interval: interval,
+              captured_at: Time.now.utc.iso8601,
+              source_url: request.fullpath,
+            }.to_json
+
+            customer.pending_plan_intent = intent
+
+            Auth::Logging.log_auth_event(
+              :plan_intent_captured,
+              level: :debug,
+              customer_extid: customer.extid,
+              product: product,
+              interval: interval,
+            )
           end
 
           # Accept pending invitation if token provided in signup request
@@ -167,6 +207,67 @@ module Auth::Config::Hooks
 
           Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
             Auth::Operations::VerifyCustomer.new(account: account).call
+          end
+
+          # Surface pending plan intent for checkout redirect (issue #3126)
+          # If the user had selected a plan before signup, redirect them to checkout
+          # after verification completes.
+          Onetime::ErrorHandler.safe_execute('surface_plan_intent', extid: account[:extid]) do
+            # account[:external_id] (Rodauth/SQL) == customer.extid (Familia/Redis)
+            customer = Onetime::Customer.find_by_extid(account[:external_id])
+
+            if customer&.pending_plan_intent&.value.to_s.strip != ''
+              begin
+                intent   = JSON.parse(customer.pending_plan_intent.value)
+                product  = intent['product']
+                interval = intent['interval']
+
+                # Lazy-load billing dependencies (may not be available on self-hosted)
+                require_relative '../../../billing/lib/plan_resolver'
+
+                # Validate the plan still exists before redirecting
+                result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
+
+                if result.success?
+                  customer.pending_plan_intent.delete!
+
+                  # Store redirect in session for verify_account_redirect
+                  enc_product                       = URI.encode_www_form_component(product)
+                  enc_interval                      = URI.encode_www_form_component(interval)
+                  session['plan_checkout_redirect'] = "/billing/plans/#{enc_product}/#{enc_interval}"
+
+                  Auth::Logging.log_auth_event(
+                    :plan_intent_surfaced,
+                    level: :info,
+                    customer_extid: customer.extid,
+                    product: product,
+                    interval: interval,
+                  )
+                else
+                  customer.pending_plan_intent.delete!
+
+                  Auth::Logging.log_auth_event(
+                    :plan_intent_invalid,
+                    level: :warn,
+                    customer_extid: customer.extid,
+                    product: product,
+                    interval: interval,
+                    error: result.error,
+                  )
+                end
+              rescue JSON::ParserError => ex
+                customer.pending_plan_intent.delete!
+
+                Auth::Logging.log_auth_event(
+                  :plan_intent_parse_error,
+                  level: :warn,
+                  customer_extid: customer.extid,
+                  error: ex.message,
+                )
+              rescue LoadError
+                customer.pending_plan_intent.delete!
+              end
+            end
           end
         end
       end

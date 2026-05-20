@@ -63,7 +63,7 @@ module Billing
         rescue Stripe::SignatureVerificationError => ex
           billing_logger.error 'Invalid webhook signature',
             {
-              exception: ex,
+              error: ex.message,
             }
           res.status = 400
           return json_error('Invalid signature', status: 400)

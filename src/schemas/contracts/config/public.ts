@@ -238,7 +238,7 @@ export const publicFeaturesSchema = z.object({
 });
 
 /**
- * Combined Schema for PublicSettings based on :site in config.schema.yaml
+ * Combined Schema for PublicSettings (public-facing subset of the site config)
  */
 export const publicSettingsSchema = z
   .object({

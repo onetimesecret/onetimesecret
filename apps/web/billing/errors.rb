@@ -22,6 +22,55 @@ module Billing
     end
   end
 
+  # PlanCacheMissError - Raised when a plan_id cannot be resolved
+  #
+  # This error indicates a billing integrity issue where:
+  # - The plan_id is not in Redis cache AND
+  # - The plan_id is not in billing.yaml config
+  #
+  # Fail-closed behavior: We raise rather than silently degrading to free tier,
+  # which could mask misconfiguration or catalog sync issues.
+  #
+  class PlanCacheMissError < OpsProblem
+    attr_reader :plan_id, :context, :resource, :organization_id
+
+    def initialize(message = nil, plan_id: nil, context: nil, resource: nil, organization_id: nil)
+      @plan_id         = plan_id
+      @context         = context
+      @resource        = resource
+      @organization_id = organization_id
+      message        ||= "Plan not found in cache or config: #{plan_id}"
+      super(message)
+    end
+  end
+
+  # CatalogValidationError - Raised when Stripe products fail metadata validation
+  #
+  # This error indicates managed products (app=onetimesecret) have invalid or
+  # missing required metadata. The sync aborts before upsert/prune to prevent
+  # data loss from silent skips being mistaken for legitimate deletions.
+  #
+  # All validation failures are accumulated so operators can fix everything
+  # in one pass rather than fix-one-rerun-fix-one.
+  #
+  # @example Handling validation failures
+  #   begin
+  #     Billing::Plan.refresh_from_stripe
+  #   rescue Billing::CatalogValidationError => e
+  #     e.errors.each { |err| puts "#{err[:product_id]}: #{err[:error]}" }
+  #   end
+  #
+  class CatalogValidationError < OpsProblem
+    attr_reader :errors
+
+    # @param message [String] Summary message
+    # @param errors [Array<Hash>] List of validation failures with :product_id, :price_id, :error
+    def initialize(message, errors: [])
+      @errors = errors
+      super(message)
+    end
+  end
+
   # Raised when the Stripe circuit breaker is open.
   #
   # The circuit breaker opens after consecutive Stripe API failures to prevent

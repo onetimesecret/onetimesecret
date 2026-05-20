@@ -3,7 +3,7 @@
   "version": "0.0.0-rc0",
   "description": "",
   "type": "module",
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
     "prebuild": "pnpm run locales:sync",
     "build": "vite build --config vite.config.ts",
@@ -26,7 +26,6 @@
     "docs:schemas": "typedoc --options typedoc.schemas.json",
     "docs:schemas:watch": "typedoc --options typedoc.schemas.json --watch",
     "docs:schemas:serve": "npx serve generated/docs/schemas",
-    "config:validate": "yamale -s etc/config.schema.yaml etc/config.yaml",
     "predev": "pnpm run i18n:generate-types",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
@@ -154,7 +153,7 @@
     "brace-expansion": "1.1.13",
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",
-    "dompurify": "^3.3.3",
+    "dompurify": "^3.4.0",
     "focus-trap": "^7.8.0",
     "focus-trap-vue": "^4.1.0",
     "highlight.js": "^11.11.1",
@@ -209,8 +208,8 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-tailwindcss": "4.0.0-beta.0",
     "eslint-plugin-vue": "^10.8.0",
-    "fs-extra": "^11.3.4",
     "flatted": "^3.4.2",
+    "fs-extra": "^11.3.4",
     "git-json-merge": "^1.0.0",
     "glob": "^13.0.6",
     "globals": "^17.4.0",
@@ -250,29 +249,5 @@
     "*.{ts,vue,mjs}": [
       "eslint --quiet --config eslint.config.ts --cache --cache-location ./node_modules/.cache/eslint --fix"
     ]
-  },
-  "pnpm": {
-    "overrides": {
-      "brace-expansion": "1.1.13",
-      "flatted": "^3.4.2",
-      "yaml": "^2.8.3"
-    },
-    "ignoredBuiltDependencies": [
-      "vue-demi"
-    ],
-    "onlyBuiltDependencies": [
-      "@sentry/cli",
-      "esbuild",
-      "unrs-resolver"
-    ],
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "typescript": "5.9.3",
-        "unplugin-vue-markdown>vite": "8",
-        "vite-plugin-inspect>vite": "8",
-        "vite-dev-rpc>vite": "8",
-        "vite-hot-client>vite": "8"
-      }
-    }
   }
 }

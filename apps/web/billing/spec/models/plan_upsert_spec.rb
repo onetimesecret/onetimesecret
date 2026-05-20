@@ -22,18 +22,19 @@ module PlanUpsertTestHelpers
   # NOTE: The `limits` hash uses resource names WITHOUT the `.max` suffix.
   # The upsert_from_stripe_data method adds the `.max` suffix when storing.
   #
+  # NOTE: Plan IDs are now family-keyed (no interval suffix). Price data is
+  # stored in the nested `prices` hash keyed by interval (month/year).
+  #
   # @param overrides [Hash] Fields to override in the default plan data
   # @return [Hash] Complete plan data hash ready for upsert_from_stripe_data
   def build_plan_data(overrides = {})
     unique_id = SecureRandom.hex(4)
+    price_id = "price_test_#{SecureRandom.hex(8)}"
     {
-      plan_id: "test_plan_#{unique_id}_monthly",
-      stripe_price_id: "price_test_#{SecureRandom.hex(8)}",
+      plan_id: "test_plan_#{unique_id}",
       stripe_product_id: "prod_test_#{SecureRandom.hex(8)}",
       name: 'Test Plan',
       tier: 'basic',
-      interval: 'month',
-      amount: '999',
       currency: 'cad',
       region: 'US',
       tenancy: 'multi',
@@ -41,10 +42,6 @@ module PlanUpsertTestHelpers
       show_on_plans_page: 'true',
       description: 'Test plan for upsert specs',
       active: 'true',
-      billing_scheme: 'per_unit',
-      usage_type: 'licensed',
-      trial_period_days: nil,
-      nickname: nil,
       plan_code: 'test_plan',
       is_popular: 'false',
       plan_name_label: nil,
@@ -52,9 +49,24 @@ module PlanUpsertTestHelpers
       features: ['Basic support'],
       # NOTE: Resource names without .max suffix - implementation adds it
       limits: { 'secrets' => '100', 'recipients' => '5' },
+      # Prices keyed by interval (new schema)
+      prices: {
+        month: {
+          stripe_price_id: price_id,
+          amount: '999',
+          currency: 'cad',
+          billing_scheme: 'per_unit',
+          usage_type: 'licensed',
+          trial_period_days: nil,
+          nickname: nil,
+          active: 'true',
+        },
+      },
       stripe_snapshot: {
         product: { id: 'prod_xxx', name: 'Test', metadata: {} },
-        price: { id: 'price_xxx', unit_amount: 999 },
+        prices: {
+          month: { id: price_id, unit_amount: 999 },
+        },
         cached_at: Time.now.to_i,
       },
     }.merge(overrides)
@@ -69,7 +81,7 @@ module PlanUpsertTestHelpers
     count.times.map do |i|
       build_plan_data(
         base_overrides.merge(
-          plan_id: "batch_plan_#{i}_#{SecureRandom.hex(4)}_monthly",
+          plan_id: "batch_plan_#{i}_#{SecureRandom.hex(4)}",
           name: "Batch Plan #{i}",
         )
       )
@@ -80,18 +92,16 @@ module PlanUpsertTestHelpers
   #
   # This bypasses upsert_from_stripe_data for setting up test fixtures.
   # Uses the same limits format as upsert_from_stripe_data (resource name without .max suffix).
+  # NOTE: Updated for family-keyed schema - prices stored in nested hashkey.
   #
   # @param plan_data [Hash] Plan data hash (from build_plan_data)
   # @return [Billing::Plan] Saved plan instance
   def create_test_plan(plan_data)
     plan = Billing::Plan.new(
       plan_id: plan_data[:plan_id],
-      stripe_price_id: plan_data[:stripe_price_id],
       stripe_product_id: plan_data[:stripe_product_id],
       name: plan_data[:name],
       tier: plan_data[:tier],
-      interval: plan_data[:interval],
-      amount: plan_data[:amount],
       currency: plan_data[:currency],
       region: plan_data[:region],
       tenancy: plan_data[:tenancy],
@@ -101,10 +111,6 @@ module PlanUpsertTestHelpers
     )
 
     plan.active = plan_data[:active]
-    plan.billing_scheme = plan_data[:billing_scheme]
-    plan.usage_type = plan_data[:usage_type]
-    plan.trial_period_days = plan_data[:trial_period_days]
-    plan.nickname = plan_data[:nickname]
     plan.plan_code = plan_data[:plan_code]
     plan.is_popular = plan_data[:is_popular]
     plan.plan_name_label = plan_data[:plan_name_label]
@@ -121,6 +127,11 @@ module PlanUpsertTestHelpers
     plan_data[:limits]&.each do |resource, value|
       key = resource.to_s.end_with?('.max') ? resource.to_s : "#{resource}.max"
       plan.limits[key] = value.to_s
+    end
+
+    # Store prices keyed by interval (new schema)
+    plan_data[:prices]&.each do |interval, price_data|
+      plan.prices[interval.to_s] = price_data.to_json
     end
 
     if plan_data[:stripe_snapshot]
@@ -174,10 +185,9 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
     it 'populates all scalar fields from plan_data' do
       plan = Billing::Plan.upsert_from_stripe_data(plan_data)
 
+      # Family-level fields
       expect(plan.name).to eq(plan_data[:name])
       expect(plan.tier).to eq(plan_data[:tier])
-      expect(plan.interval).to eq(plan_data[:interval])
-      expect(plan.amount).to eq(plan_data[:amount])
       expect(plan.currency).to eq(plan_data[:currency])
       expect(plan.region).to eq(plan_data[:region])
       expect(plan.tenancy).to eq(plan_data[:tenancy])
@@ -185,10 +195,13 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
       expect(plan.show_on_plans_page).to eq(plan_data[:show_on_plans_page])
       expect(plan.description).to eq(plan_data[:description])
       expect(plan.active).to eq(plan_data[:active])
-      expect(plan.billing_scheme).to eq(plan_data[:billing_scheme])
-      expect(plan.usage_type).to eq(plan_data[:usage_type])
       expect(plan.plan_code).to eq(plan_data[:plan_code])
       expect(plan.is_popular).to eq(plan_data[:is_popular])
+
+      # Price-level fields now in nested prices hash
+      monthly_price = plan.prices_hash['month']
+      expect(monthly_price).not_to be_nil
+      expect(monthly_price['amount']).to eq('999')
     end
 
     it 'populates entitlements set' do
@@ -222,7 +235,9 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
 
       expect(snapshot).to be_a(Hash)
       expect(snapshot['product']).to include('id' => 'prod_xxx')
-      expect(snapshot['price']).to include('id' => 'price_xxx')
+      # New schema: prices keyed by interval
+      expect(snapshot['prices']).to be_a(Hash)
+      expect(snapshot['prices']['month']).to include('id')
     end
 
     it 'sets last_synced_at timestamp' do
@@ -247,15 +262,24 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
   # --------------------------------------------------------------------------
 
   describe 'updating existing plan' do
-    let(:original_data) { build_plan_data(name: 'Original Name', amount: '999') }
+    let(:original_data) { build_plan_data(name: 'Original Name') }
     let!(:existing_plan) { create_test_plan(original_data) }
     let(:updated_data) do
       original_data.merge(
         name: 'Updated Name',
-        amount: '1999',
         entitlements: %w[create_secrets view_secrets api_access],
         features: ['Basic support', 'Priority email'],
-        limits: { 'secrets' => '500', 'recipients' => '10' }
+        limits: { 'secrets' => '500', 'recipients' => '10' },
+        prices: {
+          month: {
+            stripe_price_id: 'price_updated',
+            amount: '1999',
+            currency: 'cad',
+            billing_scheme: 'per_unit',
+            usage_type: 'licensed',
+            active: 'true',
+          },
+        },
       )
     end
 
@@ -281,7 +305,8 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
       plan = Billing::Plan.load(original_data[:plan_id])
 
       expect(plan.name).to eq('Updated Name')
-      expect(plan.amount).to eq('1999')
+      # Amount is now in nested prices hash
+      expect(plan.prices_hash['month']['amount']).to eq('1999')
     end
 
     it 'replaces entitlements set completely' do
@@ -383,17 +408,15 @@ RSpec.describe 'Billing::Plan.upsert_from_stripe_data', type: :billing do
 
     it 'handles missing optional fields' do
       data = build_plan_data(
-        trial_period_days: nil,
-        nickname: nil,
         plan_name_label: nil,
         description: nil
       )
       plan = Billing::Plan.upsert_from_stripe_data(data)
 
-      expect(plan.trial_period_days).to be_nil
-      expect(plan.nickname).to be_nil
+      # Family-level optional fields
       expect(plan.plan_name_label).to be_nil
       expect(plan.description).to be_nil
+      # NOTE: trial_period_days and nickname are now in nested prices hash
     end
 
     it 'handles limits with unlimited value' do
@@ -434,24 +457,24 @@ RSpec.describe 'Billing::Plan.prune_stale_plans', type: :billing do
   # --------------------------------------------------------------------------
 
   describe 'identifying stale plans' do
-    let!(:active_plan1) { create_test_plan(build_plan_data(plan_id: 'active_plan_1_monthly')) }
-    let!(:active_plan2) { create_test_plan(build_plan_data(plan_id: 'active_plan_2_monthly')) }
-    let!(:stale_plan) { create_test_plan(build_plan_data(plan_id: 'stale_plan_monthly')) }
+    let!(:active_plan1) { create_test_plan(build_plan_data(plan_id: 'active_plan_1')) }
+    let!(:active_plan2) { create_test_plan(build_plan_data(plan_id: 'active_plan_2')) }
+    let!(:stale_plan) { create_test_plan(build_plan_data(plan_id: 'stale_plan')) }
 
     it 'marks plans not in current_plan_ids as inactive' do
-      current_ids = %w[active_plan_1_monthly active_plan_2_monthly]
+      current_ids = %w[active_plan_1 active_plan_2]
       Billing::Plan.prune_stale_plans(current_ids)
 
-      stale = Billing::Plan.load('stale_plan_monthly')
+      stale = Billing::Plan.load('stale_plan')
       expect(stale.active).to eq('false')
     end
 
     it 'preserves plans that are in current_plan_ids' do
-      current_ids = %w[active_plan_1_monthly active_plan_2_monthly]
+      current_ids = %w[active_plan_1 active_plan_2]
       Billing::Plan.prune_stale_plans(current_ids)
 
-      plan1 = Billing::Plan.load('active_plan_1_monthly')
-      plan2 = Billing::Plan.load('active_plan_2_monthly')
+      plan1 = Billing::Plan.load('active_plan_1')
+      plan2 = Billing::Plan.load('active_plan_2')
       expect(plan1.active).to eq('true')
       expect(plan2.active).to eq('true')
     end
@@ -472,20 +495,20 @@ RSpec.describe 'Billing::Plan.prune_stale_plans', type: :billing do
   describe 'handling orphaned entries' do
     it 'removes instances entry when plan hash is missing' do
       # Setup: Create orphan entry in instances set (no corresponding plan data)
-      Billing::Plan.instances.add('orphan_plan_monthly')
+      Billing::Plan.instances.add('orphan_plan')
 
       # Verify orphan exists
-      expect(Billing::Plan.instances.member?('orphan_plan_monthly')).to be true
+      expect(Billing::Plan.instances.member?('orphan_plan')).to be true
 
       Billing::Plan.prune_stale_plans([])
 
       # Orphan entry should be removed
-      expect(Billing::Plan.instances.member?('orphan_plan_monthly')).to be false
+      expect(Billing::Plan.instances.member?('orphan_plan')).to be false
     end
 
     it 'does not raise Familia::NoIdentifier' do
       # Setup: Create orphan entry
-      Billing::Plan.instances.add('ghost_plan_monthly')
+      Billing::Plan.instances.add('ghost_plan')
 
       expect {
         Billing::Plan.prune_stale_plans([])
@@ -494,7 +517,7 @@ RSpec.describe 'Billing::Plan.prune_stale_plans', type: :billing do
 
     it 'counts orphan cleanup in pruned total' do
       # Setup: Create orphan entry
-      Billing::Plan.instances.add('orphan_plan_monthly')
+      Billing::Plan.instances.add('orphan_plan')
 
       count = Billing::Plan.prune_stale_plans([])
       expect(count).to eq(1)
@@ -506,12 +529,12 @@ RSpec.describe 'Billing::Plan.prune_stale_plans', type: :billing do
   # --------------------------------------------------------------------------
 
   describe 'soft-delete behavior' do
-    let!(:stale_plan) { create_test_plan(build_plan_data(plan_id: 'soft_delete_test_monthly', name: 'Soft Delete Test')) }
+    let!(:stale_plan) { create_test_plan(build_plan_data(plan_id: 'soft_delete_test', name: 'Soft Delete Test')) }
 
     it 'sets active=false instead of destroying' do
       Billing::Plan.prune_stale_plans([])
 
-      plan = Billing::Plan.load('soft_delete_test_monthly')
+      plan = Billing::Plan.load('soft_delete_test')
       expect(plan).not_to be_nil
       expect(plan.exists?).to be true
       expect(plan.active).to eq('false')
@@ -520,8 +543,8 @@ RSpec.describe 'Billing::Plan.prune_stale_plans', type: :billing do
     it 'keeps soft-deleted plan queryable by plan_id' do
       Billing::Plan.prune_stale_plans([])
 
-      plan = Billing::Plan.load('soft_delete_test_monthly')
-      expect(plan.plan_id).to eq('soft_delete_test_monthly')
+      plan = Billing::Plan.load('soft_delete_test')
+      expect(plan.plan_id).to eq('soft_delete_test')
       expect(plan.name).to eq('Soft Delete Test')
     end
   end
@@ -531,16 +554,16 @@ RSpec.describe 'Billing::Plan.prune_stale_plans', type: :billing do
   # --------------------------------------------------------------------------
 
   describe 'return value and logging' do
-    let!(:plan1) { create_test_plan(build_plan_data(plan_id: 'keep_me_monthly')) }
-    let!(:plan2) { create_test_plan(build_plan_data(plan_id: 'prune_me_monthly')) }
+    let!(:plan1) { create_test_plan(build_plan_data(plan_id: 'keep_me')) }
+    let!(:plan2) { create_test_plan(build_plan_data(plan_id: 'prune_me')) }
 
     it 'returns count of pruned plans' do
-      count = Billing::Plan.prune_stale_plans(['keep_me_monthly'])
+      count = Billing::Plan.prune_stale_plans(['keep_me'])
       expect(count).to eq(1)
     end
 
     it 'returns zero when no plans are stale' do
-      count = Billing::Plan.prune_stale_plans(%w[keep_me_monthly prune_me_monthly])
+      count = Billing::Plan.prune_stale_plans(%w[keep_me prune_me])
       expect(count).to eq(0)
     end
   end
@@ -564,8 +587,8 @@ RSpec.describe 'Plan upsert + prune integration', type: :billing do
   describe 'full sync workflow' do
     it 'upserts new plans and prunes missing ones atomically' do
       # Step 1: Create initial plans
-      plan1 = build_plan_data(plan_id: 'plan_a_monthly')
-      plan2 = build_plan_data(plan_id: 'plan_b_monthly')
+      plan1 = build_plan_data(plan_id: 'plan_a')
+      plan2 = build_plan_data(plan_id: 'plan_b')
       Billing::Plan.upsert_from_stripe_data(plan1)
       Billing::Plan.upsert_from_stripe_data(plan2)
 
@@ -576,17 +599,17 @@ RSpec.describe 'Plan upsert + prune integration', type: :billing do
       # - plan_a updated
       # - plan_b removed (not in new catalog)
       # - plan_c added
-      new_plan1 = build_plan_data(plan_id: 'plan_a_monthly', name: 'Updated A')
-      new_plan3 = build_plan_data(plan_id: 'plan_c_monthly')
+      new_plan1 = build_plan_data(plan_id: 'plan_a', name: 'Updated A')
+      new_plan3 = build_plan_data(plan_id: 'plan_c')
 
       Billing::Plan.upsert_from_stripe_data(new_plan1)
       Billing::Plan.upsert_from_stripe_data(new_plan3)
-      Billing::Plan.prune_stale_plans(%w[plan_a_monthly plan_c_monthly])
+      Billing::Plan.prune_stale_plans(%w[plan_a plan_c])
 
       # Verify results
-      plan_a = Billing::Plan.load('plan_a_monthly')
-      plan_b = Billing::Plan.load('plan_b_monthly')
-      plan_c = Billing::Plan.load('plan_c_monthly')
+      plan_a = Billing::Plan.load('plan_a')
+      plan_b = Billing::Plan.load('plan_b')
+      plan_c = Billing::Plan.load('plan_c')
 
       expect(plan_a.name).to eq('Updated A')
       expect(plan_a.active).to eq('true')
@@ -596,18 +619,18 @@ RSpec.describe 'Plan upsert + prune integration', type: :billing do
 
     it 'handles reactivation of previously pruned plan' do
       # Create and prune a plan
-      plan_data = build_plan_data(plan_id: 'reactivate_me_monthly')
+      plan_data = build_plan_data(plan_id: 'reactivate_me')
       Billing::Plan.upsert_from_stripe_data(plan_data)
       Billing::Plan.prune_stale_plans([])
 
-      plan = Billing::Plan.load('reactivate_me_monthly')
+      plan = Billing::Plan.load('reactivate_me')
       expect(plan.active).to eq('false')
 
       # Reactivate via upsert with active=true
       reactivate_data = plan_data.merge(active: 'true')
       Billing::Plan.upsert_from_stripe_data(reactivate_data)
 
-      plan = Billing::Plan.load('reactivate_me_monthly')
+      plan = Billing::Plan.load('reactivate_me')
       expect(plan.active).to eq('true')
     end
   end
@@ -667,7 +690,7 @@ RSpec.describe 'Billing::Plan upsert field behaviors', type: :billing do
 
   describe 'scalar fields' do
     it_behaves_like 'upsert scalar field', :name, 'Original', 'Updated'
-    it_behaves_like 'upsert scalar field', :amount, '999', '1999'
+    # NOTE: amount is now in nested prices hash, not a direct field
     it_behaves_like 'upsert scalar field', :tier, 'basic', 'premium'
     it_behaves_like 'upsert scalar field', :description, 'Old desc', 'New desc'
   end
@@ -712,7 +735,7 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
   describe 'find_by_stripe_price_id' do
     context 'when plan hash is missing but instances entry persists' do
       let(:price_id) { 'price_expired_test_123' }
-      let(:plan_id) { 'expired_plan_monthly' }
+      let(:plan_id) { 'expired_plan' }
 
       before do
         # Simulate missing hash state: instances entry exists, but plan hash is gone.
@@ -740,7 +763,11 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
     end
 
     context 'when plan exists and is valid' do
-      let(:plan_data) { build_plan_data(stripe_price_id: 'price_valid_123') }
+      let(:plan_data) do
+        build_plan_data.tap do |data|
+          data[:prices][:month][:stripe_price_id] = 'price_valid_123'
+        end
+      end
 
       before do
         create_test_plan(plan_data)
@@ -750,12 +777,17 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
       it 'returns the plan for valid price_id' do
         result = Billing::Plan.find_by_stripe_price_id('price_valid_123')
         expect(result).not_to be_nil
-        expect(result.stripe_price_id).to eq('price_valid_123')
+        # Price ID is now in nested prices hash
+        expect(result.all_stripe_price_ids).to include('price_valid_123')
       end
     end
 
     context 'when cache is rebuilt after plan destruction' do
-      let(:plan_data) { build_plan_data(stripe_price_id: 'price_will_expire_456') }
+      let(:plan_data) do
+        build_plan_data.tap do |data|
+          data[:prices][:month][:stripe_price_id] = 'price_will_expire_456'
+        end
+      end
 
       before do
         # Create valid plan and cache it
@@ -785,8 +817,8 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
     context 'when all plan hashes are missing' do
       before do
         # Add orphan entries to instances (simulating deleted plan hashes)
-        Billing::Plan.instances.add('orphan_plan_1_monthly')
-        Billing::Plan.instances.add('orphan_plan_2_monthly')
+        Billing::Plan.instances.add('orphan_plan_1')
+        Billing::Plan.instances.add('orphan_plan_2')
       end
 
       it 'returns empty array when all plan hashes are missing' do
@@ -803,22 +835,22 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
     end
 
     context 'when some plan hashes are missing' do
-      let(:valid_plan_data) { build_plan_data(plan_id: 'valid_plan_monthly') }
+      let(:valid_plan_data) { build_plan_data(plan_id: 'valid_plan') }
 
       before do
         # Create one valid plan
         create_test_plan(valid_plan_data)
 
         # Add orphan entry (simulating one deleted plan hash)
-        Billing::Plan.instances.add('orphan_plan_monthly')
+        Billing::Plan.instances.add('orphan_plan')
       end
 
       it 'returns only valid plans' do
         result = Billing::Plan.list_plans
         plan_ids = result.map(&:plan_id)
 
-        expect(plan_ids).to include('valid_plan_monthly')
-        expect(plan_ids).not_to include('orphan_plan_monthly')
+        expect(plan_ids).to include('valid_plan')
+        expect(plan_ids).not_to include('orphan_plan')
       end
 
       it 'filters out missing plans without raising' do
@@ -844,10 +876,9 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
   describe 'catalog state consistency' do
     context 'after plan hash is explicitly destroyed' do
       let(:plan_data) do
-        build_plan_data(
-          plan_id: 'deleted_plan_monthly',
-          stripe_price_id: 'price_deleted_test_789'
-        )
+        build_plan_data(plan_id: 'deleted_plan').tap do |data|
+          data[:prices][:month][:stripe_price_id] = 'price_deleted_test_789'
+        end
       end
 
       before do
@@ -856,7 +887,7 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
         Billing::Plan.rebuild_stripe_price_id_cache
 
         expect(Billing::Plan.find_by_stripe_price_id('price_deleted_test_789')).not_to be_nil
-        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('deleted_plan_monthly')
+        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('deleted_plan')
 
         # Simulate explicit deletion (e.g., destroy! or admin cleanup)
         plan.destroy!
@@ -870,14 +901,14 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
       end
 
       it 'list_plans excludes destroyed plan' do
-        expect(Billing::Plan.list_plans.map(&:plan_id)).not_to include('deleted_plan_monthly')
+        expect(Billing::Plan.list_plans.map(&:plan_id)).not_to include('deleted_plan')
       end
 
       it 'upsert_from_stripe_data can recreate the plan' do
         # The upsert pattern should handle re-creation gracefully
         new_plan = Billing::Plan.upsert_from_stripe_data(plan_data)
 
-        expect(new_plan.plan_id).to eq('deleted_plan_monthly')
+        expect(new_plan.plan_id).to eq('deleted_plan')
         expect(new_plan.exists?).to be true
       end
 
@@ -886,7 +917,7 @@ RSpec.describe 'Missing plan hash handling', type: :billing do
         Billing::Plan.rebuild_stripe_price_id_cache
 
         expect(Billing::Plan.find_by_stripe_price_id('price_deleted_test_789')).not_to be_nil
-        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('deleted_plan_monthly')
+        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('deleted_plan')
       end
     end
   end
@@ -936,21 +967,21 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'clear_cache removes orphaned plan hashes' do
-    let(:plan_data) { build_plan_data(plan_id: 'orphan_survive_monthly', region: 'UK') }
+    let(:plan_data) { build_plan_data(plan_id: 'orphan_survive', region: 'UK') }
 
     it 'removes orphaned plan hashes not tracked in instances' do
       # Create a plan, then remove it from instances (orphan it)
       plan = create_test_plan(plan_data)
-      Billing::Plan.instances.remove('orphan_survive_monthly')
+      Billing::Plan.instances.remove('orphan_survive')
 
       # Verify orphan state: hash exists, not in instances
-      expect(Billing::Plan.load('orphan_survive_monthly')&.exists?).to be true
-      expect(Billing::Plan.instances.member?('orphan_survive_monthly')).to be false
+      expect(Billing::Plan.load('orphan_survive')&.exists?).to be true
+      expect(Billing::Plan.instances.member?('orphan_survive')).to be false
 
       # clear_cache now SCANs for billing_plan:*:object keys — orphan is removed
       Billing::Plan.clear_cache
 
-      loaded = Billing::Plan.load('orphan_survive_monthly')
+      loaded = Billing::Plan.load('orphan_survive')
       expect(loaded&.exists?).to be_falsey
     end
   end
@@ -960,7 +991,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'upsert_from_stripe_data bypasses stale check for cross-product update' do
-    let(:plan_id) { 'region_conflict_monthly' }
+    let(:plan_id) { 'region_conflict' }
     let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK') }
     let(:ca_data) { build_plan_data(plan_id: plan_id, region: 'CA', stripe_updated_at: '1000') }
 
@@ -990,7 +1021,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'clear_cache removes orphan, allowing correct region upsert' do
-    let(:plan_id) { 'cross_region_bug_monthly' }
+    let(:plan_id) { 'cross_region_bug' }
     let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK', name: 'UK Plan') }
     let(:ca_data) do
       build_plan_data(
@@ -1036,7 +1067,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'upsert_from_stripe_data overwrites when incoming timestamp is newer' do
-    let(:plan_id) { 'newer_overwrite_monthly' }
+    let(:plan_id) { 'newer_overwrite' }
     let(:product_id) { "prod_shared_#{SecureRandom.hex(8)}" }
     let(:uk_data) { build_plan_data(plan_id: plan_id, region: 'UK', stripe_product_id: product_id) }
     let(:ca_data) do
@@ -1074,7 +1105,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'stale update check with equal timestamps skips save' do
-    let(:plan_id) { 'equal_timestamp_monthly' }
+    let(:plan_id) { 'equal_timestamp' }
     let(:plan_data) { build_plan_data(plan_id: plan_id, region: 'US') }
 
     before do
@@ -1095,7 +1126,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'stale check still applies for same-product updates' do
-    let(:plan_id) { 'same_product_stale_monthly' }
+    let(:plan_id) { 'same_product_stale' }
     let(:product_id) { "prod_shared_#{SecureRandom.hex(8)}" }
     let(:plan_data) do
       build_plan_data(
@@ -1139,7 +1170,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'stale check bypassed when product IDs differ (nil vs non-nil)' do
-    let(:plan_id) { 'nil_vs_real_product_monthly' }
+    let(:plan_id) { 'nil_vs_real_product' }
     let(:config_plan_data) do
       build_plan_data(
         plan_id: plan_id,
@@ -1199,7 +1230,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'stale check applies when both product IDs are nil' do
-    let(:plan_id) { 'both_nil_product_monthly' }
+    let(:plan_id) { 'both_nil_product' }
     let(:plan_data) do
       build_plan_data(
         plan_id: plan_id,
@@ -1234,7 +1265,7 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
   # --------------------------------------------------------------------------
 
   describe 'stale check bypassed when incoming data has no stripe_updated_at' do
-    let(:plan_id) { 'no_timestamp_monthly' }
+    let(:plan_id) { 'no_timestamp' }
     let(:product_id) { "prod_shared_#{SecureRandom.hex(8)}" }
     let(:plan_data) do
       build_plan_data(
@@ -1270,6 +1301,219 @@ RSpec.describe 'Orphaned plan hash regression (cross-region bug)', type: :billin
       Billing::Plan.upsert_from_stripe_data(incoming)
 
       expect(Billing::Plan.instances.member?(plan_id)).to be true
+    end
+  end
+end
+
+# ==============================================================================
+# SECTION 4: Plan.collect_stripe_plans fail-closed validation (#3120 Phase 1)
+# ==============================================================================
+
+RSpec.describe 'Billing::Plan.send(:collect_stripe_plans) validation', type: :billing do
+  include PlanUpsertTestHelpers
+
+  # Mock Stripe objects for testing
+  let(:valid_metadata) do
+    {
+      'app' => 'onetimesecret',
+      'plan_id' => 'identity_plus_v1',
+      'tier' => 'identity',
+      'region' => 'US',
+    }
+  end
+
+  let(:invalid_metadata_missing_plan_id) do
+    {
+      'app' => 'onetimesecret',
+      'tier' => 'identity',
+      'region' => 'US',
+    }
+  end
+
+  let(:invalid_metadata_blank_plan_id) do
+    {
+      'app' => 'onetimesecret',
+      'plan_id' => '   ',
+      'tier' => 'identity',
+      'region' => 'US',
+    }
+  end
+
+  def build_mock_product(id:, name:, metadata:)
+    Stripe::StripeObject.construct_from({
+      id: id,
+      name: name,
+      description: "Description for #{name}",
+      metadata: metadata,
+      active: true,
+      marketing_features: [],
+      updated: Time.now.to_i,
+    })
+  end
+
+  def build_mock_price(id:, product_id:, interval: 'month')
+    Stripe::Price.construct_from({
+      id: id,
+      product: product_id,
+      type: 'recurring',
+      currency: 'cad',
+      unit_amount: 2900,
+      active: true,
+      billing_scheme: 'per_unit',
+      nickname: nil,
+      recurring: { interval: interval },
+    })
+  end
+
+  def mock_product_list(*products)
+    list = instance_double(Stripe::ListObject)
+    stub = allow(list).to receive(:auto_paging_each)
+    products.flatten.each { |p| stub = stub.and_yield(p) }
+    list
+  end
+
+  def mock_price_list(*prices)
+    list = instance_double(Stripe::ListObject)
+    stub = allow(list).to receive(:auto_paging_each)
+    prices.flatten.each { |p| stub = stub.and_yield(p) }
+    list
+  end
+
+  before do
+    allow(Billing::Plan).to receive(:ensure_stripe_configured!)
+    # Allow all regions to pass through (no regional isolation in tests)
+    allow(OT.billing_config).to receive(:region).and_return(nil)
+  end
+
+  # --------------------------------------------------------------------------
+  # Single product with bad metadata
+  # --------------------------------------------------------------------------
+
+  describe 'single product with bad metadata' do
+    let(:bad_product) { build_mock_product(id: 'prod_bad', name: 'Bad Product', metadata: invalid_metadata_missing_plan_id) }
+    let(:price) { build_mock_price(id: 'price_bad', product_id: 'prod_bad') }
+
+    before do
+      allow(Stripe::Product).to receive(:list).and_return(mock_product_list(bad_product))
+      allow(Stripe::Price).to receive(:list).and_return(mock_price_list(price))
+    end
+
+    it 'raises CatalogValidationError with one error' do
+      expect { Billing::Plan.send(:collect_stripe_plans) }
+        .to raise_error(Billing::CatalogValidationError) do |e|
+          expect(e.errors.size).to eq(1)
+          expect(e.errors.first[:product_id]).to eq('prod_bad')
+          expect(e.errors.first[:error]).to include('missing: plan_id')
+        end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Multiple products with bad metadata
+  # --------------------------------------------------------------------------
+
+  describe 'multiple products with bad metadata' do
+    let(:bad_product1) { build_mock_product(id: 'prod_bad1', name: 'Bad Product 1', metadata: invalid_metadata_missing_plan_id) }
+    let(:bad_product2) { build_mock_product(id: 'prod_bad2', name: 'Bad Product 2', metadata: invalid_metadata_blank_plan_id) }
+    let(:price1) { build_mock_price(id: 'price_bad1', product_id: 'prod_bad1') }
+    let(:price2) { build_mock_price(id: 'price_bad2', product_id: 'prod_bad2') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(bad_product1).and_yield(bad_product2)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_bad1')).and_return(mock_price_list(price1))
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_bad2')).and_return(mock_price_list(price2))
+    end
+
+    it 'accumulates all errors before raising' do
+      expect { Billing::Plan.send(:collect_stripe_plans) }
+        .to raise_error(Billing::CatalogValidationError) do |e|
+          expect(e.errors.size).to eq(2)
+          product_ids = e.errors.map { |err| err[:product_id] }
+          expect(product_ids).to contain_exactly('prod_bad1', 'prod_bad2')
+        end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Mix of good and bad products
+  # --------------------------------------------------------------------------
+
+  describe 'mix of good and bad products' do
+    let(:good_product) { build_mock_product(id: 'prod_good', name: 'Good Product', metadata: valid_metadata) }
+    let(:bad_product) { build_mock_product(id: 'prod_bad', name: 'Bad Product', metadata: invalid_metadata_missing_plan_id) }
+    let(:good_price) { build_mock_price(id: 'price_good', product_id: 'prod_good') }
+    let(:bad_price) { build_mock_price(id: 'price_bad', product_id: 'prod_bad') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(good_product).and_yield(bad_product)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good')).and_return(mock_price_list(good_price))
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_bad')).and_return(mock_price_list(bad_price))
+    end
+
+    it 'collects valid plans then raises with bad ones' do
+      expect { Billing::Plan.send(:collect_stripe_plans) }
+        .to raise_error(Billing::CatalogValidationError) do |e|
+          expect(e.errors.size).to eq(1)
+          expect(e.errors.first[:product_id]).to eq('prod_bad')
+        end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # All products valid
+  # --------------------------------------------------------------------------
+
+  describe 'all products valid' do
+    let(:good_product1) { build_mock_product(id: 'prod_good1', name: 'Good Product 1', metadata: valid_metadata) }
+    let(:good_product2) { build_mock_product(id: 'prod_good2', name: 'Good Product 2', metadata: valid_metadata.merge('plan_id' => 'team_plus_v1')) }
+    let(:price1) { build_mock_price(id: 'price_good1', product_id: 'prod_good1') }
+    let(:price2) { build_mock_price(id: 'price_good2', product_id: 'prod_good2') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(good_product1).and_yield(good_product2)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good1')).and_return(mock_price_list(price1))
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good2')).and_return(mock_price_list(price2))
+    end
+
+    it 'returns plan_data_list without raising' do
+      result = Billing::Plan.send(:collect_stripe_plans)
+      expect(result).to be_an(Array)
+      expect(result.size).to eq(2)
+      plan_ids = result.map { |d| d[:plan_id] }
+      expect(plan_ids).to contain_exactly('identity_plus_v1', 'team_plus_v1')
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Products skipped for valid reasons (wrong app, wrong region)
+  # --------------------------------------------------------------------------
+
+  describe 'products skipped for valid reasons do not trigger validation error' do
+    let(:other_app_product) { build_mock_product(id: 'prod_other', name: 'Other App', metadata: { 'app' => 'other_app' }) }
+    let(:good_product) { build_mock_product(id: 'prod_good', name: 'Good Product', metadata: valid_metadata) }
+    let(:good_price) { build_mock_price(id: 'price_good', product_id: 'prod_good') }
+
+    before do
+      product_list = instance_double(Stripe::ListObject)
+      allow(product_list).to receive(:auto_paging_each).and_yield(other_app_product).and_yield(good_product)
+      allow(Stripe::Product).to receive(:list).and_return(product_list)
+
+      allow(Stripe::Price).to receive(:list).with(hash_including(product: 'prod_good')).and_return(mock_price_list(good_price))
+    end
+
+    it 'skips non-OTS products without error' do
+      result = Billing::Plan.send(:collect_stripe_plans)
+      expect(result.size).to eq(1)
+      expect(result.first[:plan_id]).to eq('identity_plus_v1')
     end
   end
 end

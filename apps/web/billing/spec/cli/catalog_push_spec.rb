@@ -85,13 +85,13 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
   describe '#detect_product_updates (private)' do
     it 'returns empty hash when product matches plan definition exactly' do
       existing = mock_product
-      result = command.send(:detect_product_updates, existing, plan_def)
+      result = command.send(:detect_product_updates, 'identity_plus_v1', existing, plan_def)
       expect(result).to eq({})
     end
 
     it 'detects name changes' do
       existing = mock_product(name: 'Old Product Name')
-      result = command.send(:detect_product_updates, existing, plan_def)
+      result = command.send(:detect_product_updates, 'identity_plus_v1', existing, plan_def)
 
       expect(result).to have_key(:name)
       expect(result[:name][:from]).to eq('Old Product Name')
@@ -101,7 +101,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
     it 'detects tier metadata changes' do
       metadata = mock_product.metadata.merge('tier' => 'basic')
       existing = mock_product(metadata: metadata)
-      result = command.send(:detect_product_updates, existing, plan_def)
+      result = command.send(:detect_product_updates, 'identity_plus_v1', existing, plan_def)
 
       expect(result).to have_key(:metadata_tier)
       expect(result[:metadata_tier][:from]).to eq('basic')
@@ -111,7 +111,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
     it 'detects limit field changes' do
       metadata = mock_product.metadata.merge('limit_teams' => '1')
       existing = mock_product(metadata: metadata)
-      result = command.send(:detect_product_updates, existing, plan_def)
+      result = command.send(:detect_product_updates, 'identity_plus_v1', existing, plan_def)
 
       expect(result).to have_key(:metadata_limit_teams)
       expect(result[:metadata_limit_teams][:from]).to eq('1')
@@ -121,7 +121,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
     it 'detects entitlements changes' do
       metadata = mock_product.metadata.merge('entitlements' => 'custom_branding')
       existing = mock_product(metadata: metadata)
-      result = command.send(:detect_product_updates, existing, plan_def)
+      result = command.send(:detect_product_updates, 'identity_plus_v1', existing, plan_def)
 
       expect(result).to have_key(:metadata_entitlements)
       expect(result[:metadata_entitlements][:from]).to eq('custom_branding')
@@ -133,7 +133,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
       existing = mock_product(metadata: metadata)
 
       # Should not raise, should detect the difference
-      result = command.send(:detect_product_updates, existing, plan_def)
+      result = command.send(:detect_product_updates, 'identity_plus_v1', existing, plan_def)
       expect(result).to have_key(:metadata_tier)
     end
   end

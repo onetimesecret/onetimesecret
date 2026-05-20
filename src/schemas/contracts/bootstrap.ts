@@ -19,6 +19,7 @@ import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
+import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
 import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
@@ -74,6 +75,12 @@ export const headerLogoSchema = z.object({
   alt: z.string().default(''),
   link_to: z.string().default('/'),
   show_name: z.boolean().optional(),
+  /**
+   * When true, render the logo at a larger size in the authenticated header.
+   * Useful for rasterized brand assets that need visual presence alongside
+   * the org/domain switchers. Defaults to false (compact 40px logo).
+   */
+  prominent: z.boolean().optional(),
 });
 
 export const headerBrandingSchema = z.object({
@@ -323,7 +330,7 @@ export const organizationSchema = z
     extid: z.string(),
     display_name: z.string(),
     is_default: z.boolean(),
-    planid: z.string().nullish(),
+    planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
   })
   .nullable();
@@ -478,8 +485,8 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   // Entitlement test mode (colonel only)
   // ─────────────────────────────────────────────────────────────────────────────
-  entitlement_test_planid: z.string().nullish(),
-  entitlement_test_plan_name: z.string().nullish(),
+  entitlement_preview_planid: z.string().nullish(),
+  entitlement_preview_plan_name: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Development

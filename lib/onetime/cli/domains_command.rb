@@ -2,13 +2,14 @@
 #
 # frozen_string_literal: true
 
-# CLI command for managing custom domain records. Shows count and usage when
-# invoked without a subcommand.
+# CLI command for managing custom domain records. Shows subcommands when
+# invoked without arguments.
 #
 # Usage:
-#   bin/ots domains                             # Show count and usage
-#   bin/ots domains doctor secrets.example.com  # Check single domain
-#   bin/ots domains doctor --all                # Check all domains
+#   bin/ots domains              # Show subcommands
+#   bin/ots domains list         # List all domains with filtering options
+#   bin/ots domains info DOMAIN  # Show domain details
+#   bin/ots domains doctor --all # Check all domains
 #
 
 module Onetime
@@ -24,22 +25,7 @@ module Onetime
 
         puts format('%d custom domains (%d in display_domains index)', domain_count, index_count)
         puts
-        puts 'Usage:'
-        puts '  bin/ots domains doctor secrets.example.com  # Check single domain'
-        puts '  bin/ots domains doctor --all                # Check all domains'
-        puts '  bin/ots domains doctor --org EXTID          # Check domains for one org'
-        puts '  bin/ots domains doctor --all --repair       # Auto-repair issues'
-        puts '  bin/ots domains doctor --all --json         # JSON output'
-        puts
-        puts 'Integrity checks:'
-        puts '  1. org_id points to existing organization (CRITICAL)'
-        puts '  2. display_domain field is not empty (HIGH)'
-        puts '  3. display_domain_index entries are valid (HIGH)'
-        puts '  4. display_domains hash entries are valid (MEDIUM)'
-        puts '  5. Domain is in org.domains sorted set (MEDIUM)'
-        puts '  6. org.domains entries have valid domain objects (MEDIUM)'
-        puts '  7. verification_state is coherent (WARNING)'
-        puts '  8. txt_validation_value format is valid (LOW)'
+        puts 'Run bin/ots domains -h for available subcommands'
       end
     end
 

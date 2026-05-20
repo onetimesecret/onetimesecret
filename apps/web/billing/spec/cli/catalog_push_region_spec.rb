@@ -38,37 +38,37 @@ RSpec.describe 'CatalogPushCommand#build_syncable_metadata region handling',
   describe 'region field in syncable metadata' do
     it 'excludes region field when plan region is nil' do
       plan_def = base_plan_def.merge('region' => nil)
-      result = command.send(:build_syncable_metadata, plan_def)
+      result = command.send(:build_syncable_metadata, 'test_plan', plan_def)
       expect(result).not_to have_key('region')
     end
 
     it 'excludes region field when plan region is empty string' do
       plan_def = base_plan_def.merge('region' => '')
-      result = command.send(:build_syncable_metadata, plan_def)
+      result = command.send(:build_syncable_metadata, 'test_plan', plan_def)
       expect(result).not_to have_key('region')
     end
 
     it 'excludes region field when plan region is whitespace' do
       plan_def = base_plan_def.merge('region' => '   ')
-      result = command.send(:build_syncable_metadata, plan_def)
+      result = command.send(:build_syncable_metadata, 'test_plan', plan_def)
       expect(result).not_to have_key('region')
     end
 
     it 'normalizes lowercase region to uppercase' do
       plan_def = base_plan_def.merge('region' => 'nz')
-      result = command.send(:build_syncable_metadata, plan_def)
+      result = command.send(:build_syncable_metadata, 'test_plan', plan_def)
       expect(result['region']).to eq('NZ')
     end
 
     it 'preserves already-uppercase region' do
       plan_def = base_plan_def.merge('region' => 'EU')
-      result = command.send(:build_syncable_metadata, plan_def)
+      result = command.send(:build_syncable_metadata, 'test_plan', plan_def)
       expect(result['region']).to eq('EU')
     end
 
     it 'strips whitespace from region before normalizing' do
       plan_def = base_plan_def.merge('region' => ' ca ')
-      result = command.send(:build_syncable_metadata, plan_def)
+      result = command.send(:build_syncable_metadata, 'test_plan', plan_def)
       expect(result['region']).to eq('CA')
     end
   end
@@ -78,7 +78,7 @@ RSpec.describe 'CatalogPushCommand#build_syncable_metadata region handling',
   describe 'nil region does not produce empty string (regression)' do
     it 'never writes empty string for region field' do
       plan_def = base_plan_def.merge('region' => nil)
-      result = command.send(:build_syncable_metadata, plan_def)
+      result = command.send(:build_syncable_metadata, 'test_plan', plan_def)
 
       # The key must either be absent or have a non-empty value
       if result.key?('region')
@@ -167,5 +167,129 @@ RSpec.describe 'CatalogPushCommand#fetch_existing_products region filtering',
     result = command.send(:fetch_existing_products, 'onetimesecret', match_fields, nil)
     product_ids = result.values.map(&:id)
     expect(product_ids).to include('prod_none')
+  end
+end
+
+# ==============================================================================
+# SECTION 3: Override products bypass region filter (Issue #3157)
+# ==============================================================================
+
+RSpec.describe 'CatalogPushCommand#fetch_existing_products override + region interaction',
+               :billing_cli, :integration do
+  subject(:command) { Onetime::CLI::BillingCatalogPushCommand.new }
+
+  def mock_stripe_product(id:, plan_id:, region:, app: 'onetimesecret')
+    metadata = { 'app' => app, 'plan_id' => plan_id }
+    metadata['region'] = region if region
+    double("Stripe::Product(#{id})", id: id, name: "Plan #{plan_id}", metadata: metadata)
+  end
+
+  let(:match_fields) { ['plan_id'] }
+
+  # Legacy product with explicit override but no region metadata
+  let(:override_no_region) { mock_stripe_product(id: 'prod_override_legacy', plan_id: 'legacy_v1', region: nil) }
+  # Product with app match but wrong region and no override
+  let(:app_match_wrong_region) { mock_stripe_product(id: 'prod_wrong_region', plan_id: 'starter_v1', region: 'EU') }
+  # Product with correct region for baseline
+  let(:nz_product) { mock_stripe_product(id: 'prod_nz', plan_id: 'identity_v1', region: 'NZ') }
+
+  # Plans hash keyed by plan_id (as fetch_existing_products expects)
+  let(:plans) do
+    {
+      'legacy_v1' => { 'plan_id' => 'legacy_v1', 'stripe_product_id' => 'prod_override_legacy' },
+      'starter_v1' => { 'plan_id' => 'starter_v1' }, # No override
+      'identity_v1' => { 'plan_id' => 'identity_v1' },
+    }
+  end
+
+  before do
+    product_list = double('ProductList')
+    allow(product_list).to receive(:auto_paging_each)
+      .and_yield(override_no_region)
+      .and_yield(app_match_wrong_region)
+      .and_yield(nz_product)
+    allow(Stripe::Product).to receive(:list).and_return(product_list)
+    allow(command).to receive(:with_stripe_retry).and_yield
+  end
+
+  it 'includes override product without region metadata when region filter is set (Issue #3157 fix)' do
+    # Product has explicit stripe_product_id override but no region metadata
+    # Before the fix, region filter would exclude this product
+    result = command.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ', plans)
+    product_ids = result.values.map(&:id)
+    expect(product_ids).to include('prod_override_legacy')
+  end
+
+  it 'excludes app-matched products with wrong region when they have no override (regression)' do
+    # Product matches app but has EU region while filter is NZ, and no override
+    # This should still be filtered out (existing behavior preserved)
+    result = command.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ', plans)
+    product_ids = result.values.map(&:id)
+    expect(product_ids).not_to include('prod_wrong_region')
+  end
+
+  it 'includes products with correct region as baseline' do
+    result = command.send(:fetch_existing_products, 'onetimesecret', match_fields, 'NZ', plans)
+    product_ids = result.values.map(&:id)
+    expect(product_ids).to include('prod_nz')
+  end
+end
+
+# ==============================================================================
+# SECTION 4: detect_product_updates detects missing plan_id (Issue #3157)
+# ==============================================================================
+
+RSpec.describe 'CatalogPushCommand#detect_product_updates plan_id detection',
+               :billing_cli, :integration do
+  subject(:command) { Onetime::CLI::BillingCatalogPushCommand.new }
+
+  it 'detects missing plan_id as a change needing update' do
+    # Product exists but lacks plan_id metadata
+    existing = double('Stripe::Product',
+      id: 'prod_legacy',
+      name: 'Test Plan',
+      metadata: { 'app' => 'onetimesecret', 'tier' => 'pro' }, # No plan_id
+      marketing_features: []
+    )
+
+    plan_def = { 'name' => 'Test Plan', 'tier' => 'pro' }
+
+    updates = command.send(:detect_product_updates, 'test_plan', existing, plan_def)
+
+    expect(updates).to have_key(:metadata_plan_id)
+    expect(updates[:metadata_plan_id][:from]).to be_nil
+    expect(updates[:metadata_plan_id][:to]).to eq('test_plan')
+  end
+
+  it 'detects mismatched plan_id as a change needing update' do
+    existing = double('Stripe::Product',
+      id: 'prod_legacy',
+      name: 'Test Plan',
+      metadata: { 'app' => 'onetimesecret', 'plan_id' => 'old_plan_id' },
+      marketing_features: []
+    )
+
+    plan_def = { 'name' => 'Test Plan', 'tier' => 'pro' }
+
+    updates = command.send(:detect_product_updates, 'new_plan_id', existing, plan_def)
+
+    expect(updates).to have_key(:metadata_plan_id)
+    expect(updates[:metadata_plan_id][:from]).to eq('old_plan_id')
+    expect(updates[:metadata_plan_id][:to]).to eq('new_plan_id')
+  end
+
+  it 'does not flag plan_id when it already matches' do
+    existing = double('Stripe::Product',
+      id: 'prod_current',
+      name: 'Test Plan',
+      metadata: { 'app' => 'onetimesecret', 'plan_id' => 'test_plan' },
+      marketing_features: []
+    )
+
+    plan_def = { 'name' => 'Test Plan', 'tier' => 'pro' }
+
+    updates = command.send(:detect_product_updates, 'test_plan', existing, plan_def)
+
+    expect(updates).not_to have_key(:metadata_plan_id)
   end
 end

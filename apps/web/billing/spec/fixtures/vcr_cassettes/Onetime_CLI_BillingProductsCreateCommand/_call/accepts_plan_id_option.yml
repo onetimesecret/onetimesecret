@@ -5,26 +5,30 @@ http_interactions:
     uri: https://api.stripe.com/v1/products
     body:
       encoding: UTF-8
-      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=vcr_test_plan_id_unique&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2026-02-16T12%3A12%3A24Z&metadata[display_order]=0&metadata[show_on_plans_page]=
+      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=vcr_test_plan_id_unique&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2026-05-20T02%3A29%3A30Z&metadata[display_order]=0&metadata[show_on_plans_page]=
     headers:
       User-Agent:
-      - Stripe/v1 RubyBindings/18.1.0
+      - Stripe/v1 RubyBindings/18.4.2
       Authorization:
       - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_Xh3QLuT0IRyMOr","request_duration_ms":215}}'
+      Idempotency-Key:
+      - 3fb62d7e-d2c6-45f1-b272-5b342a1fa441
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"18.1.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:05 PST
-        2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      - '{"bindings_version":"18.4.2","lang":"ruby","lang_version":"3.4.9 p82 (2026-03-11)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:31:17 PDT
+        2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Content-Type:
       - application/x-www-form-urlencoded
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
+      Sentry-Trace:
+      - 339a26764846400b85a2b7241e6ea5df-668850b197e34126
+      Baggage:
+      - sentry-trace_id=339a26764846400b85a2b7241e6ea5df,sentry-sample_rand=0.647890,sentry-environment=development,sentry-release=local-dev,sentry-public_key=e4f0e05ca113560573e15f5e52428419
   response:
     status:
       code: 200
@@ -33,11 +37,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 16 Feb 2026 12:12:24 GMT
+      - Wed, 20 May 2026 02:29:31 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '623'
+      - '622'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -56,11 +60,16 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=QPeeX5cup6DQHGLoqe5MpAfqI5iWwOsR0gErfHzv16Gf6X2FGsHJjh9eNPC57-XQT4YVaA097_LaoObn
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=1IOFOfDLDzqy2dNwrI2gtdgZHWvk2aP3I6GPS7DXTTksLLajlluLYrZJMP-KAqnlQO1y1wDFITDDWbaj;
+        report-to csp
       Idempotency-Key:
-      - c042b294-8429-4ca1-9009-eed5a1ea3d83
+      - 3fb62d7e-d2c6-45f1-b272-5b342a1fa441
       Original-Request:
-      - req_xCG7mEZ1uFL0yA
+      - req_WlfPQOOYB1QT05
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=1IOFOfDLDzqy2dNwrI2gtdgZHWvk2aP3I6GPS7DXTTksLLajlluLYrZJMP-KAqnlQO1y1wDFITDDWbaj&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=1IOFOfDLDzqy2dNwrI2gtdgZHWvk2aP3I6GPS7DXTTksLLajlluLYrZJMP-KAqnlQO1y1wDFITDDWbaj&t=1"
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -72,18 +81,18 @@ http_interactions:
       X-Stripe-Routing-Context-Priority-Tier:
       - api-testmode
       X-Wc:
-      - ABGHIJ
+      - 3c3
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains; preload
     body:
       encoding: UTF-8
       string: |-
         {
-          "id": "prod_TzPU22eX0PBfoa",
+          "id": "prod_UY65FeDw8Q6x4q",
           "object": "product",
           "active": true,
           "attributes": [],
-          "created": 1771243944,
+          "created": 1779244170,
           "default_price": null,
           "description": null,
           "images": [],
@@ -91,96 +100,20 @@ http_interactions:
           "marketing_features": [],
           "metadata": {
             "app": "onetimesecret",
-            "created": "2026-02-16T12:12:24Z",
+            "created": "2026-05-20T02:29:30Z",
             "display_order": "0",
-            "plan_id": "vcr_test_plan_id_unique",
-            "region": ""
+            "plan_id": "vcr_test_plan_id_unique"
           },
           "name": "Test Product",
           "package_dimensions": null,
           "shippable": null,
           "statement_descriptor": null,
           "tax_code": null,
+          "tax_details": null,
           "type": "service",
           "unit_label": null,
-          "updated": 1771243944,
+          "updated": 1779244171,
           "url": null
         }
-  recorded_at: Mon, 16 Feb 2026 12:12:24 GMT
-- request:
-    method: post
-    uri: https://api.stripe.com/v1/products
-    body:
-      encoding: UTF-8
-      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=vcr_test_plan_id_unique&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2026-02-27T01%3A40%3A29Z&metadata[display_order]=0&metadata[show_on_plans_page]=
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/18.1.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"18.1.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:05 PST
-        2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 401
-      message: Unauthorized
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Fri, 27 Feb 2026 01:40:30 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '114'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        upgrade-insecure-requests
-      Vary:
-      - Origin
-      Www-Authenticate:
-      - Bearer realm="Stripe"
-      X-Robots-Tag:
-      - none
-      X-Wc:
-      - ABHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-    body:
-      encoding: UTF-8
-      string: |
-        {
-          "error": {
-            "message": "Invalid API Key provided: sk_test_mock",
-            "type": "invalid_request_error"
-          }
-        }
-  recorded_at: Fri, 27 Feb 2026 01:40:30 GMT
+  recorded_at: Wed, 20 May 2026 02:29:30 GMT
 recorded_with: VCR 6.4.0

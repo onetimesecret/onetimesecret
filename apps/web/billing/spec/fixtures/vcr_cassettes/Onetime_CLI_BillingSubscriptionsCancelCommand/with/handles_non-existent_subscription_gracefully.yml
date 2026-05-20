@@ -8,17 +8,17 @@ http_interactions:
       string: ''
     headers:
       User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
+      - Stripe/v1 RubyBindings/18.4.2
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_ITzor7OWsaEcv1","request_duration_ms":715}}'
+      - '{"last_request_metrics":{"request_id":"req_WPzx2tbrsZK8Jc","request_duration_ms":1449}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      - '{"bindings_version":"18.4.2","lang":"ruby","lang_version":"3.4.9 p82 (2026-03-11)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:31:17 PDT
+        2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
@@ -31,11 +31,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:19:51 GMT
+      - Wed, 20 May 2026 02:03:34 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '334'
+      - '360'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +54,12 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=E11nHZYEgA7S3_0s4MtEYUZOXZqplNk_hMdXt48FWDqboaDkfrfFOYefDvzJ0G1KkKEUndzQZXQgsD5R
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=J6-YSPmDs3bD6keYPWIw-fNhBWCK3rVMYtONcAuJsjhaVcdR7tc2IABe7926H938zSraD9WBQOOkDWIV;
+        report-to csp
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=J6-YSPmDs3bD6keYPWIw-fNhBWCK3rVMYtONcAuJsjhaVcdR7tc2IABe7926H938zSraD9WBQOOkDWIV&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=J6-YSPmDs3bD6keYPWIw-fNhBWCK3rVMYtONcAuJsjhaVcdR7tc2IABe7926H938zSraD9WBQOOkDWIV&t=1"
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -64,7 +69,7 @@ http_interactions:
       X-Stripe-Routing-Context-Priority-Tier:
       - api-testmode
       X-Wc:
-      - ABGHIJ
+      - 3c3
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains; preload
     body:
@@ -76,9 +81,9 @@ http_interactions:
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
             "message": "No such subscription: 'sub_nonexistent'",
             "param": "id",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_weJbHKFw9QwFZm?t=1766985591",
+            "request_log_url": "https://dashboard.stripe.com/acct_1SkAmiH7zmouMIBX/test/workbench/logs?object=req_tCX5EFmrkrsrPr",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Mon, 29 Dec 2025 05:19:51 GMT
-recorded_with: VCR 6.3.1
+  recorded_at: Wed, 20 May 2026 02:03:33 GMT
+recorded_with: VCR 6.4.0

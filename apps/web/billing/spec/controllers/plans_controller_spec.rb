@@ -68,6 +68,17 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
     end
 
+    it 'enables promotion codes on the checkout session', :vcr do
+      get "/billing/plans/#{product}/#{interval}"
+
+      expect(last_response.status).to eq(302)
+
+      session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
+      session    = Stripe::Checkout::Session.retrieve(session_id)
+
+      expect(session.allow_promotion_codes).to eq(true)
+    end
+
     it 'creates checkout session with correct plan', :vcr do
       get "/billing/plans/#{product}/#{interval}"
 
@@ -134,13 +145,162 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(debug_info['checkout_tier']).to eq('single_team')
     end
 
-    it 'does not require authentication', :vcr do
+    it 'redirects unauthenticated users to signup with plan selection' do
       env 'rack.session', {}
 
       get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to match(%r{\Ahttps://[^/]*stripe\.com/})
+      expect(last_response.location).to eq("/signup?product=#{product}&interval=#{interval}")
+    end
+
+    context 'with URL parameter escaping (PR #3129 security fix)' do
+      # These tests verify that parameters are properly escaped in redirect URLs
+      # to prevent query string injection. When special characters like & or =
+      # appear in parameter values, they must be percent-encoded in the redirect
+      # URL to avoid creating unintended query parameters.
+      #
+      # Controller redirect paths tested:
+      # - Line 59: result.success? == false (plan resolution failed)
+      # - Line 73: plan.nil? (plan not found after resolution)
+      # - Line 79: cust.anonymous? (unauthenticated user)
+      # - Line 188: rescue Stripe::StripeError
+
+      describe 'plan resolution failure redirect (line 59)' do
+        # This path uses Rack::Utils.build_query (already fixed)
+        it 'escapes ampersands in product parameter' do
+          env 'rack.session', {}
+
+          # URL-encoded ampersand in path: test%26evil decodes to test&evil in params
+          get '/billing/plans/test%26evil%3Dinject/monthly'
+
+          expect(last_response.status).to eq(302)
+          location = last_response.location
+
+          # Verify no raw ampersand creates an unintended query param
+          expect(location).not_to include('&evil=inject')
+          # The value should be escaped in the query string
+          expect(location).to include('product=test%26evil')
+        end
+
+        it 'escapes ampersands in interval parameter' do
+          env 'rack.session', {}
+
+          get '/billing/plans/identity_plus_v1/year%26ly'
+
+          expect(last_response.status).to eq(302)
+          location = last_response.location
+
+          # Should not have &ly as a separate parameter
+          expect(location).not_to match(/&ly(?:=|&|$)/)
+        end
+
+        it 'escapes equals signs in parameters' do
+          env 'rack.session', {}
+
+          get '/billing/plans/test%3Dvalue/monthly'
+
+          expect(last_response.status).to eq(302)
+          location = last_response.location
+
+          # Should have exactly 2 = signs (product= and interval=)
+          query_string = URI.parse(location).query
+          expect(query_string.count('=')).to eq(2)
+        end
+
+        it 'escapes spaces in parameters' do
+          env 'rack.session', {}
+
+          get '/billing/plans/test%20product/monthly'
+
+          expect(last_response.status).to eq(302)
+          location = last_response.location
+
+          # Space should be escaped (either %20 or + is acceptable)
+          expect(location).not_to include('test product')
+        end
+      end
+
+      describe 'plan load failure redirect (line 73)' do
+        # This path uses Rack::Utils.build_query (already fixed)
+        it 'escapes special characters when plan load returns nil' do
+          # Stub PlanResolver to return success but with a plan_id that won't load
+          fake_result = double(
+            success?: true,
+            plan: nil,
+            plan_id: 'nonexistent_plan',
+            tier: 'test',
+            error: nil
+          )
+          allow(::Billing::PlanResolver).to receive(:resolve).and_return(fake_result)
+          allow(::Billing::Plan).to receive(:load).with('nonexistent_plan').and_return(nil)
+
+          env 'rack.session', {}
+          get '/billing/plans/test%26inject/monthly'
+
+          expect(last_response.status).to eq(302)
+          location = last_response.location
+
+          # Should not have raw & creating extra params
+          expect(location).not_to include('&inject')
+        end
+      end
+
+      describe 'unauthenticated user redirect (line 79)' do
+        # This path uses Rack::Utils.build_query (already fixed)
+        it 'escapes special characters for anonymous users with valid plan' do
+          # Stub to get past resolution and plan load, but hit the anonymous check
+          fake_result = double(
+            success?: true,
+            plan: double(plan_id: 'test_plan', stripe_price_id: 'price_test'),
+            plan_id: 'test_plan',
+            tier: 'test',
+            error: nil
+          )
+          allow(::Billing::PlanResolver).to receive(:resolve).and_return(fake_result)
+
+          env 'rack.session', {}  # Anonymous user
+          get '/billing/plans/test%26inject/monthly'
+
+          expect(last_response.status).to eq(302)
+          location = last_response.location
+
+          # Should not have raw & creating extra params
+          expect(location).not_to include('&inject')
+        end
+      end
+
+      describe 'Stripe error redirect (line 188)' do
+        # This path uses Rack::Utils.build_query (already fixed)
+        it 'escapes special characters when Stripe checkout fails' do
+          # Need authenticated user with valid plan to reach Stripe call
+          plan_double = double(
+            plan_id: 'identity_plus_v1',
+            price_for: { 'stripe_price_id' => 'price_test', 'amount' => '1200', 'currency' => 'cad' },
+            available_intervals: ['month'],
+          )
+          fake_result = double(
+            success?: true,
+            plan: plan_double,
+            plan_id: 'identity_plus_v1',
+            tier: 'single_team',
+            error: nil
+          )
+          allow(::Billing::PlanResolver).to receive(:resolve).and_return(fake_result)
+          allow(Stripe::Checkout::Session).to receive(:create).and_raise(
+            Stripe::StripeError.new('Test error')
+          )
+
+          # Authenticated user (uses customer from let block)
+          get '/billing/plans/identity%26evil/monthly'
+
+          expect(last_response.status).to eq(302)
+          location = last_response.location
+
+          # Should not have raw & creating extra params
+          expect(location).not_to include('&evil')
+        end
+      end
     end
 
     it 'detects region for plan selection', :vcr do
@@ -250,7 +410,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       default_org = orgs.find { |o| o.is_default }
       expect(default_org).not_to be_nil
-      expect(default_org.display_name).to include(new_customer.email)
+      # CreateDefaultWorkspace names new orgs "Default Workspace" (see f5edcf7cc)
+      expect(default_org.display_name).to eq('Default Workspace')
       created_organizations.concat(orgs)
     end
   end

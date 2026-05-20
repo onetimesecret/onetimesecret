@@ -57,10 +57,15 @@ module Onetime
         MAX_TTL = 365 * 24 * 60 * 60
 
         # Default TTL values (in seconds)
-        # Free tier max: 7 days. Paid plans or billing-disabled get 30 days.
+        # Free tier max: 14 days. Paid plans or billing-disabled get 30 days.
         # This also serves as the entitlement gate threshold — requests above
         # this value require the 'extended_default_expiration' entitlement.
-        DEFAULT_FREE_TTL = 604_800  # 7 days
+        #
+        # MUST match `free_v1.limits.secret_lifetime` in etc/billing.yaml so
+        # that a billing-enabled org with an empty planid (cache miss /
+        # unassigned) gets the same 14-day ceiling as the canonical free_v1
+        # plan. See #3111 for the drift bug this constant previously caused.
+        DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
         # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
@@ -85,68 +90,60 @@ module Onetime
           homepage_secrets
         ].freeze
 
-        # Parse TTL value from environment variable with strict validation
-        #
-        # Uses Integer() for strict parsing to reject malformed values like "123abc".
-        # Applies bounds validation: minimum 0, maximum MAX_TTL (365 days).
-        #
-        # @param env_var [String] Environment variable name
-        # @param default [Integer] Default value if env var is not set or invalid
-        # @return [Integer] Validated TTL value in seconds (0 to MAX_TTL)
-        #
-        # @example
-        #   parse_ttl_env('PLAN_TTL_ANONYMOUS', 604_800)  # => 604800 (or env value)
-        def self.parse_ttl_env(env_var, default)
-          raw = ENV.fetch(env_var, nil)
-          return default if raw.nil? || raw.strip.empty?
-
-          begin
-            value = Integer(raw.strip, 10) # Strict integer parsing, base 10
-            # Apply bounds: clamp between 0 and MAX_TTL (365 days)
-            value.clamp(0, MAX_TTL)
-          rescue ArgumentError
-            OT.lw "[WithEntitlements] Invalid #{env_var} value, using default",
-              {
-                env_var: env_var,
-                default: default,
-              }
-            default
-          end
-        end
-
-        # FREE tier default limits when cache is unavailable
-        #
-        # The secret_lifetime.max value can be overridden via PLAN_TTL_ANONYMOUS
-        # environment variable for Docker/self-hosted deployments.
-        # This provides upgrade continuity with PR #2393 from main branch.
-        #
-        # Results are memoized at class level for consistent behavior and performance.
-        #
-        # Environment variables:
-        #   PLAN_TTL_ANONYMOUS - Maximum secret TTL for anonymous/free tier users (default: 604800 = 7 days)
-        #
-        # @see https://github.com/onetimesecret/onetimesecret/issues/2390
-        def self.free_tier_limits
-          @free_tier_limits ||= {
-            'organizations.max' => 5,
-            'teams.max' => 0,
-            'members_per_team.max' => 0,
-            'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', DEFAULT_FREE_TTL),
-          }.freeze
-        end
-
-        # Reset memoized free_tier_limits (for testing)
-        def self.reset_free_tier_limits!
-          @free_tier_limits = nil
-        end
-
-        # Legacy constant for backward compatibility
-        # @deprecated Use free_tier_limits method instead
-        FREE_TIER_LIMITS = free_tier_limits
-
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
+          base.extend ClassMethods
           base.include InstanceMethods
+        end
+
+        module ClassMethods
+          # Parse TTL value from environment variable with strict validation
+          #
+          # Uses Integer() for strict parsing to reject malformed values like "123abc".
+          # Applies bounds validation: minimum 0, maximum MAX_TTL (365 days).
+          #
+          # @param env_var [String] Environment variable name
+          # @param default [Integer] Default value if env var is not set or invalid
+          # @return [Integer] Validated TTL value in seconds (0 to MAX_TTL)
+          #
+          # @example
+          #   Organization.parse_ttl_env('PLAN_TTL_ANONYMOUS', 604_800)
+          def parse_ttl_env(env_var, default)
+            raw = ENV.fetch(env_var, nil)
+            return default if raw.nil? || raw.strip.empty?
+
+            begin
+              value = Integer(raw.strip, 10)
+              value.clamp(0, MAX_TTL)
+            rescue ArgumentError
+              OT.lw "[WithEntitlements] Invalid #{env_var} value, using default",
+                { env_var: env_var, default: default }
+              default
+            end
+          end
+
+          # FREE tier default limits when cache is unavailable
+          #
+          # The secret_lifetime.max value can be overridden via PLAN_TTL_ANONYMOUS
+          # environment variable for Docker/self-hosted deployments.
+          #
+          # Results are memoized at class level for consistent behavior.
+          #
+          # @see https://github.com/onetimesecret/onetimesecret/issues/2390
+          # @see https://github.com/onetimesecret/onetimesecret/issues/3111
+          def free_tier_limits
+            @free_tier_limits ||= {
+              'organizations.max' => 5,
+              'teams.max' => 0,
+              'members_per_team.max' => 0,
+              'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', DEFAULT_FREE_TTL),
+            }.freeze
+          end
+
+          # Reset memoized free_tier_limits (for testing)
+          def reset_free_tier_limits!
+            @free_tier_limits = nil
+          end
         end
 
         module InstanceMethods
@@ -160,6 +157,56 @@ module Onetime
           #   org.can?(:api_access)       # => false
           def can?(entitlement)
             entitlements.include?(entitlement.to_s)
+          end
+
+          # Get entitlements with request context for preview mode support
+          #
+          # Call sites that have session access should use this method instead
+          # of `entitlements` when preview mode needs to be respected.
+          #
+          # @param session [Hash, nil] Rack session hash (or hash-like object)
+          # @return [Array<String>] List of entitlement strings
+          #
+          # @example Controller usage
+          #   org.entitlements_for_request(env['rack.session'])
+          #
+          # @example When session has preview keys
+          #   session = { entitlement_preview_grants_key: 'session:abc:grants' }
+          #   org.entitlements_for_request(session)  # => reconciled entitlements
+          def entitlements_for_request(session = nil)
+            return entitlements unless session.respond_to?(:key?)
+
+            grants_key  = session[:entitlement_preview_grants_key]
+            revokes_key = session[:entitlement_preview_revokes_key]
+
+            if (grants_key || revokes_key) && respond_to?(:reconcile_with_session_overrides)
+              return reconcile_with_session_overrides(grants_key, revokes_key)
+            end
+
+            entitlements
+          end
+
+          # Get limit with request context for preview mode support
+          #
+          # Call sites that have session access should use this method instead
+          # of `limit_for` when preview mode needs to be respected.
+          #
+          # @param resource [String, Symbol] Resource to check limit for
+          # @param session [Hash, nil] Rack session hash (or hash-like object)
+          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
+          #
+          # @example Controller usage
+          #   org.limit_for_request('teams', env['rack.session'])
+          def limit_for_request(resource, session = nil)
+            return limit_for(resource) unless session.respond_to?(:key?)
+
+            preview_planid = session[:entitlement_preview_planid]
+
+            if preview_planid && !preview_planid.to_s.empty?
+              return test_plan_limit_for(preview_planid, resource)
+            end
+
+            limit_for(resource)
           end
 
           # Get all entitlements for current plan
@@ -176,19 +223,20 @@ module Onetime
           # @example
           #   org.entitlements  # => ["api_access", "custom_domains", "manage_teams"]
           def entitlements
-            # Colonel test mode override - check Thread.current set by middleware
-            # Empty string should fall back to actual plan (same as nil)
-            test_planid = Thread.current[:entitlement_test_planid]
-            if test_planid && !test_planid.empty?
-              return test_plan_entitlements(test_planid)
-            end
-
             # Fail-open: self-hosted/standalone gets full access
             unless billing_enabled?
               return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
             end
 
-            # Billing enabled: org with no plan gets FREE tier
+            # Phase 2: Read from materialized org-local state when available
+            # This eliminates the Plan.load call on the request hot path.
+            # Guard: check if WithMaterializedEntitlements is included
+            if respond_to?(:entitlements_materialized?) && entitlements_materialized?
+              return materialized_entitlements.to_a
+            end
+
+            # Legacy path (migration): org hasn't been materialized yet
+            # Fall back to Plan.load chain until all orgs are migrated
             if planid.to_s.empty?
               return WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
             end
@@ -210,12 +258,15 @@ module Onetime
               end
             end
 
-            # Final fallback: FREE tier to avoid "No features available". Log
-            # at warn so misconfigured planids surface in dashboards instead
-            # of silently degrading.
-            OT.lw '[WithEntitlements] Plan cache miss for entitlements, using FREE tier fallback',
-              planid: planid
-            WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
+            # Fail-closed: unknown plan ID is an ops problem, not a silent degradation.
+            # This catches catalog misconfigurations and stale planid values that
+            # would otherwise silently grant free-tier access.
+            raise Billing::PlanCacheMissError.new(
+              'Plan not found in cache or config',
+              plan_id: planid,
+              context: 'WithEntitlements#entitlements',
+              organization_id: extid,
+            )
           end
 
           # Get limit for a specific resource
@@ -225,30 +276,29 @@ module Onetime
           #
           # Fallback hierarchy:
           # 1. If billing disabled (standalone mode) -> Float::INFINITY (unlimited)
-          # 2. If no planid set -> FREE_TIER_LIMITS
+          # 2. If no planid set -> free_tier_limits
           # 3. If plan found in cache -> plan.limits
           # 4. If plan not in cache, try billing.yaml config fallback
-          # 5. Final fallback -> FREE_TIER_LIMITS (conservative defaults)
+          # 5. Final fallback -> free_tier_limits (conservative defaults)
           #
           # @example
           #   org.limit_for('teams')            # => 1
           #   org.limit_for(:members_per_team)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
-            # Colonel test mode override - check Thread.current set by middleware
-            # Empty string should fall back to actual plan (same as nil)
-            test_planid = Thread.current[:entitlement_test_planid]
-            if test_planid && !test_planid.empty?
-              return test_plan_limit_for(test_planid, resource)
-            end
-
             # Fail-open: self-hosted/standalone gets unlimited
             return Float::INFINITY unless billing_enabled?
 
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
 
-            # Billing enabled: org with no plan gets FREE tier limits
+            # Phase 2: Read from materialized org-local limits when available
+            # Guard: check if WithMaterializedEntitlements is included
+            if respond_to?(:entitlements_materialized?) && entitlements_materialized?
+              return materialized_limit_for(key)
+            end
+
+            # Legacy path (migration): org hasn't been materialized yet
             if planid.to_s.empty?
               return free_tier_limit_for(key)
             end
@@ -270,12 +320,14 @@ module Onetime
               end
             end
 
-            # Final fallback: FREE tier limits. Log at warn so misconfigured
-            # planids surface in dashboards instead of silently degrading.
-            OT.lw '[WithEntitlements] Plan cache miss for limit_for, using FREE tier fallback',
-              planid: planid,
-              resource: key
-            free_tier_limit_for(key)
+            # Fail-closed: unknown plan ID is an ops problem, not a silent degradation.
+            raise Billing::PlanCacheMissError.new(
+              'Plan not found in cache or config',
+              plan_id: planid,
+              context: 'WithEntitlements#limit_for',
+              resource: key,
+              organization_id: extid,
+            )
           end
 
           # Check entitlement with detailed response for upgrade messaging
@@ -406,13 +458,10 @@ module Onetime
 
           # Get FREE tier limit for a resource key
           #
-          # Uses WithEntitlements.free_tier_limits to support runtime
-          # environment variable overrides (e.g., PLAN_TTL_ANONYMOUS).
-          #
           # @param key [String] Flattened limit key (e.g., "teams.max")
           # @return [Numeric] Limit value, defaults to 0 for unknown keys
           def free_tier_limit_for(key)
-            val = WithEntitlements.free_tier_limits[key]
+            val = self.class.free_tier_limits[key]
             return 0 if val.nil?
 
             val

@@ -201,8 +201,8 @@ module Billing
 
       issues = []
 
-      # Check plan ID match using normalized comparison
-      unless plans_match?(local_planid, stripe_planid)
+      # Check plan ID match (family-keyed IDs, direct string comparison)
+      unless local_planid == stripe_planid
         issues << {
           field: 'planid',
           local: local_planid.empty? ? '(empty)' : local_planid,
@@ -236,46 +236,6 @@ module Billing
         verdict: issues.empty? ? 'synced' : 'mismatch_detected',
         issues: issues,
       }
-    end
-
-    # Check if two plan IDs match, accounting for interval suffix
-    #
-    # Plan IDs may differ only by billing interval suffix:
-    # - "identity_plus_v1" vs "identity_plus_v1_monthly"
-    #
-    # This method normalizes by stripping interval suffix and compares.
-    # Does NOT do prefix matching - "identity_plus" is NOT considered
-    # to match "identity_plus_v1" since they are different plans.
-    #
-    # @param local_planid [String] Plan ID stored locally on organization
-    # @param stripe_planid [String] Plan ID resolved from Stripe subscription
-    # @return [Boolean] True if plans match (same base identity)
-    def plans_match?(local_planid, stripe_planid)
-      return true if local_planid == stripe_planid
-      return false if local_planid.to_s.empty? || stripe_planid.to_s.empty?
-
-      # Normalize both by stripping interval suffix
-      local_base  = normalize_plan_id(local_planid)
-      stripe_base = normalize_plan_id(stripe_planid)
-
-      return true if local_base == stripe_base
-
-      # Try looking up the plan_code from cache for accurate comparison
-      stripe_plan = ::Billing::Plan.load(stripe_planid)
-      if stripe_plan&.plan_code
-        return true if local_planid == stripe_plan.plan_code
-        return true if local_base == stripe_plan.plan_code
-      end
-
-      false
-    end
-
-    # Normalize a plan ID by stripping interval suffix
-    #
-    # @param planid [String] Plan ID to normalize
-    # @return [String] Normalized plan ID without interval suffix
-    def normalize_plan_id(planid)
-      planid.to_s.sub(/_(month|year)ly$/, '')
     end
 
     # =========================================================================

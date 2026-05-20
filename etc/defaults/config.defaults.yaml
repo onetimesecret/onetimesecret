@@ -96,6 +96,14 @@ site:
             # Set false for icon-only display; SITE_NAME remains active
             # in page titles, MFA labels, and emails regardless.
             show_name: <%= ENV['LOGO_SHOW_NAME'] != 'false' %>
+            # Render the logo at a larger size in the authenticated header.
+            # Useful for rasterized brand assets (e.g. LOGO_URL=/img/brand.png)
+            # that need more visual presence alongside the org/domain switchers.
+            # The default (false) keeps the logo compact (40px) so context
+            # switchers fit on the same row. When true, custom logos render at
+            # 80px in authenticated views. Unauthenticated views (branded
+            # homepage / disabled page) always render the logo prominently.
+            prominent: <%= ENV['LOGO_PROMINENT'] == 'true' %>
           # Product name used across the application:
           #   - Masthead text mark (when logo.show_name is true)
           #   - Browser page title
@@ -334,6 +342,63 @@ site:
     # ENV: CSP_ENABLED (default: false)
     csp:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
+
+  # Network Configuration
+  # Settings for proxy trust, client IP resolution, and network-level behavior.
+  network:
+    # Trusted Proxy Configuration
+    #
+    # Controls how client IPs are resolved when behind reverse proxies
+    # (Kubernetes ingress, cloud load balancers, CDNs, etc.).
+    #
+    # Affects all IP-based features: ban checks, session tracking,
+    # audit logs, and the Colonel "Your Current IP" display.
+    #
+    # WARNING: Only enable when:
+    # - The app is behind a trusted reverse proxy
+    # - Direct client access is blocked by firewall
+    # - The proxy strips/overwrites client-provided X-Forwarded-For headers
+    #
+    trusted_proxy:
+      # Master switch. When false, all forwarded headers are ignored
+      # and REMOTE_ADDR is used directly.
+      enabled: <%= ENV['TRUSTED_PROXY_ENABLED'] == 'true' %>
+
+      # How to resolve client IP behind proxies:
+      #
+      # 'filter' (default): Rack walks X-Forwarded-For right-to-left,
+      #   automatically skipping RFC1918 private IPs (10.x, 172.16-31.x,
+      #   192.168.x). Returns first non-private IP. Works for most k8s/cloud
+      #   deployments where proxies have internal IPs.
+      #
+      # 'depth': Position-based counting. Skip exactly N rightmost hops.
+      #   Use when:
+      #   - CDN has a public IP (not RFC1918)
+      #   - Variable proxy depth that filter can't handle
+      #   - You need deterministic hop selection regardless of IP class
+      #
+      # When filter and depth differ:
+      #   - CDN with public IP: filter returns CDN IP (add to cidrs or use depth)
+      #   - Variable hop count: filter handles automatically; depth fails if wrong
+      #   - Spoofed private IP in header: filter skips it; depth trusts if in range
+      #
+      mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>
+
+      # Which header to read the forwarding chain from.
+      # - X-Forwarded-For: Most common (nginx, Caddy, AWS ALB)
+      # - Forwarded: RFC 7239 standard
+      # - Both: Try Forwarded first, fall back to X-Forwarded-For
+      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
+
+      # Filter mode only: Additional CIDR ranges to trust as proxies
+      # beyond RFC1918 defaults. Use when your CDN or proxy has public IPs.
+      # Example: ["203.0.113.0/24", "2001:db8::/32"]
+      cidrs: <%= ENV['TRUSTED_PROXY_CIDRS']&.split(',')&.map(&:strip) || [] %>
+
+      # Depth mode only: Number of proxy hops to skip from the right.
+      # 1 = standard single reverse proxy (nginx/Caddy)
+      # 2 = CDN → reverse proxy → app
+      depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
 features:
   regions:
@@ -757,6 +822,13 @@ jobs:
       enabled: <%= ENV['JOBS_INSTANCES_REBUILD_ENABLED'] == 'true' || false %>
       cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
       auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+
+    # Familia model housekeeping chores (nightly 2 AM)
+    # Iterates models that declare `feature :housekeeping` and runs every
+    # registered chore. Disable when no chores are active.
+    housekeeping:
+      enabled: <%= ENV['JOBS_HOUSEKEEPING_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_HOUSEKEEPING_CRON'] || '0 2 * * *' %>
 
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>

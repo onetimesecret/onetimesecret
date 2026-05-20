@@ -10,9 +10,6 @@ module Onetime
   module CLI
     # Base module for billing command helpers
     module BillingHelpers
-      # Use constants from Billing::Metadata module to avoid magic strings
-      REQUIRED_METADATA_FIELDS = ::Billing::Metadata::REQUIRED_FIELDS
-
       # Retry configuration for Stripe API calls
       MAX_STRIPE_RETRIES      = 3
       STRIPE_RETRY_BASE_DELAY = 2 # seconds
@@ -170,17 +167,41 @@ module Onetime
       end
 
       def format_plan_row(plan)
-        amount             = format_amount(plan.amount, plan.currency)
         entitlements_count = plan.entitlements&.size || 0
 
+        # Family-keyed plans have nested prices; show intervals available
+        intervals         = plan.available_intervals.join(',')
+        intervals_display = intervals.empty? ? 'N/A' : intervals
+
+        # Show monthly amount if available, else yearly, else N/A
+        monthly = plan.price_for('month')
+        yearly  = plan.price_for('year')
+        amount  = if monthly
+                    format_amount(monthly['amount'], monthly['currency'])
+                  elsif yearly
+                    format_amount(yearly['amount'], yearly['currency'])
+                  else
+                    'N/A'
+                  end
+
+        # Show all stripe price IDs (comma-separated)
+        price_ids         = plan.all_stripe_price_ids.join(',')
+        price_ids_display = price_ids.empty? ? 'N/A' : price_ids
+
+        # App identifier from constant (all OTS plans share this)
+        app = Billing::Metadata::APP_NAME
+
         format(
-          '%-20s %-18s %-10s %-10s %-12s %d',
+          '%-20s %-12s %-18s %-10s %-10s %-12s %-6d %-26s %s',
           (plan.plan_id || 'N/A')[0..19],
+          app[0..11],
           (plan.tier || 'N/A')[0..17],
-          (plan.interval || 'N/A')[0..9],
+          intervals_display[0..9],
           amount[0..9],
           (plan.region || 'N/A')[0..11],
           entitlements_count,
+          (plan.stripe_product_id || 'N/A')[0..25],
+          price_ids_display,
         )
       end
 
@@ -189,22 +210,6 @@ module Onetime
 
         dollars = amount_cents.to_f / 100
         "#{currency&.upcase || 'CAD'} #{format('%.2f', dollars)}"
-      end
-
-      def validate_product_metadata(product)
-        errors = []
-
-        REQUIRED_METADATA_FIELDS.each do |field|
-          unless product.metadata[field]
-            errors << "Missing required metadata field: #{field}"
-          end
-        end
-
-        unless product.metadata[Billing::Metadata::FIELD_APP] == Billing::Metadata::APP_NAME
-          errors << "Invalid app metadata (should be '#{Billing::Metadata::APP_NAME}')"
-        end
-
-        errors
       end
 
       def prompt_for_metadata

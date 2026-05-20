@@ -53,6 +53,11 @@ import { generatePayloadSchema } from './api/v3/requests/content/generate';
 import { responseSchemas } from './api/v3/responses/registry';
 
 // =============================================================================
+// Config Schemas
+// =============================================================================
+import { BillingConfigSchema } from './contracts/config/billing';
+
+// =============================================================================
 // Schema Categories
 // =============================================================================
 
@@ -84,6 +89,14 @@ export const apiV3Schemas = {
   'api/v3/conceal-data-response': responseSchemas.concealData,
 } as const;
 
+/**
+ * Config schemas - JSON Schemas for YAML configuration files consumed by
+ * the Ruby backend (e.g. `bin/ots billing catalog validate`).
+ */
+export const configSchemas = {
+  'config/billing': BillingConfigSchema,
+} as const;
+
 // =============================================================================
 // Combined Registry
 // =============================================================================
@@ -95,6 +108,7 @@ export const apiV3Schemas = {
 export const schemaRegistry = {
   ...shapeSchemas,
   ...apiV3Schemas,
+  ...configSchemas,
 } as const;
 
 export type SchemaKey = keyof typeof schemaRegistry;
@@ -110,6 +124,7 @@ export function getSchemasByCategory(): Record<string, SchemaKey[]> {
   const categories: Record<string, SchemaKey[]> = {
     shapes: [],
     'api/v3': [],
+    config: [],
   };
 
   for (const key of Object.keys(schemaRegistry) as SchemaKey[]) {
@@ -117,6 +132,8 @@ export function getSchemasByCategory(): Record<string, SchemaKey[]> {
       categories.shapes.push(key);
     } else if (key.startsWith('api/v3/')) {
       categories['api/v3'].push(key);
+    } else if (key.startsWith('config/')) {
+      categories.config.push(key);
     }
   }
 

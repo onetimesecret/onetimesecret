@@ -10,6 +10,10 @@ require_relative '../config'
 module Onetime
   module CLI
     # Validate plan catalog YAML structure using JSON Schema
+    #
+    # NOTE: This command validates local catalog structure only.
+    # For Stripe product metadata validation (field name variants, typos,
+    # unknown fields), run: bin/ots billing products validate
     class BillingCatalogValidateCommand < Command
       include BillingHelpers
 
@@ -24,7 +28,7 @@ module Onetime
         boot_application!
 
         catalog_path = Billing::Config.config_path
-        schema_path  = File.join(File.dirname(catalog_path), 'schemas', 'billing.schema.json')
+        schema_path  = File.join(Onetime::HOME, 'generated', 'schemas', 'config', 'billing.schema.json')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"

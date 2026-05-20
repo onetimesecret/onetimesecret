@@ -14,7 +14,12 @@ module Onetime
 
       desc 'Validate Stripe product metadata completeness'
 
-      def call(**)
+      option :check_field_names,
+        type: :boolean,
+        default: true,
+        desc: 'Check metadata keys against canonical Metadata::FIELD_* constants'
+
+      def call(check_field_names: true, **)
         boot_application!
 
         return unless stripe_configured?
@@ -45,6 +50,7 @@ module Onetime
         # Validate each product and collect structured errors
         products.data.each do |product|
           validate_product(product, errors, warnings)
+          check_field_name_variants(product, warnings) if check_field_names
         end
 
         # Fetch price counts for display
@@ -62,15 +68,17 @@ module Onetime
       private
 
       def validate_product(product, errors, warnings)
-        required_fields = %w[app plan_id tier region]
-        missing_fields  = required_fields.reject { |field| product.metadata[field] }
-
-        if missing_fields.any?
+        # Validate required metadata using canonical method
+        result = Billing::Plan.validate_product_metadata(product)
+        if result[:missing].any? || result[:blank].any?
+          problems = []
+          problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
+          problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
           errors << {
             product_id: product.id,
-            type: :missing_metadata,
-            message: 'Missing required metadata',
-            details: "Required fields missing: #{missing_fields.join(', ')}",
+            type: :invalid_metadata,
+            message: 'Invalid product metadata',
+            details: problems.join('; '),
             resolution: [
               "Update metadata: bin/ots billing products update #{product.id}",
               'Or archive if not needed',
@@ -79,16 +87,89 @@ module Onetime
           }
         end
 
-        # Check for duplicate plan_ids (will be detected across all products)
-        # Individual validation just ensures plan_id exists
-        return if product.metadata['plan_id']
+        # Validate entitlements format if present
+        validate_entitlements_format(product, warnings)
+
+        # Validate limit_* field values
+        validate_limit_values(product, errors)
+      end
+
+      # Validate entitlements metadata field format
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @param warnings [Array] Warnings collection to append to
+      def validate_entitlements_format(product, warnings)
+        entitlements_str = product.metadata['entitlements']
+        return unless entitlements_str
+
+        entitlements = entitlements_str.split(',').map(&:strip)
+
+        # Build known entitlements set (memoized)
+        @known_entitlements ||= (
+          ::Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS +
+          ::Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+        ).to_set
+
+        unknown = entitlements.reject { |e| @known_entitlements.include?(e) }
+        return if unknown.empty?
 
         warnings << {
           product_id: product.id,
-          type: :missing_plan_id,
-          message: 'Missing plan_id',
-          details: 'Product metadata missing plan_id field',
+          type: :unknown_entitlements,
+          message: "Unknown entitlement(s): #{unknown.join(', ')}",
+          details: 'Entitlement keys not found in WithEntitlements constants',
         }
+      end
+
+      # Validate limit_* metadata field values
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @param errors [Array] Errors collection to append to
+      def validate_limit_values(product, errors)
+        metadata = product.metadata || {}
+
+        metadata.each do |key, value|
+          next unless key.start_with?('limit_')
+          next if value.match?(/\A-?\d+\z/) || value.downcase == 'unlimited'
+
+          errors << {
+            product_id: product.id,
+            type: :invalid_limit_value,
+            message: "Invalid limit value for '#{key}'",
+            details: "Expected integer or 'unlimited', got '#{value}'",
+          }
+        end
+      end
+
+      # Check all metadata keys against canonical Metadata::FIELD_* constants
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @param warnings [Array] Warnings collection to append to
+      def check_field_name_variants(product, warnings)
+        metadata = product.metadata || {}
+        return if metadata.empty?
+
+        # Build set of canonical field names from Metadata constants (memoized)
+        @canonical_fields ||= (
+          ::Billing::Metadata.constants
+            .select { |c| c.to_s.start_with?('FIELD_') }
+            .map { |c| ::Billing::Metadata.const_get(c) } +
+          ::Billing::Metadata::LIMIT_FIELDS.keys
+        ).to_set
+
+        metadata.each_key do |key|
+          next if @canonical_fields.include?(key)
+
+          # Skip known Stripe-managed fields
+          next if %w[complimentary].include?(key)
+
+          warnings << {
+            product_id: product.id,
+            type: :unknown_field,
+            message: "Unknown metadata field '#{key}'",
+            details: 'Field not in Billing::Metadata::FIELD_* constants',
+          }
+        end
       end
 
       def print_products_summary(products, price_counts, errors, warnings)

@@ -6,10 +6,26 @@
 #   - Links shared dev resources from OTS_DEV_CONFIG
 #   - Installs Ruby gems (bundle install)
 #   - Installs Node packages (pnpm install)
+#   - Cleans any pre-existing frontend build output (pnpm run clean)
+#   - Points the Caddy webroot symlink at this checkout's public/web
+#
+# Intentionally does NOT run `pnpm run build`. Production assets in
+# public/web cause confusion about which files are actually being served
+# during development. `pnpm run clean` removes them so this checkout
+# starts in a known, consistent state. The Vite dev server (via bin/dev)
+# serves frontend assets directly.
 #
 # Idempotent: safe to re-run at any time.
 
 set -euo pipefail
+
+# Associative arrays (declare -A) require Bash 4+. macOS ships Bash 3.2,
+# so users invoking `bash install-dev.sh` directly need a modern bash.
+if (( BASH_VERSINFO[0] < 4 )); then
+    echo "Error: This script requires Bash 4+ (found: $BASH_VERSION)"
+    echo "  On macOS: brew install bash, then re-run"
+    exit 1
+fi
 
 OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
 
@@ -49,7 +65,7 @@ repair_env_sh() {
 # functionality the shell gods left for us.
 
 # set -a enables automatic export mode. All variable assignments between
-# here and and set +a will be exported to child processes without needing
+# here and set +a will be exported to child processes without needing
 # 'export' keyword.
 set -a
 
@@ -64,19 +80,78 @@ EOF
     fi
 }
 
+# Replace the Caddy webroot symlink with this checkout's public/web.
+# Caddy is configured to serve from /var/www/public/web.
+link_caddy_webroot() {
+    if [[ ! -d "public/web" ]]; then
+        echo "Skip: public/web missing from checkout (unexpected — it is tracked in the repo)"
+        return
+    fi
+
+    # Canonical absolute path to this checkout's public/web.
+    # pwd -P resolves any symlinks in the checkout path.
+    local webroot
+    webroot="$(cd public/web && pwd -P)"
+    local caddy_link="/var/www/public/web"
+    local caddy_parent="/var/www/public"
+
+    if [[ ! -d "$caddy_parent" ]]; then
+        echo "Skip: $caddy_parent does not exist — caddy webroot symlink not created"
+        return
+    fi
+
+    # Don't clobber a real directory
+    if [[ -e "$caddy_link" && ! -L "$caddy_link" ]]; then
+        echo "Skip: $caddy_link exists and is not a symlink — not replacing"
+        return
+    fi
+
+    # Already correctly linked? Compare resolved targets so we don't
+    # relink (and prompt for sudo) when an equivalent relative or
+    # non-canonical path is already in place.
+    local prev_target=""
+    if [[ -L "$caddy_link" ]]; then
+        prev_target="$(readlink "$caddy_link")"
+        local prev_resolved
+        prev_resolved="$(readlink -f "$caddy_link" 2>/dev/null || echo "")"
+        if [[ -n "$prev_resolved" && "$prev_resolved" == "$webroot" ]]; then
+            echo "OK:   $caddy_link -> $webroot"
+            return
+        fi
+    fi
+
+    local run=""
+    if [[ ! -w "$caddy_parent" ]]; then
+        run="sudo"
+        echo "Note: $caddy_parent requires elevated privileges (sudo)"
+    fi
+
+    # Atomic replace: ln -snf swaps the symlink in place without a
+    # transient missing-link window between rm and ln.
+    $run ln -snf "$webroot" "$caddy_link"
+
+    if [[ -n "$prev_target" ]]; then
+        echo "Link: $caddy_link -> $webroot"
+        echo "      (was: $prev_target)"
+    else
+        echo "Link: $caddy_link -> $webroot"
+    fi
+}
+
 link_resource() {
     local local_path="$1"
     local shared_name="$2"
     local target="$OTS_DEV_CONFIG/$shared_name"
 
-    # Validate target is within expected config directory (prevent path traversal)
-    case "$target" in
-        "$OTS_DEV_CONFIG"/*) ;;
-        *) echo "Error: Invalid target path: $target"; return 1 ;;
-    esac
-
     if [[ ! -e "$target" ]]; then
-        echo "Skip: $target does not exist"
+        # Clean up a dangling local symlink that pointed at this
+        # (now-missing) shared target, so the checkout doesn't rot.
+        if [[ -L "$local_path" && "$(readlink "$local_path")" == "$target" ]]; then
+            rm "$local_path"
+            echo "Removed: $local_path (target $target no longer exists)"
+        else
+            echo "Skip: $target does not exist"
+        fi
         return
     fi
 
@@ -92,21 +167,30 @@ link_resource() {
         return
     fi
 
-    # Remove stale symlink
-    if [[ -L "$local_path" ]]; then
-        rm "$local_path"
-    fi
-
     # Create parent directory if needed
     mkdir -p "$(dirname "$local_path")"
 
-    ln -s "$target" "$local_path"
+    # Atomic replace handles stale symlinks without a missing-link window.
+    ln -snf "$target" "$local_path"
     echo "Link: $local_path -> $target"
 }
 
 # Sanity check
 if [[ ! -f "Gemfile" ]]; then
     echo "Error: Run this from an OTS checkout root"
+    exit 1
+fi
+
+# Required tools — fail fast with actionable guidance rather than
+# erroring midway through bundle/pnpm install.
+missing_required=()
+command -v bundle &>/dev/null || missing_required+=("bundle  (Ruby Bundler):  https://bundler.io/")
+command -v pnpm   &>/dev/null || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
+if (( ${#missing_required[@]} > 0 )); then
+    echo "Error: Required tools missing:"
+    for tool in "${missing_required[@]}"; do
+        echo "  - $tool"
+    done
     exit 1
 fi
 
@@ -121,20 +205,26 @@ fi
 
 # Warn if shared config directory is absent
 if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
-    echo "Warning: $OTS_DEV_CONFIG does not exist — symlinks will be skipped"
-    echo "  Create it and populate with config files, or set OTS_DEV_CONFIG to an existing directory"
+    echo "Warning: $OTS_DEV_CONFIG does not exist — config symlinks will be skipped"
+    echo "  To enable shared dev config, create the directory and populate with:"
+    for shared_name in "${LINKS[@]}"; do
+        echo "    - $shared_name"
+    done
+    echo "    - .env  (optional)"
+    echo "  Or point OTS_DEV_CONFIG at an existing directory."
     echo ""
 fi
 
 # Repair .env.sh before proceeding with other links
 repair_env_sh
 
-echo "Linking dev resources from $OTS_DEV_CONFIG"
-echo "---"
-
-for local_path in "${!LINKS[@]}"; do
-    link_resource "$local_path" "${LINKS[$local_path]}"
-done
+if [[ -d "$OTS_DEV_CONFIG" ]]; then
+    echo "Linking dev resources from $OTS_DEV_CONFIG"
+    echo "---"
+    for local_path in "${!LINKS[@]}"; do
+        link_resource "$local_path" "${LINKS[$local_path]}"
+    done
+fi
 
 # Fall back to local copies when symlink sources are absent.
 # Remove dangling symlinks first — [[ ! -e ]] is true for broken symlinks
@@ -160,9 +250,24 @@ echo "Installing Node packages..."
 pnpm install
 
 echo "---"
+echo "Removing frontend build output (public/web/dist)..."
+pnpm run clean
+
+echo "---"
+echo "Configuring Caddy webroot..."
+link_caddy_webroot
+
+echo "---"
+echo "Setup complete."
+echo ""
+echo "  Note: pnpm run build was NOT run (intentional)."
+echo "  Prior build output was removed; the Vite dev server serves assets directly."
+echo ""
 if [[ "${has_overmind}" = true ]]; then
-    echo "Done. Run 'bin/dev' to start."
+    echo "To start:"
+    echo "  bin/dev                  # standard"
+    echo "  bin/dev --volatile       # ephemeral, no persistent data (useful in alternate checkouts)"
 else
-    echo "Done. Install overmind to use 'bin/dev', or start services manually:"
+    echo "Install overmind to use bin/dev, or start services manually:"
     echo "  source .env.sh && bundle exec puma -C etc/puma.rb"
 fi

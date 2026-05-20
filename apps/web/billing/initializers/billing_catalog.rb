@@ -36,10 +36,7 @@ module Billing
           Onetime.billing_logger.info 'Plan cache refreshed successfully'
         rescue StandardError => ex
           Onetime.billing_logger.warn 'Stripe sync failed, falling back to billing.yaml',
-            {
-              exception: ex,
-              message: ex.message,
-            }
+            { message: ex.message }
 
           # Fallback to local config when Stripe is unavailable
           begin

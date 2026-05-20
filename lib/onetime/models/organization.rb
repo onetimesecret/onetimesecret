@@ -46,7 +46,9 @@ module Onetime
     feature :external_identifier, format: 'on%<id>s'
     feature :required_fields
     feature :with_organization_billing
+    feature :with_materialized_entitlements
     feature :with_entitlements
+    feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
     feature :with_migration_fields
@@ -77,7 +79,7 @@ module Onetime
     # Manual declarations will CLOBBER the auto-generated relationship functionality!
 
     def init
-      @planid ||= 'free'  # Default to free plan
+      @planid ||= 'free_v1'  # Default to canonical free plan
       nil
     end
 

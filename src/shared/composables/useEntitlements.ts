@@ -30,32 +30,6 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
 };
 
 /**
- * Fallback entitlement to plan mapping
- * ONLY used when API data has not been loaded yet.
- * Once initDefinitions() is called and succeeds, the store's dynamic
- * entitlementToPlanMap (built from API response) takes precedence.
- *
- * @deprecated Prefer calling initDefinitions() early in the app lifecycle
- * to use API-driven plan mappings instead of these hardcoded values.
- */
-const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
-  [ENTITLEMENTS.MANAGE_TEAMS]: 'identity_v1',
-  [ENTITLEMENTS.MANAGE_MEMBERS]: 'identity_v1',
-  [ENTITLEMENTS.MANAGE_SSO]: 'identity_v1',
-  [ENTITLEMENTS.MANAGE_ORGS]: 'identity_v1',
-  [ENTITLEMENTS.API_ACCESS]: 'identity_v1',
-  [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
-  [ENTITLEMENTS.CUSTOM_BRANDING]: 'identity_v1',
-  [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'identity_v1',
-  [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'identity_v1',
-  [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'identity_v1',
-  [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'identity_v1',
-  [ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN]: 'identity_plus_v1',
-  [ENTITLEMENTS.INCOMING_SECRETS]: 'identity_v1',
-  [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
-};
-
-/**
  * Composable for checking organization entitlements
  *
  * @param org - Reactive reference to the organization
@@ -121,39 +95,31 @@ export function useEntitlements(org: Ref<Organization | null>) {
   /**
    * Get the upgrade plan needed for an entitlement
    *
-   * Uses API-provided mapping (from entitlementsStore.entitlementToPlanMap)
-   * when available. The mapping is dynamically built from the plans returned
-   * by the API, ensuring it always reflects current plan offerings.
+   * Uses API-provided mapping (from entitlementsStore.entitlementToPlanMap).
+   * The mapping is dynamically built from the plans returned by the API,
+   * ensuring it always reflects current plan offerings.
    *
-   * Falls back to hardcoded values ONLY when:
-   * - initDefinitions() has not been called yet
-   * - The API request failed
-   * - The entitlement is not in any plan's entitlements list
+   * IMPORTANT: Callers must ensure initDefinitions() has been called before
+   * using this function. Returns null if definitions aren't loaded.
    *
    * @param entitlement - The entitlement to check
-   * @returns The plan ID needed, or null if already available
+   * @returns The plan ID needed, or null if already available or not loaded
    */
   const upgradePath = (entitlement: string): string | null => {
     // Already has this entitlement - no upgrade needed
     if (can(entitlement)) return null;
 
-    // Primary source: API-driven plan mapping from entitlementsStore
-    // The store builds entitlementToPlanMap dynamically from API response
-    const storePlan = entitlementsStore.getRequiredPlan(entitlement);
-    if (storePlan) {
-      return storePlan;
+    // Warn if definitions not loaded - caller should ensure initDefinitions() ran first
+    if (!hasDefinitions.value) {
+      console.warn(
+        '[useEntitlements] upgradePath called before initDefinitions() completed for:',
+        entitlement
+      );
+      return null;
     }
 
-    // Fallback: Only used when store hasn't loaded or doesn't have the mapping
-    // This ensures the UI remains functional before API responds
-    if (!hasDefinitions.value) {
-      console.debug(
-        '[useEntitlements] Using fallback plan mapping for:',
-        entitlement,
-        '- call initDefinitions() for API-driven values'
-      );
-    }
-    return FALLBACK_ENTITLEMENT_TO_PLAN[entitlement] ?? null;
+    // API-driven plan mapping from entitlementsStore
+    return entitlementsStore.getRequiredPlan(entitlement);
   };
 
   /**

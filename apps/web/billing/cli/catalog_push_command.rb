@@ -82,7 +82,7 @@ module Onetime
         puts
 
         # Fetch existing products from Stripe
-        existing_products = fetch_existing_products(app_identifier, match_fields, region_filter)
+        existing_products = fetch_existing_products(app_identifier, match_fields, region_filter, plans)
         existing_prices   = fetch_existing_prices(existing_products)
 
         # Analyze changes
@@ -134,25 +134,52 @@ module Onetime
 
       # Fetch existing products from Stripe, indexed by composite match key.
       #
+      # Products are included if they match EITHER:
+      # 1. app metadata filter (standard matching), OR
+      # 2. explicit stripe_product_id override in catalog (legacy product support)
+      #
+      # Legacy products (via stripe_product_id override) may lack metadata fields
+      # required for composite key generation. These are stored by product ID
+      # prefixed with "__id__" so resolve_existing_product can find them.
+      #
       # @param app_identifier [String] Filter to products with this app metadata
       # @param match_fields [Array<String>] Fields to build composite match key (e.g., ['plan_id', 'region'])
       # @param region_filter [String, nil] If set, only return products matching this region
+      # @param plans [Hash] Plan definitions from catalog (for stripe_product_id overrides)
       # @return [Hash<String, Stripe::Product>] Products indexed by composite match key
-      def fetch_existing_products(app_identifier, match_fields, region_filter)
+      def fetch_existing_products(app_identifier, match_fields, region_filter, plans = {})
         products = {}
+
+        # Collect explicit stripe_product_id overrides from catalog
+        override_product_ids = plans.values
+          .map { |plan_def| plan_def['stripe_product_id'] }
+          .compact
+          .to_set
 
         with_stripe_retry do
           Stripe::Product.list(active: true, limit: 100).auto_paging_each do |product|
-            next unless product.metadata['app'] == app_identifier
+            # Include if: app metadata matches OR product ID is an explicit override
+            has_app_match      = product.metadata['app'] == app_identifier
+            has_override_match = override_product_ids.include?(product.id)
+
+            next unless has_app_match || has_override_match
 
             # Region filtering: skip products not matching our region context
-            if region_filter && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
+            # Skip region filter for explicit overrides (they need metadata bootstrapping)
+            if region_filter && !has_override_match && !Billing::RegionNormalizer.match?(product.metadata['region'], region_filter)
               next
             end
 
             # Build composite match key from metadata fields
-            key           = build_match_key_from_metadata(product.metadata, match_fields)
-            products[key] = product if key
+            key = build_match_key_from_metadata(product.metadata, match_fields)
+
+            if key
+              products[key] = product
+            elsif has_override_match
+              # Legacy products may lack metadata for match key; store by product ID
+              # so resolve_existing_product can find them via .values search
+              products["__id__#{product.id}"] = product
+            end
           end
         end
 
@@ -226,7 +253,7 @@ module Onetime
 
           if existing
             # Check if product needs update
-            updates = detect_product_updates(existing, plan_def, catalog_currency)
+            updates = detect_product_updates(plan_id, existing, plan_def, catalog_currency)
             unless updates.empty?
               changes[:products_to_update] << {
                 plan_id: plan_id,
@@ -296,7 +323,7 @@ module Onetime
         existing_products[match_key]
       end
 
-      def detect_product_updates(existing, plan_def, catalog_currency = 'cad')
+      def detect_product_updates(plan_id, existing, plan_def, catalog_currency = 'cad')
         updates = {}
 
         # Check name
@@ -312,7 +339,7 @@ module Onetime
         end
 
         # Check metadata fields using registry from Billing::Metadata
-        metadata_fields = build_syncable_metadata(plan_def, catalog_currency)
+        metadata_fields = build_syncable_metadata(plan_id, plan_def, catalog_currency)
 
         metadata_fields.each do |field, expected|
           current = existing.metadata[field]
@@ -332,11 +359,13 @@ module Onetime
       # nil/blank region is intentionally omitted (not written as "") to
       # avoid erasing existing Stripe metadata. See RegionNormalizer.
       #
+      # @param plan_id [String] The plan identifier
       # @param plan_def [Hash] Plan definition from catalog
       # @return [Hash<String, String>] Metadata fields for comparison
-      def build_syncable_metadata(plan_def, catalog_currency = 'cad')
-        metadata_fields = {}
-        limits          = plan_def['limits'] || {}
+      def build_syncable_metadata(plan_id, plan_def, catalog_currency = 'cad')
+        metadata_fields                                   = {}
+        metadata_fields[Billing::Metadata::FIELD_PLAN_ID] = plan_id
+        limits                                            = plan_def['limits'] || {}
 
         # Add all syncable fields from registry (always include for update detection)
         Billing::Metadata::SYNCABLE_FIELDS.each do |field_name, yaml_key|

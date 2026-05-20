@@ -73,6 +73,7 @@ module Onetime
     feature :with_custom_domains
     feature :status
     feature :role_index
+    feature :housekeeping
 
     feature :deprecated_fields
     feature :legacy_encrypted_fields
@@ -94,6 +95,12 @@ module Onetime
     # Tracks delivery status of the pending email change confirmation email.
     # Values: queued, sent, failed. Expires with the pending change.
     string :pending_email_delivery_status, default_expiration: 24.hours
+
+    # Persists plan selection through email verification flow.
+    # JSON structure: {"product": "identity_plus_v1", "interval": "yearly",
+    #                  "captured_at": "2026-05-14T10:30:00Z", "source_url": "/billing/plans/..."}
+    # Single-use: cleared after successful verification redirect.
+    string :pending_plan_intent, default_expiration: 24.hours
 
     identifier_field :objid
 
