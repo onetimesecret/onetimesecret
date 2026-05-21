@@ -697,7 +697,7 @@ jobs:
       - name: Build Container image
         uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
-          source: .  # Use local checkout instead of fetching git URL (avoids PR merge ref issues)
+          source: . # Use local checkout instead of fetching git URL (avoids PR merge ref issues)
           files: docker/bake.hcl
           targets: main
           load: true
@@ -844,9 +844,9 @@ jobs:
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
 
-      # Post CI metrics summary as PR comment (PRs only)
+      # Post CI metrics summary as PR comment (PRs only, skip forks - no write access)
       - name: Post metrics to PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
         uses: actions/github-script@v7
         with:
           github-token: ${{ github.token }}
