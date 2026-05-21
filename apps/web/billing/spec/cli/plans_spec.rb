@@ -5,6 +5,7 @@
 require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/plans_command'
+require_relative '../../operations/catalog/pull'
 
 RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
@@ -148,8 +149,18 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
       end
 
       context 'with --refresh option' do
+        let(:pull_result) do
+          Billing::Operations::Catalog::Pull::Result.new(
+            success: true,
+            plans_synced: 2,
+            config_plans_loaded: 0,
+            cache_cleared: false,
+          )
+        end
+
         before do
-          allow(Billing::Plan).to receive_messages(refresh_from_stripe: 2, list_plans: [sample_plan, sample_plan_eu])
+          allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result)
+          allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan, sample_plan_eu])
         end
 
         it 'displays refresh progress message' do
@@ -179,7 +190,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
 
       context 'error handling' do
         it 'handles Stripe API errors during refresh' do
-          allow(Billing::Plan).to receive(:refresh_from_stripe)
+          allow(Billing::Operations::Catalog::Pull).to receive(:call)
             .and_raise(Stripe::InvalidRequestError.new('Invalid API key', 'api_key'))
 
           expect do
@@ -188,7 +199,14 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         end
 
         it 'handles missing Stripe configuration gracefully' do
-          allow(Billing::Plan).to receive_messages(refresh_from_stripe: 0, list_plans: [])
+          empty_result = Billing::Operations::Catalog::Pull::Result.new(
+            success: true,
+            plans_synced: 0,
+            config_plans_loaded: 0,
+            cache_cleared: false,
+          )
+          allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(empty_result)
+          allow(Billing::Plan).to receive(:list_plans).and_return([])
 
           output = capture_stdout { command.call(refresh: true) }
           expect(output).to include('Refreshed 0 plan entries')

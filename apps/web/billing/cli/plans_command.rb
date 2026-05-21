@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative '../operations/catalog/pull'
 
 module Onetime
   module CLI
@@ -24,8 +25,8 @@ module Onetime
 
         if refresh
           puts 'Refreshing plans from Stripe...'
-          count = Billing::Plan.refresh_from_stripe
-          puts "Refreshed #{count} plan entries"
+          result = Billing::Operations::Catalog::Pull.call
+          puts "Refreshed #{result.plans_synced} plan entries"
           puts
         end
 

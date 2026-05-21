@@ -8,7 +8,9 @@ require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
 require_relative '../region_normalizer'
-require_relative '../lib/stripe_circuit_breaker'
+require_relative '../operations/catalog/pull'
+require_relative '../operations/catalog/config_loader'
+require_relative '../operations/catalog/plan_persister'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -268,7 +270,7 @@ module Billing
       #
       # Returns true when no region is configured (backward-compatible pass-through).
       # When a region is configured, the product's region metadata must match case-insensitively.
-      # Called by both collect_stripe_plans (refresh path) and the webhook handler.
+      # Called by Pull operation (refresh path) and the webhook handler.
       #
       # @param product [Stripe::Product] The Stripe product
       # @return [Boolean] true if the product matches the configured region (or no region set)
@@ -292,326 +294,32 @@ module Billing
       # 3. **Prune phase**: Plans not in current Stripe catalog are soft-deleted
       # 4. **Cache rebuild**: Price ID lookup cache is refreshed
       #
-      # The catalog is NEVER cleared during sync, eliminating the empty-window
-      # race condition that occurred with the previous clear-then-rebuild pattern.
-      # If Stripe API fails during fetch, no cache modifications occur.
+      # Delegates to Operations::Catalog::Pull for the actual sync.
       #
-      # @param progress [Proc, nil] Optional progress callback (called with status messages)
+      # @param progress [Proc, nil] Optional progress callback
       # @return [Integer] Number of plans synced
-      # @raise [Stripe::StripeError] If Stripe API call fails during fetch phase
+      # @raise [Stripe::StripeError] If Stripe API call fails
       # @raise [Billing::CircuitOpenError] If circuit breaker is open
       def refresh_from_stripe(progress: nil)
-        # Skip Stripe sync in CI/test environments without API key
-        stripe_key = Onetime.billing_config.stripe_key
-        if stripe_key.to_s.strip.empty?
-          OT.lw '[Plan.refresh_from_stripe] Skipping Stripe sync: No API key configured'
-          return 0
+        result = Billing::Operations::Catalog::Pull.call(progress: progress)
+
+        unless result.success
+          error_msg = result.errors.first || 'Unknown error'
+          raise Stripe::StripeError, error_msg if error_msg.include?('Stripe')
+
+          raise StandardError, error_msg
         end
 
-        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync (upsert pattern)'
-
-        # PHASE 1: Fetch all data from Stripe into memory
-        # No Redis writes occur during this phase
-        # Circuit breaker protects against cascade failures during Stripe outages
-        plan_data_list = Billing::StripeCircuitBreaker.call do
-          collect_stripe_plans(progress: progress)
-        end
-
-        if plan_data_list.empty?
-          OT.lw '[Plan.refresh_from_stripe] No valid plans fetched from Stripe'
-          return 0
-        end
-
-        progress&.call("Upserting #{plan_data_list.size} plans...")
-
-        # PHASE 2: Upsert all plans (NO clear_cache!)
-        # Each plan is created or updated individually, ensuring the catalog
-        # is never empty during sync
-        upserted_ids    = []
-        not_persisted   = []
-        plan_data_list.each do |plan_data|
-          plan = upsert_from_stripe_data(plan_data)
-          upserted_ids << plan.plan_id
-
-          # Plans not in instances were either skipped by the stale check
-          # or failed to save. Both cases are logged inside upsert_from_stripe_data
-          # with appropriate severity (ld for skips, le for failures).
-          # O(log n) per call but catalog is small (~20 plans max).
-          not_persisted << plan.plan_id unless instances.member?(plan.plan_id)
-        end
-
-        saved_count = upserted_ids.size - not_persisted.size
-
-        if not_persisted.any?
-          OT.lw "[Plan.refresh_from_stripe] #{not_persisted.size} plan(s) not persisted: #{not_persisted.join(', ')}",
-            {
-              region: Onetime.billing_config.region,
-            }
-        end
-
-        # PHASE 3: Prune stale plans not in current Stripe catalog
-        # Soft-deletes plans that are no longer active in Stripe
-        pruned_count = prune_stale_plans(upserted_ids)
-
-        # PHASE 4: Rebuild lookup cache for O(1) price_id lookups
-        rebuild_stripe_price_id_cache
-
-        # PHASE 5: Update global sync timestamp for O(1) freshness checks
-        update_catalog_sync_timestamp
-
-        OT.li "[Plan.refresh_from_stripe] Synced #{saved_count}/#{upserted_ids.size} plans " \
-              "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
-        saved_count
+        result.plans_synced
       end
 
       # Upsert config-only plans (free tier, etc.) that have no Stripe prices
       #
-      # Called AFTER refresh_from_stripe to add plans with `prices: []` in billing.yaml.
-      # These plans are not synced from Stripe since they have no prices, but should
-      # still appear in the plan catalog for entitlement materialization and display
-      # on pricing pages.
-      #
-      # Since this runs after prune_stale_plans, config-only plans are upserted fresh
-      # each sync cycle with active=true, ensuring they persist in the catalog.
-      #
+      # @deprecated Use Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
       # @return [Integer] Number of config-only plans upserted
       def upsert_config_only_plans
-        plans_hash = OT.billing_config.plans
-        return 0 if plans_hash.empty?
-
-        upserted_count = 0
-
-        plans_hash.each do |plan_key, plan_def|
-          prices = plan_def['prices'] || []
-
-          # Only process config-only plans (no prices)
-          next unless prices.empty?
-
-          # Config-only plans don't have interval variants - use plan_key as ID
-          plan_id = plan_key.to_s
-
-          # Skip if not configured to show on plans page
-          next unless plan_def['show_on_plans_page'] == true
-
-          # Resolve effective region: explicit plan region, or inherit from deployment
-          # Config-only plans (free tier) typically don't specify a region in YAML
-          # because they're universal — they inherit the deployment's region.
-          configured_region = OT.billing_config.region
-          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region']) || configured_region
-
-          # Skip plans whose effective region doesn't match deployment
-          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
-            OT.ld "[Plan.upsert_config_only_plans] Skipping config-only plan for region #{plan_region}: #{plan_key}"
-            next
-          end
-
-          # Extract plan attributes from config
-          tier               = plan_def['tier']
-          tenancy            = plan_def['tenancy'] || 'multi'
-          display_order      = plan_def['display_order'] || 0
-          entitlements_list  = plan_def['entitlements'] || []
-          features_list      = plan_def['features'] || []
-
-          # Convert limits to flattened format
-          limits_hash = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
-          limits_hash = limits_hash.transform_values do |v|
-            v.nil? || v == -1 ? 'unlimited' : v.to_s
-          end
-
-          # Create or update Plan instance
-          plan = load(plan_id) || new(plan_id: plan_id)
-
-          plan.name               = plan_def['name']
-          plan.tier               = tier
-          plan.currency           = OT.billing_config.currency
-          plan.tenancy            = tenancy
-          plan.display_order      = display_order.to_s
-          plan.show_on_plans_page = 'true'
-          plan.description        = plan_def['description']
-          plan.stripe_product_id  = nil  # No Stripe product
-          plan.active             = 'true'
-          plan.plan_code          = plan_def['plan_code']
-          plan.plan_name_label    = plan_def['plan_name_label']
-          plan.includes_plan      = plan_def['includes_plan']
-          plan.is_popular         = (plan_def['is_popular'] == true).to_s
-          plan.region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
-          plan.last_synced_at     = Time.now.to_i.to_s
-
-          # Save scalar fields before writing collections (sets, hashkeys)
-          # which write directly to Redis and expect the parent to exist.
-          unless plan.save
-            OT.le "[Plan.upsert_config_only_plans] Save FAILED for config-only plan: #{plan_id}",
-              {
-                tier: tier,
-                tenancy: tenancy,
-              }
-            next
-          end
-
-          # Populate collections after save (these write directly to Redis)
-          plan.entitlements.clear
-          entitlements_list.each { |ent| plan.entitlements.add(ent) }
-
-          plan.features.clear
-          features_list.each { |feat| plan.features.add(feat) }
-
-          plan.limits.clear
-          limits_hash.each { |key, val| plan.limits[key] = val }
-
-          upserted_count += 1
-
-          OT.li "[Plan.upsert_config_only_plans] Upserted config-only plan: #{plan_id}"
-        end
-
-        OT.li "[Plan.upsert_config_only_plans] Upserted #{upserted_count} config-only plans"
-        upserted_count
+        Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
       end
-
-      private
-
-      # Fetches all plan data from Stripe API into memory
-      #
-      # No Redis writes occur during this phase. If any Stripe API call fails,
-      # the exception propagates up and no cache modifications happen.
-      #
-      # Returns one entry per plan family (e.g., `identity_plus_v1`), with
-      # interval variants (month/year) merged into the `prices` hash.
-      #
-      # @param progress [Proc, nil] Optional progress callback
-      # @return [Array<Hash>] Array of plan data hashes ready for persistence
-      # @raise [Stripe::StripeError] If any Stripe API call fails
-      # @raise [Billing::CatalogValidationError] If any managed products have invalid metadata
-      def collect_stripe_plans(progress: nil)
-        # Ensure Stripe API key is configured (required for console/CLI usage
-        # where StripeSetup initializer may not have run)
-        ensure_stripe_configured!
-
-        # Fetch all active products with onetimesecret metadata
-        products = Stripe::Product.list(
-          {
-            active: true,
-            limit: RECORD_LIMIT,
-          },
-        )
-
-        # Accumulator for merging interval variants into single plan entries
-        plan_data_by_family = {}
-        validation_errors   = []
-        products_processed  = 0
-
-        progress&.call('Fetching products from Stripe...')
-
-        products.auto_paging_each do |product|
-          products_processed += 1
-          progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed == 1 || products_processed % 5 == 0
-
-          # Skip products that aren't valid OTS products (wrong app or missing required metadata)
-          unless valid_ots_product?(product)
-            OT.ld '[Plan.collect_stripe_plans] Skipping invalid product',
-              {
-                product_id: product.id,
-                product_name: product.name,
-                app: product.metadata[Metadata::FIELD_APP],
-              }
-            next
-          end
-
-          # Skip products from a different region when regional isolation is configured
-          unless correct_region?(product)
-            OT.ld '[Plan.collect_stripe_plans] Skipping product from wrong region',
-              {
-                product_id: product.id,
-                product_name: product.name,
-                product_region: product.metadata[Metadata::FIELD_REGION],
-                configured_region: Onetime.billing_config.region,
-              }
-            next
-          end
-
-          # Validate product metadata once before fetching prices (avoid redundant
-          # API calls and duplicate error entries for products with multiple prices)
-          result = validate_product_metadata(product)
-          if result[:missing].any? || result[:blank].any?
-            problems = []
-            problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
-            problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
-            OT.le '[Plan.collect_stripe_plans] Product failed metadata validation',
-              {
-                product_id: product.id,
-                product_name: product.name,
-                problems: problems.join('; '),
-              }
-            validation_errors << {
-              product_id: product.id,
-              price_id: nil,
-              product_name: product.name,
-              error: "invalid metadata: #{problems.join('; ')}",
-            }
-            next
-          end
-
-          # Fetch all active prices for this product
-          prices = Stripe::Price.list(
-            {
-              product: product.id,
-              active: true,
-              limit: 100,
-            },
-          )
-
-          prices.auto_paging_each do |price|
-            # Skip non-recurring prices
-            next unless price.type == 'recurring'
-
-            # Product metadata already validated above; extract_plan_data won't fail
-            plan_data = extract_plan_data(product, price)
-            plan_id   = plan_data[:plan_id]
-            interval  = price.recurring.interval.to_sym
-
-            if plan_data_by_family.key?(plan_id)
-              # Merge this interval's price data into existing plan entry
-              existing              = plan_data_by_family[plan_id]
-              existing[:prices]     = existing[:prices].merge(plan_data[:prices])
-              existing[:active]     = 'true' if plan_data[:active] == 'true' # Any active price makes plan active
-
-              # Merge stripe_snapshot prices
-              existing[:stripe_snapshot][:prices] =
-                existing[:stripe_snapshot][:prices].merge(plan_data[:stripe_snapshot][:prices])
-            else
-              # First interval variant for this plan family
-              plan_data_by_family[plan_id] = plan_data
-            end
-
-            OT.ld "[Plan.collect_stripe_plans] Collected price for plan: #{plan_id}",
-              {
-                interval: interval,
-                stripe_price_id: price.id,
-                amount: price.unit_amount,
-              }
-          end
-        end
-
-        plan_data_list = plan_data_by_family.values
-
-        OT.li "[Plan.collect_stripe_plans] Collected #{plan_data_list.size} plan families from Stripe"
-
-        # Fail-closed: abort before returning if any managed products had invalid metadata
-        if validation_errors.any?
-          OT.le '[Plan.collect_stripe_plans] Aborting due to validation failures',
-            {
-              error_count: validation_errors.size,
-              valid_count: plan_data_list.size,
-            }
-          raise Billing::CatalogValidationError.new(
-            "#{validation_errors.size} Stripe products failed metadata validation",
-            errors: validation_errors,
-          )
-        end
-
-        plan_data_list
-      end
-
-      public
 
       # Extracts plan data from Stripe product and price objects
       #
@@ -746,165 +454,20 @@ module Billing
 
       # Upsert single plan from Stripe data
       #
-      # Creates a new plan if it doesn't exist, or updates an existing one.
-      # This pattern avoids the empty catalog window that occurs with clear+rebuild.
-      #
+      # @deprecated Use Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data
       # @param plan_data [Hash] Plan data from extract_plan_data or webhook payload
       # @return [Plan] The upserted plan instance
       def upsert_from_stripe_data(plan_data)
-        plan_id = plan_data[:plan_id]
-
-        # Load existing or create new - handle missing entries gracefully
-        existing = begin
-          loaded = load(plan_id)
-          loaded if loaded&.exists?
-        rescue Familia::NoIdentifier
-          # Plan hash missing but instances entry persisted - treat as new
-          nil
-        end
-
-        # Check for stale update (out-of-order webhook delivery)
-        # Only skip if BOTH timestamps are valid (> 0) AND the Stripe product
-        # is the same. When stripe_product_id differs (cross-region replacement),
-        # bypass the stale check so the new product always wins.
-        # NOTE: nil == nil is true in Ruby — plans without a stripe_product_id
-        # (e.g., config-only plans created before this field existed) are treated
-        # as "same product", so the stale check still applies. This is the correct
-        # safe default, avoiding accidental overwrites when product provenance is
-        # unknown.
-        if existing && plan_data[:stripe_updated_at]
-          same_product     = existing.stripe_product_id == plan_data[:stripe_product_id]
-          incoming_updated = plan_data[:stripe_updated_at].to_i
-          existing_updated = existing.stripe_updated_at.to_i
-
-          if same_product && incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
-            OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
-                  "(same_product: #{same_product}, incoming: #{incoming_updated}, existing: #{existing_updated})"
-            return existing
-          end
-        end
-
-        plan = existing || new(plan_id: plan_id)
-
-        # Apply family-level scalar fields from plan_data
-        plan.stripe_product_id  = plan_data[:stripe_product_id]
-        plan.name               = plan_data[:name]
-        plan.tier               = plan_data[:tier]
-        plan.currency           = plan_data[:currency]
-        plan.region             = plan_data[:region]
-        plan.tenancy            = plan_data[:tenancy]
-        plan.display_order      = plan_data[:display_order]
-        plan.show_on_plans_page = plan_data[:show_on_plans_page]
-        plan.description        = plan_data[:description]
-        plan.plan_code          = plan_data[:plan_code]
-        plan.is_popular         = plan_data[:is_popular]
-        plan.plan_name_label    = plan_data[:plan_name_label]
-        plan.includes_plan      = plan_data[:includes_plan]
-        plan.active             = plan_data[:active]
-        plan.last_synced_at     = Time.now.to_i.to_s
-
-        # Store stripe_updated_at for future stale update comparison
-        plan.stripe_updated_at  = plan_data[:stripe_updated_at] || Time.now.to_i.to_s
-
-        # Save scalar fields before writing collections (sets, hashkeys)
-        # which write directly to Redis and expect the parent to exist.
-        unless plan.save
-          OT.le "[Plan.upsert_from_stripe_data] Save FAILED for plan: #{plan_id}",
-            {
-              existing: !existing.nil?,
-              region: plan_data[:region],
-              stripe_product_id: plan_data[:stripe_product_id],
-            }
-          return plan
-        end
-
-        # Populate collections after save (these write directly to Redis)
-        plan.entitlements.clear
-        plan_data[:entitlements]&.each { |ent| plan.entitlements.add(ent) }
-
-        plan.features.clear
-        plan_data[:features]&.each { |feat| plan.features.add(feat) }
-
-        plan.limits.clear
-        plan_data[:limits]&.each do |resource, value|
-          key              = "#{resource}.max"
-          val              = value == -1 ? 'unlimited' : value.to_s
-          plan.limits[key] = val
-        end
-
-        # Merge prices into hashkey (interval => JSON price data)
-        # For updates, merge new intervals with existing; for new plans, set all
-        plan_data[:prices]&.each do |interval, price_data|
-          plan.prices[interval.to_s] = price_data.to_json
-        end
-
-        # Clear memoization cache so prices_hash reflects new data
-        plan.instance_variable_set(:@prices_hash, nil)
-
-        # Store Stripe data snapshot for recovery
-        if plan_data[:stripe_snapshot]
-          plan.stripe_data_snapshot.value = plan_data[:stripe_snapshot].to_json
-        end
-
-        action = existing ? 'Updated' : 'Created'
-        OT.ld "[Plan.upsert_from_stripe_data] #{action} plan: #{plan_id}"
-
-        plan
+        Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(plan_data)
       end
 
       # Remove plans not in current Stripe catalog
       #
-      # Uses soft-delete pattern - marks plans as inactive rather than destroying.
-      # Handles missing entries gracefully by removing orphaned instances entries.
-      #
+      # @deprecated Use Billing::Operations::Catalog::PlanPersister.prune_stale_plans
       # @param current_plan_ids [Array<String>] Plan IDs currently in Stripe catalog
       # @return [Integer] Number of plans marked stale or cleaned up
       def prune_stale_plans(current_plan_ids)
-        all_cached_ids = instances.to_a
-        stale_ids      = all_cached_ids - current_plan_ids
-        pruned_count   = 0
-
-        stale_ids.each do |plan_id|
-          plan = load(plan_id)
-
-          if plan&.exists?
-            # Plan exists in Redis - soft-delete by marking inactive
-            plan.active         = 'false'
-            plan.last_synced_at = Time.now.to_i.to_s
-            unless plan.save
-              OT.le "[Plan.prune_stale_plans] Save FAILED for stale plan: #{plan_id}",
-                {
-                  active: plan.active,
-                  last_synced_at: plan.last_synced_at,
-                  region: plan.region,
-                  stripe_product_id: plan.stripe_product_id,
-                }
-            end
-            OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
-            pruned_count       += 1
-          else
-            # Plan hash missing - just remove orphaned instances entry
-            instances.remove(plan_id)
-            OT.ld "[Plan.prune_stale_plans] Removed orphaned entry: #{plan_id}"
-            pruned_count += 1
-          end
-        rescue Familia::NoIdentifier => _ex
-          # Object missing but load returned something invalid - clean up instances
-          instances.remove(plan_id)
-          OT.ld "[Plan.prune_stale_plans] Cleaned orphan entry: #{plan_id}"
-          pruned_count += 1
-        rescue StandardError => ex
-          # Always clean up orphan entry on unexpected errors to prevent stale references
-          instances.remove(plan_id)
-          OT.le '[Plan.prune_stale_plans] Error processing stale plan (cleaned orphan)',
-            {
-              plan_id: plan_id,
-              error: ex.message,
-            }
-        end
-
-        OT.li "[Plan.prune_stale_plans] Pruned #{pruned_count} stale plans" if pruned_count.positive?
-        pruned_count
+        Billing::Operations::Catalog::PlanPersister.prune_stale_plans(current_plan_ids)
       end
 
       # Get plan by tier, interval, and region
@@ -1082,153 +645,18 @@ module Billing
 
       # Update the global catalog sync timestamp
       #
-      # Called after successful Stripe sync to record when the catalog
-      # was last refreshed. Stores Familia.now (Float) with JSON serialization
-      # to preserve type. TTL matches CATALOG_TTL so the staleness check
-      # in BillingCatalog initializer automatically triggers re-sync.
-      #
+      # @deprecated Use Billing::Operations::Catalog::PlanPersister.update_catalog_sync_timestamp
       def update_catalog_sync_timestamp
-        catalog_synced_at.value = Familia.now
+        Billing::Operations::Catalog::PlanPersister.update_catalog_sync_timestamp
       end
 
       # Load all plans from billing.yaml config into Redis cache
       #
-      # Bypasses Stripe API and loads plans directly from YAML configuration.
-      # Creates one Plan instance per family (e.g., "identity_plus_v1") with
-      # interval variants stored in the nested `prices` hashkey.
-      #
-      # Uses ConfigResolver to load from spec/billing.test.yaml in test environment.
-      #
+      # @deprecated Use Billing::Operations::Catalog::ConfigLoader.load_all_from_config
       # @param clear_first [Boolean] Whether to clear existing cache before loading (default: true)
       # @return [Integer] Number of plans loaded into Redis
       def load_all_from_config(clear_first: true)
-        plans_hash = OT.billing_config.plans
-        return 0 if plans_hash.empty?
-
-        # Clear existing cache if requested
-        clear_cache if clear_first
-
-        plans_count = 0
-
-        plans_hash.each do |plan_key, plan_def|
-          # Skip plans not matching the configured region
-          configured_region = OT.billing_config.region
-          plan_region       = Billing::RegionNormalizer.normalize(plan_def['region'])
-          unless Billing::RegionNormalizer.match?(plan_region, configured_region)
-            OT.ld "[Plan.load_all_from_config] Skipping plan for region #{plan_region}: #{plan_key}"
-            next
-          end
-
-          prices_list = plan_def['prices'] || []
-
-          # Skip plans without prices (e.g., free tier - handled by upsert_config_only_plans)
-          if prices_list.empty?
-            OT.ld "[Plan.load_all_from_config] Skipping plan without prices: #{plan_key}"
-            next
-          end
-
-          # Family-keyed: one Plan per plan_key with nested prices
-          plan_id = plan_key.to_s
-
-          # Extract family-level attributes
-          tier               = plan_def['tier']
-          region             = Billing::RegionNormalizer.normalize(plan_def['region']) || OT.billing_config.region
-          tenancy            = plan_def['tenancy'] || 'multi'
-          display_order      = plan_def['display_order'] || 0
-          show_on_plans_page = plan_def['show_on_plans_page'] == true
-          entitlements_list  = plan_def['entitlements'] || []
-          features_list      = plan_def['features'] || []
-
-          # Convert limits to flattened format (e.g., "teams" -> "teams.max")
-          limits_hash = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
-          limits_hash = limits_hash.transform_values do |v|
-            v.nil? || v == -1 ? 'unlimited' : v.to_s
-          end
-
-          # Build nested prices hash from all intervals
-          prices_data = {}
-          prices_list.each do |price|
-            interval       = price['interval'].to_sym # :month or :year
-            plan_currency  = price['currency'] || OT.billing_config.currency
-
-            prices_data[interval] = {
-              stripe_price_id: price['price_id'],
-              amount: price['amount'].to_s,
-              currency: plan_currency,
-              billing_scheme: 'per_unit',
-              usage_type: 'licensed',
-              trial_period_days: nil,
-              nickname: nil,
-              active: 'true',
-            }
-          end
-
-          # Use first price's currency as family currency (they should match)
-          family_currency = prices_list.first['currency'] || OT.billing_config.currency
-
-          # Create Plan instance with family-level fields only
-          plan = new(
-            plan_id: plan_id,
-            stripe_product_id: nil,
-            name: plan_def['name'],
-            tier: tier,
-            currency: family_currency,
-            region: region,
-            tenancy: tenancy,
-            display_order: display_order.to_s,
-            show_on_plans_page: show_on_plans_page.to_s,
-            description: plan_def['description'],
-          )
-
-          # Populate additional family-level fields
-          plan.active          = 'true'
-          plan.plan_code       = plan_def['plan_code']
-          plan.is_popular      = (plan_def['is_popular'] == true).to_s
-          plan.plan_name_label = plan_def['plan_name_label']
-          plan.includes_plan   = plan_def['includes_plan']
-          plan.last_synced_at  = Time.now.to_i.to_s
-
-          # Save scalar fields before writing collections (sets, hashkeys)
-          # which write directly to Redis and expect the parent to exist.
-          unless plan.save
-            OT.le "[Plan.load_all_from_config] Save FAILED for plan: #{plan_id}"
-            next
-          end
-
-          # Populate collections after save (these write directly to Redis)
-          plan.entitlements.clear
-          entitlements_list.each { |ent| plan.entitlements.add(ent) }
-
-          plan.features.clear
-          features_list.each { |feat| plan.features.add(feat) }
-
-          plan.limits.clear
-          limits_hash.each { |key, val| plan.limits[key] = val }
-
-          # Populate prices hashkey with JSON per interval
-          plan.prices.clear
-          prices_data.each do |interval, price_data|
-            plan.prices[interval.to_s] = price_data.to_json
-          end
-
-          # No stripe_data_snapshot for config-based plans
-          plan.stripe_data_snapshot.value = nil
-
-          OT.ld "[Plan.load_all_from_config] Cached plan: #{plan_id}",
-            {
-              tier: tier,
-              intervals: prices_data.keys,
-              currency: family_currency,
-            }
-
-          plans_count += 1
-        end
-
-        # Rebuild price ID cache after loading
-        rebuild_stripe_price_id_cache
-
-        OT.li "[Plan.load_all_from_config] Cached #{plans_count} plans from config"
-        plans_count
+        Billing::Operations::Catalog::ConfigLoader.load_all_from_config(clear_first: clear_first)
       end
 
       # Load a single plan from billing.yaml config
