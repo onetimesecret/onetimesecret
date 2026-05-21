@@ -15,6 +15,7 @@ require 'rack/test'
 
 # Load the billing application for controller testing
 require_relative '../../application'
+require_relative '../../operations/catalog/config_loader'
 
 RSpec.describe 'Plans API Response', type: :integration do
   include Rack::Test::Methods
@@ -203,7 +204,7 @@ RSpec.describe 'Plans API Response', type: :integration do
     context 'filtering' do
       before do
         # Ensure some plans are loaded
-        Billing::Plan.load_all_from_config
+        Billing::Operations::Catalog::ConfigLoader.load_all_from_config
       end
 
       it 'only includes plans with show_on_plans_page=true' do
@@ -275,7 +276,7 @@ RSpec.describe 'Plans API Response', type: :integration do
     # Tests that frontend can filter by interval correctly
 
     before do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
     end
 
     it 'returns flat records with interval as top-level field' do
@@ -434,7 +435,7 @@ RSpec.describe 'Plans API Edge Cases', type: :integration do
     end
 
     it 'plans available after load_all_from_config' do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       get '/billing/api/plans'
 

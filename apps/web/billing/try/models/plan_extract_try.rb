@@ -12,6 +12,7 @@ require_relative '../../../../../try/support/test_helpers'
 # - validate_product_metadata reports missing required fields
 
 require 'apps/web/billing/models/plan'
+require 'apps/web/billing/operations/catalog/data_extractor'
 
 BillingTestHelpers.restore_billing!(enabled: true)
 
@@ -62,7 +63,7 @@ product = MockProductForExtract.new(
   metadata: { 'tier' => 'single_team', 'region' => 'global' },
 )
 begin
-  Billing::Plan.extract_plan_data(product, build_price)
+  Billing::Operations::Catalog::DataExtractor.call(product, build_price)
   :no_raise
 rescue Onetime::ConfigError => ex
   ex.message.include?('missing: plan_id') ? :raised : :wrong_message
@@ -76,7 +77,7 @@ product = MockProductForExtract.new(
   metadata: { 'plan_id' => '   ', 'tier' => 'single_team', 'region' => 'global' },
 )
 begin
-  Billing::Plan.extract_plan_data(product, build_price)
+  Billing::Operations::Catalog::DataExtractor.call(product, build_price)
   :no_raise
 rescue Onetime::ConfigError => ex
   ex.message.include?('blank: plan_id') ? :raised : :wrong_message

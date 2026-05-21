@@ -11,6 +11,7 @@ require_relative '../../support/billing_spec_helper'
 require_relative 'shared_examples'
 require_relative '../../../operations/process_webhook_event'
 require_relative '../../../models/stripe_webhook_event'
+require_relative '../../../operations/catalog/data_extractor'
 
 RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_webhook_event do
   let(:created_customers) { [] }
@@ -89,7 +90,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(Stripe::Price).to receive(:list).with(product: 'prod_ots_123', active: true).and_return(price_list)
 
         # Stub upsert methods (handler calls PlanPersister directly)
-        allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
+        allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({ plan_id: 'test_plan' })
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
@@ -136,7 +137,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(price_list).to receive(:auto_paging_each).and_yield(recurring_price)
         allow(Stripe::Price).to receive(:list).with(product: 'prod_ots_123', active: true).and_return(price_list)
 
-        allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
+        allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({ plan_id: 'test_plan' })
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
@@ -206,7 +207,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
         allow(Stripe::Price).to receive(:retrieve).with('price_ots_monthly').and_return(recurring_price)
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
-        allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
+        allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({ plan_id: 'test_plan' })
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
@@ -232,7 +233,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
       before do
         allow(Stripe::Price).to receive(:retrieve).with('price_ots_monthly').and_return(recurring_price)
         allow(Stripe::Product).to receive(:retrieve).with('prod_ots_123').and_return(ots_product)
-        allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test_plan' })
+        allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({ plan_id: 'test_plan' })
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:rebuild_stripe_price_id_cache)
       end
@@ -457,7 +458,7 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         allow(price_list).to receive(:auto_paging_each).and_yield(recurring_price)
         allow(Stripe::Price).to receive(:list).and_return(price_list)
 
-        allow(Billing::Plan).to receive(:extract_plan_data).and_return({ plan_id: 'test' })
+        allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({ plan_id: 'test' })
         allow(Billing::Operations::Catalog::PlanPersister).to receive(:upsert_from_stripe_data)
           .and_raise(StandardError, 'Redis connection failed')
       end

@@ -5,7 +5,7 @@
 require_relative '../../../../../try/support/test_helpers'
 require_relative '../../lib/test_support/billing_helpers'
 
-# Billing::Plan.load_all_from_config tests
+# Billing::Operations::Catalog::ConfigLoader.load_all_from_config tests
 #
 # Tests loading all plans from billing.yaml config into Redis cache.
 # Uses spec/billing.test.yaml via ConfigResolver when RACK_ENV=test.
@@ -15,6 +15,7 @@ require_relative '../../lib/test_support/billing_helpers'
 
 ## Setup: Load billing models
 require 'apps/web/billing/models/plan'
+require 'apps/web/billing/operations/catalog/config_loader'
 
 ## Setup: Enable billing and ensure Familia is configured
 BillingTestHelpers.restore_billing!(enabled: true)
@@ -25,7 +26,7 @@ Billing::Plan.instances.size
 #=> 0
 
 ## Load all plans from config
-@count = Billing::Plan.load_all_from_config
+@count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 @count.class
 #=> Integer
 
@@ -133,13 +134,13 @@ Billing::Plan.instances.size
 
 ## Test clearing and reloading (clear_first: false)
 @before_count = Billing::Plan.instances.size
-@reload_count = Billing::Plan.load_all_from_config(clear_first: false)
+@reload_count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config(clear_first: false)
 @after_count  = Billing::Plan.instances.size
 [@before_count, @reload_count, @after_count]
 #=> [1, 1, 1]
 
 ## Test clearing and reloading (clear_first: true, default)
-@reload_count = Billing::Plan.load_all_from_config
+@reload_count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 @reload_count
 #=> 1
 

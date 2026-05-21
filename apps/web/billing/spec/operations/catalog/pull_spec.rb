@@ -7,6 +7,7 @@ require_relative '../../../operations/catalog/pull'
 require_relative '../../../operations/catalog/stripe_reader'
 require_relative '../../../operations/catalog/plan_persister'
 require_relative '../../../operations/catalog/config_loader'
+require_relative '../../../operations/catalog/data_extractor'
 
 RSpec.describe Billing::Operations::Catalog::Pull, :billing do
   describe '.call' do
@@ -72,10 +73,12 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       allow(Billing::Operations::Catalog::StripeReader).to receive(:fetch_prices)
         .and_return({ 'test_plan_v1' => [mock_price] })
 
-      # Stub Plan methods
+      # Stub Plan validation method
       allow(Billing::Plan).to receive(:validate_product_metadata)
         .and_return({ missing: [], blank: [] })
-      allow(Billing::Plan).to receive(:extract_plan_data).and_return({
+
+      # Stub DataExtractor
+      allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({
         plan_id: 'test_plan_v1',
         stripe_product_id: 'prod_test123',
         stripe_updated_at: '1700000000',

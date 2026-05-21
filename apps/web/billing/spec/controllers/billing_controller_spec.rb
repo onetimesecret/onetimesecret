@@ -9,6 +9,7 @@ require 'digest'
 
 # Load the billing application for controller testing
 require_relative '../../application'
+require_relative '../../operations/catalog/config_loader'
 
 RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
@@ -72,7 +73,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Reset Plan.load stubs so ConfigLoader can create real Plan instances
       allow(Billing::Plan).to receive(:load).and_call_original
       # Ensure plan cache is populated from config (not Stripe)
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       get '/billing/api/plans'
 

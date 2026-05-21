@@ -6,6 +6,7 @@ require_relative 'stripe_retry'
 require_relative 'stripe_reader'
 require_relative 'config_loader'
 require_relative 'plan_persister'
+require_relative 'data_extractor'
 require_relative '../../lib/stripe_circuit_breaker'
 
 module Billing
@@ -234,8 +235,8 @@ module Billing
               # Skip non-recurring prices
               next unless price.type == 'recurring'
 
-              # Extract plan data using Plan's helper
-              plan_data = Billing::Plan.extract_plan_data(product, price)
+              # Extract plan data
+              plan_data = DataExtractor.call(product, price)
               plan_id   = plan_data[:plan_id]
 
               if plan_data_by_family.key?(plan_id)
