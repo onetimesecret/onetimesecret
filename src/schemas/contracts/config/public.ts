@@ -163,26 +163,50 @@ const regionsSchema = z.object({
 });
 
 /**
- * Schema for the :cluster section within :domains (proxy configuration)
+ * Schema for the :approximated section within :domains
+ *
+ * Approximated proxy configuration (used by the 'approximated' validation
+ * strategy). All fields default to nil in the Ruby YAML when env vars are
+ * unset, so every key is optional/nullable here.
  */
-const clusterSchema = z
+const approximatedSchema = z
   .object({
-    type: z.string().optional(),
-    //  api_key: z.string().optional(),
-    proxy_ip: z.string().optional(),
-    proxy_host: z.string().optional(),
-    proxy_name: z.string(),
-    vhost_target: z.string(),
+    api_key: z.string().nullable().optional(),
+    proxy_ip: z.string().nullable().optional(),
+    proxy_host: z.string().nullable().optional(),
+    proxy_name: z.string().nullable().optional(),
+    vhost_target: z.string().nullable().optional(),
+  })
+  .strip();
+
+/**
+ * Schema for the :acme section within :domains
+ *
+ * Internal ACME endpoint configuration (used by the 'caddy_on_demand'
+ * validation strategy).
+ */
+const acmeSchema = z
+  .object({
+    enabled: z.boolean(),
+    listen_address: z.string().optional(),
+    port: z.union([z.string(), z.number()]).optional(),
   })
   .strip();
 
 /**
  * Schema for the :domains section
+ *
+ * Mirrors `features.domains` in etc/defaults/config.defaults.yaml. The
+ * bootstrap payload is the raw Ruby hash (see ConfigSerializer), so any
+ * rename here must be applied on the Ruby side as well.
  */
 const domainsSchema = z.object({
   enabled: z.boolean(),
-  default: z.string().optional(),
-  cluster: clusterSchema,
+  require_verified: z.boolean().optional(),
+  default: z.string().nullable().optional(),
+  validation_strategy: z.string().optional(),
+  approximated: approximatedSchema.optional(),
+  acme: acmeSchema.optional(),
 });
 
 /**
@@ -214,7 +238,7 @@ export const publicFeaturesSchema = z.object({
 });
 
 /**
- * Combined Schema for PublicSettings based on :site in config.schema.yaml
+ * Combined Schema for PublicSettings (public-facing subset of the site config)
  */
 export const publicSettingsSchema = z
   .object({

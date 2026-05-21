@@ -48,23 +48,44 @@
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
-  // Custom domain logos are larger to emphasize brand identity
-  const isCustomDomainLogo = computed(() => !!domain_logo.value);
-  // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
-  // Custom domain logos remain at 80px, unauthenticated users get 48px
+
+  // Static-config custom logo: operator set LOGO_URL to anything other than the
+  // bundled DefaultLogo.vue. Distinct from domain_logo (per-tenant runtime signal),
+  // because the two have different override semantics for the site name.
+  const isCustomStaticLogo = computed(() =>
+    !!headerConfig.value?.branding?.logo?.url
+    && headerConfig.value.branding.logo.url !== DEFAULT_LOGO
+  );
+
+  // LOGO_PROMINENT opt-in for larger logo sizing.
+  const isProminentLogo = computed(() =>
+    headerConfig.value?.branding?.logo?.prominent === true
+  );
+
+  // Logo sizing: LOGO_PROMINENT controls size, auth state determines the tier.
+  // Default (prominent=false): 48px unauthenticated, 40px authenticated
+  // Prominent (prominent=true): 160px unauthenticated, 80px authenticated
   const getLogoSize = () => {
     if (props.logo?.size) return props.logo.size;
-    if (isCustomDomainLogo.value) return 80;
+    if (isProminentLogo.value) return isUserPresent.value ? 80 : 160;
     return isUserPresent.value ? 40 : 48;
   };
-  // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  // Priority: props > custom domain (hide by default) > logo.show_name config > site_name presence
+  // Priority:
+  //   1. props.logo.showSiteName            (caller-site override)
+  //   2. domain_logo.value                  (per-tenant: always hide platform name)
+  //   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit config)
+  //   4. isCustomStaticLogo.value           (heuristic: custom LOGO_URL usually
+  //                                          embeds its own wordmark)
+  //   5. !!site_name                        (default visibility tied to SITE_NAME)
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
     if (domain_logo.value) return false;
 
     const showName = headerConfig.value?.branding?.logo?.show_name;
-    return showName ?? !!headerConfig.value?.branding?.site_name;
+    if (showName != null) return showName;
+
+    if (isCustomStaticLogo.value) return false;
+    return !!headerConfig.value?.branding?.site_name;
   };
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
@@ -84,6 +105,24 @@
 
   // Simplified logo configuration with prop override support
   const logoConfig = computed(getLogoConfig);
+
+  // When a caller passes an explicit pixel size via props.logo.size, we must NOT
+  // apply a Tailwind h-* class (the class would override the pixel value). In that
+  // case we render the height via an inline style and skip the responsive class.
+  const hasExplicitImgSize = computed(() => typeof props.logo?.size === 'number' && props.logo.size > 0);
+
+  // Tailwind height classes mirror getLogoSize() logic.
+  // Prominent: h-20 (80px) authenticated, h-24/sm:h-40 (96px mobile, 160px desktop) unauthenticated
+  // Default: h-10 (40px) authenticated, h-12 (48px) unauthenticated
+  const imgHeightClass = computed(() => {
+    if (hasExplicitImgSize.value) return null;
+    if (isProminentLogo.value) return isUserPresent.value ? 'h-20' : 'h-24 sm:h-40';
+    return isUserPresent.value ? 'h-10' : 'h-12';
+  });
+
+  const imgInlineStyle = computed(() =>
+    hasExplicitImgSize.value ? { height: `${props.logo!.size}px` } : undefined
+  );
 
   const navigationEnabled = computed(() =>
     headerConfig.value?.navigation?.enabled !== false
@@ -169,14 +208,9 @@
             <img
               id="logo"
               :src="logoConfig.url"
-              class="w-auto transition-transform"
-              :class="[
-                isCustomDomainLogo
-                  ? 'h-20'
-                  : isUserPresent
-                    ? 'h-10'
-                    : 'h-12'
-              ]"
+              class="w-auto object-contain transition-transform"
+              :class="imgHeightClass"
+              :style="imgInlineStyle"
               :height="logoConfig.size"
               :alt="logoConfig.alt" />
             <span

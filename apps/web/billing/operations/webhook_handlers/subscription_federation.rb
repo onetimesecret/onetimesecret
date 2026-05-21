@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/utils/email_hash'
+require_relative '../../metadata'
 require_relative '../../models/pending_federated_subscription'
 require_relative '../apply_subscription_to_org'
 
@@ -170,7 +171,7 @@ module Billing
           stripe_customer_id = subscription.customer
           return if stripe_customer_id.to_s.empty?
 
-          local_region = OT.conf.dig('site', 'region') || 'unknown'
+          local_region = Billing::Metadata.current_region
           plan_id      = org.planid || 'unresolved'
           event_type   = first_federation ? 'initial' : 'update'
 

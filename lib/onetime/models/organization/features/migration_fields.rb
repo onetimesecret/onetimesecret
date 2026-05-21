@@ -125,7 +125,7 @@ module Onetime
           def store_payment_link_info(v1_data = {})
             # Determine plan from planid or default
             planid = v1_data[:planid] || v1_data['planid'] || self.planid
-            return false if planid.to_s.empty? || planid == 'free' || planid == 'free_v1'
+            return false if Billing::BillingService.free_plan?(planid)
 
             # Parse plan info (e.g., "identity_plus_monthly" or "identity")
             # Note: In v0.23 customer data, planid values never had underscores.

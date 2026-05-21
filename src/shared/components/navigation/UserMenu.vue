@@ -31,15 +31,40 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useTheme } from '@/shared/composables/useTheme';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
-import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
+import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { type Customer } from '@/schemas/shapes/v3';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
+import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+// Copy to clipboard helper
+const copyToClipboard = async (text: string, fieldName: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    showCopyFeedback(fieldName);
+  } catch {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showCopyFeedback(fieldName);
+  }
+};
+
+const copiedField = ref<string | null>(null);
+const showCopyFeedback = (fieldName: string) => {
+  copiedField.value = fieldName;
+  setTimeout(() => {
+    copiedField.value = null;
+  }, 1500);
+};
 
 const props = defineProps<{
   cust: Customer | null;
@@ -52,10 +77,10 @@ const { t } = useI18n();
 const { logout } = useAuth();
 const { isDarkMode, toggleDarkMode } = useTheme();
 
-const isPlanTestModalOpen = ref(false);
+const isPlanPreviewModalOpen = ref(false);
 
 // Test plan mode composable
-const { isTestModeActive } = useTestPlanMode();
+const { isPreviewModeActive } = usePreviewPlanMode();
 
 const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
@@ -96,13 +121,13 @@ interface MenuItem {
   onClick?: () => void | Promise<void>;
 }
 
-const openPlanTestModal = () => {
-  isPlanTestModalOpen.value = true;
+const openPlanPreviewModal = () => {
+  isPlanPreviewModalOpen.value = true;
   closeMenu();
 };
 
-const closePlanTestModal = () => {
-  isPlanTestModalOpen.value = false;
+const closePlanPreviewModal = () => {
+  isPlanPreviewModalOpen.value = false;
 };
 
 const menuItems = computed<MenuItem[]>(() => [
@@ -126,11 +151,11 @@ const menuItems = computed<MenuItem[]>(() => [
     condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value },
   {
     id: 'test-plan',
-    label: t('web.colonel.testPlanMode'),
+    label: t('web.colonel.previewPlanMode'),
     icon: { collection: 'heroicons', name: 'beaker' },
-    variant: isTestModeActive.value ? 'caution' : 'default',
+    variant: isPreviewModeActive.value ? 'caution' : 'default',
     condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
-    onClick: openPlanTestModal,
+    onClick: openPlanPreviewModal,
   },
   {
     id: 'help',
@@ -342,8 +367,9 @@ onUnmounted(() => {
           class="border-b border-gray-200 px-4 py-3
             dark:border-gray-700">
           <div class="flex items-center justify-between gap-2">
+            <!-- Email -->
             <p
-              class="truncate text-sm font-medium text-gray-900 dark:text-white"
+              class="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-white"
               :title="cust?.email">
               {{ cust?.email }}
             </p>
@@ -364,21 +390,27 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </button>
           </div>
-          <p
-            v-if="!awaitingMfa && cust?.objid"
-            class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {{ cust?.extid }}
-          </p>
-          <p
+          <!-- Domain context with copy button -->
+          <div
             v-if="showDomainContext"
-            class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-            <OIcon
-              collection="heroicons"
-              name="globe-alt"
-              class="size-3 shrink-0"
-              aria-hidden="true" />
-            <span class="truncate">{{ currentContext.displayName }}</span>
-          </p>
+            class="mt-0.5 flex items-center gap-1">
+            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
+              {{ currentContext.displayName }}
+            </p>
+            <button
+              @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
+              :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
+              class="shrink-0 rounded p-0.5 text-gray-400 transition-all
+                hover:bg-gray-100 hover:text-gray-600
+                dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              :class="{ 'text-green-500': copiedField === 'domain' }">
+              <OIcon
+                collection="material-symbols"
+                :name="copiedField === 'domain' ? 'check' : 'content-copy-outline'"
+                class="size-3"
+                aria-hidden="true" />
+            </button>
+          </div>
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"
@@ -461,8 +493,8 @@ onUnmounted(() => {
     </Transition>
 
     <!-- Plan Test Modal -->
-    <PlanTestModal
-      :is-open="isPlanTestModalOpen"
-      @close="closePlanTestModal" />
+    <PlanPreviewModal
+      :is-open="isPlanPreviewModalOpen"
+      @close="closePlanPreviewModal" />
   </div>
 </template>

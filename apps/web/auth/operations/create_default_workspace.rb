@@ -158,6 +158,17 @@ module Auth
         org.planid                  = pending.planid if pending.planid
         org.subscription_period_end = pending.subscription_period_end
         org.mark_subscription_federated!
+
+        # Materialize entitlements from the claimed plan (Phase 2)
+        # PendingFederatedSubscription stores planid but not entitlements,
+        # so we materialize now that the org has its planid set.
+        begin
+          require_relative '../../billing/operations/apply_subscription_to_org'
+          Billing::Operations::ApplySubscriptionToOrg.materialize_entitlements_for_org(org)
+        rescue LoadError
+          auth_logger.debug '[create-default-workspace] Billing operations not available for materialization'
+        end
+
         org.save
 
         auth_logger.info '[create-default-workspace] Applied pending federated subscription',

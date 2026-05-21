@@ -74,12 +74,19 @@ const featuresDomainsAcmeSchema = z.object({
 
 /**
  * Domains feature configuration
+ *
+ * Field names mirror `features.domains` in etc/defaults/config.defaults.yaml.
+ * The bootstrap payload is the raw Ruby hash (see ConfigSerializer), so any
+ * rename here must be applied on the Ruby side as well.
  */
 const featuresDomainsSchema = z.object({
   enabled: z.boolean().default(false),
+  require_verified: z.boolean().default(false),
   default: nullableString,
-  strategy: z.enum(['passthrough', 'approximated', 'caddy_on_demand']).default('passthrough'),
-  cluster: featuresDomainsProxySchema.optional(),
+  validation_strategy: z
+    .enum(['passthrough', 'approximated', 'caddy_on_demand'])
+    .default('passthrough'),
+  approximated: featuresDomainsProxySchema.optional(),
   acme: featuresDomainsAcmeSchema.optional(),
 });
 

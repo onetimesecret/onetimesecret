@@ -78,7 +78,9 @@
 <template>
   <div class="container mx-auto mt-16 max-w-3xl px-4 pb-16 sm:mt-20 sm:pb-16">
     <!-- Entitlement Required (custom domain without incoming_secrets) -->
-    <EmptyState v-if="showEntitlementBlocked" :show-action="false">
+    <EmptyState
+      v-if="showEntitlementBlocked"
+      :show-action="false">
       <template #title>
         {{ t('incoming.upgrade_required_title') }}
       </template>
@@ -134,10 +136,10 @@
       <div
         v-else-if="!isLoading"
         class="overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-slate-800">
-      <form
-        @submit.prevent="handleSubmit"
-        class="space-y-8 p-8 sm:p-10"
-        data-testid="incoming-form">
+        <form
+          @submit.prevent="handleSubmit"
+          class="space-y-8 p-8 sm:p-10"
+          data-testid="incoming-form">
           <!-- Recipient Dropdown (First - like e-transfer) -->
           <IncomingRecipientDropdown
             v-model="form.recipientId"
@@ -183,7 +185,8 @@
             @blur="handleTitleBlur" />
 
           <!-- Action Buttons -->
-          <div class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            class="flex flex-col gap-4 border-t border-gray-200 pt-8 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               :disabled="isSubmitting"
@@ -197,9 +200,11 @@
               type="submit"
               :disabled="isSubmitting || !isFormValid"
               class="order-1 flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-300 sm:order-2"
-              :class="isFormValid && !isSubmitting
-                ? 'bg-brand-500 hover:bg-brand-600 hover:shadow-lg text-white hover:scale-105 active:scale-100'
-                : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed opacity-60'"
+              :class="
+                isFormValid && !isSubmitting
+                  ? 'bg-brand-500 text-white hover:scale-105 hover:bg-brand-600 hover:shadow-lg active:scale-100'
+                  : 'cursor-not-allowed bg-gray-400 opacity-60 dark:bg-gray-600'
+              "
               data-testid="incoming-form-submit">
               <svg
                 class="size-5 text-white"
@@ -216,7 +221,7 @@
               {{ isSubmitting ? t('incoming.submitting') : t('incoming.submit_secret') }}
             </button>
           </div>
-      </form>
+        </form>
       </div>
     </template>
   </div>

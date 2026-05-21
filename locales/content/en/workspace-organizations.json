@@ -686,6 +686,14 @@
     "text": "When enabled, organization members can sign in using this SSO provider",
     "content_hash": "d7da2fa2"
   },
+  "web.organizations.sso.enforce_sso_only": {
+    "text": "Enforce SSO only",
+    "content_hash": "a1b2c3d4"
+  },
+  "web.organizations.sso.enforce_sso_only_hint": {
+    "text": "Require SSO for all sign-ins on this domain. When enabled, password-based authentication is disabled.",
+    "content_hash": "b2c3d4e5"
+  },
   "web.organizations.sso.save_config": {
     "text": "Save SSO Configuration",
     "content_hash": "70853769"

@@ -526,7 +526,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       before do
         # Mock OT.conf for region lookup
         allow(OT).to receive(:conf).and_return({
-          'site' => { 'region' => 'EU' },
+          'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } },
         })
       end
 
@@ -579,7 +579,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
 
     describe 'Stripe API error handling' do
       before do
-        allow(OT).to receive(:conf).and_return({ 'site' => { 'region' => 'EU' } })
+        allow(OT).to receive(:conf).and_return({ 'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } } })
 
         # Simulate Stripe API error on update
         allow(Stripe::Customer).to receive(:update)
@@ -644,7 +644,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       end
 
       before do
-        allow(OT).to receive(:conf).and_return({ 'site' => { 'region' => 'EU' } })
+        allow(OT).to receive(:conf).and_return({ 'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } } })
       end
 
       it 'uses "unresolved" when org has no planid' do
@@ -660,7 +660,7 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
     describe 'idempotency (last-write-wins)' do
       before do
         allow(OT).to receive(:conf).and_return({
-          'site' => { 'region' => 'EU' },
+          'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => 'EU' } },
         })
       end
 
@@ -675,19 +675,34 @@ RSpec.describe 'ProcessWebhookEvent: Subscription Federation', :integration, :pr
       end
     end
 
-    describe 'region config missing' do
+    describe 'regions feature disabled' do
       before do
-        # OT.conf returns empty hash — no site/region key
+        # OT.conf returns empty hash — features.regions.enabled is falsy
         allow(OT).to receive(:conf).and_return({})
       end
 
-      it 'falls back to "unknown" when site region is not configured' do
+      it 'falls back to "global" when regions feature is disabled' do
         expect(Stripe::Customer).to receive(:update).with(
           stripe_customer_id,
-          metadata: hash_including('last_federation_region' => 'unknown')
+          metadata: hash_including('last_federation_region' => 'global')
         )
 
         handler.send(:record_federation_note, subscription, federated_org, true)
+      end
+    end
+
+    describe 'regions enabled but jurisdiction missing' do
+      before do
+        allow(OT).to receive(:conf).and_return({
+          'features' => { 'regions' => { 'enabled' => true, 'current_jurisdiction' => nil } },
+        })
+      end
+
+      it 'raises ConfigError to surface the misconfiguration' do
+        expect(Stripe::Customer).not_to receive(:update)
+        expect {
+          handler.send(:record_federation_note, subscription, federated_org, true)
+        }.to raise_error(Onetime::ConfigError, /current_jurisdiction/)
       end
     end
   end

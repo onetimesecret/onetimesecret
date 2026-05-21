@@ -90,7 +90,10 @@ module Onetime
         max_length ? result.slice(0, max_length) : result
       end
 
-      # Sanitize email addresses
+      # Sanitize strings that we area treating as email addresses.
+      #
+      # NOTE: This is not a validator. It treats the input as a string that
+      # is presumed to be an email address.
       #
       # Strips HTML tags (defense-in-depth), lowercases, trims whitespace,
       # and removes newlines to prevent email header injection attacks.

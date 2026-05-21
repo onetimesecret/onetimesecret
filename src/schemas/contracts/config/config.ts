@@ -67,6 +67,8 @@ export const apiInterfaceSchema = z.object({
                   alt: z.string().optional(),
                   href: z.string().optional(),
                   link_to: z.string().optional(), // Legacy field
+                  show_name: booleanOrString,
+                  prominent: booleanOrString,
                 })
                 .optional(),
               site_name: z.string().optional(),
@@ -299,8 +301,9 @@ export const apiFeaturesSchema = z.object({
   domains: z
     .object({
       enabled: booleanOrString,
+      require_verified: booleanOrString.optional(),
       default: z.string().nullable().optional(),
-      strategy: z.string().nullable().optional(),
+      validation_strategy: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),

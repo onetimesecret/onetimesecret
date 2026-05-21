@@ -14,6 +14,9 @@ require_relative '../../support/test_models'
 
 OT.boot! :test
 
+# Load Billing module for PlanCacheMissError
+require_relative '../../../apps/web/billing/errors'
+
 # Setup test data
 @timestamp = Familia.now.to_i
 @owner = Onetime::Customer.create!(email: "ent_owner#{@timestamp}@onetimesecret.com")
@@ -93,25 +96,42 @@ OT.boot! :test
 #=> 0
 
 ## SaaS empty planid: limit_for('secret_lifetime') returns DEFAULT_FREE_TTL absent env override
+## (14 days, matching free_v1 plan in billing.yaml; see #3111)
 @org.limit_for('secret_lifetime')
 #=> 1_209_600
 
-## SAAS PLAN CACHE MISS TEST: billing enabled but plan not in cache returns FREE tier (graceful degradation)
+## SAAS PLAN CACHE MISS TEST: billing enabled but plan not in cache raises PlanCacheMissError (fail-closed)
 @org.planid = "nonexistent_plan_#{@timestamp}"
-@org.entitlements.sort
-#=> Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.sort
+begin
+  @org.entitlements
+rescue Billing::PlanCacheMissError
+  :raised_plan_cache_miss_error
+end
+#=> :raised_plan_cache_miss_error
 
-## SaaS plan cache miss: can? returns true for FREE tier entitlements (api_access is in FREE tier)
-@org.can?('api_access')
-#=> true
+## SaaS plan cache miss: can? raises PlanCacheMissError (fail-closed)
+begin
+  @org.can?('api_access')
+rescue Billing::PlanCacheMissError
+  :raised_plan_cache_miss_error
+end
+#=> :raised_plan_cache_miss_error
 
-## SaaS plan cache miss: limit_for returns FREE tier limit (0 for teams)
-@org.limit_for('teams')
-#=> 0
+## SaaS plan cache miss: limit_for raises PlanCacheMissError (fail-closed)
+begin
+  @org.limit_for('teams')
+rescue Billing::PlanCacheMissError
+  :raised_plan_cache_miss_error
+end
+#=> :raised_plan_cache_miss_error
 
-## SaaS plan cache miss: can? returns false for premium entitlements not in FREE tier
-[@org.can?('custom_branding'), @org.can?('api_access'), @org.can?('audit_logs')]
-#=> [false, true, false]
+## SaaS plan cache miss: entitlement checks consistently raise PlanCacheMissError
+begin
+  @org.can?('custom_branding')
+rescue Billing::PlanCacheMissError
+  :raised_plan_cache_miss_error
+end
+#=> :raised_plan_cache_miss_error
 
 # Teardown
 @org.destroy!

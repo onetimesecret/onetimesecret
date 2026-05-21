@@ -12,8 +12,6 @@
 # Options:
 #   --input-file=FILE   Input JSONL file (default: data/upgrades/v0.24.5/customer/customer_transformed.jsonl)
 #   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/organization)
-#   --redis-url=URL     Redis URL for temporary operations (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
 # Input: data/upgrades/v0.24.5/customer/customer_transformed.jsonl (V2 customer records)
@@ -25,7 +23,6 @@
 #   - data/upgrades/v0.24.5/organization/customer_objid_to_org_objid.json (customer_objid -> org_objid)
 #   - data/upgrades/v0.24.5/organization/email_to_org_objid.json (email -> org_objid, for customdomain)
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
@@ -33,15 +30,15 @@ require 'securerandom'
 require 'digest'
 require 'openssl'
 require 'familia'
-require 'uri'
+
+require_relative '../lib/progress'
+require_relative '../lib/v1_hash'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/02-organization/generate.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class OrganizationGenerator
-  TEMP_KEY_PREFIX = '_migrate_tmp_org_'
-
   # Field type mappings for Familia v2 JSON serialization
   # IMPORTANT: All fields must be declared here. Unknown fields will raise errors.
   FIELD_TYPES = {
@@ -89,13 +86,10 @@ class OrganizationGenerator
     'updated_at'         => :timestamp,
   }.freeze
 
-  def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, dry_run: false)
     @input_file = input_file
     @output_dir = output_dir
-    @redis_url  = redis_url
-    @temp_db    = temp_db
     @dry_run    = dry_run
-    @redis      = nil
 
     @stats = {
       records_read: 0,          # Total lines read from JSONL (includes related records)
@@ -105,7 +99,12 @@ class OrganizationGenerator
       stripe_customers: 0,
       stripe_subscriptions: 0,
       skipped: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],          # unknown fields encountered (this generator raises today)
+        orphans: [],              # unused for org generation; reserved for parity
+        data_corruption: [],      # JSON parse, restore failures, missing customer objid
+        processing_failures: [],  # everything else (rescue StandardError)
+      },
     }
 
     @customer_to_org    = {}  # customer_objid -> org_objid
@@ -116,7 +115,6 @@ class OrganizationGenerator
 
   def run
     validate_input_file
-    connect_redis unless @dry_run
 
     puts "Processing: #{@input_file}"
     puts "Output: #{@output_dir}"
@@ -127,8 +125,6 @@ class OrganizationGenerator
 
     print_summary
     @stats
-  ensure
-    cleanup_redis
   end
 
   private
@@ -147,35 +143,6 @@ class OrganizationGenerator
     unless File.exist?(@input_file)
       raise ArgumentError, "Input file not found: #{@input_file}"
     end
-  end
-
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
-  end
-
-  # Pipelining is opt-in via OTS_MIGRATION_PIPELINE. Any truthy value enables
-  # within-record pipelining of RESTORE+HGETALL and HMSET+DUMP. DEL stays in
-  # `ensure` blocks unchanged so temp keys are cleaned up on every path.
-  # Memoized; ENV is read once.
-  def pipeline_enabled?
-    return @pipeline_enabled if defined?(@pipeline_enabled)
-    raw = ENV['OTS_MIGRATION_PIPELINE'].to_s.strip.downcase
-    @pipeline_enabled = !(raw.empty? || %w[0 false no off].include?(raw))
   end
 
   def serialize_for_v2(fields, field_types = FIELD_TYPES)
@@ -220,7 +187,9 @@ class OrganizationGenerator
   end
 
   def process_customers
+    progress = Upgrade::ProgressReporter.new('customers -> orgs')
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
 
@@ -238,24 +207,27 @@ class OrganizationGenerator
       @stats[:customer_objects] += 1
       process_customer_record(record)
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse: #{ex.message}" }
+    rescue StandardError => ex
+      @stats[:errors][:processing_failures] << { line: @stats[:records_read], error: ex.message }
     end
+    progress.finish
   end
 
   def process_customer_record(record)
     customer_objid = record[:objid]
     unless customer_objid && !customer_objid.empty?
       @stats[:skipped] += 1
-      @stats[:errors] << { key: record[:key], error: 'Missing customer objid' }
+      @stats[:errors][:data_corruption] << { key: record[:key], error: 'Missing customer objid' }
       return
     end
 
     return if @dry_run
 
-    # Decode customer fields from DUMP
+    # Decode customer fields from typed payload (fields_b64).
     # NOTE: Customer transform writes v2 JSON-serialized values, so we must
     # deserialize them before using for comparisons/lookups
-    customer_fields = restore_and_read_hash(record)
+    customer_fields = read_v1_hash(record)
     return unless customer_fields
 
     customer_fields = deserialize_v2_fields(customer_fields)
@@ -288,34 +260,12 @@ class OrganizationGenerator
     @stats[:memberships_created] += 1
   end
 
-  def restore_and_read_hash(record)
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      if pipeline_enabled?
-        # RESTORE then HGETALL on the same key in a single round trip; Redis
-        # processes pipelined commands in order, so HGETALL sees the just-
-        # restored hash. Saves one RTT per customer object decode.
-        _restore_result, fields = @redis.pipelined do |pipe|
-          pipe.restore(temp_key, 0, dump_data, replace: true)
-          pipe.hgetall(temp_key)
-        end
-        fields
-      else
-        @redis.restore(temp_key, 0, dump_data, replace: true)
-        @redis.hgetall(temp_key)
-      end
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
-      nil
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
-    end
+  # Decode v1 hash fields from the typed payload emitted by upstream
+  # transforms (fields_b64). Delegates to the shared Upgrade::V1Hash module
+  # so all 5 transforms share one implementation. Returns nil (and logs
+  # :data_corruption) if the payload is missing or malformed.
+  def read_v1_hash(record)
+    Upgrade::V1Hash.read(record, @stats[:errors])
   end
 
   def generate_organization(customer_objid, customer_fields, customer_record)
@@ -370,34 +320,17 @@ class OrganizationGenerator
     # Remove nil values
     org_fields.compact!
 
-    # Create Redis DUMP for the organization hash
-    # Serialize values for Familia v2 JSON format before writing to Redis
-    temp_key     = "#{TEMP_KEY_PREFIX}org_#{SecureRandom.hex(8)}"
-    serialized   = serialize_for_v2(org_fields)
-    hmset_args   = serialized.to_a.flatten
-    org_dump_b64 = begin
-      dump_data =
-        if pipeline_enabled?
-          _hmset_result, dumped = @redis.pipelined do |pipe|
-            pipe.hmset(temp_key, hmset_args)
-            pipe.dump(temp_key)
-          end
-          dumped
-        else
-          @redis.hmset(temp_key, hmset_args)
-          @redis.dump(temp_key)
-        end
-      Base64.strict_encode64(dump_data)
-    ensure
-      @redis.del(temp_key)
-    end
+    # Serialize values for Familia v2 JSON format
+    serialized = serialize_for_v2(org_fields)
 
     {
       key: "organization:#{org_objid}:object",
       type: 'hash',
       ttl_ms: -1,  # Organizations don't expire
       db: customer_record[:db],
-      dump: org_dump_b64,
+      # Typed payload for cross-engine load. load_keys.rb HSETs decoded fields
+      # directly into the v2 hash (no RESTORE).
+      fields_b64: serialized.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       objid: org_objid,
       extid: org_extid,
       owner_id: customer_objid,
@@ -443,32 +376,16 @@ class OrganizationGenerator
       'updated_at'         => now.to_s,
     }
 
-    temp_key   = "#{TEMP_KEY_PREFIX}mem_#{SecureRandom.hex(8)}"
     serialized = serialize_for_v2(membership_fields, MEMBERSHIP_FIELD_TYPES)
-    hmset_args = serialized.to_a.flatten
-    dump_b64   = begin
-      dump_data =
-        if pipeline_enabled?
-          _hmset_result, dumped = @redis.pipelined do |pipe|
-            pipe.hmset(temp_key, hmset_args)
-            pipe.dump(temp_key)
-          end
-          dumped
-        else
-          @redis.hmset(temp_key, hmset_args)
-          @redis.dump(temp_key)
-        end
-      Base64.strict_encode64(dump_data)
-    ensure
-      @redis.del(temp_key)
-    end
 
     {
       key: "org_membership:#{membership_objid}:object",
       type: 'hash',
       ttl_ms: -1,
       db: db,
-      dump: dump_b64,
+      # Typed payload for cross-engine load. load_keys.rb HSETs decoded fields
+      # directly into the v2 hash (no RESTORE).
+      fields_b64: serialized.each_with_object({}) { |(f, v), acc| acc[f] = Base64.strict_encode64(v.to_s) },
       record_kind: 'organization_membership',
       objid: membership_objid,
       organization_objid: org_objid,
@@ -570,11 +487,27 @@ class OrganizationGenerator
     puts "  With Stripe subscription: #{@stats[:stripe_subscriptions]}"
     puts "Skipped: #{@stats[:skipped]}"
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "\nErrors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each { |err| puts "  - #{err}" }
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "\nErrors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    - #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
+    end
   end
 end
 
@@ -582,8 +515,6 @@ def parse_args(args)
   options = {
     input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_transformed.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'organization'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -591,8 +522,6 @@ def parse_args(args)
     case arg
     when /^--input-file=(.+)$/ then options[:input_file] = Regexp.last_match(1)
     when /^--output-dir=(.+)$/ then options[:output_dir] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/ then options[:redis_url]   = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/ then options[:temp_db]      = Regexp.last_match(1).to_i
     when '--dry-run' then options[:dry_run]              = true
     when '--help', '-h'
       puts <<~HELP
@@ -604,14 +533,12 @@ def parse_args(args)
         Options:
           --input-file=FILE   Input JSONL (default: data/upgrades/v0.24.5/customer/customer_transformed.jsonl)
           --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/organization)
-          --redis-url=URL     Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output
           --help              Show this help
 
         Output files:
           organization_transformed.jsonl     - V2 organization records AND owner-
-                                               membership records (DUMP data)
+                                               membership records (typed fields_b64)
           customer_objid_to_org_objid.json   - customer_objid -> org_objid mapping
           email_to_org_objid.json            - email -> org_objid (for customdomain)
 
@@ -632,8 +559,6 @@ if __FILE__ == $0
   generator = OrganizationGenerator.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
   generator.run

@@ -95,9 +95,9 @@ module Onetime
           target     = approx_config['vhost_target']
           has_key    = !approx_config['api_key'].to_s.empty?
 
-          OT.info "[DomainValidation::Features] Loading config: strategy=#{strategy} " \
-                  "vhost_target=#{target.inspect} api_key_present=#{has_key} " \
-                  "proxy_host=#{approx_config['proxy_host'].inspect}"
+          OT.ld "[DomainValidation::Features] Loading config: strategy=#{strategy} " \
+                "vhost_target=#{target.inspect} api_key_present=#{has_key} " \
+                "proxy_host=#{approx_config['proxy_host'].inspect}"
 
           configure(
             strategy_name: strategy,

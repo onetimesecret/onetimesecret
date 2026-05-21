@@ -41,6 +41,12 @@ module Onetime
       def debug?
         OT.debug?
       end
+
+      def valid_email?(email)
+        return false if email.nil? || email.to_s.empty?
+
+        Truemail.validate(email.to_s).result.valid?
+      end
     end
 
     # Command class that delays boot (for commands that handle boot themselves)
@@ -88,6 +94,9 @@ require_relative 'cli/domains_command'
 require_relative 'cli/org/doctor_command'
 require_relative 'cli/org_command'
 require_relative 'cli/apitoken_command'
+require_relative 'cli/housekeeping_command'
+require_relative 'cli/housekeeping/list_command'
+require_relative 'cli/housekeeping/run_command'
 
 # Load migration CLI commands
 require_relative 'cli/migrations/backfill_email_hash_command'
@@ -96,7 +105,7 @@ require_relative 'cli/migrations/backfill_subscription_status_command'
 require_relative 'cli/migrations/dedupe_instances_command'
 require_relative 'cli/migrations/dedupe_relationships_command'
 require_relative 'cli/migrations/dedupe_participations_command'
-require_relative 'cli/migrations/migrate_probono_accounts_command'
+require_relative 'cli/migrations/grant_probono_entitlements_command'
 require_relative 'cli/customers/role_command'
 require_relative 'cli/passwords_command'
 require_relative 'cli/test_data_command'
@@ -114,6 +123,7 @@ require_relative 'cli/email/test_command'
 require_relative 'cli/email/templates_command'
 require_relative 'cli/email/preview_command'
 require_relative 'cli/email/config_command'
+require_relative 'cli/email/validate_command'
 
 # Load diagnostics CLI commands
 require_relative 'cli/diagnostics'

@@ -3,12 +3,15 @@
 
 # Restores original v1 records as _original_* Redis keys for rollback/audit.
 #
-# Uses Redis RESTORE to place v1 dump binaries directly as sibling keys
-# alongside v2 records, with a 30-day TTL for automatic cleanup.
+# Replays each v1 record onto target as a sibling key with a 30-day TTL for
+# automatic cleanup. Reads the typed payload (fields_b64 / value_b64 /
+# members / zmembers) emitted by dump_keys.rb and replays via native commands
+# — there is no DUMP/RESTORE path (Redis 8 RDB v12 → Valkey 8 RDB v11 won't
+# RESTORE).
 #
 # Two-phase approach:
 #   Phase A — Build v1→v2 objid mapping from transformed JSONL
-#   Phase B — Stream v1 dump JSONL and RESTORE each record to its target key
+#   Phase B — Stream v1 dump JSONL and replay each record to its target key
 #
 # Target key pattern:
 #   {v2_prefix}:{objid}:_original_{suffix}
@@ -25,12 +28,12 @@
 #
 # Options:
 #   --input-dir=DIR    Input directory with dump/transformed files (default: data/upgrades/v0.24.5)
-#   --redis-url=URL    Redis URL for RESTORE operations (env: VALKEY_URL or REDIS_URL)
+#   --redis-url=URL    Redis URL for write operations (env: VALKEY_URL or REDIS_URL)
 #   --target-db=N      Target database number (default: 0)
 #   --execute          Perform Redis writes (default: dry-run, no writes)
 #   --help             Show this help
 #
-# Default behavior is DRY-RUN. Pass --execute to perform Redis RESTORE operations.
+# Default behavior is DRY-RUN. Pass --execute to perform Redis writes.
 #
 # Default rationale: this script is a Phase 4 callee of upgrade.sh — NOT a
 # run_pipeline.sh (Phase 2) callee. The "must default to execute" contract
@@ -42,7 +45,7 @@
 # does not apply because the flag semantics are inverted).
 #
 # Input:
-#   data/upgrades/v0.24.5/{model}/{model}_dump.jsonl        (v1 dump — source of RESTORE binaries)
+#   data/upgrades/v0.24.5/{model}/{model}_dump.jsonl        (v1 typed payload — source of replay)
 #   data/upgrades/v0.24.5/{model}/{model}_transformed.jsonl (v2 records — source of v1→v2 mapping)
 #
 # Output:
@@ -52,15 +55,15 @@
 
 require 'json'
 require 'base64'
-require 'securerandom'
 require 'redis'
 require 'familia'
 require 'uri'
 
+require_relative 'lib/progress'
+
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class OriginalRecordRestorer
-  TEMP_KEY_PREFIX = '_restore_mapping_tmp_'
   THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000 # 2_592_000_000
 
   # Model configurations
@@ -140,7 +143,7 @@ class OriginalRecordRestorer
     @redis.ping
   rescue Redis::CannotConnectError => ex
     warn "Failed to connect to Redis: #{ex.message}"
-    warn 'Redis is required for RESTORE operations.'
+    warn 'Redis is required for record replay.'
     exit 1
   end
 
@@ -213,7 +216,7 @@ class OriginalRecordRestorer
       return mapping
     end
 
-    # Fallback: extract v1_identifier from transformed JSONL via temp RESTORE
+    # Fallback: extract v1_identifier from typed payload in transformed JSONL
     mapping = build_mapping_from_transformed(config, transformed_file)
     puts "  Phase A: Built #{mapping.size} mappings from transformed JSONL"
     mapping
@@ -236,7 +239,9 @@ class OriginalRecordRestorer
     mapping
   end
 
-  # Build mapping by RESTOREing transformed dumps to read v1_identifier
+  # Build mapping by reading v1_identifier from each transformed record's
+  # typed `fields_b64` payload (cheap base64 decode). Records without that
+  # payload are skipped — there is no DUMP/RESTORE fallback.
   def build_mapping_from_transformed(config, transformed_file)
     mapping = {}
 
@@ -247,8 +252,7 @@ class OriginalRecordRestorer
       objid = record[:objid]
       next unless objid
 
-      # RESTORE dump temporarily to read v1_identifier field
-      v1_identifier = read_field_from_dump(record[:dump], 'v1_identifier')
+      v1_identifier = read_v1_identifier(record)
       next unless v1_identifier
 
       # Deserialize JSON-encoded value from Familia v2 serialization
@@ -264,7 +268,16 @@ class OriginalRecordRestorer
     mapping
   end
 
-  # ── Phase B: RESTORE v1 Dumps ───────────────────────────
+  def read_v1_identifier(record)
+    return nil unless record[:fields_b64]
+    encoded = record[:fields_b64][:v1_identifier] || record[:fields_b64]['v1_identifier']
+    return nil unless encoded
+    Base64.strict_decode64(encoded.to_s)
+  rescue ArgumentError
+    nil
+  end
+
+  # ── Phase B: Replay v1 Records ──────────────────────────
 
   def restore_model(model, config, dump_file, transformed_file)
     stats = @stats[model]
@@ -273,10 +286,14 @@ class OriginalRecordRestorer
     mapping = build_v1_to_v2_mapping(model, config, dump_file, transformed_file)
     stats[:mapped] = mapping.size
 
-    # Phase B: Stream v1 dump and RESTORE each record
+    # Phase B: Stream v1 dump and replay each record onto the target
+    progress = Upgrade::ProgressReporter.new("#{model} originals")
     File.foreach(dump_file) do |line|
+      progress.tick
       record = JSON.parse(line.chomp, symbolize_names: true)
-      next unless record[:key] && record[:dump]
+      next unless record[:key]
+      next unless record[:fields_b64] || record[:value_b64] ||
+                  record[:members] || record[:zmembers]
 
       suffix = extract_suffix(record[:key])
       unless config[:related_suffixes].include?(suffix)
@@ -295,39 +312,61 @@ class OriginalRecordRestorer
       # Compute v2 target key: {v2_prefix}:{objid}:_original_{suffix}
       target_key = "#{config[:v2_prefix]}:#{objid}:_original_#{suffix}"
 
-      # Decode and RESTORE with 30-day TTL
-      restore_to_target(target_key, record[:dump], stats)
+      replay_to_target(target_key, record, stats)
     rescue JSON::ParserError => ex
       stats[:errors] << { error: ex.message }
     end
+    progress.finish
 
     puts "  Phase B: Restored #{stats[:restored]} keys (#{stats[:not_found]} not mapped, #{stats[:skipped]} skipped)"
     puts "  Errors: #{stats[:errors].size}" if stats[:errors].any?
   end
 
-  def restore_to_target(target_key, dump_b64, stats)
-    dump_data = Base64.strict_decode64(dump_b64)
-    @redis.restore(target_key, THIRTY_DAYS_MS, dump_data, replace: true)
+  # Replay a v1 dump record onto the target as `target_key` with a 30-day TTL.
+  # Reads the typed payload (fields_b64 / value_b64 / members / zmembers) and
+  # replays via native commands. All collection-type writes DEL the target
+  # first for idempotency on re-runs.
+  def replay_to_target(target_key, record, stats)
+    if record[:fields_b64]
+      fields = record[:fields_b64].each_with_object({}) do |(field, encoded), acc|
+        acc[field.to_s] = Base64.strict_decode64(encoded.to_s)
+      end
+      @redis.del(target_key)
+      @redis.hset(target_key, fields) unless fields.empty?
+      @redis.pexpire(target_key, THIRTY_DAYS_MS) unless fields.empty?
+    elsif record[:value_b64]
+      value = Base64.strict_decode64(record[:value_b64].to_s)
+      @redis.set(target_key, value, px: THIRTY_DAYS_MS)
+    elsif record[:zmembers]
+      pairs = record[:zmembers].map { |entry| [entry[1].to_f, entry[0].to_s] }
+      @redis.del(target_key)
+      unless pairs.empty?
+        @redis.zadd(target_key, pairs)
+        @redis.pexpire(target_key, THIRTY_DAYS_MS)
+      end
+    elsif record[:members]
+      members = record[:members].map(&:to_s)
+      @redis.del(target_key)
+      if members.any?
+        if record[:type].to_s == 'list'
+          @redis.rpush(target_key, members)
+        else
+          @redis.sadd(target_key, members)
+        end
+        @redis.pexpire(target_key, THIRTY_DAYS_MS)
+      end
+    else
+      stats[:skipped] += 1
+      return
+    end
+
     stats[:restored] += 1
-  rescue Redis::CommandError => ex
+  rescue Redis::CommandError, ArgumentError => ex
     stats[:errors] << { key: target_key, error: ex.message }
-    warn "  Warning: Failed to restore #{target_key}: #{ex.message}"
+    warn "  Warning: Failed to replay #{target_key}: #{ex.message}"
   end
 
   # ── Helpers ─────────────────────────────────────────────
-
-  # Read a single field from a dump binary via temp RESTORE + HGET
-  def read_field_from_dump(dump_b64, field_name)
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(dump_b64)
-
-    @redis.restore(temp_key, 0, dump_data)
-    @redis.hget(temp_key, field_name)
-  rescue Redis::CommandError
-    nil
-  ensure
-    @redis&.del(temp_key)
-  end
 
   # Deserialize a Familia v2 JSON-encoded value back to Ruby
   def deserialize_v2_value(raw_value)
@@ -403,7 +442,7 @@ def parse_args(args)
 
         Options:
           --input-dir=DIR    Input directory (default: data/upgrades/v0.24.5)
-          --redis-url=URL    Redis URL for RESTORE (env: VALKEY_URL or REDIS_URL)
+          --redis-url=URL    Redis URL for record replay (env: VALKEY_URL or REDIS_URL)
           --target-db=N      Target database number (default: 0)
           --execute          Perform Redis writes (default: dry-run, no writes)
           --help             Show this help

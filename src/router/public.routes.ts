@@ -194,7 +194,7 @@ const routes: Array<RouteRecordRaw> = [
   // Deep-link routes for external sites to link directly to specific plans
   // URL pattern: /pricing/:product/:interval
   // Examples: /pricing/identity_plus/month, /pricing/team_plus/year
-  // Resolves to plan ID: {product}_v{version}_{interval} (e.g., identity_plus_v1_monthly)
+  // Plan ID is the canonical family form (e.g., identity_plus_v1), interval is separate
   {
     path: '/pricing/:product',
     name: 'PricingProduct',
@@ -248,6 +248,37 @@ const routes: Array<RouteRecordRaw> = [
         displayPoweredBy: false,
         displayVersion: false,
         displayToggles: false,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
+    },
+  },
+  // Developer tool: preview the disabled-homepage view alongside the live MastHead
+  // (not linked from navigation). Renders the same AccessDenied content the real
+  // disabled-homepage mode shows, but with a prominent notice making clear the
+  // site is not actually disabled. Useful for verifying branding env vars
+  // (LOGO_URL, LOGO_SHOW_NAME, SITE_NAME, LOGO_PROMINENT) without toggling
+  // UI_ENABLED or auth.required on the backend.
+  {
+    path: '/disabled',
+    name: 'PreviewDisabled',
+    components: {
+      default: () => import('@/views/PreviewDisabled.vue'),
+      header: TransactionalHeader,
+      footer: TransactionalFooter,
+    },
+    meta: {
+      title: 'web.COMMON.title_home',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: false,
+        displayPoweredBy: false,
+        displayVersion: false,
+        displayToggles: true,
       },
       scopesAvailable: SCOPE_PRESETS.hideBoth,
       sentryScrubParams: false,

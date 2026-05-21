@@ -22,12 +22,25 @@ const { t } = useI18n();
   });
 
   // Domain verification status
-  const { isWarning, isError, displayStatus } = useDomainStatus(toRef(() => props.domain));
+  const { isWarning, isError, isStale, displayStatus } = useDomainStatus(
+    toRef(() => props.domain)
+  );
 
   /**
-   * Route to verify the domain (shown when DNS issues exist).
+   * Route to verify the domain (shown when DNS issues exist or the cache is stale).
    */
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain.extid}/verify`);
+
+  /**
+   * Humanized "verification check failed N ago" suffix shown next to the
+   * stale status. Only computed when vhost_fetch_failed_at is set; otherwise
+   * an empty string. See issue #3080.
+   */
+  const failedAgo = computed(() => {
+    const failedAt = props.domain.vhost_fetch_failed_at;
+    if (failedAt == null) return '';
+    return formatDistanceToNow(Number(failedAt) * 1000, { addSuffix: true });
+  });
 
   /**
    * Email config status for the domain row badge.
@@ -113,17 +126,23 @@ const { t } = useI18n();
     </div>
 
     <div class="flex items-center gap-2">
-      <!-- When DNS issues exist: show only clickable status text (no icons) -->
-      <template v-if="isWarning || isError">
+      <!-- When DNS issues exist or the last fetch failed: show clickable status text -->
+      <template v-if="isWarning || isError || isStale">
         <router-link
           :to="verifyRoute"
-          class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
+          class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+          :aria-label="t('web.domains.verify_now')">
           <OIcon
             collection="mdi"
-            name="alert-circle"
+            :name="isStale ? 'help-circle' : 'alert-circle'"
             class="size-4"
             aria-hidden="true" />
-          {{ displayStatus }}
+          <span>{{ displayStatus }}</span>
+          <span
+            v-if="isStale && failedAgo"
+            class="text-gray-500 dark:text-gray-400">
+            · {{ t('web.domains.last_check_failed_ago', [failedAgo]) }}
+          </span>
         </router-link>
       </template>
 

@@ -22,6 +22,8 @@ require 'json'
 require 'base64'
 require 'fileutils'
 
+require_relative '../lib/progress'
+
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/05-secret/create_indexes.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
@@ -42,7 +44,12 @@ class SecretIndexCreator
       email_keys_skipped: 0,
       missing_created: 0,
       missing_objid: 0,
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
   end
 
@@ -98,14 +105,16 @@ class SecretIndexCreator
 
       @stats[:records_processed] += 1
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: ex.message }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
 
     @stats[:records_skipped] = @stats[:records_read] - @stats[:records_processed]
   end
 
   def process_dump(out)
+    progress = Upgrade::ProgressReporter.new('secret indexes')
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:records_read] += 1
       record                 = JSON.parse(line.chomp)
 
@@ -153,9 +162,10 @@ class SecretIndexCreator
 
       @stats[:records_processed] += 1
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: ex.message }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
       @stats[:records_skipped] += 1
     end
+    progress.finish
   end
 
   def extract_objid(key)
@@ -171,18 +181,33 @@ class SecretIndexCreator
     puts "Records skipped:   #{@stats[:records_skipped]} (#{@stats[:email_keys_skipped]} :email suffix keys)"
     puts "Missing created:   #{@stats[:missing_created]}" if @stats[:missing_created] > 0
     puts "Missing objid:     #{@stats[:missing_objid]}" if @stats[:missing_objid] > 0
-    puts "Errors:            #{@stats[:errors].size}" if @stats[:errors].any?
-
-    if @stats[:errors].any?
-      puts "\nFirst 5 errors:"
-      @stats[:errors].first(5).each do |err|
-        puts "  Line #{err[:line]}: #{err[:error]}"
-      end
-    end
 
     puts "\nIndexes created:"
     puts "  - secret:instances (sorted set): #{@stats[:records_processed]} members"
     puts "  - secret:objid_lookup (hash): #{@stats[:records_processed]} entries"
+
+    print_error_summary
+  end
+
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
+    end
   end
 end
 

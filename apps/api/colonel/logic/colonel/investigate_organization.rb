@@ -139,25 +139,6 @@ module ColonelAPI
           }
         end
 
-        # Check if two plan IDs match, accounting for interval suffix
-        #
-        # @param local_planid [String] Plan ID stored locally on organization
-        # @param stripe_planid [String] Plan ID resolved from Stripe subscription
-        # @return [Boolean] True if plans match (same base identity)
-        # @see Billing::BillingService.plans_match?
-        def plans_match?(local_planid, stripe_planid)
-          Billing::BillingService.plans_match?(local_planid, stripe_planid)
-        end
-
-        # Normalize a plan ID by stripping interval suffix
-        #
-        # @param planid [String] Plan ID to normalize
-        # @return [String] Normalized plan ID without interval suffix
-        # @see Billing::BillingService.normalize_plan_id
-        def normalize_plan_id(planid)
-          Billing::BillingService.normalize_plan_id(planid)
-        end
-
         # Resolve plan_id using catalog-first approach
         #
         # @see Billing::BillingService.resolve_plan_id_from_subscription

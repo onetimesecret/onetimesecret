@@ -1045,6 +1045,10 @@
     "text": "DNS Incorrect",
     "content_hash": "7848d601"
   },
+  "web.STATUS.unverified": {
+    "text": "Unverified",
+    "content_hash": "33c8e8de"
+  },
   "web.STATUS.active": {
     "text": "Active",
     "content_hash": "92340695"
@@ -1455,5 +1459,20 @@
     "text": "or",
     "context": "Alternative conjunction (e.g., Sign in or use SSO)",
     "content_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "Copied",
+    "context": "Feedback when content copied to clipboard",
+    "content_hash": "8d525e5f"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Copy email address",
+    "context": "Tooltip for copy email button in user menu",
+    "content_hash": "a7d3e1b2"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Copy account ID",
+    "context": "Tooltip for copy ID button in user menu",
+    "content_hash": "b8e4f2c3"
   }
 }

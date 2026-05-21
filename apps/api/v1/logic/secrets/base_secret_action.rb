@@ -61,11 +61,6 @@ module V1::Logic
       # maxLength: 10000 documented in the OpenAPI definition.
       V1_MAX_SECRET_SIZE = 10_000
 
-      # Basic email shape check for parsing recipient input. Only used
-      # to extract email-shaped tokens from free-text input; actual
-      # validation is done by Truemail in validate_recipient.
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/
-
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
 
@@ -200,12 +195,12 @@ module V1::Logic
         @passphrase = payload['passphrase'].to_s
       end
 
+      # Sanitizes but does not validate as an email address.
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
         @recipient = payload['recipient'].collect { |email_address|
           next if email_address.to_s.empty?
           sanitized_email = sanitize_email(email_address)
-          sanitized_email.scan(EMAIL_REGEX).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
@@ -422,31 +417,57 @@ module V1::Logic
             custom_domain?:  #{custom_domain?}
             allow_public?:   #{domain_record.allow_public_homepage?}
             owner?:          #{domain_record.owner?(@cust)}
+            verified?:       #{domain_record.verified}
         DEBUG
 
         validate_domain_permissions(domain_record)
+        validate_domain_verification(domain_record)
+      end
+
+      # Rejects secret creation against an unverified custom share_domain when
+      # the features.domains.require_verified toggle is on. Canonical domains
+      # are filtered out earlier in process_share_domain via default_domain?.
+      #
+      # @param domain_record [CustomDomain] The domain record to check
+      # @raise [FormError] If require_verified is on and the domain is not
+      #   yet verified
+      def validate_domain_verification(domain_record)
+        return unless OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        return if domain_record.verified.to_s == 'true'
+
+        OT.li "[validate_domain_verif]: #{share_domain} unverified [#{cust&.custid}]"
+        raise_form_error "Custom domain is not verified: #{share_domain}"
       end
 
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
       # @raise [FormError] If access is not permitted
+      # @see docs/specs/domain-permissions.md for the full truth table
       #
-      # Validation Rules:
-      # - On custom domains:
-      #   - Allows access if public sharing is enabled
-      #   - Rejects if public sharing is disabled
-      # - On canonical domain:
-      #   - Requires domain ownership
+      # Validation Rules (issue #3073):
+      # - Domain owner / org member: always permitted, regardless of toggle.
+      # - Authenticated non-owner: never permitted. The Homepage Secrets toggle
+      #   gates anonymous public intake only.
+      # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+      # - Anonymous on canonical with share_domain set: not permitted.
       def validate_domain_permissions(domain_record)
+        # Owner / org member can always use the domain.
+        return if domain_record.owner?(@cust)
+
+        # Authenticated non-owner: permission denied regardless of toggle.
+        unless cust.nil? || cust.anonymous?
+          OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+          raise_form_error "You do not have permission to use domain: #{share_domain}"
+        end
+
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
         if custom_domain?
           return if domain_record.allow_public_homepage?
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
-        return if domain_record.owner?(@cust)
-
-        OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+        # Anonymous on canonical domain attempting to use someone else's domain.
         raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
     end

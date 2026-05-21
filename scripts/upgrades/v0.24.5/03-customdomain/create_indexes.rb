@@ -2,8 +2,8 @@
 # frozen_string_literal: true
 
 # Creates CustomDomain indexes from dump file.
-# Reads JSONL dump, decodes Redis DUMP data, extracts fields,
-# and outputs index commands as JSONL.
+# Reads JSONL dump with typed payloads (fields_b64), decodes base64-encoded
+# field values directly, and outputs index commands as JSONL.
 #
 # Usage:
 #   ruby scripts/migrations/jan24/create_indexes_customdomain.rb [OPTIONS]
@@ -12,8 +12,6 @@
 #   --input-file=FILE       Input JSONL dump file (default: data/upgrades/v0.24.5/customdomain/customdomain_dump.jsonl)
 #   --output-dir=DIR        Output directory (default: data/upgrades/v0.24.5/customdomain)
 #   --customer-lookup=FILE  Email->org_objid JSON map (default: data/upgrades/v0.24.5/organization/email_to_org_objid.json)
-#   --redis-url=URL         Redis URL for temporary restore (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N             Temporary database for restore operations (default: 15)
 #   --dry-run               Parse and count without writing output
 #
 # Output: customdomain_indexes.jsonl with Redis commands for:
@@ -25,28 +23,22 @@
 #   - custom_domain:owners (HSET) - domainid -> "org_id"
 #   - organization:{org_id}:domains (ZADD) - org participation
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
-require 'uri'
+
+require_relative '../lib/progress'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/03-customdomain/create_indexes.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class CustomDomainIndexCreator
-  TEMP_KEY_PREFIX = '_migrate_tmp_'
-
-  def initialize(input_file:, output_dir:, customer_lookup_file:, redis_url:, temp_db:, dry_run: false)
+  def initialize(input_file:, output_dir:, customer_lookup_file:, dry_run: false)
     @input_file           = input_file
     @output_dir           = output_dir
     @customer_lookup_file = customer_lookup_file
-    @redis_url            = redis_url
-    @temp_db              = temp_db
     @dry_run              = dry_run
-    @redis                = nil
 
     @customer_to_org = load_customer_lookup
 
@@ -54,6 +46,7 @@ class CustomDomainIndexCreator
       records_read: 0,
       objects_processed: 0,
       instance_index_source: nil,
+      instance_index_source_records: 0,  # Count of customdomain:values records (typically 0 or 1)
       instance_entries: 0,
       display_domain_lookups: 0,
       extid_lookups: 0,
@@ -63,18 +56,24 @@ class CustomDomainIndexCreator
       skipped: 0,
       missing_org_lookup: 0,
       missing_org_details: [],  # Details of domains missing org lookup
-      errors: [],
+      errors: {
+        schema_gaps: [],
+        orphans: [],
+        data_corruption: [],
+        processing_failures: [],
+      },
     }
   end
 
   def run
     validate_input_file
-    connect_redis unless @dry_run
 
     commands = []
+    progress = Upgrade::ProgressReporter.new('domain indexes')
 
     # Process the dump file
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:records_read] += 1
       record                 = JSON.parse(line, symbolize_names: true)
 
@@ -87,6 +86,7 @@ class CustomDomainIndexCreator
       case record[:key]
       when 'customdomain:values'
         # Existing instance index - rename it
+        @stats[:instance_index_source_records] += 1
         commands.concat(process_instance_index(record))
       when /:object$/
         # CustomDomain object hash - extract fields for indexes
@@ -95,8 +95,9 @@ class CustomDomainIndexCreator
         @stats[:skipped] += 1
       end
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:records_read], error: "JSON parse error: #{ex.message}" }
     end
+    progress.finish
 
     # Instance index is always generated from V2 objects (V1 hex IDs != V2 UUIDs)
     @stats[:instance_index_source] = 'generated'
@@ -106,8 +107,6 @@ class CustomDomainIndexCreator
 
     print_summary
     @stats
-  ensure
-    cleanup_redis
   end
 
   private
@@ -132,56 +131,24 @@ class CustomDomainIndexCreator
     end
   end
 
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
-  end
-
   # Read V1 ZSET for validation/reporting only. Members are V1 hex IDs which
   # don't match V2 UUIDs, so the actual instance index must be generated from
   # transformed objects (the "generated" path in process_customdomain_object).
   def process_instance_index(record)
     return [] if @dry_run
 
-    temp_key  = "#{TEMP_KEY_PREFIX}instance_index"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      members_with_scores = @redis.zrange(temp_key, 0, -1, with_scores: true)
-      @stats[:v1_instance_members] = members_with_scores.size
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
-    end
+    members = record[:zmembers] || []
+    @stats[:v1_instance_members] = members.size
 
     [] # No commands — V2 index is generated from objects
   end
 
   def process_customdomain_object(record)
-    commands                    = []
-    @stats[:objects_processed] += 1
+    commands = []
 
     if @dry_run
+      # Count records seen in dry-run for parity with non-dry-run reconciliation.
+      @stats[:objects_processed] += 1
       return commands
     end
 
@@ -191,122 +158,120 @@ class CustomDomainIndexCreator
 
     # Extract identifier from key (custom_domain:{id}:object)
     key_parts = record[:key].split(':')
-    return commands if key_parts.size < 3
+    if key_parts.size < 3
+      @stats[:skipped] += 1
+      return commands
+    end
 
-    # Restore hash to temp key and read fields
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
+    fields = (record[:fields_b64] || {}).each_with_object({}) do |(field, b64), acc|
+      acc[field.to_s] = Base64.strict_decode64(b64.to_s)
+    end
 
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      fields = @redis.hgetall(temp_key)
+    # Strict consistency: the enriched objid from the JSONL must match the
+    # :object hash's own objid field when present. A mismatch means the dump
+    # was transformed against one seed while the JSONL was enriched against
+    # another — emitting commands against mixed sources is the mechanism that
+    # produced the split-brain corruption in #3020. Halt loudly.
+    if objid && fields['objid'] && objid != fields['objid']
+      raise "customdomain/create_indexes: objid mismatch for #{record[:key]}. " \
+            "JSONL.objid=#{objid.inspect} vs :object.objid=#{fields['objid'].inspect}. " \
+            'Regenerate from a single consistent dump+enrichment pass.'
+    end
 
-      # Strict consistency: the enriched objid from the JSONL must match the
-      # :object hash's own objid field when present. A mismatch means the dump
-      # was transformed against one seed while the JSONL was enriched against
-      # another — emitting commands against mixed sources is the mechanism that
-      # produced the split-brain corruption in #3020. Halt loudly.
-      if objid && fields['objid'] && objid != fields['objid']
-        raise "customdomain/create_indexes: objid mismatch for #{record[:key]}. " \
-              "JSONL.objid=#{objid.inspect} vs :object.objid=#{fields['objid'].inspect}. " \
-              'Regenerate from a single consistent dump+enrichment pass.'
-      end
+    # Use enriched objid, or fall back to domainid from hash/key
+    domainid = objid || fields['domainid'] || key_parts[1]
 
-      # Use enriched objid, or fall back to domainid from hash/key
-      domainid = objid || fields['domainid'] || key_parts[1]
+    # Use enriched extid, or fall back to hash field
+    extid ||= fields['extid']
 
-      # Use enriched extid, or fall back to hash field
-      extid ||= fields['extid']
+    display_domain = fields['display_domain']
+    custid         = fields['custid']
+    created        = record[:created] || fields['created']
 
-      display_domain = fields['display_domain']
-      custid         = fields['custid']
-      created        = record[:created] || fields['created']
+    if domainid.nil? || domainid.empty?
+      @stats[:skipped] += 1
+      return commands
+    end
 
-      return commands if domainid.nil? || domainid.empty?
+    # Count :objects_processed only for the success path so reconciliation
+    # (objects_processed + skipped + instance_index_source_records) matches
+    # records_read exactly.
+    @stats[:objects_processed] += 1
 
-      # Resolve custid -> org_id
-      org_id = resolve_org_id(
-        custid,
-        {
-          domainid: domainid,
-          extid: extid,
-          display_domain: display_domain,
-          created: created,
-        },
-      )
+    # Resolve custid -> org_id
+    org_id = resolve_org_id(
+      custid,
+      {
+        domainid: domainid,
+        extid: extid,
+        display_domain: display_domain,
+        created: created,
+      },
+    )
 
-      created_ts = created.to_i
-      created_ts = Time.now.to_i if created_ts.zero?
+    created_ts = created.to_i
+    created_ts = Time.now.to_i if created_ts.zero?
 
-      # Instance index entry (raw identifier for Familia SortedSet compatibility,
-      # not JSON-encoded — unlike HashKey values which use JSON encoding).
-      if @stats[:instance_index_source] != 'existing'
-        commands << {
-          command: 'ZADD',
-          key: 'custom_domain:instances',
-          args: [created_ts.to_i, domainid],
-        }
-        @stats[:instance_entries] += 1
-      end
+    # Instance index entry (raw identifier for Familia SortedSet compatibility,
+    # not JSON-encoded — unlike HashKey values which use JSON encoding).
+    if @stats[:instance_index_source] != 'existing'
+      commands << {
+        command: 'ZADD',
+        key: 'custom_domain:instances',
+        args: [created_ts.to_i, domainid],
+      }
+      @stats[:instance_entries] += 1
+    end
 
-      # Display domain lookups
-      if display_domain && !display_domain.empty?
-        commands << {
-          command: 'HSET',
-          key: 'custom_domain:display_domain_index',
-          args: [display_domain, domainid.to_json],
-        }
-        commands << {
-          command: 'HSET',
-          key: 'custom_domain:display_domains',
-          args: [display_domain, domainid.to_json],
-        }
-        @stats[:display_domain_lookups] += 1
-      end
-
-      # ExtID lookup (only if extid available)
-      if extid && !extid.empty?
-        commands << {
-          command: 'HSET',
-          key: 'custom_domain:extid_lookup',
-          args: [extid, domainid.to_json],
-        }
-        @stats[:extid_lookups] += 1
-      end
-
-      # ObjID lookup (domainid = objid for customdomain)
+    # Display domain lookups
+    if display_domain && !display_domain.empty?
       commands << {
         command: 'HSET',
-        key: 'custom_domain:objid_lookup',
-        args: [domainid, domainid.to_json],
+        key: 'custom_domain:display_domain_index',
+        args: [display_domain, domainid.to_json],
       }
-      @stats[:objid_lookups] += 1
+      commands << {
+        command: 'HSET',
+        key: 'custom_domain:display_domains',
+        args: [display_domain, domainid.to_json],
+      }
+      @stats[:display_domain_lookups] += 1
+    end
 
-      # Owner mapping (domainid -> org_id)
-      if org_id
-        commands << {
-          command: 'HSET',
-          key: 'custom_domain:owners',
-          args: [domainid, org_id.to_json],
-        }
-        @stats[:owner_mappings] += 1
+    # ExtID lookup (only if extid available)
+    if extid && !extid.empty?
+      commands << {
+        command: 'HSET',
+        key: 'custom_domain:extid_lookup',
+        args: [extid, domainid.to_json],
+      }
+      @stats[:extid_lookups] += 1
+    end
 
-        # Organization participation (raw identifier for Familia SortedSet compatibility)
-        commands << {
-          command: 'ZADD',
-          key: "organization:#{org_id}:domains",
-          args: [created_ts.to_i, domainid],
-        }
-        @stats[:org_participation] += 1
-      end
-    rescue Redis::CommandError => ex
-      @stats[:errors] << { key: record[:key], error: "Restore failed: #{ex.message}" }
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
+    # ObjID lookup (domainid = objid for customdomain)
+    commands << {
+      command: 'HSET',
+      key: 'custom_domain:objid_lookup',
+      args: [domainid, domainid.to_json],
+    }
+    @stats[:objid_lookups] += 1
+
+    # Owner mapping (domainid -> org_id)
+    if org_id
+      commands << {
+        command: 'HSET',
+        key: 'custom_domain:owners',
+        args: [domainid, org_id.to_json],
+      }
+      @stats[:owner_mappings] += 1
+
+      # Organization participation (raw identifier for Familia SortedSet compatibility)
+      commands << {
+        command: 'ZADD',
+        key: "organization:#{org_id}:domains",
+        args: [created_ts.to_i, domainid],
+      }
+      @stats[:org_participation] += 1
     end
 
     commands
@@ -356,8 +321,17 @@ class CustomDomainIndexCreator
     puts "\n=== CustomDomain Index Creation Summary ==="
     puts "Input file: #{@input_file}"
     puts "Records read: #{@stats[:records_read]}"
-    puts "Objects processed: #{@stats[:objects_processed]}"
-    puts "Skipped records: #{@stats[:skipped]}"
+    puts "  Objects processed: #{@stats[:objects_processed]}"
+    puts "  Instance index source: #{@stats[:instance_index_source_records]}"
+    puts "  Skipped: #{@stats[:skipped]}"
+    reconciled = @stats[:objects_processed] +
+                 @stats[:instance_index_source_records] +
+                 @stats[:skipped]
+    if reconciled == @stats[:records_read]
+      puts "  (Reconciled: #{reconciled} = #{@stats[:records_read]} OK)"
+    else
+      puts "  WARNING: Reconciliation mismatch: #{reconciled} != #{@stats[:records_read]}"
+    end
     puts
 
     puts 'Instance Index:'
@@ -392,13 +366,29 @@ class CustomDomainIndexCreator
       puts
     end
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each do |err|
-      puts "  #{err}"
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size}"
+    # Customdomain orphans (e.g., missing org lookup) are reported separately via
+    # missing_org_lookup; this bucket is reserved for index-without-:object cases.
+    puts "  Orphans:         #{buckets[:orphans].size}"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
     end
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
   end
 end
 
@@ -407,8 +397,6 @@ def parse_args(args)
     input_file: File.join(DEFAULT_DATA_DIR, 'customdomain/customdomain_dump.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'customdomain'),
     customer_lookup: 'data/upgrades/v0.24.5/organization/email_to_org_objid.json',
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -420,10 +408,6 @@ def parse_args(args)
       options[:output_dir] = Regexp.last_match(1)
     when /^--customer-lookup=(.+)$/
       options[:customer_lookup] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--dry-run'
       options[:dry_run] = true
     when '--help', '-h'
@@ -436,8 +420,6 @@ def parse_args(args)
           --input-file=FILE       Input JSONL dump (default: data/upgrades/v0.24.5/customdomain/customdomain_dump.jsonl)
           --output-dir=DIR        Output directory (default: data/upgrades/v0.24.5/customdomain)
           --customer-lookup=FILE  Email->org_objid JSON map (default: data/upgrades/v0.24.5/organization/email_to_org_objid.json)
-          --redis-url=URL         Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N             Temp database number (default: 15)
           --dry-run               Parse without writing output
           --help                  Show this help
 
@@ -469,8 +451,6 @@ if __FILE__ == $0
     input_file: options[:input_file],
     output_dir: options[:output_dir],
     customer_lookup_file: options[:customer_lookup],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
 

@@ -70,7 +70,13 @@ module Onetime::Receipt::Features
       base.safe_dump_field :created
       base.safe_dump_field :updated
       base.safe_dump_field :shared
-      base.safe_dump_field :recipients
+      # Obscure recipient emails at serialization time so the raw address
+      # never reaches the frontend, while the underlying record keeps the
+      # clean value. obscure_email is a no-op when the value isn't an email
+      # (e.g. already-obscured legacy data, or non-email free text), so this
+      # is safe to apply unconditionally.
+      base.safe_dump_field :recipients, ->(m) { OT::Utils.obscure_email(m.recipients.to_s) }
+      base.safe_dump_field :recipient_name
       base.safe_dump_field :memo
       base.safe_dump_field :shortid, ->(m) { m.identifier.slice(0, 8) }
       base.safe_dump_field :show_recipients, ->(m) { !m.recipients.to_s.empty? }

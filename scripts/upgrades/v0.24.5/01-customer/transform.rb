@@ -7,8 +7,9 @@
 # based on the migration spec. This includes:
 # - Renaming keys from email-based custid to objid.
 # - Transforming the main customer object hash.
-# - Creating a new Redis DUMP for transformed objects.
-# - Outputting a new JSONL file with the V2 records.
+# - Outputting a new JSONL file with the V2 records using typed payload
+#   (fields_b64) — no Redis round-trip required. v1 hash fields are read by
+#   base64-decoding record[:fields_b64] (emitted by dump_keys.rb).
 #
 # Usage:
 #   ruby scripts/upgrades/v0.24.5/01-customer/transform.rb [OPTIONS]
@@ -16,27 +17,23 @@
 # Options:
 #   --input-file=FILE   Input JSONL dump file (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
 #   --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/customer)
-#   --redis-url=URL     Redis URL for temporary operations (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N         Temporary database for restore/dump (default: 15)
 #   --dry-run           Parse and count without writing output
 #
-# Output: customer_transformed.jsonl with V2 records in Redis DUMP format.
+# Output: customer_transformed.jsonl with V2 records in typed-payload format.
 
-require 'redis'
 require 'json'
 require 'base64'
 require 'fileutils'
-require 'securerandom'
 require 'familia'
-require 'uri'
+
+require_relative '../lib/progress'
+require_relative '../lib/v1_hash'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/01-customer/transform.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class CustomerTransformer
-  TEMP_KEY_PREFIX = '_migrate_tmp_transform_'
-
   # Counter fields that become standalone Redis String keys in v2 (Familia class_counter)
   COUNTER_FIELDS = %w[secrets_created secrets_burned secrets_shared emails_sent].freeze
 
@@ -83,17 +80,20 @@ class CustomerTransformer
     'v1_identifier' => :string,
     'v1_custid' => :string,
     'migration_status' => :string,
+    'migration_comment' => :string,
     'migrated_at' => :timestamp,
-    # _original_record removed: v1 data now stored as _original_object hashkey via RESTORE
+    # _original_record removed: v1 data now stored as _original_object hashkey by enrich_with_original_record.rb
   }.freeze
 
-  def initialize(input_file:, output_dir:, redis_url:, temp_db:, dry_run: false)
+  # Sentinel returned by parse_to_ruby_type when a field has no FIELD_TYPES
+  # mapping. Caller drops the field from the v2 hash and records the field name
+  # in a migration_comment instead of failing the entire customer record.
+  UNKNOWN_FIELD = :__unknown_field__
+
+  def initialize(input_file:, output_dir:, dry_run: false)
     @input_file = input_file
     @output_dir = output_dir
-    @redis_url  = redis_url
-    @temp_db    = temp_db
     @dry_run    = dry_run
-    @redis      = nil
 
     @stats = {
       customers_processed: 0,
@@ -107,31 +107,39 @@ class CustomerTransformer
       global_record_found: false,
       global_counters: {},            # Counter values from GLOBAL record
       tallied_counters: Hash.new(0),  # Tallied from individual customers
-      errors: [],
+      errors: {
+        schema_gaps: [],          # unknown fields encountered (recorded in migration_comment)
+        orphans: [],              # custid/email present in index but no :object record
+        data_corruption: [],      # malformed records, JSON parse errors, missing fields_b64
+        processing_failures: [],  # everything else (rescue StandardError)
+      },
     }
   end
 
   def run
     validate_input_file
-    connect_redis unless @dry_run
 
     # 1. Group records by customer ID from the dump file
     records_by_customer = group_records_by_customer
 
     # 2. Process each customer group to generate V2 records
     v2_records = []
+    process_progress = Upgrade::ProgressReporter.new('customers transformed')
     records_by_customer.each do |custid, records|
+      process_progress.tick
       v2_records.concat(process_customer(custid, records))
     rescue StandardError => ex
-      @stats[:errors] << { customer: redact_email(custid), error: "Processing failed: #{ex.message}" }
+      # Schema gaps are now soft-failed inside serialize_for_v2; reaching this
+      # rescue with an "Unknown field" message would indicate a regression.
+      bucket = ex.message.start_with?('Unknown field') ? :schema_gaps : :processing_failures
+      @stats[:errors][bucket] << { customer: redact_email(custid), error: "Processing failed: #{ex.message}" }
     end
+    process_progress.finish
 
     # 3. Write the transformed records to the output file
     write_output(v2_records) unless @dry_run
 
     print_summary
-  ensure
-    cleanup_redis
   end
 
   private
@@ -142,41 +150,13 @@ class CustomerTransformer
     end
   end
 
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping # Verify connection
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    # Clean up any temporary keys
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
-  end
-
-  # Pipelining is opt-in via OTS_MIGRATION_PIPELINE. Any truthy value enables
-  # within-customer pipelining of RESTORE+HGETALL, HMSET+DUMP, and the
-  # counter SET+DUMP fan-out. DEL stays in `ensure` blocks unchanged so temp
-  # keys are cleaned up on every path. Memoized; ENV is read once.
-  def pipeline_enabled?
-    return @pipeline_enabled if defined?(@pipeline_enabled)
-    raw = ENV['OTS_MIGRATION_PIPELINE'].to_s.strip.downcase
-    @pipeline_enabled = !(raw.empty? || %w[0 false no off].include?(raw))
-  end
-
   def group_records_by_customer
     puts "Reading and grouping records from #{@input_file}..."
-    groups = Hash.new { |h, k| h[k] = [] }
+    groups   = Hash.new { |h, k| h[k] = [] }
+    progress = Upgrade::ProgressReporter.new('records read')
 
     File.foreach(@input_file) do |line|
+      progress.tick
       @stats[:v1_records_read] += 1
       record                    = JSON.parse(line, symbolize_names: true)
 
@@ -192,8 +172,9 @@ class CustomerTransformer
       custid = key_parts[1]
       groups[custid] << record
     rescue JSON::ParserError => ex
-      @stats[:errors] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { line: @stats[:v1_records_read], error: "JSON parse error: #{ex.message}" }
     end
+    progress.finish
     puts "Found #{@stats[:v1_records_read]} records for #{groups.size} distinct customers."
     groups
   end
@@ -207,18 +188,26 @@ class CustomerTransformer
     object_record = records.find { |r| r[:key].end_with?(':object') }
     unless object_record
       @stats[:skipped_customers] += 1
-      @stats[:errors] << { customer: redact_email(custid), error: 'No :object record found.' }
+      @stats[:errors][:orphans] << { customer: redact_email(custid), error: 'No :object record found.' }
       return []
     end
 
     return [] if @dry_run # Stop here for dry run after counting
 
-    v1_fields    = restore_and_read_hash(object_record)
+    v1_fields = read_v1_hash(object_record)
+    unless v1_fields
+      # read_v1_hash already logged :data_corruption when fields_b64 was missing
+      @stats[:skipped_customers] += 1
+      return []
+    end
+
     objid, extid = resolve_identifiers(object_record, v1_fields)
 
     unless objid && !objid.empty?
       @stats[:skipped_customers] += 1
-      @stats[:errors] << { customer: redact_email(custid), error: 'Could not resolve objid.' }
+      # After Fix 4 (enricher synthesizes missing `created`), this bucket should
+      # mostly stay empty; remaining hits indicate dump corruption.
+      @stats[:errors][:data_corruption] << { customer: redact_email(custid), error: 'Could not resolve objid.' }
       return []
     end
 
@@ -244,7 +233,7 @@ class CustomerTransformer
   def process_global_record(records)
     object_record = records.find { |r| r[:key].end_with?(':object') }
     unless object_record
-      @stats[:errors] << { customer: 'GLOBAL', error: 'No :object record found.' }
+      @stats[:errors][:orphans] << { customer: 'GLOBAL', error: 'No :object record found.' }
       return []
     end
 
@@ -254,19 +243,31 @@ class CustomerTransformer
 
     # Decode GLOBAL hash to extract counter values for summary comparison
     begin
-      global_fields = restore_and_read_hash(object_record)
-      COUNTER_FIELDS.each do |field|
-        @stats[:global_counters][field] = global_fields[field].to_i
+      global_fields = read_v1_hash(object_record)
+      if global_fields
+        COUNTER_FIELDS.each do |field|
+          @stats[:global_counters][field] = global_fields[field].to_i
+        end
       end
+      # If global_fields is nil, read_v1_hash already logged :data_corruption.
     rescue StandardError => ex
-      @stats[:errors] << { customer: 'GLOBAL', error: "Failed to decode counters: #{ex.message}" }
+      @stats[:errors][:data_corruption] << { customer: 'GLOBAL', error: "Failed to decode counters: #{ex.message}" }
     end
 
-    # Write through with renamed key, preserving original dump data
+    # Write through with renamed key. The fields_b64 typed payload from
+    # dump_keys.rb rides through unchanged for load_keys.rb to SET into v2.
     renamed_record = object_record.dup
     renamed_record[:key] = 'onetime:GLOBAL_STATS:object'
 
     [renamed_record]
+  end
+
+  # Decode v1 hash fields from the typed payload emitted by dump_keys.rb.
+  # Delegates to the shared Upgrade::V1Hash module so all 5 transforms share
+  # one implementation. Returns nil (and logs :data_corruption) if the
+  # `fields_b64` payload is missing or malformed.
+  def read_v1_hash(record)
+    Upgrade::V1Hash.read(record, @stats[:errors])
   end
 
   # Tally counter fields from an individual customer for summary comparison
@@ -279,62 +280,28 @@ class CustomerTransformer
 
   # Extract counter fields from customer hash and emit as standalone JSONL records.
   # In v2, Familia class_counter fields are Redis String keys, not hash fields.
+  # Each emitted record carries a typed `value_b64` payload; load_keys.rb SETs
+  # the decoded bytes into the v2 String key (no RESTORE).
   def externalize_counters(v1_fields, objid, original_record)
-    pending = []
-    COUNTER_FIELDS.each do |field|
+    COUNTER_FIELDS.each_with_object([]) do |field, acc|
       value = v1_fields[field].to_i
       next if value.zero?
 
-      pending << [field, value, "#{TEMP_KEY_PREFIX}ctr_#{SecureRandom.hex(4)}"]
-    end
-    return [] if pending.empty?
-
-    if pipeline_enabled?
-      # Pipeline all SET+DUMP pairs for this customer's counters in one RTT,
-      # then DEL the temp keys in one RTT. For a customer with N non-zero
-      # counters this collapses 3N round trips into 2. The DEL pipeline lives
-      # in `ensure` so a transient failure mid-SET+DUMP does not leak temp keys
-      # for `cleanup_redis` to mop up later.
-      begin
-        results = @redis.pipelined do |pipe|
-          pending.each do |_field, value, temp_key|
-            pipe.set(temp_key, value)
-            pipe.dump(temp_key)
-          end
-        end
-        pending.each_with_index.map do |(field, _value, _temp_key), i|
-          dump_data = results[(i * 2) + 1]
-          @stats[:externalized_counters] += 1
-          {
-            key: "customer:#{objid}:#{field}",
-            type: 'string',
-            ttl_ms: -1,
-            db: original_record[:db],
-            dump: Base64.strict_encode64(dump_data),
-          }
-        end
-      ensure
-        @redis.pipelined { |pipe| pending.each { |_, _, tk| pipe.del(tk) } }
-      end
-    else
-      pending.map do |field, value, temp_key|
-        dump_b64 = begin
-          @redis.set(temp_key, value)
-          dump_data = @redis.dump(temp_key)
-          Base64.strict_encode64(dump_data)
-        ensure
-          @redis.del(temp_key)
-        end
-
-        @stats[:externalized_counters] += 1
-        {
-          key: "customer:#{objid}:#{field}",
-          type: 'string',
-          ttl_ms: -1,
-          db: original_record[:db],
-          dump: dump_b64,
-        }
-      end
+      @stats[:externalized_counters] += 1
+      acc << {
+        key: "customer:#{objid}:#{field}",
+        type: 'string',
+        ttl_ms: -1,
+        db: original_record[:db],
+        # Typed payload for cross-engine load. The counter's stored form is
+        # the integer text — base64-encode the raw bytes so load_keys.rb
+        # can SET it directly.
+        value_b64: Base64.strict_encode64(value.to_s),
+        # Plain-integer counter value for create_indexes.rb's
+        # accumulate_externalized_counters tally. load_keys.rb prefers
+        # :value_b64; this extra key is invisible to the loader.
+        value: value,
+      }
     end
   end
 
@@ -354,44 +321,47 @@ class CustomerTransformer
     end
     v2_fields['custid'] = objid
 
-    # Add migration tracking fields
+    # Add migration tracking fields.
     # NOTE: v1 original data is restored as _original_object hashkey by enrich_with_original_record.rb
-    v2_fields['v1_identifier']    = v1_record[:key]
-    v2_fields['migration_status'] = 'completed'
-    v2_fields['migrated_at']      = Time.now.to_f.to_s
+    v2_fields['v1_identifier'] = v1_record[:key]
+    v2_fields['migrated_at']   = Time.now.to_f.to_s
 
-    # Create new dump for the transformed hash with Familia v2 JSON serialization
-    temp_key    = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    v2_dump_b64 = begin
-      # Serialize field values to JSON for Familia v2 compatibility
-      v2_serialized = serialize_for_v2(v2_fields)
-      # NOTE: hmset is deprecated, but redis-rb gem maps it to HMSET for older redis-server versions
-      # For modern Redis, this would be `hset(temp_key, v2_serialized)`
-      hmset_args = v2_serialized.to_a.flatten
-      dump_data =
-        if pipeline_enabled?
-          _hmset_result, dumped = @redis.pipelined do |pipe|
-            pipe.hmset(temp_key, hmset_args)
-            pipe.dump(temp_key)
-          end
-          dumped
-        else
-          @redis.hmset(temp_key, hmset_args)
-          @redis.dump(temp_key)
-        end
-      Base64.strict_encode64(dump_data)
-    ensure
-      @redis.del(temp_key)
-    end
+    # migration_status precedence: enricher-supplied value (e.g.,
+    # 'created_synthesized' from enrich_with_identifiers.rb) wins; otherwise
+    # default to 'completed'. The enriched value rides on the JSONL record's
+    # top-level keys, not inside the binary dump, so we read v1_record here.
+    enricher_status = v1_record[:migration_status]
+    v2_fields['migration_status'] = if enricher_status && !enricher_status.to_s.empty?
+                                      enricher_status.to_s
+                                    else
+                                      'completed'
+                                    end
+
+    # migration_comment seed from the enricher (e.g., 'created_synthesized').
+    # serialize_for_v2 will append any dropped-field notes and JSON-encode once.
+    enricher_comment = v1_record[:migration_comment]
+    seed_comment     = enricher_comment.to_s.empty? ? nil : enricher_comment.to_s
+
+    # Serialize field values to JSON for Familia v2 compatibility.
+    # Unknown fields are dropped and recorded in migration_comment rather
+    # than failing the whole record.
+    v2_serialized = serialize_for_v2(v2_fields, seed_comment: seed_comment)
 
     @stats[:transformed_objects] += 1
+
+    # Typed payload for cross-engine load: load_keys.rb HSETs decoded fields
+    # directly into the v2 hash. We base64-encode the already-JSON-serialized
+    # v2 values for binary safety.
+    fields_b64 = v2_serialized.each_with_object({}) do |(field, value), acc|
+      acc[field] = Base64.strict_encode64(value.to_s)
+    end
 
     {
       key: "customer:#{objid}:object",
       type: 'hash',
       ttl_ms: v1_record[:ttl_ms],
       db: v1_record[:db],
-      dump: v2_dump_b64,
+      fields_b64: fields_b64,
       objid: objid,
       extid: v2_fields['extid'],
       created: v1_record[:created] || v1_fields['created']&.to_i,
@@ -417,30 +387,6 @@ class CustomerTransformer
     end
   end
 
-  def restore_and_read_hash(record)
-    temp_key  = "#{TEMP_KEY_PREFIX}#{SecureRandom.hex(8)}"
-    dump_data = Base64.strict_decode64(record[:dump])
-    begin
-      if pipeline_enabled?
-        # RESTORE then HGETALL on the same key in a single round trip; Redis
-        # processes pipelined commands in order, so HGETALL sees the just-
-        # restored hash. Saves one RTT per customer object decode.
-        _restore_result, fields = @redis.pipelined do |pipe|
-          pipe.restore(temp_key, 0, dump_data, replace: true)
-          pipe.hgetall(temp_key)
-        end
-        fields
-      else
-        @redis.restore(temp_key, 0, dump_data, replace: true)
-        @redis.hgetall(temp_key)
-      end
-    rescue Redis::CommandError => ex
-      raise "Restore failed for key #{record[:key]}: #{ex.message}"
-    ensure
-      @redis.del(temp_key) if @redis
-    end
-  end
-
   def resolve_identifiers(record, fields)
     # Prefer identifiers from the enriched JSONL record, fall back to hash fields
     objid   = record[:objid]
@@ -453,22 +399,67 @@ class CustomerTransformer
     [objid, extid]
   end
 
-  # Serialize hash fields to JSON format for Familia v2 compatibility
-  def serialize_for_v2(fields)
-    fields.each_with_object({}) do |(key, value), result|
-      result[key] = if value == ''
-                      'null'
-                    else
-                      ruby_val = parse_to_ruby_type(key, value)
-                      Familia::JsonSerializer.dump(ruby_val)
-                    end
+  # Serialize hash fields to JSON format for Familia v2 compatibility.
+  #
+  # Unknown fields (not declared in FIELD_TYPES) are dropped from the v2 hash
+  # AND recorded in `migration_comment` so the customer record is preserved
+  # while the schema-drift signal is captured. This downgrades a previously
+  # fatal error into a soft-fail that the operator can audit post-migration.
+  #
+  # @param fields [Hash<String, String>] v1 hash field values (string=>string)
+  # @param seed_comment [String, nil] Existing migration_comment (e.g.,
+  #   'created_synthesized' from the enricher) to preserve and extend.
+  # @return [Hash<String, String>] serialized fields ready for HMSET
+  def serialize_for_v2(fields, seed_comment: nil)
+    dropped = []
+    result  = {}
+
+    fields.each do |key, value|
+      if value == ''
+        result[key] = 'null'
+        next
+      end
+
+      ruby_val = parse_to_ruby_type(key, value)
+      if ruby_val == UNKNOWN_FIELD
+        dropped << key.to_s
+        # Bucket per-record (one stat entry per dropped field name) so the
+        # summary can show the schema-gap surface area.
+        @stats[:errors][:schema_gaps] << { field: key.to_s }
+        next
+      end
+
+      result[key] = Familia::JsonSerializer.dump(ruby_val)
     end
+
+    # Compose final migration_comment: pre-existing v1 comment + enricher seed
+    # + dropped-field note, joined with ';'. All are optional. Encode once at
+    # the end so we don't double-encode any pre-existing comment value already
+    # in `fields` (the loop above wrote the encoded form into result, which we
+    # now overwrite with the composed value below).
+    #
+    # We protect against re-runs over already-migrated data by preserving any
+    # comment present in v1; we also avoid duplicating seed_comment if it has
+    # already been appended on a prior pass.
+    existing = fields['migration_comment'].to_s
+    parts    = []
+    parts << existing if !existing.empty? && existing != seed_comment.to_s
+    parts << seed_comment if seed_comment && !existing.split(';').include?(seed_comment)
+    parts << "dropped_fields=#{dropped.join(',')}" if dropped.any?
+
+    if parts.any?
+      result['migration_comment'] = Familia::JsonSerializer.dump(parts.join(';'))
+    end
+
+    result
   end
 
-  # Convert string value to appropriate Ruby type based on FIELD_TYPES mapping
+  # Convert string value to appropriate Ruby type based on FIELD_TYPES mapping.
+  # Returns UNKNOWN_FIELD sentinel for fields without a declared type so the
+  # caller can drop the field rather than fail the entire customer record.
   def parse_to_ruby_type(key, value)
     field_type = FIELD_TYPES[key.to_s]
-    raise ArgumentError, "Unknown field '#{key}' not in FIELD_TYPES - add it to the mapping" unless field_type
+    return UNKNOWN_FIELD unless field_type
 
     case field_type
     when :string then value
@@ -554,11 +545,28 @@ class CustomerTransformer
     end
     puts
 
-    return unless @stats[:errors].any?
+    print_error_summary
+  end
 
-    puts "Errors (#{@stats[:errors].size}):"
-    @stats[:errors].first(10).each { |err| puts "  - #{err}" }
-    puts "  ... and #{@stats[:errors].size - 10} more" if @stats[:errors].size > 10
+  def print_error_summary
+    buckets = @stats[:errors]
+    total   = buckets.values.sum(&:size)
+    return if total.zero?
+
+    puts "Errors (#{total}):"
+    puts "  Schema gaps:     #{buckets[:schema_gaps].size} (unknown fields encountered, see migration_comment on records)"
+    puts "  Orphans:         #{buckets[:orphans].size} (benign - index entries without :object records)"
+    puts "  Data corruption: #{buckets[:data_corruption].size}"
+    puts "  Processing:      #{buckets[:processing_failures].size}"
+
+    # Show a small sample per non-empty bucket for triage.
+    buckets.each do |name, list|
+      next if list.empty?
+
+      puts "  [#{name}] sample:"
+      list.first(5).each { |err| puts "    - #{err}" }
+      puts "    ... and #{list.size - 5} more" if list.size > 5
+    end
   end
 end
 
@@ -566,8 +574,6 @@ def parse_args(args)
   options = {
     input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_dump.jsonl'),
     output_dir: File.join(DEFAULT_DATA_DIR, 'customer'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
     dry_run: false,
   }
 
@@ -575,8 +581,6 @@ def parse_args(args)
     case arg
     when /^--input-file=(.+)$/ then options[:input_file] = Regexp.last_match(1)
     when /^--output-dir=(.+)$/ then options[:output_dir] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/ then options[:redis_url]   = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/ then options[:temp_db]      = Regexp.last_match(1).to_i
     when '--dry-run' then options[:dry_run]              = true
     when '--help', '-h'
       puts <<~HELP
@@ -587,8 +591,6 @@ def parse_args(args)
         Options:
           --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
           --output-dir=DIR    Output directory (default: data/upgrades/v0.24.5/customer)
-          --redis-url=URL     Redis URL for temp operations (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N         Temp database number (default: 15)
           --dry-run           Parse and count without writing output
           --help              Show this help
 
@@ -609,8 +611,6 @@ if __FILE__ == $0
   transformer = CustomerTransformer.new(
     input_file: options[:input_file],
     output_dir: options[:output_dir],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
     dry_run: options[:dry_run],
   )
   transformer.run

@@ -16,12 +16,12 @@
 import {
   customDomainSsoConfigCanonical,
   ssoProviderTypeSchema,
-} from '@/schemas/contracts/sso-config';
+} from '@/schemas/contracts/custom-domain/sso-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Re-export contracts for type access
-export * from '@/schemas/contracts/sso-config';
+export * from '@/schemas/contracts/custom-domain/sso-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Timestamp transforms
@@ -87,6 +87,9 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
 
     // Array normalization: null → empty array
     allowed_domains: z.array(z.string()).nullish().transform((v) => v ?? []),
+
+    // Boolean with default for resilience during rolling deploys
+    enforce_sso_only: z.boolean().default(false),
   });
 
 export type CustomDomainSsoConfig = z.infer<typeof customDomainSsoConfigSchema>;
@@ -105,6 +108,7 @@ export const customDomainSsoConfigSummarySchema = z.object({
   domain_id: z.string(),
   provider_type: ssoProviderTypeSchema,
   enabled: z.boolean(),
+  enforce_sso_only: z.boolean(),
   display_name: z.string(),
   created_at: transforms.fromNumber.toDate,
   updated_at: transforms.fromNumber.toDate,

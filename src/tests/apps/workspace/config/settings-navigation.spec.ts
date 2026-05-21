@@ -200,15 +200,60 @@ describe('settings-navigation config', () => {
       mockedHasPassword.mockReturnValue(true);
       mockedIsWebAuthnEnabled.mockReturnValue(false);
 
-      const items = getSettingsNavigation(t);
-      const securityItem = items.find((i) => i.id === 'security');
+      const itemsOff = getSettingsNavigation(t);
+      const passkeysOff = itemsOff
+        .find((i) => i.id === 'security')
+        ?.children?.find((c) => c.id === 'passkeys');
+      expect(passkeysOff).toBeDefined();
+      expect(passkeysOff?.visible?.()).toBe(false);
+
+      // Features are resolved at build time, so callers must rebuild the
+      // navigation to pick up flag changes (reactive consumers do this via
+      // a Vue computed that re-runs when bootstrap state mutates).
+      mockedIsWebAuthnEnabled.mockReturnValue(true);
+      const itemsOn = getSettingsNavigation(t);
+      const passkeysOn = itemsOn
+        .find((i) => i.id === 'security')
+        ?.children?.find((c) => c.id === 'passkeys');
+      expect(passkeysOn?.visible?.()).toBe(true);
+    });
+  });
+
+  describe('Explicit features parameter', () => {
+    it('uses provided features object instead of imported predicates', () => {
+      // Default features.ts mocks return false for everything. Passing an
+      // explicit features object should override that — this is how
+      // SettingsLayout.vue feeds reactive bootstrap state into the builder.
+      const sections = getSettingsNavigationSections(t, {
+        hasPassword: true,
+        isFullAuthMode: true,
+        isSsoOnlyMode: false,
+        isWebAuthnEnabled: true,
+      });
+      const accountSection = sections.find((s) => s.id === 'account');
+      const securityItem = accountSection?.items.find((i) => i.id === 'security');
       const passkeysChild = securityItem?.children?.find((c) => c.id === 'passkeys');
 
-      expect(passkeysChild).toBeDefined();
-      expect(passkeysChild?.visible?.()).toBe(false);
-
-      mockedIsWebAuthnEnabled.mockReturnValue(true);
+      expect(securityItem?.visible?.()).toBe(true);
       expect(passkeysChild?.visible?.()).toBe(true);
+    });
+
+    it('honours SSO-only flag in explicit features even when other flags would show tabs', () => {
+      // Regression guard: the SSO-only intent must still hide Security/Region/Caution
+      // even when isFullAuthMode and hasPassword would otherwise enable them.
+      const sections = getSettingsNavigationSections(t, {
+        hasPassword: true,
+        isFullAuthMode: true,
+        isSsoOnlyMode: true,
+        isWebAuthnEnabled: true,
+      });
+      const security = sections.find((s) => s.id === 'account')?.items.find((i) => i.id === 'security');
+      const region = sections.find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'region');
+      const caution = sections.find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'caution');
+
+      expect(security?.visible?.()).toBe(false);
+      expect(region?.visible?.()).toBe(false);
+      expect(caution?.visible?.()).toBe(false);
     });
   });
 

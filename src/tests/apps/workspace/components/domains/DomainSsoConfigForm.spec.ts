@@ -16,7 +16,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
 import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
-import type { CustomDomainSsoConfig } from '@/schemas/shapes/sso-config';
+import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
 import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 // Mock SSO provider metadata
 // Note: This mock matches the actual module path the component imports from.
 // If tests fail due to provider metadata behavior, verify the component import path.
-vi.mock('@/schemas/shapes/sso-config', () => ({
+vi.mock('@/schemas/shapes/domains/sso-config', () => ({
   SSO_PROVIDER_METADATA: {
     entra_id: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Microsoft Entra ID' },
     google: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Google Workspace' },
@@ -147,6 +147,7 @@ function createDefaultFormState(): SsoConfigFormState {
     issuer: '',
     allowed_domains: [],
     enabled: false,
+    enforce_sso_only: false,
   };
 }
 
@@ -154,12 +155,15 @@ const mockExistingConfig: CustomDomainSsoConfig = {
   domain_id: 'dm_123',
   provider_type: 'entra_id',
   enabled: true,
+  enforce_sso_only: false,
   display_name: 'Test Domain SSO',
   client_id: 'client-id-123',
   client_secret_masked: '****5678',
   tenant_id: 'tenant-uuid-123',
   issuer: null,
   allowed_domains: ['example.com'],
+  requires_domain_filter: false,
+  idp_controls_access: true,
   created_at: new Date(),
   updated_at: new Date(),
 };
@@ -173,6 +177,12 @@ const mockExistingFormState: SsoConfigFormState = {
   issuer: '',
   allowed_domains: ['example.com'],
   enabled: true,
+  enforce_sso_only: false,
+};
+
+const mockEnforceSsoOnlyFormState: SsoConfigFormState = {
+  ...mockExistingFormState,
+  enforce_sso_only: true,
 };
 
 interface MountOptions {
@@ -212,24 +222,29 @@ describe('DomainSsoConfigForm', () => {
     }
   });
 
+  const defaultMountOptions: Required<MountOptions> = {
+    domainExtId: 'dm_123',
+    formState: createDefaultFormState(),
+    ssoConfig: null,
+    isLoading: false,
+    isSaving: false,
+    isDeleting: false,
+    isTesting: false,
+    hasUnsavedChanges: false,
+    isConfigured: false,
+    clientSecretMasked: null,
+    testResult: null,
+    testError: '',
+  };
+
   const mountComponent = async (options: MountOptions = {}) => {
-    const formState = options.formState ?? createDefaultFormState();
+    const props = { ...defaultMountOptions, ...options };
+    if (options.formState === undefined) {
+      props.formState = createDefaultFormState();
+    }
 
     const component = mount(DomainSsoConfigForm, {
-      props: {
-        domainExtId: options.domainExtId ?? 'dm_123',
-        formState,
-        ssoConfig: options.ssoConfig ?? null,
-        isLoading: options.isLoading ?? false,
-        isSaving: options.isSaving ?? false,
-        isDeleting: options.isDeleting ?? false,
-        isTesting: options.isTesting ?? false,
-        hasUnsavedChanges: options.hasUnsavedChanges ?? false,
-        isConfigured: options.isConfigured ?? false,
-        clientSecretMasked: options.clientSecretMasked ?? null,
-        testResult: options.testResult ?? null,
-        testError: options.testError ?? '',
-      },
+      props,
       global: {
         plugins: [i18n, pinia],
         stubs: {
@@ -654,6 +669,116 @@ describe('DomainSsoConfigForm', () => {
 
       const form = wrapper.find('form');
       expect(form.exists()).toBe(true);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Enforce SSO Only Toggle
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Enforce SSO Only Toggle', () => {
+    /**
+     * Tests for the enforce_sso_only toggle (#3057).
+     *
+     * The toggle is implemented as a role="switch" button that:
+     * - Renders with ID "domain-sso-enforce-only"
+     * - Shows regardless of SSO enabled state (admin can configure ahead of time)
+     * - Emits update:formState when clicked
+     * - Uses aria-checked to indicate state
+     */
+
+    it('renders toggle with correct role and ID', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: true },
+        isConfigured: true,
+      });
+
+      const toggle = wrapper.find('#domain-sso-enforce-only');
+      expect(toggle.exists()).toBe(true);
+      expect(toggle.attributes('role')).toBe('switch');
+    });
+
+    it('toggle has associated label', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: true },
+        isConfigured: true,
+      });
+
+      const label = wrapper.find('label[for="domain-sso-enforce-only"]');
+      expect(label.exists()).toBe(true);
+    });
+
+    it('emits update:formState with enforce_sso_only=true when toggle is clicked (was false)', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: true, enforce_sso_only: false },
+        isConfigured: true,
+      });
+
+      const toggle = wrapper.find('#domain-sso-enforce-only');
+      expect(toggle.exists()).toBe(true);
+
+      await toggle.trigger('click');
+      await flushPromises();
+
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      if (emitted && emitted.length > 0) {
+        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
+        expect(lastEmit.enforce_sso_only).toBe(true);
+      }
+    });
+
+    it('emits update:formState with enforce_sso_only=false when toggle is clicked (was true)', async () => {
+      wrapper = await mountComponent({
+        formState: mockEnforceSsoOnlyFormState,
+        isConfigured: true,
+      });
+
+      const toggle = wrapper.find('#domain-sso-enforce-only');
+      expect(toggle.exists()).toBe(true);
+
+      await toggle.trigger('click');
+      await flushPromises();
+
+      const emitted = wrapper.emitted('update:formState');
+      expect(emitted).toBeTruthy();
+      if (emitted && emitted.length > 0) {
+        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
+        expect(lastEmit.enforce_sso_only).toBe(false);
+      }
+    });
+
+    it('reflects enforce_sso_only: true via aria-checked attribute', async () => {
+      wrapper = await mountComponent({
+        formState: mockEnforceSsoOnlyFormState,
+        isConfigured: true,
+      });
+
+      const toggle = wrapper.find('#domain-sso-enforce-only');
+      expect(toggle.exists()).toBe(true);
+      expect(toggle.attributes('aria-checked')).toBe('true');
+    });
+
+    it('reflects enforce_sso_only: false via aria-checked attribute', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enforce_sso_only: false },
+        isConfigured: true,
+      });
+
+      const toggle = wrapper.find('#domain-sso-enforce-only');
+      expect(toggle.exists()).toBe(true);
+      expect(toggle.attributes('aria-checked')).toBe('false');
+    });
+
+    it('toggle has aria-describedby for hint text', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: true },
+        isConfigured: true,
+      });
+
+      const toggle = wrapper.find('#domain-sso-enforce-only');
+      expect(toggle.exists()).toBe(true);
+      expect(toggle.attributes('aria-describedby')).toBe('domain-enforce-sso-only-hint');
     });
   });
 

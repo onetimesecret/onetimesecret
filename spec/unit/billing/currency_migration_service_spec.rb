@@ -134,7 +134,14 @@ RSpec.describe Billing::CurrencyMigrationService, billing: true do
       })
     end
     let(:target_price_id) { 'price_cad_456' }
-    let(:target_plan) { double(name: 'Plus Monthly (USD)', amount: '2900', interval: 'month') }
+    let(:target_plan) do
+      double('Plan',
+        name: 'Plus Monthly (USD)',
+        prices_hash: {
+          'month' => { 'stripe_price_id' => target_price_id, 'amount' => '2900' },
+        },
+      )
+    end
 
     let(:current_plan) { double(name: 'Plus Monthly (EUR)') }
 

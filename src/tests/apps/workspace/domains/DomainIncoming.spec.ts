@@ -12,7 +12,7 @@ import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import DomainIncoming from '@/apps/workspace/domains/DomainIncoming.vue';
 import {
   emptyFormState,
@@ -222,8 +222,7 @@ describe('DomainIncoming', () => {
   const mountComponent = (props: Partial<{
     orgid: string;
     extid: string;
-  }> = {}) => {
-    return mount(DomainIncoming, {
+  }> = {}) => mount(DomainIncoming, {
       props: {
         orgid: props.orgid ?? 'org-123',
         extid: props.extid ?? 'dm-ext-123',
@@ -238,7 +237,6 @@ describe('DomainIncoming', () => {
         },
       },
     });
-  };
 
   // ---------------------------------------------------------------------------
   // Page Loading
@@ -443,15 +441,16 @@ describe('DomainIncoming', () => {
   // ---------------------------------------------------------------------------
 
   describe('Navigation', () => {
-    it('back button navigates to domains list', async () => {
-      wrapper = mountComponent({ orgid: 'org-456' });
+    it('back button navigates to domain detail page', async () => {
+      wrapper = mountComponent({ orgid: 'org-456', extid: 'dm-abc123' });
       await flushPromises();
 
       const backButton = wrapper.find('button[type="button"]');
       await backButton.trigger('click');
       await flushPromises();
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/org/org-456/domains');
+      // Should navigate to DomainDetail, not domains list
+      expect(mockRouterPush).toHaveBeenCalledWith('/org/org-456/domains/dm-abc123');
     });
 
     it('displays domain name in header', async () => {

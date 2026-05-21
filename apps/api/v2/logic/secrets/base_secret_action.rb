@@ -9,9 +9,6 @@ module V2::Logic
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
 
-      # Email validation regex - defined once to avoid recompilation on every call
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
-
       attr_reader :passphrase,
         :secret_value,
         :kind,
@@ -138,28 +135,32 @@ module V2::Logic
         raise NotImplementedError, 'You must implement process_secret'
       end
 
+      # Our passphrase contract: presence determines intent.
+      #   - Param key missing → no passphrase protection (nil)
+      #   - Param key present → use value as-is (including empty string)
+      #
+      # We honour exactly what is included with the request without guessing.
+      # It's the, "if it fits, I sits" design model.
+      #
+      # UX concerns (e.g. preventing accidental empty-passphrase secrets) are
+      # the client's responsibility. The API layer remains value-neutral.
       def process_passphrase
-        # API Contract: Key presence determines intent.
-        #   - Key missing → no passphrase protection (nil)
-        #   - Key present → use value as-is (including empty string)
-        #
-        # The backend honors exactly what the client sends without guessing intent.
-        # "If you send this key, I use its value" - predictable and explicit.
-        #
-        # UX concerns (e.g., preventing accidental empty-passphrase secrets) are
-        # the client's responsibility. The API layer remains value-neutral.
         @passphrase = payload.key?('passphrase') ? payload['passphrase'].to_s : nil
       end
 
+      # Our recipient contract: always a list of sanitized strings.
+      #
+      # Sanitization keeps trash out but does not validate as an email address.
+      #
       def process_recipient
-        payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
-        @recipient           = payload['recipient'].collect do |email_address|
+        # Make sure we're dealing with a list.
+        recipient_list  = [payload['recipient']].flatten.compact.uniq
+        @recipient      = recipient_list.collect do |email_address|
           next if email_address.to_s.empty?
 
-          sanitized_email = sanitize_email(email_address)
-          sanitized_email.scan(EMAIL_REGEX).uniq.first
+          sanitize_email(email_address)
         end.compact.uniq
-        @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
@@ -197,12 +198,25 @@ module V2::Logic
         @share_domain = potential_domain
       end
 
+      # Check each individual recipient email address using
+      # the centralized Truemail-based validation. Depending
+      # on the configuration, this could be a regex, mx, or
+      # full smtp level check.
       def validate_recipient
         return if recipient.empty?
 
-        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if anonymous_user?
-        recipient.each do |recip|
-          raise_form_error "Undeliverable email address: #{recip}", field: 'recipient', error_type: 'invalid_email' unless valid_email?(recip)
+        if anonymous_user?
+          raise_form_error 'An account is required to send emails.',
+            field: 'recipient',
+            error_type: 'requires_account'
+        end
+
+        recipient.each do |email_address|
+          next if valid_email?(email_address)
+
+          raise_form_error "Undeliverable email address: #{email_address}",
+            field: 'recipient',
+            error_type: 'invalid_email'
         end
       end
 
@@ -373,20 +387,65 @@ module V2::Logic
           }
 
         validate_domain_permissions(domain_record)
+        validate_domain_verification(domain_record)
+      end
+
+      # Rejects secret creation against an unverified custom share_domain when
+      # the features.domains.require_verified toggle is on. Canonical domains
+      # are filtered out earlier in process_share_domain via default_domain?.
+      #
+      # @param domain_record [CustomDomain] The domain record to check
+      # @raise [FormError] If require_verified is on and the domain is not
+      #   yet verified
+      def validate_domain_verification(domain_record)
+        return unless OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        return if domain_record.verified.to_s == 'true'
+
+        secret_logger.warn 'Unverified custom share_domain rejected',
+          {
+            domain: share_domain,
+            user_id: @cust&.objid,
+            action: 'validate_domain_verification',
+            result: :unverified,
+          }
+        raise_form_error "Custom domain is not verified: #{share_domain}",
+          field: 'share_domain',
+          error_type: 'domain_unverified'
       end
 
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
-      # @raise [FormError] If access is not permitted
+      # @raise [Onetime::Forbidden] If access is not permitted
+      # @see docs/specs/domain-permissions.md for the full truth table
       #
-      # Validation Rules:
-      # - On custom domains:
-      #   - Allows access if public sharing is enabled
-      #   - Rejects if public sharing is disabled
-      # - On canonical domain:
-      #   - Requires domain ownership
+      # Validation Rules (issue #3073):
+      # - Domain owner / org member: always permitted, regardless of toggle.
+      # - Authenticated non-owner: never permitted. The Homepage Secrets toggle
+      #   gates anonymous public intake; it does not let authenticated users
+      #   borrow someone else's domain.
+      # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+      # - Anonymous on the canonical domain (with share_domain set to a custom
+      #   domain): not permitted.
       def validate_domain_permissions(domain_record)
+        # Owner / org member can always use the domain.
+        return if domain_record.owner?(@cust)
+
+        # Authenticated non-owner: permission denied regardless of toggle.
+        # The toggle controls anonymous traffic, not who may share via the
+        # domain when authenticated.
+        unless anonymous_user?
+          secret_logger.warn 'Non-owner attempted domain access',
+            {
+              domain: share_domain,
+              user_id: @cust&.objid,
+              action: 'validate_domain_permissions',
+              result: :non_owner,
+            }
+          raise Onetime::Forbidden, "You do not have permission to use domain: #{share_domain}"
+        end
+
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
         if custom_domain?
           return if domain_record.allow_public_homepage?
 
@@ -397,19 +456,18 @@ module V2::Logic
               action: 'validate_domain_permissions',
               result: :access_denied,
             }
-          raise_form_error "Public sharing disabled for domain: #{share_domain}"
+          raise Onetime::Forbidden, "Public sharing disabled for domain: #{share_domain}"
         end
 
-        return if domain_record.owner?(@cust)
-
-        secret_logger.warn 'Non-owner attempted domain access',
+        # Anonymous on canonical domain attempting to share via someone else's
+        # custom domain via share_domain.
+        secret_logger.warn 'Anonymous cross-domain access denied',
           {
             domain: share_domain,
-            user_id: @cust&.objid,
             action: 'validate_domain_permissions',
             result: :non_owner,
           }
-        raise_form_error "You do not have permission to use domain: #{share_domain}"
+        raise Onetime::Forbidden, "You do not have permission to use domain: #{share_domain}"
       end
     end
   end

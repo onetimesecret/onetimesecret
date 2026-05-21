@@ -1,12 +1,30 @@
 // src/schemas/contracts/config/billing.ts
 
 /**
- * Billing Configuration Schema
+ * Billing Catalog Configuration Schema
  *
- * Zod v4 schema for etc/billing.yaml (unified flat-structure configuration)
+ * Zod v4 schema for the billing catalog defined in etc/billing.yaml
+ * (unified flat-structure configuration).
+ *
+ * This is the authoritative source for the JSON Schema generated to
+ * generated/schemas/config/billing.schema.json, which the
+ * `bin/ots billing catalog validate` CLI uses to validate the catalog.
+ *
+ * It is a faithful port of the previously hand-written JSON Schema
+ * (draft-07) for the billing catalog. To preserve that document's
+ * validation coverage:
+ *
+ * - Every object is modelled with `z.looseObject` because the
+ *   hand-written schema never set `additionalProperties: false`. The CLI
+ *   validates the *entire* billing YAML, which carries runtime keys not
+ *   part of the catalog (`enabled`, `stripe_key`, `webhook_signing_secret`,
+ *   `stripe_api_version`) plus extra nested keys (`limits.teams`,
+ *   `prices[].price_id`, `prices[].metadata`). Loose objects allow these
+ *   through exactly as the hand-written schema did.
+ * - Required vs optional fields mirror the hand-written `required` arrays.
  *
  * Purpose:
- * - Type-safe validation of billing configuration
+ * - Type-safe validation of billing catalog configuration
  * - Runtime validation for YAML parsing
  * - TypeScript type inference for billing config usage
  * - Entitlement definitions (system-wide features)
@@ -17,7 +35,6 @@
  * import { BillingConfigSchema, type BillingConfig } from '@/schemas/contracts/config/billing';
  *
  * const config = BillingConfigSchema.parse(yamlData);
- * const canUseDomains = config.entitlements.custom_domains;
  * const identityPlan = config.plans.identity_plus_v1;
  * ```
  */
@@ -33,6 +50,30 @@ import { z } from 'zod';
  * Must match schema_version in billing.yaml
  */
 export const CATALOG_SCHEMA_VERSION = '1.0';
+
+/**
+ * Canonical Plan ID Pattern
+ *
+ * Enforces the naming convention for plan IDs.
+ *
+ * Valid: free_v1, identity_plus_v1, team_plus_v1, legacy_plan_v1, identity
+ *
+ * @see https://github.com/onetimesecret/onetimesecret/issues/3135 Section 9
+ */
+export const CANONICAL_PLAN_ID_PATTERN = /^(free|identity_plus|team_plus|legacy_plan)_v\d+$|^identity$/;
+
+/**
+ * Canonical Plan ID Schema
+ *
+ * Reusable schema for validating plan IDs at API boundaries.
+ * Use this for fields like `planid`, `target_plan_id`, etc.
+ */
+export const CanonicalPlanIdSchema = z
+  .string()
+  .regex(CANONICAL_PLAN_ID_PATTERN)
+  .describe('Plan ID in canonical format: {base}_v{N} or "identity"');
+
+export type CanonicalPlanId = z.infer<typeof CanonicalPlanIdSchema>;
 
 // =============================================================================
 // Entitlement Schemas
@@ -57,9 +98,9 @@ export type EntitlementCategory = z.infer<typeof EntitlementCategorySchema>;
  * Entitlement Definition
  * Describes a single billing entitlement/feature
  */
-export const EntitlementDefinitionSchema = z.object({
+export const EntitlementDefinitionSchema = z.looseObject({
   category: EntitlementCategorySchema,
-  description: z.string().min(1),
+  description: z.string().min(1).describe('Human-readable description of the entitlement'),
 });
 
 export type EntitlementDefinition = z.infer<typeof EntitlementDefinitionSchema>;
@@ -70,7 +111,9 @@ export type EntitlementDefinition = z.infer<typeof EntitlementDefinitionSchema>;
 
 /**
  * Billing Tier
- * Hierarchical plan tiers
+ *
+ * Hierarchical plan tiers. This is the authoritative tier enum; the
+ * runtime `planTypeSchema` in src/schemas/contracts/billing.ts reuses it.
  */
 export const BillingTierSchema = z.enum(['free', 'single_account', 'single_team', 'multi_team']);
 
@@ -99,17 +142,19 @@ export type BillingInterval = z.infer<typeof BillingIntervalSchema>;
  * Currency Code
  * ISO 4217 currency codes
  */
-export const CurrencyCodeSchema = z.enum(['cad', 'eur', 'cad', 'nzd']);
+export const CurrencyCodeSchema = z.enum(['cad', 'eur', 'gbp', 'nzd', 'usd']);
 
 export type CurrencyCode = z.infer<typeof CurrencyCodeSchema>;
 
 /**
  * Limit Value
- * Resource limits (-1 = unlimited, null = TBD, positive integer = specific limit)
+ *
+ * Resource limits: an integer >= -1 (-1 = unlimited, 0+ = specific
+ * limit) or null (to be determined). Mirrors the hand-written
+ * `LimitValue` `oneOf: [{ integer, minimum: -1 }, { null }]`.
  */
 export const LimitValueSchema = z.union([
-  z.literal(-1).describe('Unlimited'),
-  z.number().int().positive().describe('Specific limit'),
+  z.number().int().min(-1).describe('-1 = unlimited, 0+ = specific limit'),
   z.null().describe('To be determined'),
 ]);
 
@@ -119,12 +164,12 @@ export type LimitValue = z.infer<typeof LimitValueSchema>;
  * Plan Limits
  * Resource constraints for a billing plan
  */
-export const PlanLimitsSchema = z.object({
+export const PlanLimitsSchema = z.looseObject({
   organizations: LimitValueSchema.describe('Maximum number of organizations'),
   members_per_team: LimitValueSchema.describe('Maximum members per team'),
   custom_domains: LimitValueSchema.describe('Maximum custom domains'),
   secret_lifetime: LimitValueSchema.describe('Maximum secret lifetime in seconds'),
-  secrets_per_day: LimitValueSchema.describe('Daily secret creation limit'),
+  secrets_per_day: LimitValueSchema.optional().describe('Daily secret creation limit'),
 });
 
 export type PlanLimits = z.infer<typeof PlanLimitsSchema>;
@@ -133,14 +178,12 @@ export type PlanLimits = z.infer<typeof PlanLimitsSchema>;
  * Plan Price
  * Stripe price configuration for a billing interval
  */
-export const PlanPriceSchema = z.object({
+export const PlanPriceSchema = z.looseObject({
   interval: BillingIntervalSchema,
-  amount: z.number().int().nonnegative().describe('Amount in cents (e.g., 2900 = $29.00)'),
-  currency: CurrencyCodeSchema,
-  metadata: z
-    .record(z.string(), z.string())
-    .optional()
-    .describe('Optional metadata passed through to Stripe::Price.create()'),
+  amount: z.number().int().min(0).describe('Amount in cents (e.g., 2900 = $29.00)'),
+  currency: CurrencyCodeSchema.optional().describe(
+    'Per-price currency override. Inherits from top-level currency when omitted.'
+  ),
 });
 
 export type PlanPrice = z.infer<typeof PlanPriceSchema>;
@@ -154,11 +197,17 @@ export type PlanPrice = z.infer<typeof PlanPriceSchema>;
  * - Nil/missing tier plans are skipped with warnings (incomplete definitions)
  * - All other tiers require Stripe product creation
  */
-export const PlanDefinitionSchema = z.object({
+export const PlanDefinitionSchema = z.looseObject({
   name: z.string().min(1).describe('Display name for the plan'),
   tier: BillingTierSchema.optional().describe('Billing tier (optional for draft plans)'),
   tenancy: TenancyTypeSchema.optional().describe('Tenancy type (optional for draft plans)'),
-  region: z.string().optional().nullable().describe('Region identifier for composite matching (e.g., EU, US, CA)'),
+  // Region resolves from an ERB-templated env var in real configs and may
+  // be empty (YAML null); allow null/absent in addition to a string.
+  region: z
+    .string()
+    .nullable()
+    .optional()
+    .describe("Region identifier for composite matching (e.g., 'EU', 'US')"),
   stripe_product_id: z
     .string()
     .regex(/^prod_/)
@@ -166,11 +215,10 @@ export const PlanDefinitionSchema = z.object({
     .describe('Direct Stripe product ID binding (escape hatch for matching issues)'),
   plan_name_label: z.string().optional().describe('i18n key for plan category label'),
   display_order: z
-    .number()
-    .int()
-    .nullable()
-    .describe('Sort order on plans page (higher = earlier, null = hidden)'),
-  show_on_plans_page: z.boolean().describe('Visibility on public plans page'),
+    .union([z.number().int().min(0), z.null()])
+    .optional()
+    .describe('Sort order on plans page (higher = earlier)'),
+  show_on_plans_page: z.boolean().optional().describe('Visibility on public plans page'),
   includes_plan: z
     .string()
     .optional()
@@ -195,7 +243,9 @@ export const PlanDefinitionSchema = z.object({
 export type PlanDefinition = z.infer<typeof PlanDefinitionSchema>;
 
 /**
- * Stripe Metadata Field Definition
+ * Stripe Metadata Field map
+ *
+ * A free-form map of metadata field name -> description/example value.
  */
 export const MetadataFieldSchema = z.record(
   z.string(),
@@ -204,10 +254,14 @@ export const MetadataFieldSchema = z.record(
 
 /**
  * Stripe Metadata Schema Definition
+ *
+ * Informational description of Stripe product metadata conventions.
+ * `required`/`optional` are arrays of single-entry field maps, matching
+ * the hand-written schema. Both keys are optional.
  */
-export const StripeMetadataSchemaDefinition = z.object({
-  required: MetadataFieldSchema.describe('Required metadata fields'),
-  optional: MetadataFieldSchema.optional().describe('Optional metadata fields'),
+export const StripeMetadataSchemaDefinition = z.looseObject({
+  required: z.array(MetadataFieldSchema).optional().describe('Required metadata fields'),
+  optional: z.array(MetadataFieldSchema).optional().describe('Optional metadata fields'),
 });
 
 export type StripeMetadataSchema = z.infer<typeof StripeMetadataSchemaDefinition>;
@@ -218,29 +272,36 @@ export type StripeMetadataSchema = z.infer<typeof StripeMetadataSchemaDefinition
 
 /**
  * Billing Configuration Root
- * Complete billing.yaml structure (flat, unified configuration)
+ *
+ * The catalog portion of billing.yaml. Modelled as a loose object so the
+ * runtime/secret keys present in the YAML file (`enabled`, `stripe_key`,
+ * `webhook_signing_secret`, `stripe_api_version`) pass validation exactly
+ * as they did under the hand-written JSON Schema.
  */
-export const BillingConfigSchema = z.object({
-  schema_version: z.string().describe('Schema version'),
-  app_identifier: z.string().describe('Application identifier'),
-  enabled: z.boolean().describe('Whether billing is enabled'),
-  stripe_key: z.string().min(1).describe('Stripe API key'),
-  webhook_signing_secret: z.string().min(1).describe('Stripe webhook signing secret'),
-  stripe_api_version: z
+export const BillingConfigSchema = z.looseObject({
+  schema_version: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
-    .describe('Stripe API version (e.g., 2025-11-17.clover)'),
+    .regex(/^\d+\.\d+$/)
+    .describe('Schema version identifier'),
+  app_identifier: z
+    .string()
+    .min(1)
+    .describe('Application identifier for Stripe metadata matching'),
 
   match_fields: z
     .array(z.string().min(1))
     .min(1)
     .default(['plan_id'])
     .describe('Fields used to build composite match key for Stripe product identification'),
+  // Region resolves from an ERB-templated env var and may be empty (null).
   region: z
     .string()
-    .optional()
     .nullable()
-    .describe('Region filter for this catalog instance (set via JURISDICTION env var)'),
+    .optional()
+    .describe('Region filter for this catalog instance'),
+  currency: CurrencyCodeSchema.optional().describe(
+    "Default currency for all products and prices. Defaults to 'cad' when not set."
+  ),
 
   entitlements: z
     .record(z.string(), EntitlementDefinitionSchema)
@@ -250,10 +311,8 @@ export const BillingConfigSchema = z.object({
     .record(
       z
         .string()
-        .regex(
-          /^[a-z_]+(_v\d+)?$/,
-          'Plan ID must be lowercase with underscores (e.g., identity, identity_plus_v1)'
-        ),
+        .regex(CANONICAL_PLAN_ID_PATTERN)
+        .describe('Plan ID must match canonical format: {base}_v{N} or "identity"'),
       PlanDefinitionSchema
     )
     .describe('Plan definitions by plan_id (legacy plans use legacy: true flag)'),

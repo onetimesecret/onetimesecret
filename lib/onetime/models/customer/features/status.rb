@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../field_types/boolean_field_type'
+
 module Onetime::Customer::Features
   module Status
     def self.included(base)
@@ -10,9 +12,17 @@ module Onetime::Customer::Features
       base.extend ClassMethods
       base.include InstanceMethods
 
+      # Pull in the BooleanFieldMacro so `boolean_field :verified` becomes
+      # available alongside the standard `field` declarations. This is the
+      # Familia-idiomatic equivalent of the upstream `encrypted_field`
+      # macro: a custom FieldType handles canonicalization at the type
+      # level, so callers cannot bypass it via the setter, the fast
+      # writer, or by passing the field through Customer.create!.
+      base.extend Onetime::FieldTypes::BooleanFieldMacro
+
       base.field :role
       base.field :joined
-      base.field :verified
+      base.boolean_field :verified
       base.field :verified_by  # 'email', 'stripe_payment', 'autoverify', nil
     end
 
@@ -20,8 +30,11 @@ module Onetime::Customer::Features
     end
 
     module InstanceMethods
+      # Stored form is canonical 'true' / 'false' (see
+      # Onetime::FieldTypes::BooleanFieldType), so the predicate is a
+      # plain string equality check — no truthy-table, no `to_s.downcase`.
       def verified?
-        !anonymous? && verified.to_s.eql?('true')
+        !anonymous? && verified == 'true'
       end
 
       # Check if account was verified via email confirmation

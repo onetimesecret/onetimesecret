@@ -91,7 +91,7 @@ const {
 // ---------------------------------------------------------------------------
 
 const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains`);
+  router.push(`/org/${props.orgid}/domains/${props.extid}`);
 };
 
 // Unsaved changes guard
@@ -158,7 +158,8 @@ watch(() => props.extid, async () => {
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
-        :orgid="props.orgid" />
+        :orgid="props.orgid"
+        external-path="/incoming" />
     </div>
 
     <!-- Content -->

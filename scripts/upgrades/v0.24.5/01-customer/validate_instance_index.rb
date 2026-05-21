@@ -15,31 +15,20 @@
 #
 # Options:
 #   --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
-#   --redis-url=URL     Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-#   --temp-db=N         Temp database number (default: 15)
 
-require 'redis'
 require 'json'
-require 'base64'
-require 'uri'
 
 # Calculate project root from script location
 # Assumes script is run from project root: ruby scripts/upgrades/v0.24.5/01-customer/validate_instance_index.rb
 DEFAULT_DATA_DIR = 'data/upgrades/v0.24.5'
 
 class InstanceIndexValidator
-  TEMP_KEY_PREFIX = '_validate_tmp_'
-
-  def initialize(input_file:, redis_url:, temp_db:)
+  def initialize(input_file:)
     @input_file = input_file
-    @redis_url  = redis_url
-    @temp_db    = temp_db
-    @redis      = nil
   end
 
   def run
     validate_input_file
-    connect_redis
 
     # 1. Extract onetime:customer and customer objects from dump
     instance_index_record, customer_objects = parse_dump_file
@@ -51,7 +40,7 @@ class InstanceIndexValidator
 
     puts "Found #{customer_objects.size} customer objects"
 
-    # 2. Decode the onetime:customer zset
+    # 2. Read members directly from the typed payload (no Redis required)
     members_with_scores = decode_instance_index(instance_index_record)
     puts "Found #{members_with_scores.size} members in onetime:customer"
     puts
@@ -64,34 +53,12 @@ class InstanceIndexValidator
 
     # Success if no missing objects (modified_since_creation is expected/normal)
     results[:missing_objects].empty?
-  ensure
-    cleanup_redis
   end
 
   private
 
   def validate_input_file
     raise ArgumentError, "Input file not found: #{@input_file}" unless File.exist?(@input_file)
-  end
-
-  def connect_redis
-    uri      = URI.parse(@redis_url)
-    uri.path = "/#{@temp_db}"
-    @redis   = Redis.new(url: uri.to_s)
-    @redis.ping
-  end
-
-  def cleanup_redis
-    return unless @redis
-
-    # Clean up any temporary keys
-    cursor = '0'
-    loop do
-      cursor, keys = @redis.scan(cursor, match: "#{TEMP_KEY_PREFIX}*", count: 100)
-      @redis.del(*keys) unless keys.empty?
-      break if cursor == '0'
-    end
-    @redis.close
   end
 
   def parse_dump_file
@@ -115,20 +82,10 @@ class InstanceIndexValidator
     [instance_index_record, customer_objects]
   end
 
+  # Read zset members directly from the typed payload (zmembers).
+  # zmembers is [[member, score], ...] as emitted by dump_keys.rb.
   def decode_instance_index(record)
-    temp_key  = "#{TEMP_KEY_PREFIX}instance_index"
-    dump_data = Base64.strict_decode64(record[:dump])
-
-    begin
-      @redis.restore(temp_key, 0, dump_data, replace: true)
-      @redis.zrange(temp_key, 0, -1, with_scores: true)
-    ensure
-      begin
-        @redis.del(temp_key)
-      rescue StandardError
-        nil
-      end
-    end
+    (record[:zmembers] || []).map { |member, score| [member, score.to_f] }
   end
 
   def compare_members(members_with_scores, customer_objects)
@@ -219,18 +176,12 @@ end
 def parse_args(args)
   options = {
     input_file: File.join(DEFAULT_DATA_DIR, 'customer/customer_dump.jsonl'),
-    redis_url: ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil),
-    temp_db: 15,
   }
 
   args.each do |arg|
     case arg
     when /^--input-file=(.+)$/
       options[:input_file] = Regexp.last_match(1)
-    when /^--redis-url=(.+)$/
-      options[:redis_url] = Regexp.last_match(1)
-    when /^--temp-db=(\d+)$/
-      options[:temp_db] = Regexp.last_match(1).to_i
     when '--help', '-h'
       puts <<~HELP
         Usage: ruby scripts/upgrades/v0.24.5/validate_instance_index.rb [OPTIONS]
@@ -239,8 +190,6 @@ def parse_args(args)
 
         Options:
           --input-file=FILE   Input JSONL dump (default: data/upgrades/v0.24.5/customer/customer_dump.jsonl)
-          --redis-url=URL     Redis URL for temp restore (env: VALKEY_URL or REDIS_URL)
-          --temp-db=N         Temp database number (default: 15)
           --help              Show this help
 
         Validates:
@@ -263,8 +212,6 @@ if __FILE__ == $PROGRAM_NAME
 
   validator = InstanceIndexValidator.new(
     input_file: options[:input_file],
-    redis_url: options[:redis_url],
-    temp_db: options[:temp_db],
   )
 
   success = validator.run

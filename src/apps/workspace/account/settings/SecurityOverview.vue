@@ -5,16 +5,19 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
-  import { isMfaEnabled, isWebAuthnEnabled } from '@/utils/features';
+  import { isMfaEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { AccountInfo } from '@/types/auth';
   import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
+  const bootstrapStore = useBootstrapStore();
 
-  // Feature toggles
+  // Feature toggles — derived from the reactive bootstrap store so they reflect
+  // post-login state without re-mounting (e.g. after checkWindowStatus refresh).
   const showSessionsCard = ref(false);
-  const mfaFeatureEnabled = ref(isMfaEnabled());
-  const webAuthnEnabled = ref(isWebAuthnEnabled());
+  const mfaFeatureEnabled = computed(() => isMfaEnabledOf(bootstrapStore));
+  const webAuthnEnabled = computed(() => isWebAuthnEnabledOf(bootstrapStore));
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   interface SecurityCard {

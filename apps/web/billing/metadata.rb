@@ -68,14 +68,16 @@ module Billing
       FIELD_IS_POPULAR => 'is_popular',        # Special handling: boolean
     }.freeze
 
-    # All required metadata fields
+    # Required metadata fields for plan creation (app check is separate gate)
+    # These fields must be present AND non-blank for a product to be valid.
     REQUIRED_FIELDS = [
-      FIELD_APP,
+      FIELD_PLAN_ID,
       FIELD_TIER,
-      FIELD_ENTITLEMENTS,
-      FIELD_TENANCY,
-      FIELD_CREATED,
+      FIELD_REGION,
     ].freeze
+
+    # Canonical free plan ID (used when canceling subscriptions)
+    FREE_PLAN_ID = 'free_v1'
 
     # Plan IDs that represent free/unpaid tiers
     FREE_PLAN_IDS = %w[free free_v1].freeze
@@ -109,6 +111,29 @@ module Billing
     # @return [Float, Integer] Float::INFINITY if unlimited, otherwise the integer value
     def self.normalize_limit(value)
       unlimited?(value) ? Float::INFINITY : value.to_i
+    end
+
+    # Resolve the deployment's current region for Stripe customer metadata.
+    #
+    # Returns the configured jurisdiction (e.g., 'EU', 'US') when regions are
+    # enabled, or 'global' when regions are disabled. Raises ConfigError if
+    # regions are enabled but no jurisdiction is set — that's a deployment
+    # misconfiguration that must be corrected, not silently defaulted.
+    #
+    # @return [String] Region jurisdiction code, or 'global' if regions disabled
+    # @raise [Onetime::ConfigError] If regions enabled but jurisdiction missing
+    def self.current_region
+      # Compare against the string 'true' so a YAML-supplied string like
+      # "false" (which is truthy in Ruby) doesn't get treated as enabled.
+      return 'global' unless OT.conf&.dig('features', 'regions', 'enabled').to_s == 'true'
+
+      jurisdiction = OT.conf&.dig('features', 'regions', 'current_jurisdiction')
+      if jurisdiction.to_s.strip.empty?
+        raise Onetime::ConfigError,
+          'features.regions.enabled is true but features.regions.current_jurisdiction is not set'
+      end
+
+      jurisdiction
     end
   end
 end

@@ -68,6 +68,7 @@ module Onetime
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
     feature :external_identifier, format: 'cd%<id>s' # use builtin extid_lookup index
+    feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
     feature :with_migration_fields
@@ -98,6 +99,7 @@ module Onetime
     field :vhost
     field :verified # the txt record matches?
     field :resolving # there's a valid A or CNAME record?
+    field :vhost_fetch_failed_at # epoch seconds; non-nil while last vhost fetch failed
     field :created
     field :updated
     field :_original_value

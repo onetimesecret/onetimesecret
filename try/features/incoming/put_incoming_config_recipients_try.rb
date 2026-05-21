@@ -40,7 +40,6 @@ enable_incoming_feature
 require 'apps/api/domains/logic/base'
 require 'apps/api/domains/logic/incoming_config/base'
 require 'apps/api/domains/logic/incoming_config/put_incoming_config'
-require 'onetime/models/custom_domain/incoming_config'
 
 IncomingConfig = Onetime::CustomDomain::IncomingConfig
 PutIncomingConfig = DomainsAPI::Logic::IncomingConfig::PutIncomingConfig

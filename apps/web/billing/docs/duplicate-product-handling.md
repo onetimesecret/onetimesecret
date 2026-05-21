@@ -12,7 +12,7 @@ This follows Stripe's best practice: "To make your script idempotent and resilie
 
 Products are considered duplicates if they have the same:
 - `metadata['app']` = `'onetimesecret'`
-- `metadata['plan_id']` (e.g., `'identity_v1_monthly'`)
+- `metadata['plan_id']` (e.g., `'identity_plus_v1'`)
 
 The `plan_id` is the primary identifier since it uniquely combines tier, interval, and region.
 
@@ -28,13 +28,13 @@ The `plan_id` is the primary identifier since it uniquely combines tier, interva
 
 ```bash
 $ bin/ots billing products create "Identity Plus" \
-  --plan-id=identity_v1_monthly \
+  --plan-id=identity_plus_v1 \
   --tier=single_team \
   --capabilities="create_secrets,custom_domains"
 
 Creating product 'Identity Plus' with metadata:
   app: onetimesecret
-  plan_id: identity_v1_monthly
+  plan_id: identity_plus_v1
   tier: single_team
   capabilities: create_secrets,custom_domains
   ...
@@ -53,11 +53,11 @@ Next steps:
 
 ```bash
 $ bin/ots billing products create "Identity Plus Updated" \
-  --plan-id=identity_v1_monthly \
+  --plan-id=identity_plus_v1 \
   --tier=single_team \
   --capabilities="create_secrets,custom_domains,audit_logs"
 
-⚠️  Product already exists with plan_id: identity_v1_monthly
+⚠️  Product already exists with plan_id: identity_plus_v1
   Product ID: prod_xxx
   Name: Identity Plus
   Tier: single_team
@@ -98,7 +98,7 @@ Skip duplicate detection entirely:
 
 ```bash
 bin/ots billing products create "Identity Plus" \
-  --plan-id=identity_v1_monthly \
+  --plan-id=identity_plus_v1 \
   --force
 ```
 
@@ -126,7 +126,7 @@ source .env
 # First run: Creates product
 # Subsequent runs: Prompts to update
 bin/ots billing products create "Identity Plus" \
-  --plan-id=identity_v1_monthly \
+  --plan-id=identity_plus_v1 \
   --tier=single_team \
   --capabilities="create_secrets,custom_domains" \
   --limit_teams=0 \
@@ -134,7 +134,7 @@ bin/ots billing products create "Identity Plus" \
 
 # Auto-answer with update (option 1)
 echo "1" | bin/ots billing products create "Team Plus" \
-  --plan-id=team_plus_v1_monthly \
+  --plan-id=team_plus_v1 \
   --tier=multi_team \
   --capabilities="create_secrets,manage_teams"
 ```
@@ -146,12 +146,12 @@ Change capabilities or limits without recreating:
 ```bash
 # Initial creation
 bin/ots billing products create "Identity Plus" \
-  --plan-id=identity_v1_monthly \
+  --plan-id=identity_plus_v1 \
   --capabilities="create_secrets,custom_domains"
 
 # Later: Add audit_logs capability
 bin/ots billing products create "Identity Plus" \
-  --plan-id=identity_v1_monthly \
+  --plan-id=identity_plus_v1 \
   --capabilities="create_secrets,custom_domains,audit_logs"
 
 # Choose option 1 to update

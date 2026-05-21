@@ -60,6 +60,14 @@ module Billing
           :success
         rescue Billing::CircuitOpenError => ex
           schedule_circuit_retry(ex)
+        rescue Onetime::ConfigError => ex
+          billing_logger.warn '[CatalogUpdated] Skipping product with invalid metadata',
+            {
+              error: ex.message,
+              event_type: @event.type,
+              object_id: @data_object.id,
+            }
+          :success
         rescue StandardError => ex
           billing_logger.error '[CatalogUpdated] Sync failed',
             {
@@ -169,8 +177,8 @@ module Billing
           # Fetch fresh from Stripe - webhook payload is a snapshot and may be stale
           product = fetch_with_retry { Stripe::Product.retrieve(product_id) }
 
-          # Only sync OTS products (filter by app metadata)
-          return unless product.metadata['app'] == 'onetimesecret'
+          # Only sync valid OTS products (app metadata + required fields)
+          return unless Billing::Plan.valid_ots_product?(product)
 
           # Skip products from a different region when regional isolation is configured
           return unless Billing::Plan.correct_region?(product)
@@ -209,8 +217,8 @@ module Billing
           price   = fetch_with_retry { Stripe::Price.retrieve(price_id) }
           product = fetch_with_retry { Stripe::Product.retrieve(price.product) }
 
-          # Only sync OTS products
-          return unless product.metadata['app'] == 'onetimesecret'
+          # Only sync valid OTS products (app metadata + required fields)
+          return unless Billing::Plan.valid_ots_product?(product)
 
           # Skip products from a different region when regional isolation is configured
           return unless Billing::Plan.correct_region?(product)

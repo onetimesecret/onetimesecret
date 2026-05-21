@@ -64,6 +64,7 @@ describe('SsoService domain methods', () => {
       tenant_id: 'test-tenant-id',
       issuer: null,  // Required nullable field
       enabled: true,
+      enforce_sso_only: false,
       allowed_domains: ['example.com'],
       requires_domain_filter: false,
       idp_controls_access: true,
@@ -516,6 +517,7 @@ describe('SsoService domain methods', () => {
             tenant_id: 'test-tenant-id',
             issuer: null,
             enabled: true,
+            enforce_sso_only: false,
             allowed_domains: ['example.com'],
             requires_domain_filter: false,
             idp_controls_access: true,
@@ -608,6 +610,7 @@ describe('SsoService domain methods', () => {
             tenant_id: 'new-tenant-id',
             issuer: null,
             enabled: true,
+            enforce_sso_only: false,
             allowed_domains: ['newdomain.com'],
             requires_domain_filter: false,
             idp_controls_access: true,
@@ -800,6 +803,7 @@ describe('SsoService domain methods', () => {
             tenant_id: null, // Nullable
             issuer: null, // Nullable
             enabled: true,
+            enforce_sso_only: false,
             allowed_domains: null, // Nullish, should normalize to []
             requires_domain_filter: false,
             idp_controls_access: true,
@@ -830,6 +834,7 @@ describe('SsoService domain methods', () => {
             tenant_id: 'tenant-123',
             issuer: null,
             enabled: true,
+            enforce_sso_only: false,
             allowed_domains: [],
             requires_domain_filter: false,
             idp_controls_access: true,
@@ -856,6 +861,7 @@ describe('SsoService domain methods', () => {
             client_id: 'client-id',
             client_secret_masked: '********',
             enabled: true,
+            enforce_sso_only: false,
             requires_domain_filter: false,
             idp_controls_access: true,
             created_at: 1234567890,

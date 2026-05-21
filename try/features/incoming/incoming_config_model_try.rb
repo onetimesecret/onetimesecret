@@ -15,7 +15,6 @@
 require_relative '../../support/test_models'
 OT.boot! :test, false
 
-require 'onetime/models/custom_domain/incoming_config'
 
 IncomingConfig = Onetime::CustomDomain::IncomingConfig
 
@@ -28,24 +27,33 @@ IncomingConfig = Onetime::CustomDomain::IncomingConfig
 @test_org = Onetime::Organization.create!("Incoming Model Test #{@ts}", @test_cust, "org_incoming_#{@ts}@test.com")
 @test_domain = Onetime::CustomDomain.create!("incoming-model-#{@ts}-#{@entropy}.example.com", @test_org.objid)
 
-# Store original site.secret for restoration
-@original_site_secret = OT.conf.dig('site', 'secret')
+# Helper to simulate missing site.secret by stubbing ensure_site_secret.
+# OT.conf is frozen, so we stub the class method instead of mutating config.
+def with_missing_site_secret
+  klass = IncomingConfig
+  original_secret = klass.instance_variable_get(:@site_secret)
+  original_method = klass.method(:ensure_site_secret)
 
-# Helper to modify site.secret temporarily
-def with_site_secret(value)
-  original = OT.conf.dig('site', 'secret')
-  if value.nil?
-    OT.conf['site'].delete('secret')
-  else
-    OT.conf['site']['secret'] = value
+  klass.instance_variable_set(:@site_secret, nil)
+  klass.define_singleton_method(:ensure_site_secret) do
+    raise Onetime::Problem, 'site.secret must be configured'
   end
+
   yield
 ensure
-  if original.nil?
-    OT.conf['site'].delete('secret')
-  else
-    OT.conf['site']['secret'] = original
-  end
+  klass.define_singleton_method(:ensure_site_secret, original_method)
+  klass.instance_variable_set(:@site_secret, original_secret)
+end
+
+# Helper to simulate whitespace-only site.secret
+def with_whitespace_site_secret
+  klass = IncomingConfig
+  original_secret = klass.instance_variable_get(:@site_secret)
+
+  klass.instance_variable_set(:@site_secret, '   ')
+  yield
+ensure
+  klass.instance_variable_set(:@site_secret, original_secret)
 end
 
 # --- EMAIL HASHING CONSISTENCY (Review Item 1) ---
@@ -101,7 +109,7 @@ config.recipients = [{ email: 'test@example.com', name: 'Test' }]
 config.save
 result = nil
 begin
-  with_site_secret(nil) do
+  with_missing_site_secret do
     config.public_recipients
     result = 'did_not_raise'
   end
@@ -121,7 +129,7 @@ config.recipients = [{ email: 'test@example.com', name: 'Test' }]
 config.save
 result = nil
 begin
-  with_site_secret('   ') do
+  with_whitespace_site_secret do
     config.public_recipients
     result = 'did_not_raise'
   end
@@ -140,7 +148,7 @@ config.recipients = [{ email: 'test@example.com', name: 'Test' }]
 config.save
 result = nil
 begin
-  with_site_secret(nil) do
+  with_missing_site_secret do
     config.lookup_recipient_email('any_hash')
     result = 'did_not_raise'
   end
@@ -159,7 +167,7 @@ config.recipients = [{ email: 'test@example.com', name: 'Test' }]
 config.save
 result = nil
 begin
-  with_site_secret('   ') do
+  with_whitespace_site_secret do
     result = config.lookup_recipient_email('any_hash')
   end
 rescue OT::Problem

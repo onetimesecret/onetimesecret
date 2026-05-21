@@ -63,7 +63,7 @@ require_relative '../support/test_helpers'
 
 ## Test organization entitlements with specific plan
 plans_data = [{
-  plan_id: 'identity_v1',
+  plan_id: 'identity_plus_v1',
   name: 'Identity Plus',
   tier: 2,
   interval: 'month',
@@ -74,7 +74,7 @@ plans_data = [{
 
 result = BillingTestHelpers.with_billing_enabled(plans: plans_data) do
   # Create organization and check entitlements
-  org = Onetime::Organization.new(planid: 'identity_v1')
+  org = Onetime::Organization.new(planid: 'identity_plus_v1')
   org.can?('custom_domains')
 end
 
@@ -253,16 +253,16 @@ end
 ```ruby
 ## Test upgrade path for features
 plans = [
-  { plan_id: 'free', tier: 1, entitlements: ['basic'] },
-  { plan_id: 'premium', tier: 2, entitlements: ['basic', 'advanced'] }
+  { plan_id: 'free_v1', tier: 1, entitlements: ['basic'] },
+  { plan_id: 'identity_plus_v1', tier: 2, entitlements: ['basic', 'advanced'] }
 ]
 
 with_billing_enabled(plans: plans) do
-  free_org = Onetime::Organization.new(planid: 'free')
-  premium_org = Onetime::Organization.new(planid: 'premium')
+  free_org = Onetime::Organization.new(planid: 'free_v1')
+  paid_org = Onetime::Organization.new(planid: 'identity_plus_v1')
 
   free_org.can?('advanced')  #=> false
-  premium_org.can?('advanced')  #=> true
+  paid_org.can?('advanced')  #=> true
 end
 ```
 

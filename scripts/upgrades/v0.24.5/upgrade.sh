@@ -565,8 +565,9 @@ if [ "$START_PHASE" -le 5 ]; then
     echo "    bin/ots customers sync-auth-accounts        (preview)"
     echo "    bin/ots customers sync-auth-accounts --run   (execute)"
     echo ""
-    echo "  The sync-auth-accounts command is idempotent (upserts by external_id)."
-    echo "  It can be re-run safely if interrupted."
+    echo "  The sync-auth-accounts command is resumable: already-synced external_ids"
+    echo "  are skipped on re-run. Note: re-runs do NOT update existing rows (email,"
+    echo "  status_id). First-create only. Safe to re-run if interrupted."
   fi
 
   echo ""

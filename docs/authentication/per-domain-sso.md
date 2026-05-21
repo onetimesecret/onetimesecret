@@ -72,7 +72,7 @@ bin/ots billing catalog pull
 Verify the entitlement is cached:
 
 ```bash
-redis-cli SISMEMBER 'billing_plan:identity_plus_v1_monthly:entitlements' 'manage_sso'
+redis-cli SISMEMBER 'billing_plan:identity_plus_v1:entitlements' 'manage_sso'
 # Returns 1 if present, 0 if missing
 ```
 

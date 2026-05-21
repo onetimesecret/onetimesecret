@@ -29,6 +29,7 @@ module Onetime::CustomDomain::Features
       # that we want to avoid unless we are actually going to use it.
       base.safe_dump_field :status
       base.safe_dump_field :vhost, ->(obj) { obj.parse_vhost }
+      base.safe_dump_field :vhost_fetch_failed_at, ->(obj) { obj.vhost_fetch_failed_at&.to_i }
       base.safe_dump_field :verified, ->(obj) { obj.verified.to_s == 'true' }
       base.safe_dump_field :created
       base.safe_dump_field :updated
@@ -52,6 +53,16 @@ module Onetime::CustomDomain::Features
             )
           end
           obj.instance_variable_get(:@_sso_config_cache)&.enabled? || false
+        }
+      base.safe_dump_field :sso_enforce_sso_only,
+        ->(obj) {
+          unless obj.instance_variable_defined?(:@_sso_config_cache)
+            obj.instance_variable_set(
+              :@_sso_config_cache,
+              Onetime::CustomDomain::SsoConfig.find_by_domain_id(obj.identifier),
+            )
+          end
+          obj.instance_variable_get(:@_sso_config_cache)&.enforce_sso_only? || false
         }
 
       # Homepage config - computed from CustomDomain::HomepageConfig lookup

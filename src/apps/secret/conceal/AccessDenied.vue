@@ -8,7 +8,7 @@
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col items-center justify-center px-4">
+  <div class="flex flex-col items-center px-4 pt-24 sm:pt-32">
     <div class="container mx-auto min-w-[320px] max-w-2xl">
       <!--
 

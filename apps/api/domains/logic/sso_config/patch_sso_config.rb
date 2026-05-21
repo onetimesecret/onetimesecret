@@ -54,6 +54,10 @@ module DomainsAPI
           # Track whether enabled was explicitly provided (for PATCH semantics)
           @enabled_provided = !params['enabled'].nil?
           @enabled          = parse_boolean(params['enabled'])
+
+          # Track whether enforce_sso_only was explicitly provided (for PATCH semantics)
+          @enforce_sso_only_provided = !params['enforce_sso_only'].nil?
+          @enforce_sso_only          = parse_boolean(params['enforce_sso_only'])
         end
 
         def raise_concerns
@@ -77,6 +81,11 @@ module DomainsAPI
 
           # Validate provider-specific fields
           validate_provider_specific_fields
+
+          # Validate enforce_sso_only requires enabled (using effective values for PATCH semantics)
+          effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
+          effective_enforce = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
+          validate_enforce_sso_requires_enabled(effective_enabled, effective_enforce)
         end
 
         def process
@@ -132,6 +141,7 @@ module DomainsAPI
             issuer: @issuer,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
+            enforce_sso_only: @enforce_sso_only,
           }
         end
 
@@ -218,6 +228,7 @@ module DomainsAPI
             issuer: @issuer,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
+            enforce_sso_only: @enforce_sso_only,
           )
         end
 
@@ -239,12 +250,13 @@ module DomainsAPI
           @sso_config = @existing_config
 
           # PATCH semantics: only update fields that are provided (non-empty)
-          @sso_config.provider_type = @provider_type
-          @sso_config.display_name  = @display_name unless @display_name.to_s.empty?
-          @sso_config.client_id     = @client_id
-          @sso_config.tenant_id     = @tenant_id unless @tenant_id.to_s.empty?
-          @sso_config.issuer        = @issuer unless @issuer.to_s.empty?
-          @sso_config.enabled       = @enabled.to_s if @enabled_provided
+          @sso_config.provider_type    = @provider_type
+          @sso_config.display_name     = @display_name unless @display_name.to_s.empty?
+          @sso_config.client_id        = @client_id
+          @sso_config.tenant_id        = @tenant_id unless @tenant_id.to_s.empty?
+          @sso_config.issuer           = @issuer unless @issuer.to_s.empty?
+          @sso_config.enabled          = @enabled.to_s if @enabled_provided
+          @sso_config.enforce_sso_only = @enforce_sso_only.to_s if @enforce_sso_only_provided
 
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?

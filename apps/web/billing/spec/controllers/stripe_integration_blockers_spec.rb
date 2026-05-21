@@ -86,9 +86,12 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
 
         plan = data['plans'].first
         expect(plan).to include(
-          'id', 'name', 'tier', 'interval', 'amount', 'currency',
+          'id', 'name', 'tier', 'prices', 'currency',
           'features', 'limits', 'entitlements'
         )
+        # Family-keyed plans nest interval/amount inside prices
+        expect(plan['prices']).to be_a(Hash)
+        expect(plan['prices'].keys).to include('month').or include('year')
       end
 
       it 'includes plans sorted by display_order' do
@@ -110,11 +113,11 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
   # ---------------------------------------------------------------------------
   describe 'BLOCKER 1 & 2: Plans by interval' do
     context 'monthly plans' do
-      it 'returns plans with interval=month' do
+      it 'returns plans with a month price' do
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        monthly_plans = data['plans'].select { |p| p['interval'] == 'month' }
+        monthly_plans = data['plans'].select { |p| p['prices']&.key?('month') }
 
         # BLOCKER 1 ASSERTION: Monthly tab should have plans
         expect(monthly_plans).not_to be_empty,
@@ -126,22 +129,22 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        monthly_plans = data['plans'].select { |p| p['interval'] == 'month' }
+        monthly_plans = data['plans'].select { |p| p['prices']&.key?('month') }
         skip 'No monthly plans' if monthly_plans.empty?
 
         monthly_plans.each do |plan|
-          expect(plan['amount'].to_i).to be > 0,
-            "Plan #{plan['id']} should have positive amount"
+          expect(plan['prices']['month']['amount'].to_i).to be > 0,
+            "Plan #{plan['id']} should have positive monthly amount"
         end
       end
     end
 
     context 'yearly plans' do
-      it 'returns plans with interval=year' do
+      it 'returns plans with a year price' do
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        yearly_plans = data['plans'].select { |p| p['interval'] == 'year' }
+        yearly_plans = data['plans'].select { |p| p['prices']&.key?('year') }
 
         # BLOCKER 2 ASSERTION: Yearly tab should have plans
         expect(yearly_plans).not_to be_empty,
@@ -153,11 +156,11 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        yearly_plans = data['plans'].select { |p| p['interval'] == 'year' }
+        yearly_plans = data['plans'].select { |p| p['prices']&.key?('year') }
         skip 'No yearly plans' if yearly_plans.empty?
 
         yearly_plans.each do |plan|
-          expect(plan['amount'].to_i).to be > 0,
+          expect(plan['prices']['year']['amount'].to_i).to be > 0,
             "Plan #{plan['id']} should have positive annual amount"
         end
       end
@@ -210,7 +213,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
     end
 
     context 'with organization that has a plan' do
-      let(:test_plan_id) { 'identity_plus_v1_monthly' }
+      let(:test_plan_id) { 'identity_plus_v1' }
 
       before do
         organization.planid = test_plan_id
@@ -282,12 +285,16 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
     end
 
     it 'plans are retrievable by tier and billing cycle' do
-      skip 'Plan cache empty' if ::Billing::Plan.list_plans.empty?
+      plans = ::Billing::Plan.list_plans
+      skip 'Plan cache empty' if plans.empty?
 
-      # Test common tier/billing cycle combinations
-      plan = ::Billing::Plan.get_plan('single_team', 'monthly', 'EU')
+      # Get actual tier and region from loaded plans (config-dependent)
+      sample_plan = plans.find { |p| p.tier != 'free' }
+      skip 'No paid plans in cache' unless sample_plan
+
+      plan = ::Billing::Plan.get_plan(sample_plan.tier, 'monthly', sample_plan.region)
       expect(plan).not_to be_nil,
-        'Could not retrieve single_team monthly plan. ' \
+        "Could not retrieve #{sample_plan.tier} monthly plan. " \
         'Check Plan.get_plan lookup logic and cache keys.'
     end
   end

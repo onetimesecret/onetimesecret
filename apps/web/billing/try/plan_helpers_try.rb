@@ -330,8 +330,8 @@ Billing::PlanHelpers.legacy_plan?('identity_monthly')
 Billing::PlanHelpers.legacy_plan?('identity_yearly')
 #=> true
 
-## Test: Non-legacy plan with interval suffix
-Billing::PlanHelpers.legacy_plan?('identity_plus_v1_monthly')
+## Test: Non-legacy plan (canonical form)
+Billing::PlanHelpers.legacy_plan?('identity_plus_v1')
 #=> false
 
 ## Test: Empty plan_id returns false
@@ -396,7 +396,7 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
   contact_email: "new-#{@test_suffix}@example.com",
 )
 @new_org.planid
-#=> 'free'
+#=> 'free_v1'
 
 ## Test: New organization has api_access
 @new_org.can?('api_access')

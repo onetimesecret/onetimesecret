@@ -128,7 +128,11 @@
           role="alert"
           aria-label="Read-only mode notification">
           <div class="flex items-center">
-            <span class="mr-2" aria-hidden="true">🔒</span>
+            <span
+              class="mr-2"
+              aria-hidden="true"
+              >🔒</span
+            >
             <span class="text-sm font-medium">Read-Only Mode</span>
           </div>
           <p class="mt-1 text-sm">
