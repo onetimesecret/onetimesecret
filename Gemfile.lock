@@ -539,7 +539,7 @@ GEM
       prettier_print (>= 1.2.0)
     thor (1.5.0)
     tilt (2.7.0)
-    timecop (0.9.10)
+    timecop (0.9.11)
     timeout (0.6.1)
     tpm-key_attestation (0.14.1)
       bindata (~> 2.4)
