@@ -29,6 +29,8 @@
   const bootstrapStore = useBootstrapStore();
   const { ot_version, ot_version_long, domains_enabled, support_host, ui } = storeToRefs(bootstrapStore);
 
+  const showVersionConfig = computed(() => ui.value?.show_version ?? true);
+
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
   const domainsStore = useDomainsStore();
@@ -226,7 +228,7 @@
         text-xs text-gray-500 dark:text-gray-400">
         <div class="flex items-center gap-x-3">
           <span
-            v-if="displayVersion"
+            v-if="displayVersion && showVersionConfig"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
@@ -237,7 +239,7 @@
             </a>
           </span>
           <span
-            v-if="displayVersion && displayPoweredBy"
+            v-if="displayVersion && showVersionConfig && displayPoweredBy"
             class="text-gray-400 dark:text-gray-600"
             aria-hidden="true">
             •
