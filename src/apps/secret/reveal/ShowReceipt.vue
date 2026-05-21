@@ -286,12 +286,12 @@
         <!-- Help Section with Card Styling -->
         <!-- prettier-ignore-attribute class -->
         <section
-          v-if="isAvailable"
+          v-if="isAvailable && helpEnabled"
           aria-labelledby="section-help"
           class="relative rounded-xl border border-gray-200/60
           bg-white/60 p-4 shadow-sm backdrop-blur-sm sm:p-6
           dark:border-gray-700/60 dark:bg-gray-800/60">
-          <NeedHelpModal v-if="helpEnabled">
+          <NeedHelpModal>
             <template #content>
               <ReceiptFAQ
                 :record="record"

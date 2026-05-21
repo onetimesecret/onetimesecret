@@ -7,11 +7,9 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { ref, computed } from 'vue';
-  import { storeToRefs } from 'pinia';
 
   const bootstrapStore = useBootstrapStore();
-  const { ui } = storeToRefs(bootstrapStore);
-  const helpEnabled = computed(() => ui.value?.help_enabled ?? true);
+  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
 
   interface Props {
     secretIdentifier: string;
