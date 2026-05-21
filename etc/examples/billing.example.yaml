@@ -235,8 +235,10 @@ plans:
     # updated/deleted/archived through the Stripe dashboard, the pull command must
     # include the --clear flag to properly updated the cache.
     prices:
-        # Complimentary price for pro-bono accounts (see #2657)
-        # Used by: bin/ots migrations migrate-probono-accounts --price-id <id>
+        # Optional $0 price for complimentary subscriptions created via the
+        # Stripe dashboard. Legacy pro-bono accounts (customer.planid=identity)
+        # are migrated directly via `bin/ots migrations grant-probono-entitlements`
+        # and do not require a Stripe subscription.
       - interval: month
         amount: 0
         metadata:
@@ -288,8 +290,8 @@ plans:
   #       amount: 8500  # $85.00
   #     - interval: year
   #       amount: 85000 # $850.00
-  #       # Complimentary price for pro-bono accounts (see #2657)
-  #       # Used by: bin/ots migrations migrate-probono-accounts --price-id <id>
+  #       # Optional $0 price for complimentary subscriptions created via the
+  #       # Stripe dashboard.
   #     - interval: month
   #       amount: 0
   #       metadata:

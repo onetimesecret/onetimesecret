@@ -18,7 +18,7 @@
 #
 # Identity preservation: `'identity'` is intentionally kept as canonical.
 # Pro-bono customers carry `customer.planid='identity'` and the
-# `migrations migrate-probono-accounts` command (which operates on
+# `migrations grant-probono-entitlements` command (which operates on
 # `customer.planid`, not `organization.planid`) is the authoritative path
 # for those accounts. This chore deliberately does not touch them.
 #
