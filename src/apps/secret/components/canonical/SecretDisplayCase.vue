@@ -17,6 +17,7 @@
     () => bootstrapStore.authentication?.enabled
       && bootstrapStore.authentication?.signin
   );
+  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
 
   interface Props {
     record: Secret | null;
@@ -79,6 +80,7 @@
         </div>
         <!-- Help Modal Trigger positioned to the right -->
         <NeedHelpModal
+          v-if="helpEnabled"
           link-icon-name="question-mark-circle-16-solid"
           link-text-label="">
           <button

@@ -4,8 +4,14 @@
   import { useI18n } from 'vue-i18n';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import SecretRecipientHelpContent from '@/apps/secret/components/SecretRecipientHelpContent.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
   import { ref, computed } from 'vue';
+  import { storeToRefs } from 'pinia';
+
+  const bootstrapStore = useBootstrapStore();
+  const { ui } = storeToRefs(bootstrapStore);
+  const helpEnabled = computed(() => ui.value?.help_enabled ?? true);
 
   interface Props {
     secretIdentifier: string;
@@ -71,6 +77,7 @@
 
       <!-- Help Modal Trigger positioned to the right -->
       <NeedHelpModal
+        v-if="helpEnabled"
         link-icon-name="question-mark-circle-16-solid"
         link-text-label="">
         <!-- prettier-ignore-attribute class -->

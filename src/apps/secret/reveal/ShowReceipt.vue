@@ -11,6 +11,7 @@
   import SecretLink from '@/apps/secret/components/receipt/SecretLink.vue';
   import StatusBadge from '@/apps/secret/components/receipt/StatusBadge.vue';
   import TimelineDisplay from '@/apps/secret/components/receipt/TimelineDisplay.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useReceipt } from '@/shared/composables/useReceipt';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/shared/composables/useSecretExpiration';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -18,6 +19,9 @@
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
 
   import UnknownReceipt from './UnknownReceipt.vue';
+
+  const bootstrapStore = useBootstrapStore();
+  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
 
   // Define props
   interface Props {
@@ -287,7 +291,7 @@
           class="relative rounded-xl border border-gray-200/60
           bg-white/60 p-4 shadow-sm backdrop-blur-sm sm:p-6
           dark:border-gray-700/60 dark:bg-gray-800/60">
-          <NeedHelpModal>
+          <NeedHelpModal v-if="helpEnabled">
             <template #content>
               <ReceiptFAQ
                 :record="record"

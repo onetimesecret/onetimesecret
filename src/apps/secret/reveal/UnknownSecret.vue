@@ -5,9 +5,13 @@
   import BaseUnknownSecret from '@/shared/components/base/BaseUnknownSecret.vue';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import UnknownSecretHelpContent from '@/apps/secret/components/UnknownSecretHelpContent.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
+  import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
+  const bootstrapStore = useBootstrapStore();
+  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
 
   interface Props {
     branded?: boolean;
@@ -55,6 +59,7 @@ const { t } = useI18n();
 
           <!-- Help Modal Trigger -->
           <NeedHelpModal
+            v-if="helpEnabled"
             link-icon-name="question-mark-circle-16-solid"
             link-text-label=""
             aria-haspopup="dialog">

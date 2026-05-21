@@ -155,6 +155,7 @@ export const uiInterfaceSchema = z.object({
   workspace_links: workspaceLinksConfigSchema.optional(),
   capabilities: uiCapabilitiesSchema.optional(),
   show_version: z.boolean().default(true),
+  help_enabled: z.boolean().default(true),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
