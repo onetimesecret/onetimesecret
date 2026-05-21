@@ -253,6 +253,37 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: false,
     },
   },
+  // Developer tool: preview the disabled-homepage view alongside the live MastHead
+  // (not linked from navigation). Renders the same AccessDenied content the real
+  // disabled-homepage mode shows, but with a prominent notice making clear the
+  // site is not actually disabled. Useful for verifying branding env vars
+  // (LOGO_URL, LOGO_SHOW_NAME, SITE_NAME, LOGO_PROMINENT) without toggling
+  // UI_ENABLED or auth.required on the backend.
+  {
+    path: '/disabled',
+    name: 'PreviewDisabled',
+    components: {
+      default: () => import('@/views/PreviewDisabled.vue'),
+      header: TransactionalHeader,
+      footer: TransactionalFooter,
+    },
+    meta: {
+      title: 'web.COMMON.title_home',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayFooterLinks: true,
+        displayFeedback: false,
+        displayPoweredBy: false,
+        displayVersion: false,
+        displayToggles: true,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
+    },
+  },
 ];
 
 export default routes;
