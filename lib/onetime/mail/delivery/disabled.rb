@@ -18,8 +18,7 @@ module Onetime
       # All delivery attempts succeed silently with no side effects.
       #
       class Disabled < Base
-        def perform_delivery(email)
-          OT.info "[mail] Delivery skipped (emailer disabled) to=#{obscure_email(email[:to])}"
+        def perform_delivery(_email)
           nil
         end
 
