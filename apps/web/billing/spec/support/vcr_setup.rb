@@ -109,6 +109,7 @@ VCR.configure do |config|
 
   # Allow connections to real Stripe API for VCR recording
   config.ignore_localhost = true
+  config.ignore_hosts 'catch.onetimesecret.com'  # Don't record envelope API calls
 
   # Allow HTTP connections when no cassette is in use (for recording mode)
   # This handles Stripe API calls that happen in before hooks before cassettes open

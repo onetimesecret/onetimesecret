@@ -28,6 +28,10 @@ RSpec.shared_context 'with_test_plans' do
     # The test config has enabled: false by default for isolation
     allow(Onetime::BillingConfig.instance).to receive(:enabled?).and_return(true)
 
+    # Reset Plan.load stubs from stub_test_plan_catalog! so ConfigLoader can
+    # create real Plan instances (the mocks only support reads, not writes)
+    allow(Billing::Plan).to receive(:load).and_call_original
+
     # Load all plans from test config into Redis cache
     Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
