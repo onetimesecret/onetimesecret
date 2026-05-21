@@ -49,11 +49,12 @@
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
 
-  // Custom logo detection (used only for site name visibility, not sizing).
-  // Domain branding or external URLs typically embed their own wordmark.
-  const isCustomLogo = computed(() =>
-    !!domain_logo.value
-    || (!!headerConfig.value?.branding?.logo?.url && headerConfig.value.branding.logo.url !== DEFAULT_LOGO)
+  // Static-config custom logo: operator set LOGO_URL to anything other than the
+  // bundled DefaultLogo.vue. Distinct from domain_logo (per-tenant runtime signal),
+  // because the two have different override semantics for the site name.
+  const isCustomStaticLogo = computed(() =>
+    !!headerConfig.value?.branding?.logo?.url
+    && headerConfig.value.branding.logo.url !== DEFAULT_LOGO
   );
 
   // LOGO_PROMINENT opt-in for larger logo sizing.
@@ -69,16 +70,22 @@
     if (isProminentLogo.value) return isUserPresent.value ? 80 : 160;
     return isUserPresent.value ? 40 : 48;
   };
-  // Hide site name whenever a custom logo is in use; custom branding typically embeds
-  // its own wordmark, so showing the site name alongside duplicates the brand identity.
-  // Callers can opt back in via the props.logo.showSiteName override.
-  // Priority: props > custom logo (any source, hide by default) > logo.show_name config > site_name presence
+  // Priority:
+  //   1. props.logo.showSiteName            (caller-site override)
+  //   2. domain_logo.value                  (per-tenant: always hide platform name)
+  //   3. headerConfig.branding.logo.show_name  (LOGO_SHOW_NAME explicit config)
+  //   4. isCustomStaticLogo.value           (heuristic: custom LOGO_URL usually
+  //                                          embeds its own wordmark)
+  //   5. !!site_name                        (default visibility tied to SITE_NAME)
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
-    if (isCustomLogo.value) return false;
+    if (domain_logo.value) return false;
 
     const showName = headerConfig.value?.branding?.logo?.show_name;
-    return showName ?? !!headerConfig.value?.branding?.site_name;
+    if (showName != null) return showName;
+
+    if (isCustomStaticLogo.value) return false;
+    return !!headerConfig.value?.branding?.site_name;
   };
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
