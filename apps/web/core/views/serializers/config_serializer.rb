@@ -39,6 +39,7 @@ module Core
         diagnostics = view_vars['diagnostics']
 
         output['ui']             = site.dig('interface', 'ui')
+        output['api_enabled']    = site.dig('interface', 'api', 'enabled') != false
         output['authentication'] = site.fetch('authentication', nil)
         output['homepage_mode']  = view_vars['homepage_mode']
         output['secret_options'] = site['secret_options']
@@ -98,6 +99,7 @@ module Core
         # @return [Hash] Template with all possible configuration output fields
         def output_template
           {
+            'api_enabled' => nil,
             'authentication' => nil,
             'd9s_enabled' => nil,
             'development' => nil,

@@ -6,12 +6,15 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccountStore } from '@/shared/stores/accountStore';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import { onMounted } from 'vue';
 
   const { t } = useI18n();
   const accountStore = useAccountStore();
   const { account } = storeToRefs(accountStore);
+  const bootstrapStore = useBootstrapStore();
+  const { api_enabled } = storeToRefs(bootstrapStore);
 
   onMounted(async () => {
     await accountStore.fetch();
@@ -20,7 +23,22 @@
 
 <template>
   <SettingsLayout>
-    <div class="space-y-8">
+    <div
+      v-if="!api_enabled"
+      class="rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-800/60">
+      <OIcon
+        collection="heroicons"
+        name="x-circle-solid"
+        class="mx-auto mb-3 size-8 text-gray-400 dark:text-gray-500"
+        aria-hidden="true" />
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        {{ t('web.settings.api.api_disabled_notice') }}
+      </p>
+    </div>
+
+    <div
+      v-else
+      class="space-y-8">
       <!-- API Key Section -->
       <section
         class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
@@ -67,4 +85,5 @@
       </div>
     </div>
   </SettingsLayout>
+
 </template>

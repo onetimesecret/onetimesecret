@@ -397,6 +397,7 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   // ConfigSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
+  api_enabled: z.boolean().default(true),
   authentication: authenticationSettingsSchema.default(authenticationSettingsInner.parse({})),
   d9s_enabled: z.boolean().default(false),
   diagnostics: diagnosticsSchema.default(diagnosticsInner.parse({})),
