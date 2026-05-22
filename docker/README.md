@@ -23,7 +23,7 @@ include:
 ## Quick Start
 
 ```bash
-cp --preserve --no-clobber .env.example .env
+cp --preserve --update=none .env.example .env
 echo "SECRET=$(openssl rand -hex 32)" >> .env
 docker compose up
 ```

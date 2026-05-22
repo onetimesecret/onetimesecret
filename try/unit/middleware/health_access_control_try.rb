@@ -238,6 +238,7 @@ Otto::Privacy::IPPrivacy.private_or_localhost?('not_an_ip')
 @status
 #=> 403
 
+
 # =================================================================
 # call - Pass non-health requests through regardless of IP
 # =================================================================
@@ -340,3 +341,42 @@ Otto::Privacy::IPPrivacy.private_or_localhost?('not_an_ip')
 @status, @headers, @body = @middleware.call(@env)
 @status
 #=> 200
+
+# =================================================================
+# HEALTH_TRUSTED_CIDR env var - custom ranges
+# =================================================================
+# The default middleware above uses the default (100.64.0.0/10).
+# These tests create fresh instances with explicit env overrides.
+
+## HEALTH_TRUSTED_CIDR - custom single CIDR allows matching IP
+ENV['HEALTH_TRUSTED_CIDR'] = '203.0.113.0/24'
+@custom_middleware = TestHealthAccessControl.new(@mock_app)
+@env = create_env('/health', '203.0.113.50')
+@status, _, _ = @custom_middleware.call(@env)
+@status
+#=> 200
+
+## HEALTH_TRUSTED_CIDR - custom CIDR does not allow IP outside range
+@env = create_env('/health', '203.0.114.1')
+@status, _, _ = @custom_middleware.call(@env)
+@status
+#=> 403
+
+## HEALTH_TRUSTED_CIDR - multiple CIDRs comma-separated
+ENV['HEALTH_TRUSTED_CIDR'] = '203.0.113.0/24,198.51.100.0/24'
+@custom_middleware = TestHealthAccessControl.new(@mock_app)
+@env = create_env('/health', '198.51.100.5')
+@status, _, _ = @custom_middleware.call(@env)
+@status
+#=> 200
+
+## HEALTH_TRUSTED_CIDR - empty value disables extra ranges
+ENV['HEALTH_TRUSTED_CIDR'] = ''
+@custom_middleware = TestHealthAccessControl.new(@mock_app)
+@env = create_env('/health', '100.64.218.0')
+@status, _, _ = @custom_middleware.call(@env)
+@status
+#=> 403
+
+## HEALTH_TRUSTED_CIDR - unset restores default (RFC 1918 only)
+ENV.delete('HEALTH_TRUSTED_CIDR')

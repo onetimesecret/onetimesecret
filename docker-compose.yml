@@ -3,7 +3,7 @@
 #
 # Default: Simple deployment (App + Valkey). Just run:
 #
-#     $ cp --preserve --no-clobber .env.example .env
+#     $ cp --preserve --update=none .env.example .env
 #     $ docker compose up
 #
 # For the full production stack (Caddy TLS, RabbitMQ, workers,

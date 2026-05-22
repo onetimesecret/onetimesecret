@@ -35,6 +35,7 @@ site:
         mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 1   # Trust single reverse proxy (nginx, Caddy, etc.)
 
+---
 # =============================================================================
 # Example 2: External Mode for Public Access (Behind Reverse Proxy)
 # =============================================================================
@@ -52,6 +53,7 @@ site:
         mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 1   # Trust single reverse proxy
 
+---
 # =============================================================================
 # Example 3: Direct Connection (No Reverse Proxy)
 # =============================================================================
@@ -71,6 +73,7 @@ site:
         mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 0   # NOT behind proxy - use direct connection IP
 
+---
 # =============================================================================
 # Example 4: Behind Load Balancer AND Reverse Proxy
 # =============================================================================
@@ -93,6 +96,7 @@ site:
         mode_header: "O-Homepage-Mode"
         trusted_proxy_depth: 2   # Trust 2 proxy layers (CDN + reverse proxy)
 
+---
 # =============================================================================
 # Example 5: IPv6 Networks (Behind Reverse Proxy)
 # =============================================================================
