@@ -71,6 +71,14 @@
   const passphraseConfig = computed(() => secretOptions.value?.passphrase);
   const isPassphraseRequired = computed(() => passphraseConfig.value?.required || false);
 
+  // Recipient field is shown only when the route opts in (withRecipient) AND the
+  // ui.capabilities.recipient flag is not explicitly disabled. An unset flag
+  // (undefined) is treated as enabled, matching the config default of true.
+  const { uiCapabilities } = storeToRefs(bootstrapStore);
+  const showRecipient = computed(
+    () => props.withRecipient && uiCapabilities.value?.recipient !== false
+  );
+
   // Helper function to get validation errors
   const getError = (field: keyof typeof form) => validation.errors.get(field);
 
@@ -415,7 +423,7 @@
 
           <!-- Recipient Field -->
           <div
-            v-if="props.withRecipient"
+            v-if="showRecipient"
             class="mt-6">
             <h3>
               <label

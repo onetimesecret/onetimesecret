@@ -1,3 +1,5 @@
+# docs/specs/domain-permissions.md
+---
 # Domain Permissions for Secret Creation
 
 Behavioral specification for `validate_domain_permissions` authorization logic.

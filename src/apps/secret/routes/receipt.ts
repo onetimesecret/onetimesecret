@@ -16,6 +16,17 @@ const validateReceiptKey = (key: string | string[]): key is string =>
   typeof key === 'string' && /^[a-zA-Z0-9]+$/.test(key);
 
 /**
+ * Checks if the receipt capability is enabled.
+ * The receipt page is gated unless ui.capabilities.receipt is explicitly
+ * disabled. An unset flag (undefined) is treated as enabled, matching
+ * the config default of true.
+ */
+const isReceiptCapabilityEnabled = (): boolean => {
+  const bootstrapStore = useBootstrapStore();
+  return bootstrapStore.uiCapabilities?.receipt !== false;
+};
+
+/**
  * Shared route configuration for receipt-related routes.
  * Handles validation and type safety for the receiptIdentifier parameter.
  *
@@ -25,7 +36,17 @@ const validateReceiptKey = (key: string | string[]): key is string =>
  */
 const withValidatedReceiptKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
-    // Use bootstrap store for domain strategy
+    // Validate key and check capability before any other work
+    const isValid = validateReceiptKey(to.params.receiptIdentifier);
+    if (!isValid) {
+      return { name: 'NotFound' };
+    }
+
+    if (!isReceiptCapabilityEnabled()) {
+      return { name: 'NotFound' };
+    }
+
+    // Configure layout for custom domains
     const bootstrapStore = useBootstrapStore();
     const domainStrategy = bootstrapStore.domain_strategy as string;
 
@@ -43,11 +64,6 @@ const withValidatedReceiptKey = {
         displayPoweredBy: true,
         displayToggles: true,
       };
-    }
-
-    const isValid = validateReceiptKey(to.params.receiptIdentifier);
-    if (!isValid) {
-      return { name: 'NotFound' };
     }
   },
   props: (route: RouteLocationNormalized) => ({

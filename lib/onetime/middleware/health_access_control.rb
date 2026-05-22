@@ -16,10 +16,15 @@ module Onetime
     # - IPv4/IPv6 loopback (127/8, ::1)
     # - IPv6 private ranges (fc00::/7, fe80::/10)
     #
+    # Optionally allows extra CIDR ranges via HEALTH_TRUSTED_CIDR env var
+    # (comma-separated, e.g. "100.64.0.0/10,10.96.0.0/12").
+    # When unset, only RFC 1918 and loopback addresses are trusted.
+    #
     class HealthAccessControl
       def initialize(app)
-        @app    = app
-        @logger = Onetime.get_logger('HealthAccessControl')
+        @app          = app
+        @logger       = Onetime.get_logger('HealthAccessControl')
+        @extra_ranges = parse_trusted_cidrs(ENV['HEALTH_TRUSTED_CIDR'])
       end
 
       def call(env)
@@ -29,7 +34,7 @@ module Onetime
 
         client_ip = Rack::Request.new(env).ip
 
-        unless Otto::Privacy::IPPrivacy.private_or_localhost?(client_ip)
+        unless trusted_ip?(client_ip)
           @logger.warn 'Health endpoint access denied',
             {
               ip: client_ip,
@@ -44,6 +49,33 @@ module Onetime
       end
 
       private
+
+      def trusted_ip?(client_ip)
+        Otto::Privacy::IPPrivacy.private_or_localhost?(client_ip) ||
+          extra_range?(client_ip)
+      rescue StandardError
+        false
+      end
+
+      def extra_range?(client_ip)
+        return false if client_ip.nil? || client_ip.empty?
+
+        addr = IPAddr.new(client_ip)
+        @extra_ranges.any? { |range| range.include?(addr) }
+      rescue IPAddr::InvalidAddressError
+        false
+      end
+
+      def parse_trusted_cidrs(value)
+        return [] if value.nil? || value.strip.empty?
+
+        value.split(',').filter_map do |cidr|
+          IPAddr.new(cidr.strip)
+        rescue IPAddr::InvalidAddressError
+          @logger.warn "Invalid CIDR in HEALTH_TRUSTED_CIDR, skipping: #{cidr.strip}"
+          nil
+        end
+      end
 
       def health_endpoint?(path)
         path == '/health' ||

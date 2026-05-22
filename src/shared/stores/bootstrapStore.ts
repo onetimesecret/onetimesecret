@@ -6,6 +6,7 @@ import {
   type BootstrapPayload,
   type FooterLinksConfig,
   type HeaderConfig,
+  type UiCapabilities,
 } from '@/schemas/contracts/bootstrap';
 import { defineStore } from 'pinia';
 
@@ -151,6 +152,12 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * Provides typed access to footer config with fallback.
      */
     footerLinksConfig: (state): FooterLinksConfig | undefined => state.ui.footer_links,
+
+    /**
+     * UI capability flags controlling optional form-field visibility.
+     * Each flag is undefined when unset; consumers treat undefined as enabled.
+     */
+    uiCapabilities: (state): UiCapabilities | undefined => state.ui.capabilities,
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
