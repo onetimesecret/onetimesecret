@@ -20,7 +20,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
-import { getPlanDisplayName, getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
+import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
@@ -623,7 +623,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             name="credit-card"
             class="size-3.5"
             aria-hidden="true" />
-          {{ organization.planid ? getPlanDisplayName(organization.planid) : t('web.billing.plans.free_plan') }}
+          {{ organization.planid ? getPlanLabel(organization.planid) : t('web.billing.plans.free_plan') }}
         </router-link>
       </div>
 

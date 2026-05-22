@@ -18,6 +18,7 @@
     ColonelOrganization,
     InvestigateOrganizationResult,
   } from '@/schemas/api/account/responses/colonel';
+  import { getPlanLabel } from '@/types/billing';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
@@ -206,14 +207,10 @@
     return org.contact_email || org.extid;
   }
 
-  // Format plan ID for display (strip common suffixes)
+  // Resolve plan ID to a human-readable display name
   function formatPlanId(planid: string | null): string {
-    if (!planid) return 'free';
-    // Remove common suffixes for cleaner display
-    return planid
-      .replace(/_monthly$/, '')
-      .replace(/_yearly$/, '')
-      .replace(/_v\d+$/, '');
+    if (!planid) return getPlanLabel('free');
+    return getPlanLabel(planid);
   }
 
   const totalOrganizations = computed(() => organizationsPagination.value?.total_count || 0);

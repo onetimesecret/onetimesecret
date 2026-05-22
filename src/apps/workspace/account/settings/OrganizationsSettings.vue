@@ -13,7 +13,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import type { Organization } from '@/types/organization';
-  import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
+  import { getPlanLabel, isLegacyPlan } from '@/types/billing';
   import { computed, onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
 
@@ -44,7 +44,7 @@
    */
   const getOrgPlanName = (org: Organization): string => {
     if (!org.planid) return t('web.billing.plans.free_plan');
-    return getPlanDisplayName(org.planid);
+    return getPlanLabel(org.planid);
   };
 
   // Use the first organization to check entitlements for single-org users

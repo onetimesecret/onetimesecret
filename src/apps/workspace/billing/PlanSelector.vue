@@ -17,7 +17,7 @@ import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
 import { BillingService, extractCurrencyConflict, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
-import { isLegacyPlan, getPlanDisplayName } from '@/types/billing';
+import { isLegacyPlan, getPlanLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref } from 'vue';
@@ -133,7 +133,7 @@ const isLegacyCustomer = computed(() =>
 
 // Get display name for current plan (handles legacy naming)
 const currentPlanDisplayName = computed(() =>
-  selectedOrg.value?.planid ? getPlanDisplayName(selectedOrg.value.planid) : null
+  selectedOrg.value?.planid ? getPlanLabel(selectedOrg.value.planid) : null
 );
 
 // Filter plans by selected billing interval

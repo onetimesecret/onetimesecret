@@ -6,7 +6,7 @@
  * These tests cover the new legacy plan handling functionality:
  * - isLegacyPlan() - detects grandfathered plans
  * - getLegacyPlanInfo() - returns legacy plan metadata
- * - getPlanDisplayName() - displays legacy plans with special suffix
+ * - getPlanLabel() - displays legacy plans with special suffix
  *
  * Legacy plans are grandfathered plans no longer available for new subscriptions
  * but honored for existing customers (e.g., 'identity' -> 'Identity Plus (Early Supporter)')
@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 import {
   isLegacyPlan,
   getLegacyPlanInfo,
-  getPlanDisplayName,
+  getPlanLabel,
 } from '@/types/billing';
 
 describe('Legacy Plan Utilities', () => {
@@ -133,79 +133,42 @@ describe('Legacy Plan Utilities', () => {
   });
 
   // ============================================================
-  // getPlanDisplayName() Tests
+  // getPlanLabel() Tests
   // ============================================================
-  describe('getPlanDisplayName()', () => {
+  describe('getPlanLabel()', () => {
     describe('legacy plan display names', () => {
       it('"identity" returns "Identity Plus (Early Supporter)"', () => {
-        expect(getPlanDisplayName('identity')).toBe('Identity Plus (Early Supporter)');
+        expect(getPlanLabel('identity')).toBe('Identity Plus (Early Supporter)');
       });
     });
 
-    describe('current plan display names (existing behavior preserved)', () => {
+    describe('canonical plan ID display names', () => {
       it('"identity_plus_v1" returns "Identity Plus"', () => {
-        expect(getPlanDisplayName('identity_plus_v1')).toBe('Identity Plus');
+        expect(getPlanLabel('identity_plus_v1')).toBe('Identity Plus');
       });
 
       it('"free_v1" returns "Free"', () => {
-        expect(getPlanDisplayName('free_v1')).toBe('Free');
-      });
-
-      it('"free" returns "Free"', () => {
-        expect(getPlanDisplayName('free')).toBe('Free');
+        expect(getPlanLabel('free_v1')).toBe('Free');
       });
 
       it('"team_plus_v1" returns "Team Plus"', () => {
-        expect(getPlanDisplayName('team_plus_v1')).toBe('Team Plus');
+        expect(getPlanLabel('team_plus_v1')).toBe('Team Plus');
       });
 
-      it('"multi_team_v1" returns "Team Plus"', () => {
-        expect(getPlanDisplayName('multi_team_v1')).toBe('Team Plus');
-      });
-
-      it('"single_team_v1" returns "Single Team"', () => {
-        expect(getPlanDisplayName('single_team_v1')).toBe('Single Team');
+      it('"legacy_plan_v1" returns "Legacy Plan"', () => {
+        expect(getPlanLabel('legacy_plan_v1')).toBe('Legacy Plan');
       });
     });
 
-    describe('edge cases', () => {
-      it('empty string returns "Free"', () => {
-        expect(getPlanDisplayName('')).toBe('Free');
+    describe('unmapped values', () => {
+      it('returns input unchanged for unmapped plan IDs', () => {
+        expect(getPlanLabel('some_plan')).toBe('some_plan');
+        expect(getPlanLabel('custom_enterprise')).toBe('custom_enterprise');
       });
 
-      it('null returns "Free"', () => {
-        // getPlanDisplayName handles null/undefined gracefully
-        expect(getPlanDisplayName(null as unknown as string)).toBe('Free');
-      });
-
-      it('undefined returns "Free"', () => {
-        // getPlanDisplayName handles null/undefined gracefully
-        expect(getPlanDisplayName(undefined as unknown as string)).toBe('Free');
-      });
-
-      it('unknown plan falls back to Title Case conversion', () => {
-        // Should strip version suffix and convert to Title Case
-        // Plan IDs are now family-keyed without interval suffix
-        expect(getPlanDisplayName('some_plan_v1')).toBe('Some Plan');
-        expect(getPlanDisplayName('custom_enterprise_v2')).toBe('Custom Enterprise');
-      });
-    });
-
-    describe('pattern matching order', () => {
-      // Verifies that more specific patterns match before general ones
-      it('"identity_plus" matches before "identity"', () => {
-        expect(getPlanDisplayName('identity_plus_v1')).toBe('Identity Plus');
-        expect(getPlanDisplayName('identity_plus_v2')).toBe('Identity Plus');
-      });
-
-      it('"identity" exact match shows Early Supporter suffix', () => {
-        // Only exact 'identity' should get the Early Supporter treatment
-        expect(getPlanDisplayName('identity')).toBe('Identity Plus (Early Supporter)');
-      });
-
-      it('free pattern takes precedence', () => {
-        expect(getPlanDisplayName('free_v1')).toBe('Free');
-        expect(getPlanDisplayName('free_v2')).toBe('Free');
+      it('returns input unchanged for tier keys (tiers are metadata, not for selection)', () => {
+        expect(getPlanLabel('single_team')).toBe('single_team');
+        expect(getPlanLabel('multi_team')).toBe('multi_team');
       });
     });
   });
@@ -397,19 +360,19 @@ describe('OrganizationsSettings Badge Logic', () => {
 
   describe('Plan display name for organization cards', () => {
     it('legacy "identity" shows "Identity Plus (Early Supporter)"', () => {
-      const displayName = getPlanDisplayName('identity');
+      const displayName = getPlanLabel('identity');
       expect(displayName).toBe('Identity Plus (Early Supporter)');
       expect(displayName).toContain('Early Supporter');
     });
 
     it('current "identity_plus_v1" shows "Identity Plus" (no suffix)', () => {
-      const displayName = getPlanDisplayName('identity_plus_v1');
+      const displayName = getPlanLabel('identity_plus_v1');
       expect(displayName).toBe('Identity Plus');
       expect(displayName).not.toContain('Early Supporter');
     });
 
     it('free plan shows "Free"', () => {
-      expect(getPlanDisplayName('free_v1')).toBe('Free');
+      expect(getPlanLabel('free_v1')).toBe('Free');
     });
   });
 
