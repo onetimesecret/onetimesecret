@@ -144,13 +144,21 @@ export const publicAuthenticationSchema = z.object({
 export type PublicAuthenticationSettings = z.infer<typeof publicAuthenticationSchema>;
 
 /**
+ * Schema for jurisdiction icon
+ */
+const jurisdictionIconSchema = z.object({
+  collection: z.string(),
+  name: z.string(),
+});
+
+/**
  * Schema for the :jurisdiction section
  */
 const jurisdictionSchema = z.object({
   identifier: z.string(),
-  display_name: z.string(),
+  display_name_i18n_key: z.string(),
   domain: z.string(),
-  icon: z.string(),
+  icon: jurisdictionIconSchema.optional(),
 });
 
 /**

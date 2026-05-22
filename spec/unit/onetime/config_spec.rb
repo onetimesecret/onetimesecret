@@ -267,6 +267,201 @@ RSpec.describe Onetime::Config do
   end
 
   describe '#after_load' do
+    context 'jurisdiction parsing from JURISDICTIONS env var' do
+      # Use 'silent' to bypass deprecation check - we're testing parsing, not deprecation
+      def build_config(jurisdictions_value)
+        {
+          'site' => { 'secret' => 'test-secret' },
+          'mail' => { 'truemail' => {} },
+          'features' => { 'regions' => { 'jurisdictions' => jurisdictions_value } },
+          'compatibility' => { 'deprecated_config_mode' => 'silent' },
+        }
+      end
+
+      it 'parses single jurisdiction from env format with i18n key' do
+        config = build_config('EU:eu.example.com')
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        expect(jurisdictions).to eq([
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+          },
+        ])
+      end
+
+      it 'parses multiple jurisdictions from env format with i18n keys' do
+        config = build_config('EU:eu.example.com,CA:ca.example.com,US:us.example.com')
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        expect(jurisdictions).to eq([
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+          },
+          {
+            'identifier' => 'CA',
+            'domain' => 'ca.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.ca.name',
+          },
+          {
+            'identifier' => 'US',
+            'domain' => 'us.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.us.name',
+          },
+        ])
+      end
+
+      it 'handles empty string as empty array' do
+        config = build_config('')
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        expect(jurisdictions).to eq([])
+      end
+
+      it 'handles nil as empty array' do
+        config = build_config(nil)
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        expect(jurisdictions).to eq([])
+      end
+
+      it 'trims whitespace around entries' do
+        config = build_config(' EU:eu.example.com , CA:ca.example.com ')
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        expect(jurisdictions[0]['identifier']).to eq('EU')
+        expect(jurisdictions[0]['domain']).to eq('eu.example.com')
+        expect(jurisdictions[1]['identifier']).to eq('CA')
+        expect(jurisdictions[1]['domain']).to eq('ca.example.com')
+      end
+
+      it 'handles trailing comma gracefully' do
+        config = build_config('EU:eu.example.com,CA:ca.example.com,')
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        expect(jurisdictions.length).to eq(2)
+        expect(jurisdictions[0]['identifier']).to eq('EU')
+        expect(jurisdictions[1]['identifier']).to eq('CA')
+      end
+
+      it 'raises OT::Problem when domain is missing' do
+        config = build_config('EU:')
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Invalid JURISDICTIONS format:.*EU:.*expected ID:domain/)
+      end
+
+      it 'raises OT::Problem when identifier is missing' do
+        config = build_config(':domain.com')
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Invalid JURISDICTIONS format:.*:domain.com.*expected ID:domain/)
+      end
+
+      it 'raises OT::Problem for entry with only colon' do
+        config = build_config(':')
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Invalid JURISDICTIONS format/)
+      end
+
+      it 'handles entry with multiple colons (domain with port)' do
+        config = build_config('EU:eu.example.com:8443')
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        # split(':', 2) preserves the port in domain
+        expect(jurisdictions).to eq([
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com:8443',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+          },
+        ])
+      end
+
+      it 'preserves existing array format and adds i18n key' do
+        config = build_config([{ 'identifier' => 'AT', 'domain' => 'at.example.com' }])
+
+        result = described_class.after_load(config)
+        jurisdictions = result.dig('features', 'regions', 'jurisdictions')
+
+        expect(jurisdictions).to eq([
+          {
+            'identifier' => 'AT',
+            'domain' => 'at.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.at.name',
+          },
+        ])
+      end
+    end
+
+    context 'deprecation detection for YAML jurisdictions array' do
+      def build_deprecated_config
+        {
+          'site' => { 'secret' => 'test-secret' },
+          'mail' => { 'truemail' => {} },
+          'features' => {
+            'regions' => {
+              'jurisdictions' => [
+                { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
+              ],
+            },
+          },
+        }
+      end
+
+      it 'raises ConfigError in strict mode (default) when YAML array is present' do
+        config = build_deprecated_config
+        # strict is the default when not specified
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::ConfigError, /jurisdictions array format is deprecated/)
+      end
+
+      it 'logs warning in warn mode when YAML array is present' do
+        config = build_deprecated_config.merge(
+          'compatibility' => { 'deprecated_config_mode' => 'warn' }
+        )
+
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*jurisdictions array format/)
+
+        expect {
+          described_class.after_load(config)
+        }.not_to raise_error
+      end
+
+      it 'ignores deprecation in silent mode' do
+        config = build_deprecated_config.merge(
+          'compatibility' => { 'deprecated_config_mode' => 'silent' }
+        )
+
+        expect {
+          described_class.after_load(config)
+        }.not_to raise_error
+      end
+    end
+
     context 'site configuration validation' do
       it 'uses default values when site has minimal config' do
         raw_config = {

@@ -334,7 +334,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config['features']['regions']).to eq({ 'enabled' => false })
+      expect(processed_config['features']['regions']).to eq({ 'enabled' => false, 'jurisdictions' => [] })
     end
 
     it 'disables authentication sub-features when main feature is off' do
@@ -688,18 +688,18 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         }.to raise_error(OT::ConfigError, /site\.domains/)
       end
 
-      it 'logs and continues when on_deprecated_config is warn' do
+      it 'logs and continues when deprecated_config_mode is warn' do
         allow(OT).to receive(:le)
         base_config['site']['regions'] = { 'enabled' => true }
-        base_config['compatibility'] = { 'on_deprecated_config' => 'warn' }
+        base_config['compatibility'] = { 'deprecated_config_mode' => 'warn' }
 
         expect { Onetime::Config.after_load(base_config) }.not_to raise_error
         expect(OT).to have_received(:le).with(/CONFIG DEPRECATION.*site\.regions/)
       end
 
-      it 'ignores deprecated keys when on_deprecated_config is silent' do
+      it 'ignores deprecated keys when deprecated_config_mode is silent' do
         base_config['site']['domains'] = { 'enabled' => true }
-        base_config['compatibility'] = { 'on_deprecated_config' => 'silent' }
+        base_config['compatibility'] = { 'deprecated_config_mode' => 'silent' }
 
         expect { Onetime::Config.after_load(base_config) }.not_to raise_error
       end
@@ -709,7 +709,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
         expect {
           Onetime::Config.after_load(base_config)
-        }.to raise_error(OT::ConfigError, /UI_HOMEPAGE_TRUSTED_PROXY_DEPTH/)
+        }.to raise_error(OT::ConfigError, /trusted_proxy_depth is ignored/)
       ensure
         ENV.delete('UI_HOMEPAGE_TRUSTED_PROXY_DEPTH')
       end

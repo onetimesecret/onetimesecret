@@ -1,28 +1,33 @@
 <!-- src/shared/components/modals/settings/JurisdictionInfo.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { Jurisdiction } from '@/schemas/shapes/config';
+import { resolveJurisdictionIcon, resolveJurisdictionDisplayName } from '@/shared/stores/jurisdictionStore';
 
 const { t } = useI18n();
 
-defineProps<{
+const props = defineProps<{
   jurisdiction: Jurisdiction;
 }>();
+
+const icon = computed(() => resolveJurisdictionIcon(props.jurisdiction));
+const displayName = computed(() => resolveJurisdictionDisplayName(props.jurisdiction, t));
 </script>
 
 <template>
   <div class="space-y-4 sm:space-y-6">
     <div class="flex flex-col items-center gap-2 sm:flex-row">
       <OIcon
-        :collection="jurisdiction.icon.collection"
-        :name="jurisdiction.icon.name"
+        :collection="icon.collection"
+        :name="icon.name"
         class="size-5 shrink-0"
         aria-hidden="true" />
       <p class="m-0 text-center text-gray-700 dark:text-gray-200 sm:text-left">
         {{ t('web.regions.your_account_and_data_are_protected_under_the_la') }}
-        <strong class="font-medium">{{ jurisdiction.display_name }}</strong>
+        <strong class="font-medium">{{ displayName }}</strong>
       </p>
     </div>
 

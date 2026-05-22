@@ -405,6 +405,18 @@ features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+    # Available jurisdictions for regional deployment
+    #
+    # Environment Variable Format:
+    #   JURISDICTIONS=ID:domain,ID:domain,...
+    #   where ID is the jurisdiction identifier (e.g., EU, CA, US)
+    #   and domain is the hostname for that jurisdiction
+    #
+    # Examples:
+    #   JURISDICTIONS=EU:eu.example.com,CA:ca.example.com
+    #   JURISDICTIONS=US:us.onetimesecret.com,EU:eu.onetimesecret.com,APAC:apac.onetimesecret.com
+    #
+    jurisdictions: <%= ENV['JURISDICTIONS'] || '' %>
   # Incoming Secrets Feature
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
@@ -1073,4 +1085,4 @@ compatibility:
   #   strict (default): raise an error and refuse to start
   #   warn:             log a migration message and continue
   #   silent:           ignore
-  on_deprecated_config: <%= ENV['ON_DEPRECATED_CONFIG'] || 'strict' %>
+  deprecated_config_mode: <%= ENV['DEPRECATED_CONFIG_MODE'] || 'strict' %>

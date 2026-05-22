@@ -5,13 +5,12 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import JurisdictionInfo from '@/shared/components/modals/settings/JurisdictionInfo.vue';
-  import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
-  import { computed, onMounted } from 'vue';
+  import { useJurisdictionStore, useJurisdictionDisplayNames } from '@/shared/stores/jurisdictionStore';
+  import { onMounted } from 'vue';
 
   const { t } = useI18n();
   const jurisdictionStore = useJurisdictionStore();
-
-  const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
+  const { currentJurisdictionWithDisplayName: currentJurisdiction } = useJurisdictionDisplayNames();
 
   onMounted(async () => {
     jurisdictionStore.init();

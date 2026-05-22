@@ -117,7 +117,7 @@ module Onetime
           # How the boot process responds when a deprecated config key or
           # env var is detected: 'strict' raises OT::ConfigError, 'warn'
           # logs and continues, 'silent' ignores. See DEPRECATIONS.
-          'on_deprecated_config' => 'strict',
+          'deprecated_config_mode' => 'strict',
         },
       }
 
@@ -125,37 +125,60 @@ module Onetime
       #
       # Each entry maps a deprecated config path and/or the env var that
       # used to populate it to a migration message. check_deprecations
-      # scans these at boot; compatibility.on_deprecated_config decides
+      # scans these at boot; compatibility.deprecated_config_mode decides
       # whether a match raises OT::ConfigError ('strict'), logs ('warn'),
       # or is ignored ('silent').
+      #
+      # Fields:
+      #   path:    Array of keys to dig into conf (optional)
+      #   env:     Environment variable name (optional)
+      #   trigger: Proc that receives the path value; returns true to fire (optional)
+      #            When absent, any non-nil value triggers. Use for type-specific checks.
+      #   message: User-facing migration guidance
       DEPRECATIONS = [
         {
           path: %w[site interface ui homepage trusted_proxy_depth],
           env: 'UI_HOMEPAGE_TRUSTED_PROXY_DEPTH',
-          message: 'site.interface.ui.homepage.trusted_proxy_depth ' \
-                   '(UI_HOMEPAGE_TRUSTED_PROXY_DEPTH) has been removed. Configure ' \
-                   'proxy depth globally via site.network.trusted_proxy ' \
-                   '(TRUSTED_PROXY_ENABLED, TRUSTED_PROXY_MODE=depth, TRUSTED_PROXY_DEPTH).',
+          message: <<~MSG.chomp,
+            site.interface.ui.homepage.trusted_proxy_depth is ignored. Configure proxy
+            depth globally via site.network.trusted_proxy (TRUSTED_PROXY_ENABLED,
+            TRUSTED_PROXY_MODE=depth, TRUSTED_PROXY_DEPTH).
+          MSG
         },
         {
           path: %w[site interface ui homepage trusted_ip_header],
           env: 'UI_HOMEPAGE_TRUSTED_IP_HEADER',
-          message: 'site.interface.ui.homepage.trusted_ip_header ' \
-                   '(UI_HOMEPAGE_TRUSTED_IP_HEADER) has been removed. Configure the ' \
-                   'forwarding header globally via site.network.trusted_proxy.header ' \
-                   '(TRUSTED_PROXY_HEADER).',
+          message: <<~MSG.chomp,
+            site.interface.ui.homepage.trusted_ip_header is ignored. Configure the
+            forwarding header globally via site.network.trusted_proxy.header
+            (TRUSTED_PROXY_HEADER).
+          MSG
         },
         {
           path: %w[site domains],
           env: nil,
-          message: 'site.domains has moved to features.domains. Move the domains ' \
-                   'block under the top-level features section.',
+          message: <<~MSG.chomp,
+            site.domains is ignored. This config moved to features.domains;
+            only the new path is read.
+          MSG
         },
         {
           path: %w[site regions],
           env: nil,
-          message: 'site.regions has moved to features.regions. Move the regions ' \
-                   'block under the top-level features section.',
+          message: <<~MSG.chomp,
+            site.regions is ignored. This config moved to features.regions;
+            only the new path is read.
+          MSG
+        },
+        {
+          path: %w[features regions jurisdictions],
+          env: nil,
+          # Only trigger on Array (old YAML format), not String (new ENV format)
+          trigger: ->(value) { value.is_a?(Array) },
+          message: <<~MSG.chomp,
+            features.regions.jurisdictions array format is deprecated. Use JURISDICTIONS env var
+            (format: EU:eu.example.com,CA:ca.example.com) instead.
+          MSG
         },
       ].freeze
 
@@ -183,7 +206,13 @@ module Onetime
     def load(path = nil)
       path ||= self.path
 
-      raise ArgumentError, "Bad path (#{path})" unless path && File.readable?(path)
+      if path.nil? || path.empty?
+        raise ArgumentError, 'Config path not set (checked etc/config.yaml and SERVICE_PATHS)'
+      end
+
+      unless File.readable?(path)
+        raise ArgumentError, "Config not readable: #{path}"
+      end
 
       parsed_template = ERB.new(File.read(path))
 
@@ -253,8 +282,32 @@ module Onetime
       raise_concerns(conf)
 
       # MIGRATION VALIDATION: Detect deprecated configuration keys / env vars
-      # and respond per compatibility.on_deprecated_config.
+      # and respond per compatibility.deprecated_config_mode.
+      # Must run BEFORE jurisdiction parsing so trigger proc sees original type.
       check_deprecations(conf)
+
+      # Parse jurisdictions from string env var format AFTER deprecation check.
+      # Format: "EU:eu.example.com,CA:ca.example.com" -> array of hashes
+      # The trigger proc above only fires on Array (old YAML format), not String.
+      jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
+      if jurisdictions.is_a?(String) && !jurisdictions.empty?
+        entries                                      = jurisdictions.split(',').map(&:strip).reject(&:empty?)
+        conf['features']['regions']['jurisdictions'] = entries.map do |entry|
+          identifier, domain = entry.split(':', 2).map(&:strip)
+          if identifier.empty? || domain.to_s.empty?
+            raise OT::Problem, "Invalid JURISDICTIONS format: '#{entry}' (expected ID:domain)"
+          end
+
+          {
+            'identifier' => identifier,
+            'domain' => domain,
+            'display_name_i18n_key' => "web.regions.jurisdictions.#{identifier.downcase}.name",
+          }
+        end
+      elsif jurisdictions.is_a?(String) || jurisdictions.nil?
+        # Empty string or nil -> empty array
+        conf['features']['regions']['jurisdictions'] = []
+      end
 
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
@@ -307,6 +360,17 @@ module Onetime
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.split(/\s+/).map(&:to_i)
       elsif length_options.is_a?(Array)
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
+      end
+
+      # Ensure array jurisdiction entries have display_name_i18n_key
+      # (String format already converted to Array above, before check_deprecations)
+      jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
+      if jurisdictions.is_a?(Array)
+        conf['features']['regions']['jurisdictions'] = jurisdictions.map do |j|
+          j                            = j.dup if j.frozen?
+          j['display_name_i18n_key'] ||= "web.regions.jurisdictions.#{j['identifier'].to_s.downcase}.name"
+          j
+        end
       end
 
       # Apply the defaults to sentry backend and frontend configs
@@ -391,7 +455,7 @@ module Onetime
     # Scans the DEPRECATIONS manifest. A deprecation is considered present
     # when its config path resolves to a non-nil value, or its env var is
     # set to a non-empty value. The response is governed by
-    # compatibility.on_deprecated_config:
+    # compatibility.deprecated_config_mode:
     #
     #   strict (default) - raise OT::ConfigError, refusing to boot
     #   warn             - log each migration message and continue
@@ -404,13 +468,21 @@ module Onetime
     # @raise [OT::ConfigError] When a deprecated key is found under strict policy
     def check_deprecations(conf)
       detected = DEPRECATIONS.select do |dep|
-        env_set  = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
-        path_set = !!(dep[:path] && !conf.dig(*dep[:path]).nil?)
+        env_set = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
+
+        # Check path, optionally with a trigger proc for type-specific detection
+        path_value = dep[:path] && conf.dig(*dep[:path])
+        path_set   = if dep[:trigger] && path_value
+          dep[:trigger].call(path_value)
+        else
+          !path_value.nil?
+        end
+
         env_set || path_set
       end
       return if detected.empty?
 
-      policy   = (conf.dig('compatibility', 'on_deprecated_config') || 'strict').to_s
+      policy   = (conf.dig('compatibility', 'deprecated_config_mode') || 'strict').to_s
       messages = detected.map { |dep| dep[:message] }
       return if policy == 'silent'
 
@@ -420,9 +492,9 @@ module Onetime
       end
 
       raise OT::ConfigError,
-            "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
-            "Set compatibility.on_deprecated_config (ON_DEPRECATED_CONFIG) to 'warn' " \
-            'to downgrade this to a logged warning.'
+        "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
+        "Set compatibility.deprecated_config_mode (DEPRECATED_CONFIG_MODE) to 'warn' " \
+        'to downgrade this to a logged warning.'
     end
 
     def dirname

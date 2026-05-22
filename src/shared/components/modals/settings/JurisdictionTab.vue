@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
+import { useJurisdictionDisplayNames } from '@/shared/stores/jurisdictionStore';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
@@ -16,9 +16,10 @@ import JurisdictionList from './JurisdictionList.vue';
 const bootstrapStore = useBootstrapStore();
 const { cust } = storeToRefs(bootstrapStore);
 
-const jurisdictionStore = useJurisdictionStore();
-const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
-const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
+const {
+  currentJurisdictionWithDisplayName: currentJurisdiction,
+  jurisdictionsWithDisplayName: jurisdictions,
+} = useJurisdictionDisplayNames();
 const customerId = computed(() => cust.value?.extid);
 </script>
 

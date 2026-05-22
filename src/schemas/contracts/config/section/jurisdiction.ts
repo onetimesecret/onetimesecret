@@ -22,12 +22,15 @@ const jurisdictionIconSchema = z.object({
 
 /**
  * Canonical jurisdiction schema
+ *
+ * The serializer sends display_name_i18n_key (e.g., 'web.regions.jurisdictions.eu.name')
+ * which components resolve via i18n. display_name is computed at runtime.
  */
 const jurisdictionSchema = z.object({
   identifier: z.string().min(2).max(24),
-  display_name: z.string(),
+  display_name_i18n_key: z.string(),
   domain: z.string(),
-  icon: jurisdictionIconSchema,
+  icon: jurisdictionIconSchema.optional(),
   enabled: z.boolean().default(true),
 });
 

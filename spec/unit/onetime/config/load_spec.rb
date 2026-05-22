@@ -92,7 +92,7 @@ RSpec.describe Onetime::Config do
 
       it 'raises ArgumentError for unreadable file' do
         nonexistent_path = '/path/does/not/exist.yaml'
-        expect { described_class.load(nonexistent_path) }.to raise_error(OT::ConfigError, /Bad path/)
+        expect { described_class.load(nonexistent_path) }.to raise_error(OT::ConfigError, /Config not readable/)
       end
 
       it 'exits with error for invalid YAML' do
