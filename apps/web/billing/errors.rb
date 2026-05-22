@@ -54,10 +54,9 @@ module Billing
   # in one pass rather than fix-one-rerun-fix-one.
   #
   # @example Handling validation failures
-  #   begin
-  #     Billing::Plan.refresh_from_stripe
-  #   rescue Billing::CatalogValidationError => e
-  #     e.errors.each { |err| puts "#{err[:product_id]}: #{err[:error]}" }
+  #   result = Billing::Operations::Catalog::Pull.call
+  #   unless result.success
+  #     result.errors.each { |err| puts err }
   #   end
   #
   class CatalogValidationError < OpsProblem

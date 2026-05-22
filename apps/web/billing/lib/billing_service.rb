@@ -20,10 +20,6 @@ module Billing
   # - Onetime::Models::Features::WithOrganizationBilling
   #
   module BillingService
-    # Plan IDs that represent free tier
-    # @deprecated Use Billing::Metadata::FREE_PLAN_IDS instead
-    FREE_PLAN_IDS = Metadata::FREE_PLAN_IDS
-
     extend self
 
     # =========================================================================
@@ -97,7 +93,7 @@ module Billing
       return false if plan_id.to_s.empty?
 
       # Check if it's a known free plan
-      return true if FREE_PLAN_IDS.include?(plan_id)
+      return true if Metadata::FREE_PLAN_IDS.include?(plan_id)
 
       # Check catalog cache
       plan = ::Billing::Plan.load(plan_id)
@@ -130,8 +126,8 @@ module Billing
       return 'unknown' if planid.empty? && subscription_id.empty?
 
       has_active_subscription = %w[active trialing].include?(subscription_status)
-      has_paid_plan           = !planid.empty? && !FREE_PLAN_IDS.include?(planid)
-      has_free_plan           = planid.empty? || FREE_PLAN_IDS.include?(planid)
+      has_paid_plan           = !planid.empty? && !Metadata::FREE_PLAN_IDS.include?(planid)
+      has_free_plan           = planid.empty? || Metadata::FREE_PLAN_IDS.include?(planid)
 
       # Consistent states
       return 'synced' if has_active_subscription && has_paid_plan
@@ -161,8 +157,8 @@ module Billing
       subscription_status = org.subscription_status.to_s
 
       has_active_subscription = %w[active trialing].include?(subscription_status)
-      has_paid_plan           = !planid.empty? && !FREE_PLAN_IDS.include?(planid)
-      has_free_plan           = planid.empty? || FREE_PLAN_IDS.include?(planid)
+      has_paid_plan           = !planid.empty? && !Metadata::FREE_PLAN_IDS.include?(planid)
+      has_free_plan           = planid.empty? || Metadata::FREE_PLAN_IDS.include?(planid)
 
       if has_active_subscription && has_free_plan
         return 'Active subscription but planid is free - possible missed webhook'
@@ -247,7 +243,7 @@ module Billing
     # @param planid [String] Plan ID to check
     # @return [Boolean] True if this is a free plan
     def free_plan?(planid)
-      planid.to_s.empty? || FREE_PLAN_IDS.include?(planid.to_s)
+      planid.to_s.empty? || Metadata::FREE_PLAN_IDS.include?(planid.to_s)
     end
 
     # Check if a plan ID represents a paid tier

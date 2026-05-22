@@ -279,28 +279,6 @@ module Billing
         )
       end
 
-      # Refresh plan cache from Stripe API
-      #
-      # @deprecated Use Billing::Operations::Catalog::Pull.call directly.
-      #   This method exists for backward compatibility but will be removed.
-      #
-      # @param progress [Proc, nil] Optional progress callback
-      # @return [Integer] Number of plans synced
-      # @raise [Stripe::StripeError] If Stripe API call fails
-      # @raise [Billing::CircuitOpenError] If circuit breaker is open
-      def refresh_from_stripe(progress: nil)
-        result = Billing::Operations::Catalog::Pull.call(progress: progress)
-
-        unless result.success
-          error_msg = result.errors.first || 'Unknown error'
-          raise Stripe::StripeError, error_msg if error_msg.include?('Stripe')
-
-          raise StandardError, error_msg
-        end
-
-        result.plans_synced
-      end
-
       # Get plan by tier, interval, and region
       #
       # Searches cached plans by tier/region fields and verifies the plan

@@ -116,12 +116,6 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         operation.call
         expect(Billing::Operations::Catalog::PlanPersister).to have_received(:rebuild_stripe_price_id_cache)
       end
-
-      it 'does NOT call full refresh_from_stripe' do
-        allow(Billing::Plan).to receive(:refresh_from_stripe)
-        operation.call
-        expect(Billing::Plan).not_to have_received(:refresh_from_stripe)
-      end
     end
 
     describe 'product.updated' do
