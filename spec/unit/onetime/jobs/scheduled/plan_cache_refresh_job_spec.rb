@@ -36,16 +36,6 @@ require 'billing/spec/support/billing_spec_helper'
 require 'rufus-scheduler'
 require 'onetime/jobs/scheduled/plan_cache_refresh_job'
 
-# Guard: PlanCacheRefreshJob is only defined when billing is enabled (mocked by billing_spec_helper)
-unless defined?(Onetime::Jobs::Scheduled::PlanCacheRefreshJob)
-  RSpec.describe 'Onetime::Jobs::Scheduled::PlanCacheRefreshJob' do
-    it 'is skipped because billing is disabled' do
-      skip 'PlanCacheRefreshJob requires billing to be enabled (load billing_spec_helper first)'
-    end
-  end
-  return # Exit early to avoid loading the full spec
-end
-
 RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
   let(:scheduler) { instance_double(Rufus::Scheduler) }
   let(:logger) { instance_double(SemanticLogger::Logger) }
@@ -309,8 +299,8 @@ RSpec.describe Onetime::Jobs::Scheduled::PlanCacheRefreshJob, type: :billing do
             allow(Billing::Operations::Catalog::Pull).to receive(:call)
               .and_raise(StandardError.new('Production error'))
 
-            expect(logger).to receive(:error).with('[PlanCacheRefreshJob] Unexpected error: StandardError - Production error')
-            expect(logger).to receive(:error).with(anything).at_most(:once)
+            expect(logger).to receive(:error).with('[PlanCacheRefreshJob] Unexpected error: StandardError - Production error').once
+            expect(logger).not_to receive(:error).with(match(/\n/))
 
             described_class.send(:refresh_plan_cache)
           end

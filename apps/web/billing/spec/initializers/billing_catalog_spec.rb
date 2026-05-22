@@ -75,7 +75,13 @@ RSpec.describe Billing::Initializers::BillingCatalog do
     end
 
     context 'when Stripe sync succeeds' do
-      let(:pull_result) { double(plans_synced: 5, config_plans_loaded: 2) }
+      let(:pull_result) do
+        Billing::Operations::Catalog::Pull::Result.new(
+          success: true,
+          plans_synced: 5,
+          config_plans_loaded: 2
+        )
+      end
 
       before do
         allow(initializer).to receive(:catalog_valid?).and_return(false)
@@ -95,7 +101,36 @@ RSpec.describe Billing::Initializers::BillingCatalog do
       end
     end
 
-    context 'when Stripe sync fails' do
+    context 'when Stripe sync returns failure result' do
+      let(:pull_result) do
+        Billing::Operations::Catalog::Pull::Result.new(
+          success: false,
+          errors: ['Product not found in Stripe']
+        )
+      end
+
+      before do
+        allow(initializer).to receive(:catalog_valid?).and_return(false)
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result)
+        allow(Billing::Operations::Catalog::ConfigLoader).to receive(:load_all_from_config).and_return(3)
+      end
+
+      it 'falls back to loading from config' do
+        expect(Billing::Operations::Catalog::ConfigLoader).to receive(:load_all_from_config)
+        initializer.execute(nil)
+      end
+
+      it 'logs the fallback with error from result' do
+        expect(logger).to receive(:warn).with(
+          'Stripe sync failed, falling back to billing.yaml',
+          hash_including(message: 'Product not found in Stripe')
+        )
+        expect(logger).to receive(:info).with('Loaded 3 plans from billing.yaml fallback')
+        initializer.execute(nil)
+      end
+    end
+
+    context 'when Stripe sync raises exception' do
       let(:stripe_error) { Stripe::APIConnectionError.new('Network error') }
 
       before do
