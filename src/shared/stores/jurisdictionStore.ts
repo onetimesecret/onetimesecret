@@ -26,10 +26,11 @@ export function resolveJurisdictionIcon(jurisdiction: Jurisdiction): Jurisdictio
 }
 
 /**
- * Jurisdiction with resolved display_name from i18n.
+ * Jurisdiction with resolved display_name from i18n and resolved icon.
  */
 export interface JurisdictionWithDisplayName extends Jurisdiction {
   display_name: string;
+  icon: JurisdictionIcon;
 }
 
 /**
@@ -59,12 +60,14 @@ export function useJurisdictionDisplayNames() {
     return {
       ...jurisdiction,
       display_name: resolveDisplayName(jurisdiction),
+      icon: resolveJurisdictionIcon(jurisdiction),
     };
   });
 
   const jurisdictionsWithDisplayName = computed((): JurisdictionWithDisplayName[] => jurisdictionStore.getAllJurisdictions.map((j) => ({
       ...j,
       display_name: resolveDisplayName(j),
+      icon: resolveJurisdictionIcon(j),
     })));
 
   return {
