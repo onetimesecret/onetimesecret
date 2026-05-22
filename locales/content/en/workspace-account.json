@@ -527,6 +527,10 @@
     "text": "Regenerating your API key will invalidate the current key. Update all applications using the old key.",
     "content_hash": "ab168f83"
   },
+  "web.settings.api.api_disabled_notice": {
+    "text": "The API is disabled for this instance.",
+    "content_hash": "00000000"
+  },
   "web.settings.privacy.title": {
     "text": "Privacy Settings",
     "content_hash": "eefad6ba"

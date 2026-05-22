@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
-import { featuresSchema, organizationSchema } from '@/schemas/contracts/bootstrap';
+import { apiInterfaceSchema, featuresSchema, organizationSchema } from '@/schemas/contracts/bootstrap';
 import { bootstrapUiSchema, BOOTSTRAP_UI_DEFAULTS } from './bootstrap-test-schema';
 import {
   ALL_SERIALIZER_FIELDS,
@@ -244,6 +244,80 @@ describe('Bootstrap Zod schema validation', () => {
         expect(result.data.ui.help).toBeUndefined();
         expect(result.data.messages).toEqual([]);
       }
+    });
+  });
+
+  describe('apiInterfaceSchema', () => {
+    it('provides sensible defaults for empty input', () => {
+      const result = apiInterfaceSchema.parse({});
+
+      expect(result.enabled).toBe(true);
+      expect(result.guest_routes).toBeDefined();
+      expect(result.guest_routes.enabled).toBe(true);
+      expect(result.guest_routes.conceal).toBe(true);
+      expect(result.guest_routes.generate).toBe(true);
+      expect(result.guest_routes.reveal).toBe(true);
+      expect(result.guest_routes.burn).toBe(true);
+      expect(result.guest_routes.show).toBe(true);
+      expect(result.guest_routes.receipt).toBe(true);
+    });
+
+    it('accepts api.enabled as false', () => {
+      const api = { enabled: false };
+      const result = apiInterfaceSchema.safeParse(api);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enabled).toBe(false);
+      }
+    });
+
+    it('accepts full api object with all guest_routes', () => {
+      const api = {
+        enabled: true,
+        guest_routes: {
+          enabled: true,
+          conceal: true,
+          generate: false,
+          reveal: true,
+          burn: false,
+          show: true,
+          receipt: true,
+        },
+      };
+
+      const result = apiInterfaceSchema.safeParse(api);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.guest_routes.generate).toBe(false);
+        expect(result.data.guest_routes.burn).toBe(false);
+      }
+    });
+
+    it('applies defaults for missing guest_routes keys', () => {
+      const api = {
+        enabled: true,
+        guest_routes: { enabled: false },
+      };
+
+      const result = apiInterfaceSchema.safeParse(api);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.guest_routes.enabled).toBe(false);
+        // Other keys default to true
+        expect(result.data.guest_routes.conceal).toBe(true);
+        expect(result.data.guest_routes.reveal).toBe(true);
+      }
+    });
+
+    it('rejects malformed api object gracefully', () => {
+      const malformed = {
+        enabled: 'yes', // should be boolean
+        guest_routes: 'all', // should be object
+      };
+
+      const result = apiInterfaceSchema.safeParse(malformed);
+      expect(result.success).toBe(false);
     });
   });
 

@@ -29,6 +29,7 @@ export const AUTHENTICATION_SERIALIZER_FIELDS = [
 // Source: apps/web/core/views/serializers/config_serializer.rb
 // ============================================================================
 export const CONFIG_SERIALIZER_FIELDS = [
+  'api',
   'authentication',
   'd9s_enabled',
   'development',
