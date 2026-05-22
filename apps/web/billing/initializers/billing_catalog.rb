@@ -34,6 +34,11 @@ module Billing
         Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
         begin
           result = Billing::Operations::Catalog::Pull.call
+
+          unless result.success
+            raise StandardError, result.errors.first || 'Pull failed'
+          end
+
           Onetime.billing_logger.info 'Plan cache refreshed successfully',
             { plans_synced: result.plans_synced, config_plans: result.config_plans_loaded }
         rescue StandardError => ex
