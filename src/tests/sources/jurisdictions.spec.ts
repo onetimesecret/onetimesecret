@@ -15,6 +15,7 @@ describe('jurisdictions', () => {
       expect(JURISDICTION_ICONS).toHaveProperty('CA');
       expect(JURISDICTION_ICONS).toHaveProperty('UK');
       expect(JURISDICTION_ICONS).toHaveProperty('NZ');
+      expect(JURISDICTION_ICONS).toHaveProperty('APAC');
     });
 
     it('uses fa6-solid collection for all icons', () => {
@@ -58,6 +59,7 @@ describe('jurisdictions', () => {
       expect(getJurisdictionIcon('CA').name).toBe('earth-americas');
       expect(getJurisdictionIcon('UK').name).toBe('earth-europe');
       expect(getJurisdictionIcon('NZ').name).toBe('earth-oceania');
+      expect(getJurisdictionIcon('APAC').name).toBe('earth-asia');
     });
   });
 });

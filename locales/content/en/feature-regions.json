@@ -186,5 +186,9 @@
   "web.regions.jurisdictions.at.name": {
     "text": "Austria",
     "content_hash": "98917390"
+  },
+  "web.regions.jurisdictions.apac.name": {
+    "text": "Asia-Pacific",
+    "content_hash": "f8a3b2c1"
   }
 }
