@@ -1085,4 +1085,4 @@ compatibility:
   #   strict (default): raise an error and refuse to start
   #   warn:             log a migration message and continue
   #   silent:           ignore
-  on_deprecated_config: <%= ENV['ON_DEPRECATED_CONFIG'] || 'strict' %>
+  deprecated_config_mode: <%= ENV['DEPRECATED_CONFIG_MODE'] || 'strict' %>

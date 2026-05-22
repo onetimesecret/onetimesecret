@@ -117,7 +117,7 @@ module Onetime
           # How the boot process responds when a deprecated config key or
           # env var is detected: 'strict' raises OT::ConfigError, 'warn'
           # logs and continues, 'silent' ignores. See DEPRECATIONS.
-          'on_deprecated_config' => 'strict',
+          'deprecated_config_mode' => 'strict',
         },
       }
 
@@ -125,7 +125,7 @@ module Onetime
       #
       # Each entry maps a deprecated config path and/or the env var that
       # used to populate it to a migration message. check_deprecations
-      # scans these at boot; compatibility.on_deprecated_config decides
+      # scans these at boot; compatibility.deprecated_config_mode decides
       # whether a match raises OT::ConfigError ('strict'), logs ('warn'),
       # or is ignored ('silent').
       DEPRECATIONS = [
@@ -273,7 +273,7 @@ module Onetime
       raise_concerns(conf)
 
       # MIGRATION VALIDATION: Detect deprecated configuration keys / env vars
-      # and respond per compatibility.on_deprecated_config.
+      # and respond per compatibility.deprecated_config_mode.
       check_deprecations(conf)
 
       # Disable all authentication sub-features when main feature is off for
@@ -423,7 +423,7 @@ module Onetime
     # Scans the DEPRECATIONS manifest. A deprecation is considered present
     # when its config path resolves to a non-nil value, or its env var is
     # set to a non-empty value. The response is governed by
-    # compatibility.on_deprecated_config:
+    # compatibility.deprecated_config_mode:
     #
     #   strict (default) - raise OT::ConfigError, refusing to boot
     #   warn             - log each migration message and continue
@@ -442,7 +442,7 @@ module Onetime
       end
       return if detected.empty?
 
-      policy   = (conf.dig('compatibility', 'on_deprecated_config') || 'strict').to_s
+      policy   = (conf.dig('compatibility', 'deprecated_config_mode') || 'strict').to_s
       messages = detected.map { |dep| dep[:message] }
       return if policy == 'silent'
 
@@ -453,7 +453,7 @@ module Onetime
 
       raise OT::ConfigError,
         "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
-        "Set compatibility.on_deprecated_config (ON_DEPRECATED_CONFIG) to 'warn' " \
+        "Set compatibility.deprecated_config_mode (DEPRECATED_CONFIG_MODE) to 'warn' " \
         'to downgrade this to a logged warning.'
     end
 

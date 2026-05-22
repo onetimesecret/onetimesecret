@@ -274,7 +274,7 @@ RSpec.describe Onetime::Config do
           'site' => { 'secret' => 'test-secret' },
           'mail' => { 'truemail' => {} },
           'features' => { 'regions' => { 'jurisdictions' => jurisdictions_value } },
-          'compatibility' => { 'on_deprecated_config' => 'silent' },
+          'compatibility' => { 'deprecated_config_mode' => 'silent' },
         }
       end
 
@@ -386,12 +386,12 @@ RSpec.describe Onetime::Config do
 
         expect {
           described_class.after_load(config)
-        }.to raise_error(OT::ConfigError, /features\.regions\.jurisdictions array in YAML is deprecated/)
+        }.to raise_error(OT::ConfigError, /features\.regions\.jurisdictions is ignored/)
       end
 
       it 'logs warning in warn mode when YAML array is present' do
         config = build_deprecated_config.merge(
-          'compatibility' => { 'on_deprecated_config' => 'warn' }
+          'compatibility' => { 'deprecated_config_mode' => 'warn' }
         )
 
         expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*jurisdictions/)
@@ -403,7 +403,7 @@ RSpec.describe Onetime::Config do
 
       it 'ignores deprecation in silent mode' do
         config = build_deprecated_config.merge(
-          'compatibility' => { 'on_deprecated_config' => 'silent' }
+          'compatibility' => { 'deprecated_config_mode' => 'silent' }
         )
 
         expect {
