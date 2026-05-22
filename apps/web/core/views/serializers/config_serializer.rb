@@ -52,8 +52,9 @@ module Core
         domains                  = features.fetch('domains', {})
 
         # Only send the regions config when the feature is enabled.
+        # Transform jurisdictions to send identifier + i18n key only (no domain data).
         output['regions_enabled'] = regions.fetch('enabled', false)
-        output['regions']         = regions if output['regions_enabled']
+        output['regions']         = transform_regions(regions) if output['regions_enabled']
 
         output['domains_enabled'] = domains.fetch('enabled', false)
         output['domains']         = domains if output['domains_enabled']
@@ -248,6 +249,30 @@ module Core
                 'display_name' => config.display_name.to_s,
               },
             ],
+          }
+        end
+
+        # Transform regions config for frontend consumption
+        #
+        # Strips deployment-sensitive data (domains) from jurisdictions and
+        # adds i18n keys for display names. Frontend maps icons separately.
+        #
+        # @param regions [Hash] Raw regions config from features
+        # @return [Hash] Transformed regions with safe jurisdiction data
+        def transform_regions(regions)
+          jurisdictions = regions.fetch('jurisdictions', [])
+
+          transformed_jurisdictions = jurisdictions.map do |j|
+            identifier = j['identifier'].to_s
+            {
+              'identifier' => identifier,
+              'display_name_i18n_key' => "web.regions.jurisdictions.#{identifier.downcase}.name",
+            }
+          end
+
+          {
+            'enabled' => regions.fetch('enabled', false),
+            'jurisdictions' => transformed_jurisdictions,
           }
         end
 
