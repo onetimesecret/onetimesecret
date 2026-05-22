@@ -61,7 +61,7 @@ if Onetime.billing_config.enabled?
 
               unless result.success
                 error_msg = result.errors.first || 'Unknown error'
-                raise Stripe::StripeError, error_msg if error_msg.include?('Stripe')
+                raise Stripe::StripeError, error_msg if error_msg.start_with?('Stripe error:')
 
                 raise StandardError, error_msg
               end

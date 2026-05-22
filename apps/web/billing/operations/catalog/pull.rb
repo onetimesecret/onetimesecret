@@ -210,12 +210,12 @@ module Billing
               report("Processing product #{products_processed}: #{product.name[0..40]}...")
             end
 
-            # Validate product metadata
-            result = Billing::Plan.validate_product_metadata(product)
-            if result[:missing].any? || result[:blank].any?
+            # Validate product metadata using shared validation logic
+            validation_result = validate_product_metadata(product)
+            if validation_result[:missing].any? || validation_result[:blank].any?
               problems = []
-              problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
-              problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
+              problems << "missing: #{validation_result[:missing].join(', ')}" if validation_result[:missing].any?
+              problems << "blank: #{validation_result[:blank].join(', ')}" if validation_result[:blank].any?
               OT.le '[Pull] Product failed metadata validation',
                 { product_id: product.id, product_name: product.name, problems: problems.join('; ') }
               validation_errors << {
@@ -270,6 +270,27 @@ module Billing
 
         def report(message)
           @progress&.call(message)
+        end
+
+        # Validate product has all required metadata for plan creation
+        #
+        # Checks both key presence AND non-blank values for required fields.
+        # Shared validation logic used by both Pull and DataExtractor.
+        #
+        # @param product [Stripe::Product] The Stripe product
+        # @return [Hash] { missing: [...], blank: [...] } — both empty if valid
+        def validate_product_metadata(product)
+          required = Billing::Metadata::REQUIRED_FIELDS
+          metadata = product.metadata || {}
+          keys     = metadata.keys.map(&:to_s)
+          missing  = required - keys
+
+          # Check present keys for blank values
+          blank = (required - missing).select do |key|
+            metadata[key].to_s.strip.empty?
+          end
+
+          { missing: missing, blank: blank }
         end
       end
     end

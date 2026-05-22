@@ -8,7 +8,7 @@ require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
 require_relative '../region_normalizer'
-require_relative '../operations/catalog/pull'
+require_relative '../operations/catalog/metadata_validator'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -225,31 +225,19 @@ module Billing
       # @param product [Stripe::Product] The Stripe product
       # @return [Hash] { missing: [...], blank: [...] } — both empty if valid
       def validate_product_metadata(product)
-        required = Metadata::REQUIRED_FIELDS
-        metadata = product.metadata || {}
-        keys     = metadata.keys.map(&:to_s)
-        missing  = required - keys
+        result = Operations::Catalog::MetadataValidator.validate(product)
 
-        # Check present keys for blank values
-        blank = (required - missing).select do |key|
-          metadata[key].to_s.strip.empty?
-        end
-
-        problems = []
-        problems << "missing: #{missing.join(', ')}" if missing.any?
-        problems << "blank: #{blank.join(', ')}" if blank.any?
-
-        if problems.any?
+        if result[:problems].any?
           OT.lw '[Plan.validate_product_metadata] Stripe product invalid metadata',
             {
               product_id: product.id,
               product_name: product.name,
-              problems: problems.join('; '),
+              problems: result[:problems].join('; '),
               hint: 'Add metadata via Stripe Dashboard or `bin/ots billing products update`',
             }
         end
 
-        { missing: missing, blank: blank }
+        { missing: result[:missing], blank: result[:blank] }
       end
 
       # Check if product belongs to OTS (app=onetimesecret in metadata)

@@ -247,9 +247,27 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
     end
 
     context 'validation error' do
+      let(:invalid_product) do
+        double(
+          'Stripe::Product',
+          id: 'prod_invalid',
+          name: 'Invalid Plan',
+          description: 'Missing required metadata',
+          updated: 1700000000,
+          marketing_features: [],
+          metadata: {
+            'app' => 'onetimesecret',
+            'region' => 'US',
+            # Missing: plan_id, tier, currency, plan_code
+          },
+        )
+      end
+
       before do
-        allow(Billing::Plan).to receive(:validate_product_metadata)
-          .and_return({ missing: ['plan_id'], blank: [] })
+        allow(Billing::Operations::Catalog::StripeReader).to receive(:fetch_products)
+          .and_return({ 'invalid_key' => invalid_product })
+        allow(Billing::Operations::Catalog::StripeReader).to receive(:fetch_prices)
+          .and_return({ 'invalid_key' => [mock_price] })
       end
 
       subject(:result) { described_class.call }
@@ -259,7 +277,7 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       end
 
       it 'includes validation error message' do
-        expect(result.errors.first).to include('metadata validation')
+        expect(result.errors.first).to include('failed metadata validation')
       end
     end
 

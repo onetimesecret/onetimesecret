@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../metadata'
+require_relative 'metadata_validator'
 
 module Billing
   module Operations
@@ -29,7 +30,7 @@ module Billing
         # @return [Hash] Plan data ready for persistence
         # @raise [Onetime::ConfigError] If required metadata is missing or blank
         def call(product, price)
-          validate_metadata!(product)
+          MetadataValidator.validate!(product)
 
           interval = price.recurring.interval # 'month' or 'year'
           tier     = product.metadata[Metadata::FIELD_TIER]
@@ -61,20 +62,7 @@ module Billing
           }
         end
 
-        # Validate required metadata, raising on problems
-        #
-        # @param product [Stripe::Product]
-        # @raise [Onetime::ConfigError] If validation fails
-        def validate_metadata!(product)
-          result   = Billing::Plan.validate_product_metadata(product)
-          problems = []
-          problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
-          problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
-          return if problems.empty?
-
-          raise Onetime::ConfigError,
-            "invalid metadata for Stripe product #{product.id} (#{product.name}): #{problems.join('; ')}"
-        end
+        private
 
         def extract_tenancy(product)
           product.metadata[Metadata::FIELD_TENANCY] || 'multi'
@@ -95,7 +83,6 @@ module Billing
         def extract_is_popular(product)
           is_popular_value = product.metadata[Metadata::FIELD_IS_POPULAR]
           if is_popular_value.nil? || is_popular_value.to_s.strip.empty?
-            # Fall back to billing.yaml config
             plan_code   = product.metadata[Metadata::FIELD_PLAN_CODE]
             plan_config = OT.billing_config.plans[plan_code] || {}
             plan_config['is_popular'] == true
@@ -151,8 +138,8 @@ module Billing
             amount: price.unit_amount.to_s,
             currency: price.currency,
             billing_scheme: price.billing_scheme,
-            usage_type: price.recurring&.usage_type || 'licensed',
-            trial_period_days: price.recurring&.trial_period_days&.to_s,
+            usage_type: price.recurring.usage_type || 'licensed',
+            trial_period_days: price.recurring.trial_period_days.to_s,
             nickname: price.nickname,
             active: price.active.to_s,
           }

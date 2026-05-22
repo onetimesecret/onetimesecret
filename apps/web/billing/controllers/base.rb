@@ -137,8 +137,8 @@ module Billing
             context: context,
             stripe_key_nil: Stripe.api_key.nil?,
             billing_enabled: OT.billing_config.enabled?,
-            env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
-            config_key_present: !OT.billing_config.stripe_key.to_s.strip.empty?,
+            env_key_present: !ENV.fetch('STRIPE_API_KEY', '').strip.empty?,
+            config_key_present: !OT.billing_config.config.fetch('stripe_key', '').to_s.strip.empty?,
           }
         true
       end
