@@ -115,14 +115,16 @@ pnpm run build
 RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ```
 
-### Frontend Development Mode
+### Frontend Hot Module Replacement
 
 Enable development mode in `etc/config.yaml` for HMR support:
 ```yaml
-:development:
-  :enabled: true
-  :frontend_host: 'http://localhost:5173'
+development:
+  enabled: true
+  frontend_host: 'http://localhost:5173'
 ```
+
+The browser swaps changed modules in place without a full page reload, preserving application state.
 
 ### Docker Compose
 
