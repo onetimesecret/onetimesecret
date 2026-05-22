@@ -343,22 +343,44 @@ RSpec.describe Onetime::Config do
         jurisdictions = result.dig('features', 'regions', 'jurisdictions')
 
         expect(jurisdictions[0]['identifier']).to eq('EU')
+        expect(jurisdictions[0]['domain']).to eq('eu.example.com')
         expect(jurisdictions[1]['identifier']).to eq('CA')
+        expect(jurisdictions[1]['domain']).to eq('ca.example.com')
       end
 
-      it 'handles malformed entry (missing domain) gracefully' do
-        config = build_config('EU:')
+      it 'handles trailing comma gracefully' do
+        config = build_config('EU:eu.example.com,CA:ca.example.com,')
 
         result = described_class.after_load(config)
         jurisdictions = result.dig('features', 'regions', 'jurisdictions')
 
-        expect(jurisdictions).to eq([
-          {
-            'identifier' => 'EU',
-            'domain' => '',
-            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
-          },
-        ])
+        expect(jurisdictions.length).to eq(2)
+        expect(jurisdictions[0]['identifier']).to eq('EU')
+        expect(jurisdictions[1]['identifier']).to eq('CA')
+      end
+
+      it 'raises OT::Problem when domain is missing' do
+        config = build_config('EU:')
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Invalid JURISDICTIONS format:.*EU:.*expected ID:domain/)
+      end
+
+      it 'raises OT::Problem when identifier is missing' do
+        config = build_config(':domain.com')
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Invalid JURISDICTIONS format:.*:domain.com.*expected ID:domain/)
+      end
+
+      it 'raises OT::Problem for entry with only colon' do
+        config = build_config(':')
+
+        expect {
+          described_class.after_load(config)
+        }.to raise_error(OT::Problem, /Invalid JURISDICTIONS format/)
       end
 
       it 'handles entry with multiple colons (domain with port)' do

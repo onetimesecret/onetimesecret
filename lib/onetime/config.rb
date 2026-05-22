@@ -291,12 +291,17 @@ module Onetime
       # The trigger proc above only fires on Array (old YAML format), not String.
       jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
       if jurisdictions.is_a?(String) && !jurisdictions.empty?
-        conf['features']['regions']['jurisdictions'] = jurisdictions.split(',').map do |entry|
-          identifier, domain = entry.strip.split(':', 2)
+        entries                                      = jurisdictions.split(',').map(&:strip).reject(&:empty?)
+        conf['features']['regions']['jurisdictions'] = entries.map do |entry|
+          identifier, domain = entry.split(':', 2).map(&:strip)
+          if identifier.empty? || domain.to_s.empty?
+            raise OT::Problem, "Invalid JURISDICTIONS format: '#{entry}' (expected ID:domain)"
+          end
+
           {
             'identifier' => identifier,
             'domain' => domain,
-            'display_name_i18n_key' => "web.regions.jurisdictions.#{identifier.to_s.downcase}.name",
+            'display_name_i18n_key' => "web.regions.jurisdictions.#{identifier.downcase}.name",
           }
         end
       elsif jurisdictions.is_a?(String) || jurisdictions.nil?
