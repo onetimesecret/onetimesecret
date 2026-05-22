@@ -128,7 +128,7 @@ Enable development mode in `etc/config.yaml` for HMR support:
 
 Docker Compose configurations are included in this repository:
 ```bash
-cp --preserve --no-clobber .env.example .env
+cp --preserve --update=none .env.example .env
 docker compose up
 ```
 

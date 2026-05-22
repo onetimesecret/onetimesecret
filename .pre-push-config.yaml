@@ -64,6 +64,9 @@ repos:
       - id: check-json
         name: Validate JSON files
         files: \.json$
+        # tsconfig*.json files are JSONC (TypeScript permits comments); the
+        # broken.json fixture is an intentionally-malformed test input.
+        exclude: '(^|/)tsconfig[^/]*\.json$|^src/tests/i18n/fixtures/invalid/syntax/broken\.json$'
 
       - id: mixed-line-ending
         name: Check line endings
