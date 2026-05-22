@@ -36,8 +36,8 @@ def create_controller_with_config(env, homepage_config)
       # Initialize CIDR matchers
       @cidr_matchers ||= compile_homepage_cidrs(homepage_config)
 
-      # Extract client IP
-      client_ip = extract_client_ip_for_homepage(homepage_config)
+      # Extract client IP (resolved by Rack::Request#ip)
+      client_ip = extract_client_ip_for_homepage
       mode_header_name = homepage_config['request_header']
 
       # Priority 1: Check CIDR match
@@ -58,13 +58,12 @@ def create_controller_with_config(env, homepage_config)
 end
 
 ## Integration: Internal mode with CIDR match
-# Use public IP ranges (TEST-NET-2: 198.51.100.0/24) because private IPs
-# in X-Forwarded-For are filtered as a security measure
+# Client IP is resolved by Rack::Request#ip, which walks X-Forwarded-For and
+# skips the trusted (loopback) proxy hop.
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24', '203.0.113.0/24'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -79,8 +78,7 @@ mode
 config = {
   'mode' => 'external',
   'matching_cidrs' => ['203.0.113.0/24'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -95,8 +93,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -112,8 +109,7 @@ mode
 config = {
   'mode' => 'external',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -129,8 +125,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -146,8 +141,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -159,17 +153,15 @@ mode
 #=> nil
 
 ## Integration: CIDR takes priority over header
-# Use public IP (198.51.100.x) - private IPs are filtered from X-Forwarded-For
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 127.0.0.1',
-  'HTTP_O_HOMEPAGE_MODE' => 'external'  # Wrong value should be ignored when CIDR matches
+  'HTTP_O_HOMEPAGE_MODE' => 'external'  # Wrong value ignored when CIDR matches
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -177,12 +169,10 @@ mode
 #=> 'internal'
 
 ## Integration: Multiple CIDRs, matches second range
-# Use public IP ranges - private IPs are filtered from X-Forwarded-For
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24', '203.0.113.0/24', '192.0.2.0/24'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -193,33 +183,30 @@ mode = controller.determine_homepage_mode
 mode
 #=> 'internal'
 
-## Integration: Behind 2 proxies (CDN + reverse proxy)
-# Use public IP (198.51.100.x) for client - private IPs filtered from X-Forwarded-For
+## Integration: Behind multiple proxies with private intermediate hops
+# Rack::Request#ip skips RFC1918 / loopback hops, returning the public client.
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 2
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 203.0.113.5, 127.0.0.1'
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.50, 10.0.0.5, 127.0.0.1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
 mode
 #=> 'internal'
 
-## Integration: Direct connection (depth 0), uses REMOTE_ADDR
+## Integration: Direct connection (no proxy) uses REMOTE_ADDR
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['127.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 0
+  'matching_cidrs' => ['198.51.100.0/24'],
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
-  'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 127.0.0.1'  # Should be ignored
+  'REMOTE_ADDR' => '198.51.100.10'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -230,12 +217,11 @@ mode
 config = {
   'mode' => 'invalid_mode',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 127.0.0.1'
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 127.0.0.1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -246,12 +232,11 @@ mode
 config = {
   'mode' => '',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 127.0.0.1'
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 127.0.0.1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -261,12 +246,11 @@ mode
 ## Integration: No mode configured returns nil
 config = {
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
-  'HTTP_X_FORWARDED_FOR' => '10.0.1.100, 127.0.0.1'
+  'HTTP_X_FORWARDED_FOR' => '198.51.100.1, 127.0.0.1'
 }
 controller = create_controller_with_config(env, config)
 mode = controller.determine_homepage_mode
@@ -277,8 +261,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['2001:db8::/48'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '::1',
@@ -290,12 +273,10 @@ mode
 #=> 'internal'
 
 ## Integration: Mixed IPv4 and IPv6 CIDRs
-# Use public IPv4 (198.51.100.x) - private IPs filtered from X-Forwarded-For
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24', '2001:db8::/48'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '::1',
@@ -310,8 +291,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['192.168.1.1/32'],  # Too specific, will be rejected
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -327,8 +307,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => [],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -344,8 +323,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => [],
-  'request_header' => 'X-Custom-Access',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'X-Custom-Access'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -357,13 +335,10 @@ mode
 #=> 'internal'
 
 ## Integration: Real-world scenario - Corporate network with public egress
-# In real deployments, the client IP seen from outside would be a public IP
-# Private IPs in X-Forwarded-For are filtered as a security measure
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24'],
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '172.16.0.1',
@@ -378,8 +353,7 @@ mode
 config = {
   'mode' => 'external',
   'matching_cidrs' => ['0.0.0.0/0'],  # Match all IPs (public mode)
-  'request_header' => 'O-Homepage-Mode',
-  'trusted_proxy_depth' => 1
+  'request_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '172.16.0.1',

@@ -50,25 +50,14 @@ site:
       #   - Prefix lengths greater than minimum are not supported for privacy
       #
       # Proxy Configuration:
-      #   - trusted_proxy_depth: How many proxies to trust for client IP extraction
-      #   - 0: Don't trust proxies, use REMOTE_ADDR (direct connections only)
-      #   - 1: Trust 1 proxy - STANDARD for reverse proxy (nginx, Caddy)
-      #   - 2+: Trust N proxies (e.g., CDN → reverse proxy → app)
-      #
-      #   - trusted_ip_header: Which header to use for client IP extraction
-      #   - X-Forwarded-For: Standard header (most common)
-      #   - Forwarded: RFC 7239 standard header
-      #   - Both: Try Forwarded first, fallback to X-Forwarded-For
-      #
-      # Default is 1 (standard reverse proxy) as most deployments use nginx/Caddy.
-      # Set to 0 only for development or direct-to-internet deployments.
+      #   The client IP used for CIDR matching is resolved by Rack::Request#ip,
+      #   configured globally under site.network.trusted_proxy (see below).
+      #   Homepage mode no longer carries its own proxy-depth settings.
       #
       homepage:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
-        trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
-        trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
 
       # Form field visibility flags
       # Controls which optional fields appear on the secret creation form.
@@ -1063,3 +1052,13 @@ development:
   # @see lib/onetime/application/auth_strategies/dev_session_auth_strategy.rb
   # @see https://github.com/onetimesecret/onetimesecret/issues/2735
   devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>
+
+# Compatibility Configuration
+# Controls how the boot process responds to deprecated configuration keys.
+compatibility:
+  # When a removed/relocated config key or its environment variable is
+  # detected at boot:
+  #   strict (default): raise an error and refuse to start
+  #   warn:             log a migration message and continue
+  #   silent:           ignore
+  on_deprecated_config: <%= ENV['ON_DEPRECATED_CONFIG'] || 'strict' %>
