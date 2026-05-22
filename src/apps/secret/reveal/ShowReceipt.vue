@@ -13,6 +13,8 @@
   import TimelineDisplay from '@/apps/secret/components/receipt/TimelineDisplay.vue';
   import { useReceipt } from '@/shared/composables/useReceipt';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/shared/composables/useSecretExpiration';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
 
   import UnknownReceipt from './UnknownReceipt.vue';
@@ -37,6 +39,13 @@
   );
 
   const isAvailable = computed(() => !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_revealed));
+
+  // The receipt-page Burn action is shown unless ui.capabilities.burn is
+  // explicitly disabled. An unset flag (undefined) is treated as enabled,
+  // matching the config default of true.
+  const bootstrapStore = useBootstrapStore();
+  const { uiCapabilities } = storeToRefs(bootstrapStore);
+  const showBurn = computed(() => uiCapabilities.value?.burn !== false);
 
   const goBack = () => {
     window.history.back();
@@ -254,7 +263,7 @@
           <!-- Actions Section with Improved Layout -->
           <!-- prettier-ignore-attribute class -->
           <section
-            v-if="isAvailable"
+            v-if="isAvailable && showBurn"
             class="border-t border-gray-200/60 bg-gray-50 p-4 sm:p-6
             dark:border-gray-700/60 dark:bg-gray-800/30"
             aria-labelledby="section-actions">
