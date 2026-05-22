@@ -128,6 +128,13 @@ module Onetime
       # scans these at boot; compatibility.deprecated_config_mode decides
       # whether a match raises OT::ConfigError ('strict'), logs ('warn'),
       # or is ignored ('silent').
+      #
+      # Fields:
+      #   path:    Array of keys to dig into conf (optional)
+      #   env:     Environment variable name (optional)
+      #   trigger: Proc that receives the path value; returns true to fire (optional)
+      #            When absent, any non-nil value triggers. Use for type-specific checks.
+      #   message: User-facing migration guidance
       DEPRECATIONS = [
         {
           path: %w[site interface ui homepage trusted_proxy_depth],
@@ -166,9 +173,11 @@ module Onetime
         {
           path: %w[features regions jurisdictions],
           env: nil,
+          # Only trigger on Array (old YAML format), not String (new ENV format)
+          trigger: ->(value) { value.is_a?(Array) },
           message: <<~MSG.chomp,
-            features.regions.jurisdictions is ignored. Use JURISDICTIONS env var
-            (format: EU:eu.example.com,CA:ca.example.com). YAML jurisdictions are not read.
+            features.regions.jurisdictions array format is deprecated. Use JURISDICTIONS env var
+            (format: EU:eu.example.com,CA:ca.example.com) instead.
           MSG
         },
       ].freeze
@@ -274,7 +283,26 @@ module Onetime
 
       # MIGRATION VALIDATION: Detect deprecated configuration keys / env vars
       # and respond per compatibility.deprecated_config_mode.
+      # Must run BEFORE jurisdiction parsing so trigger proc sees original type.
       check_deprecations(conf)
+
+      # Parse jurisdictions from string env var format AFTER deprecation check.
+      # Format: "EU:eu.example.com,CA:ca.example.com" -> array of hashes
+      # The trigger proc above only fires on Array (old YAML format), not String.
+      jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
+      if jurisdictions.is_a?(String) && !jurisdictions.empty?
+        conf['features']['regions']['jurisdictions'] = jurisdictions.split(',').map do |entry|
+          identifier, domain = entry.strip.split(':', 2)
+          {
+            'identifier' => identifier,
+            'domain' => domain,
+            'display_name_i18n_key' => "web.regions.jurisdictions.#{identifier.to_s.downcase}.name",
+          }
+        end
+      elsif jurisdictions.is_a?(String) || jurisdictions.nil?
+        # Empty string or nil -> empty array
+        conf['features']['regions']['jurisdictions'] = []
+      end
 
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
@@ -329,16 +357,15 @@ module Onetime
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
       end
 
-      # Parse jurisdictions from ENV string format: "EU:eu.example.com,CA:ca.example.com"
-      # into array of hashes: [{identifier: 'EU', domain: 'eu.example.com'}, ...]
+      # Ensure array jurisdiction entries have display_name_i18n_key
+      # (String format already converted to Array above, before check_deprecations)
       jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
-      if jurisdictions.is_a?(String) && !jurisdictions.empty?
-        conf['features']['regions']['jurisdictions'] = jurisdictions.split(',').map do |entry|
-          identifier, domain = entry.strip.split(':', 2)
-          { 'identifier' => identifier, 'domain' => domain }
+      if jurisdictions.is_a?(Array)
+        conf['features']['regions']['jurisdictions'] = jurisdictions.map do |j|
+          j                            = j.dup if j.frozen?
+          j['display_name_i18n_key'] ||= "web.regions.jurisdictions.#{j['identifier'].to_s.downcase}.name"
+          j
         end
-      elsif !jurisdictions.is_a?(Array)
-        conf['features']['regions']['jurisdictions'] = []
       end
 
       # Apply the defaults to sentry backend and frontend configs
@@ -436,8 +463,16 @@ module Onetime
     # @raise [OT::ConfigError] When a deprecated key is found under strict policy
     def check_deprecations(conf)
       detected = DEPRECATIONS.select do |dep|
-        env_set  = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
-        path_set = !!(dep[:path] && !conf.dig(*dep[:path]).nil?)
+        env_set = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
+
+        # Check path, optionally with a trigger proc for type-specific detection
+        path_value = dep[:path] && conf.dig(*dep[:path])
+        path_set   = if dep[:trigger] && path_value
+          dep[:trigger].call(path_value)
+        else
+          !path_value.nil?
+        end
+
         env_set || path_set
       end
       return if detected.empty?

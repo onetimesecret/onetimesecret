@@ -278,27 +278,43 @@ RSpec.describe Onetime::Config do
         }
       end
 
-      it 'parses single jurisdiction from env format' do
+      it 'parses single jurisdiction from env format with i18n key' do
         config = build_config('EU:eu.example.com')
 
         result = described_class.after_load(config)
         jurisdictions = result.dig('features', 'regions', 'jurisdictions')
 
         expect(jurisdictions).to eq([
-          { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+          },
         ])
       end
 
-      it 'parses multiple jurisdictions from env format' do
+      it 'parses multiple jurisdictions from env format with i18n keys' do
         config = build_config('EU:eu.example.com,CA:ca.example.com,US:us.example.com')
 
         result = described_class.after_load(config)
         jurisdictions = result.dig('features', 'regions', 'jurisdictions')
 
         expect(jurisdictions).to eq([
-          { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
-          { 'identifier' => 'CA', 'domain' => 'ca.example.com' },
-          { 'identifier' => 'US', 'domain' => 'us.example.com' },
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+          },
+          {
+            'identifier' => 'CA',
+            'domain' => 'ca.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.ca.name',
+          },
+          {
+            'identifier' => 'US',
+            'domain' => 'us.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.us.name',
+          },
         ])
       end
 
@@ -337,7 +353,11 @@ RSpec.describe Onetime::Config do
         jurisdictions = result.dig('features', 'regions', 'jurisdictions')
 
         expect(jurisdictions).to eq([
-          { 'identifier' => 'EU', 'domain' => '' },
+          {
+            'identifier' => 'EU',
+            'domain' => '',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+          },
         ])
       end
 
@@ -349,18 +369,26 @@ RSpec.describe Onetime::Config do
 
         # split(':', 2) preserves the port in domain
         expect(jurisdictions).to eq([
-          { 'identifier' => 'EU', 'domain' => 'eu.example.com:8443' },
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com:8443',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+          },
         ])
       end
 
-      it 'preserves existing array format' do
+      it 'preserves existing array format and adds i18n key' do
         config = build_config([{ 'identifier' => 'AT', 'domain' => 'at.example.com' }])
 
         result = described_class.after_load(config)
         jurisdictions = result.dig('features', 'regions', 'jurisdictions')
 
         expect(jurisdictions).to eq([
-          { 'identifier' => 'AT', 'domain' => 'at.example.com' },
+          {
+            'identifier' => 'AT',
+            'domain' => 'at.example.com',
+            'display_name_i18n_key' => 'web.regions.jurisdictions.at.name',
+          },
         ])
       end
     end
@@ -386,7 +414,7 @@ RSpec.describe Onetime::Config do
 
         expect {
           described_class.after_load(config)
-        }.to raise_error(OT::ConfigError, /features\.regions\.jurisdictions is ignored/)
+        }.to raise_error(OT::ConfigError, /jurisdictions array format is deprecated/)
       end
 
       it 'logs warning in warn mode when YAML array is present' do
@@ -394,7 +422,7 @@ RSpec.describe Onetime::Config do
           'compatibility' => { 'deprecated_config_mode' => 'warn' }
         )
 
-        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*jurisdictions/)
+        expect(OT).to receive(:le).with(/CONFIG DEPRECATION:.*jurisdictions array format/)
 
         expect {
           described_class.after_load(config)

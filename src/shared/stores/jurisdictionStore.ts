@@ -9,32 +9,13 @@ import type { PiniaCustomProperties } from 'pinia';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import {
+  JURISDICTION_ICONS,
+  getJurisdictionIcon,
+} from '@/sources/jurisdictions';
 
-/**
- * Default icon mapping for jurisdiction identifiers.
- * Used when jurisdiction.icon is not provided in config.
- */
-export const JURISDICTION_ICONS: Record<string, JurisdictionIcon> = {
-  EU: { collection: 'heroicons-solid', name: 'globe-europe-africa' },
-  US: { collection: 'heroicons-solid', name: 'flag' },
-  CA: { collection: 'heroicons-solid', name: 'flag' },
-  UK: { collection: 'heroicons-solid', name: 'flag' },
-  NZ: { collection: 'heroicons-solid', name: 'globe-asia-australia' },
-  AT: { collection: 'heroicons-solid', name: 'flag' },
-};
-
-const DEFAULT_ICON: JurisdictionIcon = {
-  collection: 'heroicons-solid',
-  name: 'globe-alt',
-};
-
-/**
- * Get the icon for a jurisdiction identifier.
- * Falls back to globe-alt if no mapping exists.
- */
-export function getJurisdictionIcon(identifier: string): JurisdictionIcon {
-  return JURISDICTION_ICONS[identifier.toUpperCase()] ?? DEFAULT_ICON;
-}
+// Re-export for backward compatibility
+export { JURISDICTION_ICONS, getJurisdictionIcon };
 
 /**
  * Resolve the icon for a jurisdiction, preferring the jurisdiction's own icon

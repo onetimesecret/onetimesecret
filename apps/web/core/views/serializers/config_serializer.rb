@@ -254,24 +254,30 @@ module Core
 
         # Transform regions config for frontend consumption
         #
-        # Strips deployment-sensitive data (domains) from jurisdictions and
-        # adds i18n keys for display names. Frontend maps icons separately.
+        # Passes through identifier, domain, icon, and i18n key.
+        # Domain is public (users navigate to it directly).
+        # Icons are optional; frontend falls back to src/sources/jurisdictions.ts.
         #
         # @param regions [Hash] Raw regions config from features
-        # @return [Hash] Transformed regions with safe jurisdiction data
+        # @return [Hash] Transformed regions with jurisdiction data
         def transform_regions(regions)
           jurisdictions = regions.fetch('jurisdictions', [])
 
           transformed_jurisdictions = jurisdictions.map do |j|
-            identifier = j['identifier'].to_s
-            {
+            identifier     = j['identifier'].to_s
+            result         = {
               'identifier' => identifier,
-              'display_name_i18n_key' => "web.regions.jurisdictions.#{identifier.downcase}.name",
+              'domain' => j['domain'].to_s,
+              'display_name_i18n_key' => j['display_name_i18n_key'] ||
+                                         "web.regions.jurisdictions.#{identifier.downcase}.name",
             }
+            result['icon'] = j['icon'] if j['icon'].is_a?(Hash)
+            result
           end
 
           {
             'enabled' => regions.fetch('enabled', false),
+            'current_jurisdiction' => regions['current_jurisdiction'],
             'jurisdictions' => transformed_jurisdictions,
           }
         end

@@ -646,11 +646,13 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       expect(result['enabled']).to be false
       expect(result['jurisdictions']).to eq([])
+      expect(result['current_jurisdiction']).to be_nil
     end
 
-    it 'transforms jurisdictions to identifier and i18n key only' do
+    it 'transforms jurisdictions with identifier, domain, and i18n key' do
       regions = {
         'enabled' => true,
+        'current_jurisdiction' => 'EU',
         'jurisdictions' => [
           { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
           { 'identifier' => 'CA', 'domain' => 'ca.example.com' },
@@ -660,28 +662,64 @@ RSpec.describe Core::Views::ConfigSerializer do
       result = described_class.transform_regions(regions)
 
       expect(result['enabled']).to be true
+      expect(result['current_jurisdiction']).to eq('EU')
       expect(result['jurisdictions'].length).to eq(2)
       expect(result['jurisdictions'][0]).to eq({
         'identifier' => 'EU',
+        'domain' => 'eu.example.com',
         'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
       })
       expect(result['jurisdictions'][1]).to eq({
         'identifier' => 'CA',
+        'domain' => 'ca.example.com',
         'display_name_i18n_key' => 'web.regions.jurisdictions.ca.name',
       })
     end
 
-    it 'does not include domain data in output (security)' do
+    it 'includes domain in output for navigation' do
       regions = {
         'enabled' => true,
         'jurisdictions' => [
-          { 'identifier' => 'EU', 'domain' => 'eu.secret-internal.example.com' },
+          { 'identifier' => 'EU', 'domain' => 'eu.onetimesecret.com' },
         ],
       }
 
       result = described_class.transform_regions(regions)
 
-      expect(result['jurisdictions'][0]).not_to have_key('domain')
+      expect(result['jurisdictions'][0]['domain']).to eq('eu.onetimesecret.com')
+    end
+
+    it 'includes icon when present in config' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'icon' => { 'collection' => 'fa6-solid', 'name' => 'earth-europe' },
+          },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['icon']).to eq({
+        'collection' => 'fa6-solid',
+        'name' => 'earth-europe',
+      })
+    end
+
+    it 'omits icon when not present in config' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]).not_to have_key('icon')
     end
 
     it 'lowercases identifier for i18n key generation' do
@@ -697,6 +735,23 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('web.regions.jurisdictions.us-west.name')
     end
 
+    it 'uses display_name_i18n_key from config when provided' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'display_name_i18n_key' => 'custom.key.eu',
+          },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('custom.key.eu')
+    end
+
     it 'handles jurisdictions with nil identifier gracefully' do
       regions = {
         'enabled' => true,
@@ -708,6 +763,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       result = described_class.transform_regions(regions)
 
       expect(result['jurisdictions'][0]['identifier']).to eq('')
+      expect(result['jurisdictions'][0]['domain']).to eq('example.com')
       expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('web.regions.jurisdictions..name')
     end
   end
