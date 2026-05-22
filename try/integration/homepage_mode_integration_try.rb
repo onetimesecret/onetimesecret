@@ -38,7 +38,7 @@ def create_controller_with_config(env, homepage_config)
 
       # Extract client IP (resolved by Rack::Request#ip)
       client_ip = extract_client_ip_for_homepage
-      mode_header_name = homepage_config['request_header']
+      mode_header_name = homepage_config['mode_header']
 
       # Priority 1: Check CIDR match
       if client_ip && ip_matches_homepage_cidrs?(client_ip)
@@ -63,7 +63,7 @@ end
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24', '203.0.113.0/24'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -78,7 +78,7 @@ mode
 config = {
   'mode' => 'external',
   'matching_cidrs' => ['203.0.113.0/24'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -93,7 +93,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -109,7 +109,7 @@ mode
 config = {
   'mode' => 'external',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -125,7 +125,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -141,7 +141,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -156,7 +156,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -172,7 +172,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24', '203.0.113.0/24', '192.0.2.0/24'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -188,7 +188,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -203,7 +203,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '198.51.100.10'
@@ -217,7 +217,7 @@ mode
 config = {
   'mode' => 'invalid_mode',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -232,7 +232,7 @@ mode
 config = {
   'mode' => '',
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -246,7 +246,7 @@ mode
 ## Integration: No mode configured returns nil
 config = {
   'matching_cidrs' => ['10.0.0.0/8'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -261,7 +261,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['2001:db8::/48'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '::1',
@@ -276,7 +276,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24', '2001:db8::/48'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '::1',
@@ -291,7 +291,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['192.168.1.1/32'],  # Too specific, will be rejected
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -307,7 +307,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => [],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -323,7 +323,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => [],
-  'request_header' => 'X-Custom-Access'
+  'mode_header' => 'X-Custom-Access'
 }
 env = {
   'REMOTE_ADDR' => '127.0.0.1',
@@ -338,7 +338,7 @@ mode
 config = {
   'mode' => 'internal',
   'matching_cidrs' => ['198.51.100.0/24'],
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '172.16.0.1',
@@ -353,7 +353,7 @@ mode
 config = {
   'mode' => 'external',
   'matching_cidrs' => ['0.0.0.0/0'],  # Match all IPs (public mode)
-  'request_header' => 'O-Homepage-Mode'
+  'mode_header' => 'O-Homepage-Mode'
 }
 env = {
   'REMOTE_ADDR' => '172.16.0.1',
