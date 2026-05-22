@@ -4,7 +4,6 @@
 
 require 'ipaddr'
 require 'rack/request'
-require 'onetime/helpers/client_ip_helpers'
 
 module Onetime
   module Initializers
