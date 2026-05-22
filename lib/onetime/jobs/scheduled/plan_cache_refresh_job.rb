@@ -60,10 +60,15 @@ if Onetime.billing_config.enabled?
               result     = Billing::Operations::Catalog::Pull.call
 
               unless result.success
-                error_msg = result.errors.first || 'Unknown error'
-                raise Stripe::StripeError, error_msg if error_msg.start_with?('Stripe error:')
-
-                raise StandardError, error_msg
+                case result.error_type
+                when :stripe_api
+                  raise Stripe::StripeError, result.errors.first
+                when :validation
+                  scheduler_logger.warn "[PlanCacheRefreshJob] Validation error: #{result.errors.first}"
+                  return
+                else
+                  raise StandardError, result.errors.first || 'Unknown error'
+                end
               end
 
               duration_ms = ((Time.now - start_time) * 1000).round

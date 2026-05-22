@@ -31,8 +31,9 @@ module Billing
           :config_plans_loaded,
           :cache_cleared,
           :errors,
+          :error_type,
         ) do
-          def initialize(success:, plans_synced: 0, config_plans_loaded: 0, cache_cleared: false, errors: [])
+          def initialize(success:, plans_synced: 0, config_plans_loaded: 0, cache_cleared: false, errors: [], error_type: nil)
             super
           end
         end
@@ -97,6 +98,7 @@ module Billing
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
             errors: ["Stripe error: #{ex.message}"],
+            error_type: :stripe_api,
           )
         rescue Billing::CatalogValidationError => ex
           Result.new(
@@ -105,6 +107,7 @@ module Billing
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
             errors: [ex.message],
+            error_type: :validation,
           )
         rescue StandardError => ex
           Result.new(
@@ -113,6 +116,7 @@ module Billing
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
             errors: ["#{ex.class}: #{ex.message}"],
+            error_type: :internal,
           )
         end
 

@@ -73,10 +73,6 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       allow(Billing::Operations::Catalog::StripeReader).to receive(:fetch_prices)
         .and_return({ 'test_plan_v1' => [mock_price] })
 
-      # Stub Plan validation method
-      allow(Billing::Plan).to receive(:validate_product_metadata)
-        .and_return({ missing: [], blank: [] })
-
       # Stub DataExtractor
       allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({
         plan_id: 'test_plan_v1',
@@ -165,6 +161,10 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
         expect(Billing::Operations::Catalog::PlanPersister).to receive(:update_catalog_sync_timestamp)
         result
       end
+
+      it 'has nil error_type on success' do
+        expect(result.error_type).to be_nil
+      end
     end
 
     context 'with clear_cache option' do
@@ -244,6 +244,10 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       it 'includes error message' do
         expect(result.errors).to include(match(/Stripe error/))
       end
+
+      it 'sets error_type to :stripe_api' do
+        expect(result.error_type).to eq(:stripe_api)
+      end
     end
 
     context 'validation error' do
@@ -279,6 +283,10 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       it 'includes validation error message' do
         expect(result.errors.first).to include('failed metadata validation')
       end
+
+      it 'sets error_type to :validation' do
+        expect(result.error_type).to eq(:validation)
+      end
     end
 
     context 'unexpected error' do
@@ -297,6 +305,10 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
         expect(result.errors.first).to include('StandardError')
         expect(result.errors.first).to include('Network timeout')
       end
+
+      it 'sets error_type to :internal' do
+        expect(result.error_type).to eq(:internal)
+      end
     end
   end
 
@@ -304,13 +316,14 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
     it 'has expected fields' do
       result = described_class::Result.new(success: true)
       expect(result).to respond_to(:success, :plans_synced,
-                                   :config_plans_loaded, :cache_cleared, :errors)
+                                   :config_plans_loaded, :cache_cleared, :errors, :error_type)
     end
 
     it 'has sensible defaults' do
       result = described_class::Result.new(success: true)
       expect(result.plans_synced).to eq(0)
       expect(result.errors).to eq([])
+      expect(result.error_type).to be_nil
     end
   end
 end
