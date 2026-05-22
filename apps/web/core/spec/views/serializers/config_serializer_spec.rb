@@ -70,7 +70,21 @@ RSpec.describe Core::Views::ConfigSerializer do
       'site' => {
         'host' => canonical_domain,
         'ssl' => true,
-        'interface' => { 'ui' => {} },
+        'interface' => {
+          'ui' => {},
+          'api' => {
+            'enabled' => true,
+            'guest_routes' => {
+              'enabled' => true,
+              'conceal' => true,
+              'generate' => true,
+              'reveal' => true,
+              'burn' => true,
+              'show' => true,
+              'receipt' => true,
+            },
+          },
+        },
         'authentication' => {},
         'secret_options' => {},
         'support' => { 'host' => 'support.example.com' },
@@ -128,6 +142,47 @@ RSpec.describe Core::Views::ConfigSerializer do
     it 'includes sso in features' do
       result = described_class.serialize(base_view_vars)
       expect(result['features']).to have_key('sso')
+    end
+
+    it 'returns api as a nested object with enabled and guest_routes' do
+      result = described_class.serialize(base_view_vars)
+      expect(result).to have_key('api')
+      expect(result['api']).to be_a(Hash)
+      expect(result['api']['enabled']).to be true
+      expect(result['api']['guest_routes']).to be_a(Hash)
+      expect(result['api']['guest_routes']['conceal']).to be true
+    end
+
+    context 'when api config is missing' do
+      let(:minimal_view_vars) do
+        base_view_vars.merge(
+          'site' => base_view_vars['site'].merge('interface' => { 'ui' => {} })
+        )
+      end
+
+      it 'defaults api.enabled to true and guest_routes to empty hash' do
+        result = described_class.serialize(minimal_view_vars)
+        expect(result['api']['enabled']).to be true
+        expect(result['api']['guest_routes']).to eq({})
+      end
+    end
+
+    context 'when api.enabled is explicitly false' do
+      let(:api_disabled_view_vars) do
+        base_view_vars.merge(
+          'site' => base_view_vars['site'].merge(
+            'interface' => {
+              'ui' => {},
+              'api' => { 'enabled' => false, 'guest_routes' => {} },
+            }
+          )
+        )
+      end
+
+      it 'returns api.enabled as false' do
+        result = described_class.serialize(api_disabled_view_vars)
+        expect(result['api']['enabled']).to be false
+      end
     end
   end
 
