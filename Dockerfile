@@ -59,7 +59,7 @@
 ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:510c441d2541a5ef8c6a657a67ae98d5b0c6acdd886691690ed30f986095f55e
+ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:3f335cdd6daf8a5835071065bb27cc26f4293be25657818ea2e5943ae3255ae5
 
 ##
 # DEPENDENCIES: Install application dependencies
@@ -263,10 +263,10 @@ RUN set -eux && \
     for file in etc/defaults/*.defaults.*; do \
         if [ -f "$file" ]; then \
             target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
-            cp --preserve --no-clobber "$file" "$target"; \
+            cp --preserve --update=none "$file" "$target"; \
         fi; \
     done && \
-    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
     chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
@@ -359,15 +359,15 @@ ENV RACK_ENV=production \
 #   etc/defaults/config.defaults.yaml -> etc/config.yaml
 #   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
 #   etc/defaults/logging.defaults.yaml -> etc/logging.yaml
-# The --no-clobber flag ensures existing files are not overwritten.
+# The --update=none flag ensures existing files are not overwritten.
 RUN set -eux && \
     for file in etc/defaults/*.defaults.*; do \
         if [ -f "$file" ]; then \
             target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
-            cp --preserve --no-clobber "$file" "$target"; \
+            cp --preserve --update=none "$file" "$target"; \
         fi; \
     done && \
-    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
     chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
