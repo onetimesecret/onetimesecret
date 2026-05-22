@@ -309,6 +309,9 @@ module Billing
             report("Products to UPDATE: #{changes[:products_to_update].size}")
             changes[:products_to_update].each do |item|
               report("  ~ #{item[:plan_id]} (#{item[:product].id})")
+              item[:updates].each do |field, change|
+                report("      #{field}: #{change[:from].inspect} → #{change[:to].inspect}")
+              end
             end
           end
 
