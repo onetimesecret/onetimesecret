@@ -640,6 +640,78 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
   end
 
+  describe '.transform_regions' do
+    it 'returns enabled false and empty jurisdictions for empty regions config' do
+      result = described_class.transform_regions({})
+
+      expect(result['enabled']).to be false
+      expect(result['jurisdictions']).to eq([])
+    end
+
+    it 'transforms jurisdictions to identifier and i18n key only' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
+          { 'identifier' => 'CA', 'domain' => 'ca.example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['enabled']).to be true
+      expect(result['jurisdictions'].length).to eq(2)
+      expect(result['jurisdictions'][0]).to eq({
+        'identifier' => 'EU',
+        'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+      })
+      expect(result['jurisdictions'][1]).to eq({
+        'identifier' => 'CA',
+        'display_name_i18n_key' => 'web.regions.jurisdictions.ca.name',
+      })
+    end
+
+    it 'does not include domain data in output (security)' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          { 'identifier' => 'EU', 'domain' => 'eu.secret-internal.example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]).not_to have_key('domain')
+    end
+
+    it 'lowercases identifier for i18n key generation' do
+      regions = {
+        'enabled' => false,
+        'jurisdictions' => [
+          { 'identifier' => 'US-WEST', 'domain' => 'west.example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('web.regions.jurisdictions.us-west.name')
+    end
+
+    it 'handles jurisdictions with nil identifier gracefully' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          { 'identifier' => nil, 'domain' => 'example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['identifier']).to eq('')
+      expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('web.regions.jurisdictions..name')
+    end
+  end
+
   describe '.build_tenant_sso_response' do
     it 'returns correct structure for OIDC config' do
       config = build_domain_sso_config(:oidc, display_name: 'Acme SSO')

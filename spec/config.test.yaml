@@ -81,19 +81,10 @@ features:
   regions:
     enabled: false
     current_jurisdiction: 'EU'
-    jurisdictions:
-      - identifier: AT
-        display_name: Atat Region
-        domain: at.example.com
-        icon:
-          collection: heroicon
-          name: inbox
-      - identifier: CE
-        display_name: CECE Region
-        domain: ce.example.com
-        icon:
-          collection: heroicon
-          name: mail
+    # JURISDICTIONS env var format: ID:domain,ID:domain
+    # Example: JURISDICTIONS=AT:at.example.com,CE:ce.example.com
+    # For tests, this is set in spec_helper or individual specs via ENV
+    jurisdictions: <%= ENV['JURISDICTIONS'] || '' %>
   domains:
     enabled: false
     # The default domain used for link URLs. When not set or empty,

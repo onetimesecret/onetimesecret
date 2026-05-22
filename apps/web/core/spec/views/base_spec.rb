@@ -289,8 +289,14 @@ RSpec.describe Core::Views::BaseView do
       expect(subject.serialized_data['regions_enabled']).to be true
       expect(subject.serialized_data['regions']).to include(
         'enabled' => true,
-        'current_jurisdiction' => 'EU',
       )
+      # transform_regions converts jurisdictions to identifier + i18n key only
+      expect(subject.serialized_data['regions']['jurisdictions']).to eq([
+        {
+          'identifier' => 'EU',
+          'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+        },
+      ])
     end
 
     context 'when regions disabled' do
