@@ -341,12 +341,14 @@ site:
     # (Kubernetes ingress, cloud load balancers, CDNs, etc.).
     #
     # Affects all IP-based features: ban checks, session tracking,
-    # audit logs, and the Colonel "Your Current IP" display.
+    # audit logs, homepage-mode CIDR matching, and the Colonel
+    # "Your Current IP" display.
     #
     # WARNING: Only enable when:
     # - The app is behind a trusted reverse proxy
     # - Direct client access is blocked by firewall
     # - The proxy strips/overwrites client-provided X-Forwarded-For headers
+    # - Each proxy appends its own IP to the forwarding header
     #
     trusted_proxy:
       # Master switch. When false, all forwarded headers are ignored
@@ -375,7 +377,8 @@ site:
 
       # Which header to read the forwarding chain from.
       # - X-Forwarded-For: Most common (nginx, Caddy, AWS ALB)
-      # - Forwarded: RFC 7239 standard
+      # - Forwarded: RFC 7239 standard; IPv6 addresses are bracketed,
+      #   e.g. for="[2001:db8::1]"
       # - Both: Try Forwarded first, fall back to X-Forwarded-For
       header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
 
@@ -387,6 +390,8 @@ site:
       # Depth mode only: Number of proxy hops to skip from the right.
       # 1 = standard single reverse proxy (nginx/Caddy)
       # 2 = CDN → reverse proxy → app
+      # No-proxy / direct connection: set enabled: false above rather
+      # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
 features:
