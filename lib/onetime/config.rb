@@ -113,7 +113,51 @@ module Onetime
           'frontend_host' => '',
           'allow_nil_global_secret' => false, # defaults to a secure setting
         },
+        'compatibility' => {
+          # How the boot process responds when a deprecated config key or
+          # env var is detected: 'strict' raises OT::ConfigError, 'warn'
+          # logs and continues, 'silent' ignores. See DEPRECATIONS.
+          'on_deprecated_config' => 'strict',
+        },
       }
+
+      # Declarative manifest of removed configuration keys.
+      #
+      # Each entry maps a deprecated config path and/or the env var that
+      # used to populate it to a migration message. check_deprecations
+      # scans these at boot; compatibility.on_deprecated_config decides
+      # whether a match raises OT::ConfigError ('strict'), logs ('warn'),
+      # or is ignored ('silent').
+      DEPRECATIONS = [
+        {
+          path: %w[site interface ui homepage trusted_proxy_depth],
+          env: 'UI_HOMEPAGE_TRUSTED_PROXY_DEPTH',
+          message: 'site.interface.ui.homepage.trusted_proxy_depth ' \
+                   '(UI_HOMEPAGE_TRUSTED_PROXY_DEPTH) has been removed. Configure ' \
+                   'proxy depth globally via site.network.trusted_proxy ' \
+                   '(TRUSTED_PROXY_ENABLED, TRUSTED_PROXY_MODE=depth, TRUSTED_PROXY_DEPTH).',
+        },
+        {
+          path: %w[site interface ui homepage trusted_ip_header],
+          env: 'UI_HOMEPAGE_TRUSTED_IP_HEADER',
+          message: 'site.interface.ui.homepage.trusted_ip_header ' \
+                   '(UI_HOMEPAGE_TRUSTED_IP_HEADER) has been removed. Configure the ' \
+                   'forwarding header globally via site.network.trusted_proxy.header ' \
+                   '(TRUSTED_PROXY_HEADER).',
+        },
+        {
+          path: %w[site domains],
+          env: nil,
+          message: 'site.domains has moved to features.domains. Move the domains ' \
+                   'block under the top-level features section.',
+        },
+        {
+          path: %w[site regions],
+          env: nil,
+          message: 'site.regions has moved to features.regions. Move the regions ' \
+                   'block under the top-level features section.',
+        },
+      ].freeze
 
     end
 
@@ -208,10 +252,9 @@ module Onetime
 
       raise_concerns(conf)
 
-      # MIGRATION VALIDATION: Check for legacy configuration locations
-      # Warn if both old (site.*) and new (features.*) config exist
-      validate_domains_migration(conf)
-      validate_regions_migration(conf)
+      # MIGRATION VALIDATION: Detect deprecated configuration keys / env vars
+      # and respond per compatibility.on_deprecated_config.
+      check_deprecations(conf)
 
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
@@ -343,32 +386,43 @@ module Onetime
       end
     end
 
-    # Validates domains configuration migration from site to features
+    # Detects deprecated configuration keys and environment variables.
     #
-    # Checks if both legacy (site.domains) and new (features.domains) configurations
-    # exist, logging a warning if both are present. The features.domains configuration
-    # takes precedence.
+    # Scans the DEPRECATIONS manifest. A deprecation is considered present
+    # when its config path resolves to a non-nil value, or its env var is
+    # set to a non-empty value. The response is governed by
+    # compatibility.on_deprecated_config:
     #
-    # @param conf [Hash] The loaded configuration
+    #   strict (default) - raise OT::ConfigError, refusing to boot
+    #   warn             - log each migration message and continue
+    #   silent           - ignore
+    #
+    # An unrecognized policy value is treated as strict.
+    #
+    # @param conf [Hash] The merged configuration
     # @return [void]
-    def validate_domains_migration(conf)
-      if conf.dig('site', 'domains') && conf.dig('features', 'domains')
-        OT.le 'CONFIG MIGRATION WARNING: Both site.domains and features.domains configured. Using features.domains'
+    # @raise [OT::ConfigError] When a deprecated key is found under strict policy
+    def check_deprecations(conf)
+      detected = DEPRECATIONS.select do |dep|
+        env_set  = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
+        path_set = !!(dep[:path] && !conf.dig(*dep[:path]).nil?)
+        env_set || path_set
       end
-    end
+      return if detected.empty?
 
-    # Validates regions configuration migration from site to features
-    #
-    # Checks if both legacy (site.regions) and new (features.regions) configurations
-    # exist, logging a warning if both are present. The features.regions configuration
-    # takes precedence.
-    #
-    # @param conf [Hash] The loaded configuration
-    # @return [void]
-    def validate_regions_migration(conf)
-      if conf.dig('site', 'regions') && conf.dig('features', 'regions')
-        OT.le 'CONFIG MIGRATION WARNING: Both site.regions and features.regions configured. Using features.regions'
+      policy   = (conf.dig('compatibility', 'on_deprecated_config') || 'strict').to_s
+      messages = detected.map { |dep| dep[:message] }
+      return if policy == 'silent'
+
+      if policy == 'warn'
+        messages.each { |msg| OT.le "CONFIG DEPRECATION: #{msg}" }
+        return
       end
+
+      raise OT::ConfigError,
+            "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
+            "Set compatibility.on_deprecated_config (ON_DEPRECATED_CONFIG) to 'warn' " \
+            'to downgrade this to a logged warning.'
     end
 
     def dirname

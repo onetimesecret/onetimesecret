@@ -176,9 +176,10 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
             signup: true # Should be overridden
             signin: true # Should be overridden
             autoverify: true # Should be overridden
+          secret_options: {}
+        features:
           domains: {enabled: false}
           regions: {enabled: false}
-          secret_options: {}
         redis:
           uri: 'redis://127.0.0.1:6379/15'
           dbs: {session: 15}

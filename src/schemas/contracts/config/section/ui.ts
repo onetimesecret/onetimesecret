@@ -42,8 +42,6 @@ const userInterfaceHomepageSchema = z.object({
   mode: z.string().nullable().optional(),
   matching_cidrs: z.array(z.string()).default([]),
   mode_header: z.string().default('O-Homepage-Mode'),
-  trusted_proxy_depth: z.number().int().nonnegative().default(1),
-  trusted_ip_header: z.string().default('X-Forwarded-For'),
 });
 
 /**
