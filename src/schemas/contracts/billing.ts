@@ -99,25 +99,6 @@ export const invoiceContractSchema = z.object({
 export type InvoiceContract = z.infer<typeof invoiceContractSchema>;
 
 /**
- * Plan schema
- *
- * Validates plan definition data.
- */
-export const planSchema = z.object({
-  id: z.string(),
-  type: planTypeSchema,
-  name: z.string(),
-  description: z.string(),
-  price_monthly: z.number(),
-  price_yearly: z.number(),
-  teams_limit: z.number(),
-  members_per_team_limit: z.number(),
-  features: z.array(z.string()),
-});
-
-export type Plan = z.infer<typeof planSchema>;
-
-/**
  * Payment method card schema
  */
 export const paymentMethodCardSchema = z.object({

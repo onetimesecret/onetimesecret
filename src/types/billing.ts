@@ -15,7 +15,6 @@ export {
   invoiceStatusSchema,
   paymentMethodCardSchema,
   paymentMethodSchema,
-  planSchema,
   planTypeSchema,
   subscriptionSchema,
   subscriptionStatusSchema,
@@ -25,7 +24,6 @@ export {
   type InvoiceStatus,
   type PaymentMethod,
   type PaymentMethodCard,
-  type Plan,
   type PlanType,
   type Subscription,
   type SubscriptionStatus,
@@ -75,14 +73,32 @@ export function getLegacyPlanInfo(
 import type { InvoiceStatus, PlanType, SubscriptionStatus } from '@/schemas/shapes/account/billing';
 import type { ComposerTranslation } from 'vue-i18n';
 
+/**
+ * Resolve a plan tier or canonical plan ID to a human-readable display name.
+ *
+ * Accepts both billing tier keys (`free`, `single_team`, `multi_team`,
+ * `identity_plus`, `team_plus`) and canonical plan IDs (`free_v1`,
+ * `identity_plus_v1`, `team_plus_v1`, ...), plus the legacy `identity`
+ * plan. Lookup is an explicit map — no string parsing of plan identity.
+ *
+ * @param planType - A billing tier key or canonical plan ID
+ * @returns A human-readable display name
+ */
 export function getPlanLabel(planType: PlanType | string): string {
   const labels: Record<string, string> = {
+    // Billing tier keys
     free: 'Free',
-    free_v1: 'Free',
     single_team: 'Single Team',
     multi_team: 'Multi Team',
     identity_plus: 'Identity Plus',
     team_plus: 'Team Plus',
+    // Canonical plan IDs
+    free_v1: 'Free',
+    identity_plus_v1: 'Identity Plus',
+    team_plus_v1: 'Team Plus',
+    legacy_plan_v1: 'Legacy Plan',
+    // Legacy/grandfathered plan
+    identity: 'Identity Plus (Early Supporter)',
   };
 
   // Direct match
@@ -92,52 +108,6 @@ export function getPlanLabel(planType: PlanType | string): string {
 
   // Fallback: convert snake_case to Title Case
   return planType.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-}
-
-/**
- * Parse a plan ID to a human-readable display name
- *
- * Handles canonical plan IDs like:
- * - identity_plus_v1 -> Identity Plus
- * - team_plus_v1 -> Team Plus
- * - free_v1 -> Free
- *
- * @param planId - The canonical plan ID (e.g., 'identity_plus_v1')
- * @returns A human-readable display name
- */
-export function getPlanDisplayName(planId: string): string {
-  if (!planId) return 'Free';
-
-  // Check for legacy plans first (centralized logic)
-  const legacyInfo = getLegacyPlanInfo(planId);
-  if (legacyInfo) {
-    return legacyInfo.displayName;
-  }
-
-  // Known plan name mappings (plan ID patterns -> display name)
-  // Order matters: more specific patterns must come before general ones
-  const planPatterns: [RegExp, string][] = [
-    [/^free/i, 'Free'],
-    [/identity_plus/i, 'Identity Plus'],
-    [/team_plus|multi_team/i, 'Team Plus'],
-    [/single_team/i, 'Single Team'],
-    [/identity(?!_plus)/i, 'Identity'], // Other identity-prefixed plans
-  ];
-
-  for (const [pattern, displayName] of planPatterns) {
-    if (pattern.test(planId)) {
-      return displayName;
-    }
-  }
-
-  // Fallback: Convert snake_case to Title Case (removing version suffix)
-  // e.g., 'some_plan_v1' -> 'Some Plan'
-  const baseName = planId
-    .replace(/_v\d+$/, '') // Remove version suffix
-    .replace(/_/g, ' ') // Convert underscores to spaces
-    .replace(/\b\w/g, (c) => c.toUpperCase()); // Title case
-
-  return baseName || planId;
 }
 
 export function getSubscriptionStatusLabel(
