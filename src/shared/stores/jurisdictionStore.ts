@@ -2,12 +2,96 @@
 
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import type { Jurisdiction, RegionsConfig } from '@/schemas/shapes/config';
+import type { Jurisdiction, JurisdictionIcon, RegionsConfig } from '@/schemas/shapes/config';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useApi } from '@/shared/composables/useApi';
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+/**
+ * Default icon mapping for jurisdiction identifiers.
+ * Used when jurisdiction.icon is not provided in config.
+ */
+export const JURISDICTION_ICONS: Record<string, JurisdictionIcon> = {
+  EU: { collection: 'heroicons-solid', name: 'globe-europe-africa' },
+  US: { collection: 'heroicons-solid', name: 'flag' },
+  CA: { collection: 'heroicons-solid', name: 'flag' },
+  UK: { collection: 'heroicons-solid', name: 'flag' },
+  NZ: { collection: 'heroicons-solid', name: 'globe-asia-australia' },
+  AT: { collection: 'heroicons-solid', name: 'flag' },
+};
+
+const DEFAULT_ICON: JurisdictionIcon = {
+  collection: 'heroicons-solid',
+  name: 'globe-alt',
+};
+
+/**
+ * Get the icon for a jurisdiction identifier.
+ * Falls back to globe-alt if no mapping exists.
+ */
+export function getJurisdictionIcon(identifier: string): JurisdictionIcon {
+  return JURISDICTION_ICONS[identifier.toUpperCase()] ?? DEFAULT_ICON;
+}
+
+/**
+ * Resolve the icon for a jurisdiction, preferring the jurisdiction's own icon
+ * if present, otherwise falling back to the identifier mapping.
+ */
+export function resolveJurisdictionIcon(jurisdiction: Jurisdiction): JurisdictionIcon {
+  return jurisdiction.icon ?? getJurisdictionIcon(jurisdiction.identifier);
+}
+
+/**
+ * Jurisdiction with resolved display_name from i18n.
+ */
+export interface JurisdictionWithDisplayName extends Jurisdiction {
+  display_name: string;
+}
+
+/**
+ * Resolve display_name from i18n key.
+ * Must be called within Vue's setup context.
+ */
+export function resolveJurisdictionDisplayName(
+  jurisdiction: Jurisdiction,
+  t: (key: string) => string
+): string {
+  return t(jurisdiction.display_name_i18n_key);
+}
+
+/**
+ * Composable that provides jurisdictions with resolved display names.
+ * Must be called within Vue's setup context.
+ */
+export function useJurisdictionDisplayNames() {
+  const { t } = useI18n();
+  const jurisdictionStore = useJurisdictionStore();
+
+  const resolveDisplayName = (jurisdiction: Jurisdiction): string => t(jurisdiction.display_name_i18n_key);
+
+  const currentJurisdictionWithDisplayName = computed((): JurisdictionWithDisplayName | null => {
+    const jurisdiction = jurisdictionStore.getCurrentJurisdiction;
+    if (!jurisdiction) return null;
+    return {
+      ...jurisdiction,
+      display_name: resolveDisplayName(jurisdiction),
+    };
+  });
+
+  const jurisdictionsWithDisplayName = computed((): JurisdictionWithDisplayName[] => jurisdictionStore.getAllJurisdictions.map((j) => ({
+      ...j,
+      display_name: resolveDisplayName(j),
+    })));
+
+  return {
+    resolveDisplayName,
+    currentJurisdictionWithDisplayName,
+    jurisdictionsWithDisplayName,
+  };
+}
 
 /**
  * N.B.

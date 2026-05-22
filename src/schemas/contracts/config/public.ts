@@ -148,7 +148,7 @@ export type PublicAuthenticationSettings = z.infer<typeof publicAuthenticationSc
  */
 const jurisdictionSchema = z.object({
   identifier: z.string(),
-  display_name: z.string(),
+  display_name_i18n_key: z.string(),
   domain: z.string(),
   icon: z.string(),
 });
