@@ -8,9 +8,7 @@ require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
 require_relative '../region_normalizer'
-require_relative '../operations/catalog/pull'
-require_relative '../operations/catalog/config_loader'
-require_relative '../operations/catalog/plan_persister'
+require_relative '../operations/catalog/metadata_validator'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -227,31 +225,19 @@ module Billing
       # @param product [Stripe::Product] The Stripe product
       # @return [Hash] { missing: [...], blank: [...] } — both empty if valid
       def validate_product_metadata(product)
-        required = Metadata::REQUIRED_FIELDS
-        metadata = product.metadata || {}
-        keys     = metadata.keys.map(&:to_s)
-        missing  = required - keys
+        result = Operations::Catalog::MetadataValidator.validate(product)
 
-        # Check present keys for blank values
-        blank = (required - missing).select do |key|
-          metadata[key].to_s.strip.empty?
-        end
-
-        problems = []
-        problems << "missing: #{missing.join(', ')}" if missing.any?
-        problems << "blank: #{blank.join(', ')}" if blank.any?
-
-        if problems.any?
+        if result[:problems].any?
           OT.lw '[Plan.validate_product_metadata] Stripe product invalid metadata',
             {
               product_id: product.id,
               product_name: product.name,
-              problems: problems.join('; '),
+              problems: result[:problems].join('; '),
               hint: 'Add metadata via Stripe Dashboard or `bin/ots billing products update`',
             }
         end
 
-        { missing: missing, blank: blank }
+        { missing: result[:missing], blank: result[:blank] }
       end
 
       # Check if product belongs to OTS (app=onetimesecret in metadata)
@@ -279,195 +265,6 @@ module Billing
           product.metadata[Metadata::FIELD_REGION],
           Onetime.billing_config.region,
         )
-      end
-
-      # Refresh plan cache from Stripe API
-      #
-      # Fetches all active products and prices from Stripe, filters by app metadata,
-      # and caches them in Redis with computed plan IDs.
-      #
-      # ## Consistency Guarantee
-      #
-      # This method uses an upsert pattern to ensure catalog availability:
-      # 1. **Fetch phase**: All Stripe data is fetched and validated in memory first
-      # 2. **Upsert phase**: Each plan is created or updated individually
-      # 3. **Prune phase**: Plans not in current Stripe catalog are soft-deleted
-      # 4. **Cache rebuild**: Price ID lookup cache is refreshed
-      #
-      # Delegates to Operations::Catalog::Pull for the actual sync.
-      #
-      # @param progress [Proc, nil] Optional progress callback
-      # @return [Integer] Number of plans synced
-      # @raise [Stripe::StripeError] If Stripe API call fails
-      # @raise [Billing::CircuitOpenError] If circuit breaker is open
-      def refresh_from_stripe(progress: nil)
-        result = Billing::Operations::Catalog::Pull.call(progress: progress)
-
-        unless result.success
-          error_msg = result.errors.first || 'Unknown error'
-          raise Stripe::StripeError, error_msg if error_msg.include?('Stripe')
-
-          raise StandardError, error_msg
-        end
-
-        result.plans_synced
-      end
-
-      # Upsert config-only plans (free tier, etc.) that have no Stripe prices
-      #
-      # @deprecated Use Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
-      # @return [Integer] Number of config-only plans upserted
-      def upsert_config_only_plans
-        Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
-      end
-
-      # Extracts plan data from Stripe product and price objects
-      #
-      # Callers must validate product with valid_ots_product? before calling.
-      # Raises ConfigError on invalid input (missing or blank required metadata).
-      #
-      # @param product [Stripe::Product] Stripe product object (already validated)
-      # @param price [Stripe::Price] Stripe price object
-      # @return [Hash] Plan data ready for persistence
-      # @raise [Onetime::ConfigError] If required metadata is missing or blank
-      def extract_plan_data(product, price)
-        # Fail-closed: raise on missing or blank required metadata
-        result   = validate_product_metadata(product)
-        problems = []
-        problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
-        problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
-        if problems.any?
-          raise Onetime::ConfigError,
-            "invalid metadata for Stripe product #{product.id} (#{product.name}): #{problems.join('; ')}"
-        end
-
-        interval = price.recurring.interval # 'month' or 'year'
-        tier     = product.metadata[Metadata::FIELD_TIER]
-        region   = product.metadata[Metadata::FIELD_REGION]
-        plan_id  = product.metadata[Metadata::FIELD_PLAN_ID] # Family ID (unsuffixed)
-
-        # Extract entitlements from product metadata
-        entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
-        entitlements     = entitlements_str.split(',').map(&:strip).reject(&:empty?)
-
-        # Extract limits from product metadata using Metadata helper
-        limits = {}
-        product.metadata.each do |key, value|
-          key_str = key.to_s
-          next unless key_str.start_with?('limit_')
-
-          resource         = key_str.sub('limit_', '').to_sym
-          limits[resource] = Metadata.normalize_limit(value)
-        end
-
-        # Extract display_order from product metadata (default to 0)
-        display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '0'
-
-        # Extract tenancy from product metadata (default to 'multi')
-        tenancy = product.metadata[Metadata::FIELD_TENANCY] || 'multi'
-
-        # Extract show_on_plans_page from product metadata (default to 'true')
-        show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
-        show_on_plans_page       = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
-
-        # Extract plan_code from product metadata (used to group monthly/yearly variants)
-        plan_code = product.metadata[Metadata::FIELD_PLAN_CODE]
-
-        # Extract is_popular: check Stripe metadata first, then fall back to billing.yaml
-        is_popular_value = product.metadata[Metadata::FIELD_IS_POPULAR]
-        if is_popular_value.nil? || is_popular_value.to_s.strip.empty?
-          # Fall back to billing.yaml config
-          plan_config = OT.billing_config.plans[plan_code] || {}
-          is_popular  = plan_config['is_popular'] == true
-        else
-          is_popular = %w[true 1 yes].include?(is_popular_value.to_s.downcase)
-        end
-
-        # Extract plan_name_label from product metadata (nil if not set or empty)
-        plan_name_label_raw = product.metadata[Metadata::FIELD_PLAN_NAME_LABEL]
-        plan_name_label     = plan_name_label_raw.to_s.strip.empty? ? nil : plan_name_label_raw
-
-        # Extract includes_plan from product metadata (nil if not set or empty)
-        includes_plan_raw = product.metadata[Metadata::FIELD_INCLUDES_PLAN]
-        includes_plan     = includes_plan_raw.to_s.strip.empty? ? nil : includes_plan_raw
-
-        # Build stripe snapshot for recovery (includes all prices for this product)
-        stripe_snapshot = {
-          product: {
-            id: product.id,
-            name: product.name,
-            currency: product.metadata[Metadata::FIELD_CURRENCY],
-            metadata: product.metadata.to_h,
-            marketing_features: product.marketing_features&.map(&:name) || [],
-          },
-          prices: {
-            interval.to_sym => {
-              id: price.id,
-              type: price.type,
-              currency: price.currency,
-              unit_amount: price.unit_amount,
-              recurring: {
-                interval: price.recurring.interval,
-              },
-            },
-          },
-          cached_at: Time.now.to_i,
-        }
-
-        # Per-interval price data (to be merged into prices hash)
-        price_data = {
-          stripe_price_id: price.id,
-          amount: price.unit_amount.to_s,
-          currency: price.currency,
-          billing_scheme: price.billing_scheme,
-          usage_type: price.recurring&.usage_type || 'licensed',
-          trial_period_days: price.recurring&.trial_period_days&.to_s,
-          nickname: price.nickname,
-          active: price.active.to_s,
-        }
-
-        {
-          plan_id: plan_id,
-          stripe_product_id: product.id,
-          stripe_updated_at: product.updated.to_s, # Unix timestamp for stale update detection
-          name: product.name,
-          tier: tier,
-          currency: product.metadata[Metadata::FIELD_CURRENCY] || price.currency,
-          region: region,
-          tenancy: tenancy,
-          display_order: display_order,
-          show_on_plans_page: show_on_plans_page.to_s,
-          description: product.description,
-          plan_code: plan_code,
-          is_popular: is_popular.to_s,
-          plan_name_label: plan_name_label,
-          includes_plan: includes_plan,
-          active: price.active.to_s,
-          entitlements: entitlements,
-          features: product.marketing_features&.map(&:name) || [],
-          limits: limits,
-          stripe_snapshot: stripe_snapshot,
-          # Nested price data keyed by interval
-          prices: { interval.to_sym => price_data },
-        }
-      end
-
-      # Upsert single plan from Stripe data
-      #
-      # @deprecated Use Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data
-      # @param plan_data [Hash] Plan data from extract_plan_data or webhook payload
-      # @return [Plan] The upserted plan instance
-      def upsert_from_stripe_data(plan_data)
-        Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(plan_data)
-      end
-
-      # Remove plans not in current Stripe catalog
-      #
-      # @deprecated Use Billing::Operations::Catalog::PlanPersister.prune_stale_plans
-      # @param current_plan_ids [Array<String>] Plan IDs currently in Stripe catalog
-      # @return [Integer] Number of plans marked stale or cleaned up
-      def prune_stale_plans(current_plan_ids)
-        Billing::Operations::Catalog::PlanPersister.prune_stale_plans(current_plan_ids)
       end
 
       # Get plan by tier, interval, and region
@@ -641,22 +438,6 @@ module Billing
       # @return [Integer, nil] Unix timestamp (truncated from Float) or nil
       def catalog_last_synced_at
         catalog_synced_at.to_i if catalog_synced_at.exists?
-      end
-
-      # Update the global catalog sync timestamp
-      #
-      # @deprecated Use Billing::Operations::Catalog::PlanPersister.update_catalog_sync_timestamp
-      def update_catalog_sync_timestamp
-        Billing::Operations::Catalog::PlanPersister.update_catalog_sync_timestamp
-      end
-
-      # Load all plans from billing.yaml config into Redis cache
-      #
-      # @deprecated Use Billing::Operations::Catalog::ConfigLoader.load_all_from_config
-      # @param clear_first [Boolean] Whether to clear existing cache before loading (default: true)
-      # @return [Integer] Number of plans loaded into Redis
-      def load_all_from_config(clear_first: true)
-        Billing::Operations::Catalog::ConfigLoader.load_all_from_config(clear_first: clear_first)
       end
 
       # Load a single plan from billing.yaml config

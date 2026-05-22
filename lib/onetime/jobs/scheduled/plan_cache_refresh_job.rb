@@ -56,11 +56,23 @@ if Onetime.billing_config.enabled?
 
               scheduler_logger.info '[PlanCacheRefreshJob] Starting plan cache refresh from Stripe'
 
-              start_time  = Time.now
-              plans_count = Billing::Plan.refresh_from_stripe
+              start_time = Time.now
+              result     = Billing::Operations::Catalog::Pull.call
+
+              unless result.success
+                case result.error_type
+                when :stripe_api
+                  raise Stripe::StripeError, result.errors.first
+                when :validation
+                  scheduler_logger.warn "[PlanCacheRefreshJob] Validation error: #{result.errors.first}"
+                  return
+                else
+                  raise StandardError, result.errors.first || 'Unknown error'
+                end
+              end
 
               duration_ms = ((Time.now - start_time) * 1000).round
-              scheduler_logger.info "[PlanCacheRefreshJob] Completed: #{plans_count} plans cached in #{duration_ms}ms"
+              scheduler_logger.info "[PlanCacheRefreshJob] Completed: #{result.plans_synced} plans cached in #{duration_ms}ms"
             rescue Stripe::AuthenticationError => ex
               scheduler_logger.error "[PlanCacheRefreshJob] Stripe authentication failed: #{ex.message}"
             rescue Stripe::RateLimitError => ex

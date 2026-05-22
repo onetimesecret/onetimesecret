@@ -37,7 +37,3 @@ OT.billing_config.config.class
 ## BillingConfig payment_links returns hash
 OT.billing_config.payment_links.class
 #=> Hash
-
-## BillingConfig billing method returns hash
-OT.billing_config.billing.class
-#=> Hash

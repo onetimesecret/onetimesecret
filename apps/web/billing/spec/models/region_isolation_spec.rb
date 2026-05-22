@@ -17,6 +17,7 @@
 require_relative '../support/billing_spec_helper'
 require_relative '../../models/plan'
 require_relative '../../region_normalizer'
+require_relative '../../operations/catalog/config_loader'
 
 # ==============================================================================
 # SECTION 1: RegionNormalizer (foundation for all fixes)
@@ -114,7 +115,7 @@ end
 # SECTION 2: upsert_config_only_plans region normalization (Bug #3)
 # ==============================================================================
 
-RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', type: :billing do
+RSpec.describe 'Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans region normalization', type: :billing do
   before do
     Billing::Plan.clear_cache
   end
@@ -144,7 +145,7 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
       allow(OT.billing_config).to receive(:region).and_return('NZ')
 
-      Billing::Plan.upsert_config_only_plans
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
 
       plan = Billing::Plan.load('free_test')
       expect(plan).not_to be_nil
@@ -171,7 +172,7 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
       allow(OT.billing_config).to receive(:region).and_return('EU')
 
-      Billing::Plan.upsert_config_only_plans
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
 
       plan = Billing::Plan.load('free_test')
       expect(plan).not_to be_nil
@@ -198,7 +199,7 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
       allow(OT.billing_config).to receive(:region).and_return('CA')
 
-      Billing::Plan.upsert_config_only_plans
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
 
       plan = Billing::Plan.load('free_test')
       expect(plan).not_to be_nil
@@ -225,7 +226,7 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
       allow(OT.billing_config).to receive(:region).and_return(nil)
 
-      Billing::Plan.upsert_config_only_plans
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
 
       plan = Billing::Plan.load('free_test')
       expect(plan).not_to be_nil
@@ -252,7 +253,7 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
       allow(OT.billing_config).to receive(:region).and_return('EU')
 
-      Billing::Plan.upsert_config_only_plans
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
 
       # US plan filtered out by EU deployment — not persisted
       plan = Billing::Plan.load('free_test')
@@ -279,7 +280,7 @@ RSpec.describe 'Billing::Plan.upsert_config_only_plans region normalization', ty
       allow(OT.billing_config).to receive(:plans).and_return(plans_hash)
       allow(OT.billing_config).to receive(:region).and_return('US')
 
-      Billing::Plan.upsert_config_only_plans
+      Billing::Operations::Catalog::ConfigLoader.upsert_config_only_plans
 
       plan = Billing::Plan.load('free_test')
       expect(plan).not_to be_nil
@@ -293,7 +294,7 @@ end
 # SECTION 3: load_all_from_config region filtering (Bug #4)
 # ==============================================================================
 
-RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :billing do
+RSpec.describe 'Billing::Operations::Catalog::ConfigLoader.load_all_from_config region filtering', type: :billing do
   before do
     Billing::Plan.clear_cache
   end
@@ -371,7 +372,7 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     end
 
     it 'only loads NZ plans' do
-      count = Billing::Plan.load_all_from_config
+      count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
       expect(count).to eq(1)
 
       plan = Billing::Plan.load('nz_plan_v1')
@@ -380,7 +381,7 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     end
 
     it 'skips EU and US plans' do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       expect(Billing::Plan.load('eu_plan_v1')).to be_nil
       expect(Billing::Plan.load('us_plan_v1')).to be_nil
@@ -394,12 +395,12 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     end
 
     it 'only loads EU plans' do
-      count = Billing::Plan.load_all_from_config
+      count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
       expect(count).to eq(1)
     end
 
     it 'skips NZ and US plans' do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       expect(Billing::Plan.load('nz_plan_v1')).to be_nil
       expect(Billing::Plan.load('us_plan_v1')).to be_nil
@@ -413,12 +414,12 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     end
 
     it 'loads all plans (pass-through)' do
-      count = Billing::Plan.load_all_from_config
+      count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
       expect(count).to eq(3)
     end
 
     it 'includes plans from all regions' do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       expect(Billing::Plan.load('nz_plan_v1')).not_to be_nil
       expect(Billing::Plan.load('eu_plan_v1')).not_to be_nil
@@ -451,7 +452,7 @@ RSpec.describe 'Billing::Plan.load_all_from_config region filtering', type: :bil
     end
 
     it 'matches lowercase plan region against uppercase configured region' do
-      count = Billing::Plan.load_all_from_config
+      count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
       expect(count).to eq(1)
 
       plan = Billing::Plan.load('nz_lower_v1')

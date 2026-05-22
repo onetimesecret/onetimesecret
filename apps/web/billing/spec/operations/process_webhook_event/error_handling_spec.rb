@@ -162,43 +162,6 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
     end
   end
 
-  describe 'plan cache refresh errors' do
-    let(:product) { build_stripe_product(id: 'prod_refresh_error') }
-    let(:event) { build_stripe_event(type: 'product.updated', data_object: product) }
-    let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
-
-    context 'when Billing::Plan.refresh_from_stripe raises error' do
-      before do
-        allow(Billing::Plan).to receive(:refresh_from_stripe)
-          .and_raise(StandardError.new('Cache refresh failed'))
-      end
-
-      it 'returns :success (cache errors are non-fatal)' do
-        # Plan cache refresh errors are logged but don't fail the webhook
-        expect(operation.call).to eq(:success)
-      end
-
-      it 'does not propagate the error' do
-        expect { operation.call }.not_to raise_error
-      end
-    end
-
-    context 'when Stripe API fails during refresh' do
-      before do
-        allow(Billing::Plan).to receive(:refresh_from_stripe)
-          .and_raise(Stripe::APIError.new('Stripe unavailable'))
-      end
-
-      it 'returns :success (cache errors are non-fatal)' do
-        expect(operation.call).to eq(:success)
-      end
-
-      it 'does not propagate the Stripe error' do
-        expect { operation.call }.not_to raise_error
-      end
-    end
-  end
-
   describe 'organization save errors' do
     let!(:customer) { create_test_customer(email: test_email) }
     let!(:organization) do

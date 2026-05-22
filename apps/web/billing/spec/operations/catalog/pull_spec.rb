@@ -7,6 +7,7 @@ require_relative '../../../operations/catalog/pull'
 require_relative '../../../operations/catalog/stripe_reader'
 require_relative '../../../operations/catalog/plan_persister'
 require_relative '../../../operations/catalog/config_loader'
+require_relative '../../../operations/catalog/data_extractor'
 
 RSpec.describe Billing::Operations::Catalog::Pull, :billing do
   describe '.call' do
@@ -72,10 +73,8 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       allow(Billing::Operations::Catalog::StripeReader).to receive(:fetch_prices)
         .and_return({ 'test_plan_v1' => [mock_price] })
 
-      # Stub Plan methods
-      allow(Billing::Plan).to receive(:validate_product_metadata)
-        .and_return({ missing: [], blank: [] })
-      allow(Billing::Plan).to receive(:extract_plan_data).and_return({
+      # Stub DataExtractor
+      allow(Billing::Operations::Catalog::DataExtractor).to receive(:call).and_return({
         plan_id: 'test_plan_v1',
         stripe_product_id: 'prod_test123',
         stripe_updated_at: '1700000000',
@@ -162,6 +161,10 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
         expect(Billing::Operations::Catalog::PlanPersister).to receive(:update_catalog_sync_timestamp)
         result
       end
+
+      it 'has nil error_type on success' do
+        expect(result.error_type).to be_nil
+      end
     end
 
     context 'with clear_cache option' do
@@ -241,12 +244,34 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       it 'includes error message' do
         expect(result.errors).to include(match(/Stripe error/))
       end
+
+      it 'sets error_type to :stripe_api' do
+        expect(result.error_type).to eq(:stripe_api)
+      end
     end
 
     context 'validation error' do
+      let(:invalid_product) do
+        double(
+          'Stripe::Product',
+          id: 'prod_invalid',
+          name: 'Invalid Plan',
+          description: 'Missing required metadata',
+          updated: 1700000000,
+          marketing_features: [],
+          metadata: {
+            'app' => 'onetimesecret',
+            'region' => 'US',
+            # Missing: plan_id, tier, currency, plan_code
+          },
+        )
+      end
+
       before do
-        allow(Billing::Plan).to receive(:validate_product_metadata)
-          .and_return({ missing: ['plan_id'], blank: [] })
+        allow(Billing::Operations::Catalog::StripeReader).to receive(:fetch_products)
+          .and_return({ 'invalid_key' => invalid_product })
+        allow(Billing::Operations::Catalog::StripeReader).to receive(:fetch_prices)
+          .and_return({ 'invalid_key' => [mock_price] })
       end
 
       subject(:result) { described_class.call }
@@ -256,7 +281,11 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       end
 
       it 'includes validation error message' do
-        expect(result.errors.first).to include('metadata validation')
+        expect(result.errors.first).to include('failed metadata validation')
+      end
+
+      it 'sets error_type to :validation' do
+        expect(result.error_type).to eq(:validation)
       end
     end
 
@@ -276,6 +305,10 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
         expect(result.errors.first).to include('StandardError')
         expect(result.errors.first).to include('Network timeout')
       end
+
+      it 'sets error_type to :internal' do
+        expect(result.error_type).to eq(:internal)
+      end
     end
   end
 
@@ -283,13 +316,14 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
     it 'has expected fields' do
       result = described_class::Result.new(success: true)
       expect(result).to respond_to(:success, :plans_synced,
-                                   :config_plans_loaded, :cache_cleared, :errors)
+                                   :config_plans_loaded, :cache_cleared, :errors, :error_type)
     end
 
     it 'has sensible defaults' do
       result = described_class::Result.new(success: true)
       expect(result.plans_synced).to eq(0)
       expect(result.errors).to eq([])
+      expect(result.error_type).to be_nil
     end
   end
 end

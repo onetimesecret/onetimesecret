@@ -172,8 +172,8 @@ Billing::Plan.all.empty?
 # ---------------------------------------------------------------------------
 # Regional isolation tests (Issue #2228 follow-up)
 #
-# correct_region? guards both the refresh_from_stripe (collect_stripe_plans)
-# and the webhook handler paths. Each testcase builds its own stub objects
+# correct_region? guards both the Catalog::Pull operation and the webhook
+# handler paths. Each testcase builds its own stub objects
 # inline so there is no cross-testcase state dependency.
 # ---------------------------------------------------------------------------
 

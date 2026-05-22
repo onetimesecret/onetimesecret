@@ -6,6 +6,7 @@ require_relative 'base_handler'
 require_relative '../../lib/stripe_circuit_breaker'
 require_relative '../catalog/pull'
 require_relative '../catalog/plan_persister'
+require_relative '../catalog/data_extractor'
 
 module Billing
   module Operations
@@ -193,7 +194,7 @@ module Billing
             # Skip non-recurring prices (one-time payments, etc.)
             next unless price.type == 'recurring'
 
-            plan_data     = Billing::Plan.extract_plan_data(product, price)
+            plan_data     = Billing::Operations::Catalog::DataExtractor.call(product, price)
             Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(plan_data)
             synced_count += 1
           end
@@ -228,7 +229,7 @@ module Billing
           # Skip non-recurring prices
           return unless price.type == 'recurring'
 
-          plan_data = Billing::Plan.extract_plan_data(product, price)
+          plan_data = Billing::Operations::Catalog::DataExtractor.call(product, price)
           Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(plan_data)
           Billing::Operations::Catalog::PlanPersister.rebuild_stripe_price_id_cache
 

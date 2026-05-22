@@ -6,6 +6,7 @@ require_relative 'stripe_retry'
 require_relative 'stripe_reader'
 require_relative 'config_loader'
 require_relative 'plan_persister'
+require_relative 'data_extractor'
 require_relative '../../lib/stripe_circuit_breaker'
 
 module Billing
@@ -30,8 +31,9 @@ module Billing
           :config_plans_loaded,
           :cache_cleared,
           :errors,
+          :error_type,
         ) do
-          def initialize(success:, plans_synced: 0, config_plans_loaded: 0, cache_cleared: false, errors: [])
+          def initialize(success:, plans_synced: 0, config_plans_loaded: 0, cache_cleared: false, errors: [], error_type: nil)
             super
           end
         end
@@ -96,6 +98,7 @@ module Billing
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
             errors: ["Stripe error: #{ex.message}"],
+            error_type: :stripe_api,
           )
         rescue Billing::CatalogValidationError => ex
           Result.new(
@@ -104,6 +107,7 @@ module Billing
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
             errors: [ex.message],
+            error_type: :validation,
           )
         rescue StandardError => ex
           Result.new(
@@ -112,6 +116,7 @@ module Billing
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
             errors: ["#{ex.class}: #{ex.message}"],
+            error_type: :internal,
           )
         end
 
@@ -209,12 +214,12 @@ module Billing
               report("Processing product #{products_processed}: #{product.name[0..40]}...")
             end
 
-            # Validate product metadata
-            result = Billing::Plan.validate_product_metadata(product)
-            if result[:missing].any? || result[:blank].any?
+            # Validate product metadata using shared validation logic
+            validation_result = validate_product_metadata(product)
+            if validation_result[:missing].any? || validation_result[:blank].any?
               problems = []
-              problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
-              problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
+              problems << "missing: #{validation_result[:missing].join(', ')}" if validation_result[:missing].any?
+              problems << "blank: #{validation_result[:blank].join(', ')}" if validation_result[:blank].any?
               OT.le '[Pull] Product failed metadata validation',
                 { product_id: product.id, product_name: product.name, problems: problems.join('; ') }
               validation_errors << {
@@ -234,8 +239,8 @@ module Billing
               # Skip non-recurring prices
               next unless price.type == 'recurring'
 
-              # Extract plan data using Plan's helper
-              plan_data = Billing::Plan.extract_plan_data(product, price)
+              # Extract plan data
+              plan_data = DataExtractor.call(product, price)
               plan_id   = plan_data[:plan_id]
 
               if plan_data_by_family.key?(plan_id)
@@ -269,6 +274,27 @@ module Billing
 
         def report(message)
           @progress&.call(message)
+        end
+
+        # Validate product has all required metadata for plan creation
+        #
+        # Checks both key presence AND non-blank values for required fields.
+        # Shared validation logic used by both Pull and DataExtractor.
+        #
+        # @param product [Stripe::Product] The Stripe product
+        # @return [Hash] { missing: [...], blank: [...] } — both empty if valid
+        def validate_product_metadata(product)
+          required = Billing::Metadata::REQUIRED_FIELDS
+          metadata = product.metadata || {}
+          keys     = metadata.keys.map(&:to_s)
+          missing  = required - keys
+
+          # Check present keys for blank values
+          blank = (required - missing).select do |key|
+            metadata[key].to_s.strip.empty?
+          end
+
+          { missing: missing, blank: blank }
         end
       end
     end

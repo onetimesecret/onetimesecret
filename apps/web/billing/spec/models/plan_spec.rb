@@ -12,6 +12,7 @@
 
 require_relative '../support/billing_spec_helper'
 require_relative '../../models/plan'
+require_relative '../../operations/catalog/config_loader'
 
 RSpec.describe Billing::Plan, type: :billing do
   # Note: We don't use with_test_plans context here because it requires
@@ -200,19 +201,19 @@ RSpec.describe Billing::Plan, type: :billing do
     end
 
     it 'populates Redis cache from config' do
-      count = Billing::Plan.load_all_from_config
+      count = Billing::Operations::Catalog::ConfigLoader.load_all_from_config
       expect(count).to be > 0
     end
 
     it 'creates Plan instances in Redis' do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       plans = Billing::Plan.list_plans
       expect(plans).not_to be_empty
     end
 
     it 'loads plans with correct tier' do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       plans = Billing::Plan.list_plans
       tiers = plans.map(&:tier).uniq
@@ -221,7 +222,7 @@ RSpec.describe Billing::Plan, type: :billing do
     end
 
     it 'loads plans with both monthly and yearly intervals' do
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       plans = Billing::Plan.list_plans
       all_intervals = plans.flat_map(&:available_intervals).uniq
@@ -234,7 +235,7 @@ RSpec.describe Billing::Plan, type: :billing do
     before do
       # Reset Plan.load stubs so ConfigLoader can create real Plan instances
       allow(Billing::Plan).to receive(:load).and_call_original
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
     end
 
     it 'finds plan by tier, interval, and region' do
@@ -372,7 +373,7 @@ RSpec.describe Billing::Plan, type: :billing do
     before do
       # Reset Plan.load stubs so ConfigLoader can create real Plan instances
       allow(Billing::Plan).to receive(:load).and_call_original
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
     end
 
     it 'single_team has base entitlements' do
