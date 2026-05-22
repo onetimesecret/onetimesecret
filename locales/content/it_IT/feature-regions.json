@@ -158,5 +158,29 @@
   "web.regions.changing_regions_subscription_note": {
     "text": "I vantaggi dell'abbonamento verranno applicati automaticamente a qualsiasi account creato con l'indirizzo email di fatturazione.",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.jurisdictions.eu.name": {
+    "text": "European Union",
+    "content_hash": "9a18968a"
+  },
+  "web.regions.jurisdictions.us.name": {
+    "text": "United States",
+    "content_hash": "f253efe3"
+  },
+  "web.regions.jurisdictions.ca.name": {
+    "text": "Canada",
+    "content_hash": "445d337b"
+  },
+  "web.regions.jurisdictions.uk.name": {
+    "text": "United Kingdom",
+    "content_hash": "89f9c9f4"
+  },
+  "web.regions.jurisdictions.nz.name": {
+    "text": "New Zealand",
+    "content_hash": "c51ed580"
+  },
+  "web.regions.jurisdictions.at.name": {
+    "text": "Austria",
+    "content_hash": "98917390"
   }
 }
