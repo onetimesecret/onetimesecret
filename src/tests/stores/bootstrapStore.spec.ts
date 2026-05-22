@@ -1043,8 +1043,8 @@ describe('bootstrapStore', () => {
       expect(freshStore.default_locale).toBe(BOOTSTRAP_UI_DEFAULTS.default_locale);
       expect(freshStore.supported_locales).toEqual(BOOTSTRAP_UI_DEFAULTS.supported_locales);
 
-      // Development (both undefined by default)
-      expect(freshStore.development).toBe(BOOTSTRAP_UI_DEFAULTS.development);
+      // Development (both have schema defaults - Ruby always emits this field)
+      expect(freshStore.development).toEqual(BOOTSTRAP_UI_DEFAULTS.development);
 
       // Organization (both undefined by default)
       expect(freshStore.organization).toBe(BOOTSTRAP_UI_DEFAULTS.organization);

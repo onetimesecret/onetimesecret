@@ -20,7 +20,8 @@ export const bootstrapUiSchema = z.object({
   ui: uiInterfaceSchema.default({ enabled: true }),
   messages: z.array(messageSchema).default([]),
   features: featuresSchema.default({ markdown: false }),
-  development: developmentConfigSchema.optional(),
+  // Ruby always emits development; organization is conditional
+  development: developmentConfigSchema.default(developmentConfigSchema.parse({})),
   organization: organizationSchema.optional(),
   supported_locales: z.array(z.string()).default([]),
   default_locale: z.string().default('en'),
