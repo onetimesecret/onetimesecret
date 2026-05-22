@@ -11,7 +11,7 @@
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
-  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
+  const helpEnabled = computed(() => bootstrapStore.ui?.help?.enabled ?? true);
 
   interface Props {
     branded?: boolean;

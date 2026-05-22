@@ -163,7 +163,8 @@ site:
       # Show or hide the version number in the workspace footer
       show_version: <%= ENV['FOOTER_VERSION_ENABLED'] != 'false' %>
       # Show or hide the "Need help?" modal trigger on secret pages
-      help_enabled: <%= ENV['HELP_ENABLED'] != 'false' %>
+      help:
+        enabled: <%= ENV['HELP_ENABLED'] != 'false' %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:

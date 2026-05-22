@@ -17,7 +17,7 @@
     () => bootstrapStore.authentication?.enabled
       && bootstrapStore.authentication?.signin
   );
-  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
+  const helpEnabled = computed(() => bootstrapStore.ui?.help?.enabled ?? true);
 
   interface Props {
     record: Secret | null;

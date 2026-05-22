@@ -9,7 +9,7 @@
   import { ref, computed } from 'vue';
 
   const bootstrapStore = useBootstrapStore();
-  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
+  const helpEnabled = computed(() => bootstrapStore.ui?.help?.enabled ?? true);
 
   interface Props {
     secretIdentifier: string;

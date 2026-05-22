@@ -11,7 +11,6 @@
   import SecretLink from '@/apps/secret/components/receipt/SecretLink.vue';
   import StatusBadge from '@/apps/secret/components/receipt/StatusBadge.vue';
   import TimelineDisplay from '@/apps/secret/components/receipt/TimelineDisplay.vue';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useReceipt } from '@/shared/composables/useReceipt';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/shared/composables/useSecretExpiration';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -19,9 +18,6 @@
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
 
   import UnknownReceipt from './UnknownReceipt.vue';
-
-  const bootstrapStore = useBootstrapStore();
-  const helpEnabled = computed(() => bootstrapStore.ui?.help_enabled ?? true);
 
   // Define props
   interface Props {
@@ -50,6 +46,7 @@
   const bootstrapStore = useBootstrapStore();
   const { uiCapabilities } = storeToRefs(bootstrapStore);
   const showBurn = computed(() => uiCapabilities.value?.burn !== false);
+  const helpEnabled = computed(() => bootstrapStore.ui?.help?.enabled ?? true);
 
   const goBack = () => {
     window.history.back();
