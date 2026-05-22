@@ -157,6 +157,31 @@ export const uiInterfaceSchema = z.object({
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// API CONFIGURATION SCHEMAS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Guest route permissions for API access.
+ */
+export const apiGuestRoutesSchema = z.object({
+  enabled: z.boolean().default(true),
+  conceal: z.boolean().default(true),
+  generate: z.boolean().default(true),
+  reveal: z.boolean().default(true),
+  burn: z.boolean().default(true),
+  show: z.boolean().default(true),
+  receipt: z.boolean().default(true),
+});
+
+/**
+ * API interface configuration schema controlling API access and guest routes.
+ */
+export const apiInterfaceSchema = z.object({
+  enabled: z.boolean().default(true),
+  guest_routes: apiGuestRoutesSchema.default(apiGuestRoutesSchema.parse({})),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // AUTHENTICATION SCHEMAS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -357,6 +382,8 @@ export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
 export type UiCapabilities = z.infer<typeof uiCapabilitiesSchema>;
 export type UiInterface = z.infer<typeof uiInterfaceSchema>;
+export type ApiGuestRoutes = z.infer<typeof apiGuestRoutesSchema>;
+export type ApiInterface = z.infer<typeof apiInterfaceSchema>;
 export type AuthenticationSettings = z.infer<typeof authenticationSettingsSchema>;
 export type SSOProvider = z.infer<typeof ssoProviderSchema>;
 export type SSOConfig = z.infer<typeof ssoConfigSchema>;
@@ -392,12 +419,26 @@ export type Passphrase = z.infer<typeof passphraseSchema>;
  * - I18nSerializer fields
  * - MessagesSerializer fields
  * - SystemSerializer fields
+ *
+ * ## Schema contract pattern: `.default()` vs `.optional()`
+ *
+ * Use `.default(...)` for fields the Ruby serializer ALWAYS emits. This:
+ * - Documents the actual contract (Ruby always sends it)
+ * - Produces a non-optional TypeScript type (no unnecessary `?.` guards)
+ * - Provides a fallback if parsing somehow receives `undefined`
+ *
+ * Use `.optional()` ONLY for fields Ruby conditionally emits (e.g., `regions`
+ * is only sent when `regions_enabled` is true). The TypeScript type will
+ * include `| undefined`, correctly reflecting the contract.
+ *
+ * When in doubt, check the Ruby serializer's `output_template` and the field
+ * assignment logic to determine which pattern applies.
  */
 export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   // ConfigSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
-  api_enabled: z.boolean().default(true),
+  api: apiInterfaceSchema.default(apiInterfaceSchema.parse({})),
   authentication: authenticationSettingsSchema.default(authenticationSettingsInner.parse({})),
   d9s_enabled: z.boolean().default(false),
   diagnostics: diagnosticsSchema.default(diagnosticsInner.parse({})),
@@ -490,9 +531,9 @@ export const bootstrapSchema = z.object({
   entitlement_preview_plan_name: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Development
+  // Development (always emitted by ConfigSerializer)
   // ─────────────────────────────────────────────────────────────────────────────
-  development: developmentConfigSchema.optional(),
+  development: developmentConfigSchema.default(developmentConfigSchema.parse({})),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

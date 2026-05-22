@@ -14,7 +14,7 @@
   const accountStore = useAccountStore();
   const { account } = storeToRefs(accountStore);
   const bootstrapStore = useBootstrapStore();
-  const { api_enabled } = storeToRefs(bootstrapStore);
+  const apiConfig = bootstrapStore.apiConfig;
 
   onMounted(async () => {
     await accountStore.fetch();
@@ -24,7 +24,7 @@
 <template>
   <SettingsLayout>
     <div
-      v-if="!api_enabled"
+      v-if="!apiConfig.enabled"
       class="rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-800/60">
       <OIcon
         collection="heroicons"

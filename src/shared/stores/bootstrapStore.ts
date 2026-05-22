@@ -3,6 +3,8 @@
 import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import {
   bootstrapSchema,
+  type ApiGuestRoutes,
+  type ApiInterface,
   type BootstrapPayload,
   type FooterLinksConfig,
   type HeaderConfig,
@@ -34,7 +36,8 @@ const SCHEMA_DEFAULTS = bootstrapSchema.parse({});
  */
 const DEFAULTS: BootstrapPayload = {
   ...SCHEMA_DEFAULTS,
-  // Explicitly include optional fields that Zod omits
+  // Explicitly include optional fields that Zod omits (fields marked .optional()
+  // in the schema, not fields with .default() which are included in SCHEMA_DEFAULTS)
   apitoken: undefined,
   customer_since: undefined,
   regions: undefined,
@@ -43,7 +46,6 @@ const DEFAULTS: BootstrapPayload = {
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,
   organization: undefined,
-  development: undefined,
 };
 
 /**
@@ -158,6 +160,18 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * Each flag is undefined when unset; consumers treat undefined as enabled.
      */
     uiCapabilities: (state): UiCapabilities | undefined => state.ui.capabilities,
+
+    /**
+     * API configuration from bootstrap payload.
+     * Contains enabled flag and guest route permissions.
+     */
+    apiConfig: (state): ApiInterface => state.api,
+
+    /**
+     * Guest route permissions for API access.
+     * Controls which API routes are available to unauthenticated users.
+     */
+    guestRoutes: (state): ApiGuestRoutes => state.api.guest_routes,
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -276,6 +290,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
     resetForLogout(): void {
       // Capture current server config values before reset
       const preservedConfig = {
+        api: this.api,
         authentication: this.authentication,
         ui: this.ui,
         features: this.features,
@@ -290,6 +305,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
       // Restore server config fields and _initialized flag
       // Use functional $patch to avoid _DeepPartial type issues
       this.$patch((state) => {
+        state.api = preservedConfig.api;
         state.authentication = preservedConfig.authentication;
         state.ui = preservedConfig.ui;
         state.features = preservedConfig.features;
