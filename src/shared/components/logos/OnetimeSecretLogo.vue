@@ -6,7 +6,10 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import OnetimeSecretIcon from '@/shared/components/icons/OnetimeSecretIcon.vue';
   import type { Jurisdiction } from '@/schemas/contracts/config/section/jurisdiction';
-  import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
+  import {
+    useJurisdictionStore,
+    useJurisdictionDisplayNames,
+  } from '@/shared/stores/jurisdictionStore';
   import type { LogoConfig } from '@/types/ui/layouts';
   import { onKeyStroke, useEventListener } from '@vueuse/core';
   import { computed, nextTick, ref, watch } from 'vue';
@@ -37,9 +40,8 @@
 
   // Jurisdiction store and selection handling
   const jurisdictionStore = useJurisdictionStore();
-  const currentJurisdiction = computed<Jurisdiction | null>(
-    () => jurisdictionStore.getCurrentJurisdiction
-  );
+  const { jurisdictionsWithDisplayName, currentJurisdictionWithDisplayName } = useJurisdictionDisplayNames();
+  const currentJurisdiction = currentJurisdictionWithDisplayName;
 
   const canShowJurisdictionSelector = computed(() => (
       !props.isUserPresent &&
@@ -176,7 +178,7 @@
             </div>
             <!-- prettier-ignore-attribute class -->
             <div
-              v-for="(jurisdiction, index) in jurisdictionStore.jurisdictions"
+              v-for="(jurisdiction, index) in jurisdictionsWithDisplayName"
               :key="jurisdiction.identifier"
               :id="`jurisdiction-option-${index}`"
               role="option"

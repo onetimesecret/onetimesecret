@@ -3,8 +3,10 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import type { Jurisdiction } from '@/schemas/shapes/config';
-  import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
+  import {
+    useJurisdictionStore,
+    useJurisdictionDisplayNames,
+  } from '@/shared/stores/jurisdictionStore';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
@@ -46,20 +48,22 @@
   // Initialize jurisdiction store
   const jurisdictionStore = useJurisdictionStore();
   const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
+  const { currentJurisdictionWithDisplayName } = useJurisdictionDisplayNames();
 
   // Compute the current jurisdiction or default to unknown
-  const currentJurisdiction = computed(
-    (): Jurisdiction =>
-      getCurrentJurisdiction.value || {
-        identifier: t('web.regions.unknown_jurisdiction'),
-        display_name: t('web.regions.unknown_jurisdiction'),
-        domain: '',
-        icon: {
-          collection: 'mdi',
-          name: 'help-circle',
-        },
-        enabled: false,
-      }
+  // Uses resolved display_name from i18n
+  const currentJurisdiction = computed(() =>
+    currentJurisdictionWithDisplayName.value || {
+      identifier: t('web.regions.unknown_jurisdiction'),
+      display_name_i18n_key: 'web.regions.unknown_jurisdiction',
+      display_name: t('web.regions.unknown_jurisdiction'),
+      domain: '',
+      icon: {
+        collection: 'mdi',
+        name: 'help-circle',
+      },
+      enabled: false,
+    }
   );
 
   // Compute the background icon based on jurisdiction status

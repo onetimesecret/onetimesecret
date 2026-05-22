@@ -4,11 +4,17 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useClickOutside } from '@/shared/composables/useClickOutside';
-  import type { Jurisdiction } from '@/schemas/contracts/config/section/jurisdiction';
-  import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
-  import { computed, ref } from 'vue';
+    import {
+    useJurisdictionDisplayNames,
+    type JurisdictionWithDisplayName,
+  } from '@/shared/stores/jurisdictionStore';
+  import { ref } from 'vue';
 
 const { t } = useI18n();
+  const {
+    currentJurisdictionWithDisplayName,
+    jurisdictionsWithDisplayName,
+  } = useJurisdictionDisplayNames();
 
   /* Vue 3 Reactivity Guide: Rules for Store Access
   * ─────────────────────────────────────────
@@ -24,15 +30,10 @@ const { t } = useI18n();
   *    const jurisdictionStore = useJurisdictionStore()
   *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
   */
-  const jurisdictionStore = useJurisdictionStore();
 
-  // Computed properties with null checks
-  const currentJurisdiction = computed<Jurisdiction | null>(
-    () => jurisdictionStore.getCurrentJurisdiction
-  );
-  const jurisdictions = computed<Jurisdiction[]>(
-    () => jurisdictionStore.getAllJurisdictions
-  );
+  // Use jurisdictions with resolved display names
+  const currentJurisdiction = currentJurisdictionWithDisplayName;
+  const jurisdictions = jurisdictionsWithDisplayName;
 
   const isOpen = ref(false);
   const dropdownRef = ref<HTMLElement | null>(null);
@@ -69,7 +70,7 @@ const { t } = useI18n();
   };
 
   // Navigate to the appropriate jurisdiction URL
-  const navigateToJurisdiction = (jurisdiction: Jurisdiction) => {
+  const navigateToJurisdiction = (jurisdiction: JurisdictionWithDisplayName) => {
     window.location.href = `https://${jurisdiction.domain}/`;
   };
 
@@ -117,7 +118,7 @@ const { t } = useI18n();
   };
 
   // Handle option item activation via keyboard or click
-  const handleOptionActivation = (jurisdiction: Jurisdiction, index: number) => {
+  const handleOptionActivation = (jurisdiction: JurisdictionWithDisplayName, index: number) => {
     activeIndex.value = index;
     navigateToJurisdiction(jurisdiction);
   };
@@ -125,9 +126,9 @@ const { t } = useI18n();
   useClickOutside(dropdownRef, closeDropdown);
 
   // Safety functions for icon props
-  const getIconCollection = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.collection || 'fa6-solid';
+  const getIconCollection = (jurisdiction: JurisdictionWithDisplayName | null): string => jurisdiction?.icon?.collection || 'fa6-solid';
 
-  const getIconName = (jurisdiction: Jurisdiction | null): string => jurisdiction?.icon?.name || 'globe';
+  const getIconName = (jurisdiction: JurisdictionWithDisplayName | null): string => jurisdiction?.icon?.name || 'globe';
 </script>
 
 <template>

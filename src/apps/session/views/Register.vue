@@ -5,30 +5,28 @@
   import AlternateSignUpMethods from '@/apps/session/components/AlternateSignUpMethods.vue';
   import AuthView from '@/apps/session/components/AuthView.vue';
   import SignUpForm from '@/apps/session/components/SignUpForm.vue';
-  import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
+  import { useJurisdictionDisplayNames } from '@/shared/stores/jurisdictionStore';
   import { useLanguageStore } from '@/shared/stores/languageStore';
-  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
   const { t } = useI18n();
   const route = useRoute();
 
-  const jurisdictionStore = useJurisdictionStore();
-  const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
+  const { currentJurisdictionWithDisplayName } = useJurisdictionDisplayNames();
 
   const languageStore = useLanguageStore();
-  const currentJurisdiction = computed(
-    () =>
-      getCurrentJurisdiction.value || {
-        identifier: t('web.regions.unknown_jurisdiction'),
-        display_name: t('web.regions.unknown_jurisdiction'),
-        domain: '',
-        icon: {
-          collection: 'mdi',
-          name: 'help-circle',
-        },
-        enabled: false,
-      }
+  const currentJurisdiction = computed(() =>
+    currentJurisdictionWithDisplayName.value || {
+      identifier: t('web.regions.unknown_jurisdiction'),
+      display_name_i18n_key: 'web.regions.unknown_jurisdiction',
+      display_name: t('web.regions.unknown_jurisdiction'),
+      domain: '',
+      icon: {
+        collection: 'mdi',
+        name: 'help-circle',
+      },
+      enabled: false,
+    }
   );
 
   const alternateProviders = [
