@@ -36,7 +36,17 @@ const isReceiptCapabilityEnabled = (): boolean => {
  */
 const withValidatedReceiptKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
-    // Use bootstrap store for domain strategy
+    // Validate key and check capability before any other work
+    const isValid = validateReceiptKey(to.params.receiptIdentifier);
+    if (!isValid) {
+      return { name: 'NotFound' };
+    }
+
+    if (!isReceiptCapabilityEnabled()) {
+      return { name: 'NotFound' };
+    }
+
+    // Configure layout for custom domains
     const bootstrapStore = useBootstrapStore();
     const domainStrategy = bootstrapStore.domain_strategy as string;
 
@@ -54,16 +64,6 @@ const withValidatedReceiptKey = {
         displayPoweredBy: true,
         displayToggles: true,
       };
-    }
-
-    const isValid = validateReceiptKey(to.params.receiptIdentifier);
-    if (!isValid) {
-      return { name: 'NotFound' };
-    }
-
-    // Gate the entire page when receipt capability is disabled
-    if (!isReceiptCapabilityEnabled()) {
-      return { name: 'NotFound' };
     }
   },
   props: (route: RouteLocationNormalized) => ({
