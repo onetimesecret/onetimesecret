@@ -343,9 +343,9 @@ module Billing
       def federated_plan_id(raw)
         # Absent metadata is not an error here: @org.planid is left unchanged
         # (the `if plan_id` guard in apply_plan_id), preserving prior state.
-        return nil if raw.nil? || raw.to_s.strip.empty?
+        plan_id = raw.to_s.strip
+        return nil if plan_id.empty?
 
-        plan_id = raw.to_s
         return plan_id if Billing::PlanResolver.canonical_plan_id?(plan_id)
 
         raise Billing::InvalidPlanMetadataError.new(

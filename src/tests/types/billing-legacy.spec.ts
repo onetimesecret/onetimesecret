@@ -151,10 +151,6 @@ describe('Legacy Plan Utilities', () => {
         expect(getPlanLabel('free_v1')).toBe('Free');
       });
 
-      it('"free" returns "Free"', () => {
-        expect(getPlanLabel('free')).toBe('Free');
-      });
-
       it('"team_plus_v1" returns "Team Plus"', () => {
         expect(getPlanLabel('team_plus_v1')).toBe('Team Plus');
       });
@@ -164,24 +160,15 @@ describe('Legacy Plan Utilities', () => {
       });
     });
 
-    describe('billing tier display names', () => {
-      it('"identity_plus" tier returns "Identity Plus"', () => {
-        expect(getPlanLabel('identity_plus')).toBe('Identity Plus');
+    describe('unmapped values', () => {
+      it('returns input unchanged for unmapped plan IDs', () => {
+        expect(getPlanLabel('some_plan')).toBe('some_plan');
+        expect(getPlanLabel('custom_enterprise')).toBe('custom_enterprise');
       });
 
-      it('"team_plus" tier returns "Team Plus"', () => {
-        expect(getPlanLabel('team_plus')).toBe('Team Plus');
-      });
-
-      it('"single_team" tier returns "Single Team"', () => {
-        expect(getPlanLabel('single_team')).toBe('Single Team');
-      });
-    });
-
-    describe('edge cases', () => {
-      it('unknown plan falls back to Title Case conversion', () => {
-        expect(getPlanLabel('some_plan')).toBe('Some Plan');
-        expect(getPlanLabel('custom_enterprise')).toBe('Custom Enterprise');
+      it('returns input unchanged for tier keys (tiers are metadata, not for selection)', () => {
+        expect(getPlanLabel('single_team')).toBe('single_team');
+        expect(getPlanLabel('multi_team')).toBe('multi_team');
       });
     });
   });
