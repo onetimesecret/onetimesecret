@@ -85,13 +85,12 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         skip 'Plans array empty - cannot verify attributes' if data['plans'].empty?
 
         plan = data['plans'].first
+        # API returns flat records per interval (one record per plan+interval combo)
         expect(plan).to include(
-          'id', 'name', 'tier', 'prices', 'currency',
-          'features', 'limits', 'entitlements'
+          'id', 'name', 'tier', 'interval', 'currency',
+          'features', 'limits', 'entitlements', 'stripe_price_id', 'amount'
         )
-        # Family-keyed plans nest interval/amount inside prices
-        expect(plan['prices']).to be_a(Hash)
-        expect(plan['prices'].keys).to include('month').or include('year')
+        expect(plan['interval']).to eq('month').or eq('year')
       end
 
       it 'includes plans sorted by display_order' do
@@ -112,12 +111,15 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
   # TC-2309-001, TC-2309-002
   # ---------------------------------------------------------------------------
   describe 'BLOCKER 1 & 2: Plans by interval' do
+    # NOTE: API now returns flat records with top-level interval field
+    # Each plan+interval combo is a separate record in the array
+
     context 'monthly plans' do
       it 'returns plans with a month price' do
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        monthly_plans = data['plans'].select { |p| p['prices']&.key?('month') }
+        monthly_plans = data['plans'].select { |p| p['interval'] == 'month' }
 
         # BLOCKER 1 ASSERTION: Monthly tab should have plans
         expect(monthly_plans).not_to be_empty,
@@ -129,11 +131,11 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        monthly_plans = data['plans'].select { |p| p['prices']&.key?('month') }
+        monthly_plans = data['plans'].select { |p| p['interval'] == 'month' }
         skip 'No monthly plans' if monthly_plans.empty?
 
         monthly_plans.each do |plan|
-          expect(plan['prices']['month']['amount'].to_i).to be > 0,
+          expect(plan['amount'].to_i).to be > 0,
             "Plan #{plan['id']} should have positive monthly amount"
         end
       end
@@ -144,7 +146,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        yearly_plans = data['plans'].select { |p| p['prices']&.key?('year') }
+        yearly_plans = data['plans'].select { |p| p['interval'] == 'year' }
 
         # BLOCKER 2 ASSERTION: Yearly tab should have plans
         expect(yearly_plans).not_to be_empty,
@@ -156,11 +158,11 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
-        yearly_plans = data['plans'].select { |p| p['prices']&.key?('year') }
+        yearly_plans = data['plans'].select { |p| p['interval'] == 'year' }
         skip 'No yearly plans' if yearly_plans.empty?
 
         yearly_plans.each do |plan|
-          expect(plan['prices']['year']['amount'].to_i).to be > 0,
+          expect(plan['amount'].to_i).to be > 0,
             "Plan #{plan['id']} should have positive annual amount"
         end
       end

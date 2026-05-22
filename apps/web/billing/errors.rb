@@ -44,6 +44,29 @@ module Billing
     end
   end
 
+  # InvalidPlanMetadataError - Raised when subscription metadata carries a
+  # malformed canonical plan_id.
+  #
+  # The federated subscription path reads the plan_id from Stripe subscription
+  # metadata (cross-region price IDs aren't in the local catalog). Unlike the
+  # owner path, that value is not catalog-validated, so a typo or stale value
+  # would otherwise be written straight onto org.planid.
+  #
+  # Fail-closed behavior: we raise rather than assigning a malformed plan_id,
+  # which would corrupt entitlement resolution downstream. This mirrors the
+  # owner path's CatalogMissError fail-closed semantics.
+  #
+  class InvalidPlanMetadataError < OpsProblem
+    attr_reader :plan_id, :context
+
+    def initialize(message = nil, plan_id: nil, context: nil)
+      @plan_id   = plan_id
+      @context   = context
+      message  ||= "Malformed canonical plan_id in subscription metadata: #{plan_id.inspect}"
+      super(message)
+    end
+  end
+
   # CatalogValidationError - Raised when Stripe products fail metadata validation
   #
   # This error indicates managed products (app=onetimesecret) have invalid or
@@ -54,10 +77,9 @@ module Billing
   # in one pass rather than fix-one-rerun-fix-one.
   #
   # @example Handling validation failures
-  #   begin
-  #     Billing::Plan.refresh_from_stripe
-  #   rescue Billing::CatalogValidationError => e
-  #     e.errors.each { |err| puts "#{err[:product_id]}: #{err[:error]}" }
+  #   result = Billing::Operations::Catalog::Pull.call
+  #   unless result.success
+  #     result.errors.each { |err| puts err }
   #   end
   #
   class CatalogValidationError < OpsProblem

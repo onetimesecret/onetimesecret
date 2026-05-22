@@ -232,11 +232,10 @@ module BillingSpecHelper
       .with(satisfy { |id| id&.start_with?('price_test_') })
       .and_return(mock_plan)
 
-    # Stub Plan.load for plan IDs used in materialization and validation
-    # This is called by:
-    # - ApplySubscriptionToOrg.materialize_entitlements_for_org (after planid is set)
-    # - PlanValidator.valid_plan_id? for metadata lookups
-    # NOTE: plan_id uses family-keyed format (no interval suffix)
+    # Stub Plan.load for plan IDs used in materialization and validation.
+    # These mocks support READS only (for ApplySubscriptionToOrg etc).
+    # Tests that need to WRITE plans (ConfigLoader.load_all_from_config) should
+    # reset this stub via: allow(Billing::Plan).to receive(:load).and_call_original
     allow(Billing::Plan).to receive(:load).and_call_original
     allow(Billing::Plan).to receive(:load)
       .with('test_plan_v1')

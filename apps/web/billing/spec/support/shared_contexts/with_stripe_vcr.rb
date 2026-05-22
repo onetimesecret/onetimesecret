@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../operations/catalog/pull'
+
 # Shared context for Stripe API integration tests with VCR
 #
 # Purpose: Encapsulate VCR setup for tests that make real Stripe API calls.
@@ -42,7 +44,7 @@ RSpec.shared_context 'with_stripe_vcr' do
     # Refresh plan cache from Stripe API (uses VCR cassette)
     # Only runs if STRIPE_API_KEY is configured
     if ENV['STRIPE_API_KEY']
-      Billing::Plan.refresh_from_stripe
+      Billing::Operations::Catalog::Pull.call
     else
       OT.lw '[with_stripe_vcr] Skipping plan refresh: No STRIPE_API_KEY'
     end

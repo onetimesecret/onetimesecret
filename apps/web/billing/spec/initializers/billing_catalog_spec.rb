@@ -64,7 +64,7 @@ RSpec.describe Billing::Initializers::BillingCatalog do
       end
 
       it 'skips Stripe sync' do
-        expect(Billing::Plan).not_to receive(:refresh_from_stripe)
+        expect(Billing::Operations::Catalog::Pull).not_to receive(:call)
         initializer.execute(nil)
       end
 
@@ -75,34 +75,72 @@ RSpec.describe Billing::Initializers::BillingCatalog do
     end
 
     context 'when Stripe sync succeeds' do
+      let(:pull_result) do
+        Billing::Operations::Catalog::Pull::Result.new(
+          success: true,
+          plans_synced: 5,
+          config_plans_loaded: 2
+        )
+      end
+
       before do
         allow(initializer).to receive(:catalog_valid?).and_return(false)
-        allow(Billing::Plan).to receive(:refresh_from_stripe)
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result)
       end
 
       it 'refreshes plans from Stripe' do
-        expect(Billing::Plan).to receive(:refresh_from_stripe)
+        expect(Billing::Operations::Catalog::Pull).to receive(:call)
         initializer.execute(nil)
       end
 
       it 'logs success' do
         expect(logger).to receive(:info).with('Refreshing plan cache from Stripe')
-        expect(logger).to receive(:info).with('Plan cache refreshed successfully')
+        expect(logger).to receive(:info).with('Plan cache refreshed successfully',
+          { plans_synced: 5, config_plans: 2 })
         initializer.execute(nil)
       end
     end
 
-    context 'when Stripe sync fails' do
+    context 'when Stripe sync returns failure result' do
+      let(:pull_result) do
+        Billing::Operations::Catalog::Pull::Result.new(
+          success: false,
+          errors: ['Product not found in Stripe']
+        )
+      end
+
+      before do
+        allow(initializer).to receive(:catalog_valid?).and_return(false)
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result)
+        allow(Billing::Operations::Catalog::ConfigLoader).to receive(:load_all_from_config).and_return(3)
+      end
+
+      it 'falls back to loading from config' do
+        expect(Billing::Operations::Catalog::ConfigLoader).to receive(:load_all_from_config)
+        initializer.execute(nil)
+      end
+
+      it 'logs the fallback with error from result' do
+        expect(logger).to receive(:warn).with(
+          'Stripe sync failed, falling back to billing.yaml',
+          hash_including(message: 'Product not found in Stripe')
+        )
+        expect(logger).to receive(:info).with('Loaded 3 plans from billing.yaml fallback')
+        initializer.execute(nil)
+      end
+    end
+
+    context 'when Stripe sync raises exception' do
       let(:stripe_error) { Stripe::APIConnectionError.new('Network error') }
 
       before do
         allow(initializer).to receive(:catalog_valid?).and_return(false)
-        allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(stripe_error)
-        allow(Billing::Plan).to receive(:load_all_from_config).and_return(5)
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_raise(stripe_error)
+        allow(Billing::Operations::Catalog::ConfigLoader).to receive(:load_all_from_config).and_return(5)
       end
 
       it 'falls back to loading from config' do
-        expect(Billing::Plan).to receive(:load_all_from_config)
+        expect(Billing::Operations::Catalog::ConfigLoader).to receive(:load_all_from_config)
         initializer.execute(nil)
       end
 
@@ -122,8 +160,8 @@ RSpec.describe Billing::Initializers::BillingCatalog do
 
       before do
         allow(initializer).to receive(:catalog_valid?).and_return(false)
-        allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(stripe_error)
-        allow(Billing::Plan).to receive(:load_all_from_config).and_raise(config_error)
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_raise(stripe_error)
+        allow(Billing::Operations::Catalog::ConfigLoader).to receive(:load_all_from_config).and_raise(config_error)
       end
 
       it 'raises the config error' do

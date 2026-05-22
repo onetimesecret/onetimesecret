@@ -125,27 +125,24 @@ describe('getSubscriptionStatusLabel', () => {
 });
 
 describe('getPlanLabel', () => {
-  it('returns "Free" for free plan', () => {
-    expect(getPlanLabel('free')).toBe('Free');
+  it('returns "Free" for free_v1 plan ID', () => {
+    expect(getPlanLabel('free_v1')).toBe('Free');
   });
 
-  it('returns "Single Team" for single_team', () => {
-    expect(getPlanLabel('single_team')).toBe('Single Team');
+  it('returns "Identity Plus" for identity_plus_v1 plan ID', () => {
+    expect(getPlanLabel('identity_plus_v1')).toBe('Identity Plus');
   });
 
-  it('returns "Multi Team" for multi_team', () => {
-    expect(getPlanLabel('multi_team')).toBe('Multi Team');
+  it('returns "Team Plus" for team_plus_v1 plan ID', () => {
+    expect(getPlanLabel('team_plus_v1')).toBe('Team Plus');
   });
 
-  it('returns "Identity Plus" for identity_plus', () => {
-    expect(getPlanLabel('identity_plus')).toBe('Identity Plus');
+  it('returns "Identity Plus (Early Supporter)" for legacy identity plan', () => {
+    expect(getPlanLabel('identity')).toBe('Identity Plus (Early Supporter)');
   });
 
-  it('returns "Team Plus" for team_plus', () => {
-    expect(getPlanLabel('team_plus')).toBe('Team Plus');
-  });
-
-  it('falls back to Title Case for unknown plan types', () => {
-    expect(getPlanLabel('custom_plan')).toBe('Custom Plan');
+  it('returns input unchanged for unmapped values', () => {
+    expect(getPlanLabel('custom_plan')).toBe('custom_plan');
+    expect(getPlanLabel('single_team')).toBe('single_team');
   });
 });

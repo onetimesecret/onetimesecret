@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../operations/catalog/config_loader'
+
 # Shared context for loading test plans for billing specs
 #
 # Purpose: Enable unit testing of billing logic without Stripe API access.
@@ -26,8 +28,12 @@ RSpec.shared_context 'with_test_plans' do
     # The test config has enabled: false by default for isolation
     allow(Onetime::BillingConfig.instance).to receive(:enabled?).and_return(true)
 
+    # Reset Plan.load stubs from stub_test_plan_catalog! so ConfigLoader can
+    # create real Plan instances (the mocks only support reads, not writes)
+    allow(Billing::Plan).to receive(:load).and_call_original
+
     # Load all plans from test config into Redis cache
-    Billing::Plan.load_all_from_config
+    Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
     # Mock region to match test plans (EU)
     mock_region!('EU')

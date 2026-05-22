@@ -215,6 +215,53 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
       described_class.call(org, subscription, owner: false)
     end
+
+    it 'raises InvalidPlanMetadataError for a malformed federated plan_id' do
+      # Interval-suffixed value is not a canonical family ID and must be rejected
+      # before it is written onto org.planid.
+      subscription = Stripe::Subscription.construct_from({
+        id: 'sub_test_bad_meta',
+        object: 'subscription',
+        customer: 'cus_test_456',
+        status: 'active',
+        metadata: { 'plan_id' => 'identity_plus_v1_monthly' },
+        items: {
+          data: [{
+            price: { id: 'price_eu_region', product: 'prod_test', metadata: {} },
+            current_period_end: period_end,
+          }],
+        },
+      })
+
+      expect(org).not_to receive(:planid=)
+      expect(org).not_to receive(:save)
+
+      expect {
+        described_class.call(org, subscription, owner: false)
+      }.to raise_error(Billing::InvalidPlanMetadataError, /identity_plus_v1_monthly/)
+    end
+
+    it 'raises InvalidPlanMetadataError for a non-canonical (uppercase) plan_id' do
+      subscription = Stripe::Subscription.construct_from({
+        id: 'sub_test_upper_meta',
+        object: 'subscription',
+        customer: 'cus_test_456',
+        status: 'active',
+        metadata: { 'plan_id' => 'Identity_Plus_V1' },
+        items: {
+          data: [{
+            price: { id: 'price_eu_region', product: 'prod_test', metadata: {} },
+            current_period_end: period_end,
+          }],
+        },
+      })
+
+      expect(org).not_to receive(:planid=)
+
+      expect {
+        described_class.call(org, subscription, owner: false)
+      }.to raise_error(Billing::InvalidPlanMetadataError)
+    end
   end
 
   describe 'planid_override' do

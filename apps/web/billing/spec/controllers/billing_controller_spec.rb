@@ -9,6 +9,7 @@ require 'digest'
 
 # Load the billing application for controller testing
 require_relative '../../application'
+require_relative '../../operations/catalog/config_loader'
 
 RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
@@ -69,8 +70,10 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
   describe 'GET /billing/api/plans' do
     it 'returns list of available plans' do
+      # Reset Plan.load stubs so ConfigLoader can create real Plan instances
+      allow(Billing::Plan).to receive(:load).and_call_original
       # Ensure plan cache is populated from config (not Stripe)
-      Billing::Plan.load_all_from_config
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       get '/billing/api/plans'
 
@@ -81,13 +84,15 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data).to have_key('plans')
       expect(data['plans']).to be_an(Array)
 
-      # Verify plan structure (uses family-keyed format with nested prices)
+      # Verify plan structure (flat format with top-level interval/amount)
       unless data['plans'].empty?
         plan = data['plans'].first
         expect(plan).to have_key('id')
         expect(plan).to have_key('name')
         expect(plan).to have_key('tier')
-        expect(plan).to have_key('prices')
+        expect(plan).to have_key('interval')
+        expect(plan).to have_key('stripe_price_id')
+        expect(plan).to have_key('amount')
         expect(plan).to have_key('currency')
         expect(plan).to have_key('features')
         expect(plan).to have_key('limits')
@@ -360,7 +365,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
           subscription_data: hash_including(
             metadata: hash_including(
               orgid: organization.objid,
-              tier: 'single_team', # Resolved from identity_plus_v1
+              tier: 'single_account', # Resolved from identity_plus_v1
               customer_extid: customer.extid
             )
           )

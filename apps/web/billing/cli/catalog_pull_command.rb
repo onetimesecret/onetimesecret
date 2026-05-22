@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative '../operations/catalog/pull'
 
 module Onetime
   module CLI
@@ -19,46 +20,28 @@ module Onetime
 
       def call(clear: false, **)
         boot_application!
-
         return unless stripe_configured?
 
-        # Clear cache if requested
-        if clear
-          puts 'Clearing existing plan cache...'
-          Billing::Plan.clear_cache
-          puts '✓ Cache cleared'
-          puts
+        result = Billing::Operations::Catalog::Pull.call(
+          clear_cache: clear,
+          progress: method(:show_progress),
+        )
+
+        puts "\n"
+
+        if result.success
+          puts "Successfully pulled #{result.plans_synced} plan(s) from Stripe"
+          puts "Upserted #{result.config_plans_loaded} config-only plan(s)" if result.config_plans_loaded > 0
+          puts "\nTo view cached plans:"
+          puts '  bin/ots billing plans'
+        else
+          result.errors.each { |e| puts "Error: #{e}" }
+          exit 1
         end
-
-        puts 'Pulling from Stripe to Redis cache...'
-        puts
-
-        # Use retry wrapper for resilience against network errors
-        count = with_stripe_retry do
-          Billing::Plan.refresh_from_stripe(progress: method(:show_progress))
-        end
-
-        # Upsert config-only plans (free tier, etc.) after Stripe sync
-        config_count = Billing::Plan.upsert_config_only_plans
-
-        puts "\n\nSuccessfully pulled #{count} plan(s) from Stripe"
-        puts "Upserted #{config_count} config-only plan(s)" if config_count > 0
-        puts "\nTo view cached plans:"
-        puts '  bin/ots billing plans'
-      rescue Stripe::StripeError => ex
-        puts format_stripe_error('Pull failed', ex)
-        puts "\nTroubleshooting:"
-        puts '  - Verify STRIPE_API_KEY is set correctly'
-        puts '  - Check your internet connection'
-        puts '  - Verify Stripe account has access to products'
-      rescue StandardError => ex
-        puts "Error during pull: #{ex.message}"
-        puts ex.backtrace.first(5).join("\n") if OT.debug?
       end
 
       private
 
-      # Show progress during pull
       def show_progress(message)
         print "\r#{message}"
         $stdout.flush
