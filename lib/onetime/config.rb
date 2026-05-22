@@ -404,8 +404,8 @@ module Onetime
     # @raise [OT::ConfigError] When a deprecated key is found under strict policy
     def check_deprecations(conf)
       detected = DEPRECATIONS.select do |dep|
-        env_set  = dep[:env] && !ENV[dep[:env]].to_s.empty?
-        path_set = dep[:path] && !conf.dig(*dep[:path]).nil?
+        env_set  = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
+        path_set = !!(dep[:path] && !conf.dig(*dep[:path]).nil?)
         env_set || path_set
       end
       return if detected.empty?
@@ -420,7 +420,7 @@ module Onetime
       end
 
       raise OT::ConfigError,
-            "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n" \
+            "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
             "Set compatibility.on_deprecated_config (ON_DEPRECATED_CONFIG) to 'warn' " \
             'to downgrade this to a logged warning.'
     end
