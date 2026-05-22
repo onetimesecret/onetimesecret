@@ -2,17 +2,26 @@
 #
 # frozen_string_literal: true
 
+# Specs for `bin/ots billing catalog pull` CLI wrapper.
+#
+# These test the CLI's public interface and delegation to operations.
+# For detailed logic tests, see: spec/operations/catalog/pull_spec.rb
+
 require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/catalog_pull_command'
 
-RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
+RSpec.describe 'Billing Catalog Pull CLI', :billing_cli do
   subject(:command) { Onetime::CLI::BillingCatalogPullCommand.new }
 
   def capture_stdout
     old_stdout = $stdout
     $stdout = StringIO.new
-    yield
+    begin
+      yield
+    rescue SystemExit
+      # Ignore exit calls
+    end
     $stdout.string
   ensure
     $stdout = old_stdout
@@ -30,21 +39,32 @@ RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
       end
 
       it 'exits early without pulling' do
-        expect(Billing::Plan).not_to receive(:refresh_from_stripe)
+        expect(Billing::Operations::Catalog::Pull).not_to receive(:call)
         command.call
       end
     end
 
     context 'successful pull' do
+      let(:success_result) do
+        Billing::Operations::Catalog::Pull::Result.new(
+          success: true,
+          plans_synced: 5,
+          config_plans_loaded: 2,
+        )
+      end
+
       before do
-        allow(Billing::Plan).to receive(:refresh_from_stripe).and_return(5)
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(success_result)
       end
 
       it 'reports number of plans pulled' do
         output = capture_stdout { command.call }
-
-        expect(output).to include('Pulling from Stripe to Redis cache')
         expect(output).to include('Successfully pulled 5 plan(s) from Stripe')
+      end
+
+      it 'reports config-only plans when present' do
+        output = capture_stdout { command.call }
+        expect(output).to include('Upserted 2 config-only plan(s)')
       end
 
       it 'shows next steps after successful pull' do
@@ -52,10 +72,10 @@ RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
         expect(output).to include('bin/ots billing plans')
       end
 
-      it 'passes progress callback to refresh_from_stripe' do
-        expect(Billing::Plan).to receive(:refresh_from_stripe) do |progress:|
-          expect(progress).to be_a(Method)
-          5
+      it 'passes progress callback to operation' do
+        expect(Billing::Operations::Catalog::Pull).to receive(:call) do |args|
+          expect(args[:progress]).to be_a(Method)
+          success_result
         end
 
         capture_stdout { command.call }
@@ -63,50 +83,43 @@ RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
     end
 
     context 'with --clear flag' do
-      before do
-        allow(Billing::Plan).to receive(:clear_cache)
-        allow(Billing::Plan).to receive(:refresh_from_stripe).and_return(3)
+      let(:cleared_result) do
+        Billing::Operations::Catalog::Pull::Result.new(
+          success: true,
+          plans_synced: 3,
+          cache_cleared: true,
+        )
       end
 
-      it 'clears cache before pulling' do
-        expect(Billing::Plan).to receive(:clear_cache).ordered
-        expect(Billing::Plan).to receive(:refresh_from_stripe).ordered
+      before do
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(cleared_result)
+      end
+
+      it 'passes clear_cache: true to operation' do
+        expect(Billing::Operations::Catalog::Pull).to receive(:call) do |args|
+          expect(args[:clear_cache]).to be(true)
+          cleared_result
+        end
 
         capture_stdout { command.call(clear: true) }
       end
-
-      it 'reports cache cleared' do
-        output = capture_stdout { command.call(clear: true) }
-
-        expect(output).to include('Clearing existing plan cache')
-        expect(output).to include('Cache cleared')
-      end
     end
 
-    context 'when Stripe API fails' do
+    context 'when operation fails' do
+      let(:failure_result) do
+        Billing::Operations::Catalog::Pull::Result.new(
+          success: false,
+          errors: ['Stripe error: Invalid API key'],
+        )
+      end
+
       before do
-        allow(Billing::Plan).to receive(:refresh_from_stripe)
-          .and_raise(Stripe::AuthenticationError.new('Invalid API key'))
+        allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(failure_result)
       end
 
-      it 'displays error with troubleshooting tips' do
+      it 'displays error messages' do
         output = capture_stdout { command.call }
-
-        expect(output).to include('Pull failed')
-        expect(output).to include('Troubleshooting')
-        expect(output).to include('STRIPE_API_KEY')
-      end
-    end
-
-    context 'when unexpected error occurs' do
-      before do
-        allow(Billing::Plan).to receive(:refresh_from_stripe)
-          .and_raise(StandardError.new('Connection timeout'))
-      end
-
-      it 'displays error message' do
-        output = capture_stdout { command.call }
-        expect(output).to include('Error during pull: Connection timeout')
+        expect(output).to include('Error: Stripe error: Invalid API key')
       end
     end
   end
@@ -117,7 +130,6 @@ RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
         command.send(:show_progress, 'Processing plan 1 of 5...')
       end
 
-      # Should start with carriage return for line overwriting
       expect(output).to start_with("\r")
       expect(output).to include('Processing plan 1 of 5...')
     end

@@ -12,7 +12,7 @@ import { classifyError } from '@/schemas/errors';
 import { BillingService, type FederationNotification as FederationNotificationData } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
-import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
+import { getPlanLabel, isLegacyPlan } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -56,7 +56,7 @@ const {
 
 const planName = computed(() => {
   if (!selectedOrg.value?.planid) return t('web.billing.plans.free_plan');
-  return getPlanDisplayName(selectedOrg.value.planid);
+  return getPlanLabel(selectedOrg.value.planid);
 });
 
 const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');

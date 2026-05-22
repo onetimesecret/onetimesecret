@@ -132,10 +132,9 @@ filtered = all_with_concrete.select { |k| has_own_schedule?(k) }
 filtered.include?(stub_concrete)
 #=> true
 
-## Billing-specific scheduled jobs are not defined when billing is disabled
-# Guard pattern at top of file prevents class definition
-billing_jobs_defined = [
-  defined?(Onetime::Jobs::Scheduled::PlanCacheRefreshJob),
-  defined?(Onetime::Jobs::Scheduled::CatalogRetryJob)
-].any?
-#=> false
+## CatalogRetryJob is not defined when billing is disabled
+# Guard pattern at top of file prevents class definition.
+# Note: PlanCacheRefreshJob removed load-time guard in #3182;
+# it uses runtime checks in .schedule and refresh_plan_cache instead.
+defined?(Onetime::Jobs::Scheduled::CatalogRetryJob)
+#=> nil

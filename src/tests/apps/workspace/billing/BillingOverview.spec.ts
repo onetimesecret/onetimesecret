@@ -76,7 +76,7 @@ vi.mock('@/schemas/errors', () => ({
   classifyError: (err: unknown) => ({ message: err instanceof Error ? err.message : 'Unknown error' }),
 }));
 vi.mock('@/types/billing', () => ({
-  getPlanDisplayName: (id: string) => {
+  getPlanLabel: (id: string) => {
     const names: Record<string, string> = {
       identity_plus_v1: 'Identity Plus',
       identity: 'Identity Plus (Early Supporter)',

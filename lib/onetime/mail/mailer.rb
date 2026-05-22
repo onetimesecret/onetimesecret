@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'delivery/base'
+require_relative 'delivery/disabled'
 require_relative 'delivery/logger'
 require_relative 'delivery/smtp'
 require_relative 'delivery/ses'
@@ -172,6 +173,8 @@ module Onetime
           log_info "[mail] Using #{provider} delivery backend"
 
           case provider
+          when 'disabled', 'none'
+            Delivery::Disabled.new(config)
           when 'smtp'
             Delivery::SMTP.new(config)
           when 'ses'

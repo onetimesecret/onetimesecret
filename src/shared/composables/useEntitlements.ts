@@ -13,19 +13,30 @@ import { useI18n } from 'vue-i18n';
  * Used when API data is not available
  */
 const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
+  // Core
+  [ENTITLEMENTS.CREATE_SECRETS]: 'web.billing.overview.entitlements.create_secrets',
+  [ENTITLEMENTS.VIEW_RECEIPT]: 'web.billing.overview.entitlements.view_receipt',
+  [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'web.billing.overview.entitlements.homepage_secrets',
+  [ENTITLEMENTS.INCOMING_SECRETS]: 'web.billing.overview.entitlements.incoming_secrets',
+  [ENTITLEMENTS.NOTIFICATIONS]: 'web.billing.overview.entitlements.notifications',
+  // Infrastructure
   [ENTITLEMENTS.API_ACCESS]: 'web.billing.overview.entitlements.api_access',
   [ENTITLEMENTS.CUSTOM_DOMAINS]: 'web.billing.overview.entitlements.custom_domains',
+  [ENTITLEMENTS.IP_ACCESS_RULES]: 'web.billing.overview.entitlements.ip_access_rules',
+  // Privacy & Defaults
   [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'web.billing.overview.entitlements.custom_privacy_defaults',
   [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'web.billing.overview.entitlements.extended_default_expiration',
   [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'web.billing.overview.entitlements.custom_mail_sender',
   [ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN]: 'web.billing.overview.entitlements.flexible_from_domain',
+  // Branding
   [ENTITLEMENTS.CUSTOM_BRANDING]: 'web.billing.overview.entitlements.custom_branding',
-  [ENTITLEMENTS.HOMEPAGE_SECRETS]: 'web.billing.overview.entitlements.homepage_secrets',
-  [ENTITLEMENTS.INCOMING_SECRETS]: 'web.billing.overview.entitlements.incoming_secrets',
+  [ENTITLEMENTS.WORKSPACE_BRANDING]: 'web.billing.overview.entitlements.workspace_branding',
+  // Organization Management
   [ENTITLEMENTS.MANAGE_ORGS]: 'web.billing.overview.entitlements.manage_orgs',
   [ENTITLEMENTS.MANAGE_TEAMS]: 'web.billing.overview.entitlements.manage_teams',
   [ENTITLEMENTS.MANAGE_MEMBERS]: 'web.billing.overview.entitlements.manage_members',
   [ENTITLEMENTS.MANAGE_SSO]: 'web.billing.overview.entitlements.manage_sso',
+  // Advanced
   [ENTITLEMENTS.AUDIT_LOGS]: 'web.billing.overview.entitlements.audit_logs',
 };
 

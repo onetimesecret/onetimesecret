@@ -127,12 +127,6 @@ module Onetime
       config['payment_links'] || {}
     end
 
-    # Full billing configuration hash
-    # Returns the entire config for backward compatibility
-    def billing
-      config
-    end
-
     # Reload configuration (useful for testing)
     # Also picks up any changes to BillingConfig.path
     def reload!
