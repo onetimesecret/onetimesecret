@@ -2,8 +2,10 @@
 #
 # frozen_string_literal: true
 
+require_relative '../errors'
 require_relative '../metadata'
 require_relative '../lib/plan_validator'
+require_relative '../lib/plan_resolver'
 
 module Billing
   module Operations
@@ -317,10 +319,39 @@ module Billing
                     # Federated path: read canonical plan_id directly from metadata
                     # Cross-region price IDs aren't in the local catalog, so we can't
                     # use catalog lookup. Metadata contains the canonical family ID.
-                    @subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
+                    federated_plan_id(@subscription.metadata[Billing::Metadata::FIELD_PLAN_ID])
                   end
 
         @org.planid = plan_id if plan_id
+      end
+
+      # Validate and return the federated plan_id from subscription metadata.
+      #
+      # The federated path cannot catalog-validate (cross-region price IDs
+      # aren't in the local catalog), but the stored value is the universal
+      # canonical family ID (e.g., 'identity_plus_v1'). We validate its
+      # *shape* against PlanResolver::CANONICAL_PLAN_ID_PATTERN — this rejects
+      # typos, interval-suffixed IDs, and uppercase without requiring local
+      # catalog membership (which would break federation by design).
+      #
+      # Fail-closed: a malformed value raises rather than corrupting
+      # org.planid, mirroring the owner path's CatalogMissError behavior.
+      #
+      # @param raw [String, nil] plan_id from subscription metadata
+      # @return [String, nil] the validated plan_id, or nil if metadata absent
+      # @raise [Billing::InvalidPlanMetadataError] If the value is malformed
+      def federated_plan_id(raw)
+        # Absent metadata is not an error here: @org.planid is left unchanged
+        # (the `if plan_id` guard in apply_plan_id), preserving prior state.
+        return nil if raw.nil? || raw.to_s.strip.empty?
+
+        plan_id = raw.to_s
+        return plan_id if Billing::PlanResolver.canonical_plan_id?(plan_id)
+
+        raise Billing::InvalidPlanMetadataError.new(
+          plan_id: plan_id,
+          context: 'ApplySubscriptionToOrg#apply_plan_id (federated)',
+        )
       end
 
       # Cache Stripe's complimentary marker locally (Stripe → org, never reverse)
