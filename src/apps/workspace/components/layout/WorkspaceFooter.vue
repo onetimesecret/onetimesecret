@@ -11,6 +11,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
+  import { useFooterConfig } from '@/shared/composables/useFooterConfig';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
@@ -28,8 +29,7 @@
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
   const { ot_version, ot_version_long, domains_enabled, support_host, ui } = storeToRefs(bootstrapStore);
-
-  const showVersionConfig = computed(() => ui.value?.show_version ?? true);
+  const { showVersionConfig } = useFooterConfig();
 
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
