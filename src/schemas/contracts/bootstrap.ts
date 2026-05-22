@@ -148,6 +148,10 @@ export const uiCapabilitiesSchema = z.object({
   recipient: z.boolean().optional(),
 });
 
+export const uiHelpSchema = z.object({
+  enabled: z.boolean().default(true),
+});
+
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),
@@ -155,6 +159,7 @@ export const uiInterfaceSchema = z.object({
   workspace_links: workspaceLinksConfigSchema.optional(),
   capabilities: uiCapabilitiesSchema.optional(),
   show_version: z.boolean().default(true),
+  help: uiHelpSchema.optional(),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -357,6 +362,7 @@ export type HeaderBranding = z.infer<typeof headerBrandingSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
 export type UiCapabilities = z.infer<typeof uiCapabilitiesSchema>;
+export type UiHelp = z.infer<typeof uiHelpSchema>;
 export type UiInterface = z.infer<typeof uiInterfaceSchema>;
 export type AuthenticationSettings = z.infer<typeof authenticationSettingsSchema>;
 export type SSOProvider = z.infer<typeof ssoProviderSchema>;

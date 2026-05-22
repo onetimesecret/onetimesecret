@@ -214,6 +214,7 @@ describe('Bootstrap Zod schema validation', () => {
       const defaults = BOOTSTRAP_UI_DEFAULTS;
 
       expect(defaults.ui).toEqual({ enabled: true });
+      expect(defaults.ui.help).toBeUndefined();
       expect(defaults.messages).toEqual([]);
       expect(defaults.features).toEqual({ markdown: false });
       expect(defaults.supported_locales).toEqual([]);
@@ -240,6 +241,7 @@ describe('Bootstrap Zod schema validation', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.ui).toEqual({ enabled: true });
+        expect(result.data.ui.help).toBeUndefined();
         expect(result.data.messages).toEqual([]);
       }
     });
@@ -380,6 +382,9 @@ describe('Bootstrap realistic payload parsing', () => {
               ],
             },
           ],
+        },
+        help: {
+          enabled: true,
         },
       },
       messages: [{ type: 'info' as const, content: 'Welcome back!' }],

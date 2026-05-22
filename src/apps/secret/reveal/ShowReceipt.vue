@@ -46,6 +46,7 @@
   const bootstrapStore = useBootstrapStore();
   const { uiCapabilities } = storeToRefs(bootstrapStore);
   const showBurn = computed(() => uiCapabilities.value?.burn !== false);
+  const helpEnabled = computed(() => bootstrapStore.ui?.help?.enabled ?? true);
 
   const goBack = () => {
     window.history.back();
@@ -282,7 +283,7 @@
         <!-- Help Section with Card Styling -->
         <!-- prettier-ignore-attribute class -->
         <section
-          v-if="isAvailable"
+          v-if="isAvailable && helpEnabled"
           aria-labelledby="section-help"
           class="relative rounded-xl border border-gray-200/60
           bg-white/60 p-4 shadow-sm backdrop-blur-sm sm:p-6

@@ -97,6 +97,13 @@ const uiCapabilitiesSchema = z.object({
   recipient: z.boolean().optional(),
 });
 
+/**
+ * UI help configuration
+ */
+const uiHelpSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
 const uiSchema = z.object({
   enabled: z.boolean().default(true),
   homepage: userInterfaceHomepageSchema.optional(),
@@ -104,6 +111,7 @@ const uiSchema = z.object({
   footer_links: userInterfaceFooterLinksSchema.optional(),
   workspace_links: userInterfaceWorkspaceLinksSchema.optional(),
   capabilities: uiCapabilitiesSchema.optional(),
+  help: uiHelpSchema.optional(),
 });
 
 /**
@@ -130,4 +138,5 @@ export {
   userInterfaceFooterLinksSchema,
   userInterfaceHomepageSchema,
   uiCapabilitiesSchema,
+  uiHelpSchema,
 };
