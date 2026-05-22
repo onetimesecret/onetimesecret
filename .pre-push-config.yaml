@@ -56,6 +56,10 @@ repos:
         name: Validate YAML files
         args: ['--allow-multiple-documents']
         files: \.(yaml|yml)$
+        # These config files are ERB templates, not plain YAML: they carry
+        # <% %> control tags that the YAML parser cannot handle. They are
+        # rendered through ERB before being parsed at runtime.
+        exclude: '^etc/defaults/.*\.yaml$|^etc/examples/billing\.example\.yaml$|^spec/.*\.test\.yaml$'
 
       - id: check-toml
         name: Validate TOML files
