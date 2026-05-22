@@ -197,7 +197,13 @@ module Onetime
     def load(path = nil)
       path ||= self.path
 
-      raise ArgumentError, "Bad path (#{path})" unless path && File.readable?(path)
+      if path.nil? || path.empty?
+        raise ArgumentError, 'Config path not set (checked etc/config.yaml and SERVICE_PATHS)'
+      end
+
+      unless File.readable?(path)
+        raise ArgumentError, "Config not readable: #{path}"
+      end
 
       parsed_template = ERB.new(File.read(path))
 
