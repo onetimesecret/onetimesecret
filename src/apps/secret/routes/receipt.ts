@@ -16,6 +16,17 @@ const validateReceiptKey = (key: string | string[]): key is string =>
   typeof key === 'string' && /^[a-zA-Z0-9]+$/.test(key);
 
 /**
+ * Checks if the receipt capability is enabled.
+ * The receipt page is gated unless ui.capabilities.receipt is explicitly
+ * disabled. An unset flag (undefined) is treated as enabled, matching
+ * the config default of true.
+ */
+const isReceiptCapabilityEnabled = (): boolean => {
+  const bootstrapStore = useBootstrapStore();
+  return bootstrapStore.uiCapabilities?.receipt !== false;
+};
+
+/**
  * Shared route configuration for receipt-related routes.
  * Handles validation and type safety for the receiptIdentifier parameter.
  *
@@ -47,6 +58,11 @@ const withValidatedReceiptKey = {
 
     const isValid = validateReceiptKey(to.params.receiptIdentifier);
     if (!isValid) {
+      return { name: 'NotFound' };
+    }
+
+    // Gate the entire page when receipt capability is disabled
+    if (!isReceiptCapabilityEnabled()) {
       return { name: 'NotFound' };
     }
   },
