@@ -132,30 +132,44 @@ module Onetime
         {
           path: %w[site interface ui homepage trusted_proxy_depth],
           env: 'UI_HOMEPAGE_TRUSTED_PROXY_DEPTH',
-          message: 'site.interface.ui.homepage.trusted_proxy_depth ' \
-                   '(UI_HOMEPAGE_TRUSTED_PROXY_DEPTH) has been removed. Configure ' \
-                   'proxy depth globally via site.network.trusted_proxy ' \
-                   '(TRUSTED_PROXY_ENABLED, TRUSTED_PROXY_MODE=depth, TRUSTED_PROXY_DEPTH).',
+          message: <<~MSG.chomp,
+            site.interface.ui.homepage.trusted_proxy_depth is ignored. Configure proxy
+            depth globally via site.network.trusted_proxy (TRUSTED_PROXY_ENABLED,
+            TRUSTED_PROXY_MODE=depth, TRUSTED_PROXY_DEPTH).
+          MSG
         },
         {
           path: %w[site interface ui homepage trusted_ip_header],
           env: 'UI_HOMEPAGE_TRUSTED_IP_HEADER',
-          message: 'site.interface.ui.homepage.trusted_ip_header ' \
-                   '(UI_HOMEPAGE_TRUSTED_IP_HEADER) has been removed. Configure the ' \
-                   'forwarding header globally via site.network.trusted_proxy.header ' \
-                   '(TRUSTED_PROXY_HEADER).',
+          message: <<~MSG.chomp,
+            site.interface.ui.homepage.trusted_ip_header is ignored. Configure the
+            forwarding header globally via site.network.trusted_proxy.header
+            (TRUSTED_PROXY_HEADER).
+          MSG
         },
         {
           path: %w[site domains],
           env: nil,
-          message: 'site.domains has moved to features.domains. Move the domains ' \
-                   'block under the top-level features section.',
+          message: <<~MSG.chomp,
+            site.domains is ignored. This config moved to features.domains;
+            only the new path is read.
+          MSG
         },
         {
           path: %w[site regions],
           env: nil,
-          message: 'site.regions has moved to features.regions. Move the regions ' \
-                   'block under the top-level features section.',
+          message: <<~MSG.chomp,
+            site.regions is ignored. This config moved to features.regions;
+            only the new path is read.
+          MSG
+        },
+        {
+          path: %w[features regions jurisdictions],
+          env: nil,
+          message: <<~MSG.chomp,
+            features.regions.jurisdictions is ignored. Use JURISDICTIONS env var
+            (format: EU:eu.example.com,CA:ca.example.com). YAML jurisdictions are not read.
+          MSG
         },
       ].freeze
 
@@ -309,6 +323,18 @@ module Onetime
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
       end
 
+      # Parse jurisdictions from ENV string format: "EU:eu.example.com,CA:ca.example.com"
+      # into array of hashes: [{identifier: 'EU', domain: 'eu.example.com'}, ...]
+      jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
+      if jurisdictions.is_a?(String) && !jurisdictions.empty?
+        conf['features']['regions']['jurisdictions'] = jurisdictions.split(',').map do |entry|
+          identifier, domain = entry.strip.split(':', 2)
+          { 'identifier' => identifier, 'domain' => domain }
+        end
+      elsif !jurisdictions.is_a?(Array)
+        conf['features']['regions']['jurisdictions'] = []
+      end
+
       # Apply the defaults to sentry backend and frontend configs
       # and set our local config with the merged values.
       diagnostics                                = loaded_config.fetch('diagnostics', {})
@@ -420,9 +446,9 @@ module Onetime
       end
 
       raise OT::ConfigError,
-            "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
-            "Set compatibility.on_deprecated_config (ON_DEPRECATED_CONFIG) to 'warn' " \
-            'to downgrade this to a logged warning.'
+        "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
+        "Set compatibility.on_deprecated_config (ON_DEPRECATED_CONFIG) to 'warn' " \
+        'to downgrade this to a logged warning.'
     end
 
     def dirname
