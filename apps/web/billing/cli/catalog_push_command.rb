@@ -44,15 +44,36 @@ module Onetime
         puts "Billing Catalog Push#{' (DRY RUN)' if dry_run}"
         puts '=' * 50
 
-        # Confirmation unless dry_run or --force
-        unless dry_run || force
+        # Always run preview first to show what would happen
+        preview = Billing::Operations::Catalog::Push.call(
+          dry_run: true,
+          plan_filter: plan,
+          skip_prices: skip_prices,
+          progress: method(:show_progress),
+        )
+
+        unless preview.success
+          preview.errors.each { |e| puts "Error: #{e}" }
+          exit 1
+        end
+
+        puts
+        display_success(preview, true)
+
+        # If no changes or already in dry-run mode, we're done
+        return if dry_run || preview.no_changes
+
+        # Confirmation unless --force
+        unless force
           print "\nProceed with catalog push? (y/n): "
           response = $stdin.gets
           return unless response&.chomp&.downcase == 'y'
         end
 
+        puts
+
         result = Billing::Operations::Catalog::Push.call(
-          dry_run: dry_run,
+          dry_run: false,
           plan_filter: plan,
           skip_prices: skip_prices,
           progress: method(:show_progress),
@@ -61,7 +82,7 @@ module Onetime
         puts
 
         if result.success
-          display_success(result, dry_run)
+          display_success(result, false)
         else
           result.errors.each { |e| puts "Error: #{e}" }
           exit 1
