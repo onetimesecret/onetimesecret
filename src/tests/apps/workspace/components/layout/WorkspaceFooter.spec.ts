@@ -136,8 +136,7 @@ describe('WorkspaceFooter footerLinks', () => {
     }
   });
 
-  const mountComponent = (bootstrapState: Record<string, unknown> = {}) => {
-    return mount(WorkspaceFooter, {
+  const mountComponent = (bootstrapState: Record<string, unknown> = {}) => mount(WorkspaceFooter, {
       global: {
         plugins: [
           createTestingPinia({
@@ -165,7 +164,6 @@ describe('WorkspaceFooter footerLinks', () => {
         },
       },
     });
-  };
 
   describe('default links (no workspace_links configured)', () => {
     it('renders default links when no workspace_links set', async () => {
@@ -351,6 +349,96 @@ describe('WorkspaceFooter footerLinks', () => {
       expect(validLink).toBeDefined();
       expect(emptyLink).toBeUndefined();
       expect(whitespaceLink).toBeUndefined();
+    });
+  });
+
+  describe('version display respects showVersionConfig', () => {
+    it('shows version when displayVersion=true and ui.show_version=true', async () => {
+      wrapper = mountComponent({
+        ui: {
+          show_version: true,
+        },
+      });
+
+      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(true);
+      expect(versionLink.text()).toContain('v1.0.0');
+    });
+
+    it('shows version when displayVersion=true and ui.show_version is undefined (default)', async () => {
+      wrapper = mountComponent({
+        ui: {},
+      });
+
+      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(true);
+    });
+
+    it('hides version when ui.show_version=false even with displayVersion=true', async () => {
+      wrapper = mountComponent({
+        ui: {
+          show_version: false,
+        },
+      });
+
+      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(false);
+    });
+
+    it('hides version when displayVersion prop is false', async () => {
+      wrapper = mount(WorkspaceFooter, {
+        props: {
+          displayVersion: false,
+        },
+        global: {
+          plugins: [
+            createTestingPinia({
+              createSpy: vi.fn,
+              stubActions: false,
+              initialState: {
+                bootstrap: {
+                  ot_version: '1.0.0',
+                  ot_version_long: '1.0.0-test',
+                  domains_enabled: false,
+                  support_host: 'support.onetimesecret.com',
+                  ui: {
+                    show_version: true,
+                  },
+                },
+              },
+            }),
+          ],
+          stubs: {
+            RouterLink: true,
+          },
+        },
+      });
+
+      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(false);
+    });
+
+    it('requires BOTH displayVersion AND showVersionConfig to show version', async () => {
+      // Case: displayVersion=true, showVersionConfig=false -> hidden
+      wrapper = mountComponent({
+        ui: {
+          show_version: false,
+        },
+      });
+
+      let versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(false);
+      wrapper.unmount();
+
+      // Case: displayVersion=default(true), showVersionConfig=true -> shown
+      wrapper = mountComponent({
+        ui: {
+          show_version: true,
+        },
+      });
+
+      versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(true);
     });
   });
 });

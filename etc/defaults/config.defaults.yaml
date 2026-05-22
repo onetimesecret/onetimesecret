@@ -155,9 +155,13 @@ site:
         - text: Branding Guide
           i18n_key: web.footer.branding_guide
           url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] || 'https://docs.onetimesecret.com/' %>
+        <% if ENV['WORKSPACE_FEEDBACK_ENABLED'] != 'false' %>
         - text: Feedback
           i18n_key: web.TITLES.feedback
           url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
+        <% end %>
+      # Show or hide the version number in the workspace footer
+      show_version: <%= ENV['FOOTER_VERSION_ENABLED'] != 'false' %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:
