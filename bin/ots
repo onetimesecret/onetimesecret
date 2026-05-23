@@ -43,7 +43,7 @@ rescue Onetime::FatalBootError => ex
   # user-facing message — surface it directly without a backtrace.
   warn ex.message
   warn ''
-  warn 'Run with --safe-boot (or SAFE_BOOT=1) to bypass this error and inspect state.'
+  warn 'Use --safe-boot to bypass this error and access the debugging console.'
   exit 1
 rescue RuntimeError => ex
   warn ex.message
