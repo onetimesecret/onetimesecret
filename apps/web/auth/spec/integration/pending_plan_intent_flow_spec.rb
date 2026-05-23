@@ -38,6 +38,10 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     require_relative '../../operations/create_customer'
     require_relative '../../operations/create_default_workspace'
 
+    # Load the billing hooks module (for extract_pending_plan_intent)
+    module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
+    require_relative '../../config/hooks/billing'
+
     # Load billing dependencies for plan validation
     begin
       require_relative '../../../billing/lib/plan_resolver'
@@ -194,35 +198,27 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   describe 'intent surfacing in after_verify_account' do
     let(:session) { {} }
 
+    # Uses the production extract_pending_plan_intent method to ensure tests
+    # match actual behavior (including clearing via delete!).
     def surface_plan_intent(customer:, session:, plan_valid: true)
       pending_intent = customer.pending_plan_intent&.value
 
       return { surfaced: false, reason: :no_intent } if pending_intent.to_s.strip == ''
 
-      begin
-        intent = JSON.parse(pending_intent)
-      rescue JSON::ParserError
-        customer.pending_plan_intent = nil
-        return { surfaced: false, reason: :invalid_json }
-      end
+      # Use production module method which handles JSON parsing and clearing via delete!
+      product, interval = Auth::Config::Hooks::Billing.extract_pending_plan_intent(customer)
 
-      product = intent['product']
-      interval = intent['interval']
+      return { surfaced: false, reason: :invalid_json } if product.nil? && interval.nil? && pending_intent.to_s.strip != ''
 
       unless product && interval
-        customer.pending_plan_intent = nil
         return { surfaced: false, reason: :missing_fields }
       end
 
       # In production, we'd validate with Billing::PlanResolver
       # For tests, use the plan_valid parameter
       unless plan_valid
-        customer.pending_plan_intent = nil
         return { surfaced: false, reason: :plan_not_found }
       end
-
-      # Clear intent (single-use)
-      customer.pending_plan_intent = nil
 
       # Set session redirect
       session['plan_checkout_redirect'] = "/billing/plans/#{product}/#{interval}"
@@ -304,7 +300,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       expect(session).not_to have_key('plan_checkout_redirect')
     end
 
-    it 'clears corrupted intent without setting redirect' do
+    it 'does not surface corrupted intent but leaves it in place for debugging' do
       email = unique_test_email('corrupted')
       account = create_test_account(email: email)
 
@@ -317,16 +313,18 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       created_customers << customer
 
       # Set corrupted intent
-      customer.pending_plan_intent = 'not-valid-json{{'
+      corrupted_value = 'not-valid-json{{'
+      customer.pending_plan_intent = corrupted_value
 
       result = surface_plan_intent(customer: customer, session: session)
 
       expect(result[:surfaced]).to be false
       expect(result[:reason]).to eq(:invalid_json)
-      expect(customer.pending_plan_intent.value.to_s).to eq('')
+      # Production does NOT clear on parse error - allows debugging/retry
+      expect(customer.pending_plan_intent.value).to eq(corrupted_value)
     end
 
-    it 'clears intent when plan no longer exists' do
+    it 'clears intent after parse even when plan no longer exists' do
       email = unique_test_email('discontinued')
       account = create_test_account(email: email)
 
@@ -346,6 +344,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
 
       expect(result[:surfaced]).to be false
       expect(result[:reason]).to eq(:plan_not_found)
+      # Production clears intent after successful JSON parse (before validation)
       expect(customer.pending_plan_intent.value.to_s).to eq('')
     end
   end
@@ -430,6 +429,181 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       url = "/billing/plans/#{product}/#{interval}"
 
       expect(url).to eq('/billing/plans/plan-with-dashes_v1/monthly')
+    end
+  end
+
+  # ==========================================================================
+  # Cross-Session Login Flow Tests (pending_plan_intent fallback)
+  # ==========================================================================
+  #
+  # Tests the scenario where a user signs up with plan params, the intent is
+  # stored in customer.pending_plan_intent, and then they log in from a
+  # different session (no session keys) and expect billing_redirect.
+
+  describe 'cross-session login flow with pending_plan_intent' do
+    # Uses the production Auth::Config::Hooks::Billing.extract_pending_plan_intent
+    # method to ensure tests match actual behavior.
+    def add_billing_redirect_to_response(session:, json_response:, customer:, plan_valid: true)
+      product  = session[:billing_product]
+      interval = session[:billing_interval]
+
+      # Fallback to pending_plan_intent when session keys are empty
+      # Uses production module method for extraction
+      if product.nil? && interval.nil? && customer
+        product, interval = Auth::Config::Hooks::Billing.extract_pending_plan_intent(customer)
+      end
+
+      return unless product && interval
+
+      if plan_valid
+        json_response[:billing_redirect] = {
+          product: product,
+          interval: interval,
+          valid: true,
+        }
+      else
+        json_response[:billing_redirect] = {
+          product: product,
+          interval: interval,
+          valid: false,
+          error: "Plan not found: #{product}_#{interval}",
+        }
+      end
+
+      # Clear session keys after use
+      session.delete(:billing_product)
+      session.delete(:billing_interval)
+    end
+
+    it 'returns billing_redirect from pending_plan_intent on fresh login session' do
+      email = unique_test_email('cross-session')
+      account = create_test_account(email: email)
+
+      # Step 1: Create customer (simulating signup)
+      operation = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        db: Auth::Database.connection
+      )
+      customer = operation.call
+      created_customers << customer
+
+      # Step 2: Set pending_plan_intent (simulating after_create_account hook)
+      intent = {
+        product: 'identity_plus_v1',
+        interval: 'monthly',
+        captured_at: Time.now.utc.iso8601,
+      }.to_json
+      customer.pending_plan_intent = intent
+
+      # Step 3: Simulate fresh login session (no plan keys in session)
+      fresh_session = {}
+      json_response = {}
+
+      # Step 4: Call add_billing_redirect_to_response (simulating after_login)
+      add_billing_redirect_to_response(
+        session: fresh_session,
+        json_response: json_response,
+        customer: customer
+      )
+
+      # Verify billing_redirect is returned from pending_plan_intent
+      expect(json_response).to have_key(:billing_redirect)
+      expect(json_response[:billing_redirect][:product]).to eq('identity_plus_v1')
+      expect(json_response[:billing_redirect][:interval]).to eq('monthly')
+      expect(json_response[:billing_redirect][:valid]).to be true
+    end
+
+    it 'clears pending_plan_intent after successful cross-session login' do
+      email = unique_test_email('clear-intent')
+      account = create_test_account(email: email)
+
+      operation = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        db: Auth::Database.connection
+      )
+      customer = operation.call
+      created_customers << customer
+
+      # Set pending_plan_intent
+      intent = { product: 'team_plus_v1', interval: 'yearly' }.to_json
+      customer.pending_plan_intent = intent
+
+      # Fresh login
+      fresh_session = {}
+      json_response = {}
+      add_billing_redirect_to_response(
+        session: fresh_session,
+        json_response: json_response,
+        customer: customer
+      )
+
+      # Intent should be cleared
+      expect(customer.pending_plan_intent.value.to_s).to eq('')
+
+      # Second login should not have billing_redirect
+      second_session = {}
+      second_response = {}
+      add_billing_redirect_to_response(
+        session: second_session,
+        json_response: second_response,
+        customer: customer
+      )
+
+      expect(second_response).not_to have_key(:billing_redirect)
+    end
+
+    it 'session keys take precedence over pending_plan_intent' do
+      email = unique_test_email('session-precedence')
+      account = create_test_account(email: email)
+
+      operation = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        db: Auth::Database.connection
+      )
+      customer = operation.call
+      created_customers << customer
+
+      # Set pending_plan_intent to one plan
+      intent = { product: 'identity_plus_v1', interval: 'monthly' }.to_json
+      customer.pending_plan_intent = intent
+
+      # Login session has different plan
+      session_with_plan = {
+        billing_product: 'team_plus_v1',
+        billing_interval: 'yearly',
+      }
+      json_response = {}
+
+      add_billing_redirect_to_response(
+        session: session_with_plan,
+        json_response: json_response,
+        customer: customer
+      )
+
+      # Session plan should win
+      expect(json_response[:billing_redirect][:product]).to eq('team_plus_v1')
+      expect(json_response[:billing_redirect][:interval]).to eq('yearly')
+
+      # pending_plan_intent should NOT be cleared (session was used instead)
+      expect(customer.pending_plan_intent.value).to eq(intent)
+    end
+
+    it 'handles no customer gracefully (nil account lookup)' do
+      fresh_session = {}
+      json_response = {}
+
+      expect {
+        add_billing_redirect_to_response(
+          session: fresh_session,
+          json_response: json_response,
+          customer: nil
+        )
+      }.not_to raise_error
+
+      expect(json_response).not_to have_key(:billing_redirect)
     end
   end
 end
