@@ -110,7 +110,10 @@ module Auth::Config::Hooks
           interval = session[SESSION_KEY_INTERVAL]
 
           # Fallback to Redis-backed pending_plan_intent if session keys are empty (issue #3130)
-          # This handles the case where user signs up, verifies email, then logs in with fresh session
+          # This handles the case where user signs up, verifies email, then logs in with fresh session.
+          # Note: New signups won't have MFA enabled (requires verified account + successful auth first).
+          # If flow changes to allow MFA setup before subscribing, both after_login and
+          # after_two_factor_authentication would call this — first clears intent, second is a no-op.
           if product.nil? && interval.nil? && account
             product, interval = extract_pending_plan_intent_from_customer
           end
