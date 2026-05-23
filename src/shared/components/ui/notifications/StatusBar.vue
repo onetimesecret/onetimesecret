@@ -1,7 +1,16 @@
-<!-- src/shared/components/ui/StatusBar.vue -->
+<!-- src/shared/components/ui/notifications/StatusBar.vue -->
+<!--
+  SETTINGS:
+  - position: 'top' | 'bottom' (default: 'bottom') — store value takes precedence
+  - duration: ms for progress bar animation (default: 4000)
+  - autoDismiss: show progress bar (default: true) — actual timeout is store's 5000ms
+  - loading: show spinner state (default: false)
+
+  Full-width banner. Interchangeable with StatusCorner, SubtleProgress.
+-->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { computed } from 'vue';
@@ -17,22 +26,18 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   autoDismiss: true,
-  duration: 4000,
+  duration: 2000,
   loading: false,
   position: 'bottom'
 });
 
 const notifications = useNotificationsStore();
 
-// Add a computed property for the effective position
 const effectivePosition = computed(() =>
-  // Store position takes precedence if it exists
-   notifications.position || props.position
+  notifications.position || props.position
 );
 
 const translatedMessage = computed(() =>
-  // Check if the message is a translation key that exists
-  // If not, return the message as-is (e.g., dynamic error messages)
   te(notifications.message) ? t(notifications.message) : notifications.message);
 
 const getStatusConfig = (type: string | null) => ({
@@ -76,44 +81,6 @@ const statusConfig = computed(() => {
 });
 </script>
 
-<script lang="ts">
-/**
- * StatusBar Component
- *
- * A floating status bar that displays notifications from the notifications store.
- * Uses portal/teleport to render outside the normal DOM flow at the bottom of the viewport.
- *
- * Features:
- * - Loading, success, error, and info states with appropriate styling
- * - Auto-dismiss with visual progress indicator
- * - Smooth transitions between states
- * - Dark mode support
- * - Accessible aria attributes
- * - Centralized notification management via Pinia store
- *
- * Portal Target:
- * Component teleports to the <body> tag by default. For custom positioning,
- * add a target element:
- * <div id="status-messages"></div>
- * Then update the Teleport "to" prop accordingly:
- * <StatusBar to="#status-messages" />
- *
- * @example
- * <!-- Component usage -->
- * <StatusBar :loading="formState.loading" />
- *
- * <!-- Show notifications via store -->
- * const notifications = useNotificationsStore();
- * notifications.show('Success message', 'success');
- * notifications.show('Error message', 'error');
- * notifications.show('Info message', 'info');
- *
- * @prop {boolean} [loading] - Whether to show loading state
- * @prop {boolean} [autoDismiss=true] - Whether to auto-dismiss after duration
- * @prop {number} [duration=5000] - Time in ms before auto-dismiss
- */
-</script>
-
 <template>
   <Teleport to="body">
     <Transition
@@ -144,10 +111,6 @@ const statusConfig = computed(() => {
           <span
             class="text-sm font-medium transition-all duration-200"
             :class="statusConfig?.textClasses">
-            <!-- Doesn't hurt to pass the whole message through. Worst case -->
-            <!-- the UI just shows the text verbatim anyway, but it allows  -->
-            <!-- us the opporunity to translate messages coming from the  -->
-            <!-- server if we want to. -->
             {{ translatedMessage }}
           </span>
         </div>
@@ -169,14 +132,12 @@ const statusConfig = computed(() => {
         <!-- Progress indicator -->
         <div
           v-if="autoDismiss && !loading && notifications.severity"
-          class="absolute left-0 h-1 bg-current opacity-30"
+          class="progress-shrink absolute left-0 h-1 bg-current opacity-30"
           :class="[
             (effectivePosition === 'top' ? 'bottom-0' : 'top-0'),
             statusConfig?.textClasses
           ]"
-          :style="{
-            animation: `shrink ${duration}ms linear forwards`
-          }">
+          :style="{ animationDuration: `${duration}ms` }">
         </div>
       </div>
     </Transition>
@@ -191,6 +152,17 @@ const statusConfig = computed(() => {
 
   to {
     width: 0%;
+  }
+}
+
+.progress-shrink {
+  animation: shrink linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-shrink {
+    animation: none;
+    width: 100%;
   }
 }
 </style>
