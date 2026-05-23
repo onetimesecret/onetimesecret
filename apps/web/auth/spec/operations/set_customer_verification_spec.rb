@@ -14,6 +14,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/set_customer_verification_spec.rb
 
 require 'spec_helper'
+require 'auth/operations/set_customer_verification'
 
 RSpec.describe Auth::Operations::SetCustomerVerification do
   # The op only touches scalar fields and the SQL accounts table; the
