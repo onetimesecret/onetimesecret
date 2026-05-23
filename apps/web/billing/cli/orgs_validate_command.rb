@@ -5,6 +5,7 @@
 require 'json'
 
 require_relative 'helpers'
+require_relative 'validation_helpers'
 
 module Onetime
   module CLI
@@ -28,6 +29,7 @@ module Onetime
     # @see https://github.com/onetimesecret/onetimesecret/issues/3099
     class BillingOrgsValidateCommand < Command
       include BillingHelpers
+      include ValidationHelpers
 
       desc "Detect orgs whose planid doesn't resolve in cache or config"
 
@@ -45,17 +47,24 @@ module Onetime
       def call(verbose: false, json: false, **)
         boot_application!
 
-        unless billing_module_loaded?
-          warn 'Billing module is not loaded; nothing to validate.'
+        unless billing_enabled?
+          warn 'Billing is not enabled; nothing to validate.'
           exit 0
         end
 
         stats        = init_stats
         invalid_orgs = []
 
+        total             = Onetime::Organization.instances.element_count
+        progress_interval = [total / 10, 1].max
+        show_progress     = !json && !verbose
+
         Onetime::Organization.instances.each_record(batch_size: 100) do |org|
           process_org(org, stats, invalid_orgs, verbose: verbose && !json)
+          print_progress(stats[:total], total, progress_interval, label: 'organizations scanned') if show_progress
         end
+
+        clear_progress_line if show_progress
 
         report = build_report(stats, invalid_orgs)
 
@@ -70,8 +79,12 @@ module Onetime
 
       private
 
-      def billing_module_loaded?
-        defined?(::Billing::Plan) && ::Billing::Plan.respond_to?(:load_with_fallback)
+      def billing_enabled?
+        return false unless defined?(Onetime::BillingConfig)
+        return false unless Onetime::BillingConfig.instance.enabled?
+        return false unless defined?(::Billing::Plan) && ::Billing::Plan.respond_to?(:load_with_fallback)
+
+        true
       end
 
       def init_stats
@@ -145,7 +158,7 @@ module Onetime
 
         puts
         puts 'Organization Plan ID Validation'
-        puts '=' * 60
+        print_separator(60, '=')
         puts "  Total orgs scanned:       #{stats[:total]}"
         puts "  Skipped (no planid):      #{stats[:skipped_no_planid]}"
         puts "  Valid (Redis cache):      #{stats[:valid_stripe]}"
@@ -164,7 +177,7 @@ module Onetime
 
       def print_invalid_groups(grouped)
         puts 'INVALID PLAN IDS'
-        puts '-' * 60
+        print_separator(60, '-')
 
         grouped.each do |planid, orgs|
           puts
@@ -179,13 +192,14 @@ module Onetime
       end
 
       def print_resolution_hints
-        puts '-' * 60
-        puts 'Resolution:'
-        puts '  - Update org.planid to a value in the catalog or billing.yaml'
-        puts '  - Or add the missing plan to billing.yaml / Stripe catalog'
-        puts '  - Refresh the plan cache: bin/ots billing catalog pull'
-        puts '  - Inspect a specific org:  bin/ots billing diagnose --org <extid>'
-        puts
+        print_resolution_section(
+          [
+            'Update org.planid to a value in the catalog or billing.yaml',
+            'Or add the missing plan to billing.yaml / Stripe catalog',
+            'Refresh the plan cache: bin/ots billing catalog pull',
+            'Inspect a specific org:  bin/ots billing diagnose --org <extid>',
+          ],
+        )
       end
     end
   end

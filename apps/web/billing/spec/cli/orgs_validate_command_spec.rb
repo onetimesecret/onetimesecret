@@ -41,7 +41,9 @@ RSpec.describe 'Billing Orgs Validate CLI', :billing_cli do
 
   before do
     allow(command).to receive(:boot_application!)
+    allow(command).to receive(:billing_enabled?).and_return(true)
     allow(Onetime::Organization).to receive(:instances).and_return(mock_instances)
+    allow(mock_instances).to receive(:element_count).and_return(0)
   end
 
   describe 'when all orgs have resolvable plan IDs' do
@@ -50,6 +52,7 @@ RSpec.describe 'Billing Orgs Validate CLI', :billing_cli do
     let(:org_no_plan)      { mock_org(extid: 'on_empty', planid: '') }
 
     before do
+      allow(mock_instances).to receive(:element_count).and_return(3)
       allow(mock_instances).to receive(:each_record)
         .and_yield(org_valid_stripe)
         .and_yield(org_valid_config)
@@ -85,6 +88,7 @@ RSpec.describe 'Billing Orgs Validate CLI', :billing_cli do
     let(:org_valid)     { mock_org(extid: 'on_ok', planid: 'identity_plus_v1') }
 
     before do
+      allow(mock_instances).to receive(:element_count).and_return(4)
       allow(mock_instances).to receive(:each_record)
         .and_yield(org_invalid_a)
         .and_yield(org_invalid_b)
@@ -146,6 +150,7 @@ RSpec.describe 'Billing Orgs Validate CLI', :billing_cli do
     let(:org_valid)   { mock_org(extid: 'on_y', planid: 'identity_plus_v1') }
 
     before do
+      allow(mock_instances).to receive(:element_count).and_return(2)
       allow(mock_instances).to receive(:each_record)
         .and_yield(org_invalid)
         .and_yield(org_valid)
@@ -197,6 +202,7 @@ RSpec.describe 'Billing Orgs Validate CLI', :billing_cli do
     let(:org_invalid) { mock_org(extid: 'on_v', planid: 'ghost', subscription_status: 'past_due') }
 
     before do
+      allow(mock_instances).to receive(:element_count).and_return(1)
       allow(mock_instances).to receive(:each_record).and_yield(org_invalid)
       allow(::Billing::Plan).to receive(:load_with_fallback)
         .with('ghost')
@@ -230,9 +236,9 @@ RSpec.describe 'Billing Orgs Validate CLI', :billing_cli do
     end
   end
 
-  describe 'when the billing module is not loaded' do
+  describe 'when billing is not enabled' do
     before do
-      allow(command).to receive(:billing_module_loaded?).and_return(false)
+      allow(command).to receive(:billing_enabled?).and_return(false)
       allow(mock_instances).to receive(:each_record)
     end
 
