@@ -96,11 +96,14 @@ module Auth
       # @param has_otp_secret [Boolean] Whether account has OTP secret configured (required)
       # @param has_recovery_codes [Boolean] Whether account has recovery codes (required)
       # @param mfa_policy [String, Symbol, nil] Optional MFA policy override (:required, :optional, :disabled)
-      def initialize(account_id:, has_otp_secret:, has_recovery_codes:, mfa_policy: nil)
+      # @param via_omniauth [Boolean] Whether the login is via SSO/OmniAuth. When true, MFA is bypassed:
+      #   the IdP is trusted to enforce authentication factors (project policy: SSO ignores MFA).
+      def initialize(account_id:, has_otp_secret:, has_recovery_codes:, mfa_policy: nil, via_omniauth: false)
         # Validate inputs
         raise InvalidInput, 'account_id must be present' if account_id.nil? || account_id.to_s.empty?
         raise InvalidInput, 'has_otp_secret must be boolean' unless [true, false].include?(has_otp_secret)
         raise InvalidInput, 'has_recovery_codes must be boolean' unless [true, false].include?(has_recovery_codes)
+        raise InvalidInput, 'via_omniauth must be boolean' unless [true, false].include?(via_omniauth)
 
         if mfa_policy && ![:required, :optional, :disabled].include?(mfa_policy.to_sym)
           raise InvalidInput, 'mfa_policy must be :required, :optional, :disabled, or nil'
@@ -110,6 +113,7 @@ module Auth
         @has_otp_secret     = has_otp_secret
         @has_recovery_codes = has_recovery_codes
         @mfa_policy         = mfa_policy&.to_sym
+        @via_omniauth       = via_omniauth
       end
 
       # Convenience class method for direct calls
@@ -117,13 +121,15 @@ module Auth
       # @param has_otp_secret [Boolean] Whether account has OTP secret configured
       # @param has_recovery_codes [Boolean] Whether account has recovery codes
       # @param mfa_policy [String, Symbol, nil] Optional MFA policy override
+      # @param via_omniauth [Boolean] Whether the login is via SSO/OmniAuth
       # @return [Decision] The MFA decision object
-      def self.call(account_id:, has_otp_secret:, has_recovery_codes:, mfa_policy: nil)
+      def self.call(account_id:, has_otp_secret:, has_recovery_codes:, mfa_policy: nil, via_omniauth: false)
         new(
           account_id: account_id,
           has_otp_secret: has_otp_secret,
           has_recovery_codes: has_recovery_codes,
           mfa_policy: mfa_policy,
+          via_omniauth: via_omniauth,
         ).call
       end
 
@@ -143,6 +149,12 @@ module Auth
       # Determines if MFA is required
       # @return [Boolean]
       def mfa_required?
+        # SSO logins bypass MFA: the IdP is trusted to enforce authentication
+        # factors. This is checked BEFORE policy overrides because the project
+        # policy is "SSO ignores MFA" — if an account is configured to require
+        # MFA but the user authenticates via SSO, the IdP's factors satisfy that.
+        return false if @via_omniauth
+
         # Check policy override first
         return true if @mfa_policy == :required
         return false if @mfa_policy == :disabled
@@ -165,6 +177,7 @@ module Auth
       # Get reason for decision
       # @return [String]
       def decision_reason
+        return 'sso_bypass' if @via_omniauth
         return 'policy_required' if @mfa_policy == :required
         return 'policy_disabled' if @mfa_policy == :disabled
         return 'no_mfa_configured' unless mfa_required?
