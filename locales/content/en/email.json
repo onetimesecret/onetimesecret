@@ -301,7 +301,8 @@
   },
   "email.feedback_email.user_id_label": {
     "text": "User:",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "93d6b3e9"
   },
   "email.feedback_email.domain_label": {
     "text": "Domain:",
@@ -315,11 +316,13 @@
   },
   "email.feedback_email.timezone_label": {
     "text": "Timezone:",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "39651ebf"
   },
   "email.feedback_email.version_label": {
     "text": "Version:",
-    "renderer": "erb"
+    "renderer": "erb",
+    "content_hash": "4c5726ee"
   },
   "email.feedback_email.message_label": {
     "text": "Message:",
