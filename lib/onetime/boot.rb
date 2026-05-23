@@ -208,6 +208,10 @@ module Onetime
       #
       # allow(Onetime).to receive(:connect_databases).and_call_original
       #
+      # Fatal errors (e.g. ConfigError) leave the application in an unusable
+      # state — always re-raise so callers can present the message instead
+      # of hitting nil errors downstream.
+      raise ex if ex.is_a?(FatalBootError)
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
       failed!(ex)

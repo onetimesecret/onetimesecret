@@ -246,6 +246,29 @@ RSpec.describe "Onetime global state after boot", type: :integration do
           Onetime.boot!(:test)
         }.to raise_error(Redis::CannotConnectError, "Test Redis error")
       end
+
+      it "re-raises FatalBootError in :cli mode (e.g. ConfigError)" do
+        # Bad config (deprecation, validation, etc.) leaves OT.conf nil — we
+        # must surface the actual error rather than swallowing it for REPL
+        # debugging. ConfigError includes FatalBootError to signal this.
+        config_error = OT::ConfigError.new("Deprecated configuration detected: foo.bar")
+        allow(Onetime::Config).to receive(:after_load).and_raise(config_error)
+
+        expect {
+          Onetime.boot!(:cli)
+        }.to raise_error(OT::ConfigError, /Deprecated configuration detected/)
+      end
+
+      it "still swallows non-fatal OT::Problem in :cli mode for REPL debugging" do
+        # Non-fatal Problem errors (e.g. transient initializer failures) remain
+        # swallowed in CLI mode so the console session can stay alive.
+        non_fatal_error = OT::Problem.new("Some non-fatal problem")
+        allow(Onetime::Config).to receive(:after_load).and_raise(non_fatal_error)
+
+        expect {
+          Onetime.boot!(:cli)
+        }.not_to raise_error
+      end
     end
   end
 end
