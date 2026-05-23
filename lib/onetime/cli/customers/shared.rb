@@ -108,6 +108,55 @@ module Onetime
           puts 'Cache valid for 30 minutes (--refresh to rebuild)'
           puts
         end
+
+        # -- Customer resolution -----------------------------------------
+
+        # Resolve an identifier string to an Onetime::Customer.
+        # Accepts:
+        #   - Numeric Rodauth account ID (e.g., "123") — full auth mode
+        #     only; looks up accounts.external_id, then loads Customer
+        #     by that extid. Returns nil in simple mode (no SQL DB).
+        #   - Email (containing '@') — normalized via OT::Utils.
+        #   - Extid (e.g., "ur123abc...") — passes through normalize
+        #     unchanged since extids are already lowercase ASCII.
+        # @param identifier [String] raw CLI argument
+        # @return [Onetime::Customer, nil]
+        def resolve_customer(identifier)
+          normalized = identifier.to_s.strip
+          return nil if normalized.empty?
+
+          if numeric_account_id?(normalized)
+            resolve_by_rodauth_account_id(normalized.to_i)
+          else
+            Onetime::Customer.load_by_extid_or_email(OT::Utils.normalize_email(normalized))
+          end
+        end
+
+        # Look up the Rodauth accounts.id for a Customer.
+        # Returns nil in simple auth mode (no SQL DB) or when no
+        # accounts row links to the customer's extid.
+        # @param customer [Onetime::Customer]
+        # @return [Integer, nil]
+        def lookup_account_id(customer)
+          db = Auth::Database.connection
+          return nil unless db
+
+          db[:accounts].where(external_id: customer.extid).get(:id)
+        end
+
+        def numeric_account_id?(str)
+          str.match?(/\A\d+\z/)
+        end
+
+        def resolve_by_rodauth_account_id(account_id)
+          db = Auth::Database.connection
+          return nil unless db
+
+          extid = db[:accounts].where(id: account_id).get(:external_id)
+          return nil unless extid
+
+          Onetime::Customer.find_by_extid(extid)
+        end
       end
     end
   end

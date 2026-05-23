@@ -78,7 +78,7 @@ module Auth
         update_rodauth_account! if full_auth_mode? && !@rodauth_already_synced
         update_customer!
 
-        auth_logger.info "[set-customer-verification] #{@customer.extid} " \
+        auth_logger.debug "[set-customer-verification] #{@customer.extid} " \
           "verified=#{@verified} verified_by=#{@verified_by.inspect} " \
           "auth_mode=#{Onetime.auth_config.mode} " \
           "rodauth_already_synced=#{@rodauth_already_synced}"

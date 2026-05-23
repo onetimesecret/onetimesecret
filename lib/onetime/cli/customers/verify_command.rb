@@ -12,6 +12,7 @@
 # Usage:
 #   bin/ots customers verify user@example.com      # Lookup by email
 #   bin/ots customers verify ur1234567890abcdef    # Lookup by extid
+#   bin/ots customers verify 123                   # Lookup by Rodauth account ID (full mode)
 
 # The auth app's operations autoloader (apps/web/auth/operations.rb)
 # only runs when the auth Rack app boots for HTTP serving; CLI runs
@@ -22,23 +23,24 @@ require 'auth/operations/set_customer_verification'
 module Onetime
   module CLI
     class CustomersVerifyCommand < Command
+      include Customers::Shared
+
       desc 'Mark an existing customer account as verified'
 
       argument :identifier,
         type: :string,
         required: true,
-        desc: 'Email address or extid of the customer'
+        desc: 'Email, extid, or Rodauth account ID of the customer'
 
       def call(identifier:, **)
         boot_application!
 
-        normalized = OT::Utils.normalize_email(identifier)
-        if normalized.empty?
+        if identifier.to_s.strip.empty?
           puts 'Error: Identifier is required'
           exit 1
         end
 
-        customer = Onetime::Customer.load_by_extid_or_email(normalized)
+        customer = resolve_customer(identifier)
         unless customer
           puts "Error: Customer not found: #{identifier}"
           exit 1

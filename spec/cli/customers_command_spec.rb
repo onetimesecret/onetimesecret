@@ -193,4 +193,34 @@ RSpec.describe 'Customers Command', type: :cli do
       expect(last_exit_code).to eq(1)
     end
   end
+
+  describe 'numeric Rodauth account ID identifier' do
+    # When given a numeric identifier, the command routes through the
+    # Shared#resolve_customer helper to the SQL accounts table to look
+    # up external_id, then back to the Redis Customer record. We stub
+    # the helper at the instance method level so the test doesn't need
+    # a real Auth::Database; the helper's own contract (numeric → SQL
+    # → extid → Customer) is exercised in practice via the CLI smoke
+    # tests in the PR manual-test plan.
+    it 'accepts a numeric ID and resolves via the Shared helper' do
+      allow_any_instance_of(Onetime::CLI::CustomersVerifyCommand)
+        .to receive(:resolve_customer).with('123').and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_return(:success)
+
+      output = run_cli_command_quietly('customers', 'verify', '123')
+      expect(output[:stdout]).to include('Verified:')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'reports Customer not found when no account matches the numeric ID' do
+      allow_any_instance_of(Onetime::CLI::CustomersVerifyCommand)
+        .to receive(:resolve_customer).with('99999').and_return(nil)
+
+      output = run_cli_command_quietly('customers', 'verify', '99999')
+      expect(output[:stdout]).to include('Customer not found')
+      expect(last_exit_code).to eq(1)
+    end
+  end
 end
