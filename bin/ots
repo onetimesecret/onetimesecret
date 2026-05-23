@@ -47,6 +47,7 @@ rescue Onetime::FatalBootError => ex
   exit 1
 rescue RuntimeError => ex
   warn ex.message
+  warn ex.backtrace if debug
   exit ex.respond_to?(:exit_code) ? ex.exit_code : 1
 rescue StandardError => ex
   puts ex.message
