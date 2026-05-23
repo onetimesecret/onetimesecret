@@ -12,11 +12,12 @@ module Core
       #
       # This logic class dynamically serves either:
       # 1. Custom favicon from the custom domain's icon field (if available)
-      # 2. Default favicon from public/img/
+      # 2. Custom favicon from the custom domain's logo field (fallback)
+      # 3. Default favicon from public/web/
       #
       # For custom favicons, it checks for a cached resized version (32x32)
-      # stored in custom_domain.icon['encoded_favicon']. If not found, it
-      # generates and caches one from the original icon.
+      # stored in the image hashkey's 'encoded_favicon' field. If not found,
+      # it generates and caches one from the original image.
       #
       # Uses metadata set by DetectHost and DomainStrategy middlewares,
       # passed through auth strategy result:
@@ -24,7 +25,7 @@ module Core
       # - strategy_result.metadata[:display_domain] - Normalized domain name
       #
       class GetFavicon < Core::Logic::Base
-        attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default
+        attr_reader :custom_domain, :icon_data, :content_type, :content_length, :use_default, :image_source
 
         FAVICON_SIZE = 32 # 32x32 pixels
 
@@ -46,15 +47,23 @@ module Core
 
         def raise_concerns
           # No authorization required - public endpoint
-          # But we need to check if custom domain has an icon
+          # But we need to check if custom domain has an icon or logo
           return unless custom_domain
 
-          # Check if custom domain has an icon uploaded
+          # Check icon first, fall back to logo
           icon_filename = custom_domain.icon['filename']
-          return unless icon_filename && !icon_filename.empty?
+          if icon_filename && !icon_filename.empty?
+            @image_source = :icon
+            @use_default  = false
+            return
+          end
 
-          # We have a custom icon - don't use default
-          @use_default = false
+          # Fall back to logo if no icon
+          logo_filename = custom_domain.logo['filename']
+          if logo_filename && !logo_filename.empty?
+            @image_source = :logo
+            @use_default  = false
+          end
         end
 
         def process
@@ -70,16 +79,19 @@ module Core
         private
 
         def serve_custom_favicon
+          # Get the image hashkey based on source (icon or logo)
+          image_hash = image_source == :icon ? custom_domain.icon : custom_domain.logo
+
           # Check if we have a cached favicon-sized version
-          cached_favicon = custom_domain.icon['encoded_favicon']
+          cached_favicon = image_hash['encoded_favicon']
 
           if cached_favicon.to_s.empty?
             # No cached version - generate one
-            OT.ld "[GetFavicon] No cached favicon for #{custom_domain.display_domain}, generating..."
-            generate_and_cache_favicon
+            OT.ld "[GetFavicon] No cached favicon for #{custom_domain.display_domain} (source: #{image_source}), generating..."
+            generate_and_cache_favicon(image_hash)
           else
             # Use cached version
-            OT.ld "[GetFavicon] Serving cached favicon for #{custom_domain.display_domain}"
+            OT.ld "[GetFavicon] Serving cached favicon for #{custom_domain.display_domain} (source: #{image_source})"
             @icon_data = Base64.strict_decode64(cached_favicon)
           end
 
@@ -87,9 +99,9 @@ module Core
           @content_length = icon_data.bytesize.to_s
         end
 
-        def generate_and_cache_favicon
-          original_encoded = custom_domain.icon['encoded']
-          original_type    = custom_domain.icon['content_type']
+        def generate_and_cache_favicon(image_hash)
+          original_encoded = image_hash['encoded']
+          original_type    = image_hash['content_type']
 
           # Decode original image
           original_data = Base64.strict_decode64(original_encoded)
@@ -105,12 +117,12 @@ module Core
                          end
 
           # Cache the resized favicon
-          encoded_favicon                       = Base64.strict_encode64(resized_data)
-          custom_domain.icon['encoded_favicon'] = encoded_favicon
+          encoded_favicon               = Base64.strict_encode64(resized_data)
+          image_hash['encoded_favicon'] = encoded_favicon
 
           @icon_data = resized_data
 
-          OT.info "[GetFavicon] Generated and cached favicon for #{custom_domain.display_domain}"
+          OT.info "[GetFavicon] Generated and cached favicon for #{custom_domain.display_domain} (source: #{image_source})"
         rescue StandardError => ex
           # If resizing fails, fall back to original
           OT.le "[GetFavicon] Failed to resize favicon: #{ex.message}"
