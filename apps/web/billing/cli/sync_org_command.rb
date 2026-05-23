@@ -56,6 +56,12 @@ module Onetime
           return
         end
 
+        if org.stripe_subscription_id.to_s.empty?
+          puts 'Skipped: Organization has no stripe_subscription_id'
+          puts "  Customer ID: #{org.stripe_customer_id.to_s.empty? ? '(none)' : org.stripe_customer_id}"
+          return
+        end
+
         sync_organization(org, dry_run: dry_run)
       end
 
