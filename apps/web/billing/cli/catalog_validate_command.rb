@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative 'validation_helpers'
 require_relative '../operations/catalog/validate'
 
 module Onetime
@@ -14,6 +15,7 @@ module Onetime
     # unknown fields), run: bin/ots billing products validate
     class BillingCatalogValidateCommand < Command
       include BillingHelpers
+      include ValidationHelpers
 
       desc 'Validate plan catalog YAML structure (schema validation only)'
 
@@ -38,7 +40,11 @@ module Onetime
         end
 
         print_plan_summary(result.plan_summary)
-        print_validation_results(result.errors, result.warnings, strict, result.valid)
+        print_errors_section(result.errors) if result.errors.any?
+        print_warnings_section(result.warnings) if result.warnings.any?
+        print_final_status(result.errors, result.warnings, strict)
+
+        exit(result.valid ? 0 : 1)
       end
 
       private
@@ -52,63 +58,30 @@ module Onetime
         invalid = summary[:invalid] || []
 
         puts
-        if valid.any?
-          puts "VALID (#{valid.size}) " + ('-' * (60 - "VALID (#{valid.size}) ".length))
-          valid.sort_by { |p| -(p[:display_order] || 0) }.each do |plan|
-            marker = plan[:tier] == 'free' ? '*' : ' '
-            name   = (plan[:name] || plan[:id]).to_s
-            puts "  #{marker} #{name.ljust(20)} (#{plan[:id]})"
-          end
-          puts if invalid.any?
-        end
+        print_plan_summary_group('VALID', valid) if valid.any?
+        puts if valid.any? && invalid.any?
+        print_plan_summary_group('INVALID', invalid, indent: '    ') if invalid.any?
 
-        if invalid.any?
-          puts "INVALID (#{invalid.size}) " + ('-' * (60 - "INVALID (#{invalid.size}) ".length))
-          invalid.each do |plan|
-            name = (plan[:name] || plan[:id]).to_s
-            puts "    #{name} (#{plan[:id]})"
-          end
-        end
+        return unless summary[:has_free_tier]
 
-        if summary[:has_free_tier]
-          puts
-          puts '  * Free tier valid in catalog, does not have a Stripe product'
-        end
+        puts
+        puts '  * Free tier valid in catalog, does not have a Stripe product'
       end
 
-      def print_validation_results(errors, warnings, strict, valid)
-        puts
-        puts '-' * 62
+      def print_plan_summary_group(label, plans, indent: '  ')
+        heading = "#{label} (#{plans.size}) "
+        puts heading + ('-' * (60 - heading.length))
 
-        if errors.any?
-          puts "VALIDATION FAILED: #{errors.size} error(s) found"
-          puts '-' * 62
-          puts
-          errors.each { |e| puts "  #{e}" }
-          puts
-          exit 1
-        elsif warnings.any? && strict
-          puts "VALIDATION FAILED: #{warnings.size} warning(s) in strict mode"
-          puts '-' * 62
-          puts
-          warnings.each { |w| puts "  #{w}" }
-          puts
-          exit 1
-        elsif warnings.any?
-          puts 'VALIDATION PASSED (warnings only)'
-          puts '-' * 62
-          puts
-          puts "  #{warnings.size} warning(s):"
-          puts
-          warnings.each { |w| puts "  #{w}" }
-          puts
-        else
-          puts 'VALIDATION PASSED'
-          puts '-' * 62
-          puts
+        sorted = plans.sort_by { |p| -(p[:display_order] || 0) }
+        sorted.each do |plan|
+          name = (plan[:name] || plan[:id]).to_s
+          if label == 'VALID'
+            marker = plan[:tier] == 'free' ? '*' : ' '
+            puts "#{indent}#{marker} #{name.ljust(20)} (#{plan[:id]})"
+          else
+            puts "#{indent}#{name} (#{plan[:id]})"
+          end
         end
-
-        exit(valid ? 0 : 1)
       end
     end
   end
