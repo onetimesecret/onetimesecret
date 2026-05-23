@@ -5,15 +5,23 @@
 #
 # Sets a Customer's verification state across both stores: the Familia
 # Customer record in Redis and (in full auth mode) the Rodauth accounts
-# row in SQL. Designed as the single home for manual/admin verification
-# changes — callable from CLI today and from the Colonel admin API
-# (apps/api/colonel/logic/) when that surface is added.
+# row in SQL.
 #
-# Distinct from Auth::Operations::VerifyCustomer, which is a Rodauth
-# after_verify_account callback adapter (Rodauth has already flipped
-# status_id; the op mirrors that to Redis with verified_by='email').
-# This op drives the change in the opposite direction: caller has a
-# Customer and wants to set verification state on both sides.
+# Single home for verification state changes, regardless of caller:
+#   - CLI: `bin/ots customers verify/unverify EMAIL` — drives both
+#     stores.
+#   - Colonel admin API (apps/api/colonel/logic/): same shape as CLI.
+#   - Rodauth `after_verify_account` hook: Rodauth has already
+#     committed status_id=2 in its own transaction, so the caller
+#     passes `rodauth_already_synced: true` and the op skips its own
+#     SQL update. Only the Redis mirror runs.
+#
+# `rodauth_already_synced:` is a contract parameter, not a flag:
+# the caller is asserting "the Rodauth side is already correct,
+# only mirror to Redis." It exists because the Rodauth hook runs
+# synchronously inside Rodauth's own transaction; a redundant SQL
+# write there would add a savepoint and a roundtrip with no
+# semantic benefit.
 #
 # Cross-store consistency notes (Familia v2.9.1):
 #   Familia is Redis-only — no cross-store transaction primitive
@@ -43,29 +51,37 @@ module Auth
       #                    non-anonymous)
       # @param verified    [Boolean] target state
       # @param verified_by [String, nil] provenance tag ('cli_provision',
-      #                    'colonel_admin', etc.); nil when clearing
+      #                    'colonel_admin', 'email', etc.); nil when clearing
+      # @param rodauth_already_synced [Boolean] when true, skip the SQL
+      #                    update — caller guarantees Rodauth-side
+      #                    status is already correct (e.g., we're
+      #                    inside after_verify_account)
       # @param db          [Sequel::Database, nil] injectable for tests and
       #                    callers with an existing connection; defaults to
       #                    Auth::Database.connection at call time
-      def initialize(customer:, verified:, verified_by:, db: nil)
-        @customer    = customer
-        @verified    = verified
-        @verified_by = verified_by
-        @db          = db
+      def initialize(customer:, verified:, verified_by:, rodauth_already_synced: false, db: nil)
+        @customer                = customer
+        @verified                = verified
+        @verified_by             = verified_by
+        @rodauth_already_synced  = rodauth_already_synced
+        @db                      = db
       end
 
       # @return [Symbol] :success or :no_change
       # @raise [NoAuthDatabase] full auth mode + DB unreachable
+      #   (not raised when rodauth_already_synced: true)
       # @raise [AccountNotFound] full auth mode + no accounts row for email
+      #   (not raised when rodauth_already_synced: true)
       def call
         return :no_change if @customer.verified? == @verified
 
-        update_rodauth_account! if full_auth_mode?
+        update_rodauth_account! if full_auth_mode? && !@rodauth_already_synced
         update_customer!
 
         auth_logger.info "[set-customer-verification] #{@customer.objid} " \
           "verified=#{@verified} verified_by=#{@verified_by.inspect} " \
-          "auth_mode=#{Onetime.auth_config.mode}"
+          "auth_mode=#{Onetime.auth_config.mode} " \
+          "rodauth_already_synced=#{@rodauth_already_synced}"
         :success
       end
 

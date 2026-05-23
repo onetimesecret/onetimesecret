@@ -235,4 +235,54 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
         .with(email: 'canonical@example.com')
     end
   end
+
+  # Contract: caller (e.g., Rodauth after_verify_account hook) asserts
+  # that the Rodauth side is already correct, so the op must skip its
+  # own SQL update. This keeps the hook sync-path free of redundant
+  # writes and avoids transaction nesting inside Rodauth's transaction.
+  describe 'rodauth_already_synced: true' do
+    before { allow(auth_config).to receive(:mode).and_return('full') }
+
+    it 'skips the SQL update in full mode and only writes Redis' do
+      op = described_class.new(
+        customer: customer,
+        verified: true,
+        verified_by: 'email',
+        rodauth_already_synced: true,
+        db: db,
+      )
+
+      expect(op.call).to eq(:success)
+      expect(db).not_to have_received(:transaction)
+      expect(customer).to have_received(:save)
+    end
+
+    it 'does not require a db connection at all' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+
+      op = described_class.new(
+        customer: customer,
+        verified: true,
+        verified_by: 'email',
+        rodauth_already_synced: true,
+      )
+
+      expect { op.call }.not_to raise_error
+      expect(Auth::Database).not_to have_received(:connection)
+    end
+
+    it 'still respects idempotency' do
+      allow(customer).to receive(:verified?).and_return(true)
+
+      op = described_class.new(
+        customer: customer,
+        verified: true,
+        verified_by: 'email',
+        rodauth_already_synced: true,
+      )
+
+      expect(op.call).to eq(:no_change)
+      expect(customer).not_to have_received(:save)
+    end
+  end
 end
