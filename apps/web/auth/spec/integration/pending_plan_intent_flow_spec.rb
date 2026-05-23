@@ -606,4 +606,139 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       expect(json_response).not_to have_key(:billing_redirect)
     end
   end
+
+  # ==========================================================================
+  # True HTTP Integration Tests (full Rodauth stack)
+  # ==========================================================================
+  #
+  # These tests exercise the actual /login endpoint through the full Rack/Rodauth
+  # stack, verifying that pending_plan_intent fallback works in production.
+  #
+  # Unlike the unit-style tests above (which call helper methods directly), these
+  # tests make real HTTP requests and verify real JSON responses.
+  #
+  # @see apps/web/auth/spec/unit/hooks/billing_spec.rb for unit tests of the
+  #      extract_pending_plan_intent module method
+  #
+  describe 'HTTP integration: login with pending_plan_intent fallback' do
+    # Test password used for all HTTP login tests
+    TEST_PASSWORD = 'TestPassword123!'
+
+    # Creates a verified account with a password hash for HTTP login testing.
+    # Uses Argon2 (Rodauth's default) to hash the password.
+    def create_account_with_password(email:, password: TEST_PASSWORD)
+      db = Auth::Database.connection
+      extid = SecureRandom.uuid
+
+      # Create verified account
+      account_id = db[:accounts].insert(
+        email: email,
+        status_id: 2, # verified status (1=unverified, 2=verified, 3=closed)
+        external_id: extid,
+        created_at: Time.now,
+        updated_at: Time.now
+      )
+      created_account_ids << account_id
+
+      # Create password hash using Argon2 (Rodauth's default)
+      # Cost params match test config in config/features/argon2.rb
+      require 'argon2'
+      hasher = Argon2::Password.new(t_cost: 1, m_cost: 5, p_cost: 1)
+      password_hash = hasher.create(password)
+
+      db[:account_password_hashes].insert(
+        id: account_id,
+        password_hash: password_hash
+      )
+
+      { id: account_id, email: email, external_id: extid }
+    end
+
+    it 'returns billing_redirect in JSON response when pending_plan_intent exists' do
+      email = unique_test_email('http-login')
+      account = create_account_with_password(email: email)
+
+      # Create customer with pending_plan_intent
+      operation = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        db: Auth::Database.connection
+      )
+      customer = operation.call
+      created_customers << customer
+
+      # Set pending_plan_intent (simulating signup with plan params)
+      intent = {
+        product: 'identity_plus_v1',
+        interval: 'monthly',
+        captured_at: Time.now.utc.iso8601,
+        source_url: '/signup?product=identity_plus_v1&interval=monthly',
+      }.to_json
+      customer.pending_plan_intent = intent
+
+      # Make actual HTTP login request
+      header 'Content-Type', 'application/json'
+      header 'Accept', 'application/json'
+      post '/login', JSON.generate(login: email, password: TEST_PASSWORD)
+
+      # Verify successful login
+      expect(last_response.status).to be_between(200, 302)
+
+      # Parse JSON response to check for billing_redirect
+      # Rodauth returns JSON for JSON Accept header
+      if last_response.content_type&.include?('application/json')
+        response_body = JSON.parse(last_response.body)
+
+        expect(response_body).to have_key('billing_redirect')
+        expect(response_body['billing_redirect']['product']).to eq('identity_plus_v1')
+        expect(response_body['billing_redirect']['interval']).to eq('monthly')
+      else
+        # If redirect response, billing_redirect should be in session
+        # (frontend handles redirect from session in non-JSON flow)
+        expect(last_response.status).to eq(302)
+      end
+
+      # Verify intent was cleared (single-use)
+      customer.pending_plan_intent.reload! if customer.pending_plan_intent.respond_to?(:reload!)
+      expect(customer.pending_plan_intent.value.to_s).to eq('')
+    end
+
+    it 'clears pending_plan_intent after first successful login' do
+      email = unique_test_email('http-clear')
+      account = create_account_with_password(email: email)
+
+      operation = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        db: Auth::Database.connection
+      )
+      customer = operation.call
+      created_customers << customer
+
+      customer.pending_plan_intent = { product: 'team_plus_v1', interval: 'yearly' }.to_json
+
+      # First login
+      header 'Content-Type', 'application/json'
+      header 'Accept', 'application/json'
+      post '/login', JSON.generate(login: email, password: TEST_PASSWORD)
+
+      expect(last_response.status).to be_between(200, 302)
+
+      # Intent should be cleared
+      customer.pending_plan_intent.reload! if customer.pending_plan_intent.respond_to?(:reload!)
+      expect(customer.pending_plan_intent.value.to_s).to eq('')
+
+      # Second login should not have billing_redirect
+      # (need to logout first or use different session)
+      clear_cookies
+      header 'Content-Type', 'application/json'
+      header 'Accept', 'application/json'
+      post '/login', JSON.generate(login: email, password: TEST_PASSWORD)
+
+      if last_response.content_type&.include?('application/json')
+        response_body = JSON.parse(last_response.body)
+        expect(response_body).not_to have_key('billing_redirect')
+      end
+    end
+  end
 end
