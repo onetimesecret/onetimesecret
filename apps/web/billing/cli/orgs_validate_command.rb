@@ -54,13 +54,14 @@ module Onetime
 
         stats        = init_stats
         invalid_orgs = []
+        plan_cache   = {}
 
         total             = Onetime::Organization.instances.element_count
         progress_interval = [total / 10, 1].max
         show_progress     = !json && !verbose
 
         Onetime::Organization.instances.each_record(batch_size: 100) do |org|
-          process_org(org, stats, invalid_orgs, verbose: verbose && !json)
+          process_org(org, stats, invalid_orgs, plan_cache, verbose: verbose && !json)
           print_progress(stats[:total], total, progress_interval, label: 'organizations scanned') if show_progress
         end
 
@@ -97,7 +98,7 @@ module Onetime
         }
       end
 
-      def process_org(org, stats, invalid_orgs, verbose:)
+      def process_org(org, stats, invalid_orgs, plan_cache, verbose:)
         stats[:total] += 1
         planid         = org.planid.to_s
 
@@ -106,7 +107,11 @@ module Onetime
           return
         end
 
-        result = ::Billing::Plan.load_with_fallback(planid)
+        # Memoize per planid: most orgs share a small set of canonical
+        # plans, so this collapses many HGETALLs into one per unique id.
+        result = plan_cache.fetch(planid) do
+          plan_cache[planid] = ::Billing::Plan.load_with_fallback(planid)
+        end
 
         case result[:source]
         when 'stripe'

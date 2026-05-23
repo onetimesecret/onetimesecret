@@ -143,6 +143,17 @@ RSpec.describe 'Billing Orgs Validate CLI', :billing_cli do
       expect(output).to include('bin/ots billing catalog pull')
       expect(output).to include('bin/ots billing diagnose --org')
     end
+
+    it 'memoizes Plan.load_with_fallback per planid (no N+1)' do
+      run_command
+
+      # ghost_plan appears on two orgs; identity_plus_v1 and
+      # typo_plus_v1 appear on one each. Without memoization we'd
+      # see 4 calls; with memoization we see 3 (one per unique id).
+      expect(::Billing::Plan).to have_received(:load_with_fallback).with('ghost_plan').once
+      expect(::Billing::Plan).to have_received(:load_with_fallback).with('typo_plus_v1').once
+      expect(::Billing::Plan).to have_received(:load_with_fallback).with('identity_plus_v1').once
+    end
   end
 
   describe '--json output' do
