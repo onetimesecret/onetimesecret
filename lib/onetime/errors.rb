@@ -36,6 +36,7 @@ module Onetime
   end
 
   class MigrationError < Problem
+    include FatalBootError
   end
 
   class RecordNotFound < Problem
