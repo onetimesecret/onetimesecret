@@ -247,16 +247,30 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         }.to raise_error(Redis::CannotConnectError, "Test Redis error")
       end
 
-      it "re-raises FatalBootError in :cli mode (e.g. ConfigError)" do
-        # Bad config (deprecation, validation, etc.) leaves OT.conf nil — we
-        # must surface the actual error rather than swallowing it for REPL
-        # debugging. ConfigError includes FatalBootError to signal this.
-        config_error = OT::ConfigError.new("Deprecated configuration detected: foo.bar")
-        allow(Onetime::Config).to receive(:after_load).and_raise(config_error)
+      it "re-raises ConfigError from deprecated config in :cli mode" do
+        # Real path: load returns a config with a deprecated key, check_deprecations
+        # raises ConfigError (which includes FatalBootError), and boot! must
+        # propagate it instead of swallowing for the CLI REPL.
+        deprecated_conf = loaded_config.dup
+        deprecated_conf['site']['domains'] = { 'enabled' => true }
+        allow(Onetime::Config).to receive(:load).and_return(deprecated_conf)
 
         expect {
           Onetime.boot!(:cli)
-        }.to raise_error(OT::ConfigError, /Deprecated configuration detected/)
+        }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
+      end
+
+      it "re-raises ConfigError in non-CLI mode too (parity with prior behavior)" do
+        # FatalBootError must NOT regress the non-CLI path — config errors
+        # have always halted there. Verifies the new marker doesn't change
+        # behavior outside CLI mode.
+        deprecated_conf = loaded_config.dup
+        deprecated_conf['site']['domains'] = { 'enabled' => true }
+        allow(Onetime::Config).to receive(:load).and_return(deprecated_conf)
+
+        expect {
+          Onetime.boot!(:test)
+        }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
       end
 
       it "still swallows non-fatal OT::Problem in :cli mode for REPL debugging" do
