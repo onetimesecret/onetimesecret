@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import UserMenu from '@/shared/components/navigation/UserMenu.vue';
-import { nextTick, ref, reactive } from 'vue';
+import { nextTick, ref } from 'vue';
 
 // Mock HeadlessUI components (Menu + Dialog for PlanPreviewModal)
 vi.mock('@headlessui/vue', () => ({
@@ -104,13 +104,17 @@ vi.mock('vue-router', () => ({
 }));
 
 // Mock organization store state (mutable for per-test customization)
-// Use reactive() so the component can access .currentOrganization?.current_user_role
-const mockOrganizationStoreState = reactive({
-  currentOrganization: null as { current_user_role: string | null } | null,
-});
+// The component uses storeToRefs(useOrganizationStore()), so currentOrganization
+// must be a ref for storeToRefs to extract it properly.
+const mockCurrentOrganizationRef = ref<{
+  current_user_role: string | null;
+  extid?: string;
+} | null>(null);
 
 vi.mock('@/shared/stores/organizationStore', () => ({
-  useOrganizationStore: () => mockOrganizationStoreState,
+  useOrganizationStore: () => ({
+    currentOrganization: mockCurrentOrganizationRef,
+  }),
 }));
 
 // Mock product identity store state (mutable for per-test customization)
@@ -185,7 +189,7 @@ describe('UserMenu', () => {
     mockLogout.mockReset();
     mockPush.mockReset();
     // Reset mock store states to defaults
-    mockOrganizationStoreState.currentOrganization = null;
+    mockCurrentOrganizationRef.value = null;
     mockIsCustomRef.value = false;
   });
 
@@ -589,7 +593,7 @@ describe('UserMenu', () => {
     describe('Custom domain member (role: member)', () => {
       beforeEach(() => {
         mockIsCustomRef.value = true;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'member',
         };
       });
@@ -612,7 +616,7 @@ describe('UserMenu', () => {
     describe('Custom domain admin (role: admin)', () => {
       beforeEach(() => {
         mockIsCustomRef.value = true;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'admin',
         };
       });
@@ -636,7 +640,7 @@ describe('UserMenu', () => {
     describe('Custom domain owner (role: owner)', () => {
       beforeEach(() => {
         mockIsCustomRef.value = true;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'owner',
         };
       });
@@ -660,7 +664,7 @@ describe('UserMenu', () => {
     describe('Canonical site member (not custom domain)', () => {
       beforeEach(() => {
         mockIsCustomRef.value = false;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'member',
         };
       });
@@ -677,7 +681,7 @@ describe('UserMenu', () => {
     describe('Canonical site with no organization (null role)', () => {
       beforeEach(() => {
         mockIsCustomRef.value = false;
-        mockOrganizationStoreState.currentOrganization = null;
+        mockCurrentOrganizationRef.value = null;
       });
 
       it('should see full menu', async () => {
@@ -692,7 +696,7 @@ describe('UserMenu', () => {
     describe('Custom domain with null organization (edge case)', () => {
       beforeEach(() => {
         mockIsCustomRef.value = true;
-        mockOrganizationStoreState.currentOrganization = null;
+        mockCurrentOrganizationRef.value = null;
       });
 
       it('should see full menu when organization has not loaded yet', async () => {
@@ -708,7 +712,7 @@ describe('UserMenu', () => {
     describe('MFA precedence over domain/role restrictions', () => {
       it('should restrict menu when awaitingMfa=true even for custom domain member', async () => {
         mockIsCustomRef.value = true;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'member',
         };
 
@@ -722,7 +726,7 @@ describe('UserMenu', () => {
 
       it('should restrict menu when awaitingMfa=true even for custom domain owner', async () => {
         mockIsCustomRef.value = true;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'owner',
         };
 
@@ -736,7 +740,7 @@ describe('UserMenu', () => {
 
       it('should restrict menu when awaitingMfa=true on canonical site', async () => {
         mockIsCustomRef.value = false;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'owner',
         };
 
@@ -752,7 +756,7 @@ describe('UserMenu', () => {
     describe('Divider logic for simplified menu', () => {
       it('should not have orphan dividers when menu is simplified', async () => {
         mockIsCustomRef.value = true;
-        mockOrganizationStoreState.currentOrganization = {
+        mockCurrentOrganizationRef.value = {
           current_user_role: 'member',
         };
 
@@ -787,7 +791,7 @@ describe('UserMenu', () => {
 
       it('should have proper dividers for full menu (canonical site)', async () => {
         mockIsCustomRef.value = false;
-        mockOrganizationStoreState.currentOrganization = null;
+        mockCurrentOrganizationRef.value = null;
 
         wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
 

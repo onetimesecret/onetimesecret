@@ -44,6 +44,11 @@ module Onetime
         default: nil,
         desc: 'Filter by owner email'
 
+      option :plan,
+        type: :string,
+        default: nil,
+        desc: 'Filter by plan ID'
+
       option :check,
         type: :boolean,
         default: false,
@@ -59,7 +64,7 @@ module Onetime
         default: 50,
         desc: 'Maximum organizations to list'
 
-      def call(list: false, show: nil, customer: nil, subscription: nil, owner: nil, check: false, verbose: false, limit: 50, **)
+      def call(list: false, show: nil, customer: nil, subscription: nil, owner: nil, plan: nil, check: false, verbose: false, limit: 50, **)
         boot_application!
 
         if show
@@ -71,7 +76,7 @@ module Onetime
         elsif check
           check_organizations
         elsif list
-          list_organizations(owner: owner, limit: limit, verbose: verbose)
+          list_organizations(owner: owner, plan: plan, limit: limit, verbose: verbose)
         else
           puts format('%d organizations', Onetime::Organization.count)
           puts "\nUsage:"
@@ -155,26 +160,12 @@ module Onetime
         puts
       end
 
-      def list_organizations(owner: nil, limit: 50, verbose: false)
+      def list_organizations(owner: nil, plan: nil, limit: 50, verbose: false)
         all_org_ids = Onetime::Organization.instances.all
         puts format('%d total organizations', all_org_ids.size)
         puts
 
-        orgs = all_org_ids.take(limit).map do |oid|
-          Onetime::Organization.load(oid)
-        end.compact
-
-        # Filter by owner if specified
-        if owner
-          orgs = orgs.select do |org|
-            owner_cust = org.owner
-            next false unless owner_cust&.email
-
-            owner_cust.email.downcase.include?(owner.downcase)
-          end
-          puts format('Filtered to %d organizations owned by "%s"', orgs.size, owner)
-          puts
-        end
+        orgs = load_organizations(all_org_ids, owner: owner, plan: plan, limit: limit)
 
         return if orgs.empty?
 
@@ -281,6 +272,38 @@ module Onetime
         return str if str.length <= max_length
 
         "#{str[0, max_length - 1]}…"
+      end
+
+      def load_organizations(all_org_ids, owner:, plan:, limit:)
+        if owner || plan
+          load_filtered_organizations(all_org_ids, owner: owner, plan: plan, limit: limit)
+        else
+          all_org_ids.take(limit).filter_map { |oid| Onetime::Organization.load(oid) }
+        end
+      end
+
+      def load_filtered_organizations(all_org_ids, owner:, plan:, limit:)
+        orgs = []
+        all_org_ids.each do |oid|
+          org = Onetime::Organization.load(oid)
+          next unless org
+          next if owner && !matches_owner?(org, owner)
+          next if plan && org.planid != plan
+
+          orgs << org
+          break if orgs.size >= limit
+        end
+
+        filter_desc = [owner && "owner=#{owner}", plan && "plan=#{plan}"].compact.join(', ')
+        puts format('Found %d organizations matching %s (limit: %d)', orgs.size, filter_desc, limit)
+        puts
+
+        orgs
+      end
+
+      def matches_owner?(org, owner)
+        owner_email = org.owner&.email&.downcase
+        owner_email&.include?(owner.downcase)
       end
     end
   end

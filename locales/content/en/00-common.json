@@ -1474,5 +1474,10 @@
     "text": "Copy account ID",
     "context": "Tooltip for copy ID button in user menu",
     "content_hash": "b8e4f2c3"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Your organization's unique identifier",
+    "context": "Tooltip for organization ID in user menu footer",
+    "content_hash": "c9f5g3d4"
   }
 }
