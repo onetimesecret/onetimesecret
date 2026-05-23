@@ -13,6 +13,12 @@
 #   bin/ots customers verify user@example.com      # Lookup by email
 #   bin/ots customers verify ur1234567890abcdef    # Lookup by extid
 
+# The auth app's operations autoloader (apps/web/auth/operations.rb)
+# only runs when the auth Rack app boots for HTTP serving; CLI runs
+# don't go through that path. Load the op explicitly so the call site
+# resolves at runtime.
+require 'auth/operations/set_customer_verification'
+
 module Onetime
   module CLI
     class CustomersVerifyCommand < Command
