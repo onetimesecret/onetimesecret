@@ -9,10 +9,13 @@
  * Entitlement-gated sections show a lock icon and upgrade link.
  */
 import { useI18n } from 'vue-i18n';
+import { useConfirmDialog } from '@vueuse/core';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
+import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import { useDomain } from '@/shared/composables/useDomain';
+import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
@@ -31,8 +34,19 @@ const router = useRouter();
 
 const props = defineProps<{ extid: string; orgid: string }>();
 
+const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
+const { deleteDomain } = useDomainsManager();
+
 const handleBack = () => {
   router.push(`/org/${props.orgid}/domains`);
+};
+
+const handleRemoveDomain = async () => {
+  const confirmed = await reveal();
+  if (confirmed) {
+    await deleteDomain(props.extid);
+    router.push(`/org/${props.orgid}/domains`);
+  }
 };
 
 const {
@@ -97,17 +111,6 @@ const sections = computed<Section[]>(() => [
     enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
   },
   {
-    key: 'incoming',
-    route: { name: 'DomainIncoming', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'inbox-arrow-down' },
-    titleKey: 'web.domains.incoming.configure_incoming',
-    descriptionKey: 'web.domains.detail.incoming_description',
-    available: isOrgsIncomingSecretsEnabled(),
-    locked: !canIncomingSecrets.value,
-    toggleable: false,
-    enabled: false,
-  },
-  {
     key: 'brand',
     route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
     icon: { collection: 'heroicons', name: 'paint-brush' },
@@ -115,6 +118,17 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.brand_description',
     available: true,
     locked: !canBrand.value,
+    toggleable: false,
+    enabled: false,
+  },
+  {
+    key: 'incoming',
+    route: { name: 'DomainIncoming', params: { orgid: props.orgid, extid: props.extid } },
+    icon: { collection: 'heroicons', name: 'inbox-arrow-down' },
+    titleKey: 'web.domains.incoming.configure_incoming',
+    descriptionKey: 'web.domains.detail.incoming_description',
+    available: isOrgsIncomingSecretsEnabled(),
+    locked: !canIncomingSecrets.value,
     toggleable: false,
     enabled: false,
   },
@@ -269,6 +283,52 @@ aria-hidden="true" />
           </div>
         </template>
       </div>
+
+      <!-- Careful Consideration Zone -->
+      <template v-if="canAdmin">
+        <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
+        <div>
+        <h2 class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
+          {{ t('web.COMMON.caution_zone') }}
+        </h2>
+        <div class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
+          <div class="flex items-center justify-between gap-4 px-5 py-4">
+            <div class="flex min-w-0 items-center gap-4">
+              <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                <OIcon
+                  collection="heroicons"
+                  name="trash"
+                  class="size-5 text-red-600 dark:text-red-400"
+                  aria-hidden="true" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.domains.remove_domain') }}
+                </h3>
+                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('web.domains.remove_domain_description') }}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/50 dark:focus:ring-offset-gray-900"
+              @click="handleRemoveDomain">
+              {{ t('web.COMMON.remove') }}
+            </button>
+          </div>
+        </div>
+        </div>
+      </template>
     </div>
+
+    <!-- Confirm Dialog -->
+    <ConfirmDialog
+      v-if="isRevealed"
+      :title="t('web.domains.remove_domain')"
+      :message="t('web.domains.are_you_sure_you_want_to_remove_this_domain')"
+      type="danger"
+      @confirm="confirm"
+      @cancel="cancel" />
   </div>
 </template>

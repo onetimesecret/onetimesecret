@@ -391,6 +391,10 @@
     "text": "Remove Domain",
     "content_hash": "07a1675d"
   },
+  "web.domains.remove_domain_description": {
+    "text": "Permanently remove this domain and all its configuration.",
+    "content_hash": "d4e8f1a2"
+  },
   "web.domains.domain_removed_successfully": {
     "text": "Domain removed successfully",
     "content_hash": "2984d483"
