@@ -32,6 +32,8 @@ module Onetime
         puts '  bin/ots customers role demote EMAIL        # Demote to customer'
         puts '  bin/ots customers role list                # List all colonels'
         puts '  bin/ots customers show EMAIL               # Show customer details'
+        puts '  bin/ots customers verify EMAIL             # Mark customer as verified'
+        puts '  bin/ots customers unverify EMAIL           # Mark customer as unverified'
         puts '  bin/ots customers dates                    # Count by creation year'
         puts '  bin/ots customers dates --by-age           # Count by age bucket'
         puts '  bin/ots customers dates --refresh          # Force cache rebuild'
