@@ -295,7 +295,7 @@ module Onetime
         conf['features']['regions']['jurisdictions'] = entries.map do |entry|
           identifier, domain = entry.split(':', 2).map(&:strip)
           if identifier.empty? || domain.to_s.empty?
-            raise OT::Problem, "Invalid JURISDICTIONS format: '#{entry}' (expected ID:domain)"
+            raise OT::ConfigError, "Invalid JURISDICTIONS format: '#{entry}' (expected ID:domain)"
           end
 
           {

@@ -3,6 +3,13 @@
 # frozen_string_literal: true
 
 module Onetime
+  # Marker module for boot errors that must always halt execution, even in
+  # CLI mode. Without this marker, boot! swallows OT::Problem in :cli to
+  # allow REPL debugging — but config errors leave OT.conf unusable, so
+  # commands hit nil errors downstream. Including this module signals
+  # "boot cannot recover from this; surface the error to the user."
+  module FatalBootError; end
+
   # The Problem class inherits from RuntimeError, which is a subclass of StandardError.
   # Both RuntimeError and StandardError are standard exception classes in Ruby, but
   # RuntimeError is used for errors that are typically caused by the program's logic
@@ -25,9 +32,11 @@ module Onetime
   # correctly and needs to be reviewed and corrected before normal operation
   # can proceed.
   class ConfigError < Problem
+    include FatalBootError
   end
 
   class MigrationError < Problem
+    include FatalBootError
   end
 
   class RecordNotFound < Problem

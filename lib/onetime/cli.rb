@@ -18,11 +18,6 @@ module Onetime
       def boot_application!
         # Make sure all the models are loaded before calling boot
         OT.boot! :cli
-
-        # boot! swallows exceptions in CLI mode (for console debugging).
-        # Commands that depend on a fully-booted app should fail fast
-        # with a clear message instead of hitting nil errors later.
-        warn 'Boot failed: OT.conf is nil' unless OT.conf
       end
 
       protected
