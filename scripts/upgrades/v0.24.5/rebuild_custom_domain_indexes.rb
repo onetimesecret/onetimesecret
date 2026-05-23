@@ -242,11 +242,13 @@ if $PROGRAM_NAME == __FILE__
     warn 'Refusing: --execute requires CONFIRM=yes.'
     exit 2
   end
-  OT.boot! :cli
-  abort 'Boot failed: OT.conf is nil' unless OT.conf
   begin
+    OT.boot! :cli
     Onetime::CustomDomain::IndexRebuilder.run(execute: execute, verbose: verbose)
     exit 0
+  rescue Onetime::FatalBootError => ex
+    warn ex.message
+    exit 1
   rescue StandardError => ex
     warn "[rebuild_custom_domain_indexes] #{ex.class}: #{ex.message}"
     warn ex.backtrace.first(10).join("\n") if verbose

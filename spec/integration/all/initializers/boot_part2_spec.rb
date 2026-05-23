@@ -273,6 +273,18 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
       end
 
+      it "re-raises ConfigError from deprecated env var in :cli mode" do
+        # Env-var deprecations go through a separate branch in check_deprecations
+        # (ENV check vs config-path check). Cover both to prevent silent regressions.
+        ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH'] = '5'
+
+        expect {
+          Onetime.boot!(:cli)
+        }.to raise_error(OT::ConfigError, /trusted_proxy_depth is ignored/)
+      ensure
+        ENV.delete('UI_HOMEPAGE_TRUSTED_PROXY_DEPTH')
+      end
+
       it "still swallows non-fatal OT::Problem in :cli mode for REPL debugging" do
         # Non-fatal Problem errors (e.g. transient initializer failures) remain
         # swallowed in CLI mode so the console session can stay alive.
