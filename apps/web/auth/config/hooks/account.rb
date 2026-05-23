@@ -205,8 +205,18 @@ module Auth::Config::Hooks
             email: account[:email],
           )
 
-          Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
-            Auth::Operations::VerifyCustomer.new(account: account).call
+          Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:external_id]) do
+            next unless account[:external_id]
+
+            customer = Onetime::Customer.find_by_extid(account[:external_id])
+            next unless customer
+
+            Auth::Operations::SetCustomerVerification.new(
+              customer: customer,
+              verified: true,
+              verified_by: 'email',
+              rodauth_already_synced: true,
+            ).call
           end
 
           # Surface pending plan intent for checkout redirect (issue #3126)
