@@ -4,9 +4,15 @@
   - position: 'top' | 'bottom' (default: 'top') — store value takes precedence
   - alignment: 'left' | 'right' (default: 'right') — horizontal corner
   - showLabel: show message text (default: true) — false for icon-only pill
-  - duration: unused — no progress bar; display time is store's 5000ms
-  - autoDismiss: unused — always auto-dismisses via store
+  - duration: ms before auto-dismiss (default: 2000) — overrides store's 5000ms
+  - autoDismiss: enable auto-dismiss (default: true)
   - loading: show spinner state (default: false)
+  - rounded: border radius (default: 'full') — 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
+
+  STYLING (in getStatusConfig):
+  - ringClasses: ring color/opacity per severity, e.g. 'ring-green-300/50'
+    To adjust brightness: change the /50 opacity or color shade (300 → 200)
+  - Pulse shadow: in @keyframes subtle-pulse, adjust rgb(0 0 0 / 0.06) opacity
 
   Minimal pill indicator with subtle pulse. Interchangeable with StatusBar, StatusCorner.
   Pulse animation respects prefers-reduced-motion.
@@ -17,9 +23,11 @@ import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { NotificationAlignment } from '@/types/ui/notifications';
-import { computed } from 'vue';
+import { computed, watch, onBeforeUnmount } from 'vue';
 
 const { t, te } = useI18n();
+
+type RoundedSize = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 interface Props {
   autoDismiss?: boolean;
@@ -28,6 +36,7 @@ interface Props {
   position?: 'top' | 'bottom';
   alignment?: Exclude<NotificationAlignment, 'center'>;
   showLabel?: boolean;
+  rounded?: RoundedSize;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -37,9 +46,34 @@ const props = withDefaults(defineProps<Props>(), {
   position: undefined,
   alignment: 'right',
   showLabel: true,
+  rounded: 'md',
 });
 
 const notifications = useNotificationsStore();
+
+let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearHideTimer() {
+  if (hideTimer !== null) {
+    clearTimeout(hideTimer);
+    hideTimer = null;
+  }
+}
+
+watch(
+  () => notifications.isVisible,
+  (visible) => {
+    clearHideTimer();
+    if (visible && props.autoDismiss && !props.loading) {
+      hideTimer = setTimeout(() => {
+        notifications.hide();
+      }, props.duration);
+    }
+  },
+  { immediate: true }
+);
+
+onBeforeUnmount(clearHideTimer);
 
 const effectivePosition = computed(() =>
   notifications.position || props.position || 'top'
@@ -127,11 +161,12 @@ const shouldPulse = computed(() => statusConfig.value?.pulse && !props.loading);
       :leave-to-class="enterFromClasses">
       <div
         v-if="notifications.isVisible"
-        class="fixed z-50 flex items-center gap-2 rounded-full px-3 py-1.5 shadow-md ring-1 backdrop-blur-sm transition-all duration-200"
+        class="fixed z-50 flex items-center gap-2 px-3 py-1.5 shadow-md ring-1 backdrop-blur-sm transition-all duration-200"
         :class="[
           positionClasses,
           statusConfig?.bgClasses,
           statusConfig?.ringClasses,
+          `rounded-${rounded}`,
           { 'animate-subtle-pulse': shouldPulse },
           { 'px-2': !showLabel }
         ]"
