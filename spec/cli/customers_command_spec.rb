@@ -4,6 +4,12 @@
 
 require_relative 'cli_spec_helper'
 
+# CLI spec helper mocks OT.boot!, so the auth operations namespace
+# isn't autoloaded. The verify/unverify subcommand tests stub
+# Auth::Operations::SetCustomerVerification.new, which requires the
+# constant to exist at stub time — load it explicitly.
+require 'auth/operations/set_customer_verification'
+
 RSpec.describe 'Customers Command', type: :cli do
   let(:customer1) do
     double('Customer',
