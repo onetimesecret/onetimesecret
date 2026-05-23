@@ -21,7 +21,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
   # double exposes just those plus the predicates the op consults.
   let(:customer) do
     double('Customer',
-      objid: 'cust_test_123',
+      extid: 'ur_test_123',
       email: 'user@example.com',
       verified?: false,
       :verified= => nil,

@@ -78,7 +78,7 @@ module Auth
         update_rodauth_account! if full_auth_mode? && !@rodauth_already_synced
         update_customer!
 
-        auth_logger.info "[set-customer-verification] #{@customer.objid} " \
+        auth_logger.info "[set-customer-verification] #{@customer.extid} " \
           "verified=#{@verified} verified_by=#{@verified_by.inspect} " \
           "auth_mode=#{Onetime.auth_config.mode} " \
           "rodauth_already_synced=#{@rodauth_already_synced}"
@@ -95,10 +95,14 @@ module Auth
         db = @db || Auth::Database.connection
         raise NoAuthDatabase, 'Auth database unreachable' unless db
 
+        # status_id: 1=Unverified, 2=Verified (per Rodauth convention,
+        # mirrors lib/onetime/cli/customers/create_command.rb).
+        # Sequel::CURRENT_TIMESTAMP lets the DB own updated_at — matches
+        # sync_auth_accounts_command.rb and avoids any client-side TZ drift.
         rows = db.transaction do
           db[:accounts]
             .where(email: @customer.email)
-            .update(status_id: @verified ? 2 : 1, updated_at: Time.now)
+            .update(status_id: @verified ? 2 : 1, updated_at: Sequel::CURRENT_TIMESTAMP)
         end
         return unless rows.zero?
 
