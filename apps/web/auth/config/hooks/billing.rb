@@ -65,6 +65,8 @@ module Auth::Config::Hooks
       return [nil, nil] if customer.pending_plan_intent&.value.to_s.strip == ''
 
       intent = JSON.parse(customer.pending_plan_intent.value)
+      return [nil, nil] unless intent.is_a?(Hash)
+
       customer.pending_plan_intent.delete!
       [intent['product'], intent['interval']]
     rescue JSON::ParserError => ex

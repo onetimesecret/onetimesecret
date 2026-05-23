@@ -166,5 +166,93 @@ RSpec.describe Auth::Config::Hooks::Billing do
         expect(interval).to eq('yearly')
       end
     end
+
+    # =========================================================================
+    # Non-Hash JSON types: graceful handling without TypeError
+    # =========================================================================
+    # These test the guard added in billing.rb line 68:
+    #   return [nil, nil] unless intent.is_a?(Hash)
+    # Previously, non-Hash JSON would crash with TypeError on field access.
+    # Now returns [nil, nil] and preserves intent for debugging (no delete!).
+
+    context 'when pending_plan_intent contains JSON array (empty)' do
+      let(:customer) { MockCustomer.new('[]') }
+
+      it 'returns [nil, nil]' do
+        product, interval = described_class.extract_pending_plan_intent(customer)
+
+        expect([product, interval]).to eq([nil, nil])
+      end
+
+      it 'does NOT call delete! (preserves intent for debugging)' do
+        described_class.extract_pending_plan_intent(customer)
+
+        expect(customer.pending_plan_intent.value).to eq('[]')
+      end
+    end
+
+    context 'when pending_plan_intent contains JSON array (non-empty)' do
+      let(:customer) { MockCustomer.new('[1, 2, 3]') }
+
+      it 'returns [nil, nil]' do
+        product, interval = described_class.extract_pending_plan_intent(customer)
+
+        expect([product, interval]).to eq([nil, nil])
+      end
+
+      it 'does NOT call delete! (preserves intent for debugging)' do
+        described_class.extract_pending_plan_intent(customer)
+
+        expect(customer.pending_plan_intent.value).to eq('[1, 2, 3]')
+      end
+    end
+
+    context 'when pending_plan_intent contains JSON string' do
+      let(:customer) { MockCustomer.new('"just a string"') }
+
+      it 'returns [nil, nil]' do
+        product, interval = described_class.extract_pending_plan_intent(customer)
+
+        expect([product, interval]).to eq([nil, nil])
+      end
+
+      it 'does NOT call delete! (preserves intent for debugging)' do
+        described_class.extract_pending_plan_intent(customer)
+
+        expect(customer.pending_plan_intent.value).to eq('"just a string"')
+      end
+    end
+
+    context 'when pending_plan_intent contains JSON null' do
+      let(:customer) { MockCustomer.new('null') }
+
+      it 'returns [nil, nil]' do
+        product, interval = described_class.extract_pending_plan_intent(customer)
+
+        expect([product, interval]).to eq([nil, nil])
+      end
+
+      it 'does NOT call delete! (preserves intent for debugging)' do
+        described_class.extract_pending_plan_intent(customer)
+
+        expect(customer.pending_plan_intent.value).to eq('null')
+      end
+    end
+
+    context 'when pending_plan_intent contains JSON number' do
+      let(:customer) { MockCustomer.new('42') }
+
+      it 'returns [nil, nil]' do
+        product, interval = described_class.extract_pending_plan_intent(customer)
+
+        expect([product, interval]).to eq([nil, nil])
+      end
+
+      it 'does NOT call delete! (preserves intent for debugging)' do
+        described_class.extract_pending_plan_intent(customer)
+
+        expect(customer.pending_plan_intent.value).to eq('42')
+      end
+    end
   end
 end
