@@ -18,8 +18,9 @@ module Onetime
       option :failed, type: :boolean, desc: 'Show only failed events'
       option :stats, type: :boolean, desc: 'Show webhook processing statistics'
       option :migrate, type: :boolean, desc: 'Migrate legacy events to new format'
+      option :customer, type: :string, desc: 'Filter by customer (cus_xxx or org extid)'
 
-      def call(event_id: nil, status: nil, failed: false, stats: false, migrate: false, **)
+      def call(event_id: nil, status: nil, failed: false, stats: false, migrate: false, customer: nil, **)
         boot_application!
 
         return unless stripe_configured?
@@ -30,6 +31,8 @@ module Onetime
           show_statistics
         elsif event_id
           inspect_event(event_id)
+        elsif customer
+          list_events_by_customer(customer)
         elsif failed || status
           list_events_by_status(status || 'failed')
         else
@@ -44,6 +47,7 @@ module Onetime
         puts '  ots billing webhooks EVENT_ID         # Inspect specific event'
         puts '  ots billing webhooks --failed         # List failed events'
         puts '  ots billing webhooks --status pending # List pending events'
+        puts '  ots billing webhooks --customer cus_  # List events for customer'
         puts '  ots billing webhooks --stats          # Show statistics'
         puts '  ots billing webhooks --migrate        # Migrate legacy events to new format'
         puts ''
@@ -210,6 +214,91 @@ module Onetime
 
         puts ''
         puts "Total: #{matching_events.size} #{target_status} event(s)"
+      end
+
+      def list_events_by_customer(customer_input)
+        stripe_customer_id = resolve_customer_id(customer_input)
+
+        unless stripe_customer_id
+          puts "Could not resolve customer: #{customer_input}"
+          return
+        end
+
+        puts "Scanning for events matching customer #{stripe_customer_id}..."
+        puts ''
+
+        matching_events = []
+        scan_webhook_events do |event|
+          next unless matches_customer?(event, stripe_customer_id, original_customer_id: customer_input)
+
+          matching_events << event
+          break if matching_events.size >= 50
+        end
+
+        if matching_events.empty?
+          puts 'No events found for this customer'
+          return
+        end
+
+        puts format('%-25s %-35s %-12s %s', 'EVENT ID', 'TYPE', 'STATUS', 'LAST ATTEMPT')
+        puts '-' * 100
+
+        matching_events.sort_by { |e| -(e.last_attempt_at.to_i) }.each do |event|
+          puts format(
+            '%-25s %-35s %-12s %s',
+            event.stripe_event_id,
+            event.event_type.to_s[0...35],
+            format_status(event.processing_status),
+            format_timestamp(event.last_attempt_at),
+          )
+        end
+
+        puts ''
+        puts "Total: #{matching_events.size} event(s)"
+      end
+
+      def resolve_customer_id(input)
+        return input if input.start_with?('cus_')
+
+        # Try as org extid
+        org = Onetime::Organization.find_by_extid(input)
+        return org.stripe_customer_id if org&.stripe_customer_id
+
+        # Try as customer extid
+        cust = Onetime::Customer.find_by_extid(input)
+        cust&.stripe_customer_id
+      end
+
+      def scan_webhook_events
+        cursor       = '0'
+        prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
+
+        loop do
+          cursor, batch = Familia.dbclient.scan(cursor, match: prefix_match, count: 100)
+
+          batch.each do |key|
+            event_id = key.split(':')[-2]
+            event    = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+            yield event if event
+          end
+
+          break if cursor == '0'
+        end
+      end
+
+      def matches_customer?(event, stripe_customer_id, original_customer_id: nil)
+        return true if stripe_customer_id && event.data_object_id == stripe_customer_id
+
+        payload = event.deserialize_payload
+        return false unless payload
+
+        data_obj = payload.dig('data', 'object') || {}
+
+        return true if stripe_customer_id && data_obj['customer'] == stripe_customer_id
+        return true if stripe_customer_id && data_obj['id'] == stripe_customer_id
+        return true if original_customer_id && data_obj.dig('metadata', 'customer_extid') == original_customer_id
+
+        false
       end
 
       def show_statistics
