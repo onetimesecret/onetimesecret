@@ -10,21 +10,28 @@
 #
 # Background
 # ----------
-# When a user signs in via tenant-SSO on a custom domain, two hooks attempt to
-# join them to the domain's primary organization:
+# When a user signs in via tenant-SSO on a custom domain, two hooks coordinate
+# to join them to the domain's primary organization:
 #
-#   1. after_omniauth_create_account (omniauth.rb) — new accounts
-#   2. after_login (login.rb)                      — all successful logins
+#   - after_omniauth_create_account (omniauth.rb) — owns NEW accounts.
+#       Reads & deletes :validated_omniauth_domain_id; calls JoinDomainOrganization
+#       with the freshly created customer.
+#   - after_login (login.rb) — owns EXISTING accounts.
+#       Reads & deletes :validated_omniauth_domain_id; if present (i.e., the
+#       create-hook did not consume it), looks up the customer via extid and
+#       calls JoinDomainOrganization.
 #
-# Both hooks read `session[:validated_omniauth_domain_id]`, which is set by
-# the `before_omniauth_callback_route` hook in omniauth_tenant.rb after the
-# cross-tenant validation passes. Before the fix, those hooks read the
-# original `:omniauth_tenant_domain_id` key, which had already been deleted
-# by the validation hook — so JoinDomainOrganization was never invoked.
+# The :validated_omniauth_domain_id key is set by the before_omniauth_callback_route
+# hook in omniauth_tenant.rb after the cross-tenant validation passes. Before
+# the fix, downstream hooks read :omniauth_tenant_domain_id, which had already
+# been deleted by the validation hook — so JoinDomainOrganization was never
+# invoked and tenant-SSO users only got a Default Workspace.
 #
-# These tests verify the contract between the validation hook and the
-# downstream JoinDomainOrganization operation by exercising the operation
-# against realistic fixtures (CustomDomain + Organization + Customer).
+# These tests cover three layers:
+#
+#   1. Operation-level: JoinDomainOrganization correctness against real fixtures.
+#   2. Hook-contract: the session-key handoff between validation and consumer hooks.
+#   3. End-to-end: real OAuth callback flow asserting tenant org membership.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -39,6 +46,7 @@
 require_relative '../spec_helper'
 require_relative '../support/tenant_test_fixtures'
 require_relative '../support/domain_sso_test_fixtures'
+require_relative '../support/oauth_flow_helper'
 
 RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integration do
   include TenantTestFixtures
@@ -53,8 +61,8 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   let(:test_run_id) { SecureRandom.hex(8) }
   let(:tenant_domain) { "secrets-#{test_run_id}.acme-corp.example.com" }
 
-  # Build domain + organization fixtures (mirrors tenant fixtures context, but
-  # without depending on the shared_context wiring so we can control lifecycle).
+  # Build domain + organization fixtures directly so each describe block
+  # controls its own lifecycle without relying on shared_context wiring.
   let!(:tenant_org_owner) do
     owner = Onetime::Customer.new(email: "owner-#{test_run_id}@tenant.example.com")
     owner.save
@@ -95,29 +103,14 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   end
 
   # ==========================================================================
-  # Hook → Operation contract
+  # Operation-level: JoinDomainOrganization correctness
   # ==========================================================================
-  #
-  # Simulates the post-validation state set by omniauth_tenant.rb after the
-  # fix, then exercises the same JoinDomainOrganization invocation that the
-  # after_omniauth_create_account and after_login hooks perform.
-  #
 
-  describe 'JoinDomainOrganization invoked with validated session key' do
-    it 'adds a new SSO customer to the tenant organization as a member' do
-      # Simulate the session state immediately after callback validation:
-      # the original :omniauth_tenant_domain_id has been consumed, and the
-      # validated identifier has been re-stored under the new key.
-      session = { validated_omniauth_domain_id: tenant_custom_domain.identifier }
-
-      # This is exactly what the downstream hooks do (omniauth.rb:217, login.rb:151).
-      domain_id = session[:validated_omniauth_domain_id]
-      expect(domain_id).to eq(tenant_custom_domain.identifier),
-        'Fixture sanity: validated_omniauth_domain_id must be set'
-
+  describe 'JoinDomainOrganization operation' do
+    it 'adds the customer to the tenant organization as a member' do
       result = Auth::Operations::JoinDomainOrganization.new(
         customer: sso_customer,
-        domain_id: domain_id,
+        domain_id: tenant_custom_domain.identifier,
       ).call
 
       expect(result[:joined]).to be(true), "Expected new user to be joined, got: #{result.inspect}"
@@ -127,17 +120,19 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
         'Customer must be a member of the tenant organization after join'
     end
 
-    it 'is idempotent for a returning user already in the tenant org' do
-      # First call adds them (simulates after_omniauth_create_account)
+    it 'is idempotent: returning user already in org gets no-op' do
+      # First call adds membership
       first = Auth::Operations::JoinDomainOrganization.new(
         customer: sso_customer,
         domain_id: tenant_custom_domain.identifier,
       ).call
       expect(first[:joined]).to be(true)
 
-      # Second call (simulates after_login firing for the same flow) is no-op.
-      # JoinDomainOrganization is intentionally idempotent so both hooks can
-      # safely invoke it for new accounts.
+      # Second call is a no-op. Although the production hooks no longer
+      # double-invoke this op on a single request (after_omniauth_create_account
+      # consumes the validated key for new accounts), the operation's
+      # idempotency guarantee is what makes the consolidation safe across
+      # subsequent SSO logins by the same returning user.
       second = Auth::Operations::JoinDomainOrganization.new(
         customer: sso_customer,
         domain_id: tenant_custom_domain.identifier,
@@ -149,51 +144,140 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
     end
   end
 
-  describe 'hooks short-circuit when validated session key is missing' do
-    # When :validated_omniauth_domain_id is absent — i.e., platform-level auth
-    # (no tenant context) or a callback that did not pass tenant validation —
-    # the hooks must not invoke JoinDomainOrganization. They guard with
-    # `if domain_id`, so the operation should never be called.
+  # ==========================================================================
+  # Hook contract: session-key handoff
+  # ==========================================================================
 
-    it 'does not join the tenant org when session has no validated key (platform-level auth)' do
-      session = {} # No tenant context, no validated key
-
-      domain_id = session[:validated_omniauth_domain_id]
-      expect(domain_id).to be_nil
-
-      # The hook's guard: `if domain_id` — skip when nil
-      if domain_id
-        raise 'Hooks should not invoke JoinDomainOrganization without a validated key'
-      end
-
-      # Customer must NOT have been added to the tenant org
-      expect(tenant_organization.member?(sso_customer)).to be(false),
-        'Customer must remain a non-member without tenant context'
-    end
-
-    it 'does not join the tenant org when callback validation failed (no key set)' do
-      # On cross-tenant mismatch, the hook throws 403 before setting the key,
-      # so downstream hooks would see the key absent.
-      session = {} # Validation failure path: validated key never set
-
-      domain_id = session[:validated_omniauth_domain_id]
-      expect(domain_id).to be_nil
-
-      expect(tenant_organization.member?(sso_customer)).to be(false)
-    end
-  end
-
-  describe 'after_login deletes the validated key (single point of cleanup)' do
-    it 'consumes :validated_omniauth_domain_id via session.delete' do
-      # After fix: after_login uses `session.delete(:validated_omniauth_domain_id)`
-      # to ensure the validated context does not persist into subsequent requests.
+  describe 'session-key handoff (post-fix invariants)' do
+    it 'after_omniauth_create_account consumes the validated key (new accounts)' do
+      # Mirror what the production hook does at omniauth.rb:219
       session = { validated_omniauth_domain_id: tenant_custom_domain.identifier }
-
       domain_id = session.delete(:validated_omniauth_domain_id)
 
       expect(domain_id).to eq(tenant_custom_domain.identifier)
       expect(session).not_to have_key(:validated_omniauth_domain_id),
-        'Validated key must be deleted by after_login so it does not leak into later requests'
+        'after_omniauth_create_account must consume the key so after_login skips for new accounts'
+    end
+
+    it 'after_login skips when create-hook already consumed the key' do
+      # New-account path: create-hook ran first, deleted the key.
+      # Mirror what login.rb:154 does — should see nil and skip.
+      session = {} # Already consumed upstream
+
+      domain_id = session.delete(:validated_omniauth_domain_id)
+      expect(domain_id).to be_nil
+
+      # Hook guard `if domain_id` → skipped → no duplicate op call
+      called = false
+      if domain_id
+        called = true
+        Auth::Operations::JoinDomainOrganization.new(
+          customer: sso_customer,
+          domain_id: domain_id,
+        ).call
+      end
+      expect(called).to be(false), 'after_login must not invoke JoinDomainOrganization for new accounts'
+    end
+
+    it 'after_login handles existing accounts when create-hook did not run' do
+      # Existing-account path: no create-hook fired (account already exists).
+      # The validated key is still in session; after_login consumes it.
+      session = { validated_omniauth_domain_id: tenant_custom_domain.identifier }
+
+      domain_id = session.delete(:validated_omniauth_domain_id)
+      expect(domain_id).to eq(tenant_custom_domain.identifier)
+      expect(session).not_to have_key(:validated_omniauth_domain_id),
+        'after_login must also consume the key to prevent leakage into later requests'
+    end
+
+    it 'hooks skip when no validated key in session (platform-level or password auth)' do
+      session = {}
+
+      domain_id = session.delete(:validated_omniauth_domain_id)
+      expect(domain_id).to be_nil,
+        'Without tenant SSO context, the validated key is never set → both hooks short-circuit'
+    end
+  end
+
+  # ==========================================================================
+  # End-to-end: real OAuth callback flow asserting tenant org membership
+  # ==========================================================================
+  #
+  # Drives the actual Rodauth omniauth callback through the Rack stack and
+  # asserts that, after the flow completes, the SSO customer is a member of
+  # the tenant organization. This is the strongest regression guard for
+  # issue #3114 — a refactor that breaks the session-key handoff would
+  # cause this assertion to fail.
+  #
+
+  describe 'end-to-end OAuth callback joins user to tenant org', :oauth_flow do
+    include Rack::Test::Methods
+    include OAuthFlowHelper
+
+    def app
+      Onetime::Application::Registry.generate_rack_url_map
+    end
+
+    let(:e2e_run_id) { "join-e2e-#{SecureRandom.hex(4)}" }
+    let(:e2e_domain_host) { "secrets-#{e2e_run_id}.tenant.example.com" }
+    let(:e2e_user_email) { "new-user-#{e2e_run_id}@tenant.example.com" }
+
+    before do
+      @e2e_fixtures = setup_oauth_test_domain(e2e_domain_host)
+    end
+
+    after do
+      Onetime::Customer.find_by_email(e2e_user_email)&.destroy! rescue nil
+      cleanup_oauth_test_fixtures
+    end
+
+    it 'creates customer and joins them to the tenant organization' do
+      OmniAuth.config.test_mode = true
+      OmniAuth.config.allowed_request_methods = %i[get post]
+
+      OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
+        provider: 'oidc',
+        uid: "uid-#{e2e_run_id}",
+        info: { email: e2e_user_email, name: 'E2E Test User' },
+      })
+
+      begin
+        # Phase 1: initiate from the tenant domain.
+        # omniauth_setup sets session[:omniauth_tenant_domain_id].
+        header 'Host', e2e_domain_host
+        post '/auth/sso/oidc'
+
+        if last_response.status == 404
+          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
+        end
+        expect(last_response.status).to eq(302),
+          "Initiation should redirect, got: #{last_response.status}"
+
+        # Phase 2: callback from the same tenant domain.
+        # before_omniauth_callback_route validates and now also sets
+        # :validated_omniauth_domain_id. after_omniauth_create_account
+        # consumes it and calls JoinDomainOrganization.
+        header 'Host', e2e_domain_host
+        post '/auth/sso/oidc/callback'
+
+        expect(last_response.status).not_to eq(403),
+          "Callback failed with 403; body: #{last_response.body}"
+
+        # Strong assertion: the customer exists and is a member of the
+        # tenant organization. Before the fix, this would fail — the
+        # customer existed but was NOT a member of the tenant org.
+        tenant_org = @e2e_fixtures[:org]
+        customer = Onetime::Customer.find_by_email(e2e_user_email)
+
+        expect(customer).not_to be_nil,
+          'Customer should have been created by after_omniauth_create_account'
+        expect(tenant_org.member?(customer)).to be(true),
+          "Customer should be a member of the tenant org after SSO. " \
+          "If this fails, the session-key handoff (issue #3114) is broken again."
+      ensure
+        OmniAuth.config.test_mode = false
+        OmniAuth.config.mock_auth.clear
+      end
     end
   end
 end

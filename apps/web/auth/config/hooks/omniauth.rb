@@ -212,11 +212,14 @@ module Auth::Config::Hooks
             Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
           end
 
-          # Join domain's organization if SSO came from a custom domain
-          # This enables domain-based org selection in OrganizationLoader.
-          # Reads the validated key set by omniauth_tenant.rb after callback
-          # validation; does not delete (after_login is responsible for cleanup).
-          domain_id = session[:validated_omniauth_domain_id]
+          # Join domain's organization if SSO came from a custom domain.
+          # This hook OWNS the org-join for newly created SSO accounts (it has
+          # a direct reference to the freshly created customer, whereas after_login
+          # would have to look up via account[:external_id] which is updated in the
+          # database but not in Rodauth's in-memory account hash).
+          # Consuming the key via session.delete here ensures after_login sees nil
+          # and skips for new accounts — preventing a redundant idempotent call.
+          domain_id = session.delete(:validated_omniauth_domain_id)
           if domain_id
             Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_omniauth',
