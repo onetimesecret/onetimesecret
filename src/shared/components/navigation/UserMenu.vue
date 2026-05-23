@@ -88,10 +88,14 @@ const { billing_enabled } = storeToRefs(bootstrapStore);
 // Custom domain filtering: non-owners on custom domains see limited menu
 const { isCustom } = storeToRefs(useProductIdentity());
 const organizationStore = useOrganizationStore();
+const { currentOrganization } = storeToRefs(organizationStore);
 
 const userRole = computed(() =>
-  organizationStore.currentOrganization?.current_user_role || null
+  currentOrganization.value?.current_user_role || null
 );
+
+// Org extid for display/copy (useful for support and testing)
+const orgExtid = computed(() => currentOrganization.value?.extid || null);
 
 // Only restrict members on custom domains — admins see the full menu like owners.
 // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
@@ -390,23 +394,24 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </button>
           </div>
-          <!-- Domain context with copy button -->
+          <!-- Domain context -->
           <div
             v-if="showDomainContext"
-            class="mt-0.5 flex items-center gap-1">
-            <p class="truncate text-xs text-gray-500 dark:text-gray-400">
+            class="group/domain mt-0.5 flex items-center gap-1">
+            <p class="truncate text-sm text-gray-400/80 dark:text-gray-400">
               {{ currentContext.displayName }}
             </p>
             <button
               @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
               :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
-              class="shrink-0 rounded p-0.5 text-gray-400 transition-all
-                hover:bg-gray-100 hover:text-gray-600
-                dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              :class="{ 'text-green-500': copiedField === 'domain' }">
+              class="shrink-0 rounded p-0.5 text-gray-300 transition-all
+                sm:opacity-0 sm:group-hover/domain:opacity-100 sm:focus:opacity-100
+                hover:bg-gray-100 hover:text-gray-500
+                dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+              :class="{ 'text-green-500 opacity-100': copiedField === 'domain' }">
               <OIcon
-                collection="material-symbols"
-                :name="copiedField === 'domain' ? 'check' : 'content-copy-outline'"
+                collection="mdi"
+                :name="copiedField === 'domain' ? 'check' : 'clipboard-text-outline'"
                 class="size-3"
                 aria-hidden="true" />
             </button>
@@ -489,6 +494,37 @@ onUnmounted(() => {
             </button>
           </template>
         </nav>
+
+        <!-- Menu Footer: Org ID for support/debugging -->
+        <div
+          v-if="!awaitingMfa && orgExtid"
+          class="group/extid flex items-center justify-between gap-2
+            border-t border-gray-100 bg-gray-50 px-4 py-2
+            dark:border-gray-700 dark:bg-gray-900/50">
+          <span
+            class="flex items-center gap-1"
+            :title="t('web.COMMON.org_id_tooltip')">
+            <span class="text-[11px] text-gray-400 dark:text-gray-500">ID:</span>
+            <span
+              class="truncate font-mono text-[11px] text-gray-400 dark:text-gray-500">
+              {{ orgExtid }}
+            </span>
+          </span>
+          <button
+            @click.stop="copyToClipboard(orgExtid, 'orgExtid')"
+            :title="copiedField === 'orgExtid' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
+            class="shrink-0 rounded p-0.5 text-gray-300 transition-all
+              sm:opacity-0 sm:group-hover/extid:opacity-100 sm:focus:opacity-100
+              hover:bg-gray-200 hover:text-gray-500
+              dark:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-400"
+            :class="{ 'text-green-500 opacity-100': copiedField === 'orgExtid' }">
+            <OIcon
+              collection="mdi"
+              :name="copiedField === 'orgExtid' ? 'check' : 'clipboard-text-outline'"
+              class="size-3"
+              aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </Transition>
 
