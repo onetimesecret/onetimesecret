@@ -147,8 +147,11 @@ module Auth::Config::Hooks
 
           # Join domain organization for SSO logins on custom domains.
           # This ensures OrganizationLoader returns the domain's org, not personal workspace.
-          # Only runs when session has SSO tenant context (set by omniauth_tenant.rb).
-          domain_id = session[:omniauth_tenant_domain_id]
+          # Only runs when session has SSO tenant context (set by omniauth_tenant.rb
+          # after successful callback validation). Delete consumes the validated
+          # context so it does not persist into subsequent requests; after_login is
+          # the terminal hook in the SSO callback chain for both new and existing accounts.
+          domain_id = session.delete(:validated_omniauth_domain_id)
           if domain_id
             # Load customer by external_id (extid) stored in the account record
             customer = Onetime::Customer.find_by_extid(account[:external_id])

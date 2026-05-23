@@ -161,6 +161,12 @@ module Auth::Config::Hooks
           throw_error_status(403, 'tenant_mismatch', 'Authentication context mismatch')
         end
 
+        # Re-store validated domain_id under a separate key so downstream hooks
+        # (after_omniauth_create_account, after_login) can join the tenant org.
+        # The original :omniauth_tenant_domain_id is intentionally consumed by
+        # session.delete above — separating "pending" from "validated" state.
+        session[:validated_omniauth_domain_id] = expected_domain_id
+
         Auth::Logging.log_auth_event(
           :omniauth_tenant_callback_validated,
           level: :debug,

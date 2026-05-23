@@ -229,9 +229,12 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
         current_domain = helpers.resolve_custom_domain(tenant_domain)
         expect(current_domain&.identifier).to eq(expected_domain_id)
 
-        # Session should still be cleaned up even on success
-        expect(mock_session).to be_empty,
-          "Session tenant context must be cleaned up even on successful callback"
+        # The original 'pending' keys are consumed; the hook re-stores the
+        # validated domain_id under a separate key for downstream consumers.
+        expect(mock_session).not_to have_key(:omniauth_tenant_domain_id),
+          "Original :omniauth_tenant_domain_id must be consumed even on success"
+        expect(mock_session).not_to have_key(:omniauth_tenant_host),
+          "Original :omniauth_tenant_host must be consumed even on success"
       end
 
       it 'cleans up session even on mismatch (failure path)' do
@@ -252,6 +255,72 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
         # Session is already clean regardless of mismatch
         expect(mock_session).to be_empty,
           "Session tenant context must be cleaned up even on failed callback"
+      end
+    end
+
+    describe 'validated domain_id preservation (issue #3114)' do
+      # The hook re-stores the validated domain_id under :validated_omniauth_domain_id
+      # AFTER the mismatch check passes. Downstream hooks
+      # (after_omniauth_create_account, after_login) read this key to call
+      # JoinDomainOrganization. Without this, tenant-SSO users are not added
+      # to the tenant org.
+
+      it 'sets :validated_omniauth_domain_id on successful validation' do
+        mock_session = {
+          omniauth_tenant_domain_id: test_custom_domain.identifier,
+          omniauth_tenant_host: tenant_domain,
+        }
+
+        # Mirror the hook's flow: delete original, validate, then re-store
+        expected_domain_id = mock_session.delete(:omniauth_tenant_domain_id)
+        _expected_host = mock_session.delete(:omniauth_tenant_host)
+
+        current_domain = helpers.resolve_custom_domain(tenant_domain)
+        domain_mismatch = current_domain&.identifier != expected_domain_id
+
+        # On success path, re-store under separate key (this is what the hook does)
+        mock_session[:validated_omniauth_domain_id] = expected_domain_id unless domain_mismatch
+
+        expect(domain_mismatch).to be(false)
+        expect(mock_session[:validated_omniauth_domain_id]).to eq(test_custom_domain.identifier),
+          "Validated domain_id must be preserved for downstream hooks to consume"
+      end
+
+      it 'does NOT set :validated_omniauth_domain_id on mismatch (failure path)' do
+        mock_session = {
+          omniauth_tenant_domain_id: 'domain_that_does_not_exist',
+          omniauth_tenant_host: 'original.example.com',
+        }
+
+        expected_domain_id = mock_session.delete(:omniauth_tenant_domain_id)
+        _expected_host = mock_session.delete(:omniauth_tenant_host)
+
+        current_domain = helpers.resolve_custom_domain(tenant_domain)
+        domain_mismatch = current_domain&.identifier != expected_domain_id
+
+        # On mismatch the hook throws 403 BEFORE the re-store line, so the
+        # validated key never gets set.
+        mock_session[:validated_omniauth_domain_id] = expected_domain_id unless domain_mismatch
+
+        expect(domain_mismatch).to be(true)
+        expect(mock_session).not_to have_key(:validated_omniauth_domain_id),
+          "Validated key must NOT be set when callback validation fails"
+      end
+
+      it 'does NOT set :validated_omniauth_domain_id when no tenant context (platform-level)' do
+        # Platform-level callback: no tenant context was stored during request phase
+        mock_session = {}
+
+        expected_domain_id = mock_session.delete(:omniauth_tenant_domain_id)
+        _expected_host = mock_session.delete(:omniauth_tenant_host)
+
+        # `next unless expected_domain_id` causes the hook to short-circuit;
+        # the re-store line is never reached.
+        skip_validation = !expected_domain_id
+
+        expect(skip_validation).to be(true)
+        expect(mock_session).not_to have_key(:validated_omniauth_domain_id),
+          "Platform-level callback should not set validated key"
       end
     end
   end

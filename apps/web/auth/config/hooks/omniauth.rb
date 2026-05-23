@@ -213,8 +213,10 @@ module Auth::Config::Hooks
           end
 
           # Join domain's organization if SSO came from a custom domain
-          # This enables domain-based org selection in OrganizationLoader
-          domain_id = session[:omniauth_tenant_domain_id]
+          # This enables domain-based org selection in OrganizationLoader.
+          # Reads the validated key set by omniauth_tenant.rb after callback
+          # validation; does not delete (after_login is responsible for cleanup).
+          domain_id = session[:validated_omniauth_domain_id]
           if domain_id
             Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_omniauth',
