@@ -7,7 +7,6 @@ import {
   ChromePicker,
   SketchPicker,
   CompactPicker,
-  MaterialPicker,
   tinycolor
 } from 'vue-color';
 import 'vue-color/style.css';
@@ -16,7 +15,7 @@ import HoverTooltip from './HoverTooltip.vue';
 
 const { t } = useI18n();
 
-export type ColorPickerVariant = 'chrome' | 'sketch' | 'compact' | 'material';
+export type ColorPickerVariant = 'chrome' | 'sketch' | 'compact';
 
 const props = withDefaults(defineProps<{
   modelValue?: string;
@@ -113,7 +112,6 @@ const pickerComponent = computed(() => {
   switch (props.variant) {
     case 'sketch': return SketchPicker;
     case 'compact': return CompactPicker;
-    case 'material': return MaterialPicker;
     case 'chrome':
     default: return ChromePicker;
   }
@@ -226,14 +224,12 @@ const pickerProps = computed(() => {
 /* Override vue-color styles for dark mode compatibility */
 .vc-chrome,
 .vc-sketch,
-.vc-compact,
-.vc-material {
+.vc-compact {
   font-family: inherit;
 }
 
 .dark .vc-chrome,
-.dark .vc-sketch,
-.dark .vc-material {
+.dark .vc-sketch {
   background: rgb(31 41 55) !important;
 }
 
