@@ -85,7 +85,7 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
 
       it 'passes with warnings' do
         output, status = run_command
-        expect(output).to include('VALIDATION PASSED (warnings only)')
+        expect(output).to include('VALIDATION PASSED')
         expect(output).to include('1 warning(s)')
         expect(status).to eq(0)
       end
@@ -118,7 +118,7 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
       it 'fails in strict mode with warnings' do
         output, status = run_command(strict: true)
         expect(output).to include('VALIDATION FAILED')
-        expect(output).to include('warning(s) in strict mode')
+        expect(output).to include('treated as errors in strict mode')
         expect(status).to eq(1)
       end
     end
@@ -141,13 +141,18 @@ RSpec.describe 'Billing Catalog Validate CLI', :billing_cli do
       it 'reports VALIDATION FAILED' do
         output, status = run_command
         expect(output).to include('VALIDATION FAILED')
-        expect(output).to include('1 error(s) found')
+        expect(output).to include('1 item(s) have errors')
         expect(status).to eq(1)
       end
 
       it 'shows error details' do
         output, _status = run_command
         expect(output).to include('Schema validation:')
+      end
+
+      it 'includes the ERRORS section heading' do
+        output, _status = run_command
+        expect(output).to include('ERRORS (1)')
       end
     end
 

@@ -47,6 +47,7 @@ module Onetime
             bin/ots billing diagnose EMAIL        Diagnose entitlement resolution for a user
             bin/ots billing diagnose EMAIL --entitlement custom_mail_sender
             bin/ots billing diagnose EMAIL --verbose
+            bin/ots billing orgs validate         Detect orgs whose planid doesn't resolve
 
           Testing:
             bin/ots billing test create-customer  Create test customer with card
