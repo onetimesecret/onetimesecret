@@ -110,7 +110,7 @@ module Onetime
       #     error_key: 'api.organizations.errors.organization_owner_required',
       #   )
       def verify_one_of_roles!(colonel: false, admin: false, custom_check: nil,
-                                error_message: nil, error_key: nil, args: {})
+                               error_message: nil, error_key: nil, args: {})
         # Check colonel (superuser)
         return true if colonel && has_system_role?('colonel')
 
@@ -150,7 +150,7 @@ module Onetime
       #     error_key: 'api.organizations.errors.colonel_owner_required',
       #   )
       def verify_all_roles!(colonel: false, admin: false, custom_check: nil,
-                             error_message: nil, error_key: nil, args: {})
+                            error_message: nil, error_key: nil, args: {})
         # Check colonel if required
         if colonel && !has_system_role?('colonel')
           message = error_message || 'Requires colonel role'
@@ -184,7 +184,8 @@ module Onetime
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) },
-          error_message: I18n.t(error_key, locale: locale, default: 'Only organization owner can perform this action'),
+          error_message: 'Only organization owner can perform this action',
+          error_key: error_key,
         )
       end
 
@@ -200,7 +201,8 @@ module Onetime
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.member?(cust) },
-          error_message: I18n.t(error_key, locale: locale, default: 'You must be an organization member to perform this action'),
+          error_message: 'You must be an organization member to perform this action',
+          error_key: error_key,
         )
       end
 
@@ -217,7 +219,8 @@ module Onetime
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: I18n.t(error_key, locale: locale, default: 'Only organization owners and admins can perform this action'),
+          error_message: 'Only organization owners and admins can perform this action',
+          error_key: error_key,
         )
       end
 
@@ -245,9 +248,7 @@ module Onetime
       def load_organization(extid)
         organization = Onetime::Organization.find_by_extid(extid)
         if organization.nil?
-          raise_not_found(
-            I18n.t('api.organizations.errors.not_found', locale: locale, extid: extid, default: "Organization not found: #{extid}"),
-          )
+          raise_not_found("Organization not found: #{extid}")
         end
         organization
       end

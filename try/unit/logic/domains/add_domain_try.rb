@@ -170,8 +170,12 @@ end
 # This enables org context to persist across navigation when session hasn't been updated
 
 ## Membership was returned (not nil)
-# Add owner1 as member of org2 so they can add domains to it via explicit org_id
-@membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'member' })
+# Add owner1 as admin of org2 so they can add domains to it via explicit org_id.
+# The role must satisfy the #3033 admin gate enforced by verify_organization_admin;
+# 'member' would be rejected and turn these explicit-org_id resolution tests into
+# accidental role-gate failures. Role-gate coverage lives in the separate cases
+# further down (and in the integration specs).
+@membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'admin' })
 @membership.nil?
 #=> false
 

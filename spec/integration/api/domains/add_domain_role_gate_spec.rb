@@ -17,8 +17,8 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
     require 'onetime'
     Onetime.boot! :test
 
-    require 'apps/api/domains/logic/base'
-    require 'apps/api/domains/logic/domains/add_domain'
+    require 'domains/logic/base'
+    require 'domains/logic/domains/add_domain'
   end
 
   let(:run_id) { "addgate_#{Familia.now.to_i}_#{SecureRandom.hex(4)}" }
@@ -97,17 +97,16 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
     end
 
-    it 'rejection message resolves the EN locale entry, not the helper fallback' do
-      # The helper's hard-coded default is "...can perform this action"; the
-      # api.domains.errors.add_admin_required entry in workspace-domains.json
-      # resolves to "...can add custom domains". Matching the domain-specific
-      # phrase catches a missing/renamed locale key — pure /admin/i would
-      # silently pass on the fallback default.
+    it 'tags the Forbidden with the domain-specific i18n key' do
+      # Asserting error_key (not the message text) keeps the spec stable across
+      # locale-text edits while still catching a missing/renamed key. The HTTP
+      # edge resolves the key via ErrorResolver before the response body is
+      # rendered — that end-to-end resolution is covered by the try-side
+      # integration test (add_domain_role_gate_try.rb test 3c).
       logic = build_add_domain_logic(member_user, domain: "#{run_id}-member-msg.example.com")
-      expect { logic.raise_concerns }.to raise_error(
-        Onetime::Forbidden,
-        /can add custom domains/i,
-      )
+      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+        expect(error.error_key).to eq('api.domains.errors.add_admin_required')
+      end
     end
 
     it 'does not create a domain when the gate rejects' do
