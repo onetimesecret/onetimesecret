@@ -13,7 +13,7 @@ OT.boot! :test, false
 require 'onetime/incoming/recipient_resolver'
 
 RecipientResolver = Onetime::Incoming::RecipientResolver
-IncomingSecretsConfig = Onetime::CustomDomain::IncomingSecretsConfig
+IncomingConfig = Onetime::CustomDomain::IncomingConfig
 
 ## Canonical domain uses global YAML config for default_ttl
 resolver = RecipientResolver.new(domain_strategy: :canonical)
@@ -58,7 +58,7 @@ config = resolver.config_data
 config[:recipients].is_a?(Array)
 #=> true
 
-## IncomingSecretsConfig DEFAULTS match what resolver expects
-defaults = IncomingSecretsConfig::DEFAULTS
+## IncomingConfig DEFAULTS match what resolver expects
+defaults = IncomingConfig::DEFAULTS
 [defaults[:memo_max_length], defaults[:default_ttl]]
 #=> [50, 604_800]
