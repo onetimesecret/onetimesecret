@@ -61,8 +61,8 @@ function clearHideTimer() {
 }
 
 watch(
-  () => notifications.isVisible,
-  (visible) => {
+  [() => notifications.isVisible, () => notifications.message],
+  ([visible]) => {
     clearHideTimer();
     if (visible && props.autoDismiss && !props.loading) {
       hideTimer = setTimeout(() => {
