@@ -44,7 +44,42 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     # `force: true` resets any prior boot state so OmniAuth provider
     # registration runs against this suite's WebMock stubs and ENV.
     require 'onetime'
+    require 'onetime/application/registry'
+    require 'onetime/auth_config'
+
+    # Reload auth_config so AUTHENTICATION_MODE from this suite's ENV is picked
+    # up — otherwise find_application_files rejects apps/web/auth/ via the
+    # `unless Onetime.auth_config.full_enabled?` gate in registry.rb:158.
+    Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
+
+    # Clear any application registrations from prior suite boots, otherwise
+    # mount_mappings keeps stale class references and prepare_application_registry
+    # cannot pick up the fresh state for force-rebooted apps.
+    Onetime::Application::Registry.reset! if Onetime::Application::Registry.respond_to?(:reset!)
+
     Onetime.boot!(:test, force: true)
+
+    # Populate Registry.mount_mappings from disk. Without this, generate_rack_url_map
+    # returns an empty Rack::URLMap and every request 404s — which silently turns
+    # every OmniAuth callback test into a skip via the `if last_response.status == 404`
+    # guard.
+    Onetime::Application::Registry.prepare_application_registry
+
+    # Fail fast if the boot didn't actually register the auth app — silent
+    # registry emptiness was the original root cause that turned every callback
+    # test into a no-op skip via `if last_response.status == 404`.
+    mounts = Onetime::Application::Registry.mount_mappings.keys
+    raise "Auth app not mounted post-boot: #{mounts.inspect}" unless mounts.any? { |m| m.include?('/auth') }
+  end
+
+  # Declare JSON intent — these specs assert on JSON 4xx bodies (domain_not_allowed,
+  # invalid_email, etc.). NOTE: the auth app's OmniAuth failure handler currently
+  # redirects (302 → /signin?auth_error=sso_failed) regardless of this header,
+  # which is why the 11 domain-rejection/malformed-email specs still fail. The
+  # header documents the intent; a separate change is needed in the failure
+  # handler (or the before_omniauth_create_account hook) to honor it.
+  before(:each) do
+    header 'Accept', 'application/json'
   end
 
   # ==========================================================================
