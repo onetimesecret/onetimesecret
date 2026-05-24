@@ -151,7 +151,7 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @exact_user.obj
 
 ## Different emails - error type is email_mismatch (not acknowledgment type)
 @diff_error.error_type
-#=> 'email_mismatch'
+#=> :email_mismatch
 
 ## Different emails - user NOT added to org
 @org.member?(@diff_user)
