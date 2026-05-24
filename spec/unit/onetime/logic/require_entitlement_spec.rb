@@ -34,6 +34,9 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         @strategy_result = strategy_result
         @cust            = cust
       end
+
+      # Expose the protected method for spec access
+      public :require_entitlement!
     end
   end
 
@@ -55,11 +58,18 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
   # entitlement-check branches (the anonymous short-circuit returns true
   # before either branch is hit).
   let(:authenticated_cust) do
-    double('Customer', anonymous?: false, custid: 'cust123')
+    double('Customer', anonymous?: false, custid: 'cust123', organization_instances: [])
   end
 
   describe 'when auth_org is nil (fail-closed behavior)' do
     subject(:logic) { test_class.new(strategy_result_class.new(metadata: {}), cust: authenticated_cust) }
+
+    before do
+      # Stub lazy-creation to return nil so auth_org stays nil
+      allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new).and_return(
+        double(call: nil)
+      )
+    end
 
     it 'raises EntitlementRequired (fail-closed)' do
       expect { logic.require_entitlement!('api_access') }
