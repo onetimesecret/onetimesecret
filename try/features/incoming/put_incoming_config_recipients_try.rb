@@ -37,9 +37,9 @@ end
 # Enable incoming feature for all tests
 enable_incoming_feature
 
-require 'apps/api/domains/logic/base'
-require 'apps/api/domains/logic/incoming_config/base'
-require 'apps/api/domains/logic/incoming_config/put_incoming_config'
+require 'api/domains/logic/base'
+require 'api/domains/logic/incoming_config/base'
+require 'api/domains/logic/incoming_config/put_incoming_config'
 
 IncomingConfig = Onetime::CustomDomain::IncomingConfig
 PutIncomingConfig = DomainsAPI::Logic::IncomingConfig::PutIncomingConfig

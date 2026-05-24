@@ -22,7 +22,7 @@
 # - RecipientResolver.public_recipients: reads from IncomingSecretsConfig for display
 
 require_relative '../../support/test_logic'
-require 'apps/api/incoming/logic/incoming'
+require 'api/incoming/logic/incoming'
 
 OT.boot! :test, false
 

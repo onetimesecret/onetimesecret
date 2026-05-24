@@ -21,7 +21,7 @@ require_relative '../../../support/test_logic'
 OT.boot! :test, false
 
 require 'sequel'
-require 'apps/web/auth/database'
+require 'web/auth/database'
 
 # Build a minimal in-memory SQLite DB that matches the schema used by
 # update_auth_database and invalidate_sessions in ConfirmEmailChange.

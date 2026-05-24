@@ -18,7 +18,7 @@ OT.boot! :test
 
 # Auth::Logging is required by accept_invitation but not auto-loaded
 require 'web/auth/lib/logging'
-require 'apps/web/auth/operations'
+require 'web/auth/operations'
 
 # Setup test data with unique identifiers
 @test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"

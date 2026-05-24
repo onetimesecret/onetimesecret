@@ -19,7 +19,7 @@ require_relative '../../../../../try/support/test_models'
 
 OT.boot! :test, false
 
-require 'apps/web/core/logic/page/get_favicon'
+require 'web/core/logic/page/get_favicon'
 
 @timestamp = Familia.now.to_i
 @owner     = Onetime::Customer.create!(email: "favicon_#{@timestamp}@test.com")

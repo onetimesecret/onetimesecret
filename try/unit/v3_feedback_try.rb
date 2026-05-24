@@ -16,11 +16,11 @@ require_relative '../support/test_helpers'
 require_relative '../support/test_models'
 
 # Load V2 logic base first (provides UriHelpers mixin used by V3)
-require 'apps/api/v2/logic/base'
+require 'api/v2/logic/base'
 
 # Load V3 feedback logic
-require 'apps/api/v3/logic/base'
-require 'apps/api/v3/logic/feedback'
+require 'api/v3/logic/base'
+require 'api/v3/logic/feedback'
 
 # Load the app with test configuration
 OT.boot! :test, false

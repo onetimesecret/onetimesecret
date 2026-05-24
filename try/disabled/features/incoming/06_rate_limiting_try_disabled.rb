@@ -18,7 +18,7 @@
 #     proceeds to update_customer_stats or send_recipient_notification
 
 require_relative '../../support/test_logic'
-require 'apps/api/incoming/logic/incoming'
+require 'api/incoming/logic/incoming'
 
 OT.boot! :test, false
 
