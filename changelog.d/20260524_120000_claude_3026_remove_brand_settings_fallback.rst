@@ -36,12 +36,19 @@ Removed
 Changed
 -------
 
-- ``CustomDomain#allow_public_homepage?`` and ``allow_public_api?`` now raise
-  ``Onetime::Problem`` when the corresponding ``HomepageConfig`` / ``ApiConfig``
-  record is missing instead of silently falling back to the legacy brand value.
-  The raise points operators at the ``20260417_01_backfill_homepage_config``
-  migration. With the new bootstrap below the missing-record case is data
-  corruption rather than expected legacy state. (#3026)
+- ``CustomDomain#allow_public_homepage?`` and ``allow_public_api?`` fail
+  closed when the corresponding ``HomepageConfig`` / ``ApiConfig`` record is
+  missing: they return ``false`` (the safe default for a public-access
+  toggle) and emit an ``OT.le`` log line pointing operators at the
+  ``20260417_01_backfill_homepage_config`` migration. The fallback to
+  ``BrandSettings`` (which the field has been removed from) is gone. With
+  the new bootstrap below, the missing-record case is data corruption
+  rather than expected state — but a hot read-path predicate on a Rack
+  authorization flow is the wrong layer to raise on integrity violations;
+  the write path (``create!`` bootstrap, brand PUT upsert, migration)
+  handles strict enforcement, and the ``?``-suffix convention of boolean
+  return is preserved. Treat the log line's rate as an alertable signal.
+  (#3026)
 - ``CustomDomain.create!`` now bootstraps default-disabled ``HomepageConfig`` and
   ``ApiConfig`` records via the existing ``find_or_create_for_domain`` primitive,
   symmetric with the sibling-cleanup pattern in ``destroy!``. This maintains the

@@ -547,32 +547,38 @@ module Onetime
 
     # HomepageConfig / ApiConfig are the single source of truth post-#3023
     # backfill, and new domains receive default-disabled records via
-    # {.create!}. A missing record now signals data corruption (manual Redis
-    # deletion, partial restore) rather than legacy state, so we raise
-    # instead of silently synthesizing a value — the loud failure makes the
-    # drift discoverable on the authorization path.
+    # {.create!}. A missing record at this point signals data corruption
+    # (manual Redis deletion, partial restore, etc.) — but this is a hot
+    # read path on the authorization side of a Rack handler with no
+    # supervisor, so we fail closed (return false) and log loudly rather
+    # than raise. Raising here would 5xx the user on integrity violations
+    # they have no power to fix; the log + safe default lets the request
+    # complete (denied by default, which IS the secure choice for a
+    # public-homepage toggle) while still surfacing the drift to ops.
     #
-    # NOTE: deliberate inconsistency with the colonel admin endpoint.
-    # `Colonel::ListCustomDomains` reads `HomepageConfig.find_by_domain_id`
-    # directly and tolerates `nil` (it renders the row with a null
-    # homepage_config block) so a single corrupt domain doesn't crash the
-    # admin's only diagnostic view. User-facing authorization (this
-    # predicate) raises so corruption manifests as a loud 500 the moment an
-    # affected domain is touched, rather than degrading silently to `false`
-    # (which could be misread as "the user disabled it"). The split is
-    # intentional: raise where silence is dangerous, tolerate nil where
-    # blind spots are worse than partial truth. If you change one policy,
-    # look at the other (grep for "deliberate inconsistency").
+    # Discipline:
+    # - Write path (create! bootstrap, brand PUT upsert, migration) raises
+    #   on integrity violations — that's the right place to be strict.
+    # - Read path here returns false + logs. Operators should monitor for
+    #   this log line and treat its rate as an alertable signal.
+    # - Ruby `?`-suffix convention is preserved (boolean return), so the
+    #   predicate composes cleanly with `&&` / `||` like every other.
     def allow_public_homepage?
       homepage_config = HomepageConfig.find_by_domain_id(identifier)
-      raise Onetime::Problem, "HomepageConfig missing for domain #{identifier}; run migration 20260417_01_backfill_homepage_config" unless homepage_config
+      unless homepage_config
+        OT.le "[CustomDomain] HomepageConfig missing for domain #{identifier}; using safe default (false). Run migration 20260417_01_backfill_homepage_config to repair."
+        return false
+      end
 
       homepage_config.enabled?
     end
 
     def allow_public_api?
       api_config = ApiConfig.find_by_domain_id(identifier)
-      raise Onetime::Problem, "ApiConfig missing for domain #{identifier}; run migration 20260417_01_backfill_homepage_config" unless api_config
+      unless api_config
+        OT.le "[CustomDomain] ApiConfig missing for domain #{identifier}; using safe default (false). Run migration 20260417_01_backfill_homepage_config to repair."
+        return false
+      end
 
       api_config.enabled?
     end

@@ -12,7 +12,7 @@
 #   - upsert raises Onetime::Problem when domain_id is empty or nil
 #   - CustomDomain.create! bootstraps a default-disabled ApiConfig record
 #   - CustomDomain#allow_public_api? returns config.enabled? when record exists
-#   - CustomDomain#allow_public_api? raises Onetime::Problem when record is missing
+#   - CustomDomain#allow_public_api? fails closed (returns false) when record is missing
 
 require_relative '../../support/test_models'
 
@@ -139,10 +139,14 @@ Onetime::CustomDomain::ApiConfig.upsert(domain_id: @domain.identifier, enabled: 
 @domain.allow_public_api?
 #=> true
 
-# --- allow_public_api? raises when no ApiConfig exists ---
+# --- allow_public_api? fails closed when no ApiConfig exists ---
 # Post-#3026, BrandSettings no longer carries allow_public_api and
-# CustomDomain.create! bootstraps a record, so a missing record indicates
-# data corruption (manual delete, partial restore). Raise loudly.
+# CustomDomain.create! bootstraps a record, so a missing record at read
+# time indicates data corruption (manual delete, partial restore).
+# Read-path policy is fail-closed: return false (the safe default for a
+# public-api toggle) and log via OT.le so ops can detect drift, rather
+# than raising and 5xx-ing the user request — see the comment block
+# above the predicate in lib/onetime/models/custom_domain.rb.
 
 ## Setup: create a domain, then delete its bootstrap record to simulate the
 ## corrupted-state case
@@ -151,14 +155,9 @@ Onetime::CustomDomain::ApiConfig.delete_for_domain!(@domain_no_cfg.identifier)
 Onetime::CustomDomain::ApiConfig.exists_for_domain?(@domain_no_cfg.identifier)
 #=> false
 
-## allow_public_api? raises Onetime::Problem when no ApiConfig exists
-begin
-  @domain_no_cfg.allow_public_api?
-  'unexpected_success'
-rescue Onetime::Problem => e
-  e.message
-end
-#=~> /ApiConfig missing for domain/
+## allow_public_api? returns false (safe default) when no ApiConfig exists
+@domain_no_cfg.allow_public_api?
+#=> false
 
 # --- find_or_create_for_domain: atomic create-if-missing ---
 

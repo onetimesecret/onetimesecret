@@ -12,7 +12,7 @@
 #   - upsert raises Onetime::Problem when domain_id is empty or nil
 #   - CustomDomain.create! bootstraps a default-disabled HomepageConfig record
 #   - CustomDomain#allow_public_homepage? returns config.enabled? when record exists
-#   - CustomDomain#allow_public_homepage? raises Onetime::Problem when record is missing
+#   - CustomDomain#allow_public_homepage? fails closed (returns false) when record is missing
 
 require_relative '../../support/test_models'
 
@@ -139,10 +139,14 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @domain.identifier, enab
 @domain.allow_public_homepage?
 #=> true
 
-# --- allow_public_homepage? raises when no HomepageConfig exists ---
+# --- allow_public_homepage? fails closed when no HomepageConfig exists ---
 # Post-#3026, BrandSettings no longer carries allow_public_homepage and
-# CustomDomain.create! bootstraps a record, so a missing record indicates
-# data corruption (manual delete, partial restore). Raise loudly.
+# CustomDomain.create! bootstraps a record, so a missing record at read
+# time indicates data corruption (manual delete, partial restore).
+# Read-path policy is fail-closed: return false (the safe default for a
+# public-homepage toggle) and log via OT.le so ops can detect drift,
+# rather than raising and 5xx-ing the user request — see the comment
+# block above the predicate in lib/onetime/models/custom_domain.rb.
 
 ## Setup: create a domain, then delete its bootstrap record to simulate the
 ## corrupted-state case
@@ -151,14 +155,9 @@ Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@domain_no_cfg.identifi
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_no_cfg.identifier)
 #=> false
 
-## allow_public_homepage? raises Onetime::Problem when no HomepageConfig exists
-begin
-  @domain_no_cfg.allow_public_homepage?
-  'unexpected_success'
-rescue Onetime::Problem => e
-  e.message
-end
-#=~> /HomepageConfig missing for domain/
+## allow_public_homepage? returns false (safe default) when no HomepageConfig exists
+@domain_no_cfg.allow_public_homepage?
+#=> false
 
 # --- find_or_create_for_domain: atomic create-if-missing ---
 
