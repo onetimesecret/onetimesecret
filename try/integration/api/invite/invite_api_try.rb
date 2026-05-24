@@ -186,6 +186,27 @@ post "/api/invite/#{@token2}/accept",
 last_response.status >= 400
 #=> true
 
+## POST /api/invite/:token/accept - Email mismatch response body carries resolved English message
+# Asserts the ErrorResolver -> FormError#to_h seam: the response payload includes
+# the localized message text resolved from error_key 'api.invite.errors.email_mismatch'.
+resp = JSON.parse(last_response.body)
+resp['message']
+#=> 'Your email address does not match the invitation'
+
+## POST /api/invite/:token/accept - Email mismatch response body surfaces error_key
+# Asserts the i18n error_key is propagated in the JSON body so clients can
+# program against a stable identifier (independent of locale).
+resp = JSON.parse(last_response.body)
+resp['error_key']
+#=> 'api.invite.errors.email_mismatch'
+
+## POST /api/invite/:token/accept - Email mismatch response body uses email_mismatch error type
+# accept_invite.rb passes error_type: :email_mismatch, which FormError#to_h serializes
+# as the 'error' field (overriding the default 'FormError' value).
+resp = JSON.parse(last_response.body)
+resp['error']
+#=> 'email_mismatch'
+
 ## POST /api/invite/:token/accept - Email mismatch doesn't change membership status
 @invitation2 = Onetime::OrganizationMembership.load(@invitation2.objid)
 @invitation2.pending?
@@ -244,6 +265,26 @@ post "/api/invite/#{@token4}/accept",
   { 'rack.session' => @invitee4_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status >= 400
 #=> true
+
+## POST /api/invite/:token/accept - Already-accepted response surfaces error_key in JSON body
+# After accept!, the token is cleared from token_lookup (organization_membership.rb:286),
+# so re-POSTing with the same token hits load_invitation's nil branch and raises
+# RecordNotFound with error_key: 'api.invite.errors.invitation_not_found_or_expired'.
+# Asserts the ErrorResolver -> RecordNotFound#to_h seam propagates the i18n key
+# into the response body so clients have a stable, locale-independent identifier.
+resp = JSON.parse(last_response.body)
+resp['error_key']
+#=> 'api.invite.errors.invitation_not_found_or_expired'
+
+## POST /api/invite/:token/accept - Already-accepted response includes a message field
+# The pure-i18n call site (raise_not_found with no pre-set message) means resolution
+# depends on the i18n bundle being loaded. With generated/locales/ unpopulated in this
+# test env, the resolver writes the error_key into message as the documented fallback
+# (error_resolver.rb:60-65). Asserting non-empty proves the body field is present and
+# populated end-to-end — without coupling the test to whether i18n is wired up.
+resp = JSON.parse(last_response.body)
+[resp.key?('message'), resp['message'].to_s.empty?]
+#=> [true, false]
 
 ## GET /api/invite/:token - Returns 400 for already accepted invitation
 get "/api/invite/#{@token4}", {}, { 'HTTP_ACCEPT' => 'application/json' }
