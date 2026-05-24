@@ -481,6 +481,58 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
   });
 
   // -------------------------------------------------------------------------
+  // isConfigured
+  // -------------------------------------------------------------------------
+
+  describe('isConfigured', () => {
+    it('is false for the unconfigured/empty state', async () => {
+      mockGetConfig.mockResolvedValue(mockEmptyConfigResponse);
+      const composable = useIncomingConfig('dom_test_123');
+      await composable.initialize();
+
+      expect(composable.isConfigured.value).toBe(false);
+    });
+
+    it('is true when saved recipients exist', async () => {
+      mockGetConfig.mockResolvedValue(mockSingleRecipientConfigResponse);
+      const composable = useIncomingConfig('dom_test_123');
+      await composable.initialize();
+
+      expect(composable.isConfigured.value).toBe(true);
+    });
+
+    it('is true when only the saved enabled flag is on (no recipients)', async () => {
+      // {enabled: true, recipients: []} is a legitimate persisted state:
+      // a user toggled enabled and saved, or cleared all recipients
+      // without disabling. isConfigured should match the form's canDelete
+      // so the delete-all affordance stays visible.
+      mockGetConfig.mockResolvedValue({
+        record: {
+          ...mockEmptyConfigResponse.record,
+          enabled: true,
+        },
+      });
+      const composable = useIncomingConfig('dom_test_123');
+      await composable.initialize();
+
+      expect(composable.isConfigured.value).toBe(true);
+    });
+
+    it('tracks the SAVED state, not the in-flight form draft', async () => {
+      // Adding a recipient locally must not flip isConfigured — it only
+      // turns true once the addition is persisted.
+      mockGetConfig.mockResolvedValue(mockEmptyConfigResponse);
+      const composable = useIncomingConfig('dom_test_123');
+      await composable.initialize();
+
+      composable.addRecipient('local@example.com', 'Local');
+
+      expect(composable.formState.value.recipients).toHaveLength(1);
+      expect(composable.isConfigured.value).toBe(false);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // canAddMore
   // -------------------------------------------------------------------------
 

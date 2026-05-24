@@ -140,10 +140,18 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   // Computed
   // ---------------------------------------------------------------------------
 
-  /** Whether any recipients are configured in the saved server state. */
-  const isConfigured = computed(
-    () => (savedFormState.value?.recipients.length ?? 0) > 0,
-  );
+  /**
+   * Whether the domain has any persisted incoming-config state on the
+   * server — true when saved recipients exist OR the saved enabled flag
+   * is on. Matches `canDelete` in DomainIncomingConfigForm so a user
+   * who saved `{enabled: true, recipients: []}` still sees the domain
+   * as configured (and the delete-all button stays available).
+   */
+  const isConfigured = computed(() => {
+    const saved = savedFormState.value;
+    if (!saved) return false;
+    return saved.recipients.length > 0 || saved.enabled;
+  });
 
   /** Number of recipients in the form. */
   const recipientCount = computed(() => formState.value.recipients.length);
