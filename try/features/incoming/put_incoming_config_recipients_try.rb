@@ -304,6 +304,38 @@ another_config = IncomingConfig.load(@another_domain.identifier)
 [another_config.enabled?, another_config.recipients.size]
 #=> [true, 1]
 
+# --- #3095 REGRESSION: full-list PUT preserves originals when extended ---
+# Before #3095, the admin form sent only newly added recipients and the PUT
+# replaced the saved list, wiping the originals. The frontend now always
+# sends the complete intended state (original + additions). This pair of
+# assertions verifies that flow end-to-end at the Logic layer: start with
+# two recipients, PUT a body containing those two PLUS one new entry, and
+# all three must be present after save.
+
+## Restore to known two-recipient state for the #3095 regression
+@bug3095_config = IncomingConfig.load(@test_domain.identifier)
+@bug3095_config.recipients = @initial_recipients
+@bug3095_config.save
+@bug3095_config.recipients.size
+#=> 2
+
+## PUT with the merged list (originals + one new) preserves all three
+strategy = create_strategy_with_domain(@test_cust, @test_domain_display)
+params = {
+  'extid' => @test_domain.extid,
+  'enabled' => true,
+  'recipients' => @initial_recipients.map { |r| { 'email' => r[:email], 'name' => r[:name] } } +
+                  [{ 'email' => 'newcomer@example.com', 'name' => 'Newcomer' }],
+}
+logic = PutIncomingConfig.new(strategy, params)
+logic.process_params
+logic.raise_concerns
+logic.process
+
+reloaded = IncomingConfig.load(@test_domain.identifier)
+reloaded.recipients.map { |r| r[:email] }.sort
+#=> ["alice@example.com", "bob@example.com", "newcomer@example.com"]
+
 # --- RESPONSE FORMAT TESTS ---
 
 ## Response includes serialized config with recipients

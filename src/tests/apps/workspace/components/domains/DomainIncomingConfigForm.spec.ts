@@ -1,27 +1,19 @@
 // src/tests/apps/workspace/components/domains/DomainIncomingConfigForm.spec.ts
 //
-// Tests for DomainIncomingConfigForm.vue covering:
-// 1. Recipients list rendering (server state and form state)
-// 2. Recipient input fields and validation
-// 3. Event emissions (save, discard, delete, add/remove recipient)
-// 4. Button states
-// 5. Delete confirmation flow
-// 6. Accessibility attributes
-//
-// Dual-state design: serverState (hashed, read-only) + formState (plaintext, editable)
+// Tests for the rewritten DomainIncomingConfigForm component. Single
+// editable recipients list (no pending vs configured split), no replace
+// warning, no serverState prop. The composable owns plaintext recipients;
+// the form renders them and emits user intent back.
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mount, type VueWrapper, flushPromises, DOMWrapper } from '@vue/test-utils';
+import { describe, it, expect, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
 import {
   emptyFormState,
-  emptyServerState,
   singleRecipientFormState,
-  singleRecipientServerState,
   multipleRecipientsFormState,
-  multipleRecipientsServerState,
   maxRecipientsFormState,
 } from '../../../../fixtures/incomingConfig.fixture';
 
@@ -46,7 +38,7 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// i18n setup
+// i18n
 // ---------------------------------------------------------------------------
 
 const i18n = createI18n({
@@ -57,39 +49,34 @@ const i18n = createI18n({
       web: {
         domains: {
           enabled: 'Enabled',
-          verified: 'Verified',
-          pending_verification: 'Pending Verification',
           incoming: {
-            recipients_title: 'Recipients',
-            recipients_description: 'Recipients will receive incoming secrets sent to this domain.',
-            badge_configured: 'Configured',
             add_recipient: 'Add Recipient',
-            email_label: 'Email Address',
-            email_placeholder: "security{'@'}example.com",
-            name_label: 'Display Name (optional)',
-            name_placeholder: 'Security Team',
+            badge_configured: 'Configured',
+            delete_all_recipients: 'Delete all',
+            disabled_notice: 'Disabled',
+            discard_changes: 'Discard',
+            email_label: 'Email',
+            email_placeholder: "name{'@'}example.com",
+            empty_state: 'No recipients yet',
+            empty_state_description: 'Add up to 20 recipients',
+            enabled_hint: 'Toggle incoming secrets',
+            name_label: 'Name',
+            name_placeholder: 'Display name',
+            recipients_title: 'Recipients',
+            remove_all_confirmation: 'Remove all?',
             remove_recipient: 'Remove',
-            delete_all_recipients: 'Delete All Recipients',
-            remove_all_confirmation: 'Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.',
-            save_will_replace_confirmation: 'Saving will replace all existing recipients with your pending changes. Are you sure?',
-            save_changes: 'Save Changes',
-            discard_changes: 'Discard Changes',
-            empty_state: 'No recipients configured',
-            empty_state_description: 'Add email addresses to receive incoming secrets.',
-            validation_email_required: 'Email address is required',
-            validation_invalid_email: 'Enter a valid email address',
-            validation_duplicate_email: 'This email is already added',
-            validation_max_recipients: 'Maximum {max} recipients allowed',
-            disabled_notice: 'Incoming secrets are currently disabled. External users cannot send secrets to recipients on this domain. Enable the feature below to allow incoming secrets.',
-            enabled_hint: 'Allow external users to send secrets to recipients on this domain',
+            save_changes: 'Save',
+            validation_duplicate_email: 'Already added',
+            validation_email_required: 'Required',
+            validation_invalid_email: 'Invalid email',
+            validation_max_recipients: 'Maximum {max} recipients',
           },
         },
         COMMON: {
-          remove: 'Remove',
-          yes_delete: 'Yes, delete',
+          processing: 'Working…',
+          saving: 'Saving…',
           word_cancel: 'Cancel',
-          saving: 'Saving...',
-          processing: 'Processing...',
+          yes_delete: 'Yes, delete',
         },
       },
     },
@@ -97,386 +84,155 @@ const i18n = createI18n({
 });
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+interface MountOptions {
+  formState?: typeof emptyFormState;
+  savedFormState?: typeof emptyFormState | null;
+  hasUnsavedChanges?: boolean;
+  isSaving?: boolean;
+  isDeleting?: boolean;
+  maxRecipients?: number;
+  error?: string;
+}
+
+function mountForm(opts: MountOptions = {}): VueWrapper {
+  return mount(DomainIncomingConfigForm, {
+    props: {
+      formState: opts.formState ?? emptyFormState,
+      savedFormState: opts.savedFormState ?? null,
+      hasUnsavedChanges: opts.hasUnsavedChanges ?? false,
+      isSaving: opts.isSaving ?? false,
+      isDeleting: opts.isDeleting ?? false,
+      maxRecipients: opts.maxRecipients ?? 20,
+      error: opts.error,
+    },
+    global: {
+      plugins: [createTestingPinia({ createSpy: vi.fn }), i18n],
+    },
+    attachTo: document.body,
+  });
+}
+
+/** Find a button by its rendered text (case-insensitive substring match). */
+function findButtonByText(wrapper: VueWrapper, label: string): DOMWrapper<HTMLButtonElement> {
+  const lower = label.toLowerCase();
+  const found = wrapper
+    .findAll('button')
+    .find((b) => b.text().toLowerCase().includes(lower));
+  if (!found) {
+    throw new Error(`No button with text matching "${label}"; rendered: ${wrapper.text()}`);
+  }
+  return found as DOMWrapper<HTMLButtonElement>;
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('DomainIncomingConfigForm', () => {
-  let wrapper: VueWrapper;
-  let pinia: ReturnType<typeof createTestingPinia>;
+describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
+  describe('rendering', () => {
+    it('renders the empty state when there are no recipients', () => {
+      const wrapper = mountForm({ formState: emptyFormState });
 
-  beforeEach(() => {
-    pinia = createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-    });
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
-  });
-
-  const mountComponent = (props: Partial<{
-    formState: typeof emptyFormState;
-    serverState: typeof emptyServerState;
-    isLoading: boolean;
-    isSaving: boolean;
-    isDeleting: boolean;
-    hasUnsavedChanges: boolean;
-    maxRecipients: number;
-    error: string;
-  }> = {}) => {
-    return mount(DomainIncomingConfigForm, {
-      props: {
-        formState: props.formState ?? emptyFormState,
-        serverState: props.serverState ?? emptyServerState,
-        isLoading: props.isLoading ?? false,
-        isSaving: props.isSaving ?? false,
-        isDeleting: props.isDeleting ?? false,
-        hasUnsavedChanges: props.hasUnsavedChanges ?? false,
-        maxRecipients: props.maxRecipients ?? 20,
-        error: props.error,
-      },
-      global: {
-        plugins: [i18n, pinia],
-      },
-    });
-  };
-
-  // ---------------------------------------------------------------------------
-  // Recipients List Rendering
-  // ---------------------------------------------------------------------------
-
-  describe('Recipients list rendering', () => {
-    it('FC-RENDER-001: renders all server recipients (existing/configured)', () => {
-      wrapper = mountComponent({
-        serverState: multipleRecipientsServerState,
-      });
-
-      const recipientItems = wrapper.findAll('li');
-      expect(recipientItems.length).toBe(3);
+      expect(wrapper.text()).toContain('No recipients yet');
+      expect(wrapper.findAll('li')).toHaveLength(0);
     });
 
-    it('FC-RENDER-002: shows empty state when no recipients', () => {
-      wrapper = mountComponent({
-        formState: emptyFormState,
-        serverState: emptyServerState,
-      });
+    it('renders one row per recipient from formState (plaintext email + name)', () => {
+      const wrapper = mountForm({ formState: multipleRecipientsFormState });
 
-      expect(wrapper.text()).toContain('No recipients configured');
+      const items = wrapper.findAll('li');
+      expect(items).toHaveLength(3);
+      expect(items[0].text()).toContain('Security Team');
+      expect(items[0].text()).toContain('security@acme.com');
+      expect(items[1].text()).toContain('Support');
+      expect(items[1].text()).toContain('support@acme.com');
     });
 
-    it('renders pending recipients from formState with amber styling', () => {
-      wrapper = mountComponent({
-        formState: multipleRecipientsFormState,
-        serverState: emptyServerState,
-      });
+    it('hides the add row when at max capacity', () => {
+      const wrapper = mountForm({ formState: maxRecipientsFormState, maxRecipients: 20 });
 
-      const pendingSection = wrapper.find('.border-amber-300');
-      expect(pendingSection.exists()).toBe(true);
-
-      const pendingItems = pendingSection.findAll('li');
-      expect(pendingItems.length).toBe(3);
-    });
-
-    it('FC-RENDER-003: shows recipient count badge', () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-        serverState: multipleRecipientsServerState,
-      });
-
-      // Total: 3 server + 1 pending = 4
-      expect(wrapper.text()).toContain('4 / 20');
-    });
-
-    it('displays display_name for server recipients', () => {
-      wrapper = mountComponent({
-        serverState: singleRecipientServerState,
-      });
-
-      expect(wrapper.text()).toContain('Security Team');
-    });
-
-    it('displays email for pending recipients', () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-      });
-
-      expect(wrapper.text()).toContain('security@acme.com');
+      expect(wrapper.find('input#recipient-email').exists()).toBe(false);
+      expect(wrapper.text()).toContain('Maximum 20 recipients');
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Recipient Input Fields
-  // ---------------------------------------------------------------------------
+  describe('adding a recipient', () => {
+    it('emits addRecipient with email + name', async () => {
+      const wrapper = mountForm({ formState: emptyFormState });
 
-  describe('Recipient input fields', () => {
-    it('FC-INPUT-001: email input accepts valid email', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      const emailInput = wrapper.find('#recipient-email');
-      await emailInput.setValue('valid@example.com');
-      await flushPromises();
-
-      // No error should be shown
-      expect(wrapper.find('#email-error').exists()).toBe(false);
-    });
-
-    it('FC-INPUT-002: add button disabled for invalid email format', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      const emailInput = wrapper.find('#recipient-email');
-      // Use a clearly invalid email that Zod will reject
-      await emailInput.setValue('not@');
-      await flushPromises();
-
-      // Find add button
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-
-      // The add button should be disabled when email is invalid
-      expect(addButton!.attributes('disabled')).toBeDefined();
-    });
-
-    it('FC-INPUT-003: name input is optional', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      // Set only email, no name
-      const emailInput = wrapper.find('#recipient-email');
-      await emailInput.setValue('test@example.com');
-
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-      await addButton!.trigger('click');
-      await flushPromises();
-
-      // Should emit addRecipient with undefined name
-      const emitted = wrapper.emitted('addRecipient');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual(['test@example.com', undefined]);
-    });
-
-    it('FC-INPUT-004: add button disabled when email empty', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-
-      expect(addButton!.attributes('disabled')).toBeDefined();
-    });
-
-    it('FC-INPUT-005: add form hidden when at max recipients (form + server)', () => {
-      wrapper = mountComponent({
-        formState: maxRecipientsFormState,
-        serverState: emptyServerState,
-      });
-
-      // Add form should not be rendered
-      const emailInput = wrapper.find('#recipient-email');
-      expect(emailInput.exists()).toBe(false);
-
-      // Should show limit message
-      expect(wrapper.text()).toContain('Maximum 20 recipients allowed');
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Event Emissions
-  // ---------------------------------------------------------------------------
-
-  describe('Event emissions', () => {
-    it('FC-EMIT-001: emits addRecipient on add button click', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      const emailInput = wrapper.find('#recipient-email');
-      const nameInput = wrapper.find('#recipient-name');
-
-      await emailInput.setValue('new@example.com');
-      await nameInput.setValue('New User');
-
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-      await addButton!.trigger('click');
-      await flushPromises();
+      await wrapper.find('input#recipient-email').setValue('new@example.com');
+      await wrapper.find('input#recipient-name').setValue('New One');
+      await findButtonByText(wrapper, 'Add Recipient').trigger('click');
 
       const emitted = wrapper.emitted('addRecipient');
       expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual(['new@example.com', 'New User']);
+      expect(emitted![0]).toEqual(['new@example.com', 'New One']);
     });
 
-    it('FC-EMIT-002: emits removeRecipient on remove click', async () => {
-      wrapper = mountComponent({
-        formState: multipleRecipientsFormState,
-      });
-
-      // Find remove buttons in pending section
-      const removeButtons = wrapper.findAll('button').filter(
-        (b) => b.attributes('aria-label') === 'Remove'
-      );
-
-      await removeButtons[0].trigger('click');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('removeRecipient');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual([0]);
-    });
-
-    it('FC-EMIT-003: emits save on form submission', async () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-        hasUnsavedChanges: true,
-      });
-
-      const form = wrapper.find('form');
-      await form.trigger('submit.prevent');
-      await flushPromises();
-
-      expect(wrapper.emitted('save')).toBeTruthy();
-    });
-
-    it('FC-EMIT-004: emits discard on discard button click', async () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-        hasUnsavedChanges: true,
-      });
-
-      const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('Discard Changes'));
-      await discardButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.emitted('discard')).toBeTruthy();
-    });
-
-    it('FC-EMIT-005: emits delete after confirmation', async () => {
-      wrapper = mountComponent({
-        serverState: singleRecipientServerState,
-      });
-
-      // Click delete all button to show confirmation
-      const buttons = wrapper.findAll('button[type="button"]');
-      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
-      await deleteAllButton!.trigger('click');
-      await flushPromises();
-
-      // Click confirm delete button
-      const confirmButtons = wrapper.findAll('button[type="button"]');
-      const confirmButton = confirmButtons.find((b) => b.text().includes('Yes, delete'));
-      await confirmButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.emitted('delete')).toBeTruthy();
-    });
-
-    it('clears input fields after successful add', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      const emailInput = wrapper.find('#recipient-email') as VueWrapper<HTMLInputElement>;
-      const nameInput = wrapper.find('#recipient-name') as VueWrapper<HTMLInputElement>;
+    it('clears the input fields after a successful add', async () => {
+      const wrapper = mountForm({ formState: emptyFormState });
+      const emailInput = wrapper.find<HTMLInputElement>('input#recipient-email');
+      const nameInput = wrapper.find<HTMLInputElement>('input#recipient-name');
 
       await emailInput.setValue('new@example.com');
-      await nameInput.setValue('New User');
-
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-      await addButton!.trigger('click');
+      await nameInput.setValue('New One');
+      await findButtonByText(wrapper, 'Add Recipient').trigger('click');
       await flushPromises();
 
-      // Inputs should be cleared
-      expect((emailInput.element as HTMLInputElement).value).toBe('');
-      expect((nameInput.element as HTMLInputElement).value).toBe('');
+      expect(emailInput.element.value).toBe('');
+      expect(nameInput.element.value).toBe('');
+    });
+
+    it('shows an inline error for an invalid email and does not emit', async () => {
+      const wrapper = mountForm({ formState: emptyFormState });
+
+      // Press Enter on the email input — bypasses the disabled-button guard
+      // that fires when isAddFormValid is false (invalid email format).
+      await wrapper.find('input#recipient-email').setValue('not-an-email');
+      await wrapper.find('input#recipient-email').trigger('keydown.enter');
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('Invalid email');
+      expect(wrapper.emitted('addRecipient')).toBeUndefined();
+    });
+
+    it('shows duplicate error when the email already exists in formState', async () => {
+      const wrapper = mountForm({ formState: singleRecipientFormState });
+
+      // Email format is valid here, so the Add button is enabled and click
+      // reaches handleAddRecipient, which surfaces the duplicate error.
+      await wrapper.find('input#recipient-email').setValue('SECURITY@acme.com');
+      await findButtonByText(wrapper, 'Add Recipient').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('Already added');
+      expect(wrapper.emitted('addRecipient')).toBeUndefined();
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Form Validation
-  // ---------------------------------------------------------------------------
+  describe('removing a recipient', () => {
+    it('emits removeRecipient(index) when the per-row Remove is clicked', async () => {
+      const wrapper = mountForm({ formState: multipleRecipientsFormState });
 
-  describe('Form validation', () => {
-    it('FC-VALID-001: shows error for duplicate email in form state', async () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-      });
+      const removeButtons = wrapper
+        .findAll('button')
+        .filter((b) => b.attributes('aria-label') === 'Remove');
+      expect(removeButtons).toHaveLength(3);
 
-      const emailInput = wrapper.find('#recipient-email');
-      await emailInput.setValue('security@acme.com');
+      await removeButtons[1].trigger('click');
 
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-      await addButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.text()).toContain('This email is already added');
-    });
-
-    it('shows error when email is empty on add', async () => {
-      wrapper = mountComponent();
-
-      // Type and then clear
-      const emailInput = wrapper.find('#recipient-email');
-      await emailInput.setValue('');
-      await emailInput.trigger('keydown', { key: 'Enter' });
-      await flushPromises();
-
-      // Button should still be disabled, no addRecipient emitted
-      expect(wrapper.emitted('addRecipient')).toBeFalsy();
-    });
-
-    it('clears error on email input', async () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-      });
-
-      const emailInput = wrapper.find('#recipient-email');
-      // Use a duplicate email to trigger an error
-      await emailInput.setValue('security@acme.com');
-
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-      await addButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.find('#email-error').exists()).toBe(true);
-
-      // Start typing again
-      await emailInput.trigger('input');
-      await flushPromises();
-
-      expect(wrapper.find('#email-error').exists()).toBe(false);
+      expect(wrapper.emitted('removeRecipient')).toEqual([[1]]);
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Button States
-  // ---------------------------------------------------------------------------
-
-  describe('Button states', () => {
-    it('FC-BTN-001: save button disabled when no pending recipients', () => {
-      wrapper = mountComponent({
-        formState: emptyFormState,
-        serverState: singleRecipientServerState,
+  describe('save', () => {
+    it('save button is disabled when there are no unsaved changes', () => {
+      const wrapper = mountForm({
+        formState: singleRecipientFormState,
+        savedFormState: singleRecipientFormState,
         hasUnsavedChanges: false,
       });
 
@@ -484,343 +240,169 @@ describe('DomainIncomingConfigForm', () => {
       expect(saveButton.attributes('disabled')).toBeDefined();
     });
 
-    it('FC-BTN-002: save button disabled when isSaving', () => {
-      wrapper = mountComponent({
+    it('save button is enabled when there are unsaved changes', () => {
+      const wrapper = mountForm({
         formState: singleRecipientFormState,
-        hasUnsavedChanges: true,
-        isSaving: true,
-      });
-
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.attributes('disabled')).toBeDefined();
-    });
-
-    it('FC-BTN-003: save button shows "Saving..." when isSaving', () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-        hasUnsavedChanges: true,
-        isSaving: true,
-      });
-
-      const saveButton = wrapper.find('button[type="submit"]');
-      expect(saveButton.text()).toContain('Saving...');
-    });
-
-    it('FC-BTN-004: discard button hidden when no unsaved changes', () => {
-      wrapper = mountComponent({
-        formState: emptyFormState,
-        hasUnsavedChanges: false,
-      });
-
-      const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('Discard Changes'));
-      expect(discardButton).toBeUndefined();
-    });
-
-    it('FC-BTN-005: delete all button hidden when no server recipients', () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
-        serverState: emptyServerState,
-      });
-
-      // The "delete all" button should not be present when there are no server recipients
-      // Note: Individual "Remove" buttons for pending recipients will still exist
-      const actionBar = wrapper.find('.border-t');
-      const deleteAllButton = actionBar.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Delete All Recipients')
-      );
-      expect(deleteAllButton).toBeUndefined();
-    });
-
-    it('save button enabled when there are pending recipients', () => {
-      wrapper = mountComponent({
-        formState: singleRecipientFormState,
+        savedFormState: emptyFormState,
         hasUnsavedChanges: true,
       });
 
       const saveButton = wrapper.find('button[type="submit"]');
       expect(saveButton.attributes('disabled')).toBeUndefined();
     });
-  });
 
-  // ---------------------------------------------------------------------------
-  // Delete Confirmation
-  // ---------------------------------------------------------------------------
-
-  describe('Delete confirmation', () => {
-    it('FC-DEL-001: shows confirmation text after clicking delete all', async () => {
-      wrapper = mountComponent({
-        serverState: singleRecipientServerState,
-      });
-
-      const buttons = wrapper.findAll('button[type="button"]');
-      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
-      await deleteAllButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.text()).toContain('Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.');
-    });
-
-    it('FC-DEL-002: shows cancel button in confirmation state', async () => {
-      wrapper = mountComponent({
-        serverState: singleRecipientServerState,
-      });
-
-      const buttons = wrapper.findAll('button[type="button"]');
-      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
-      await deleteAllButton!.trigger('click');
-      await flushPromises();
-
-      const cancelButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Cancel')
-      );
-      expect(cancelButton).toBeDefined();
-    });
-
-    it('FC-DEL-003: hides confirmation after clicking cancel', async () => {
-      wrapper = mountComponent({
-        serverState: singleRecipientServerState,
-      });
-
-      // Show confirmation
-      const buttons = wrapper.findAll('button[type="button"]');
-      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
-      await deleteAllButton!.trigger('click');
-      await flushPromises();
-
-      // Click cancel
-      const cancelButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Cancel')
-      );
-      await cancelButton!.trigger('click');
-      await flushPromises();
-
-      expect(wrapper.text()).not.toContain('Are you sure you want to remove all recipients? External users will no longer be able to send secrets to this domain.');
-    });
-
-    it('FC-DEL-004: does not emit delete until confirm clicked', async () => {
-      wrapper = mountComponent({
-        serverState: singleRecipientServerState,
-      });
-
-      // First click on Delete All Recipients
-      const buttons = wrapper.findAll('button[type="button"]');
-      const deleteAllButton = buttons.find((b) => b.text().includes('Delete All Recipients'));
-      await deleteAllButton!.trigger('click');
-      await flushPromises();
-
-      // Delete should NOT be emitted yet
-      expect(wrapper.emitted('delete')).toBeFalsy();
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Accessibility
-  // ---------------------------------------------------------------------------
-
-  describe('Accessibility', () => {
-    it('FC-A11Y-001: email input has associated label', () => {
-      wrapper = mountComponent();
-
-      expect(wrapper.find('label[for="recipient-email"]').exists()).toBe(true);
-    });
-
-    it('FC-A11Y-002: name input has associated label', () => {
-      wrapper = mountComponent();
-
-      expect(wrapper.find('label[for="recipient-name"]').exists()).toBe(true);
-    });
-
-    it('FC-A11Y-003: remove buttons have aria-label', () => {
-      wrapper = mountComponent({
+    it('emits save on submit when changes are pending', async () => {
+      const wrapper = mountForm({
         formState: singleRecipientFormState,
+        savedFormState: emptyFormState,
+        hasUnsavedChanges: true,
       });
 
-      const removeButton = wrapper.findAll('button').find(
-        (b) => b.attributes('aria-label') === 'Remove'
-      );
-      expect(removeButton).toBeDefined();
+      await wrapper.find('form').trigger('submit.prevent');
+
+      expect(wrapper.emitted('save')).toBeTruthy();
     });
 
-    it('FC-A11Y-004: has live region for status announcements', () => {
-      wrapper = mountComponent();
-
-      const liveRegion = wrapper.find('[aria-live="polite"]');
-      expect(liveRegion.exists()).toBe(true);
-    });
-
-    it('email input has required marker', () => {
-      wrapper = mountComponent();
-
-      const emailLabel = wrapper.find('label[for="recipient-email"]');
-      expect(emailLabel.text()).toContain('*');
-    });
-
-    it('email input sets aria-invalid when error present', async () => {
-      wrapper = mountComponent({
+    it('does not emit save when hasUnsavedChanges is false', async () => {
+      const wrapper = mountForm({
         formState: singleRecipientFormState,
+        savedFormState: singleRecipientFormState,
+        hasUnsavedChanges: false,
       });
 
-      const emailInput = wrapper.find('#recipient-email');
-      // Use a duplicate email to trigger an error
-      await emailInput.setValue('security@acme.com');
+      await wrapper.find('form').trigger('submit.prevent');
 
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-      await addButton!.trigger('click');
-      await flushPromises();
-
-      // Re-find the input element after state update
-      const updatedEmailInput = wrapper.find('#recipient-email');
-      expect(updatedEmailInput.attributes('aria-invalid')).toBe('true');
+      expect(wrapper.emitted('save')).toBeUndefined();
     });
+  });
 
-    it('email input has aria-describedby when error present', async () => {
-      wrapper = mountComponent({
+  describe('discard', () => {
+    it('shows the Discard button only when there are unsaved changes', () => {
+      const noChanges = mountForm({
         formState: singleRecipientFormState,
+        savedFormState: singleRecipientFormState,
+        hasUnsavedChanges: false,
+      });
+      expect(noChanges.text()).not.toContain('Discard');
+
+      const withChanges = mountForm({
+        formState: singleRecipientFormState,
+        savedFormState: emptyFormState,
+        hasUnsavedChanges: true,
+      });
+      expect(withChanges.text()).toContain('Discard');
+    });
+
+    it('emits discard when the Discard button is clicked', async () => {
+      const wrapper = mountForm({
+        formState: singleRecipientFormState,
+        savedFormState: emptyFormState,
+        hasUnsavedChanges: true,
       });
 
-      const emailInput = wrapper.find('#recipient-email');
-      // Use a duplicate email to trigger an error
-      await emailInput.setValue('security@acme.com');
+      const discardButton = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Discard'));
+      expect(discardButton).toBeDefined();
+      await discardButton!.trigger('click');
 
-      const addButton = wrapper.findAll('button[type="button"]').find(
-        (b) => b.text().includes('Add Recipient')
-      );
-      await addButton!.trigger('click');
-      await flushPromises();
-
-      // Re-find the input element after state update
-      const updatedEmailInput = wrapper.find('#recipient-email');
-      expect(updatedEmailInput.attributes('aria-describedby')).toBe('email-error');
+      expect(wrapper.emitted('discard')).toBeTruthy();
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Error display
-  // ---------------------------------------------------------------------------
+  describe('enabled toggle', () => {
+    it('emits update:enabled with the negated value', async () => {
+      const wrapper = mountForm({ formState: emptyFormState });
+      const toggle = wrapper.find('button[role="switch"]');
 
-  describe('Error display', () => {
-    it('shows error alert when error prop is provided', () => {
-      wrapper = mountComponent({
-        error: 'Something went wrong',
-      });
+      await toggle.trigger('click');
 
-      const alerts = wrapper.find('[data-testid="form-alerts"]');
-      expect(alerts.exists()).toBe(true);
-      expect(alerts.attributes('data-error')).toBe('Something went wrong');
+      expect(wrapper.emitted('update:enabled')).toEqual([[true]]);
     });
 
-    it('hides error alert when no error prop', () => {
-      wrapper = mountComponent();
+    it('reflects the current enabled state via aria-checked', () => {
+      const off = mountForm({ formState: emptyFormState });
+      expect(off.find('button[role="switch"]').attributes('aria-checked')).toBe('false');
 
-      const alerts = wrapper.find('[data-testid="form-alerts"]');
-      expect(alerts.exists()).toBe(false);
+      const on = mountForm({ formState: singleRecipientFormState });
+      expect(on.find('button[role="switch"]').attributes('aria-checked')).toBe('true');
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Enter key handling
-  // ---------------------------------------------------------------------------
-
-  describe('Enter key handling', () => {
-    it('adds recipient on Enter in email input', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
+  describe('delete', () => {
+    it('hides the Delete button when there is no persisted state', () => {
+      const wrapper = mountForm({
+        formState: emptyFormState,
+        savedFormState: emptyFormState,
       });
-
-      const emailInput = wrapper.find('#recipient-email');
-      await emailInput.setValue('test@example.com');
-      await emailInput.trigger('keydown', { key: 'Enter' });
-      await flushPromises();
-
-      const emitted = wrapper.emitted('addRecipient');
-      expect(emitted).toBeTruthy();
+      expect(wrapper.text()).not.toContain('Delete all');
     });
 
-    it('adds recipient on Enter in name input', async () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
+    it('shows the Delete button when savedFormState has recipients', () => {
+      const wrapper = mountForm({
+        formState: singleRecipientFormState,
+        savedFormState: singleRecipientFormState,
       });
+      expect(wrapper.text()).toContain('Delete all');
+    });
 
-      const emailInput = wrapper.find('#recipient-email');
-      const nameInput = wrapper.find('#recipient-name');
+    it('shows the Delete button when savedFormState.enabled is true (even with no recipients)', () => {
+      // The user toggled enabled and saved, but cleared all recipients without
+      // a subsequent save. The persisted record still exists.
+      const wrapper = mountForm({
+        formState: emptyFormState,
+        savedFormState: { enabled: true, recipients: [] },
+      });
+      expect(wrapper.text()).toContain('Delete all');
+    });
 
-      await emailInput.setValue('test@example.com');
-      await nameInput.setValue('Test User');
-      await nameInput.trigger('keydown', { key: 'Enter' });
-      await flushPromises();
+    it('reveals the confirmation prompt when Delete is clicked', async () => {
+      const wrapper = mountForm({
+        formState: singleRecipientFormState,
+        savedFormState: singleRecipientFormState,
+      });
+      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('Delete all'));
+      await deleteBtn!.trigger('click');
 
-      const emitted = wrapper.emitted('addRecipient');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual(['test@example.com', 'Test User']);
+      expect(wrapper.text()).toContain('Remove all?');
+    });
+
+    it('emits delete when confirmation is accepted', async () => {
+      const wrapper = mountForm({
+        formState: singleRecipientFormState,
+        savedFormState: singleRecipientFormState,
+      });
+      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('Delete all'));
+      await deleteBtn!.trigger('click');
+      const confirmBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Yes, delete'));
+      await confirmBtn!.trigger('click');
+
+      expect(wrapper.emitted('delete')).toBeTruthy();
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // Disabled state behavior (UI consistency)
-  // ---------------------------------------------------------------------------
-
-  describe('Disabled state behavior', () => {
-    it('shows disabled notice banner when enabled is false', () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: false },
+  describe('no more replace-warning dialog (#3095 regression)', () => {
+    it('saving with existing recipients does not call window.confirm', async () => {
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const wrapper = mountForm({
+        formState: {
+          enabled: true,
+          recipients: [
+            ...multipleRecipientsFormState.recipients,
+            { email: 'newcomer@acme.com', name: 'Newcomer' },
+          ],
+        },
+        savedFormState: multipleRecipientsFormState,
+        hasUnsavedChanges: true,
       });
 
-      // Banner should be visible with info icon
-      const banner = wrapper.find('.bg-blue-50');
-      expect(banner.exists()).toBe(true);
-    });
+      await wrapper.find('form').trigger('submit.prevent');
 
-    it('hides disabled notice banner when enabled is true', () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      // Banner should NOT be visible
-      const banner = wrapper.find('.bg-blue-50');
-      expect(banner.exists()).toBe(false);
-    });
-
-    it('renders email input when enabled is false (no disabled attribute)', () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: false },
-      });
-
-      // The component no longer disables individual inputs when disabled;
-      // it relies on the banner notice to communicate the disabled state.
-      const emailInput = wrapper.find('#recipient-email');
-      expect(emailInput.exists()).toBe(true);
-    });
-
-    it('enables email input when enabled is true', () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      const emailInput = wrapper.find('#recipient-email');
-      expect(emailInput.attributes('disabled')).toBeUndefined();
-    });
-
-    it('does not apply opacity styling to form container when disabled', () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: false },
-      });
-
-      // The component no longer applies opacity-60 when disabled;
-      // the disabled state is communicated via the blue banner only.
-      const formFieldsContainer = wrapper.find('.opacity-60');
-      expect(formFieldsContainer.exists()).toBe(false);
-    });
-
-    it('does not apply opacity styling when enabled', () => {
-      wrapper = mountComponent({
-        formState: { ...emptyFormState, enabled: true },
-      });
-
-      const formFieldsContainer = wrapper.find('.opacity-60');
-      expect(formFieldsContainer.exists()).toBe(false);
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(wrapper.emitted('save')).toBeTruthy();
+      confirmSpy.mockRestore();
     });
   });
 });

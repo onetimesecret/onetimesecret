@@ -56,15 +56,3 @@ export const putDomainIncomingConfigResponseSchema = createApiResponseSchema(
 );
 
 export type PutDomainIncomingConfigResponse = z.infer<typeof putDomainIncomingConfigResponseSchema>;
-
-/**
- * Response schema for PATCH /api/domains/:extid/incoming-config (future)
- *
- * Returns the updated incoming config.
- */
-export const patchDomainIncomingConfigResponseSchema = createApiResponseSchema(
-  customDomainIncomingConfigSchema,
-  incomingConfigDetailsSchema
-);
-
-export type PatchDomainIncomingConfigResponse = z.infer<typeof patchDomainIncomingConfigResponseSchema>;

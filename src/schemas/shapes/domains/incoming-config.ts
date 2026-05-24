@@ -20,13 +20,19 @@ import { z } from 'zod';
 // ---------------------------------------------------------------------------
 
 /**
- * Schema for incoming recipient in admin view.
+ * Schema for an incoming recipient in the admin/owner view.
  *
- * Uses digest instead of email to prevent exposing recipient addresses.
+ * The admin endpoint (`/api/domains/:extid/incoming-config`) returns and
+ * accepts plaintext `{email, name}` because the authenticated owner is
+ * managing their own configuration and the client needs to round-trip
+ * the existing list on save without losing entries.
+ *
+ * The anonymous-sender shape (hashed digests) lives in
+ * `src/schemas/api/incoming/responses/config.ts` — a different concern.
  */
 export const domainIncomingRecipientSchema = z.object({
-  digest: z.string().min(1),
-  display_name: z.string(),
+  email: z.string().email(),
+  name: z.string(),
 });
 
 export type DomainIncomingRecipient = z.infer<typeof domainIncomingRecipientSchema>;
@@ -70,8 +76,11 @@ export const customDomainIncomingConfigSchema = z.object({
   enabled: z.boolean(),
   recipients: z.array(domainIncomingRecipientSchema).default([]),
   max_recipients: z.number().int().positive(),
-  created_at: transforms.fromNumber.toDate,
-  updated_at: transforms.fromNumber.toDate,
+  // GetIncomingConfig returns null timestamps when no IncomingConfig record
+  // exists yet for the domain (unconfigured state). After the first save the
+  // backend populates real timestamps.
+  created_at: transforms.fromNumber.toDateNullish,
+  updated_at: transforms.fromNumber.toDateNullish,
 });
 
 export type CustomDomainIncomingConfig = z.infer<typeof customDomainIncomingConfigSchema>;
@@ -81,30 +90,17 @@ export type CustomDomainIncomingConfig = z.infer<typeof customDomainIncomingConf
 // ---------------------------------------------------------------------------
 
 /**
- * Request body for PUT of incoming configuration (frontend use).
+ * Request body for PUT of incoming configuration.
  *
- * This schema represents the frontend's intended payload - only the `enabled`
- * toggle is sent via PUT. The backend API endpoint also accepts `recipients`,
- * but the frontend manages recipients through separate add/remove endpoints
- * (PUT /api/domains/:extid/recipients).
- *
- * This intentional separation allows toggling enabled/disabled state
- * without requiring the frontend to re-send the (hashed) recipients list.
+ * Carries the full intended state: enabled flag plus the complete
+ * recipients list. PUT semantics — the request body IS the new state.
+ * The backend's `params.key?('recipients')` guard preserves existing
+ * recipients when the key is omitted, but the frontend always sends
+ * the full list, so this payload is the standard path.
  */
 export const putIncomingConfigPayloadSchema = z.object({
   enabled: z.boolean(),
+  recipients: z.array(domainIncomingRecipientSchema),
 });
 
 export type PutIncomingConfigPayload = z.infer<typeof putIncomingConfigPayloadSchema>;
-
-/**
- * Request body for PATCH (partial update) of incoming configuration.
- *
- * PATCH semantics: only provided fields are updated.
- * All fields are optional for true partial update.
- */
-export const patchIncomingConfigPayloadSchema = z.object({
-  enabled: z.boolean().optional(),
-});
-
-export type PatchIncomingConfigPayload = z.infer<typeof patchIncomingConfigPayloadSchema>;
