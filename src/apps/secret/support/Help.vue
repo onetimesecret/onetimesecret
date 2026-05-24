@@ -23,16 +23,16 @@ const { t } = useI18n();
         role="region"
         aria-labelledby="signin-help">
         <div class="p-6">
-          <h2
+          <h3
             id="signin-help"
-            class="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-200">
+            class="mb-4 font-medium text-gray-800 dark:text-gray-200">
             {{ t('web.help.signin_troubleshooting') }}
-          </h2>
+          </h3>
           <div class="space-y-4 text-gray-600 dark:text-gray-400">
             <div>
-              <h3 class="mb-2 font-medium text-gray-800 dark:text-gray-200">
+              <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
                 {{ t('web.help.magic_link_not_arriving') }}
-              </h3>
+              </h2>
               <ul class="ml-4 list-disc space-y-1">
                 <li>{{ t('web.help.check_spam_folder') }}</li>
                 <li>{{ t('web.help.check_email_spelling') }}</li>
@@ -42,18 +42,23 @@ const { t } = useI18n();
             </div>
 
             <div>
-              <h3 class="mb-2 font-medium text-gray-800 dark:text-gray-200">
+              <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
                 {{ t('web.help.forgot_password') }}
-              </h3>
+              </h2>
               <p>
                 {{ t('web.help.use_magic_link_instead') }}
+                <RouterLink
+                  to="/forgot"
+                  class="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                  {{ t('web.help.reset_password_link') }}
+                </RouterLink>
               </p>
             </div>
 
             <div>
-              <h3 class="mb-2 font-medium text-gray-800 dark:text-gray-200">
+              <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
                 {{ t('web.help.account_locked') }}
-              </h3>
+              </h2>
               <p>
                 {{ t('web.help.account_locked_explanation') }}
               </p>
