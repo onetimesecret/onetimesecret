@@ -92,7 +92,12 @@ module Core
           else
             # Use cached version
             OT.ld "[GetFavicon] Serving cached favicon for #{custom_domain.display_domain} (source: #{image_source})"
-            @icon_data = Base64.strict_decode64(cached_favicon)
+            begin
+              @icon_data = Base64.strict_decode64(cached_favicon)
+            rescue ArgumentError => ex
+              OT.le "[GetFavicon] Corrupted cached favicon for #{custom_domain.display_domain} (source: #{image_source}): #{ex.message}, regenerating"
+              generate_and_cache_favicon(image_hash)
+            end
           end
 
           @content_type   = 'image/png' # Resized favicons are always PNG
