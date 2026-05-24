@@ -1445,26 +1445,6 @@
     "context": "Returned when an account management action (destroy, change password/email) is attempted while SSO-only mode is active (lib/onetime/logic/sso_only_gating.rb)",
     "content_hash": "d1c1996c"
   },
-  "api.entitlements.errors.context_unavailable": {
-    "text": "Unable to verify entitlements (organization context unavailable)",
-    "context": "Returned when EntitlementRequired is raised because auth_org context is missing for an authenticated entitlement check",
-    "content_hash": "c8c4df42"
-  },
-  "api.entitlements.errors.api_access_required": {
-    "text": "API access requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for api_access",
-    "content_hash": "771798ec"
-  },
-  "api.entitlements.errors.custom_domains_required": {
-    "text": "Custom domains require a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for custom_domains",
-    "content_hash": "257b7309"
-  },
-  "api.entitlements.errors.incoming_secrets_required": {
-    "text": "Incoming secrets require a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for incoming_secrets",
-    "content_hash": "11932b5a"
-  },
   "web.COMMON.upgrade_description": {
     "text": "Upgrade to unlock more features",
     "context": "Description shown for free plan users encouraging upgrade",
