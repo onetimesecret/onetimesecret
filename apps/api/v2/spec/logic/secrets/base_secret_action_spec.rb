@@ -239,6 +239,17 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
             expect(error.args).to eq(domain: share_domain)
           end
       end
+
+      it 'serializes error_key into to_h for the HTTP response body' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: "You do not have permission to use domain: #{share_domain}",
+              error_key: 'api.secrets.errors.domain_permission_authenticated_non_owner',
+            )
+          end
+      end
     end
 
     context 'anonymous on custom domain with public sharing disabled (line ~459)' do
@@ -271,6 +282,17 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
             expect(error.args).to eq(domain: share_domain)
           end
       end
+
+      it 'serializes error_key into to_h for the HTTP response body' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: "Public sharing disabled for domain: #{share_domain}",
+              error_key: 'api.secrets.errors.domain_public_sharing_disabled',
+            )
+          end
+      end
     end
 
     context 'anonymous on canonical attempting cross-domain (line ~470)' do
@@ -301,6 +323,17 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect { subject.send(:validate_domain_permissions, domain_record) }
           .to raise_error(Onetime::Forbidden) do |error|
             expect(error.args).to eq(domain: share_domain)
+          end
+      end
+
+      it 'serializes error_key into to_h for the HTTP response body' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: "You do not have permission to use domain: #{share_domain}",
+              error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
+            )
           end
       end
 
