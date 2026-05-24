@@ -9,14 +9,14 @@
 # alone (covered by try/unit/logic/domains/add_domain_try.rb).
 #
 # Coverage:
-# 1. Owner of the active org → 201
-# 2. Admin of the active org → 201
+# 1. Owner of the active org → 200
+# 2. Admin of the active org → 200
 # 3. Member of the active org → 403 (Onetime::Forbidden, otto_hooks maps to 403)
 # 4. Member rejected via explicit org_id param (gate runs against target_org,
 #    not the session's active org)
-# 5. Non-member with explicit org_id → existing 400 form error (regression
+# 5. Non-member with explicit org_id → existing 422 FormError (regression
 #    guard: resolution-stage check still fires BEFORE the role check)
-# 6. Colonel with only a `member` membership → 201 (colonel: true bypass in
+# 6. Colonel with only a `member` membership → 200 (colonel: true bypass in
 #    verify_one_of_roles!, gated on verified email)
 # 7. Rejection message resolves the EN locale entry (not the helper's
 #    fallback default), confirming the new i18n key is loaded
@@ -81,7 +81,7 @@ def last_response; @test.last_response; end
 ]
 #=> [true, true, true, 'admin', 'member']
 
-## TEST 1: Owner POST /api/domains/add → 201 (control case)
+## TEST 1: Owner POST /api/domains/add → 200 (control case)
 @owner_domain = "owner-#{@ts}-#{@entropy}.example.com"
 post '/api/domains/add',
   { 'domain' => @owner_domain },
@@ -90,13 +90,13 @@ post '/api/domains/add',
     'HTTP_ACCEPT'  => 'application/json',
   }
 last_response.status
-#=> 201
+#=> 200
 
 ## TEST 1b: Owner domain landed in the org
 @org.list_domains.map(&:display_domain).include?(@owner_domain)
 #=> true
 
-## TEST 2: Admin POST /api/domains/add → 201
+## TEST 2: Admin POST /api/domains/add → 200
 @admin_domain = "admin-#{@ts}-#{@entropy}.example.com"
 post '/api/domains/add',
   { 'domain' => @admin_domain },
@@ -105,7 +105,7 @@ post '/api/domains/add',
     'HTTP_ACCEPT'  => 'application/json',
   }
 last_response.status
-#=> 201
+#=> 200
 
 ## TEST 2b: Admin domain also landed in the org
 @org.list_domains.map(&:display_domain).include?(@admin_domain)
@@ -153,10 +153,11 @@ last_response.status
 @org2.list_domains.map(&:display_domain).include?(@member_explicit_domain)
 #=> false
 
-## TEST 5: Non-member with explicit org_id → existing 400 form error
+## TEST 5: Non-member with explicit org_id → existing 422 FormError
 # Regression guard: the resolution-stage membership check still rejects
 # *before* the role gate runs, so the user sees the existing "not found
-# or access denied" message rather than the new admin-required one.
+# or access denied" message rather than the new admin-required one
+# (otto_hooks maps FormError → 422).
 @nonmember_org = Onetime::Organization.create!("Nonmember Org #{@ts}", @owner, "nonmember_org_#{@ts}@test.com")
 @nonmember_domain = "nonmember-#{@ts}-#{@entropy}.example.com"
 post '/api/domains/add',
@@ -166,9 +167,9 @@ post '/api/domains/add',
     'HTTP_ACCEPT'  => 'application/json',
   }
 [last_response.status, last_response.body.include?('access denied') || last_response.body.include?('not found')]
-#=> [400, true]
+#=> [422, true]
 
-## TEST 6: Colonel with only a `member` membership → 201
+## TEST 6: Colonel with only a `member` membership → 200
 # verify_organization_admin uses verify_one_of_roles!(colonel: true, ...) which
 # bypasses every role check for colonels. has_system_role?('colonel') also
 # requires cust.verified? — set both so the bypass actually fires.
@@ -190,7 +191,7 @@ post '/api/domains/add',
     'HTTP_ACCEPT'  => 'application/json',
   }
 last_response.status
-#=> 201
+#=> 200
 
 ## TEST 6b: Colonel-added domain landed in the org
 @org.list_domains.map(&:display_domain).include?(@colonel_domain)
