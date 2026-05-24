@@ -1,3 +1,6 @@
+# docs/development/README.md
+---
+
 # Development Guide
 
 This guide provides tips and best practices for developing Onetime Secret.
