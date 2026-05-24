@@ -50,6 +50,11 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   subject(:logic) { described_class.new(strategy_result, params) }
 
   before do
+    # Ensure I18n is usable for code paths calling I18n.t — without this,
+    # enforce_available_locales! raises InvalidLocale before default: falls back.
+    I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
+    I18n.default_locale = :en
+
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
