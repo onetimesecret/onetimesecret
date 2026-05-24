@@ -1294,7 +1294,6 @@ describe('bootstrapStore', () => {
 
     it('updates domain_branding and domain_logo', () => {
       const branding = {
-        allow_public_homepage: true,
         button_text_light: false,
         corner_style: 'square' as const,
         font_family: 'serif' as const,

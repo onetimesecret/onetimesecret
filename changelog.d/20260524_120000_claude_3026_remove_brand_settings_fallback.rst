@@ -10,6 +10,16 @@ Removed
   pre-cleanup Redis hashes can't echo stale values through, and the
   ``BrandSettings#allow_public_homepage?`` / ``allow_public_api?`` predicates
   are gone. (#3026)
+- Frontend Zod schemas dropped matching ``allow_public_homepage`` /
+  ``allow_public_api`` from the v2 and v3 brand shapes and the canonical
+  ``brandSettingsCanonical`` contract. ``brandStore``'s default branding
+  and ``isEqual`` comparator no longer reference the retired keys, and any
+  legacy values returned by older backends are now silently stripped by
+  the schema parsers. The ``allowPublicHomepage`` computed in
+  ``identityStore`` (derived from ``homepage_config.enabled``) is unchanged
+  and remains the single read-side surface for the toggle. The colonel
+  admin schema still carries the legacy keys to match its emitter; that
+  cleanup is tracked separately. (#3026)
 
 Changed
 -------

@@ -100,7 +100,7 @@ const v3FeatureFlagsOverride = {
  *   updated: 1609459200,
  *   locale: 'en',
  *   notify_on_reveal: false,
- *   feature_flags: { allow_public_homepage: true },
+ *   feature_flags: { beta_ui: true },
  * });
  *
  * console.log(customer.created instanceof Date); // true

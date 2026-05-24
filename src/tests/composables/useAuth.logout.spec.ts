@@ -48,7 +48,6 @@ describe('useAuth logout flow — no brand flash', () => {
       domain_logo: 'https://acme.example.com/logo.png',
       domain_branding: {
         primary_color: '#ff6600',
-        allow_public_homepage: false,
         button_text_light: true,
         corner_style: 'rounded',
         font_family: 'sans',

@@ -303,7 +303,6 @@ describe.skip('V3 Wire -> V2 Schema (Backward Compatibility)', () => {
       if (result.success && result.data.brand) {
         expect(result.data.brand.primary_color).toBe('#336699');
         expect(result.data.brand.button_text_light).toBe(true);
-        expect(result.data.brand.allow_public_homepage).toBe(true);
       }
     });
   });
@@ -526,7 +525,7 @@ describe('Compatibility Summary', () => {
       'vhost timestamps':
         'created_at, last_monitored_unix, ssl_active_from/until are dates',
       'brand booleans':
-        'button_text_light, allow_public_homepage, allow_public_api, passphrase_required, notify_enabled',
+        'button_text_light, passphrase_required, notify_enabled',
       'DNS validation':
         'txt_validation_host and txt_validation_value for domain ownership verification',
     };
