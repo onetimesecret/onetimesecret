@@ -64,20 +64,6 @@ export const brandSettingsCanonical = z
     /** Whether button text should be light colored. */
     button_text_light: z.boolean().default(false),
 
-    /**
-     * Whether public homepage is allowed.
-     * @deprecated Managed via HomepageConfig endpoint. Retained in brand
-     * response for backwards compatibility during migration.
-     */
-    allow_public_homepage: z.boolean().default(false),
-
-    /**
-     * Whether public API access is allowed.
-     * @deprecated Will be managed via a dedicated config endpoint.
-     * Retained in brand response for backwards compatibility.
-     */
-    allow_public_api: z.boolean().default(false),
-
     /** Font family for the interface. */
     font_family: z.enum(fontFamilyValues).default('sans'),
 

@@ -8,10 +8,11 @@
 # This model stores API access configuration bound to a specific CustomDomain.
 # When enabled, anonymous users can use the API against this domain.
 #
-# This is the canonical source for API access settings, replacing the legacy
-# allow_public_api field stored in BrandSettings. During migration,
-# CustomDomain#allow_public_api? checks ApiConfig first, then falls back
-# to BrandSettings.
+# This is the single source of truth for API access settings. The legacy
+# allow_public_api field on BrandSettings was retired in #3026 once the
+# #3023 backfill migration guaranteed every CustomDomain has a record.
+# CustomDomain.create! bootstraps a default-disabled record so the
+# invariant holds for new domains as well.
 #
 # @see HomepageConfig - Similar pattern for homepage secrets
 # @see IncomingConfig - Similar pattern for incoming secrets recipients

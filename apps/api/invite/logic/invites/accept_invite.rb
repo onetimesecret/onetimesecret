@@ -25,7 +25,8 @@ module InviteAPI::Logic
 
         if @token.nil? || @token.empty?
           raise_form_error(
-            I18n.t('api.organizations.invitations.errors.accept_token_required', locale: locale, default: 'Token is required'),
+            'Token is required',
+            error_key: 'api.invite.errors.token_required',
             field: :token,
           )
         end
@@ -36,7 +37,8 @@ module InviteAPI::Logic
         # Check if organization still exists (may have been deleted)
         unless @organization
           raise_form_error(
-            I18n.t('api.organizations.invitations.errors.accept_organization_gone', locale: locale, default: 'Organization no longer exists'),
+            'Organization no longer exists',
+            error_key: 'api.invite.errors.organization_no_longer_exists',
             field: :token,
           )
         end
@@ -44,12 +46,9 @@ module InviteAPI::Logic
         # Check if invitation is still pending
         unless @invitation.pending?
           raise_form_error(
-            I18n.t(
-              'api.organizations.invitations.errors.accept_already_acted',
-              locale: locale,
-              status: @invitation.status,
-              default: "Invitation has already been #{@invitation.status}",
-            ),
+            "Invitation has already been #{@invitation.status}",
+            error_key: 'api.invite.errors.invitation_already_processed',
+            args: { status: @invitation.status },
             field: :token,
           )
         end
@@ -57,7 +56,8 @@ module InviteAPI::Logic
         # Check if invitation has expired
         if @invitation.expired?
           raise_form_error(
-            I18n.t('api.organizations.invitations.errors.accept_expired', locale: locale, default: 'Invitation has expired'),
+            'Invitation has expired',
+            error_key: 'api.invite.errors.invitation_expired',
             field: :token,
           )
         end
@@ -69,7 +69,8 @@ module InviteAPI::Logic
 
           unless invited == user
             raise_form_error(
-              I18n.t('api.organizations.invitations.errors.accept_email_mismatch', locale: locale, default: 'Your email address does not match the invitation'),
+              'Your email address does not match the invitation',
+              error_key: 'api.invite.errors.email_mismatch',
               field: :email,
               error_type: :email_mismatch,
             )
@@ -77,12 +78,13 @@ module InviteAPI::Logic
         end
 
         # Check if user is already a member
-        if @organization.member?(cust)
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.accept_already_member', locale: locale, default: 'You are already a member of this organization'),
-            field: :token,
-          )
-        end
+        return unless @organization.member?(cust)
+
+        raise_form_error(
+          'You are already a member of this organization',
+          error_key: 'api.invite.errors.already_member',
+          field: :token,
+        )
       end
 
       def process

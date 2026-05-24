@@ -1435,6 +1435,16 @@
     "context": "Error message for recoverable server errors",
     "content_hash": "fb961f3f"
   },
+  "api.errors.authentication_required": {
+    "text": "Authentication required",
+    "context": "Returned when an authenticated endpoint receives an anonymous request",
+    "content_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "This action is not available in SSO-only mode",
+    "context": "Returned when an account management action (destroy, change password/email) is attempted while SSO-only mode is active (lib/onetime/logic/sso_only_gating.rb)",
+    "content_hash": "d1c1996c"
+  },
   "web.COMMON.upgrade_description": {
     "text": "Upgrade to unlock more features",
     "context": "Description shown for free plan users encouraging upgrade",

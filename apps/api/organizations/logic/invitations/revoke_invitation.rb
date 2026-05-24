@@ -24,29 +24,23 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         verify_organization_admin(
           @organization,
-          error_key: 'api.organizations.invitations.errors.revoke_admin_required',
+          error_key: 'api.organizations.invitations.errors.admin_required_revoke',
         )
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
-        invitation_not_found = I18n.t(
-          'api.organizations.invitations.errors.not_found',
-          locale: locale,
-          default: 'Invitation not found',
-        )
-        raise_not_found(invitation_not_found) if @invitation.nil?
+        if @invitation.nil?
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
+        end
 
         # Verify invitation belongs to this organization
         if @invitation.organization_objid != @organization.objid
-          raise_not_found(invitation_not_found)
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
         end
 
         # Can only revoke pending invitations
         unless @invitation.pending?
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.cannot_revoke_non_pending', locale: locale, default: 'Can only revoke pending invitations'),
-            field: :token,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.revoke_only_pending', field: :token)
         end
       end
 
@@ -68,7 +62,6 @@ module OrganizationAPI::Logic
           revoked: true,
         }
       end
-
     end
   end
 end

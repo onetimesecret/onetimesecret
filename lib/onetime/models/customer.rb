@@ -84,7 +84,7 @@ module Onetime
     feature :customer_migration_fields
 
     sorted_set :receipts
-    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+    hashkey :feature_flags # Per-customer feature toggles
 
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, default_expiration: 24.hours

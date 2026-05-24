@@ -102,13 +102,13 @@ module OrganizationAPI
       # Otherwise, user must be organization owner.
       #
       # @param organization [Onetime::Organization]
-      # @param error_key [String] I18n key for the rejection message
-      # @raise [FormError] If user is not owner and not admin
-      def verify_organization_owner(organization, error_key: 'api.organizations.errors.owner_required')
+      # @raise [Forbidden] If user is not owner and not admin
+      def verify_organization_owner(organization)
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) },
-          error_message: I18n.t(error_key, locale: locale, default: 'Only organization owner can perform this action'),
+          error_message: 'Only organization owner can perform this action',
+          error_key: 'api.organizations.errors.organization_owner_required',
         )
       end
 
@@ -118,30 +118,32 @@ module OrganizationAPI
       # Otherwise, user must be organization member.
       #
       # @param organization [Onetime::Organization]
-      # @param error_key [String] I18n key for the rejection message
-      # @raise [FormError] If user is not a member and not admin
-      def verify_organization_member(organization, error_key: 'api.organizations.errors.member_required')
+      # @raise [Forbidden] If user is not a member and not admin
+      def verify_organization_member(organization)
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.member?(cust) },
-          error_message: I18n.t(error_key, locale: locale, default: 'You must be an organization member to perform this action'),
+          error_message: 'You must be an organization member to perform this action',
+          error_key: 'api.organizations.errors.organization_member_required',
         )
       end
 
       # Verify current user has admin privileges in the organization
       #
       # Owner is implicitly admin. Colonels (site admins) bypass.
+      # Promoted from per-action invitation classes (PR #3201). Per-action
+      # callers pass error_key: with an action-specific key so the edge
+      # resolver can localize messages like "Only owners and admins can ...".
       #
       # @param organization [Onetime::Organization]
-      # @param error_key [String] I18n key for the rejection message; defaults to the generic
-      #   admin-required message. Per-action callers should pass their own key
-      #   (e.g. 'api.organizations.invitations.errors.create_admin_required').
-      # @raise [FormError] If user is not owner/admin
-      def verify_organization_admin(organization, error_key: 'api.organizations.errors.admin_required')
+      # @param error_key [String] I18n key for the rejection message
+      # @raise [Forbidden] If user is not owner/admin
+      def verify_organization_admin(organization, error_key: 'api.organizations.errors.organization_admin_required')
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: I18n.t(error_key, locale: locale, default: 'Only organization owners and admins can perform this action'),
+          error_message: 'Only organization owners and admins can perform this action',
+          error_key: error_key,
         )
       end
 
@@ -166,7 +168,8 @@ module OrganizationAPI
         organization = Onetime::Organization.find_by_extid(extid)
         if organization.nil?
           raise_not_found(
-            I18n.t('api.organizations.errors.not_found', locale: locale, extid: extid, default: "Organization not found: #{extid}"),
+            error_key: 'api.organizations.errors.organization_not_found',
+            args: { extid: extid },
           )
         end
         organization

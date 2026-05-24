@@ -69,11 +69,15 @@ module Onetime
         puts "  Validation Record:    #{domain.validation_record || 'N/A'}"
         puts
 
-        # Branding configuration
-        puts 'Brand Settings:'
+        # Domain attributes
+        puts 'Domain Attributes:'
+        puts "  Apex Domain:          #{domain.apex? || 'false'}"
+        puts
+
+        # Per-domain feature toggles (#3026: HomepageConfig / ApiConfig, not brand)
+        puts 'Feature Toggles:'
         puts "  Allow Public Home:    #{domain.allow_public_homepage? || 'false'}"
         puts "  Allow Public API:     #{domain.allow_public_api? || 'false'}"
-        puts "  Apex Domain:          #{domain.apex? || 'false'}"
         puts
 
         # Vhost (Approximated) details

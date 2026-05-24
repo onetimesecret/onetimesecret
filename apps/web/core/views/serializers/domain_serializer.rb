@@ -70,8 +70,15 @@ module Core
         end
 
         # Coerces Redis string boolean fields on a custom domain's brand settings.
+        #
+        # Strips the legacy allow_public_homepage / allow_public_api keys
+        # (#3026): pre-cleanup Redis hashes may still carry them, but they're
+        # no longer authoritative — HomepageConfig and ApiConfig are. Echoing
+        # the stale values would re-introduce the dual source of truth.
         def build_branding_hash(custom_domain)
           branding_hash = (custom_domain&.brand&.hgetall || {}).to_h
+          branding_hash.delete('allow_public_homepage')
+          branding_hash.delete('allow_public_api')
           Onetime::CustomDomain::BrandSettingsConstants::BOOLEAN_FIELDS.each do |field|
             next unless branding_hash.key?(field)
 

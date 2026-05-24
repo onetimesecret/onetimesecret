@@ -23,7 +23,10 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         # Validate extid parameter
-        raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?
+        if @extid.to_s.empty?
+          raise_form_error(error_key: 'api.organizations.errors.extid_required',
+                           field: :extid, error_type: :missing)
+        end
 
         # Load organization
         @organization = load_organization(@extid)

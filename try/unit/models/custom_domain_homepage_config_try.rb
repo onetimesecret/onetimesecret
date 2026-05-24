@@ -10,8 +10,9 @@
 #   - upsert updates an existing record (enabled state changes)
 #   - upsert timestamp behaviour: created stable, updated changes on second call
 #   - upsert raises Onetime::Problem when domain_id is empty or nil
+#   - CustomDomain.create! bootstraps a default-disabled HomepageConfig record
 #   - CustomDomain#allow_public_homepage? returns config.enabled? when record exists
-#   - CustomDomain#allow_public_homepage? falls back to brand_settings when no record
+#   - CustomDomain#allow_public_homepage? fails closed (returns false) when record is missing
 
 require_relative '../../support/test_models'
 
@@ -25,6 +26,19 @@ OT.info "Cleaned Redis for HomepageConfig test run"
 @owner   = Onetime::Customer.create!(email: "hp_cfg_owner_#{@ts}_#{@entropy}@test.com")
 @org     = Onetime::Organization.create!("HpCfg Test Org #{@ts}", @owner, "hp_cfg_#{@ts}@test.com")
 @domain  = Onetime::CustomDomain.create!("hp-cfg-#{@ts}.example.com", @org.objid)
+
+# --- bootstrap: CustomDomain.create! auto-creates a default-disabled HomepageConfig ---
+
+## CustomDomain.create! bootstraps a HomepageConfig record for the new domain
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain.identifier)
+#=> true
+
+## Bootstrapped record defaults to disabled
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain.identifier).enabled?
+#=> false
+
+# Drop the bootstrap record so the remaining upsert tests start from a clean state.
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@domain.identifier)
 
 # --- upsert: new record ---
 
@@ -125,21 +139,31 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @domain.identifier, enab
 @domain.allow_public_homepage?
 #=> true
 
-# --- allow_public_homepage? fallback to brand_settings when no HomepageConfig ---
+# --- allow_public_homepage? fails closed when no HomepageConfig exists ---
+# Post-#3026, BrandSettings no longer carries allow_public_homepage and
+# CustomDomain.create! bootstraps a record, so a missing record at read
+# time indicates data corruption (manual delete, partial restore).
+# Read-path policy is fail-closed: return false (the safe default for a
+# public-homepage toggle) and log via OT.le so ops can detect drift,
+# rather than raising and 5xx-ing the user request — see the comment
+# block above the predicate in lib/onetime/models/custom_domain.rb.
 
-## Setup: create a domain with no HomepageConfig record
+## Setup: create a domain, then delete its bootstrap record to simulate the
+## corrupted-state case
 @domain_no_cfg = Onetime::CustomDomain.create!("hp-cfg-nocfg-#{@ts}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@domain_no_cfg.identifier)
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_no_cfg.identifier)
 #=> false
 
-## allow_public_homepage? returns false (brand_settings default) when no HomepageConfig exists
+## allow_public_homepage? returns false (safe default) when no HomepageConfig exists
 @domain_no_cfg.allow_public_homepage?
 #=> false
 
 # --- find_or_create_for_domain: atomic create-if-missing ---
 
-## Setup: a fresh domain with no HomepageConfig
+## Setup: a fresh domain with the auto-bootstrap record removed
 @focd_domain = Onetime::CustomDomain.create!("hp-cfg-focd-#{@ts}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@focd_domain.identifier)
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@focd_domain.identifier)
 #=> false
 

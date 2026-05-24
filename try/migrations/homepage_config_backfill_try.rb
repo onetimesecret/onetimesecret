@@ -6,11 +6,19 @@
 #
 # Covers:
 #   - migration_needed? is true when a domain has legacy
-#     brand_settings.allow_public_homepage but no HomepageConfig record
+#     brand[allow_public_homepage] but no HomepageConfig record
 #   - dry-run performs no writes
 #   - actual run creates HomepageConfig with enabled=true for legacy-on domains,
 #     enabled=false for legacy-off domains, and leaves pre-existing records alone
 #   - re-running is idempotent (all domains reported as skipped_existing)
+#
+# Post-#3026 notes:
+#   - CustomDomain.create! bootstraps a default-disabled HomepageConfig record,
+#     so each test setup must explicitly delete that record before staging the
+#     "legacy data, no HomepageConfig" scenario the migration was built for.
+#   - BrandSettings#allow_public_homepage? was removed; setup helpers and
+#     assertions read the legacy value directly from the brand hashkey, which
+#     matches what the migration itself now does.
 
 require_relative '../support/test_models'
 require 'familia/migration'
@@ -21,32 +29,40 @@ OT.boot! :test
 Familia.dbclient.flushdb
 OT.info 'Cleaned Redis for HomepageConfig backfill migration test run'
 
+# Helper: read the legacy enabled value directly from the brand hashkey,
+# mirroring how the migration itself sources its input post-#3026.
+def legacy_enabled?(domain)
+  domain.brand.hgetall['allow_public_homepage'].to_s == 'true'
+end
+
+# Helper: stage a "pre-#3023" domain — legacy brand value set, no HomepageConfig.
+# Removes the auto-bootstrap record so the migration sees the same shape it
+# was originally designed for.
+def stage_legacy_domain(display_domain, org_id, legacy_value)
+  domain = Onetime::CustomDomain.create!(display_domain, org_id)
+  Onetime::CustomDomain::HomepageConfig.delete_for_domain!(domain.identifier)
+  domain.brand['allow_public_homepage'] = legacy_value
+  domain
+end
+
 @ts      = Familia.now.to_i
 @entropy = SecureRandom.hex(4)
 @owner   = Onetime::Customer.create!(email: "hp_bf_owner_#{@ts}_#{@entropy}@test.com")
 @org     = Onetime::Organization.create!("HpBf Test Org #{@ts}", @owner, "hp_bf_#{@ts}@test.com")
 
 # Domain A: legacy allow_public_homepage = true, no HomepageConfig yet.
-@domain_on                                = Onetime::CustomDomain.create!("hp-bf-on-#{@ts}.example.com", @org.objid)
-@domain_on.brand['allow_public_homepage'] = true
-@domain_on.instance_variable_set(:@brand_settings, nil)
+@domain_on = stage_legacy_domain("hp-bf-on-#{@ts}.example.com", @org.objid, true)
 
 # Domain B: legacy allow_public_homepage = false, no HomepageConfig yet.
-@domain_off                                = Onetime::CustomDomain.create!("hp-bf-off-#{@ts}.example.com", @org.objid)
-@domain_off.brand['allow_public_homepage'] = false
-@domain_off.instance_variable_set(:@brand_settings, nil)
+@domain_off = stage_legacy_domain("hp-bf-off-#{@ts}.example.com", @org.objid, false)
 
 # Domain C: pre-existing HomepageConfig(enabled=true), legacy value false.
 # The migration must not overwrite this record.
-@domain_pre                                = Onetime::CustomDomain.create!("hp-bf-pre-#{@ts}.example.com", @org.objid)
-@domain_pre.brand['allow_public_homepage'] = false
-@domain_pre.instance_variable_set(:@brand_settings, nil)
+@domain_pre = stage_legacy_domain("hp-bf-pre-#{@ts}.example.com", @org.objid, false)
 Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @domain_pre.identifier, enabled: true)
 
-## Setup: brand_settings reflects the staged values
-[@domain_on.brand_settings.allow_public_homepage?,
- @domain_off.brand_settings.allow_public_homepage?,
- @domain_pre.brand_settings.allow_public_homepage?]
+## Setup: raw brand hashkey reflects the staged legacy values
+[legacy_enabled?(@domain_on), legacy_enabled?(@domain_off), legacy_enabled?(@domain_pre)]
 #=> [true, false, false]
 
 ## Setup: only the pre-existing domain starts with a HomepageConfig
@@ -135,29 +151,23 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_off.identifier)
 #
 # One domain is rigged so that its `brand` Redis key is the wrong Redis type
 # (string instead of hash). CustomDomain.find_by_identifier returns the domain
-# normally, but the downstream call `domain.brand_settings.allow_public_homepage?`
-# triggers `brand.hgetall`, which raises Redis::CommandError (WRONGTYPE).
+# normally, but the downstream call `domain.brand.hgetall` raises
+# Redis::CommandError (WRONGTYPE).
 # This exercises the per-domain rescue in `migrate` via real data corruption
 # rather than monkey-patching class methods, so the test survives Familia /
 # redis-rb version changes that would break singleton-method stubs.
 #
 # The migration must count :errors, keep processing the remaining domains,
 # and must not raise out of migrate.
-# Bare code between ## blocks does not execute in Tryouts; we wrap setup in
-# explicit setup testcases so @ivars propagate.
 
 ## Setup: flush Redis and stage raising + non-raising domain fixtures
 Familia.dbclient.flushdb
-@ts_err       = Familia.now.to_i
-@owner_err    = Onetime::Customer.create!(email: "hp_err_owner_#{@ts_err}_#{SecureRandom.hex(4)}@test.com")
-@org_err      = Onetime::Organization.create!("HpErr Test Org #{@ts_err}", @owner_err, "hp_err_#{@ts_err}@test.com")
-@domain_err                                = Onetime::CustomDomain.create!("hp-err-raise-#{@ts_err}.example.com", @org_err.objid)
-@domain_err.brand['allow_public_homepage'] = true
-@domain_err.instance_variable_set(:@brand_settings, nil)
-@domain_ok                                 = Onetime::CustomDomain.create!("hp-err-ok-#{@ts_err}.example.com", @org_err.objid)
-@domain_ok.brand['allow_public_homepage']  = false
-@domain_ok.instance_variable_set(:@brand_settings, nil)
-@raising_id                                = @domain_err.identifier
+@ts_err     = Familia.now.to_i
+@owner_err  = Onetime::Customer.create!(email: "hp_err_owner_#{@ts_err}_#{SecureRandom.hex(4)}@test.com")
+@org_err    = Onetime::Organization.create!("HpErr Test Org #{@ts_err}", @owner_err, "hp_err_#{@ts_err}@test.com")
+@domain_err = stage_legacy_domain("hp-err-raise-#{@ts_err}.example.com", @org_err.objid, true)
+@domain_ok  = stage_legacy_domain("hp-err-ok-#{@ts_err}.example.com", @org_err.objid, false)
+@raising_id = @domain_err.identifier
 [@raising_id.to_s.length.positive?, @domain_ok.identifier.to_s.length.positive?]
 #=> [true, true]
 
@@ -168,10 +178,10 @@ Familia.dbclient.set(@brand_dbkey, 'corrupted-not-a-hash')
 Familia.dbclient.type(@brand_dbkey)
 #=> "string"
 
-## Sanity: fresh domain load raises from brand_settings due to WRONGTYPE, non-raising domain loads cleanly
+## Sanity: brand.hgetall raises WRONGTYPE on the raising domain; non-raising domain loads cleanly
 sanity =
   begin
-    Onetime::CustomDomain.find_by_identifier(@raising_id).brand_settings.allow_public_homepage?
+    Onetime::CustomDomain.find_by_identifier(@raising_id).brand.hgetall
     :no_raise
   rescue StandardError
     :raised
@@ -205,6 +215,7 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@raising_id)
 # --- migration_needed? false when all domains already have HomepageConfig ---
 
 ## Setup: flush and stage two domains that already have HomepageConfigs
+## (CustomDomain.create! bootstraps a record, then upsert overwrites with desired value)
 Familia.dbclient.flushdb
 @ts_pre    = Familia.now.to_i
 @owner_pre = Onetime::Customer.create!(email: "hp_pre_owner_#{@ts_pre}_#{SecureRandom.hex(4)}@test.com")
@@ -226,18 +237,19 @@ Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @domain_p2.identifier, e
 # --- Missing brand field defaults to disabled ---
 
 ## Setup: flush and stage a domain with no allow_public_homepage brand key
+## (delete the bootstrap config to make the migration see it as unmigrated)
 Familia.dbclient.flushdb
 @ts_def     = Familia.now.to_i
 @owner_def  = Onetime::Customer.create!(email: "hp_def_owner_#{@ts_def}_#{SecureRandom.hex(4)}@test.com")
 @org_def    = Onetime::Organization.create!("HpDef Test Org #{@ts_def}", @owner_def, "hp_def_#{@ts_def}@test.com")
 @domain_def = Onetime::CustomDomain.create!("hp-def-#{@ts_def}.example.com", @org_def.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@domain_def.identifier)
 @domain_def.brand.delete('allow_public_homepage') if @domain_def.brand.key?('allow_public_homepage')
-@domain_def.instance_variable_set(:@brand_settings, nil)
 @domain_def.brand.key?('allow_public_homepage')
 #=> false
 
-## BrandSettings::DEFAULTS yields false for missing allow_public_homepage
-@domain_def.brand_settings.allow_public_homepage?
+## Missing brand key reads as the empty string and treats as disabled
+legacy_enabled?(@domain_def)
 #=> false
 
 ## Migration still reports needed (any domain without HomepageConfig qualifies)
@@ -291,9 +303,7 @@ Familia.dbclient.flushdb
 @org_stale   = Onetime::Organization.create!("HpStale Test Org #{@ts_stale}", @owner_stale, "hp_stale_#{@ts_stale}@test.com")
 @stale_id    = 'nonexistent_domain_id_xyz'
 
-@domain_stale                                = Onetime::CustomDomain.create!("hp-stale-#{@ts_stale}.example.com", @org_stale.objid)
-@domain_stale.brand['allow_public_homepage'] = true
-@domain_stale.instance_variable_set(:@brand_settings, nil)
+@domain_stale = stage_legacy_domain("hp-stale-#{@ts_stale}.example.com", @org_stale.objid, true)
 
 Familia.dbclient.zadd(Onetime::CustomDomain.instances.dbkey, Familia.now.to_f, @stale_id)
 [Onetime::CustomDomain.instances.size,

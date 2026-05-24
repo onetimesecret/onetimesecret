@@ -29,46 +29,31 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         verify_organization_admin(
           @organization,
-          error_key: 'api.organizations.invitations.errors.create_admin_required',
+          error_key: 'api.organizations.invitations.errors.admin_required_create',
         )
 
         # Validate email (basic validation before quota check)
         if @email.empty?
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.email_required', locale: locale, default: 'Email is required'),
-            field: :email,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.email_required', field: :email)
         end
         unless valid_email?(@email)
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.email_invalid', locale: locale, default: 'Invalid email format'),
-            field: :email,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_email_format', field: :email)
         end
 
         # Validate role
         unless %w[member admin].include?(@role)
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.role_invalid', locale: locale, default: 'Role must be member or admin'),
-            field: :role,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_role', field: :role)
         end
 
         # Owners cannot be invited (must be assigned directly)
         if @role == 'owner'
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.cannot_invite_owner', locale: locale, default: 'Cannot invite as owner'),
-            field: :role,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.cannot_invite_as_owner', field: :role)
         end
 
         # Check if user is already a member
         existing_customer = Onetime::Customer.find_by_email(@email)
         if existing_customer && @organization.member?(existing_customer)
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.already_member', locale: locale, default: 'User is already a member of this organization'),
-            field: :email,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.user_already_member', field: :email)
         end
 
         # Check for existing pending invitation
@@ -76,10 +61,7 @@ module OrganizationAPI::Logic
           @organization.objid, @email
         )
         if existing_invite&.pending?
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.already_pending', locale: locale, default: 'Invitation already pending for this email'),
-            field: :email,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: :email)
         end
 
         # Check member quota AFTER basic validation
@@ -150,16 +132,11 @@ module OrganizationAPI::Logic
         return unless @organization.at_limit?('members_per_team', current_count)
 
         raise_form_error(
-          I18n.t(
-            'api.organizations.invitations.errors.member_limit_reached',
-            locale: locale,
-            default: 'Member limit reached. Upgrade your plan to invite more members.',
-          ),
-          field: :email,
+          error_key: 'api.organizations.invitations.errors.member_limit_reached',
+          field: 'email',
           error_type: :upgrade_required,
         )
       end
-
     end
   end
 end

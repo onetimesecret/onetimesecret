@@ -35,11 +35,11 @@ require 'v2/logic'
 
 @domain = Onetime::CustomDomain.create!("validate-perms-#{@timestamp}.example.com", @org.objid)
 
-# Helper to set public homepage setting
+# Helper to set public homepage setting.
+# Writes through HomepageConfig (the authoritative store post-#3026); the
+# legacy brand[allow_public_homepage] path no longer affects the predicate.
 def set_public_homepage(domain, enabled)
-  domain.brand['allow_public_homepage'] = enabled
-  # Clear memoized brand_settings
-  domain.instance_variable_set(:@brand_settings, nil)
+  Onetime::CustomDomain::HomepageConfig.upsert(domain_id: domain.identifier, enabled: enabled)
 end
 
 # Helper to create a mock ConcealSecret logic instance for testing

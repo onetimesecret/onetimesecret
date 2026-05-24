@@ -23,7 +23,7 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         verify_organization_admin(
           @organization,
-          error_key: 'api.organizations.invitations.errors.view_admin_required',
+          error_key: 'api.organizations.invitations.errors.admin_required_list',
         )
       end
 
@@ -45,7 +45,6 @@ module OrganizationAPI::Logic
           count: @invitations.size,
         }
       end
-
     end
   end
 end

@@ -27,41 +27,31 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         verify_organization_admin(
           @organization,
-          error_key: 'api.organizations.invitations.errors.resend_admin_required',
+          error_key: 'api.organizations.invitations.errors.admin_required_resend',
         )
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
-        invitation_not_found = I18n.t(
-          'api.organizations.invitations.errors.not_found',
-          locale: locale,
-          default: 'Invitation not found',
-        )
-        raise_not_found(invitation_not_found) if @invitation.nil?
+        if @invitation.nil?
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
+        end
 
         # Verify invitation belongs to this organization
         if @invitation.organization_objid != @organization.objid
-          raise_not_found(invitation_not_found)
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
         end
 
         # Can only resend pending invitations
         unless @invitation.pending?
-          raise_form_error(
-            I18n.t('api.organizations.invitations.errors.cannot_resend_non_pending', locale: locale, default: 'Can only resend pending invitations'),
-            field: :token,
-          )
+          raise_form_error(error_key: 'api.organizations.invitations.errors.resend_only_pending', field: :token)
         end
 
         # Rate limit resends
         # rubocop:disable Style/GuardClause -- Guard clause inverts logic incorrectly here
         if @invitation.resend_count.to_i >= MAX_RESENDS
           raise_form_error(
-            I18n.t(
-              'api.organizations.invitations.errors.resend_limit_reached',
-              locale: locale,
-              max: MAX_RESENDS,
-              default: "Maximum resend limit (#{MAX_RESENDS}) reached",
-            ),
+            error_key: 'api.organizations.invitations.errors.resend_limit_reached',
+            args: { max: MAX_RESENDS },
             field: :token,
             error_type: :rate_limited,
           )
@@ -110,7 +100,6 @@ module OrganizationAPI::Logic
           record: @invitation.safe_dump,
         }
       end
-
     end
   end
 end

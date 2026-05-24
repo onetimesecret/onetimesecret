@@ -82,7 +82,6 @@ export const baseBootstrap: BootstrapPayload = {
   canonical_domain: 'test.onetimesecret.com',
   display_domain: 'test.onetimesecret.com',
   domain_branding: {
-    allow_public_homepage: false,
     button_text_light: true,
     corner_style: 'rounded',
     font_family: 'sans',

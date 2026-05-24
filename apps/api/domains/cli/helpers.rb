@@ -103,13 +103,6 @@ module Onetime
       def format_verification_state(state)
         state.to_s.upcase
       end
-
-      def format_brand_summary(domain)
-        flags = []
-        flags << 'homepage' if domain.allow_public_homepage?
-        flags << 'api' if domain.allow_public_api?
-        flags.empty? ? 'none' : flags.join(', ')
-      end
     end
   end
 end

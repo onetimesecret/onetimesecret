@@ -442,7 +442,11 @@ module V2::Logic
               action: 'validate_domain_permissions',
               result: :non_owner,
             }
-          raise Onetime::Forbidden, "You do not have permission to use domain: #{share_domain}"
+          raise Onetime::Forbidden.new(
+            "You do not have permission to use domain: #{share_domain}",
+            error_key: 'api.secrets.errors.domain_permission_authenticated_non_owner',
+            args: { domain: share_domain },
+          )
         end
 
         # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
@@ -456,7 +460,11 @@ module V2::Logic
               action: 'validate_domain_permissions',
               result: :access_denied,
             }
-          raise Onetime::Forbidden, "Public sharing disabled for domain: #{share_domain}"
+          raise Onetime::Forbidden.new(
+            "Public sharing disabled for domain: #{share_domain}",
+            error_key: 'api.secrets.errors.domain_public_sharing_disabled',
+            args: { domain: share_domain },
+          )
         end
 
         # Anonymous on canonical domain attempting to share via someone else's
@@ -467,7 +475,11 @@ module V2::Logic
             action: 'validate_domain_permissions',
             result: :non_owner,
           }
-        raise Onetime::Forbidden, "You do not have permission to use domain: #{share_domain}"
+        raise Onetime::Forbidden.new(
+          "You do not have permission to use domain: #{share_domain}",
+          error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
+          args: { domain: share_domain },
+        )
       end
     end
   end

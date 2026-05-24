@@ -9,10 +9,11 @@
 # When enabled, anonymous users can create secrets on the domain's public
 # homepage without authentication.
 #
-# This is the canonical source for homepage settings, replacing the legacy
-# allow_public_homepage field stored in BrandSettings. During migration,
-# CustomDomain#allow_public_homepage? checks HomepageConfig first, then
-# falls back to BrandSettings.
+# This is the single source of truth for homepage settings. The legacy
+# allow_public_homepage field on BrandSettings was retired in #3026 once
+# the #3023 backfill migration guaranteed every CustomDomain has a record.
+# CustomDomain.create! bootstraps a default-disabled record so the
+# invariant holds for new domains as well.
 #
 # @see IncomingConfig - Similar pattern for incoming secrets recipients
 #

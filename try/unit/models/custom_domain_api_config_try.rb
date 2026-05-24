@@ -10,8 +10,9 @@
 #   - upsert updates an existing record (enabled state changes)
 #   - upsert timestamp behaviour: created stable, updated changes on second call
 #   - upsert raises Onetime::Problem when domain_id is empty or nil
+#   - CustomDomain.create! bootstraps a default-disabled ApiConfig record
 #   - CustomDomain#allow_public_api? returns config.enabled? when record exists
-#   - CustomDomain#allow_public_api? falls back to brand_settings when no record
+#   - CustomDomain#allow_public_api? fails closed (returns false) when record is missing
 
 require_relative '../../support/test_models'
 
@@ -25,6 +26,19 @@ OT.info "Cleaned Redis for ApiConfig test run"
 @owner   = Onetime::Customer.create!(email: "api_cfg_owner_#{@ts}_#{@entropy}@test.com")
 @org     = Onetime::Organization.create!("ApiCfg Test Org #{@ts}", @owner, "api_cfg_#{@ts}@test.com")
 @domain  = Onetime::CustomDomain.create!("api-cfg-#{@ts}.example.com", @org.objid)
+
+# --- bootstrap: CustomDomain.create! auto-creates a default-disabled ApiConfig ---
+
+## CustomDomain.create! bootstraps an ApiConfig record for the new domain
+Onetime::CustomDomain::ApiConfig.exists_for_domain?(@domain.identifier)
+#=> true
+
+## Bootstrapped record defaults to disabled
+Onetime::CustomDomain::ApiConfig.find_by_domain_id(@domain.identifier).enabled?
+#=> false
+
+# Drop the bootstrap record so the remaining upsert tests start from a clean state.
+Onetime::CustomDomain::ApiConfig.delete_for_domain!(@domain.identifier)
 
 # --- upsert: new record ---
 
@@ -125,21 +139,31 @@ Onetime::CustomDomain::ApiConfig.upsert(domain_id: @domain.identifier, enabled: 
 @domain.allow_public_api?
 #=> true
 
-# --- allow_public_api? fallback to brand_settings when no ApiConfig ---
+# --- allow_public_api? fails closed when no ApiConfig exists ---
+# Post-#3026, BrandSettings no longer carries allow_public_api and
+# CustomDomain.create! bootstraps a record, so a missing record at read
+# time indicates data corruption (manual delete, partial restore).
+# Read-path policy is fail-closed: return false (the safe default for a
+# public-api toggle) and log via OT.le so ops can detect drift, rather
+# than raising and 5xx-ing the user request — see the comment block
+# above the predicate in lib/onetime/models/custom_domain.rb.
 
-## Setup: create a domain with no ApiConfig record
+## Setup: create a domain, then delete its bootstrap record to simulate the
+## corrupted-state case
 @domain_no_cfg = Onetime::CustomDomain.create!("api-cfg-nocfg-#{@ts}.example.com", @org.objid)
+Onetime::CustomDomain::ApiConfig.delete_for_domain!(@domain_no_cfg.identifier)
 Onetime::CustomDomain::ApiConfig.exists_for_domain?(@domain_no_cfg.identifier)
 #=> false
 
-## allow_public_api? returns false (brand_settings default) when no ApiConfig exists
+## allow_public_api? returns false (safe default) when no ApiConfig exists
 @domain_no_cfg.allow_public_api?
 #=> false
 
 # --- find_or_create_for_domain: atomic create-if-missing ---
 
-## Setup: a fresh domain with no ApiConfig
+## Setup: a fresh domain with the auto-bootstrap record removed
 @focd_domain = Onetime::CustomDomain.create!("api-cfg-focd-#{@ts}.example.com", @org.objid)
+Onetime::CustomDomain::ApiConfig.delete_for_domain!(@focd_domain.identifier)
 Onetime::CustomDomain::ApiConfig.exists_for_domain?(@focd_domain.identifier)
 #=> false
 

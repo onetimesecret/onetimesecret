@@ -7,8 +7,6 @@ export const mockDefaultBranding: BrandSettings = {
   font_family: 'sans',
   corner_style: 'rounded',
   button_text_light: true,
-  allow_public_homepage: false,
-  allow_public_api: false,
 };
 
 export const mockCustomBrandingRed: BrandSettings = {
@@ -16,8 +14,6 @@ export const mockCustomBrandingRed: BrandSettings = {
   font_family: 'sans',
   corner_style: 'square',
   button_text_light: false,
-  allow_public_homepage: false,
-  allow_public_api: false,
 };
 
 export const mockCustomBrandingViolet: BrandSettings = {
@@ -25,8 +21,6 @@ export const mockCustomBrandingViolet: BrandSettings = {
   font_family: 'mono',
   corner_style: 'pill',
   button_text_light: true,
-  allow_public_homepage: true,
-  allow_public_api: true,
   description: 'Custom purple theme with monospace font',
   instructions_pre_reveal: 'Click below to view your secret',
   instructions_post_reveal: 'Secret has been revealed and destroyed',

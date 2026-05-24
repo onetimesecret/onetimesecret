@@ -128,14 +128,31 @@ module Onetime
         {}
       end
 
-      def raise_not_found(msg)
-        ex         = Onetime::RecordNotFound.new
-        ex.message = msg
+      # Two call shapes (and a hybrid for callers that need both):
+      # - Legacy: raise_not_found('Record not found')
+      # - i18n:   raise_not_found(error_key: 'api.organizations.errors.organization_not_found',
+      #                           args: { extid: '...' })
+      # - Hybrid: raise_not_found('Record not found', error_key: '...', args: {...})
+      #   Pre-populates the English fallback while still letting the edge
+      #   localize per request locale. Useful for helpers shared with code
+      #   paths that don't pass through the resolver.
+      # error_key is the full dotted i18n key so each call site is greppable
+      # from the JSON locale entry.
+      def raise_not_found(msg = nil, error_key: nil, args: {})
+        ex = Onetime::RecordNotFound.new(msg, error_key: error_key, args: args)
         raise ex
       end
 
-      def raise_form_error(msg, field: nil, error_type: nil)
-        ex             = OT::FormError.new(msg, field: field, error_type: error_type)
+      # Two call shapes (and a hybrid for callers that need both):
+      # - Legacy: raise_form_error('Invalid email', field: :email)
+      # - i18n:   raise_form_error(error_key: 'api.organizations.invitations.errors.email_required',
+      #                            args: { max: 5 }, field: :email)
+      # - Hybrid: raise_form_error('Authentication required', error_key: '...', field: :foo)
+      # error_key is the full dotted i18n key. The HTTP edge resolves it per
+      # request locale; logic stays free of locale/I18n boot concerns.
+      def raise_form_error(msg = nil, error_key: nil, args: {}, field: nil, error_type: nil)
+        ex = OT::FormError.new(msg, error_key: error_key, args: args,
+                                    field: field, error_type: error_type)
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
@@ -148,10 +165,15 @@ module Onetime
       # for anonymous requests separately.
       #
       # @param entitlement [String, Symbol] The entitlement to check
+      # @param error_key [String, nil] Optional dotted i18n key for the raised
+      #   error. Defaults to "api.entitlements.errors.#{entitlement}_required".
+      #   The "no auth_org" path uses a fixed system-error key
+      #   ('api.entitlements.errors.context_unavailable') and ignores this arg.
       # @raise [Onetime::EntitlementRequired] If org lacks the entitlement
       # @return [true] If entitlement check passes
-      def require_entitlement!(entitlement)
+      def require_entitlement!(entitlement, error_key: nil)
         entitlement = entitlement.to_s
+        error_key ||= "api.entitlements.errors.#{entitlement}_required"
 
         # Anonymous users don't have org context by design (NoAuthStrategy
         # returns {} for org_context). Guest route gating handles access
@@ -166,6 +188,8 @@ module Onetime
           raise Onetime::EntitlementRequired.new(
             entitlement,
             message: 'Unable to verify entitlements (organization context unavailable)',
+            error_key: 'api.entitlements.errors.context_unavailable',
+            args: { entitlement: entitlement },
           )
         end
 
@@ -182,6 +206,8 @@ module Onetime
           entitlement,
           current_plan: current_plan,
           upgrade_to: upgrade_to,
+          error_key: error_key,
+          args: { entitlement: entitlement },
         )
       end
 

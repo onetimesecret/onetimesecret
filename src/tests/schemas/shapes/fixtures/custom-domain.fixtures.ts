@@ -87,8 +87,6 @@ export interface BrandSettingsCanonical {
   instructions_post_reveal?: string | null;
   description?: string;
   button_text_light?: boolean;
-  allow_public_homepage?: boolean;
-  allow_public_api?: boolean;
   font_family?: 'sans' | 'serif' | 'mono';
   corner_style?: 'rounded' | 'pill' | 'square';
   locale?: string;
@@ -145,8 +143,6 @@ export function createCanonicalBrandSettings(
   return {
     primary_color: '#dc4a22',
     button_text_light: false,
-    allow_public_homepage: false,
-    allow_public_api: false,
     font_family: 'sans',
     corner_style: 'rounded',
     locale: 'en',
@@ -297,7 +293,6 @@ export function createBrandedDomain(
     brand: createCanonicalBrandSettings({
       primary_color: '#336699',
       button_text_light: true,
-      allow_public_homepage: true,
       font_family: 'serif',
       corner_style: 'pill',
       instructions_pre_reveal: 'Please enter the passphrase to reveal your secret.',
