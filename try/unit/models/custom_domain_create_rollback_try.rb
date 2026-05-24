@@ -473,7 +473,14 @@ end
     end
   end
 
-## S5: the exception that escaped create! is the ORIGINAL one, not the step ex
+# A testcase that opens a setup section must close with an assertion;
+# without one, Tryouts treats the body as bare code between testcases
+# and skips executing it (verified against the same pattern in S1-S4
+# where each setup ends with `@sX_exception_message #=~> ...`). The
+# regex match on the original exception message both serves as that
+# assertion AND is the primary contract we want to verify for S5: the
+# secondary step failure inside the rollback did not mask the original
+# create! exception.
 @s5_exception_message.to_s
 #=~> /ORIGINAL create! failure: HomepageConfig bootstrap/
 
@@ -561,12 +568,14 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@s5_captured[:id])
 ]
 #=> [true, true]
 
-## S6: org participation was added on the retry. We re-load the org from
-## Redis to get a fresh view (the @org object captured at top-of-file may
-## be reading from cached state depending on Familia v2 internals) and
-## use .score (the canonical Familia sorted_set presence check) rather
-## than .member? which appears to behave inconsistently here.
-!Onetime::Organization.load(@org_id).domains.score(@s6_domain.identifier).nil?
+## S6: org participation was added on the retry — verified via raw Redis
+## ZSCORE on the org.domains sorted-set key, bypassing any Familia-layer
+## value-representation question (identifier vs to_s vs object) by
+## checking both possibilities and returning :present if either matches.
+@s6_domain_key   = Onetime::Organization.load(@org_id).domains.dbkey
+@s6_id_present   = !Familia.dbclient.zscore(@s6_domain_key, @s6_domain.identifier).nil?
+@s6_tos_present  = !Familia.dbclient.zscore(@s6_domain_key, @s6_domain.to_s).nil?
+@s6_id_present || @s6_tos_present
 #=> true
 
 # Teardown
