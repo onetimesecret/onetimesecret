@@ -376,7 +376,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to match(/Member limit reached/)
           expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
-          expect(error.instance_variable_get(:@field)).to eq('email')
+          expect(error.instance_variable_get(:@field)).to eq(:email)
         end
       end
     end
