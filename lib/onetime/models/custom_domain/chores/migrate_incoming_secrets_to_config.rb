@@ -27,7 +27,7 @@
 # HousekeepingJob#run_chores_for which counts them as errors and continues.
 #
 # Run via the housekeeping CLI:
-#   bin/ots housekeeping perform Onetime::CustomDomain migrate_incoming_secrets_to_config
+#   bin/ots housekeeping run Onetime::CustomDomain migrate_incoming_secrets_to_config
 #
 # Remove this chore (and the `jsonkey :incoming_secrets` field declaration on
 # CustomDomain) after telemetry confirms all production domains have an

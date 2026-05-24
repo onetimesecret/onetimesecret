@@ -51,17 +51,19 @@ export type DomainIncomingRecipient = z.infer<typeof domainIncomingRecipientSche
  * Fields:
  * - domain_id: The domain this config belongs to
  * - enabled: Whether incoming secrets are enabled for this domain
- * - recipients: List of allowed recipients (hashed emails + display names)
+ * - recipients: List of recipients (plaintext email + display name; this
+ *   is the admin/owner view — the anonymous-sender hashed shape lives in
+ *   src/schemas/api/incoming/responses/config.ts)
  * - max_recipients: Maximum number of recipients allowed
- * - created_at: When this config was created (Unix epoch -> Date)
- * - updated_at: When this config was last modified (Unix epoch -> Date)
+ * - created_at: When this config was created (Unix epoch -> Date | null)
+ * - updated_at: When this config was last modified (Unix epoch -> Date | null)
  *
  * @example
  * ```typescript
  * const config = customDomainIncomingConfigSchema.parse({
  *   domain_id: 'domain123',
  *   enabled: true,
- *   recipients: [{ digest: 'abc123', display_name: 'Alice' }],
+ *   recipients: [{ email: 'alice@example.com', name: 'Alice' }],
  *   max_recipients: 20,
  *   created_at: 1609459200,
  *   updated_at: 1609545600,
