@@ -141,6 +141,11 @@ module Onetime
     # without affecting the org's global is_default setting.
     field :default_org_id
 
+    # CustomDomain identifier at signup time.
+    # Captured for re-verification and background job context where
+    # request domain context is not available.
+    field :signup_domain_id
+
     def init
       super
 
