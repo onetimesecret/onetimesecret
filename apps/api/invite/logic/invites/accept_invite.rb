@@ -56,9 +56,10 @@ module InviteAPI::Logic
 
           unless invited == user
             raise_form_error(
+              'Your email address does not match the invitation',
               error_key: 'api.invite.errors.email_mismatch',
               field: :email,
-              error_type: 'email_mismatch',
+              error_type: :email_mismatch,
             )
           end
         end
