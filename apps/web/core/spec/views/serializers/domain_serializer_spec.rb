@@ -229,20 +229,23 @@ RSpec.describe Core::Views::DomainSerializer do
             "Expected button_text_light to be boolean true, got #{branding['button_text_light'].inspect} (#{branding['button_text_light'].class})"
         end
 
-        it 'returns allow_public_homepage as a native boolean, not a string' do
+        it 'strips legacy allow_public_homepage from branding (#3026)' do
+          # Post-#3026, HomepageConfig is the source of truth; legacy
+          # brand[allow_public_homepage] is filtered to prevent the dual
+          # source of truth from leaking through to the frontend.
           result = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
-          expect(branding['allow_public_homepage']).to be(false),
-            "Expected allow_public_homepage to be boolean false, got #{branding['allow_public_homepage'].inspect} (#{branding['allow_public_homepage'].class})"
+          expect(branding).not_to have_key('allow_public_homepage')
         end
 
-        it 'returns allow_public_api as a native boolean, not a string' do
+        it 'strips legacy allow_public_api from branding (#3026)' do
+          # Post-#3026, ApiConfig is the source of truth; legacy
+          # brand[allow_public_api] is filtered for the same reason.
           result = described_class.serialize(custom_domain_view_vars)
           branding = result['domain_branding']
 
-          expect(branding['allow_public_api']).to be(true),
-            "Expected allow_public_api to be boolean true, got #{branding['allow_public_api'].inspect} (#{branding['allow_public_api'].class})"
+          expect(branding).not_to have_key('allow_public_api')
         end
 
         it 'returns passphrase_required as a native boolean, not a string' do
@@ -280,7 +283,7 @@ RSpec.describe Core::Views::DomainSerializer do
           let(:brand_hash_from_redis) do
             {
               'button_text_light' => true,
-              'allow_public_homepage' => false,
+              'notify_enabled' => false,
             }
           end
 
@@ -289,7 +292,7 @@ RSpec.describe Core::Views::DomainSerializer do
             branding = result['domain_branding']
 
             expect(branding['button_text_light']).to be(true)
-            expect(branding['allow_public_homepage']).to be(false)
+            expect(branding['notify_enabled']).to be(false)
           end
         end
 

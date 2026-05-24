@@ -545,20 +545,23 @@ module Onetime
       save
     end
 
+    # HomepageConfig is the single source of truth post-#3023 backfill, and
+    # new domains receive a default-disabled record via {.create!}. A missing
+    # record now signals data corruption (manual Redis deletion, partial
+    # restore) rather than legacy state, so we raise instead of silently
+    # synthesizing a value — the loud failure makes the drift discoverable.
     def allow_public_homepage?
       homepage_config = HomepageConfig.find_by_domain_id(identifier)
-      return homepage_config.enabled? if homepage_config
+      raise Onetime::Problem, "HomepageConfig missing for domain #{identifier}; run migration 20260417_01_backfill_homepage_config" unless homepage_config
 
-      # Legacy fallback: read from brand_settings (remove in future release)
-      brand_settings.allow_public_homepage?
+      homepage_config.enabled?
     end
 
     def allow_public_api?
       api_config = ApiConfig.find_by_domain_id(identifier)
-      return api_config.enabled? if api_config
+      raise Onetime::Problem, "ApiConfig missing for domain #{identifier}; run migration 20260417_01_backfill_homepage_config" unless api_config
 
-      # Legacy fallback: read from brand_settings (remove in future release)
-      brand_settings.allow_public_api?
+      api_config.enabled?
     end
 
     # Validates the format of TXT record host and value used for domain verification.
@@ -794,12 +797,20 @@ module Onetime
           # Add to other global indexes (instances sorted set, owners hash)
           instances.add obj.to_s
           owners.put obj.to_s, obj.org_id
+
+          # Maintain the per-domain config invariant: every CustomDomain has
+          # matching HomepageConfig/ApiConfig records. find_or_create_for_domain
+          # is idempotent + race-safe, so a concurrent PUT that wrote first
+          # keeps its value. Mirrors the destroy! sibling cleanup pattern.
+          bootstrap_per_domain_configs(obj)
         rescue StandardError => ex
           # Rollback all indexes on failure to prevent stale entries
           display_domains.remove(normalized_domain)
           obj.remove_from_class_display_domain_index
           instances.remove(obj.to_s)
           owners.remove(obj.to_s)
+          Onetime::CustomDomain::HomepageConfig.delete_for_domain!(obj.identifier)
+          Onetime::CustomDomain::ApiConfig.delete_for_domain!(obj.identifier)
           raise ex
         end
 
@@ -810,6 +821,18 @@ module Onetime
       rescue Redis::BaseError => ex
         OT.le "[CustomDomain.create!] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
+      end
+
+      # Create default-disabled HomepageConfig and ApiConfig records for a
+      # freshly created CustomDomain. Idempotent via find_or_create_for_domain
+      # (WATCH+MULTI), so a concurrent PUT that wrote first preserves its value.
+      def bootstrap_per_domain_configs(obj)
+        Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(
+          domain_id: obj.identifier, enabled: false,
+        )
+        Onetime::CustomDomain::ApiConfig.find_or_create_for_domain(
+          domain_id: obj.identifier, enabled: false,
+        )
       end
 
       # Atomically claim an orphaned domain for an organization.

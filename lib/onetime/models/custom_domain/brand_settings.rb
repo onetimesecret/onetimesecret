@@ -27,16 +27,12 @@ module Onetime
         primary_color: '#dc4a22',
         locale: 'en',
         button_text_light: false,
-        allow_public_homepage: false,
-        allow_public_api: false,
         default_ttl: nil,
         passphrase_required: false,
         notify_enabled: false,
       }.freeze
 
       BOOLEAN_FIELDS = %w[
-        allow_public_homepage
-        allow_public_api
         button_text_light
         passphrase_required
         notify_enabled
@@ -55,8 +51,6 @@ module Onetime
       :button_text_light,
       :font_family,
       :corner_style,
-      :allow_public_homepage,
-      :allow_public_api,
       :locale,
       :default_ttl,
       :passphrase_required,
@@ -136,16 +130,6 @@ module Onetime
         to_h.compact.transform_keys(&:to_s).transform_values do |val|
           Familia::JsonSerializer.dump(val)
         end
-      end
-
-      # @return [Boolean] Whether public homepage is allowed
-      def allow_public_homepage?
-        allow_public_homepage == true
-      end
-
-      # @return [Boolean] Whether public API is allowed
-      def allow_public_api?
-        allow_public_api == true
       end
 
       # @return [Boolean] Whether passphrase is required by default
