@@ -36,10 +36,13 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
   end
 
   before(:all) do
-    # Boot the full Onetime application for integration tests
-    # Following the same pattern as omniauth_csrf_spec.rb
+    # Boot the full Onetime application for integration tests.
+    # `force: true` resets any prior boot state so OmniAuth provider
+    # registration runs against this suite's WebMock stubs and ENV —
+    # without it, whichever spec booted first wins for the whole run
+    # and the OIDC route may be silently missing.
     require 'onetime' unless defined?(Onetime)
-    Onetime.boot! :test unless Onetime.ready?
+    Onetime.boot!(:test, force: true)
   end
 
   # ==========================================================================
