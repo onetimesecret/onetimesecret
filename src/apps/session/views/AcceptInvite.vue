@@ -240,6 +240,16 @@
   function onMfaRequired(redirect: string) {
     router.push({ path: '/mfa-verify', query: { redirect } });
   }
+
+  /**
+   * Handler for when signup fails because account already exists.
+   * Updates invitation state to trigger signin flow instead.
+   */
+  function onAccountExists() {
+    if (invitation.value) {
+      invitation.value.account_exists = true;
+    }
+  }
 </script>
 
 <template>
@@ -388,7 +398,8 @@
         :auth-methods="invitation.auth_methods || []"
         @success="onAcceptSuccess"
         @error="onFormError"
-        @decline="handleDecline" />
+        @decline="handleDecline"
+        @account-exists="onAccountExists" />
 
       <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
