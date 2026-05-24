@@ -5,103 +5,83 @@
  *
  * Maps to the `jobs:` section in config.defaults.yaml
  * Async processing for emails, notifications, webhooks, and scheduled tasks.
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults, value constraints (positive/int/min/max), and runtime validation
+ * belong in shapes — not here.
  */
 
 import { z } from 'zod';
 
-/**
- * Worker thread/prefetch configuration
- */
 const workerConfigSchema = z.object({
-  threads: z.number().int().positive(),
-  prefetch: z.number().int().positive(),
+  threads: z.number(),
+  prefetch: z.number(),
 });
 
-/**
- * Workers configuration (consumer processes)
- */
 const jobsWorkersSchema = z.object({
-  email: workerConfigSchema.default({ threads: 4, prefetch: 10 }),
-  notifications: workerConfigSchema.default({ threads: 2, prefetch: 10 }),
-  billing: workerConfigSchema.default({ threads: 2, prefetch: 5 }),
+  email: workerConfigSchema.optional(),
+  notifications: workerConfigSchema.optional(),
+  billing: workerConfigSchema.optional(),
 });
 
-/**
- * Scheduler configuration (rufus-scheduler daemon)
- */
 const jobsSchedulerSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean(),
 });
 
-/**
- * Domain refresh job configuration
- */
 const jobsDomainRefreshSchema = z.object({
-  enabled: z.boolean().default(false),
-  check_interval: z.string().default('30m'),
-  batch_size: z.number().int().positive().default(200),
-  rate_limit: z.number().nonnegative().default(0.5),
+  enabled: z.boolean().optional(),
+  check_interval: z.string().optional(),
+  batch_size: z.number().optional(),
+  rate_limit: z.number().optional(),
 });
 
-/**
- * Expiration warning email job configuration
- */
 const jobsExpirationWarningsSchema = z.object({
-  enabled: z.boolean().default(false),
-  check_interval: z.string().default('1h'),
-  warning_hours: z.number().int().positive().default(24),
-  min_ttl_hours: z.number().int().positive().default(48),
-  batch_size: z.number().int().positive().default(100),
+  enabled: z.boolean().optional(),
+  check_interval: z.string().optional(),
+  warning_hours: z.number().optional(),
+  min_ttl_hours: z.number().optional(),
+  batch_size: z.number().optional(),
 });
 
-/**
- * Maintenance phase configurations
- *
- * All maintenance jobs ship with auto_repair: false — enable only after
- * reviewing audit reports over multiple cycles.
- */
 const jobsPhantomCleanupSchema = z.object({
-  enabled: z.boolean().default(false),
-  interval: z.string().default('1h'),
-  batch_size: z.number().int().positive().default(500),
-  auto_repair: z.boolean().default(false),
+  enabled: z.boolean().optional(),
+  interval: z.string().optional(),
+  batch_size: z.number().optional(),
+  auto_repair: z.boolean().optional(),
 });
 
 const jobsDataAuditSchema = z.object({
-  enabled: z.boolean().default(false),
-  interval: z.string().default('6h'),
-  sample_size: z.number().int().positive().default(100),
+  enabled: z.boolean().optional(),
+  interval: z.string().optional(),
+  sample_size: z.number().optional(),
 });
 
 const jobsParticipationGcSchema = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 5 * * *'),
-  batch_size: z.number().int().positive().default(500),
-  auto_repair: z.boolean().default(false),
+  enabled: z.boolean().optional(),
+  cron: z.string().optional(),
+  batch_size: z.number().optional(),
+  auto_repair: z.boolean().optional(),
 });
 
 const jobsIndexRebuildSchema = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 4 * * *'),
-  auto_repair: z.boolean().default(false),
+  enabled: z.boolean().optional(),
+  cron: z.string().optional(),
+  auto_repair: z.boolean().optional(),
 });
 
 const jobsInstancesRebuildSchema = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 3 * * 0'),
-  auto_repair: z.boolean().default(false),
+  enabled: z.boolean().optional(),
+  cron: z.string().optional(),
+  auto_repair: z.boolean().optional(),
 });
 
 const jobsHousekeepingSchema = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 2 * * *'),
+  enabled: z.boolean().optional(),
+  cron: z.string().optional(),
 });
 
-/**
- * Maintenance jobs configuration (Redis data consistency checks and repairs)
- */
 const jobsMaintenanceSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().optional(),
   phantom_cleanup: jobsPhantomCleanupSchema.optional(),
   data_audit: jobsDataAuditSchema.optional(),
   participation_gc: jobsParticipationGcSchema.optional(),
@@ -110,19 +90,16 @@ const jobsMaintenanceSchema = z.object({
   housekeeping: jobsHousekeepingSchema.optional(),
 });
 
-/**
- * Complete jobs schema
- */
 const jobsSchema = z.object({
-  enabled: z.boolean().default(false),
-  rabbitmq_url: z.string().default('amqp://guest:guest@localhost:5672/dev'),
-  channel_pool_size: z.number().int().positive().default(5),
-  fallback_to_sync: z.boolean().default(true),
+  enabled: z.boolean().optional(),
+  rabbitmq_url: z.string().optional(),
+  channel_pool_size: z.number().optional(),
+  fallback_to_sync: z.boolean().optional(),
   workers: jobsWorkersSchema.optional(),
   scheduler: jobsSchedulerSchema.optional(),
-  plan_cache_refresh_enabled: z.boolean().default(false),
-  catalog_retry_enabled: z.boolean().default(false),
-  dlq_consumer_enabled: z.boolean().default(true),
+  plan_cache_refresh_enabled: z.boolean().optional(),
+  catalog_retry_enabled: z.boolean().optional(),
+  dlq_consumer_enabled: z.boolean().optional(),
   domain_refresh: jobsDomainRefreshSchema.optional(),
   expiration_warnings: jobsExpirationWarningsSchema.optional(),
   maintenance: jobsMaintenanceSchema.optional(),
