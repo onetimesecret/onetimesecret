@@ -47,6 +47,11 @@ const { t } = useI18n();
               </h3>
               <p>
                 {{ t('web.help.use_magic_link_instead') }}
+                <RouterLink
+                  to="/forgot"
+                  class="ml-1 font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                  {{ t('web.help.reset_password_link') }}
+                </RouterLink>
               </p>
             </div>
 

@@ -83,9 +83,8 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     // Redirect fully authenticated users away from auth routes (respect redirect param)
     // MFA pending users should still access auth routes like /mfa-verify
     if (isAuthRoute(to) && authStore.isFullyAuthenticated) {
-      const redirectParam = to.query.redirect as string | undefined;
-      const isValidRedirect = redirectParam?.startsWith('/') && !redirectParam.startsWith('//');
-      return isValidRedirect ? { path: redirectParam } : { name: 'Dashboard' };
+      const redirect = handleAuthRouteRedirect(to);
+      if (redirect) return redirect;
     }
 
     // Validate authentication for protected routes
@@ -232,6 +231,25 @@ export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
     return { path: '/account' };
   }
   return { path: '/signin' };
+}
+
+/**
+ * Handle redirects for authenticated users accessing auth routes.
+ * Returns a redirect target or null if no redirect needed.
+ */
+function handleAuthRouteRedirect(to: RouteLocationNormalized) {
+  // Allow reset-password with token regardless of auth state - the token is the authorization
+  if (to.path === '/reset-password' && to.query.key) {
+    return null;
+  }
+  // Redirect /forgot to the authenticated reset password page
+  if (to.path === '/forgot') {
+    return { path: '/account/settings/security/reset-password' };
+  }
+  // Respect redirect param if valid
+  const redirectParam = to.query.redirect as string | undefined;
+  const isValidRedirect = redirectParam?.startsWith('/') && !redirectParam.startsWith('//');
+  return isValidRedirect ? { path: redirectParam } : { name: 'Dashboard' };
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

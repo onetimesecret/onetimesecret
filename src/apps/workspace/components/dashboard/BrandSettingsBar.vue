@@ -73,6 +73,8 @@
                 :model-value="modelValue.primary_color"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
                 name="brand[primary_color]"
+                variant="sketch"
+                :disable-alpha="false"
                 :label="t('web.branding.brand_color')"
                 id="brand-color" />
             </div>

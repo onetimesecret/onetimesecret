@@ -5,3 +5,4 @@
 require_relative 'invites/show_invite'
 require_relative 'invites/accept_invite'
 require_relative 'invites/decline_invite'
+require_relative 'invites/signup_and_accept'

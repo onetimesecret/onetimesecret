@@ -388,8 +388,12 @@
     "content_hash": "afd25fdf"
   },
   "web.help.use_magic_link_instead": {
-    "text": "Use the Magic Link option to sign in without a password. Once signed in, you can change your password in Account Settings.",
-    "content_hash": "2a058600"
+    "text": "You can request a password reset link to create a new password.",
+    "content_hash": "8b3f7e12"
+  },
+  "web.help.reset_password_link": {
+    "text": "Reset password",
+    "content_hash": "7c8b3f21"
   },
   "web.help.account_locked": {
     "text": "Account temporarily locked?",

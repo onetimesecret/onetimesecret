@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { RouterLink } from 'vue-router';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAuth } from '@/shared/composables/useAuth';
   import { computed, ref } from 'vue';
@@ -162,6 +163,13 @@
                 role="alert"
                 class="mt-2 text-sm text-red-600 dark:text-red-400">
                 {{ fieldError[1] }}
+              </p>
+              <p class="mt-2 text-sm">
+                <RouterLink
+                  to="/account/settings/security/reset-password"
+                  class="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                  {{ t('web.login.forgot_your_password') }}
+                </RouterLink>
               </p>
             </div>
 
