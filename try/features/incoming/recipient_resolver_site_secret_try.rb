@@ -51,14 +51,16 @@ end
 @test_domain_display = "site-secret-test-#{@ts}-#{@entropy}.example.com"
 @test_domain = Onetime::CustomDomain.create!(@test_domain_display, @test_org.objid)
 
-# Configure recipients
-config = @test_domain.incoming_secrets_config
-config.set_incoming_recipients([
-  { 'email' => 'support@site-secret-test.com', 'name' => 'Support' },
-  { 'email' => 'admin@site-secret-test.com', 'name' => 'Admin' }
-])
-@test_domain.update_incoming_secrets_config(config)
-@test_domain.incoming_secrets_config.has_incoming_recipients?
+# Configure recipients via the IncomingConfig Familia model
+@incoming_config = Onetime::CustomDomain::IncomingConfig.create!(
+  domain_id: @test_domain.identifier,
+  enabled: true,
+  recipients: [
+    { email: 'support@site-secret-test.com', name: 'Support' },
+    { email: 'admin@site-secret-test.com', name: 'Admin' }
+  ]
+)
+@incoming_config.recipients.any?
 #=> true
 
 ## enabled? returns false when site_secret is nil (recipients configured)

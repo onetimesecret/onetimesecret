@@ -31,9 +31,9 @@ module Onetime
       # Check if incoming secrets are enabled for this domain context
       #
       # For custom domains:
-      # - Uses IncomingConfig.enabled? toggle (new model with explicit toggle)
-      # - Falls back to legacy IncomingSecretsConfig.has_incoming_recipients? if no IncomingConfig exists
-      # - Verifies site_secret is configured (without it, recipient hashes cannot be computed)
+      # - Uses IncomingConfig.enabled? toggle (explicit per-domain toggle).
+      #   Absence of an IncomingConfig record means not enabled.
+      # - Verifies site_secret is configured (without it, recipient hashes cannot be computed).
       #
       # @return [Boolean]
       def enabled?
@@ -41,15 +41,7 @@ module Onetime
         when :canonical, nil
           incoming_config['enabled'] || false
         when :custom
-          # Use new IncomingConfig model if it exists (explicit enabled toggle)
-          # Otherwise fall back to legacy IncomingSecretsConfig (has_incoming_recipients?)
-          config     = custom_domain_record&.incoming_config
-          is_enabled = if config
-                         config.enabled?
-                       else
-                         # Legacy fallback: enabled if recipients exist
-                         custom_domain_record&.incoming_secrets_config&.has_incoming_recipients? || false
-                       end
+          is_enabled = custom_domain_record&.incoming_config&.enabled? || false
 
           return false unless is_enabled
 
@@ -65,18 +57,29 @@ module Onetime
         end
       end
 
-      # Returns hashed recipients list for frontend display
+      # Returns hashed recipients list for frontend display.
       #
-      # @return [Array<Hash>] Array of {hash:, name:} hashes
+      # Custom domains delegate to IncomingConfig#public_recipients, which
+      # returns string-keyed hashes ({ 'digest' => ..., 'display_name' => ... })
+      # matching the canonical-domain shape from SetupIncomingRecipients.
+      #
+      # @return [Array<Hash>] Array of { 'digest' => ..., 'display_name' => ... }
       def public_recipients
         case @domain_strategy
         when :canonical, nil
           OT.incoming_public_recipients # Global boot-time hashed list
         when :custom
-          custom_domain_record&.cached_public_incoming_recipients(site_secret) || []
+          return [] if site_secret.nil? || site_secret.to_s.strip.empty?
+
+          custom_domain_record&.incoming_config&.public_recipients || []
         else
           []
         end
+      rescue OT::Problem
+        # IncomingConfig#public_recipients raises if site.secret is missing.
+        # Treat as fail-closed (empty list) for callers that don't already
+        # guard via enabled?.
+        []
       end
 
       # Look up email from recipient hash
@@ -88,8 +91,12 @@ module Onetime
         when :canonical, nil
           OT.lookup_incoming_recipient(hash_key) # Global boot-time lookup
         when :custom
-          custom_domain_record&.cached_incoming_recipient_lookup(site_secret)&.[](hash_key)
+          return nil if site_secret.nil? || site_secret.to_s.strip.empty?
+
+          custom_domain_record&.incoming_config&.lookup_recipient_email(hash_key)
         end
+      rescue OT::Problem
+        nil
       end
 
       # Require that the domain-owning org has a specific entitlement.
@@ -145,10 +152,10 @@ module Onetime
       #
       # @return [Hash] Config data for API response
       def config_data
-        defaults = Onetime::CustomDomain::IncomingSecretsConfig::DEFAULTS
+        defaults = Onetime::CustomDomain::IncomingConfig::DEFAULTS
         case @domain_strategy
         when :custom
-          config = custom_domain_config
+          config = custom_domain_record&.incoming_config
           {
             enabled: enabled?,
             memo_max_length: config&.memo_max_length || defaults[:memo_max_length],
@@ -180,13 +187,6 @@ module Onetime
         return nil unless @display_domain
 
         @custom_domain_record ||= Onetime::CustomDomain.from_display_domain(@display_domain)
-      end
-
-      # Returns IncomingSecretsConfig only for custom domains
-      def custom_domain_config
-        return nil unless @domain_strategy == :custom
-
-        custom_domain_record&.incoming_secrets_config
       end
     end
   end

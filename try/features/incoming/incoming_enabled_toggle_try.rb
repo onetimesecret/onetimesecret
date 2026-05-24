@@ -16,10 +16,9 @@
 # incoming secrets while preserving recipient configuration.
 #
 # Architecture Note:
-# - IncomingConfig (new model): stores explicit `enabled` field + `recipients_json`
-# - IncomingSecretsConfig (legacy): stored in CustomDomain's jsonkey, has_incoming_recipients?
-# - RecipientResolver: uses IncomingConfig.enabled? when present, else legacy fallback
-# - RecipientResolver.public_recipients: reads from IncomingSecretsConfig for display
+# - IncomingConfig (Familia model): stores explicit `enabled` field + `recipients_json`
+# - RecipientResolver: uses IncomingConfig.enabled? — absence means not enabled
+# - RecipientResolver.public_recipients: delegates to IncomingConfig#public_recipients
 
 require_relative '../../support/test_logic'
 require 'apps/api/incoming/logic/incoming'
@@ -203,9 +202,9 @@ config.destroy!
 result
 #=> nil
 
-# --- RECIPIENT RESOLVER WITH IncomingConfig (NEW MODEL) ---
-# RecipientResolver uses IncomingConfig.enabled? when IncomingConfig exists,
-# and reads recipients from IncomingSecretsConfig (legacy store) for public display.
+# --- RECIPIENT RESOLVER WITH IncomingConfig ---
+# RecipientResolver uses IncomingConfig.enabled? exclusively. Recipients are
+# read from the same IncomingConfig record.
 
 ## Setup: Create IncomingConfig for test domain with enabled=true
 @incoming_config = IncomingConfig.create!(
@@ -213,10 +212,6 @@ result
   enabled: true,
   recipients: [{ email: 'resolver-test@example.com', name: 'Resolver Test' }]
 )
-# Also populate legacy IncomingSecretsConfig so RecipientResolver can read recipients
-legacy_config = @test_domain.incoming_secrets_config
-legacy_config.set_incoming_recipients([{ 'email' => 'resolver-test@example.com', 'name' => 'Resolver Test' }])
-@test_domain.update_incoming_secrets_config(legacy_config)
 @test_domain.exists?
 #=> true
 
@@ -231,8 +226,8 @@ resolver = RecipientResolver.new(domain_strategy: :custom, display_domain: @test
 resolver.enabled?
 #=> false
 
-## RecipientResolver.public_recipients returns recipients from legacy config when disabled
-# Recipients are available for UI display even when incoming is disabled
+## RecipientResolver.public_recipients still returns recipients when disabled
+# Recipients remain available for UI display even when incoming is disabled
 resolver = RecipientResolver.new(domain_strategy: :custom, display_domain: @test_domain_display)
 resolver.public_recipients.size
 #=> 1
@@ -257,26 +252,28 @@ data = resolver.config_data
 data[:enabled]
 #=> true
 
-# --- LEGACY FALLBACK BEHAVIOR ---
-# When no IncomingConfig exists, RecipientResolver falls back to
-# IncomingSecretsConfig.has_incoming_recipients?
+# --- ABSENCE OF IncomingConfig MEANS NOT ENABLED ---
+# Custom domains with no IncomingConfig record are treated as disabled.
+# There is no implicit fallback path.
 
-## Create second domain without IncomingConfig for legacy fallback test
-@legacy_domain_display = "legacy-#{@ts}-#{@entropy}.example.com"
-@legacy_domain = Onetime::CustomDomain.create!(@legacy_domain_display, @test_org.objid)
-@legacy_domain.exists?
+## Create a second domain without IncomingConfig
+@no_config_domain_display = "no-config-#{@ts}-#{@entropy}.example.com"
+@no_config_domain = Onetime::CustomDomain.create!(@no_config_domain_display, @test_org.objid)
+@no_config_domain.exists?
 #=> true
 
-## Legacy fallback: no recipients means disabled
-resolver = RecipientResolver.new(domain_strategy: :custom, display_domain: @legacy_domain_display)
+## No IncomingConfig record means resolver reports disabled
+resolver = RecipientResolver.new(domain_strategy: :custom, display_domain: @no_config_domain_display)
 resolver.enabled?
 #=> false
 
-## Legacy fallback: adding recipients via IncomingSecretsConfig enables
-legacy_config = @legacy_domain.incoming_secrets_config
-legacy_config.set_incoming_recipients([{ 'email' => 'legacy@example.com', 'name' => 'Legacy' }])
-@legacy_domain.update_incoming_secrets_config(legacy_config)
-resolver = RecipientResolver.new(domain_strategy: :custom, display_domain: @legacy_domain_display)
+## Creating IncomingConfig with enabled=true flips the resolver to enabled
+IncomingConfig.create!(
+  domain_id: @no_config_domain.identifier,
+  enabled: true,
+  recipients: [{ email: 'no-config@example.com', name: 'No Config' }]
+)
+resolver = RecipientResolver.new(domain_strategy: :custom, display_domain: @no_config_domain_display)
 resolver.enabled?
 #=> true
 
@@ -289,19 +286,13 @@ resolver.enabled?
 @api_domain_display = "api-toggle-#{@ts}-#{@entropy}.example.com"
 @api_domain = Onetime::CustomDomain.create!(@api_domain_display, @test_org.objid)
 @api_recipient_email = "api-recipient+#{@ts}@example.com"
-api_incoming_secrets_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
-  'recipients' => [{ 'email' => @api_recipient_email, 'name' => 'API Test Recipient' }],
-  'memo_max_length' => 100,
-  'default_ttl' => 604800
-})
-@api_domain.update_incoming_secrets_config(api_incoming_secrets_config)
-site_secret = OT.conf.dig('site', 'secret')
-@api_recipient_hash = @api_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['digest']
 @api_incoming_config = IncomingConfig.create!(
   domain_id: @api_domain.identifier,
   enabled: false,
   recipients: [{ email: @api_recipient_email, name: 'API Test Recipient' }]
 )
+site_secret = OT.conf.dig('site', 'secret')
+@api_recipient_hash = @api_incoming_config.public_recipients.first['digest']
 @api_domain.exists?
 #=> true
 
