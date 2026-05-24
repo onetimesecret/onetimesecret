@@ -122,13 +122,14 @@ module Onetime
           return
         end
 
-        # Read the legacy value directly from the brand hashkey. The
-        # BrandSettings#allow_public_homepage? predicate was removed in
-        # #3026; this migration is preserved as a historical record but
-        # must still parse pre-#3023 data when re-run against a corrupt
-        # or pre-migration deployment. brand.hgetall returns raw stored
-        # strings ('true' / 'false') from BrandSettings#to_h_for_storage.
-        raw_legacy     = domain.brand.hgetall['allow_public_homepage']
+        # Read the legacy value directly from the brand hashkey via a
+        # single HGET (Familia hashkey#[]). The BrandSettings predicate
+        # was removed in #3026; this migration is preserved as a
+        # historical record but must still parse pre-#3023 data when
+        # re-run against a corrupt or pre-migration deployment. Raw
+        # stored value is the literal JSON 'true' / 'false' string
+        # produced by BrandSettings#to_h_for_storage.
+        raw_legacy     = domain.brand['allow_public_homepage']
         legacy_enabled = raw_legacy.to_s == 'true'
 
         if dry_run?

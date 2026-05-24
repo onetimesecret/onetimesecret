@@ -45,6 +45,19 @@ module ColonelAPI
           end_idx           = start_idx + @per_page - 1
           paginated_domains = all_domains[start_idx..end_idx] || []
 
+          # Batch-load sibling configs for the page in two pipelined fetches.
+          # HomepageConfig / ApiConfig use `identifier_field :domain_id`, so the
+          # CustomDomain identifiers serve directly as load_multi keys. Missing
+          # records come back as nil and are dropped by compact; lookup-misses
+          # in the loop below become nil blocks in the JSON response.
+          domain_identifiers = paginated_domains.map(&:identifier)
+          homepage_by_id     = Onetime::CustomDomain::HomepageConfig
+            .load_multi(domain_identifiers).compact
+            .each_with_object({}) { |cfg, h| h[cfg.domain_id] = cfg }
+          api_by_id          = Onetime::CustomDomain::ApiConfig
+            .load_multi(domain_identifiers).compact
+            .each_with_object({}) { |cfg, h| h[cfg.domain_id] = cfg }
+
           # Format domain data
           @domains = paginated_domains.map do |domain|
             # Get organization details
@@ -53,18 +66,15 @@ module ColonelAPI
             # Brand carries cosmetic fields only; the homepage / API toggles
             # live in their own per-domain records (#3026) and are emitted
             # alongside brand below.
+            brand_raw  = domain.brand.hgetall
             brand_data = {
-              name: domain.brand['name'],
-              tagline: domain.brand['tagline'],
-              homepage_url: domain.brand['homepage_url'],
+              name: brand_raw['name'],
+              tagline: brand_raw['tagline'],
+              homepage_url: brand_raw['homepage_url'],
             }
 
-            # Read sibling configs directly rather than via the predicates so a
-            # corrupt or missing record yields nil for one row rather than
-            # raising and crashing the admin list. nil flags the data drift to
-            # the admin without losing visibility into the remaining domains.
-            homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
-            api_config      = Onetime::CustomDomain::ApiConfig.find_by_domain_id(domain.identifier)
+            homepage_config = homepage_by_id[domain.identifier]
+            api_config      = api_by_id[domain.identifier]
 
             # Check if images exist
             has_logo = !domain.logo['filename'].to_s.empty?

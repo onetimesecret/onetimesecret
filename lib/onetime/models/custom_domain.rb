@@ -804,13 +804,20 @@ module Onetime
           # keeps its value. Mirrors the destroy! sibling cleanup pattern.
           bootstrap_per_domain_configs(obj)
         rescue StandardError => ex
-          # Rollback all indexes on failure to prevent stale entries
-          display_domains.remove(normalized_domain)
-          obj.remove_from_class_display_domain_index
-          instances.remove(obj.to_s)
-          owners.remove(obj.to_s)
-          Onetime::CustomDomain::HomepageConfig.delete_for_domain!(obj.identifier)
-          Onetime::CustomDomain::ApiConfig.delete_for_domain!(obj.identifier)
+          # destroy! is the symmetric rollback: it cascades through every
+          # write the begin block above can have performed — the main
+          # domain hash, all class indexes (display_domains, instances,
+          # owners, display_domain_index), sibling configs (Homepage/Api/
+          # Sso/Mailer/Incoming), and organization participation. Safe to
+          # call on partial state because Redis DEL is a no-op on missing
+          # keys and the helper iterators short-circuit on empty sets.
+          # Any secondary failure is swallowed (with a log) so it can't
+          # mask the original exception we're about to re-raise.
+          begin
+            obj.destroy!
+          rescue StandardError => destroy_ex
+            OT.le "[CustomDomain.create!] rollback destroy! failed for #{obj.display_domain}: #{destroy_ex.message}"
+          end
           raise ex
         end
 
