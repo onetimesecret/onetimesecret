@@ -24,6 +24,16 @@ module Onetime
       super
       @message = message
     end
+
+    # Exception#to_s returns the message stored at construction time inside
+    # the C-level internal slot, which never changes — so when ErrorResolver
+    # mutates @message via the accessor to install the localized string,
+    # to_s would still return the original. That breaks loggers and
+    # middleware that rely on the standard exception string representation.
+    # Delegating to @message keeps to_s consistent with #message.
+    def to_s
+      @message || super
+    end
   end
 
   # Raised when there is an issue with configuration settings, such as missing,
@@ -103,6 +113,12 @@ module Onetime
       @args      = args
     end
 
+    # See Problem#to_s — same divergence applies to every Forbidden
+    # subclass since they all reuse this attr_accessor :message.
+    def to_s
+      @message || super
+    end
+
     def to_h
       {
         error: 'Forbidden',
@@ -114,14 +130,21 @@ module Onetime
 
   # Raised when a user lacks the required entitlement for an action.
   # Contains upgrade path information for the API response.
+  #
+  # i18n shape: error_key + args inherited from Forbidden are resolved at
+  # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
+  # passes the dotted i18n key (e.g. 'api.entitlements.errors.api_access_required')
+  # and never touches I18n directly.
   class EntitlementRequired < Forbidden
     attr_reader :entitlement, :current_plan, :upgrade_to
 
-    def initialize(entitlement, current_plan: nil, upgrade_to: nil, message: nil)
+    def initialize(entitlement, current_plan: nil, upgrade_to: nil, message: nil,
+                   error_key: nil, args: {})
       @entitlement  = entitlement
       @current_plan = current_plan
       @upgrade_to   = upgrade_to
-      super(message || "Feature requires #{entitlement.to_s.tr('_', ' ')} entitlement")
+      default_message = "Feature requires #{entitlement.to_s.tr('_', ' ')} entitlement"
+      super(message || default_message, error_key: error_key, args: args)
     end
 
     def to_h
@@ -130,6 +153,7 @@ module Onetime
         entitlement: entitlement,
         current_plan: current_plan,
         upgrade_to: upgrade_to,
+        error_key: error_key,
       }.compact
     end
   end
@@ -145,11 +169,16 @@ module Onetime
 
   # Raised when guest API routes are disabled or a specific guest operation is disabled.
   # Contains an error code for the API response.
+  #
+  # i18n shape: error_key + args inherited from Forbidden are resolved at
+  # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
+  # passes the dotted i18n key and never touches I18n directly.
   class GuestRoutesDisabled < Forbidden
     attr_reader :code
 
-    def initialize(message = 'Guest API access is disabled', code: 'GUEST_ROUTES_DISABLED')
-      super(message)
+    def initialize(message = 'Guest API access is disabled', code: 'GUEST_ROUTES_DISABLED',
+                   error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
       @code = code
     end
 
@@ -157,17 +186,23 @@ module Onetime
       {
         message: message,
         code: code,
-      }
+        error_key: error_key,
+      }.compact
     end
   end
 
   # Raised when a rate limit is exceeded (too many failed attempts, etc.)
   # Used for security features like passphrase attempt limiting.
+  #
+  # i18n shape: error_key + args inherited from Forbidden are resolved at
+  # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
+  # passes the dotted i18n key and never touches I18n directly.
   class LimitExceeded < Forbidden
     attr_reader :retry_after, :attempts, :max_attempts
 
-    def initialize(message = 'Rate limit exceeded', retry_after: nil, attempts: nil, max_attempts: nil)
-      super(message)
+    def initialize(message = 'Rate limit exceeded', retry_after: nil, attempts: nil, max_attempts: nil,
+                   error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
       @retry_after  = retry_after
       @attempts     = attempts
       @max_attempts = max_attempts
@@ -180,6 +215,7 @@ module Onetime
         retry_after: retry_after,
         attempts: attempts,
         max_attempts: max_attempts,
+        error_key: error_key,
       }.compact
     end
   end

@@ -10,63 +10,29 @@ require 'spec_helper'
 # access to protected API endpoints based on organization entitlements.
 #
 # The method (fail-closed behavior):
+# - Returns true if the user is anonymous (entitlement checks skipped)
 # - Raises EntitlementRequired if no auth_org context (system issue)
 # - Returns true if the auth_org has the requested entitlement
 # - Raises EntitlementRequired if the auth_org lacks the entitlement
 #
-# These tests use a minimal test harness that wires up a @strategy_result
-# with organization_context metadata, matching how the real auth_org
-# method reads from StrategyResult in OrganizationContext.
+# These tests subclass the real Onetime::Logic::Base to exercise the real
+# require_entitlement! (and the real auth_org from OrganizationContext,
+# and the real anonymous_user? from AuthorizationPolicies) via the
+# inheritance chain — avoiding mock-vs-prod drift from a reimplemented stub.
 #
 RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
-  # Minimal test harness that mirrors how auth_org and require_entitlement!
-  # work in the real Onetime::Logic::Base + OrganizationContext.
+  # Subclass the real Onetime::Logic::Base so the inherited
+  # require_entitlement! (and auth_org / anonymous_user?) is exercised.
   #
-  # auth_org reads immutably from @strategy_result.metadata, matching
-  # the production code path. This avoids the old pattern of storing
-  # the org in a mutable @org ivar.
+  # We bypass the real Base#initialize side effects (process_settings,
+  # extract_organization_context, extract_domain_context, process_params,
+  # etc.) and set only the ivars that require_entitlement! reads through
+  # auth_org and anonymous_user?: @strategy_result and @cust.
   let(:test_class) do
-    Class.new do
-      attr_reader :strategy_result
-
-      def initialize(strategy_result)
+    Class.new(Onetime::Logic::Base) do
+      def initialize(strategy_result, cust: nil)
         @strategy_result = strategy_result
-      end
-
-      # Mirrors OrganizationContext#auth_org: reads immutably from
-      # strategy_result metadata, not from a mutable ivar.
-      def auth_org
-        @strategy_result&.metadata&.dig(:organization_context, :organization)
-      end
-
-      # Mirrors Onetime::Logic::Base#require_entitlement! — uses auth_org
-      # to check entitlements against the authenticated session's org.
-      def require_entitlement!(entitlement)
-        entitlement = entitlement.to_s
-
-        # Fail-closed: auth_org context required for entitlement checks.
-        # OrganizationLoader self-heals, so nil auth_org indicates a system issue.
-        unless auth_org
-          raise Onetime::EntitlementRequired.new(
-            entitlement,
-            message: 'Unable to verify entitlements (organization context unavailable)',
-          )
-        end
-
-        # Check if auth_org has the entitlement
-        return true if auth_org.can?(entitlement)
-
-        # Build upgrade path info
-        current_plan = auth_org.planid
-        upgrade_to   = if defined?(Billing::PlanHelpers)
-                         Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
-                       end
-
-        raise Onetime::EntitlementRequired.new(
-          entitlement,
-          current_plan: current_plan,
-          upgrade_to: upgrade_to,
-        )
+        @cust            = cust
       end
     end
   end
@@ -85,8 +51,15 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     )
   end
 
+  # Non-anonymous customer for examples that need to reach the auth_org /
+  # entitlement-check branches (the anonymous short-circuit returns true
+  # before either branch is hit).
+  let(:authenticated_cust) do
+    double('Customer', anonymous?: false, custid: 'cust123')
+  end
+
   describe 'when auth_org is nil (fail-closed behavior)' do
-    subject(:logic) { test_class.new(strategy_result_class.new(metadata: {})) }
+    subject(:logic) { test_class.new(strategy_result_class.new(metadata: {}), cust: authenticated_cust) }
 
     it 'raises EntitlementRequired (fail-closed)' do
       expect { logic.require_entitlement!('api_access') }
@@ -114,8 +87,22 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         end
     end
 
+    it 'sets error_key to the context_unavailable system-error key' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('api.entitlements.errors.context_unavailable')
+        end
+    end
+
+    it 'includes the entitlement in args even on the no-auth_org branch' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.args).to eq(entitlement: 'api_access')
+        end
+    end
+
     context 'when strategy_result itself is nil' do
-      subject(:logic) { test_class.new(nil) }
+      subject(:logic) { test_class.new(nil, cust: authenticated_cust) }
 
       it 'raises EntitlementRequired (fail-closed)' do
         expect { logic.require_entitlement!('api_access') }
@@ -124,10 +111,26 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
   end
 
+  describe 'when cust is anonymous' do
+    let(:anonymous_cust) { double('Customer', anonymous?: true, custid: nil) }
+
+    it 'returns true without checking entitlements (no raise)' do
+      sr = strategy_result_class.new(metadata: {})
+      instance = test_class.new(sr, cust: anonymous_cust)
+      expect(instance.require_entitlement!('api_access')).to be true
+    end
+
+    it 'returns true even when entitlement string is unknown' do
+      sr = strategy_result_class.new(metadata: {})
+      instance = test_class.new(sr, cust: anonymous_cust)
+      expect(instance.require_entitlement!('totally_made_up_entitlement')).to be true
+    end
+  end
+
   describe 'when auth_org has the entitlement' do
     subject(:logic) do
       sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
-      test_class.new(sr)
+      test_class.new(sr, cust: authenticated_cust)
     end
 
     before do
@@ -151,7 +154,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
   describe 'when auth_org lacks the entitlement' do
     subject(:logic) do
       sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
-      test_class.new(sr)
+      test_class.new(sr, cust: authenticated_cust)
     end
 
     before do
@@ -185,6 +188,35 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         end
     end
 
+    it 'auto-derives error_key from the entitlement name' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('api.entitlements.errors.api_access_required')
+        end
+    end
+
+    it 'auto-derives error_key when entitlement is given as a symbol' do
+      allow(organization).to receive(:can?).with('custom_domains').and_return(false)
+      expect { logic.require_entitlement!(:custom_domains) }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('api.entitlements.errors.custom_domains_required')
+        end
+    end
+
+    it 'lets an explicit error_key argument override the auto-derived one' do
+      expect { logic.require_entitlement!('api_access', error_key: 'custom.override.key') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('custom.override.key')
+        end
+    end
+
+    it 'includes the entitlement in args for i18n interpolation' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.args).to eq(entitlement: 'api_access')
+        end
+    end
+
     context 'with upgrade path available' do
       before do
         stub_const('Billing::PlanHelpers', double('PlanHelpers'))
@@ -214,7 +246,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
   describe 'EntitlementRequired error structure' do
     subject(:logic) do
       sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
-      test_class.new(sr)
+      test_class.new(sr, cust: authenticated_cust)
     end
 
     before do
@@ -223,23 +255,31 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
 
     it 'provides a to_h method for serialization' do
-      begin
-        logic.require_entitlement!('custom_domains')
-      rescue Onetime::EntitlementRequired => e
-        hash = e.to_h
-        expect(hash).to include(
-          entitlement: 'custom_domains',
-          current_plan: 'identity_v1'
-        )
-        expect(hash[:error]).to include('custom domains')
-      end
+      expect { logic.require_entitlement!('custom_domains') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          hash = error.to_h
+          expect(hash).to include(
+            entitlement: 'custom_domains',
+            current_plan: 'identity_v1',
+            error_key: 'api.entitlements.errors.custom_domains_required',
+          )
+          expect(hash[:error]).to include('custom domains')
+        end
+    end
+
+    it 'omits error_key from to_h when none is set' do
+      # Direct construction without an error_key — to_h should compact it out
+      # so legacy callers that don't use the i18n shape see the same hash.
+      err = Onetime::EntitlementRequired.new('custom_domains', current_plan: 'identity_v1')
+      expect(err.to_h).not_to have_key(:error_key)
+      expect(err.to_h).to include(entitlement: 'custom_domains', current_plan: 'identity_v1')
     end
   end
 
   describe 'different entitlement types' do
     subject(:logic) do
       sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
-      test_class.new(sr)
+      test_class.new(sr, cust: authenticated_cust)
     end
 
     %w[api_access custom_domains create_teams audit_logs advanced_analytics].each do |entitlement|

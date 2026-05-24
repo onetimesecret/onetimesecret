@@ -32,7 +32,10 @@ module Onetime
       def require_non_sso_only!
         return true unless Onetime.auth_config.sso_only_enabled?
 
-        raise Onetime::Forbidden, 'This action is not available in SSO-only mode'
+        raise Onetime::Forbidden.new(
+          'This action is not available in SSO-only mode',
+          error_key: 'api.errors.sso_only_action_blocked',
+        )
       end
     end
   end

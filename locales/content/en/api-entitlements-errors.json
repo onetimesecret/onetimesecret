@@ -1,0 +1,77 @@
+{
+  "api.entitlements.errors.context_unavailable": {
+    "text": "Unable to verify entitlements (organization context unavailable)",
+    "context": "Returned when EntitlementRequired is raised because auth_org context is missing for an authenticated entitlement check",
+    "content_hash": "c8c4df42"
+  },
+  "api.entitlements.errors.api_access_required": {
+    "text": "API access requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for api_access",
+    "content_hash": "771798ec"
+  },
+  "api.entitlements.errors.custom_privacy_defaults_required": {
+    "text": "Custom privacy defaults require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for custom_privacy_defaults",
+    "content_hash": "987895a4"
+  },
+  "api.entitlements.errors.extended_default_expiration_required": {
+    "text": "Extended default expiration requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for extended_default_expiration",
+    "content_hash": "8ff87d6f"
+  },
+  "api.entitlements.errors.custom_domains_required": {
+    "text": "Custom domains require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for custom_domains",
+    "content_hash": "257b7309"
+  },
+  "api.entitlements.errors.custom_branding_required": {
+    "text": "Custom branding requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for custom_branding",
+    "content_hash": "9bb84da6"
+  },
+  "api.entitlements.errors.homepage_secrets_required": {
+    "text": "Homepage secrets require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for homepage_secrets",
+    "content_hash": "676d62c6"
+  },
+  "api.entitlements.errors.incoming_secrets_required": {
+    "text": "Incoming secrets require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for incoming_secrets",
+    "content_hash": "11932b5a"
+  },
+  "api.entitlements.errors.custom_mail_sender_required": {
+    "text": "Custom mail sender requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for custom_mail_sender",
+    "content_hash": "4caf5ff1"
+  },
+  "api.entitlements.errors.flexible_from_domain_required": {
+    "text": "Flexible from-domain requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for flexible_from_domain",
+    "content_hash": "d4574df0"
+  },
+  "api.entitlements.errors.manage_orgs_required": {
+    "text": "Organization management requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for manage_orgs",
+    "content_hash": "5d4ef52d"
+  },
+  "api.entitlements.errors.manage_teams_required": {
+    "text": "Team management requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for manage_teams",
+    "content_hash": "55a95304"
+  },
+  "api.entitlements.errors.manage_members_required": {
+    "text": "Member management requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for manage_members",
+    "content_hash": "c50ebb28"
+  },
+  "api.entitlements.errors.manage_sso_required": {
+    "text": "SSO management requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for manage_sso",
+    "content_hash": "b6e2567b"
+  },
+  "api.entitlements.errors.audit_logs_required": {
+    "text": "Audit logs require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for audit_logs",
+    "content_hash": "aca9ec44"
+  }
+}

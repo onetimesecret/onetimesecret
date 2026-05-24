@@ -100,16 +100,26 @@ module Onetime
       # resolved for a custom domain (orphaned domain).
       #
       # @param entitlement [String] The entitlement to check
+      # @param error_key [String, nil] Optional dotted i18n key for the raised
+      #   EntitlementRequired. Defaults to
+      #   "api.entitlements.errors.#{entitlement}_required" so locale entries
+      #   can be added per-entitlement without code changes.
       # @raise [Onetime::EntitlementRequired] If org lacks the entitlement
       # @raise [OT::Forbidden] If custom domain has no resolvable owner
       # @return [true]
-      def require_domain_entitlement!(entitlement)
+      def require_domain_entitlement!(entitlement, error_key: nil)
         return true unless @domain_strategy == :custom
+
+        entitlement = entitlement.to_s
+        error_key ||= "api.entitlements.errors.#{entitlement}_required"
 
         owning_org = custom_domain_record&.primary_organization
 
         if owning_org.nil?
-          raise OT::Forbidden, 'Custom domain organization could not be resolved'
+          raise OT::Forbidden.new(
+            'Custom domain organization could not be resolved',
+            error_key: 'api.incoming.errors.custom_domain_unresolved',
+          )
         end
 
         return true if owning_org.can?(entitlement)
@@ -123,6 +133,8 @@ module Onetime
           entitlement,
           current_plan: current_plan,
           upgrade_to: upgrade_to,
+          error_key: error_key,
+          args: { entitlement: entitlement },
         )
       end
 

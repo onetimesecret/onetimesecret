@@ -161,4 +161,201 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         "Bug: hardcoded fallback min is 60, so values between 60-1800 pass through."
     end
   end
+
+  # ============================================================================
+  # i18n error_key on validate_domain_permissions Forbidden raises
+  #
+  # validate_domain_permissions raises Onetime::Forbidden in three distinct
+  # branches; each carries its own error_key so the HTTP edge can localize.
+  # The pre-set English message is preserved as the resolver's I18n.t default,
+  # so legacy message-regex specs keep passing if the locale key is missing.
+  # ============================================================================
+  describe '#validate_domain_permissions error_key plumbing' do
+    let(:share_domain) { 'secrets.acme.com' }
+    let(:authenticated_customer) do
+      double('Customer',
+        anonymous?: false,
+        custid: 'cust123',
+        objid: 'obj123',
+        planid: 'anonymous',
+        email: 'cust123@example.com',
+        organization_instances: [:existing_org])
+    end
+    let(:anonymous_customer) do
+      double('Customer',
+        anonymous?: true,
+        custid: nil,
+        objid: nil,
+        planid: 'anonymous',
+        email: nil,
+        organization_instances: [])
+    end
+
+    # Stand-in for CustomDomain. owner? and allow_public_homepage? are the
+    # only methods validate_domain_permissions touches on the record.
+    def build_domain_record(owner: false, allow_public_homepage: false)
+      double('CustomDomain', owner?: owner, allow_public_homepage?: allow_public_homepage)
+    end
+
+    # Build a subject seeded with @cust and @share_domain so the helper
+    # method can be called directly without process_params side effects.
+    def build_subject(cust:, custom_domain: false)
+      action = V2ConfigTestAction.new(strategy_result, base_params)
+      action.instance_variable_set(:@cust, cust)
+      action.instance_variable_set(:@share_domain, share_domain)
+      allow(action).to receive(:custom_domain?).and_return(custom_domain)
+      # secret_logger is noisy; the warn calls aren't under test here.
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    context 'authenticated non-owner branch (line ~445)' do
+      let(:domain_record) { build_domain_record(owner: false) }
+      subject { build_subject(cust: authenticated_customer, custom_domain: false) }
+
+      it 'raises Onetime::Forbidden' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden)
+      end
+
+      it 'tags the error with the authenticated_non_owner i18n key' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.error_key)
+              .to eq('api.secrets.errors.domain_permission_authenticated_non_owner')
+          end
+      end
+
+      it 'preserves the interpolated legacy English message as the fallback' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.message).to eq("You do not have permission to use domain: #{share_domain}")
+          end
+      end
+
+      it 'passes share_domain through args for i18n %{domain} interpolation' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.args).to eq(domain: share_domain)
+          end
+      end
+
+      it 'serializes error_key into to_h for the HTTP response body' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: "You do not have permission to use domain: #{share_domain}",
+              error_key: 'api.secrets.errors.domain_permission_authenticated_non_owner',
+            )
+          end
+      end
+    end
+
+    context 'anonymous on custom domain with public sharing disabled (line ~459)' do
+      let(:domain_record) { build_domain_record(owner: false, allow_public_homepage: false) }
+      subject { build_subject(cust: anonymous_customer, custom_domain: true) }
+
+      it 'raises Onetime::Forbidden' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden)
+      end
+
+      it 'tags the error with the public_sharing_disabled i18n key' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.error_key)
+              .to eq('api.secrets.errors.domain_public_sharing_disabled')
+          end
+      end
+
+      it 'preserves the interpolated legacy English message as the fallback' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.message).to eq("Public sharing disabled for domain: #{share_domain}")
+          end
+      end
+
+      it 'passes share_domain through args for i18n %{domain} interpolation' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.args).to eq(domain: share_domain)
+          end
+      end
+
+      it 'serializes error_key into to_h for the HTTP response body' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: "Public sharing disabled for domain: #{share_domain}",
+              error_key: 'api.secrets.errors.domain_public_sharing_disabled',
+            )
+          end
+      end
+    end
+
+    context 'anonymous on canonical attempting cross-domain (line ~470)' do
+      let(:domain_record) { build_domain_record(owner: false, allow_public_homepage: true) }
+      subject { build_subject(cust: anonymous_customer, custom_domain: false) }
+
+      it 'raises Onetime::Forbidden' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden)
+      end
+
+      it 'tags the error with the anonymous_cross_domain i18n key' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.error_key)
+              .to eq('api.secrets.errors.domain_permission_anonymous_cross_domain')
+          end
+      end
+
+      it 'preserves the interpolated legacy English message as the fallback' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.message).to eq("You do not have permission to use domain: #{share_domain}")
+          end
+      end
+
+      it 'passes share_domain through args for i18n %{domain} interpolation' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.args).to eq(domain: share_domain)
+          end
+      end
+
+      it 'serializes error_key into to_h for the HTTP response body' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: "You do not have permission to use domain: #{share_domain}",
+              error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
+            )
+          end
+      end
+
+      it 'uses a distinct error_key from the authenticated non-owner branch despite identical English text' do
+        # The two raises render the same English message but represent
+        # different policy decisions (auth vs anon cross-domain). Distinct
+        # keys let locale entries and ops dashboards tell them apart.
+        expect { subject.send(:validate_domain_permissions, domain_record) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.error_key)
+              .not_to eq('api.secrets.errors.domain_permission_authenticated_non_owner')
+          end
+      end
+    end
+
+    context 'domain owner (no raise)' do
+      let(:domain_record) { build_domain_record(owner: true) }
+      subject { build_subject(cust: authenticated_customer, custom_domain: false) }
+
+      it 'returns without raising' do
+        expect { subject.send(:validate_domain_permissions, domain_record) }.not_to raise_error
+      end
+    end
+  end
 end

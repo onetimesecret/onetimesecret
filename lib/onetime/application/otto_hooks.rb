@@ -68,7 +68,8 @@ module Onetime
         end
 
         # Rate limit exceeded errors return 429 with retry info
-        router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, _req|
+        router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
           error.to_h
         end
 
@@ -79,7 +80,8 @@ module Onetime
         end
 
         # Guest routes disabled errors return 403 with error code
-        router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, _req|
+        router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
           error.to_h
         end
 
