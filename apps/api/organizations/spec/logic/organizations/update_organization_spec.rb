@@ -194,9 +194,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises form error for missing extid' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Organization ID required/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.extid_required')
+        end
       end
     end
 
@@ -208,9 +208,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Organization not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_not_found')
+        end
       end
     end
 
@@ -220,9 +220,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises authorization error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::Forbidden, /Only organization owner/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_owner_required')
+        end
       end
     end
 
@@ -237,9 +237,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises form error for name too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /must be less than 100 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.display_name_too_long')
+        end
       end
     end
 
@@ -254,9 +254,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises form error for description too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Description must be less than 500 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.description_too_long')
+        end
       end
     end
 

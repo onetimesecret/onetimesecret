@@ -116,9 +116,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Organization not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_not_found')
+        end
       end
     end
 
@@ -130,9 +130,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       it 'raises authorization error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::Forbidden, /Only organization owners and admins/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.admin_required_create')
+        end
       end
     end
 
@@ -140,9 +140,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       let(:params) { { 'extid' => 'ext-org-123', 'email' => '', 'role' => 'member' } }
 
       it 'raises form error for missing email' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Email is required/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.email_required')
+        end
       end
     end
 
@@ -150,9 +150,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       let(:params) { { 'extid' => 'ext-org-123', 'email' => 'not-an-email', 'role' => 'member' } }
 
       it 'raises form error for invalid email' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invalid email format/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_email_format')
+        end
       end
     end
 
@@ -160,9 +160,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       let(:params) { { 'extid' => 'ext-org-123', 'email' => 'test@example.com', 'role' => 'superuser' } }
 
       it 'raises form error for invalid role' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Role must be member or admin/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_role')
+        end
       end
     end
 
@@ -172,9 +172,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       # Note: 'owner' is not in the allowed list ['member', 'admin'],
       # so role validation fires before the explicit "Cannot invite as owner" check
       it 'raises form error for invalid role' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Role must be member or admin/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_role')
+        end
       end
     end
 
@@ -190,9 +190,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       it 'raises form error for existing member' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /already a member/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.user_already_member')
+        end
       end
     end
 
@@ -207,9 +207,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       it 'raises form error for duplicate invitation' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invitation already pending/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invitation_already_pending')
+        end
       end
     end
 
@@ -374,9 +374,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
       it 'raises upgrade_required error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Member limit reached/)
+          expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
           expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
-          expect(error.instance_variable_get(:@field)).to eq(:email)
+          expect(error.instance_variable_get(:@field)).to eq('email')
         end
       end
     end
@@ -394,8 +394,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       it 'returns email validation error before quota error' do
         # User should see "invalid email" not "upgrade required"
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Invalid email format/)
-          expect(error.message).not_to match(/limit reached/)
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_email_format')
         end
       end
     end

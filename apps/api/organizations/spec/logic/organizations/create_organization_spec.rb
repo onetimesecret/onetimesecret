@@ -87,9 +87,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       let(:params) { { 'display_name' => '', 'description' => '', 'contact_email' => '' } }
 
       it 'raises form error for missing name' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Organization name is required/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.display_name_required')
+        end
       end
     end
 
@@ -97,9 +97,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       let(:params) { { 'display_name' => 'x' * 101, 'description' => '', 'contact_email' => '' } }
 
       it 'raises form error for name too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /must be less than 100 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.display_name_too_long')
+        end
       end
     end
 
@@ -109,9 +109,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'raises form error for description too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Description must be less than 500 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.description_too_long')
+        end
       end
     end
 
@@ -126,9 +126,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'raises form error for duplicate email' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /organization with this contact email already exists/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.contact_email_exists')
+        end
       end
     end
 
@@ -188,7 +188,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
       it 'raises upgrade_required error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Organization limit reached/)
+          expect(error.error_key).to eq('api.organizations.errors.organization_limit_reached')
         end
       end
     end
@@ -206,8 +206,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       it 'returns validation error before quota error' do
         # User should see "name required" not "upgrade required"
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Organization name is required/)
-          expect(error.message).not_to match(/limit reached/)
+          expect(error.error_key).to eq('api.organizations.errors.display_name_required')
         end
       end
     end
@@ -406,7 +405,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       it 'raises conflict error without creating organization' do
         expect(Onetime::Organization).not_to receive(:create!)
         expect { logic.process }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Organization creation in progress/)
+          expect(error.error_key).to eq('api.organizations.errors.creation_in_progress')
         end
       end
 

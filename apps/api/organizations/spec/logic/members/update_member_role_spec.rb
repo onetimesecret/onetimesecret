@@ -129,9 +129,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Organization not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_not_found')
+        end
       end
     end
 
@@ -141,9 +141,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises forbidden error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::Forbidden, /Only organization owner/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_owner_required')
+        end
       end
     end
 
@@ -153,9 +153,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Member not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_not_found')
+        end
       end
     end
 
@@ -166,9 +166,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Member not found in this organization/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_not_in_organization')
+        end
       end
     end
 
@@ -178,9 +178,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /not active/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_not_active')
+        end
       end
     end
 
@@ -194,9 +194,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error for invalid role' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invalid role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.invalid_role_value')
+        end
       end
     end
 
@@ -206,9 +206,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Cannot change owner role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.cannot_change_owner_role')
+        end
       end
     end
 
@@ -218,9 +218,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /already has role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_already_has_role')
+        end
       end
     end
 
@@ -235,9 +235,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
 
       it 'raises form error for invalid role' do
         # 'owner' is not in VALID_ROLES, so it fails validation first
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invalid role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.invalid_role_value')
+        end
       end
     end
 
