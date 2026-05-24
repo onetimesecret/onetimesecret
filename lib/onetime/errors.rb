@@ -24,6 +24,16 @@ module Onetime
       super
       @message = message
     end
+
+    # Exception#to_s returns the message stored at construction time inside
+    # the C-level internal slot, which never changes — so when ErrorResolver
+    # mutates @message via the accessor to install the localized string,
+    # to_s would still return the original. That breaks loggers and
+    # middleware that rely on the standard exception string representation.
+    # Delegating to @message keeps to_s consistent with #message.
+    def to_s
+      @message || super
+    end
   end
 
   # Raised when there is an issue with configuration settings, such as missing,
@@ -101,6 +111,12 @@ module Onetime
       @message   = message
       @error_key = error_key
       @args      = args
+    end
+
+    # See Problem#to_s — same divergence applies to every Forbidden
+    # subclass since they all reuse this attr_accessor :message.
+    def to_s
+      @message || super
     end
 
     def to_h

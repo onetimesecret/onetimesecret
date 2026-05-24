@@ -137,3 +137,41 @@ RSpec.describe Onetime::GuestRoutesDisabled do
     end
   end
 end
+
+# The attr_accessor :message on Onetime::Problem and Onetime::Forbidden
+# shadows the standard Exception#message method, but Exception#to_s reads
+# from a C-level internal slot that the accessor doesn't touch. Without
+# the to_s override on those base classes, ErrorResolver.resolve!'s
+# `error.message = I18n.t(...)` mutation would update #message but leave
+# #to_s returning the constructor-time string — and loggers / middleware
+# that fall through to #to_s would see the un-localized text.
+#
+# These specs lock down the override on one subclass per base — the
+# behavior is inherited, so testing every leaf class is overkill.
+RSpec.describe 'Onetime error #to_s tracks @message mutation' do
+  describe Onetime::Forbidden do
+    it 'returns the mutated @message via to_s, not the constructor-time string' do
+      error = described_class.new('original')
+      error.message = 'localized'
+      expect(error.to_s).to eq('localized')
+    end
+
+    it 'falls back to the constructor-time message when @message is nil' do
+      error = described_class.new('untouched')
+      expect(error.to_s).to eq('untouched')
+    end
+  end
+
+  describe Onetime::FormError do
+    it 'returns the mutated @message via to_s, not the constructor-time string' do
+      error = described_class.new('original form error')
+      error.message = 'localized form error'
+      expect(error.to_s).to eq('localized form error')
+    end
+
+    it 'falls back to the constructor-time message when @message is nil' do
+      error = described_class.new('untouched form error')
+      expect(error.to_s).to eq('untouched form error')
+    end
+  end
+end

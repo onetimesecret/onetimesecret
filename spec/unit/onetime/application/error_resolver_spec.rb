@@ -36,6 +36,11 @@ RSpec.describe Onetime::Application::ErrorResolver do
 
         expect(result).to be(error)
         expect(error.message).to eq('Interdit')
+        # to_s must track the mutation too — loggers and middleware that call
+        # error.to_s instead of error.message would otherwise see the original
+        # constructor-time message via Exception's C-level slot. See the
+        # to_s override on Onetime::Problem / Onetime::Forbidden.
+        expect(error.to_s).to eq('Interdit')
         expect(captured_calls.first).to include(key: 'api.errors.forbidden')
         expect(captured_calls.first[:opts]).to include(
           locale: 'fr_FR',
@@ -71,6 +76,23 @@ RSpec.describe Onetime::Application::ErrorResolver do
 
         expect(result).to be(error)
         expect(error.message).to eq('api.errors.broken')
+        expect(OT).to have_received(:le).with(/\[ErrorResolver\] Failed to resolve api\.errors\.broken/)
+      end
+
+      it 'preserves an existing non-empty message when I18n.t fails' do
+        # The rescue's fallback-to-error_key only fires when the pre-set
+        # message is nil or empty — a non-empty legacy message must survive
+        # the failed lookup so the client still sees a usable English string.
+        error_with_message = Onetime::Forbidden.new(
+          'existing English message',
+          error_key: 'api.errors.broken',
+        )
+        stub_i18n(raise_error: StandardError.new('boom'))
+        allow(OT).to receive(:le)
+
+        described_class.resolve!(error_with_message, req)
+
+        expect(error_with_message.message).to eq('existing English message')
         expect(OT).to have_received(:le).with(/\[ErrorResolver\] Failed to resolve api\.errors\.broken/)
       end
     end
