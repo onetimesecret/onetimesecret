@@ -116,7 +116,10 @@ module Onetime
         owning_org = custom_domain_record&.primary_organization
 
         if owning_org.nil?
-          raise OT::Forbidden, 'Custom domain organization could not be resolved'
+          raise OT::Forbidden.new(
+            'Custom domain organization could not be resolved',
+            error_key: 'api.incoming.errors.custom_domain_unresolved',
+          )
         end
 
         return true if owning_org.can?(entitlement)

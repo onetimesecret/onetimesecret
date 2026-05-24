@@ -1440,6 +1440,11 @@
     "context": "Returned when an authenticated endpoint receives an anonymous request",
     "content_hash": "0fcfb12d"
   },
+  "api.errors.sso_only_action_blocked": {
+    "text": "This action is not available in SSO-only mode",
+    "context": "Returned when an account management action (destroy, change password/email) is attempted while SSO-only mode is active (lib/onetime/logic/sso_only_gating.rb)",
+    "content_hash": "d1c1996c"
+  },
   "api.entitlements.errors.context_unavailable": {
     "text": "Unable to verify entitlements (organization context unavailable)",
     "context": "Returned when EntitlementRequired is raised because auth_org context is missing for an authenticated entitlement check",

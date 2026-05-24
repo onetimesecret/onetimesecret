@@ -1,0 +1,7 @@
+{
+  "api.incoming.errors.custom_domain_unresolved": {
+    "text": "Custom domain organization could not be resolved",
+    "context": "Returned when require_domain_entitlement! cannot resolve the owning organization for a custom domain (lib/onetime/incoming/recipient_resolver.rb)",
+    "content_hash": "e4abab42"
+  }
+}
