@@ -22,7 +22,10 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(@organization)
+        verify_organization_admin(
+          @organization,
+          error_message: 'Only organization owners and admins can revoke invitations',
+        )
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
@@ -58,22 +61,6 @@ module OrganizationAPI::Logic
         }
       end
 
-      protected
-
-      def verify_organization_admin(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can revoke invitations',
-        )
-      end
-
-      def organization_admin?(organization)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
-      end
     end
   end
 end

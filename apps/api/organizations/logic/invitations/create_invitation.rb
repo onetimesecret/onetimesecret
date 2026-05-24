@@ -27,7 +27,10 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(@organization)
+        verify_organization_admin(
+          @organization,
+          error_message: 'Only organization owners and admins can create invitations',
+        )
 
         # Validate email (basic validation before quota check)
         raise_form_error('Email is required', field: :email) if @email.empty?
@@ -131,22 +134,6 @@ module OrganizationAPI::Logic
         )
       end
 
-      # Verify current user has admin privileges in the organization
-      def verify_organization_admin(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can create invitations',
-        )
-      end
-
-      # Check if user is an organization admin
-      def organization_admin?(organization)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
-      end
     end
   end
 end

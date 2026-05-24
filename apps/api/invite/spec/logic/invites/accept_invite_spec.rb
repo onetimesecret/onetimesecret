@@ -48,7 +48,7 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
       'pending?' => true,
       'expired?' => false
     )
-    allow(inv).to receive(:accept!).with(customer)
+    allow(inv).to receive(:accept!).with(customer, provisioning_source: 'invited')
     allow(inv).to receive(:joined_at).and_return(Time.now.to_i)
     inv
   end
@@ -265,8 +265,8 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
         logic.raise_concerns
       end
 
-      it 'accepts the invitation' do
-        expect(invitation).to receive(:accept!).with(customer)
+      it 'accepts the invitation with provisioning_source: invited' do
+        expect(invitation).to receive(:accept!).with(customer, provisioning_source: 'invited')
         logic.process
       end
 

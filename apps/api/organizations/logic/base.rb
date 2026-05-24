@@ -126,6 +126,35 @@ module OrganizationAPI
         )
       end
 
+      # Verify current user has admin privileges in the organization
+      #
+      # Owner is implicitly admin. Colonels (site admins) bypass.
+      #
+      # @param organization [Onetime::Organization]
+      # @param error_message [String, nil] Optional caller-specific message
+      # @raise [FormError] If user is not owner/admin
+      def verify_organization_admin(organization, error_message: nil)
+        verify_one_of_roles!(
+          colonel: true,
+          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
+          error_message: error_message || 'Only organization owners and admins can perform this action',
+        )
+      end
+
+      # Check if current user holds the admin role in the organization
+      #
+      # Does not include owner — callers that want owner-or-admin should use
+      # verify_organization_admin (which composes owner? || organization_admin?).
+      #
+      # @param organization [Onetime::Organization]
+      # @return [Boolean]
+      def organization_admin?(organization)
+        membership = Onetime::OrganizationMembership.find_by_org_customer(
+          organization.objid, cust.objid
+        )
+        membership&.admin?
+      end
+
       # Load organization and verify it exists
       def load_organization(extid)
         organization = Onetime::Organization.find_by_extid(extid)
