@@ -45,11 +45,20 @@ const featuresRegionJurisdictionSchema = z.object({
 
 /**
  * Regions feature configuration
+ *
+ * `jurisdictions` is intentionally permissive: the shipped YAML uses
+ * `<%= ENV['JURISDICTIONS'] || '' %>`, which evaluates to a string (CSV when
+ * set, empty/nil when not). Ruby parses that into the array shape elsewhere.
+ * Accepting array | string | null here lets `bin/ots config validate` pass
+ * on the raw post-ERB YAML without weakening the validated array shape when
+ * an operator does provide a structured list.
  */
 const featuresRegionsSchema = z.object({
   enabled: z.boolean().default(false),
   current_jurisdiction: nullableString,
-  jurisdictions: z.array(featuresRegionJurisdictionSchema).optional(),
+  jurisdictions: z
+    .union([z.array(featuresRegionJurisdictionSchema), z.string(), z.null()])
+    .optional(),
 });
 
 /**

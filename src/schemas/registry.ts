@@ -56,6 +56,7 @@ import { responseSchemas } from './api/v3/responses/registry';
 // Config Schemas
 // =============================================================================
 import { BillingConfigSchema } from './contracts/config/billing';
+import { staticConfigSchema } from './contracts/config/config';
 
 // =============================================================================
 // Schema Categories
@@ -91,10 +92,12 @@ export const apiV3Schemas = {
 
 /**
  * Config schemas - JSON Schemas for YAML configuration files consumed by
- * the Ruby backend (e.g. `bin/ots billing catalog validate`).
+ * the Ruby backend (e.g. `bin/ots billing catalog validate`,
+ * `bin/ots config validate`).
  */
 export const configSchemas = {
   'config/billing': BillingConfigSchema,
+  'config/static': staticConfigSchema,
 } as const;
 
 // =============================================================================
