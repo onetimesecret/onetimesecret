@@ -17,7 +17,7 @@ Deployment
 
 - Operators must run the ``migrate_incoming_secrets_to_config`` housekeeping chore as part of the deploy that picks up these changes, before traffic resumes. The chore copies entries from the legacy ``CustomDomain#incoming_secrets`` JSON blob into newly created ``IncomingConfig`` records and is idempotent::
 
-      bin/ots housekeeping perform Onetime::CustomDomain migrate_incoming_secrets_to_config
+      bin/ots housekeeping run Onetime::CustomDomain migrate_incoming_secrets_to_config
 
   Until the chore has run, custom domains whose recipients were configured before this change will appear disabled to the resolver. The nightly housekeeping cron will run the chore as a safety net, but the explicit invocation at deploy time is the supported path. (#3095)
 
