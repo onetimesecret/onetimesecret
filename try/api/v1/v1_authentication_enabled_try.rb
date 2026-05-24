@@ -28,7 +28,7 @@ OT.boot! :test
 
 # Create a test object that includes the V1 helpers (which includes
 # SessionHelpers) to test session_auth_enforced? in isolation.
-require 'apps/api/v1/controllers/helpers'
+require 'api/v1/controllers/helpers'
 
 class V1AuthTestHarness
   include V1::ControllerHelpers

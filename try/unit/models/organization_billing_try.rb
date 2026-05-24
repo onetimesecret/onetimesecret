@@ -11,7 +11,7 @@ require_relative '../../support/test_helpers'
 ## Ensure feature and billing metadata are loaded
 require 'lib/onetime/models/organization/features/with_organization_billing'
 require 'onetime/models/organization'
-require 'apps/web/billing/metadata'
+require 'web/billing/metadata'
 
 ## Create test customer
 @cust = Onetime::Customer.create!(

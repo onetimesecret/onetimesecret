@@ -14,13 +14,10 @@
 # Organization API uses same modern conventions as Account API and Team API for consistency.
 
 require 'onetime/logic/base'
-require 'onetime/application/authorization_policies'
 
 module OrganizationAPI
   module Logic
     class Base < Onetime::Logic::Base
-      include Onetime::Application::AuthorizationPolicies
-
       # Transform v2 response data to Organization API format
       #
       # Organization API changes (same as Account API and Team API):
@@ -96,84 +93,10 @@ module OrganizationAPI
         membership&.role || 'member'
       end
 
-      # Verify current user owns the organization
-      #
-      # Colonels (site admins) have automatic superuser bypass.
-      # Otherwise, user must be organization owner.
-      #
-      # @param organization [Onetime::Organization]
-      # @raise [Forbidden] If user is not owner and not admin
-      def verify_organization_owner(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) },
-          error_message: 'Only organization owner can perform this action',
-          error_key: 'api.organizations.errors.organization_owner_required',
-        )
-      end
-
-      # Verify current user is an organization member
-      #
-      # Colonels (site admins) have automatic superuser bypass.
-      # Otherwise, user must be organization member.
-      #
-      # @param organization [Onetime::Organization]
-      # @raise [Forbidden] If user is not a member and not admin
-      def verify_organization_member(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.member?(cust) },
-          error_message: 'You must be an organization member to perform this action',
-          error_key: 'api.organizations.errors.organization_member_required',
-        )
-      end
-
-      # Verify current user has admin privileges in the organization
-      #
-      # Owner is implicitly admin. Colonels (site admins) bypass.
-      # Promoted from per-action invitation classes (PR #3201). Per-action
-      # callers pass error_key: with an action-specific key so the edge
-      # resolver can localize messages like "Only owners and admins can ...".
-      #
-      # @param organization [Onetime::Organization]
-      # @param error_key [String] I18n key for the rejection message
-      # @raise [Forbidden] If user is not owner/admin
-      def verify_organization_admin(organization, error_key: 'api.organizations.errors.organization_admin_required')
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can perform this action',
-          error_key: error_key,
-        )
-      end
-
-      # Check if current user holds the admin role in the organization
-      #
-      # Does not include owner — callers that want owner-or-admin should use
-      # verify_organization_admin (which composes owner? || organization_admin?).
-      #
-      # @param organization [Onetime::Organization]
-      # @return [Boolean]
-      def organization_admin?(organization)
-        return false if cust.nil?
-
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
-      end
-
-      # Load organization and verify it exists
-      def load_organization(extid)
-        organization = Onetime::Organization.find_by_extid(extid)
-        if organization.nil?
-          raise_not_found(
-            error_key: 'api.organizations.errors.organization_not_found',
-            args: { extid: extid },
-          )
-        end
-        organization
-      end
+      # Organization-level authorization helpers (verify_organization_owner,
+      # verify_organization_admin, verify_organization_member, organization_admin?,
+      # load_organization) are inherited via Onetime::Application::AuthorizationPolicies,
+      # which is included by Onetime::Logic::Base.
     end
   end
 end

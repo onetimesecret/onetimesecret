@@ -18,7 +18,7 @@ require_relative '../../../../support/test_helpers'
 
 OT.boot! :test
 
-require 'apps/api/organizations/logic'
+require 'api/organizations/logic'
 
 # Setup with unique identifiers
 @test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"

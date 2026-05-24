@@ -10,8 +10,8 @@
 # This ensures v3/account APIs follow pure REST semantics while v2 remains unchanged.
 
 require_relative '../../../support/test_logic'
-require 'apps/api/v2/logic/secrets/list_receipts'
-require 'apps/api/v3/logic'
+require 'api/v2/logic/secrets/list_receipts'
+require 'api/v3/logic'
 
 OT.boot! :test
 

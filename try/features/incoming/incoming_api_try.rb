@@ -13,7 +13,7 @@
 # The enabled tests configure the feature inline within each test.
 
 require_relative '../../support/test_logic'
-require 'apps/api/incoming/logic/incoming'
+require 'api/incoming/logic/incoming'
 
 
 OT.boot! :test, false
