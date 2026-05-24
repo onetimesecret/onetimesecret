@@ -128,14 +128,31 @@ module Onetime
         {}
       end
 
-      def raise_not_found(msg)
-        ex         = Onetime::RecordNotFound.new
-        ex.message = msg
+      # Two call shapes (and a hybrid for callers that need both):
+      # - Legacy: raise_not_found('Record not found')
+      # - i18n:   raise_not_found(error_key: 'api.organizations.errors.organization_not_found',
+      #                           args: { extid: '...' })
+      # - Hybrid: raise_not_found('Record not found', error_key: '...', args: {...})
+      #   Pre-populates the English fallback while still letting the edge
+      #   localize per request locale. Useful for helpers shared with code
+      #   paths that don't pass through the resolver.
+      # error_key is the full dotted i18n key so each call site is greppable
+      # from the JSON locale entry.
+      def raise_not_found(msg = nil, error_key: nil, args: {})
+        ex = Onetime::RecordNotFound.new(msg, error_key: error_key, args: args)
         raise ex
       end
 
-      def raise_form_error(msg, field: nil, error_type: nil)
-        ex             = OT::FormError.new(msg, field: field, error_type: error_type)
+      # Two call shapes (and a hybrid for callers that need both):
+      # - Legacy: raise_form_error('Invalid email', field: :email)
+      # - i18n:   raise_form_error(error_key: 'api.organizations.invitations.errors.email_required',
+      #                            args: { max: 5 }, field: :email)
+      # - Hybrid: raise_form_error('Authentication required', error_key: '...', field: :foo)
+      # error_key is the full dotted i18n key. The HTTP edge resolves it per
+      # request locale; logic stays free of locale/I18n boot concerns.
+      def raise_form_error(msg = nil, error_key: nil, args: {}, field: nil, error_type: nil)
+        ex = OT::FormError.new(msg, error_key: error_key, args: args,
+                                    field: field, error_type: error_type)
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end

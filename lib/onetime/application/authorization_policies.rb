@@ -69,9 +69,20 @@ module Onetime
 
       # Verify user is authenticated (not anonymous)
       #
+      # Pre-sets the English fallback message so legacy specs/clients that
+      # match on FormError#message keep working; edge handlers still see the
+      # error_key and localize per request locale.
+      #
       # @raise [FormError] If user is anonymous
       def verify_authenticated!
-        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if anonymous_user?
+        return unless anonymous_user?
+
+        raise_form_error(
+          'Authentication required',
+          error_key: 'api.errors.authentication_required',
+          field: :user_id,
+          error_type: :unauthorized,
+        )
       end
 
       # Verify user has at least one of the specified roles/permissions
@@ -83,27 +94,23 @@ module Onetime
       # @param colonel [Boolean] Require colonel (superuser) role
       # @param admin [Boolean] Require admin role (includes colonel)
       # @param custom_check [Proc, nil] Custom authorization check
-      # @param error_message [String, nil] Override default error message
+      # @param error_message [String, nil] Override default error message (legacy)
+      # @param error_key [String, nil] i18n key for the Forbidden message
+      # @param args [Hash] Interpolation args for the i18n key
       # @return [Boolean] true if any condition passes
-      # @raise [FormError] If no conditions pass
+      # @raise [Forbidden] If no conditions pass
       #
       # @example Colonel-only operation
       #   verify_one_of_roles!(colonel: true)
       #
-      # @example System admin operation (colonel or admin)
-      #   verify_one_of_roles!(admin: true)
-      #
-      # @example Resource-level check with custom condition
+      # @example Resource-level check with custom condition and i18n key
       #   verify_one_of_roles!(
-      #     custom_check: -> { @organization.owner?(cust) || @organization.member?(cust) }
+      #     colonel: true,
+      #     custom_check: -> { @organization.owner?(cust) },
+      #     error_key: 'api.organizations.errors.organization_owner_required',
       #   )
-      #
-      # @example Multiple conditions (OR logic)
-      #   verify_one_of_roles!(
-      #     admin: true,
-      #     custom_check: -> { @resource.public? }
-      #   )
-      def verify_one_of_roles!(colonel: false, admin: false, custom_check: nil, error_message: nil)
+      def verify_one_of_roles!(colonel: false, admin: false, custom_check: nil,
+                                error_message: nil, error_key: nil, args: {})
         # Check colonel (superuser)
         return true if colonel && has_system_role?('colonel')
 
@@ -120,7 +127,7 @@ module Onetime
           has_custom: !custom_check.nil?,
         )
 
-        raise Onetime::Forbidden, message
+        raise Onetime::Forbidden.new(message, error_key: error_key, args: args)
       end
 
       # Verify user has ALL of the specified roles/permissions

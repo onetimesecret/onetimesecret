@@ -1,0 +1,207 @@
+{
+  "api.errors.authentication_required": {
+    "text": "Authentication required",
+    "context": "Returned when an authenticated endpoint receives an anonymous request",
+    "content_hash": "0fcfb12d"
+  },
+  "api.organizations.errors.organization_not_found": {
+    "text": "Organization not found: %{extid}",
+    "context": "Returned when an organization extid cannot be resolved",
+    "content_hash": "c8d058eb"
+  },
+  "api.organizations.errors.organization_owner_required": {
+    "text": "Only organization owner can perform this action",
+    "context": "Returned when a non-owner attempts an owner-only operation",
+    "content_hash": "5a729e94"
+  },
+  "api.organizations.errors.organization_member_required": {
+    "text": "You must be an organization member to perform this action",
+    "context": "Returned when a non-member attempts a member-only operation",
+    "content_hash": "f66f4a60"
+  },
+  "api.organizations.errors.extid_required": {
+    "text": "Organization ID required",
+    "context": "Returned when the organization extid path parameter is missing",
+    "content_hash": "02fbe301"
+  },
+  "api.organizations.errors.display_name_required": {
+    "text": "Organization name is required",
+    "context": "Returned when creating an organization without a display name",
+    "content_hash": "c3f6e9af"
+  },
+  "api.organizations.errors.display_name_too_long": {
+    "text": "Organization name must be less than %{max} characters",
+    "context": "Returned when the organization display name exceeds the length limit",
+    "content_hash": "5866973d"
+  },
+  "api.organizations.errors.description_too_long": {
+    "text": "Description must be less than %{max} characters",
+    "context": "Returned when the organization description exceeds the length limit",
+    "content_hash": "562b7250"
+  },
+  "api.organizations.errors.contact_email_exists": {
+    "text": "An organization with this contact email already exists",
+    "context": "Returned when the contact email is already used by another organization",
+    "content_hash": "e9fdce56"
+  },
+  "api.organizations.errors.creation_in_progress": {
+    "text": "Organization creation in progress. Please try again.",
+    "context": "Returned when the per-customer creation lock cannot be acquired",
+    "content_hash": "ef68bc2d"
+  },
+  "api.organizations.errors.organization_limit_reached": {
+    "text": "Organization limit reached. Upgrade your plan to create more organizations.",
+    "context": "Returned when the customer has hit their plan's organization quota",
+    "content_hash": "69e2e61b"
+  },
+  "api.organizations.invitations.errors.invitation_not_found": {
+    "text": "Invitation not found",
+    "context": "Returned when an invitation token doesn't match a known invitation",
+    "content_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Email is required",
+    "context": "Returned when creating an invitation without an email",
+    "content_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.invalid_email_format": {
+    "text": "Invalid email format",
+    "context": "Returned when the invitation email fails address validation",
+    "content_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.invalid_role": {
+    "text": "Role must be member or admin",
+    "context": "Returned when the requested role is not one of the allowed values",
+    "content_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_as_owner": {
+    "text": "Cannot invite as owner",
+    "context": "Returned when an invitation tries to grant owner role",
+    "content_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.user_already_member": {
+    "text": "User is already a member of this organization",
+    "context": "Returned when the invitee already belongs to the organization",
+    "content_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.invitation_already_pending": {
+    "text": "Invitation already pending for this email",
+    "context": "Returned when a pending invitation already exists for the email",
+    "content_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Member limit reached. Upgrade your plan to invite more members.",
+    "context": "Returned when the organization has hit its plan's member quota",
+    "content_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.resend_only_pending": {
+    "text": "Can only resend pending invitations",
+    "context": "Returned when attempting to resend a non-pending invitation",
+    "content_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maximum resend limit (%{max}) reached",
+    "context": "Returned when an invitation has been resent the maximum number of times",
+    "content_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.revoke_only_pending": {
+    "text": "Can only revoke pending invitations",
+    "context": "Returned when attempting to revoke a non-pending invitation",
+    "content_hash": "732b78a6"
+  },
+  "api.organizations.members.errors.member_not_found": {
+    "text": "Member not found: %{extid}",
+    "context": "Returned when a member extid cannot be resolved",
+    "content_hash": "57654771"
+  },
+  "api.organizations.members.errors.member_not_in_organization": {
+    "text": "Member not found in this organization",
+    "context": "Returned when a member exists but is not a member of the organization",
+    "content_hash": "dcab71ff"
+  },
+  "api.organizations.members.errors.member_not_active": {
+    "text": "Member is not active",
+    "context": "Returned when a member's membership status is not active",
+    "content_hash": "a51b8760"
+  },
+  "api.organizations.members.errors.invalid_role_value": {
+    "text": "Invalid role. Must be one of: %{roles}",
+    "context": "Returned when the requested role value is not one of the allowed roles",
+    "content_hash": "c3331aa0"
+  },
+  "api.organizations.members.errors.cannot_change_owner_role": {
+    "text": "Cannot change owner role. Use ownership transfer instead.",
+    "context": "Returned when attempting to change the role of an owner",
+    "content_hash": "76015424"
+  },
+  "api.organizations.members.errors.member_already_has_role": {
+    "text": "Member already has role: %{role}",
+    "context": "Returned when a role update is a no-op",
+    "content_hash": "6771166a"
+  },
+  "api.organizations.members.errors.cannot_promote_to_owner": {
+    "text": "Cannot promote to owner. Use ownership transfer instead.",
+    "context": "Returned when attempting to promote a member to owner",
+    "content_hash": "cd574007"
+  },
+  "api.organizations.members.errors.must_be_member": {
+    "text": "You must be a member of this organization",
+    "context": "Returned when an actor without membership attempts a member-only action",
+    "content_hash": "de1c77b8"
+  },
+  "api.organizations.members.errors.cannot_remove_owner": {
+    "text": "Cannot remove organization owner. Transfer ownership first.",
+    "context": "Returned when attempting to remove the owner of an organization",
+    "content_hash": "d4f33003"
+  },
+  "api.organizations.members.errors.cannot_remove_self": {
+    "text": "Cannot remove yourself. Use leave organization instead.",
+    "context": "Returned when an actor attempts to remove themselves",
+    "content_hash": "d64cec91"
+  },
+  "api.organizations.members.errors.admin_cannot_remove_admin": {
+    "text": "Admins cannot remove other admins. Only owners can.",
+    "context": "Returned when an admin attempts to remove another admin",
+    "content_hash": "2b3e6e30"
+  },
+  "api.organizations.members.errors.no_permission_to_remove": {
+    "text": "You do not have permission to remove members",
+    "context": "Returned when an actor without admin/owner role attempts to remove a member",
+    "content_hash": "b0ac7287"
+  },
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Invitation not found or expired",
+    "context": "Returned when an invite token doesn't match or has expired",
+    "content_hash": "63657979"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Token is required",
+    "context": "Returned when the invite token path parameter is missing",
+    "content_hash": "6c718161"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organization no longer exists",
+    "context": "Returned when the invitation's organization has been deleted",
+    "content_hash": "a5df7d22"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Invitation has already been %{status}",
+    "context": "Returned when an invitation has already been accepted/declined/revoked",
+    "content_hash": "130c87e0"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Invitation has expired",
+    "context": "Returned when an invitation has passed its expiration time",
+    "content_hash": "7186297b"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Your email address does not match the invitation",
+    "context": "Returned when the accepting user's email doesn't match the invitee email",
+    "content_hash": "11026f46"
+  },
+  "api.invite.errors.already_member": {
+    "text": "You are already a member of this organization",
+    "context": "Returned when the accepting user is already a member",
+    "content_hash": "f56ad547"
+  }
+}

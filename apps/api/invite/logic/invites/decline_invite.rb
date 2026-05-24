@@ -28,20 +28,23 @@ module InviteAPI::Logic
         rate_limiter.check!
         rate_limiter.record_attempt
 
-        raise_form_error('Token is required', field: :token) if @token.nil? || @token.empty?
+        if @token.nil? || @token.empty?
+          raise_form_error(error_key: 'api.invite.errors.token_required', field: :token)
+        end
 
         @invitation = load_invitation(@token)
 
         # Check if organization still exists (may have been deleted)
         unless @invitation.organization
-          raise_form_error('Organization no longer exists', field: :token)
+          raise_form_error(error_key: 'api.invite.errors.organization_no_longer_exists', field: :token)
         end
 
         # Check if invitation is still pending
         return if @invitation.pending?
 
         raise_form_error(
-          "Invitation has already been #{@invitation.status}",
+          error_key: 'api.invite.errors.invitation_already_processed',
+          args: { status: @invitation.status },
           field: :token,
         )
 

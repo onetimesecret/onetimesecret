@@ -102,12 +102,13 @@ module OrganizationAPI
       # Otherwise, user must be organization owner.
       #
       # @param organization [Onetime::Organization]
-      # @raise [FormError] If user is not owner and not admin
+      # @raise [Forbidden] If user is not owner and not admin
       def verify_organization_owner(organization)
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) },
           error_message: 'Only organization owner can perform this action',
+          error_key: 'api.organizations.errors.organization_owner_required',
         )
       end
 
@@ -117,19 +118,25 @@ module OrganizationAPI
       # Otherwise, user must be organization member.
       #
       # @param organization [Onetime::Organization]
-      # @raise [FormError] If user is not a member and not admin
+      # @raise [Forbidden] If user is not a member and not admin
       def verify_organization_member(organization)
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.member?(cust) },
           error_message: 'You must be an organization member to perform this action',
+          error_key: 'api.organizations.errors.organization_member_required',
         )
       end
 
       # Load organization and verify it exists
       def load_organization(extid)
         organization = Onetime::Organization.find_by_extid(extid)
-        raise_not_found("Organization not found: #{extid}") if organization.nil?
+        if organization.nil?
+          raise_not_found(
+            error_key: 'api.organizations.errors.organization_not_found',
+            args: { extid: extid },
+          )
+        end
         organization
       end
     end
