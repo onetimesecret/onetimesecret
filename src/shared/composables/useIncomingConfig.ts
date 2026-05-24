@@ -1,29 +1,30 @@
 // src/shared/composables/useIncomingConfig.ts
 
 /**
- * Composable for managing per-domain incoming secrets recipients configuration.
+ * Composable for managing per-domain incoming-secrets recipients
+ * configuration.
  *
  * Follows the useSsoConfig lifecycle pattern:
- * - initialize: fetch current recipients (404 = domain not found, error)
- * - saveConfig: PUT to replace entire recipients list
- * - deleteConfig: DELETE to clear all recipients
- * - addRecipient/removeRecipient: local form mutations
+ * - initialize: fetch current config (always returns a record; empty
+ *   recipients + enabled=false means no IncomingConfig exists yet)
+ * - saveConfig: PUT the full intended state (enabled + recipients)
+ * - deleteConfig: DELETE the IncomingConfig record entirely
+ * - addRecipient / removeRecipient: local form mutations (no server call)
  * - discardChanges: resets form state to last-saved snapshot
  * - hasUnsavedChanges: computed diff between form and saved state
  *
- * Data asymmetry note:
- * - Form state uses { email, name } (user input, plaintext)
- * - Server responses use { digest, display_name } (hashed for privacy)
- * - After save, we cannot recover original emails from digests
- * - Form tracks local edits; server state is authoritative after save
+ * The admin endpoint returns plaintext `{email, name}` recipients so the
+ * client can round-trip the existing list on save without the legacy
+ * dual-state architecture. Anonymous-sender flows continue to use hashed
+ * digests on a different endpoint.
  *
  * @param domainExtId - Domain external ID for API calls (string or ref)
  */
 
 import type { ApplicationError } from '@/schemas/errors';
-import type { DomainRecipientInput } from '@/schemas/api/domains/requests/domain-recipients';
-import type { DomainRecipientResponse } from '@/schemas/api/domains/responses/domain-recipients';
-import { RecipientsService } from '@/services/recipients.service';
+import type { PutDomainIncomingConfigRequest } from '@/schemas/api/domains/requests/incoming-config';
+import type { DomainIncomingRecipient } from '@/schemas/shapes/domains/incoming-config';
+import { IncomingConfigService } from '@/services/incomingConfig.service';
 import { useNotificationsStore } from '@/shared/stores';
 import { computed, ref, unref, type MaybeRef } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -31,32 +32,23 @@ import { useRouter } from 'vue-router';
 import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
- * Maximum number of recipients allowed per domain.
- * Enforced client-side; server may have its own limit.
+ * Default maximum number of recipients allowed per domain. The backend
+ * authoritative value is reported in the response and used at runtime;
+ * this constant only seeds the ref before initialize() completes.
  */
-const MAX_RECIPIENTS = 20;
+const DEFAULT_MAX_RECIPIENTS = 20;
 
 /**
  * Form state for incoming secrets recipients configuration.
  *
- * Uses email (plaintext) for user input. Server returns hashed digests
- * after save, so we track form state separately from server state.
+ * Recipients carry plaintext email + name. The admin endpoint round-trips
+ * this shape; the anonymous-sender endpoint uses a separate hashed shape.
  */
 export interface IncomingConfigFormState {
   /** Whether incoming secrets are enabled for this domain. */
   enabled: boolean;
-  /** Array of recipients with email and optional display name. */
-  recipients: DomainRecipientInput[];
-}
-
-/**
- * Server state for recipients (read-only, from API responses).
- *
- * Uses digest (hash) instead of email for privacy.
- */
-export interface IncomingConfigServerState {
-  /** Array of recipients as returned by server (hashed). */
-  recipients: DomainRecipientResponse[];
+  /** Array of recipients (plaintext email + display name). */
+  recipients: DomainIncomingRecipient[];
 }
 
 function createDefaultFormState(): IncomingConfigFormState {
@@ -66,15 +58,7 @@ function createDefaultFormState(): IncomingConfigFormState {
   };
 }
 
-function createDefaultServerState(): IncomingConfigServerState {
-  return {
-    recipients: [],
-  };
-}
-
-/**
- * Deep clone a form state to avoid reference issues.
- */
+/** Deep clone form state so snapshots stay independent of live mutations. */
 function cloneFormState(state: IncomingConfigFormState): IncomingConfigFormState {
   return {
     enabled: state.enabled,
@@ -82,27 +66,21 @@ function cloneFormState(state: IncomingConfigFormState): IncomingConfigFormState
   };
 }
 
-/**
- * Compare two recipient arrays for equality.
- * Order-sensitive comparison since recipient order may matter.
- */
+/** Order-sensitive recipient equality. Order may matter for display. */
 function recipientsEqual(
-  a: DomainRecipientInput[],
-  b: DomainRecipientInput[]
+  a: DomainIncomingRecipient[],
+  b: DomainIncomingRecipient[],
 ): boolean {
   if (a.length !== b.length) return false;
   return a.every((recipient, idx) => {
     const other = b[idx];
-    return recipient.email === other.email && (recipient.name ?? '') === (other.name ?? '');
+    return recipient.email === other.email && recipient.name === other.name;
   });
 }
 
-/**
- * Compare two form states for equality.
- */
 function formStatesEqual(
   a: IncomingConfigFormState,
-  b: IncomingConfigFormState
+  b: IncomingConfigFormState,
 ): boolean {
   if (a.enabled !== b.enabled) return false;
   return recipientsEqual(a.recipients, b.recipients);
@@ -129,20 +107,14 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   /** The most recent API error, or null. */
   const error = ref<ApplicationError | null>(null);
 
-  /** Server state (hashed recipients from API). Read-only reference. */
-  const serverState = ref<IncomingConfigServerState>(createDefaultServerState());
-
-  /** Current form state (editable, plaintext emails). */
+  /** Current form state (editable, plaintext recipients). */
   const formState = ref<IncomingConfigFormState>(createDefaultFormState());
 
   /** Snapshot of form state at last save/load. Used for unsaved-changes detection. */
   const savedFormState = ref<IncomingConfigFormState | null>(null);
 
-  /** Maximum recipients allowed (from server details or default). */
-  const maxRecipients = ref<number>(MAX_RECIPIENTS);
-
-  /** Whether current user can manage recipients (from server details). */
-  const canManage = ref<boolean>(true);
+  /** Maximum recipients allowed (from server response or default). */
+  const maxRecipients = ref<number>(DEFAULT_MAX_RECIPIENTS);
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity, 'top'),
@@ -157,23 +129,29 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
+  // Action wrapper that does not toggle isLoading; saveConfig/deleteConfig
+  // own their own loading flags (isSaving/isDeleting).
+  const { wrap: wrapAction } = useAsyncHandler({
+    ...defaultAsyncHandlerOptions,
+    setLoading: undefined,
+  });
+
   // ---------------------------------------------------------------------------
   // Computed
   // ---------------------------------------------------------------------------
 
-  /** Whether any recipients are configured (based on server state). */
-  const isConfigured = computed(() => serverState.value.recipients.length > 0);
+  /** Whether any recipients are configured in the saved server state. */
+  const isConfigured = computed(
+    () => (savedFormState.value?.recipients.length ?? 0) > 0,
+  );
 
   /** Number of recipients in the form. */
   const recipientCount = computed(() => formState.value.recipients.length);
 
-  /** Total recipients across server and form state (for limit enforcement). */
-  const totalRecipientCount = computed(() =>
-    serverState.value.recipients.length + formState.value.recipients.length
-  );
-
   /** Whether more recipients can be added. */
-  const canAddMore = computed(() => totalRecipientCount.value < maxRecipients.value);
+  const canAddMore = computed(
+    () => formState.value.recipients.length < maxRecipients.value,
+  );
 
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
@@ -186,57 +164,56 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   // ---------------------------------------------------------------------------
 
   /**
-   * Load the current recipients for this domain.
+   * Load the current incoming config for this domain.
    *
-   * Note: After loading, formState is empty since we can't recover
-   * plaintext emails from server's hashed digests. The UI should
-   * display serverState.recipients (with display_name) as read-only,
-   * and formState for pending additions.
+   * The admin endpoint returns plaintext recipients so we populate
+   * formState directly from the response. An empty record (no
+   * IncomingConfig persisted yet) is a valid unconfigured state, not an
+   * error.
    */
   const initialize = () =>
     wrap(async () => {
       const extid = unref(domainExtId);
-      const response = await RecipientsService.getRecipientsForDomain(extid);
+      const { record } = await IncomingConfigService.getConfigForDomain(extid);
 
-      serverState.value = { recipients: response.recipients };
-      maxRecipients.value = response.maxRecipients ?? MAX_RECIPIENTS;
-      canManage.value = response.canManage ?? true;
-
-      // Reset form state - we cannot populate emails from digests
-      // Set enabled = true if recipients exist (backend doesn't yet return enabled flag)
+      maxRecipients.value = record.max_recipients;
       formState.value = {
-        enabled: response.recipients.length > 0,
-        recipients: [],
+        enabled: record.enabled,
+        recipients: record.recipients.map((r) => ({ ...r })),
       };
       savedFormState.value = cloneFormState(formState.value);
       isInitialized.value = true;
     });
 
   /**
-   * Save the current form state (replaces all recipients).
+   * Save the current form state.
    *
-   * After successful save:
-   * - serverState is updated with new hashed recipients
-   * - formState is cleared (emails are now hashed on server)
-   * - savedFormState is synced
+   * PUTs the full intended state (enabled + recipients). After success,
+   * formState is rehydrated from the server response and snapshotted.
    */
   const saveConfig = async (): Promise<boolean> => {
     isSaving.value = true;
     error.value = null;
 
     try {
-      const result = await wrap(async () => {
+      const result = await wrapAction(async () => {
         const extid = unref(domainExtId);
-        return await RecipientsService.setRecipientsForDomain(
-          extid,
-          formState.value.recipients
-        );
+        const payload: PutDomainIncomingConfigRequest = {
+          enabled: formState.value.enabled,
+          recipients: formState.value.recipients.map((r) => ({
+            email: r.email,
+            name: r.name,
+          })),
+        };
+        return await IncomingConfigService.putConfigForDomain(extid, payload);
       });
 
       if (result) {
-        serverState.value = { recipients: result.recipients };
-        // Clear form after successful save - emails are now hashed on server
-        formState.value = createDefaultFormState();
+        maxRecipients.value = result.record.max_recipients;
+        formState.value = {
+          enabled: result.record.enabled,
+          recipients: result.record.recipients.map((r) => ({ ...r })),
+        };
         savedFormState.value = cloneFormState(formState.value);
         notifications.show(t('web.domains.incoming.update_success'), 'success', 'top');
         return true;
@@ -248,21 +225,22 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   };
 
   /**
-   * Delete all recipients for this domain.
+   * Delete the IncomingConfig record for this domain.
+   *
+   * Resets form state to the unconfigured default (disabled, no recipients).
    */
   const deleteConfig = async (): Promise<boolean> => {
     isDeleting.value = true;
     error.value = null;
 
     try {
-      const result = await wrap(async () => {
+      const result = await wrapAction(async () => {
         const extid = unref(domainExtId);
-        await RecipientsService.deleteRecipientsForDomain(extid);
+        await IncomingConfigService.deleteConfigForDomain(extid);
         return true;
       });
 
       if (result) {
-        serverState.value = createDefaultServerState();
         formState.value = createDefaultFormState();
         savedFormState.value = cloneFormState(formState.value);
         notifications.show(t('web.domains.incoming.delete_success'), 'success', 'top');
@@ -277,24 +255,23 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
   /**
    * Add a recipient to the form state.
    *
-   * @param email - Email address of the recipient
-   * @param name - Optional display name
-   * @returns true if added, false if at max capacity or duplicate
+   * Local mutation only — no server call. Returns false if at capacity
+   * or if the email is already present.
    */
   function addRecipient(email: string, name?: string): boolean {
     if (!canAddMore.value) {
       notifications.show(
         t('web.domains.incoming.max_recipients_reached', { max: maxRecipients.value }),
         'warning',
-        'top'
+        'top',
       );
       return false;
     }
 
-    // Check for duplicate email in form state
-    const normalizedEmail = email.trim().toLowerCase();
+    const trimmedEmail = email.trim();
+    const normalizedEmail = trimmedEmail.toLowerCase();
     const isDuplicate = formState.value.recipients.some(
-      (r) => r.email.toLowerCase() === normalizedEmail
+      (r) => r.email.toLowerCase() === normalizedEmail,
     );
 
     if (isDuplicate) {
@@ -302,45 +279,29 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
       return false;
     }
 
+    const trimmedName = name?.trim();
     formState.value.recipients.push({
-      email: email.trim(),
-      name: name?.trim() || undefined,
+      email: trimmedEmail,
+      name: trimmedName && trimmedName.length > 0 ? trimmedName : trimmedEmail.split('@')[0],
     });
     return true;
   }
 
-  /**
-   * Remove a recipient from the form state by index.
-   *
-   * @param index - Index of recipient to remove
-   */
+  /** Remove a recipient from the form state by index. */
   function removeRecipient(index: number): void {
     if (index >= 0 && index < formState.value.recipients.length) {
       formState.value.recipients.splice(index, 1);
     }
   }
 
-  /**
-   * Reset form to last-saved state.
-   */
+  /** Reset form to last-saved snapshot. */
   function discardChanges(): void {
     if (savedFormState.value) {
       formState.value = cloneFormState(savedFormState.value);
     }
   }
 
-  /**
-   * Clear all recipients from the form state (local only, not saved).
-   */
-  function clearForm(): void {
-    formState.value = createDefaultFormState();
-  }
-
-  /**
-   * Update the enabled state in the form.
-   *
-   * @param enabled - Whether incoming secrets should be enabled
-   */
+  /** Update the enabled state in the form. */
   function updateEnabled(enabled: boolean): void {
     formState.value.enabled = enabled;
   }
@@ -353,7 +314,7 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
     isDeleting,
     error,
     formState,
-    serverState,
+    savedFormState,
 
     // Computed
     isConfigured,
@@ -361,7 +322,6 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
     canAddMore,
     hasUnsavedChanges,
     maxRecipients,
-    canManage,
 
     // Actions
     initialize,
@@ -370,7 +330,6 @@ export function useIncomingConfig(domainExtId: MaybeRef<string>) {
     addRecipient,
     removeRecipient,
     discardChanges,
-    clearForm,
     updateEnabled,
   };
 }

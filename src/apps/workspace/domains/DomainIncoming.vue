@@ -7,10 +7,6 @@
  * Page-level component that wires together the incoming config composable
  * and form component. Follows the DomainEmail page structure: header ->
  * entitlement gate -> form.
- *
- * Note: Individual removal of existing recipients is not supported because
- * emails are hashed after save - we cannot reconstruct the list without all
- * original emails. Users should use "Delete All" to clear recipients.
  */
 import { useI18n } from 'vue-i18n';
 import { computed, onMounted, watch } from 'vue';
@@ -70,7 +66,7 @@ const {
   isDeleting,
   error: incomingError,
   formState,
-  serverState,
+  savedFormState,
   hasUnsavedChanges,
   maxRecipients,
   initialize: initializeIncomingConfig,
@@ -245,7 +241,7 @@ watch(() => props.extid, async () => {
           <template v-else>
             <DomainIncomingConfigForm
               :form-state="formState"
-              :server-state="serverState"
+              :saved-form-state="savedFormState"
               :is-loading="incomingLoading"
               :is-saving="isSaving"
               :is-deleting="isDeleting"

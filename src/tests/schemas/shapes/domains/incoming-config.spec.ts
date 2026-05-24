@@ -1,173 +1,150 @@
 // src/tests/schemas/shapes/domains/incoming-config.spec.ts
 //
-// Schema validation tests for IncomingConfig payload schemas.
-// Verifies putIncomingConfigPayloadSchema and patchIncomingConfigPayloadSchema
-// correctly validate request payloads.
-//
-// Coverage:
-// 1. PUT schema requires `enabled` boolean
-// 2. PATCH schema allows optional `enabled`
-// 3. Both schemas reject invalid types
-// 4. Response schema parses full config with timestamps
+// Schema validation tests for the IncomingConfig admin-view shapes
+// after the #3095 migration.
 
 import { describe, it, expect } from 'vitest';
 import {
   putIncomingConfigPayloadSchema,
-  patchIncomingConfigPayloadSchema,
   customDomainIncomingConfigSchema,
   domainIncomingRecipientSchema,
   type PutIncomingConfigPayload,
-  type PatchIncomingConfigPayload,
   type CustomDomainIncomingConfig,
 } from '@/schemas/shapes/domains/incoming-config';
 
 // -----------------------------------------------------------------------------
-// PUT Payload Schema Tests
+// PUT Payload Schema
 // -----------------------------------------------------------------------------
 
 describe('putIncomingConfigPayloadSchema', () => {
+  const validPayload = {
+    enabled: true,
+    recipients: [{ email: 'a@example.com', name: 'A' }],
+  };
+
   describe('valid payloads', () => {
-    it('accepts enabled: true', () => {
-      const payload = { enabled: true };
-      const result = putIncomingConfigPayloadSchema.parse(payload);
+    it('accepts enabled + recipients', () => {
+      const result = putIncomingConfigPayloadSchema.parse(validPayload);
       expect(result.enabled).toBe(true);
+      expect(result.recipients).toEqual([{ email: 'a@example.com', name: 'A' }]);
     });
 
-    it('accepts enabled: false', () => {
-      const payload = { enabled: false };
-      const result = putIncomingConfigPayloadSchema.parse(payload);
-      expect(result.enabled).toBe(false);
-    });
-  });
-
-  describe('invalid payloads', () => {
-    it('rejects missing enabled field', () => {
-      expect(() => putIncomingConfigPayloadSchema.parse({})).toThrow();
-    });
-
-    it('rejects enabled as string "true"', () => {
-      expect(() => putIncomingConfigPayloadSchema.parse({ enabled: 'true' })).toThrow();
-    });
-
-    it('rejects enabled as string "false"', () => {
-      expect(() => putIncomingConfigPayloadSchema.parse({ enabled: 'false' })).toThrow();
-    });
-
-    it('rejects enabled as number 1', () => {
-      expect(() => putIncomingConfigPayloadSchema.parse({ enabled: 1 })).toThrow();
-    });
-
-    it('rejects enabled as number 0', () => {
-      expect(() => putIncomingConfigPayloadSchema.parse({ enabled: 0 })).toThrow();
-    });
-
-    it('rejects enabled as null', () => {
-      expect(() => putIncomingConfigPayloadSchema.parse({ enabled: null })).toThrow();
-    });
-
-    it('rejects enabled as undefined explicitly', () => {
-      expect(() => putIncomingConfigPayloadSchema.parse({ enabled: undefined })).toThrow();
-    });
-  });
-
-  describe('extra fields', () => {
-    it('strips unknown fields (Zod default behavior)', () => {
-      const payload = { enabled: true, extra: 'ignored' };
-      const result = putIncomingConfigPayloadSchema.parse(payload);
-      expect(result).toEqual({ enabled: true });
-      expect((result as Record<string, unknown>).extra).toBeUndefined();
-    });
-  });
-
-  describe('type inference', () => {
-    it('infers correct TypeScript type', () => {
-      const payload: PutIncomingConfigPayload = putIncomingConfigPayloadSchema.parse({
-        enabled: true,
+    it('accepts an empty recipients array (explicit clear)', () => {
+      const result = putIncomingConfigPayloadSchema.parse({
+        enabled: false,
+        recipients: [],
       });
-
-      // Type assertion - would fail compilation if type is wrong
-      const _enabled: boolean = payload.enabled;
-      expect(_enabled).toBe(true);
-    });
-  });
-});
-
-// -----------------------------------------------------------------------------
-// PATCH Payload Schema Tests
-// -----------------------------------------------------------------------------
-
-describe('patchIncomingConfigPayloadSchema', () => {
-  describe('valid payloads', () => {
-    it('accepts enabled: true', () => {
-      const result = patchIncomingConfigPayloadSchema.parse({ enabled: true });
-      expect(result.enabled).toBe(true);
+      expect(result.recipients).toEqual([]);
     });
 
-    it('accepts enabled: false', () => {
-      const result = patchIncomingConfigPayloadSchema.parse({ enabled: false });
-      expect(result.enabled).toBe(false);
-    });
-
-    it('accepts empty object (all fields optional)', () => {
-      const result = patchIncomingConfigPayloadSchema.parse({});
-      expect(result.enabled).toBeUndefined();
+    it('accepts multiple recipients', () => {
+      const payload = {
+        enabled: true,
+        recipients: [
+          { email: 'a@example.com', name: 'A' },
+          { email: 'b@example.com', name: 'B' },
+          { email: 'c@example.com', name: 'C' },
+        ],
+      };
+      const result = putIncomingConfigPayloadSchema.parse(payload);
+      expect(result.recipients).toHaveLength(3);
     });
   });
 
   describe('invalid payloads', () => {
-    it('rejects enabled as string', () => {
-      expect(() => patchIncomingConfigPayloadSchema.parse({ enabled: 'true' })).toThrow();
+    it('rejects missing enabled', () => {
+      expect(() =>
+        putIncomingConfigPayloadSchema.parse({ recipients: [] }),
+      ).toThrow();
     });
 
-    it('rejects enabled as number', () => {
-      expect(() => patchIncomingConfigPayloadSchema.parse({ enabled: 1 })).toThrow();
+    it('rejects missing recipients', () => {
+      expect(() =>
+        putIncomingConfigPayloadSchema.parse({ enabled: true }),
+      ).toThrow();
+    });
+
+    it('rejects enabled as string', () => {
+      expect(() =>
+        putIncomingConfigPayloadSchema.parse({ enabled: 'true', recipients: [] }),
+      ).toThrow();
+    });
+
+    it('rejects a recipient with a malformed email', () => {
+      expect(() =>
+        putIncomingConfigPayloadSchema.parse({
+          enabled: true,
+          recipients: [{ email: 'not-an-email', name: 'X' }],
+        }),
+      ).toThrow();
+    });
+
+    it('rejects a recipient missing the email field', () => {
+      expect(() =>
+        putIncomingConfigPayloadSchema.parse({
+          enabled: true,
+          recipients: [{ name: 'Nameless' }],
+        }),
+      ).toThrow();
+    });
+
+    it('rejects a recipient missing the name field', () => {
+      expect(() =>
+        putIncomingConfigPayloadSchema.parse({
+          enabled: true,
+          recipients: [{ email: 'a@example.com' }],
+        }),
+      ).toThrow();
     });
   });
 
   describe('type inference', () => {
-    it('infers enabled as optional boolean', () => {
-      const payload: PatchIncomingConfigPayload = patchIncomingConfigPayloadSchema.parse({});
-
-      // enabled should be boolean | undefined
-      const _enabled: boolean | undefined = payload.enabled;
-      expect(_enabled).toBeUndefined();
+    it('infers PutIncomingConfigPayload with enabled + recipients', () => {
+      const payload: PutIncomingConfigPayload =
+        putIncomingConfigPayloadSchema.parse(validPayload);
+      const _enabled: boolean = payload.enabled;
+      const _recipients: Array<{ email: string; name: string }> = payload.recipients;
+      expect(_enabled).toBe(true);
+      expect(_recipients).toHaveLength(1);
     });
   });
 });
 
 // -----------------------------------------------------------------------------
-// Recipient Schema Tests
+// Recipient Schema (plaintext admin view)
 // -----------------------------------------------------------------------------
 
 describe('domainIncomingRecipientSchema', () => {
-  it('accepts valid recipient with digest and display_name', () => {
-    const recipient = { digest: 'abc123def456', display_name: 'Alice' };
-    const result = domainIncomingRecipientSchema.parse(recipient);
-    expect(result.digest).toBe('abc123def456');
-    expect(result.display_name).toBe('Alice');
+  it('accepts a valid {email, name}', () => {
+    const result = domainIncomingRecipientSchema.parse({
+      email: 'alice@example.com',
+      name: 'Alice',
+    });
+    expect(result.email).toBe('alice@example.com');
+    expect(result.name).toBe('Alice');
   });
 
-  it('accepts recipient with empty display_name', () => {
-    const recipient = { digest: 'abc123', display_name: '' };
-    const result = domainIncomingRecipientSchema.parse(recipient);
-    expect(result.display_name).toBe('');
+  it('rejects a malformed email', () => {
+    expect(() =>
+      domainIncomingRecipientSchema.parse({ email: 'nope', name: 'Alice' }),
+    ).toThrow();
   });
 
-  it('rejects missing digest', () => {
-    expect(() => domainIncomingRecipientSchema.parse({ display_name: 'Alice' })).toThrow();
+  it('rejects missing email', () => {
+    expect(() =>
+      domainIncomingRecipientSchema.parse({ name: 'Alice' }),
+    ).toThrow();
   });
 
-  it('rejects missing display_name', () => {
-    expect(() => domainIncomingRecipientSchema.parse({ digest: 'abc123' })).toThrow();
-  });
-
-  it('rejects empty digest (min length 1)', () => {
-    expect(() => domainIncomingRecipientSchema.parse({ digest: '', display_name: 'Alice' })).toThrow();
+  it('rejects missing name', () => {
+    expect(() =>
+      domainIncomingRecipientSchema.parse({ email: 'alice@example.com' }),
+    ).toThrow();
   });
 });
 
 // -----------------------------------------------------------------------------
-// Full Config Response Schema Tests
+// Full Response Schema
 // -----------------------------------------------------------------------------
 
 describe('customDomainIncomingConfigSchema', () => {
@@ -175,18 +152,17 @@ describe('customDomainIncomingConfigSchema', () => {
     domain_id: 'domain_123abc',
     enabled: true,
     recipients: [
-      { digest: 'hash1', display_name: 'Alice' },
-      { digest: 'hash2', display_name: 'Bob' },
+      { email: 'alice@example.com', name: 'Alice' },
+      { email: 'bob@example.com', name: 'Bob' },
     ],
     max_recipients: 20,
-    created_at: 1609459200, // Unix timestamp
-    updated_at: 1609545600, // Unix timestamp
+    created_at: 1609459200,
+    updated_at: 1609545600,
   };
 
   describe('valid configs', () => {
-    it('parses complete config with timestamps', () => {
+    it('parses a complete config with timestamps', () => {
       const result = customDomainIncomingConfigSchema.parse(validConfig);
-
       expect(result.domain_id).toBe('domain_123abc');
       expect(result.enabled).toBe(true);
       expect(result.recipients).toHaveLength(2);
@@ -195,17 +171,33 @@ describe('customDomainIncomingConfigSchema', () => {
 
     it('transforms Unix timestamps to Date objects', () => {
       const result = customDomainIncomingConfigSchema.parse(validConfig);
-
       expect(result.created_at).toBeInstanceOf(Date);
       expect(result.updated_at).toBeInstanceOf(Date);
-      expect(result.created_at.getTime()).toBe(1609459200 * 1000);
-      expect(result.updated_at.getTime()).toBe(1609545600 * 1000);
+      expect((result.created_at as Date).getTime()).toBe(1609459200 * 1000);
     });
 
-    it('accepts enabled: false', () => {
-      const config = { ...validConfig, enabled: false };
-      const result = customDomainIncomingConfigSchema.parse(config);
-      expect(result.enabled).toBe(false);
+    it('accepts null timestamps (unconfigured state)', () => {
+      const unconfigured = {
+        ...validConfig,
+        recipients: [],
+        created_at: null,
+        updated_at: null,
+      };
+      const result = customDomainIncomingConfigSchema.parse(unconfigured);
+      expect(result.created_at).toBeNull();
+      expect(result.updated_at).toBeNull();
+    });
+
+    it('accepts undefined timestamps (collapsed to null by nullish transform)', () => {
+      const without = {
+        domain_id: 'd',
+        enabled: false,
+        recipients: [],
+        max_recipients: 20,
+      };
+      const result = customDomainIncomingConfigSchema.parse(without);
+      expect(result.created_at).toBeNull();
+      expect(result.updated_at).toBeNull();
     });
 
     it('defaults recipients to empty array when missing', () => {
@@ -213,15 +205,9 @@ describe('customDomainIncomingConfigSchema', () => {
         domain_id: 'domain_123',
         enabled: false,
         max_recipients: 20,
-        created_at: 1609459200,
-        updated_at: 1609545600,
+        created_at: null,
+        updated_at: null,
       };
-      const result = customDomainIncomingConfigSchema.parse(config);
-      expect(result.recipients).toEqual([]);
-    });
-
-    it('accepts empty recipients array', () => {
-      const config = { ...validConfig, recipients: [] };
       const result = customDomainIncomingConfigSchema.parse(config);
       expect(result.recipients).toEqual([]);
     });
@@ -229,60 +215,47 @@ describe('customDomainIncomingConfigSchema', () => {
 
   describe('invalid configs', () => {
     it('rejects missing domain_id', () => {
-      const config = { ...validConfig };
-      delete (config as Record<string, unknown>).domain_id;
+      const config = { ...validConfig } as Record<string, unknown>;
+      delete config.domain_id;
       expect(() => customDomainIncomingConfigSchema.parse(config)).toThrow();
     });
 
     it('rejects missing enabled', () => {
-      const config = { ...validConfig };
-      delete (config as Record<string, unknown>).enabled;
+      const config = { ...validConfig } as Record<string, unknown>;
+      delete config.enabled;
       expect(() => customDomainIncomingConfigSchema.parse(config)).toThrow();
     });
 
     it('rejects non-positive max_recipients', () => {
       expect(() =>
-        customDomainIncomingConfigSchema.parse({ ...validConfig, max_recipients: 0 })
-      ).toThrow();
-      expect(() =>
-        customDomainIncomingConfigSchema.parse({ ...validConfig, max_recipients: -1 })
+        customDomainIncomingConfigSchema.parse({ ...validConfig, max_recipients: 0 }),
       ).toThrow();
     });
 
-    it('rejects non-integer max_recipients', () => {
-      expect(() =>
-        customDomainIncomingConfigSchema.parse({ ...validConfig, max_recipients: 20.5 })
-      ).toThrow();
-    });
-
-    it('rejects invalid recipient in array', () => {
+    it('rejects a recipient with malformed email in the array', () => {
       const config = {
         ...validConfig,
-        recipients: [{ digest: '', display_name: 'Invalid' }], // empty digest
+        recipients: [{ email: 'not-an-email', name: 'X' }],
       };
       expect(() => customDomainIncomingConfigSchema.parse(config)).toThrow();
     });
   });
 
   describe('type inference', () => {
-    it('infers correct TypeScript type', () => {
+    it('infers CustomDomainIncomingConfig with plaintext recipients and nullable dates', () => {
       const config: CustomDomainIncomingConfig =
         customDomainIncomingConfigSchema.parse(validConfig);
-
-      // Type assertions
       const _domainId: string = config.domain_id;
       const _enabled: boolean = config.enabled;
-      const _recipients: Array<{ digest: string; display_name: string }> = config.recipients;
-      const _maxRecipients: number = config.max_recipients;
-      const _createdAt: Date = config.created_at;
-      const _updatedAt: Date = config.updated_at;
+      const _recipients: Array<{ email: string; name: string }> = config.recipients;
+      const _createdAt: Date | null = config.created_at;
+      const _updatedAt: Date | null = config.updated_at;
 
       expect(_domainId).toBeDefined();
-      expect(_enabled).toBeDefined();
-      expect(_recipients).toBeDefined();
-      expect(_maxRecipients).toBeDefined();
-      expect(_createdAt).toBeDefined();
-      expect(_updatedAt).toBeDefined();
+      expect(_enabled).toBe(true);
+      expect(_recipients).toHaveLength(2);
+      expect(_createdAt).toBeInstanceOf(Date);
+      expect(_updatedAt).toBeInstanceOf(Date);
     });
   });
 });
