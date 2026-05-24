@@ -817,19 +817,42 @@ module Onetime
           # keeps its value. Mirrors the destroy! sibling cleanup pattern.
           bootstrap_per_domain_configs(obj)
         rescue StandardError => ex
-          # destroy! is the symmetric rollback: it cascades through every
-          # write the begin block above can have performed — the main
-          # domain hash, all class indexes (display_domains, instances,
-          # owners, display_domain_index), sibling configs (Homepage/Api/
-          # Sso/Mailer/Incoming), and organization participation. Safe to
-          # call on partial state because Redis DEL is a no-op on missing
-          # keys and the helper iterators short-circuit on empty sets.
-          # Any secondary failure is swallowed (with a log) so it can't
-          # mask the original exception we're about to re-raise.
-          begin
-            obj.destroy!
-          rescue StandardError => destroy_ex
-            OT.le "[CustomDomain.create!] rollback destroy! failed for #{obj.display_domain}: #{destroy_ex.message}"
+          # Explicit per-step rollback. We previously tried obj.destroy! here
+          # as a "symmetric inverse", but destroy! transitively touches helpers
+          # (Organization.load via membership cascade, organization_instances,
+          # Familia super) any of which can themselves raise mid-rollback when
+          # the original failure was a Redis/infrastructure error. A single
+          # secondary raise inside destroy! aborts the cascade and leaves
+          # partial state. Independent rescues per step are uglier but stable:
+          # one step's failure can't block another's cleanup. Original
+          # exception is always re-raised at the end.
+          rollback_steps = [
+            # Pre-save claim (the hsetnx)
+            -> { display_domains.remove(normalized_domain) },
+            # Familia auto-index added by obj.save
+            -> { obj.remove_from_class_display_domain_index },
+            # Manual class-index writes inside the begin block
+            -> { instances.remove(obj.to_s) },
+            -> { owners.remove(obj.to_s) },
+            # Sibling configs written by bootstrap_per_domain_configs (idempotent)
+            -> { Onetime::CustomDomain::HomepageConfig.delete_for_domain!(obj.identifier) },
+            -> { Onetime::CustomDomain::ApiConfig.delete_for_domain!(obj.identifier) },
+            # Main domain hash from obj.save (the orphan the original
+            # enumerated-cleanup left behind — #3026 review catch)
+            -> { Familia.dbclient.del(obj.dbkey) if Familia.dbclient.exists?(obj.dbkey) },
+            # Organization participation from add_to_organization_domains.
+            # Uses the in-memory participation set, not Organization.load, so
+            # it's safe even when the original failure was an org-lookup error.
+            -> {
+              obj.organization_instances.each do |o|
+                obj.remove_from_organization_domains(o)
+              end
+            },
+          ]
+          rollback_steps.each do |step|
+            step.call
+          rescue StandardError => step_ex
+            OT.le "[CustomDomain.create!] rollback step failed for #{obj.display_domain}: #{step_ex.message}"
           end
           raise ex
         end

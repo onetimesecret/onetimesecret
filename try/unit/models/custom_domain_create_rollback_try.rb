@@ -124,9 +124,10 @@ end
 @s1_captured[:id].to_s.empty?
 #=> false
 
-## S1: main domain hash (obj.dbkey) is gone
-Familia.dbclient.exists?(@s1_captured[:dbkey])
-#=> false
+## S1: main domain hash is gone (was created by obj.save; per-step rollback
+## explicitly DELs obj.dbkey — Gemini-flagged orphan fix)
+Onetime::CustomDomain.find_by_identifier(@s1_captured[:id]).nil?
+#=> true
 
 ## S1: display_domains entry for the FQDN is cleared
 Onetime::CustomDomain.display_domains.get(@s1_fqdn)
@@ -137,8 +138,10 @@ Onetime::CustomDomain.display_domain_index.get(@s1_fqdn)
 #=> nil
 
 ## S1: instances sorted set does not contain the rolled-back objid
-Onetime::CustomDomain.instances.member?(@s1_captured[:id])
-#=> false
+## (instances.score returns nil when the member is absent; member? returns
+## true/false but score is the canonical existence check on sorted_sets)
+Onetime::CustomDomain.instances.score(@s1_captured[:id]).nil?
+#=> true
 
 ## S1: owners hash does not contain the rolled-back objid
 Onetime::CustomDomain.owners.get(@s1_captured[:id])
@@ -219,8 +222,8 @@ end
 #=> false
 
 ## S2: main domain hash is gone (orphan that the bug fix prevents)
-Familia.dbclient.exists?(@s2_captured[:dbkey])
-#=> false
+Onetime::CustomDomain.find_by_identifier(@s2_captured[:id]).nil?
+#=> true
 
 ## S2: display_domains entry is cleared
 Onetime::CustomDomain.display_domains.get(@s2_fqdn)
@@ -231,8 +234,8 @@ Onetime::CustomDomain.display_domain_index.get(@s2_fqdn)
 #=> nil
 
 ## S2: instances sorted set was added then rolled back
-Onetime::CustomDomain.instances.member?(@s2_captured[:id])
-#=> false
+Onetime::CustomDomain.instances.score(@s2_captured[:id]).nil?
+#=> true
 
 ## S2: owners hash was added then rolled back
 Onetime::CustomDomain.owners.get(@s2_captured[:id])
@@ -314,17 +317,17 @@ Onetime::CustomDomain::ApiConfig.exists_for_domain?(@s3_captured[:id])
 #=> false
 
 ## S3: main domain hash is gone
-Familia.dbclient.exists?("custom_domain:#{@s3_captured[:id]}:object")
-#=> false
+Onetime::CustomDomain.find_by_identifier(@s3_captured[:id]).nil?
+#=> true
 
 ## S3: display_domains, instances, owners, display_domain_index all cleared
 [
   Onetime::CustomDomain.display_domains.get(@s3_fqdn),
   Onetime::CustomDomain.display_domain_index.get(@s3_fqdn),
-  Onetime::CustomDomain.instances.member?(@s3_captured[:id]),
+  Onetime::CustomDomain.instances.score(@s3_captured[:id]),
   Onetime::CustomDomain.owners.get(@s3_captured[:id]),
 ]
-#=> [nil, nil, false, nil]
+#=> [nil, nil, nil, nil]
 
 ## S3: load_by_display_domain returns nil after rollback
 Onetime::CustomDomain.load_by_display_domain(@s3_fqdn)
@@ -381,16 +384,16 @@ end
 #=> false
 
 ## S4: main domain hash never existed and is still gone
-Familia.dbclient.exists?(@s4_captured[:dbkey])
-#=> false
+Onetime::CustomDomain.find_by_identifier(@s4_captured[:id]).nil?
+#=> true
 
 ## S4: display_domains entry was set by hsetnx then cleaned by rollback
 Onetime::CustomDomain.display_domains.get(@s4_fqdn)
 #=> nil
 
 ## S4: instances and owners were never written
-Onetime::CustomDomain.instances.member?(@s4_captured[:id])
-#=> false
+Onetime::CustomDomain.instances.score(@s4_captured[:id]).nil?
+#=> true
 
 ## S4: HomepageConfig and ApiConfig never bootstrapped
 [
@@ -404,46 +407,36 @@ Onetime::CustomDomain.load_by_display_domain(@s4_fqdn)
 #=> nil
 
 # ----------------------------------------------------------------------------
-# Scenario 5: destroy! itself raises during rollback — original create!
-# exception still propagates AND the partial-failure-tolerant cleanup still
-# does as much as it can.
+# Scenario 5: a single rollback step raising does NOT block the others
 # ----------------------------------------------------------------------------
 #
-# The rescue in create! wraps obj.destroy! in its own rescue StandardError;
-# any failure during destroy! is logged via OT.le but does NOT replace the
-# original create! exception. We force two failures simultaneously:
+# create!'s rescue iterates rollback_steps and rescues StandardError around
+# each step independently. This is the load-bearing property that explicit
+# per-step cleanup gives us over a monolithic destroy! call: one step
+# failing (e.g. transient Redis hiccup, stubbed-in-test, instances sorted
+# set in a bad state) doesn't prevent the others from running.
 #
-#   (a) HomepageConfig.find_or_create_for_domain raises during bootstrap
-#       → triggers create!'s rescue (StandardError)
-#       → original ex = "create! step failure"
-#   (b) Onetime::OrganizationMembership.find_all_by_domain_scope raises
-#       during destroy! → destroy! itself raises with "destroy! cascade failure"
-#
-# OrganizationMembership.find_all_by_domain_scope runs INSIDE destroy! and
-# is NOT wrapped in a per-step rescue (only the sibling-config loop has
-# per-step rescue, and only for Familia::Problem). So a StandardError here
-# causes destroy! to propagate, which the create! rescue then swallows
-# (logs to OT.le) before re-raising the original ex.
-#
-# Assertion targets:
-#   - the exception that escapes create! is the ORIGINAL one, not destroy_ex
-#   - some cleanup still happened — specifically sibling configs that run
-#     BEFORE the failing destroy! step. find_all_by_domain_scope runs
-#     AFTER sibling_configs.each (lines 421-425) in destroy!. So when our
-#     stub fires, the sibling configs have already been processed.
+# We force the original create! failure (HomepageConfig stub raises) AND
+# break ONE specific rollback step (instances.remove via a class-singleton
+# override that's restored before assertions run). The remaining steps —
+# display_domains, display_domain_index, owners, sibling configs, main
+# hash, organization participation — must still execute. The original
+# exception must still escape create! unchanged.
 
-## Setup: Scenario 5 - stub bootstrap to raise create! ex AND stub destroy!'s
-## membership-scope query to raise destroy_ex
+## Setup: Scenario 5 - stub bootstrap to raise create! ex AND stub
+## instances.remove to raise inside the rollback loop
 @s5_fqdn          = "cd-rb-s5-#{@ts}-#{@entropy}.example.com"
-@s5_captured      = { id: nil, sibling_cleaned: nil }
+@s5_captured      = { id: nil }
 hp_class          = Onetime::CustomDomain::HomepageConfig
 original_hp_focd2 = hp_class.method(:find_or_create_for_domain)
-om_class          = Onetime::OrganizationMembership
-original_find_all = om_class.method(:find_all_by_domain_scope)
+instances_ref     = Onetime::CustomDomain.instances
+original_remove   = instances_ref.method(:remove)
 s5_target_fqdn    = @s5_fqdn
 s5_capture        = @s5_captured
 
-# Stub HomepageConfig to raise during bootstrap (triggers create!'s rescue).
+# Stub HomepageConfig.find_or_create_for_domain so the create! step raises
+# AFTER instances.add has run — that way the rollback's instances.remove
+# call is meaningful (the entry exists and would normally be removed).
 hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
   domain_id   = kwargs[:domain_id]
   expected_id = Onetime::CustomDomain.display_domains.get(s5_target_fqdn)
@@ -455,19 +448,14 @@ hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
   end
 end
 
-# Stub OrganizationMembership.find_all_by_domain_scope to raise — this runs
-# inside destroy! and is not per-step-rescued, so destroy! itself propagates.
-om_class.define_singleton_method(:find_all_by_domain_scope) do |scope_objid|
-  if scope_objid.to_s == s5_capture[:id].to_s && !s5_capture[:id].to_s.empty?
-    # By the time destroy! reaches this step, sibling_configs.each has
-    # already completed (lines 421-425 in custom_domain.rb). Capture
-    # whether HomepageConfig and ApiConfig records (if any existed) are
-    # cleaned up.
-    s5_capture[:sibling_cleaned] = !Onetime::CustomDomain::HomepageConfig.exists_for_domain?(scope_objid) &&
-                                   !Onetime::CustomDomain::ApiConfig.exists_for_domain?(scope_objid)
-    raise StandardError, "SECONDARY destroy! failure: find_all_by_domain_scope"
+# Stub instances.remove to raise — this targets ONE rollback step.
+# The per-step rescue inside create! must swallow this StandardError and
+# proceed to the remaining steps.
+instances_ref.define_singleton_method(:remove) do |id|
+  if id.to_s == s5_capture[:id].to_s && !s5_capture[:id].to_s.empty?
+    raise StandardError, "STEP FAILURE: instances.remove forced raise"
   else
-    original_find_all.call(scope_objid)
+    original_remove.call(id)
   end
 end
 
@@ -481,34 +469,52 @@ end
     hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
       original_hp_focd2.call(**kwargs)
     end
-    om_class.define_singleton_method(:find_all_by_domain_scope) do |scope_objid|
-      original_find_all.call(scope_objid)
+    instances_ref.define_singleton_method(:remove) do |id|
+      original_remove.call(id)
     end
   end
 
-## S5: the exception that escaped create! is the ORIGINAL one, not destroy_ex
+## S5: the exception that escaped create! is the ORIGINAL one, not the step ex
 @s5_exception_message
 #=~> /ORIGINAL create! failure: HomepageConfig bootstrap/
 
-## S5: explicitly assert it is NOT the destroy_ex message
-@s5_exception_message.include?("SECONDARY destroy!")
+## S5: explicitly assert it is NOT the step failure message
+@s5_exception_message.to_s.include?("STEP FAILURE")
 #=> false
 
-## S5: sibling configs that ran BEFORE the destroy! failure point were cleaned
-##     (HomepageConfig didn't actually get written by bootstrap because that
-##     was where the create! raised; ApiConfig was never reached. So both
-##     exists_for_domain? must be false — sibling cleanup is a no-op but
-##     completes without raising.)
-@s5_captured[:sibling_cleaned]
+## S5: even with instances.remove broken, other rollback steps still ran.
+## display_domains was cleared (different step, independently rescued).
+Onetime::CustomDomain.display_domains.get(@s5_fqdn)
+#=> nil
+
+## S5: main domain hash was deleted (Familia DEL step ran)
+Onetime::CustomDomain.find_by_identifier(@s5_captured[:id]).nil?
 #=> true
 
-## S5: post-failure, the rollback was INCOMPLETE — destroy! aborted partway.
-##     We do NOT assert full cleanup here because the secondary failure
-##     prevented self.class.rem and super from running. Instead we assert
-##     the contract: the original exception surfaced. Partial state is the
-##     known trade-off of swallowing destroy_ex.
-@s5_captured[:id].to_s.empty?
+## S5: owners hash was cleared (independent step)
+Onetime::CustomDomain.owners.get(@s5_captured[:id])
+#=> nil
+
+## S5: HomepageConfig and ApiConfig were cleaned (independent steps)
+[
+  Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@s5_captured[:id]),
+  Onetime::CustomDomain::ApiConfig.exists_for_domain?(@s5_captured[:id]),
+]
+#=> [false, false]
+
+## S5: KNOWN partial state — the one step we sabotaged left its residue.
+## instances still contains the id because instances.remove was stubbed
+## to raise. This is the contract: per-step rescue means one step's
+## failure leaks state for THAT step, but doesn't block the others.
+## After the ensure block restored instances.remove, we can verify the
+## leak directly — the entry is still there until something explicitly
+## removes it.
+Onetime::CustomDomain.instances.score(@s5_captured[:id]).nil?
 #=> false
+
+# Clean up the deliberately-leaked entry so it doesn't pollute later
+# scenarios that might iterate instances.
+Onetime::CustomDomain.instances.remove(@s5_captured[:id]) if @s5_captured[:id]
 
 # ----------------------------------------------------------------------------
 # Scenario 6: idempotent retry after a successful rollback
@@ -546,7 +552,7 @@ end
 [
   Onetime::CustomDomain.display_domains.get(@s1_fqdn) == @s6_domain.identifier,
   Onetime::CustomDomain.display_domain_index.get(@s1_fqdn) == @s6_domain.identifier,
-  Onetime::CustomDomain.instances.member?(@s6_domain.identifier),
+  !Onetime::CustomDomain.instances.score(@s6_domain.identifier).nil?,
   Onetime::CustomDomain.owners.get(@s6_domain.identifier) == @org_id,
 ]
 #=> [true, true, true, true]
