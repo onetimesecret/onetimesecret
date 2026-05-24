@@ -79,6 +79,9 @@ module DomainsAPI
             @incoming_config.enabled = @enabled.to_s
             # Only update recipients if explicitly provided in the request.
             # This allows toggling enabled state without wiping recipients.
+            # The admin frontend always sends the full recipients list, so the
+            # provided branch is the standard path; the omitted branch supports
+            # toggle-only callers (e.g. future PATCH).
             if @recipients_provided
               @incoming_config.recipients = @recipients
             end
