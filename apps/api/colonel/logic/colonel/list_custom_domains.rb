@@ -50,14 +50,21 @@ module ColonelAPI
             # Get organization details
             org = domain.primary_organization
 
-            # Get brand details from the hashkey
+            # Brand carries cosmetic fields only; the homepage / API toggles
+            # live in their own per-domain records (#3026) and are emitted
+            # alongside brand below.
             brand_data = {
               name: domain.brand['name'],
               tagline: domain.brand['tagline'],
               homepage_url: domain.brand['homepage_url'],
-              allow_public_homepage: domain.allow_public_homepage?,
-              allow_public_api: domain.allow_public_api?,
             }
+
+            # Read sibling configs directly rather than via the predicates so a
+            # corrupt or missing record yields nil for one row rather than
+            # raising and crashing the admin list. nil flags the data drift to
+            # the admin without losing visibility into the remaining domains.
+            homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
+            api_config      = Onetime::CustomDomain::ApiConfig.find_by_domain_id(domain.identifier)
 
             # Check if images exist
             has_logo = !domain.logo['filename'].to_s.empty?
@@ -79,6 +86,18 @@ module ColonelAPI
               org_id: domain.org_id,
               org_name: org ? org.display_name : 'Unknown',
               brand: brand_data,
+              homepage_config: homepage_config && {
+                domain_id: homepage_config.domain_id,
+                enabled: homepage_config.enabled?,
+                created_at: homepage_config.created&.to_i,
+                updated_at: homepage_config.updated&.to_i,
+              },
+              api_config: api_config && {
+                domain_id: api_config.domain_id,
+                enabled: api_config.enabled?,
+                created_at: api_config.created&.to_i,
+                updated_at: api_config.updated&.to_i,
+              },
               has_logo: has_logo,
               has_icon: has_icon,
               logo_url: has_logo ? "/imagine/#{domain.domainid}/logo.png" : nil,

@@ -178,12 +178,12 @@
               ✓ {{ t('web.colonel.customDomains.status.ready') }}
             </span>
             <span
-              v-if="domain.brand.allow_public_homepage"
+              v-if="domain.homepage_config?.enabled"
               class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900 dark:text-purple-200">
               {{ t('web.colonel.customDomains.status.publicHomepage') }}
             </span>
             <span
-              v-if="domain.brand.allow_public_api"
+              v-if="domain.api_config?.enabled"
               class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 dark:bg-purple-900 dark:text-purple-200">
               {{ t('web.colonel.customDomains.status.publicApi') }}
             </span>

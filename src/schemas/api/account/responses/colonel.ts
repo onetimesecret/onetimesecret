@@ -213,9 +213,27 @@ export const colonelCustomDomainSchema = z.object({
     name: z.string().nullable(),
     tagline: z.string().nullable(),
     homepage_url: z.string().nullable(),
-    allow_public_homepage: z.boolean(),
-    allow_public_api: z.boolean(),
   }),
+  // Per-domain feature toggles emitted as their own blocks (#3026); both are
+  // nullable so the admin list can still render when a HomepageConfig /
+  // ApiConfig record is missing (data drift surfaces as a null block rather
+  // than a crashed list).
+  homepage_config: z
+    .object({
+      domain_id: z.string(),
+      enabled: z.boolean(),
+      created_at: z.number().nullable(),
+      updated_at: z.number().nullable(),
+    })
+    .nullable(),
+  api_config: z
+    .object({
+      domain_id: z.string(),
+      enabled: z.boolean(),
+      created_at: z.number().nullable(),
+      updated_at: z.number().nullable(),
+    })
+    .nullable(),
   has_logo: z.boolean(),
   has_icon: z.boolean(),
   logo_url: z.string().nullable(),

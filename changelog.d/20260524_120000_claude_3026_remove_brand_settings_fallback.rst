@@ -17,9 +17,20 @@ Removed
   legacy values returned by older backends are now silently stripped by
   the schema parsers. The ``allowPublicHomepage`` computed in
   ``identityStore`` (derived from ``homepage_config.enabled``) is unchanged
-  and remains the single read-side surface for the toggle. The colonel
-  admin schema still carries the legacy keys to match its emitter; that
-  cleanup is tracked separately. (#3026)
+  and remains the single read-side surface for the toggle. (#3026)
+- Colonel admin endpoint ``GET /api/v1/colonel/domains`` restructured to
+  emit ``homepage_config`` and ``api_config`` blocks at the top level of
+  each domain entry (matching the public domain serializer shape), with
+  the legacy ``brand.allow_public_homepage`` / ``brand.allow_public_api``
+  fields removed. ``ColonelDomains.vue`` and the colonel response Zod
+  schema were updated in lockstep so the admin list no longer claims
+  these are brand fields. (#3026)
+- CLI ``ots domains info`` and ``ots domains verify`` outputs separated
+  ``Feature Toggles`` from ``Brand Settings`` so the toggle state is no
+  longer attributed to brand configuration. The verify JSON output emits
+  ``homepage_config`` / ``api_config`` at the top level instead of nesting
+  under ``brand``. The unused ``DomainsHelpers#format_brand_summary``
+  helper was renamed to ``format_feature_toggle_summary``. (#3026)
 
 Changed
 -------
