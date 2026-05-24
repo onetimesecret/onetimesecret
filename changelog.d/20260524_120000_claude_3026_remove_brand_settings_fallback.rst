@@ -30,7 +30,8 @@ Removed
   longer attributed to brand configuration. The verify JSON output emits
   ``homepage_config`` / ``api_config`` at the top level instead of nesting
   under ``brand``. The unused ``DomainsHelpers#format_brand_summary``
-  helper was renamed to ``format_feature_toggle_summary``. (#3026)
+  helper was deleted — it had no callers and its name no longer
+  matched the post-cleanup data model. (#3026)
 
 Changed
 -------

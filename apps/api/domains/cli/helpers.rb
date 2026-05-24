@@ -103,17 +103,6 @@ module Onetime
       def format_verification_state(state)
         state.to_s.upcase
       end
-
-      # Summarize which per-domain feature toggles (HomepageConfig /
-      # ApiConfig) are enabled. Renamed from format_brand_summary in #3026
-      # to match the post-cleanup data model — the toggles never lived in
-      # BrandSettings even before the refactor surfaced it.
-      def format_feature_toggle_summary(domain)
-        flags = []
-        flags << 'homepage' if domain.allow_public_homepage?
-        flags << 'api' if domain.allow_public_api?
-        flags.empty? ? 'none' : flags.join(', ')
-      end
     end
   end
 end

@@ -133,7 +133,7 @@ export function isValidCustomerRole(role: string): role is CustomerRole {
  * @example
  * ```typescript
  * const customer = customerCanonical.parse(apiResponse);
- * if (customer.feature_flags['beta_ui']) {
+ * if (customer.feature_flags['beta_features']) {
  *   // Feature is enabled for this customer
  * }
  * ```
