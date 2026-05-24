@@ -22,9 +22,9 @@ RSpec.describe Onetime::Incoming::RecipientResolver do
     context 'when the custom domain has no resolvable owning organization' do
       before do
         # Stub the private custom_domain_record lookup so we don't need Redis
-        # state. Two flavors of nil owner: missing CustomDomain record entirely,
-        # and present record with primary_organization == nil. Either path
-        # arrives at the same Forbidden raise.
+        # state. The record exists but its primary_organization is nil — same
+        # Forbidden raise as the missing-record case (custom_domain_record
+        # returns nil) since both arrive at owning_org.nil? on the next line.
         allow(resolver).to receive(:custom_domain_record).and_return(
           double('CustomDomain', primary_organization: nil),
         )
