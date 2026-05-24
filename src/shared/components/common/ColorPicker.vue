@@ -43,6 +43,7 @@ const id = computed(() => props.id || 'color-picker');
 const isOpen = ref(false);
 const pickerRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
+const popoverPosition = ref({ top: 0, left: 0 });
 
 // Internal color state - vue-color preserves format, so hex in = hex out
 const internalColor = ref(props.modelValue);
@@ -56,8 +57,13 @@ watch(() => props.modelValue, (newVal) => {
 
 // Emit changes to parent when internal color changes (from picker interaction)
 watch(internalColor, (newVal) => {
-  if (typeof newVal === 'string') {
-    emit('update:modelValue', newVal.toUpperCase());
+  const raw = typeof newVal === 'string'
+    ? newVal
+    : (newVal as { hex8?: string; hex?: string } | null | undefined)?.hex8
+      ?? (newVal as { hex?: string } | null | undefined)?.hex;
+  const hex = raw?.toUpperCase();
+  if (hex && hex !== props.modelValue?.toUpperCase()) {
+    emit('update:modelValue', hex);
   }
 });
 
@@ -83,9 +89,17 @@ const previewColor = computed(() => {
   return tc.toRgbString();
 });
 
+const updatePopoverPosition = () => {
+  const rect = triggerRef.value?.getBoundingClientRect();
+  if (!rect) return;
+  popoverPosition.value = { top: rect.bottom + 8, left: rect.left };
+};
+
 // Close picker
 const closePicker = () => {
   isOpen.value = false;
+  window.removeEventListener('scroll', updatePopoverPosition, true);
+  window.removeEventListener('resize', updatePopoverPosition);
 };
 
 // Escape key to close
@@ -102,10 +116,19 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('scroll', updatePopoverPosition, true);
+  window.removeEventListener('resize', updatePopoverPosition);
 });
 
 const togglePicker = () => {
-  isOpen.value = !isOpen.value;
+  if (!isOpen.value) {
+    updatePopoverPosition();
+    window.addEventListener('scroll', updatePopoverPosition, { capture: true, passive: true });
+    window.addEventListener('resize', updatePopoverPosition, { passive: true });
+    isOpen.value = true;
+  } else {
+    closePicker();
+  }
 };
 
 const pickerComponent = computed(() => {
@@ -146,23 +169,20 @@ const pickerProps = computed(() => {
 
     <div
       ref="triggerRef"
-      role="button"
-      tabindex="0"
-      :aria-expanded="isOpen"
-      :aria-haspopup="true"
-      :aria-label="label"
-      class="group flex h-11 cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 shadow-sm transition-all duration-200 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-0"
-      @click="togglePicker"
-      @keydown.enter.prevent="togglePicker"
-      @keydown.space.prevent="togglePicker">
-      <!-- Color Preview Circle -->
-      <div class="relative flex items-center">
-        <div
-          class="size-6 rounded-full border-2 border-white shadow-sm ring-1 ring-gray-200 dark:border-gray-700 dark:ring-gray-600"
-          role="presentation"
+      class="group flex h-11 items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 shadow-sm transition-all duration-200 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:focus-within:ring-brand-400 dark:focus-within:ring-offset-0">
+      <!-- Color Preview Circle (acts as picker trigger) -->
+      <button
+        type="button"
+        :aria-expanded="isOpen"
+        :aria-haspopup="true"
+        :aria-label="label"
+        class="relative flex items-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:focus-visible:ring-brand-400"
+        @click="togglePicker">
+        <span
+          class="block size-6 rounded-full border-2 border-white shadow-sm ring-1 ring-gray-200 dark:border-gray-700 dark:ring-gray-600"
           :style="{ backgroundColor: previewColor }">
-        </div>
-      </div>
+        </span>
+      </button>
 
       <!-- Hex Display -->
       <div class="relative flex items-center">
@@ -180,10 +200,7 @@ const pickerProps = computed(() => {
           :maxlength="disableAlpha ? 6 : 8"
           spellcheck="false"
           :aria-label="label"
-          @input="updateFromHexInput"
-          @click.stop
-          @keydown.enter.stop
-          @keydown.space.stop />
+          @input="updateFromHexInput" />
       </div>
     </div>
 
@@ -207,8 +224,8 @@ const pickerProps = computed(() => {
           ref="pickerRef"
           class="fixed z-[100] rounded-lg shadow-xl ring-1 ring-black/5 dark:ring-white/10"
           :style="{
-            top: `${(triggerRef?.getBoundingClientRect().bottom ?? 0) + 8}px`,
-            left: `${triggerRef?.getBoundingClientRect().left ?? 0}px`
+            top: `${popoverPosition.top}px`,
+            left: `${popoverPosition.left}px`
           }">
           <component
             :is="pickerComponent"
