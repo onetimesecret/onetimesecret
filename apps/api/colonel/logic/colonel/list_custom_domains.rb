@@ -50,6 +50,16 @@ module ColonelAPI
           # CustomDomain identifiers serve directly as load_multi keys. Missing
           # records come back as nil and are dropped by compact; lookup-misses
           # in the loop below become nil blocks in the JSON response.
+          #
+          # NOTE: deliberate inconsistency with CustomDomain's predicates
+          # (`#allow_public_homepage?` / `#allow_public_api?`) which RAISE on
+          # a missing record. Different error policies for the same underlying
+          # condition is a calculated trade-off: user-facing paths fail loudly
+          # so corruption is impossible to ignore; this admin diagnostic view
+          # degrades gracefully so the operator can actually SEE which domains
+          # are broken. If you change one policy, update the comment above
+          # `#allow_public_homepage?` in lib/onetime/models/custom_domain.rb
+          # to match.
           domain_identifiers = paginated_domains.map(&:identifier)
           homepage_by_id     = Onetime::CustomDomain::HomepageConfig
             .load_multi(domain_identifiers).compact
