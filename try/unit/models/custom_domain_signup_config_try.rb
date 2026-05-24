@@ -224,6 +224,52 @@ rescue Onetime::Problem
 end
 #=> :raised_problem
 
+# --- Corrupted JSON Fail-Open Behavior ---
+#
+# Security note: When allowed_signup_domains_json contains invalid JSON,
+# allowed_signup_domains silently returns [] which makes valid_email_domain?
+# return true for ANY email. This is intentional fail-open behavior to avoid
+# blocking legitimate signups due to data corruption, but operators should
+# monitor for JSON parse errors in production logs.
+
+## Create config with valid allowlist to corrupt
+@ts3 = Familia.now.to_i
+@domain3 = Onetime::CustomDomain.create!("sc-corrupt-#{@ts3}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@corrupt_config = Onetime::CustomDomain::SignupConfig.create!(
+  domain_id: @domain3.identifier,
+  validation_strategy: 'domain_allowlist',
+  allowed_signup_domains: ['valid.com'],
+  enabled: true,
+)
+@corrupt_config.allowed_signup_domains
+#=> ['valid.com']
+
+## Manually corrupt the JSON field
+@corrupt_config.allowed_signup_domains_json = '{invalid json['
+@corrupt_config.save
+@corrupt_config.allowed_signup_domains_json
+#=> '{invalid json['
+
+## allowed_signup_domains returns empty array on corrupted JSON
+@corrupt_config.allowed_signup_domains
+#=> []
+
+## valid_email_domain? returns true for ANY email when allowlist is corrupted (fail-open)
+@corrupt_config.valid_email_domain?('anyone@anywhere.com')
+#=> true
+
+## valid_email_domain? returns true for previously-restricted domain
+@corrupt_config.valid_email_domain?('attacker@evil.com')
+#=> true
+
+## valid_signup_email? with domain_allowlist strategy still validates format
+@corrupt_config.valid_signup_email?('not-an-email')
+#=> false
+
+## valid_signup_email? allows any valid email format when JSON is corrupted
+@corrupt_config.valid_signup_email?('anyone@anywhere.com')
+#=> true
+
 # --- Cleanup ---
 
 Familia.dbclient.flushdb

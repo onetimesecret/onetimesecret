@@ -690,6 +690,11 @@ module Onetime
       attr_reader :db, :values, :owners, :txt_validation_prefix
 
       # Load a domain by its display_domain name
+      #
+      # Returns nil on any error (Redis connectivity, record not found, etc.)
+      # to allow callers to fall back gracefully. This is intentional fail-open
+      # behavior for the lookup layer; callers handle nil as "no custom domain".
+      #
       # @param domain_name [String] The domain name to look up
       # @return [CustomDomain, nil] The domain if found, nil otherwise
       def load_by_display_domain(domain_name)
@@ -698,12 +703,14 @@ module Onetime
         return nil if domainid.nil?
 
         # Use Familia's find_by_identifier method
-        begin
-          find_by_identifier(domainid)
-        rescue Onetime::RecordNotFound, Redis::BaseError => ex
-          OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
-          nil
-        end
+        find_by_identifier(domainid)
+      rescue Onetime::RecordNotFound, Redis::BaseError => ex
+        OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
+        nil
+      rescue StandardError => ex
+        # Fail-open: Redis errors during lookup should not block the request
+        OT.le "[CustomDomain.load_by_display_domain] Unexpected error for #{normalized}: #{ex.class} - #{ex.message}"
+        nil
       end
 
       # Resolve an FQDN to its CustomDomain identifier.
