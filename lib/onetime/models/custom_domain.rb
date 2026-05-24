@@ -545,11 +545,24 @@ module Onetime
       save
     end
 
-    # HomepageConfig is the single source of truth post-#3023 backfill, and
-    # new domains receive a default-disabled record via {.create!}. A missing
-    # record now signals data corruption (manual Redis deletion, partial
-    # restore) rather than legacy state, so we raise instead of silently
-    # synthesizing a value — the loud failure makes the drift discoverable.
+    # HomepageConfig / ApiConfig are the single source of truth post-#3023
+    # backfill, and new domains receive default-disabled records via
+    # {.create!}. A missing record now signals data corruption (manual Redis
+    # deletion, partial restore) rather than legacy state, so we raise
+    # instead of silently synthesizing a value — the loud failure makes the
+    # drift discoverable on the authorization path.
+    #
+    # NOTE: deliberate inconsistency with the colonel admin endpoint.
+    # `Colonel::ListCustomDomains` reads `HomepageConfig.find_by_domain_id`
+    # directly and tolerates `nil` (it renders the row with a null
+    # homepage_config block) so a single corrupt domain doesn't crash the
+    # admin's only diagnostic view. User-facing authorization (this
+    # predicate) raises so corruption manifests as a loud 500 the moment an
+    # affected domain is touched, rather than degrading silently to `false`
+    # (which could be misread as "the user disabled it"). The split is
+    # intentional: raise where silence is dangerous, tolerate nil where
+    # blind spots are worse than partial truth. If you change one policy,
+    # look at the other (grep for "deliberate inconsistency").
     def allow_public_homepage?
       homepage_config = HomepageConfig.find_by_domain_id(identifier)
       raise Onetime::Problem, "HomepageConfig missing for domain #{identifier}; run migration 20260417_01_backfill_homepage_config" unless homepage_config
