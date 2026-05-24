@@ -413,30 +413,30 @@ Onetime::CustomDomain.load_by_display_domain(@s4_fqdn)
 # create!'s rescue iterates rollback_steps and rescues StandardError around
 # each step independently. This is the load-bearing property that explicit
 # per-step cleanup gives us over a monolithic destroy! call: one step
-# failing (e.g. transient Redis hiccup, stubbed-in-test, instances sorted
-# set in a bad state) doesn't prevent the others from running.
+# failing (e.g. transient Redis hiccup, stubbed-in-test, broken sibling
+# class) doesn't prevent the others from running.
 #
 # We force the original create! failure (HomepageConfig stub raises) AND
-# break ONE specific rollback step (instances.remove via a class-singleton
-# override that's restored before assertions run). The remaining steps —
-# display_domains, display_domain_index, owners, sibling configs, main
-# hash, organization participation — must still execute. The original
-# exception must still escape create! unchanged.
+# break ONE specific rollback step (ApiConfig.delete_for_domain! — the
+# sibling-cleanup step that runs DURING rollback, picked because the
+# destroy_cascade tryout already demonstrates that stub-and-restore on
+# the class-singleton works here). The remaining steps — display_domains,
+# display_domain_index, instances, owners, HomepageConfig, main hash,
+# organization participation — must still execute. The original exception
+# must still escape create! unchanged.
 
-## Setup: Scenario 5 - stub bootstrap to raise create! ex AND stub
-## instances.remove to raise inside the rollback loop
-@s5_fqdn          = "cd-rb-s5-#{@ts}-#{@entropy}.example.com"
-@s5_captured      = { id: nil }
-hp_class          = Onetime::CustomDomain::HomepageConfig
-original_hp_focd2 = hp_class.method(:find_or_create_for_domain)
-instances_ref     = Onetime::CustomDomain.instances
-original_remove   = instances_ref.method(:remove)
-s5_target_fqdn    = @s5_fqdn
-s5_capture        = @s5_captured
+## Setup: Scenario 5 - stub HP bootstrap raises and ApiConfig.delete_for_domain! raises during rollback
+@s5_fqdn           = "cd-rb-s5-#{@ts}-#{@entropy}.example.com"
+@s5_captured       = { id: nil }
+hp_class           = Onetime::CustomDomain::HomepageConfig
+original_hp_focd2  = hp_class.method(:find_or_create_for_domain)
+api_class          = Onetime::CustomDomain::ApiConfig
+original_api_del   = api_class.method(:delete_for_domain!)
+s5_target_fqdn     = @s5_fqdn
+s5_capture         = @s5_captured
 
 # Stub HomepageConfig.find_or_create_for_domain so the create! step raises
-# AFTER instances.add has run — that way the rollback's instances.remove
-# call is meaningful (the entry exists and would normally be removed).
+# AFTER instances.add and owners.put have run.
 hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
   domain_id   = kwargs[:domain_id]
   expected_id = Onetime::CustomDomain.display_domains.get(s5_target_fqdn)
@@ -448,14 +448,13 @@ hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
   end
 end
 
-# Stub instances.remove to raise — this targets ONE rollback step.
-# The per-step rescue inside create! must swallow this StandardError and
-# proceed to the remaining steps.
-instances_ref.define_singleton_method(:remove) do |id|
-  if id.to_s == s5_capture[:id].to_s && !s5_capture[:id].to_s.empty?
-    raise StandardError, "STEP FAILURE: instances.remove forced raise"
+# Stub ApiConfig.delete_for_domain! to raise — this is one specific rollback
+# step. The per-step rescue inside create! must swallow this and proceed.
+api_class.define_singleton_method(:delete_for_domain!) do |domain_id|
+  if domain_id.to_s == s5_capture[:id].to_s && !s5_capture[:id].to_s.empty?
+    raise StandardError, "STEP FAILURE: ApiConfig.delete_for_domain! forced raise"
   else
-    original_remove.call(id)
+    original_api_del.call(domain_id)
   end
 end
 
@@ -469,52 +468,50 @@ end
     hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
       original_hp_focd2.call(**kwargs)
     end
-    instances_ref.define_singleton_method(:remove) do |id|
-      original_remove.call(id)
+    api_class.define_singleton_method(:delete_for_domain!) do |domain_id|
+      original_api_del.call(domain_id)
     end
   end
 
 ## S5: the exception that escaped create! is the ORIGINAL one, not the step ex
-@s5_exception_message
+@s5_exception_message.to_s
 #=~> /ORIGINAL create! failure: HomepageConfig bootstrap/
 
 ## S5: explicitly assert it is NOT the step failure message
 @s5_exception_message.to_s.include?("STEP FAILURE")
 #=> false
 
-## S5: even with instances.remove broken, other rollback steps still ran.
+## S5: captured identifier was set by the HP stub (proves it fired)
+@s5_captured[:id].to_s.empty?
+#=> false
+
+## S5: even with ApiConfig.delete_for_domain! broken, other steps still ran.
 ## display_domains was cleared (different step, independently rescued).
 Onetime::CustomDomain.display_domains.get(@s5_fqdn)
 #=> nil
 
-## S5: main domain hash was deleted (Familia DEL step ran)
+## S5: main domain hash was deleted (Familia DEL step ran independently)
 Onetime::CustomDomain.find_by_identifier(@s5_captured[:id]).nil?
+#=> true
+
+## S5: instances sorted set was cleared (independent step)
+Onetime::CustomDomain.instances.score(@s5_captured[:id]).nil?
 #=> true
 
 ## S5: owners hash was cleared (independent step)
 Onetime::CustomDomain.owners.get(@s5_captured[:id])
 #=> nil
 
-## S5: HomepageConfig and ApiConfig were cleaned (independent steps)
-[
-  Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@s5_captured[:id]),
-  Onetime::CustomDomain::ApiConfig.exists_for_domain?(@s5_captured[:id]),
-]
-#=> [false, false]
-
-## S5: KNOWN partial state — the one step we sabotaged left its residue.
-## instances still contains the id because instances.remove was stubbed
-## to raise. This is the contract: per-step rescue means one step's
-## failure leaks state for THAT step, but doesn't block the others.
-## After the ensure block restored instances.remove, we can verify the
-## leak directly — the entry is still there until something explicitly
-## removes it.
-Onetime::CustomDomain.instances.score(@s5_captured[:id]).nil?
+## S5: HomepageConfig was cleaned (independent step). HP never wrote in this
+## scenario (the stub raised before writing), so this is a no-op delete.
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@s5_captured[:id])
 #=> false
 
-# Clean up the deliberately-leaked entry so it doesn't pollute later
-# scenarios that might iterate instances.
-Onetime::CustomDomain.instances.remove(@s5_captured[:id]) if @s5_captured[:id]
+# NOTE: We do not assert anything about ApiConfig.exists_for_domain? here.
+# The stub blocked rollback's delete_for_domain! from running, but ApiConfig
+# was never written by create! either (HP raised first, before ApiConfig
+# bootstrap), so the record simply never existed. The contract being tested
+# is "other steps still ran", not "the sabotaged step's target state".
 
 # ----------------------------------------------------------------------------
 # Scenario 6: idempotent retry after a successful rollback
@@ -564,8 +561,12 @@ Onetime::CustomDomain.instances.remove(@s5_captured[:id]) if @s5_captured[:id]
 ]
 #=> [true, true]
 
-## S6: org participation was added on the retry
-@org.domains.member?(@s6_domain.identifier)
+## S6: org participation was added on the retry. We re-load the org from
+## Redis to get a fresh view (the @org object captured at top-of-file may
+## be reading from cached state depending on Familia v2 internals) and
+## use .score (the canonical Familia sorted_set presence check) rather
+## than .member? which appears to behave inconsistently here.
+!Onetime::Organization.load(@org_id).domains.score(@s6_domain.identifier).nil?
 #=> true
 
 # Teardown
