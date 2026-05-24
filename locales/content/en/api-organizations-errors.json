@@ -14,6 +14,11 @@
     "context": "Returned when a non-member attempts a member-only operation",
     "content_hash": "f66f4a60"
   },
+  "api.organizations.errors.organization_admin_required": {
+    "text": "Only organization owners and admins can perform this action",
+    "context": "Generic fallback for verify_organization_admin when callers don't pass a per-action key",
+    "content_hash": "0a1b2c3d"
+  },
   "api.organizations.errors.extid_required": {
     "text": "Organization ID required",
     "context": "Returned when the organization extid path parameter is missing",

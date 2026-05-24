@@ -72,8 +72,10 @@ module InviteAPI::Logic
       def process
         OT.ld "[AcceptInvite] Accepting invitation #{@invitation.objid} for user #{cust.obscure_email}"
 
-        # Accept the invitation (updates membership status and adds to org)
-        @invitation.accept!(cust)
+        # Accept the invitation (updates membership status and adds to org).
+        # provisioning_source: 'invited' attributes lifecycle to the invitation
+        # flow, distinct from SSO JIT provisioning. See OrganizationMembership.
+        @invitation.accept!(cust, provisioning_source: 'invited')
 
         OT.info '[AcceptInvite] User joined organization',
           event: 'invite.accepted',

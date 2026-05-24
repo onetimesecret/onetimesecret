@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
-  import StatusBar from '@/shared/components/ui/StatusBar.vue';
+  import { SubtleProgress } from '@/shared/components/ui/notifications';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, type Component, markRaw } from 'vue';
@@ -87,7 +87,7 @@
         :key="$route.fullPath" />
     </router-view>
 
-    <StatusBar position="bottom" />
+    <SubtleProgress />
 
     <!-- Sprite rendering: critical immediately + others dynamically -->
     <div

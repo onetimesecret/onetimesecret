@@ -217,6 +217,21 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/account/settings/security/reset-password',
+    name: 'Reset Password',
+    beforeEnter: checkPasswordSecurityAccess,
+    component: () => import('@/apps/workspace/account/ResetPassword.vue'),
+    meta: {
+      title: 'web.TITLES.reset_password',
+      requiresAuth: true,
+      excludeSsoOnly: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
+    },
+  },
+  {
     path: '/account/settings/security/mfa',
     name: 'Multi-Factor Authentication',
     beforeEnter: checkPasswordSecurityAccess,

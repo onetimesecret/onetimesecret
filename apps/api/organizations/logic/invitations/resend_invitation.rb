@@ -25,7 +25,10 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(@organization)
+        verify_organization_admin(
+          @organization,
+          error_key: 'api.organizations.invitations.errors.admin_required_resend',
+        )
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
@@ -96,24 +99,6 @@ module OrganizationAPI::Logic
           user_id: cust.extid,
           record: @invitation.safe_dump,
         }
-      end
-
-      protected
-
-      def verify_organization_admin(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can resend invitations',
-          error_key: 'api.organizations.invitations.errors.admin_required_resend',
-        )
-      end
-
-      def organization_admin?(organization)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
       end
     end
   end

@@ -45,6 +45,8 @@ const emit = defineEmits<{
   (e: 'success'): void;
   (e: 'error', message: string): void;
   (e: 'decline'): void;
+  /** Emitted when signup fails because an account already exists for this email. */
+  (e: 'account-exists'): void;
 }>();
 
 const { t } = useI18n();
@@ -179,6 +181,9 @@ const handleSubmit = async () => {
 
     if (result.success) {
       emit('success');
+    } else if (result.accountExists) {
+      // Account already exists - parent should switch to signin flow
+      emit('account-exists');
     } else if (result.error) {
       emit('error', result.error);
     }

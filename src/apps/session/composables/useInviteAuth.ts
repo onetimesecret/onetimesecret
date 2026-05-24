@@ -19,6 +19,8 @@ export interface InviteAuthResult {
   error?: string | null;
   requiresMfa?: boolean;
   redirect?: string;
+  /** Set when signup fails because account already exists; caller should switch to signin. */
+  accountExists?: boolean;
 }
 
 /** Shape of Rodauth-style error responses */
@@ -90,15 +92,18 @@ export function useInviteAuth() {
 
   /**
    * Creates a new account and atomically accepts the invitation.
-   * The backend handles both operations when invite_token is provided.
+   * Uses the dedicated invite signup endpoint which derives email from the token.
+   *
+   * @returns InviteAuthResult with accountExists: true if the backend indicates
+   *          the account already exists (caller should switch to signin flow).
    */
   async function signupAndAccept(
-    email: string,
+    _email: string, // Kept for API compatibility; backend derives email from token
     password: string,
     termsAgreed: boolean,
     inviteToken: string,
-    skill: string = ''
-  ): Promise<InviteAuthResult> {
+    _skill: string = '' // Honeypot no longer sent to new endpoint
+  ): Promise<InviteAuthResult & { accountExists?: boolean }> {
     isLoading.value = true;
     error.value = null;
     fieldErrors.value = {};
@@ -106,12 +111,9 @@ export function useInviteAuth() {
     try {
       await refreshCsrf();
 
-      const response = await $api.post('/auth/create-account', {
-        login: email,
+      const response = await $api.post(`/api/invite/${inviteToken}/signup`, {
         password,
         agree: termsAgreed,
-        invite_token: inviteToken,
-        skill,
         shrimp: csrfStore.shrimp,
         locale: locale.value,
       });
@@ -119,7 +121,10 @@ export function useInviteAuth() {
       if (response.data?.error) {
         const info = extractErrorInfo(response.data);
         setError(info);
-        return { success: false, error: info.message };
+
+        // Check for "account exists" error to trigger signin flow
+        const accountExists = response.data.error?.toLowerCase().includes('already exists');
+        return { success: false, error: info.message, accountExists };
       }
 
       // Server set session cookie via create_account_autologin — sync frontend state.
@@ -135,7 +140,11 @@ export function useInviteAuth() {
     } catch (e) {
       const info = extractErrorInfo(undefined, e as AxiosLikeError);
       setError(info);
-      return { success: false, error: info.message };
+
+      // Check for "account exists" in error response
+      const axiosErr = e as AxiosLikeError;
+      const accountExists = axiosErr.response?.data?.error?.toLowerCase().includes('already exists');
+      return { success: false, error: info.message, accountExists };
     } finally {
       isLoading.value = false;
     }
