@@ -17,7 +17,7 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { storeToRefs } from 'pinia';
   import { formatDisplayDate } from '@/utils/format';
-  import { computed, ref, onMounted } from 'vue';
+  import { computed, ref, onMounted, watch } from 'vue';
 
   const { t } = useI18n();
   const { accountInfo, fetchAccountInfo } = useAccount();
@@ -87,6 +87,26 @@
       isLoadingEntitlements.value = false;
     }
   });
+
+  watch(
+    () => defaultOrg.value?.extid,
+    async (newExtid, oldExtid) => {
+      if (!newExtid || !oldExtid || newExtid === oldExtid) return;
+      if (isStandaloneMode.value) return;
+
+      const org = defaultOrg.value;
+      if (!org || (org.entitlements && org.entitlements.length > 0)) return;
+
+      isLoadingEntitlements.value = true;
+      try {
+        await organizationStore.fetchEntitlements(org.extid);
+      } catch (error) {
+        console.error('Error loading entitlements:', error);
+      } finally {
+        isLoadingEntitlements.value = false;
+      }
+    }
+  );
 </script>
 
 <template>
