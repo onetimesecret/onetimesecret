@@ -14,6 +14,27 @@ module Onetime
     # in place. Errors that don't carry an error_key are left untouched so
     # legacy positional-string errors keep working.
     #
+    # ## Message precedence
+    #
+    # When both error_key and a pre-set message are present (the "hybrid"
+    # shape used by verify_authenticated! and the verify_one_of_roles!
+    # callers in apps/api/organizations/logic/base.rb), the resolved I18n
+    # string always wins — the pre-set message is treated as the English
+    # fallback that I18n.t falls back to when the key is missing from the
+    # active locale, not as the source of truth.
+    #
+    # Priority for the final error.message:
+    #   1. I18n.t(error_key, locale: req_locale, **args) — if the key exists
+    #      in the active locale's bundle (or any fallback locale)
+    #   2. The pre-set legacy message (passed as `default:` to I18n.t) — if
+    #      the key is missing everywhere
+    #   3. error_key.to_s — if (2) is also empty
+    #
+    # This means specs that match on the English message keep working as long
+    # as the en.json bundle has the key with the same English text. Specs
+    # that boot without I18n won't see resolution at all (resolve! is a
+    # no-op at the edge, not in logic), so e.error_key is the safe assertion.
+    #
     # Lives in its own module rather than inside OttoHooks so it's
     # unit-testable in isolation, and so non-Otto edges (e.g. Rack rescuers
     # in legacy controllers) can call it too.
@@ -23,12 +44,9 @@ module Onetime
       # Mutate `error` in place: if it carries an i18n error_key, replace
       # its message with the localized rendering for `req`'s locale.
       #
-      # Resolution policy: error_key always wins when present. Callers that
-      # also pass a legacy message (e.g. verify_one_of_roles! during the
-      # transition) get their message overwritten with the localized version
-      # — the legacy English string is the fallback when I18n.t doesn't find
-      # the key. Errors with no error_key are returned unchanged, so legacy
-      # positional-string errors keep working without per-class flags.
+      # See module-level precedence rule: error_key always wins when present;
+      # any pre-set message becomes the I18n.t fallback (default:), not the
+      # source of truth. Errors with no error_key are returned unchanged.
       #
       # @param error [Exception] Any error; resolver inspects for error_key
       # @param req [Rack::Request, nil] Used to read otto.locale; may be nil
