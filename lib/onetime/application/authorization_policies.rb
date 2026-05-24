@@ -180,7 +180,7 @@ module Onetime
       # @param organization [Onetime::Organization]
       # @param error_key [String] I18n key for the rejection message
       # @raise [Onetime::Forbidden] If user is not owner and not colonel
-      def verify_organization_owner(organization, error_key: 'api.organizations.errors.owner_required')
+      def verify_organization_owner(organization, error_key: 'api.organizations.errors.organization_owner_required')
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) },
@@ -197,7 +197,7 @@ module Onetime
       # @param organization [Onetime::Organization]
       # @param error_key [String] I18n key for the rejection message
       # @raise [Onetime::Forbidden] If user is not a member and not colonel
-      def verify_organization_member(organization, error_key: 'api.organizations.errors.member_required')
+      def verify_organization_member(organization, error_key: 'api.organizations.errors.organization_member_required')
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.member?(cust) },
@@ -215,7 +215,7 @@ module Onetime
       #   admin-required message. Per-action callers should pass their own key
       #   (e.g. 'api.domains.errors.add_admin_required').
       # @raise [Onetime::Forbidden] If user is not owner/admin
-      def verify_organization_admin(organization, error_key: 'api.organizations.errors.admin_required')
+      def verify_organization_admin(organization, error_key: 'api.organizations.errors.organization_admin_required')
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
@@ -248,7 +248,11 @@ module Onetime
       def load_organization(extid)
         organization = Onetime::Organization.find_by_extid(extid)
         if organization.nil?
-          raise_not_found("Organization not found: #{extid}")
+          raise_not_found(
+            "Organization not found: #{extid}",
+            error_key: 'api.organizations.errors.organization_not_found',
+            args: { extid: extid },
+          )
         end
         organization
       end
