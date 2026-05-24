@@ -15,8 +15,8 @@ require 'securerandom'
 OT.boot! :test
 
 # Load DomainsAPI logic classes
-require 'apps/api/domains/logic/base'
-require 'apps/api/domains/logic/domains/add_domain'
+require 'api/domains/logic/base'
+require 'api/domains/logic/domains/add_domain'
 
 # Setup test fixtures with unique identifiers
 @timestamp = Familia.now.to_i
