@@ -130,4 +130,13 @@ end
 
 RSpec.configure do |config|
   config.include InviteAPITestHelper
+
+  # Ensure I18n is usable for unit specs that exercise code paths calling
+  # I18n.t. Without this, enforce_available_locales! raises InvalidLocale
+  # before the default: fallback can kick in. Matches the idiom established
+  # in apps/web/core/spec/logic/authentication/authenticate_session_spec.rb.
+  config.before do
+    I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
+    I18n.default_locale = :en
+  end
 end

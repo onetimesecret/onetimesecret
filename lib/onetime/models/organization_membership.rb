@@ -74,6 +74,7 @@ module Onetime
       :token,
       :domain_scope_id,
       { domain_scoped: ->(obj) { obj.domain_scoped? } },
+      :provisioning_source,
     )
 
     # Foreign keys - auto-set by ThroughModelOperations
@@ -107,6 +108,11 @@ module Onetime
     field :token
 
     field :domain_scope_id
+
+    # How this membership was provisioned. Lifecycle attribution, independent
+    # of role. Expected values: 'invited', 'sso', 'scim' (future). Nil for
+    # self-created owner rows (no upstream provisioning).
+    field :provisioning_source
 
     # Indexes for fast lookups
     unique_index :token, :token_lookup
@@ -237,9 +243,12 @@ module Onetime
     # - org_customer_lookup: populated (active-only index)
     #
     # @param customer [Onetime::Customer] The customer accepting the invite
+    # @param provisioning_source [String, nil] Lifecycle attribution for the
+    #   activated membership (e.g. 'invited', 'sso'). Pass-through to
+    #   through_attrs; callers (API logic classes) own the value.
     # @return [Boolean] true if acceptance succeeded
     # @raise [Onetime::Problem] if invitation is expired or declined
-    def accept!(customer)
+    def accept!(customer, provisioning_source: nil)
       # Idempotency guard: if the customer was concurrently added to the org
       # (e.g. by another process calling add_members_instance), return the
       # existing membership rather than attempting a second activation that
@@ -293,6 +302,7 @@ module Onetime
             joined_at: Familia.now.to_f,
             resend_count: carry_resend_count,
             domain_scope_id: carry_domain_scope_id,
+            provisioning_source: provisioning_source,
             token: nil, # Clear token for security
           },
         )
@@ -596,15 +606,19 @@ module Onetime
       # @param domain_scope_id [String, nil] Set once at first join. Re-login
       #   returns existing membership unchanged — scope is immutable short of
       #   explicit admin upgrade to org-scope.
+      # @param provisioning_source [String, nil] Lifecycle attribution recorded
+      #   on the resulting membership (e.g. 'sso' for JoinDomainOrganization).
+      #   Applied to both the activate-pending path and direct-add path so the
+      #   caller's intent is preserved regardless of prior invitation state.
       # @return [OrganizationMembership] the active membership (composite-keyed)
-      def ensure_membership(organization, customer, role: 'member', domain_scope_id: nil)
+      def ensure_membership(organization, customer, role: 'member', domain_scope_id: nil, provisioning_source: nil)
         return find_by_org_customer(organization.objid, customer.objid) if organization.member?(customer)
 
         pending = find_by_org_email(organization.objid, customer.email)
 
         if pending&.pending? && !pending.expired?
           begin
-            pending.accept!(customer)
+            pending.accept!(customer, provisioning_source: provisioning_source)
           rescue Onetime::Problem, Familia::Problem, ArgumentError
             # Another process already activated this invitation or the staged
             # model was destroyed mid-flight. The customer may now be a member
@@ -632,6 +646,7 @@ module Onetime
               status: 'active',
               joined_at: Familia.now.to_f,
               domain_scope_id: domain_scope_id,
+              provisioning_source: provisioning_source,
             },
           )
         end

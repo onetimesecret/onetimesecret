@@ -62,9 +62,13 @@ module Auth
         end
 
         # Add as member — activates pending invitation if one exists,
-        # otherwise creates membership directly
+        # otherwise creates membership directly. provisioning_source: 'sso'
+        # attributes lifecycle to the JIT path regardless of prior invite state.
         membership = Onetime::OrganizationMembership.ensure_membership(
-          organization, customer, role: 'member', domain_scope_id: domain.objid
+          organization, customer,
+          role: 'member',
+          domain_scope_id: domain.objid,
+          provisioning_source: 'sso',
         )
 
         OT.info "[JoinDomainOrganization] Added #{customer.custid} to #{organization.objid} as member (via SSO on #{domain.display_domain})"

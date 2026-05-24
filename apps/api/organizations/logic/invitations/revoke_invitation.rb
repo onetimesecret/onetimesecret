@@ -22,20 +22,31 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(@organization)
+        verify_organization_admin(
+          @organization,
+          error_key: 'api.organizations.invitations.errors.revoke_admin_required',
+        )
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
-        raise_not_found('Invitation not found') if @invitation.nil?
+        invitation_not_found = I18n.t(
+          'api.organizations.invitations.errors.not_found',
+          locale: locale,
+          default: 'Invitation not found',
+        )
+        raise_not_found(invitation_not_found) if @invitation.nil?
 
         # Verify invitation belongs to this organization
         if @invitation.organization_objid != @organization.objid
-          raise_not_found('Invitation not found')
+          raise_not_found(invitation_not_found)
         end
 
         # Can only revoke pending invitations
         unless @invitation.pending?
-          raise_form_error('Can only revoke pending invitations', field: :token)
+          raise_form_error(
+            I18n.t('api.organizations.invitations.errors.cannot_revoke_non_pending', locale: locale, default: 'Can only revoke pending invitations'),
+            field: :token,
+          )
         end
       end
 
@@ -58,22 +69,6 @@ module OrganizationAPI::Logic
         }
       end
 
-      protected
-
-      def verify_organization_admin(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can revoke invitations',
-        )
-      end
-
-      def organization_admin?(organization)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
-      end
     end
   end
 end

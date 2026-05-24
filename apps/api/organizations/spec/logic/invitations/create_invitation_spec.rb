@@ -50,6 +50,11 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   subject(:logic) { described_class.new(strategy_result, params) }
 
   before do
+    # Ensure I18n is usable for code paths calling I18n.t — without this,
+    # enforce_available_locales! raises InvalidLocale before default: falls back.
+    I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
+    I18n.default_locale = :en
+
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
@@ -371,7 +376,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to match(/Member limit reached/)
           expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
-          expect(error.instance_variable_get(:@field)).to eq('email')
+          expect(error.instance_variable_get(:@field)).to eq(:email)
         end
       end
     end

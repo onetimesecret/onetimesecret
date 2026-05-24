@@ -27,26 +27,48 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(@organization)
+        verify_organization_admin(
+          @organization,
+          error_key: 'api.organizations.invitations.errors.create_admin_required',
+        )
 
         # Validate email (basic validation before quota check)
-        raise_form_error('Email is required', field: :email) if @email.empty?
-        raise_form_error('Invalid email format', field: :email) unless valid_email?(@email)
+        if @email.empty?
+          raise_form_error(
+            I18n.t('api.organizations.invitations.errors.email_required', locale: locale, default: 'Email is required'),
+            field: :email,
+          )
+        end
+        unless valid_email?(@email)
+          raise_form_error(
+            I18n.t('api.organizations.invitations.errors.email_invalid', locale: locale, default: 'Invalid email format'),
+            field: :email,
+          )
+        end
 
         # Validate role
         unless %w[member admin].include?(@role)
-          raise_form_error('Role must be member or admin', field: :role)
+          raise_form_error(
+            I18n.t('api.organizations.invitations.errors.role_invalid', locale: locale, default: 'Role must be member or admin'),
+            field: :role,
+          )
         end
 
         # Owners cannot be invited (must be assigned directly)
         if @role == 'owner'
-          raise_form_error('Cannot invite as owner', field: :role)
+          raise_form_error(
+            I18n.t('api.organizations.invitations.errors.cannot_invite_owner', locale: locale, default: 'Cannot invite as owner'),
+            field: :role,
+          )
         end
 
         # Check if user is already a member
         existing_customer = Onetime::Customer.find_by_email(@email)
         if existing_customer && @organization.member?(existing_customer)
-          raise_form_error('User is already a member of this organization', field: :email)
+          raise_form_error(
+            I18n.t('api.organizations.invitations.errors.already_member', locale: locale, default: 'User is already a member of this organization'),
+            field: :email,
+          )
         end
 
         # Check for existing pending invitation
@@ -54,7 +76,10 @@ module OrganizationAPI::Logic
           @organization.objid, @email
         )
         if existing_invite&.pending?
-          raise_form_error('Invitation already pending for this email', field: :email)
+          raise_form_error(
+            I18n.t('api.organizations.invitations.errors.already_pending', locale: locale, default: 'Invitation already pending for this email'),
+            field: :email,
+          )
         end
 
         # Check member quota AFTER basic validation
@@ -125,28 +150,16 @@ module OrganizationAPI::Logic
         return unless @organization.at_limit?('members_per_team', current_count)
 
         raise_form_error(
-          'Member limit reached. Upgrade your plan to invite more members.',
-          field: 'email',
+          I18n.t(
+            'api.organizations.invitations.errors.member_limit_reached',
+            locale: locale,
+            default: 'Member limit reached. Upgrade your plan to invite more members.',
+          ),
+          field: :email,
           error_type: :upgrade_required,
         )
       end
 
-      # Verify current user has admin privileges in the organization
-      def verify_organization_admin(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can create invitations',
-        )
-      end
-
-      # Check if user is an organization admin
-      def organization_admin?(organization)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
-      end
     end
   end
 end
