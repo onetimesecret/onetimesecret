@@ -138,31 +138,35 @@ module Onetime
       # @param colonel [Boolean] Require colonel (superuser) role
       # @param admin [Boolean] Require admin role
       # @param custom_check [Proc, nil] Custom authorization check (must return true)
-      # @param error_message [String, nil] Override default error message
+      # @param error_message [String, nil] Override default error message (legacy)
+      # @param error_key [String, nil] i18n key for the Forbidden message
+      # @param args [Hash] Interpolation args for the i18n key
       # @raise [Onetime::Forbidden] If any condition fails
       #
       # @example Must be colonel AND pass custom check
       #   verify_all_roles!(
       #     colonel: true,
-      #     custom_check: -> { @organization.owner?(cust) }
+      #     custom_check: -> { @organization.owner?(cust) },
+      #     error_key: 'api.organizations.errors.colonel_owner_required',
       #   )
-      def verify_all_roles!(colonel: false, admin: false, custom_check: nil, error_message: nil)
+      def verify_all_roles!(colonel: false, admin: false, custom_check: nil,
+                             error_message: nil, error_key: nil, args: {})
         # Check colonel if required
         if colonel && !has_system_role?('colonel')
           message = error_message || 'Requires colonel role'
-          raise Onetime::Forbidden, message
+          raise Onetime::Forbidden.new(message, error_key: error_key, args: args)
         end
 
         # Check admin if required
         if admin && !has_system_role?('admin')
           message = error_message || 'Requires admin role'
-          raise Onetime::Forbidden, message
+          raise Onetime::Forbidden.new(message, error_key: error_key, args: args)
         end
 
         # Check custom condition if specified
         if custom_check && !custom_check.call
           message = error_message || 'Insufficient permissions'
-          raise Onetime::Forbidden, message
+          raise Onetime::Forbidden.new(message, error_key: error_key, args: args)
         end
 
         true

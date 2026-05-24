@@ -141,6 +141,7 @@ module OrganizationAPI::Logic
           colonel: true,
           custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
           error_message: 'Only organization owners and admins can create invitations',
+          error_key: 'api.organizations.invitations.errors.admin_required_create',
         )
       end
 

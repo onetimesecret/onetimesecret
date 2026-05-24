@@ -59,6 +59,26 @@
     "context": "Returned when an invitation token doesn't match a known invitation",
     "content_hash": "775ba9eb"
   },
+  "api.organizations.invitations.errors.admin_required_create": {
+    "text": "Only organization owners and admins can create invitations",
+    "context": "Returned when a non-admin attempts to create an invitation",
+    "content_hash": "777d150d"
+  },
+  "api.organizations.invitations.errors.admin_required_resend": {
+    "text": "Only organization owners and admins can resend invitations",
+    "context": "Returned when a non-admin attempts to resend an invitation",
+    "content_hash": "6a857d59"
+  },
+  "api.organizations.invitations.errors.admin_required_revoke": {
+    "text": "Only organization owners and admins can revoke invitations",
+    "context": "Returned when a non-admin attempts to revoke an invitation",
+    "content_hash": "52f73c8a"
+  },
+  "api.organizations.invitations.errors.admin_required_list": {
+    "text": "Only organization owners and admins can view invitations",
+    "context": "Returned when a non-admin attempts to list invitations",
+    "content_hash": "42f5878b"
+  },
   "api.organizations.invitations.errors.email_required": {
     "text": "Email is required",
     "context": "Returned when creating an invitation without an email",
