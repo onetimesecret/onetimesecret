@@ -114,14 +114,21 @@ module Onetime
 
   # Raised when a user lacks the required entitlement for an action.
   # Contains upgrade path information for the API response.
+  #
+  # i18n shape: error_key + args inherited from Forbidden are resolved at
+  # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
+  # passes the dotted i18n key (e.g. 'api.entitlements.errors.api_access_required')
+  # and never touches I18n directly.
   class EntitlementRequired < Forbidden
     attr_reader :entitlement, :current_plan, :upgrade_to
 
-    def initialize(entitlement, current_plan: nil, upgrade_to: nil, message: nil)
+    def initialize(entitlement, current_plan: nil, upgrade_to: nil, message: nil,
+                   error_key: nil, args: {})
       @entitlement  = entitlement
       @current_plan = current_plan
       @upgrade_to   = upgrade_to
-      super(message || "Feature requires #{entitlement.to_s.tr('_', ' ')} entitlement")
+      default_message = "Feature requires #{entitlement.to_s.tr('_', ' ')} entitlement"
+      super(message || default_message, error_key: error_key, args: args)
     end
 
     def to_h
@@ -130,6 +137,7 @@ module Onetime
         entitlement: entitlement,
         current_plan: current_plan,
         upgrade_to: upgrade_to,
+        error_key: error_key,
       }.compact
     end
   end

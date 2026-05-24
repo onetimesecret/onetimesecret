@@ -165,10 +165,15 @@ module Onetime
       # for anonymous requests separately.
       #
       # @param entitlement [String, Symbol] The entitlement to check
+      # @param error_key [String, nil] Optional dotted i18n key for the raised
+      #   error. Defaults to "api.entitlements.errors.#{entitlement}_required".
+      #   The "no auth_org" path uses a fixed system-error key
+      #   ('api.entitlements.errors.context_unavailable') and ignores this arg.
       # @raise [Onetime::EntitlementRequired] If org lacks the entitlement
       # @return [true] If entitlement check passes
-      def require_entitlement!(entitlement)
+      def require_entitlement!(entitlement, error_key: nil)
         entitlement = entitlement.to_s
+        error_key ||= "api.entitlements.errors.#{entitlement}_required"
 
         # Anonymous users don't have org context by design (NoAuthStrategy
         # returns {} for org_context). Guest route gating handles access
@@ -183,6 +188,8 @@ module Onetime
           raise Onetime::EntitlementRequired.new(
             entitlement,
             message: 'Unable to verify entitlements (organization context unavailable)',
+            error_key: 'api.entitlements.errors.context_unavailable',
+            args: { entitlement: entitlement },
           )
         end
 
@@ -199,6 +206,8 @@ module Onetime
           entitlement,
           current_plan: current_plan,
           upgrade_to: upgrade_to,
+          error_key: error_key,
+          args: { entitlement: entitlement },
         )
       end
 

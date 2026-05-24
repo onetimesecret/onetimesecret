@@ -41,8 +41,12 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
 
       # Mirrors Onetime::Logic::Base#require_entitlement! — uses auth_org
       # to check entitlements against the authenticated session's org.
-      def require_entitlement!(entitlement)
+      # Mirrors the i18n shape: callers can pass error_key:, otherwise it
+      # auto-derives from the entitlement name; the "no auth_org" branch
+      # uses a fixed system-error key.
+      def require_entitlement!(entitlement, error_key: nil)
         entitlement = entitlement.to_s
+        error_key ||= "api.entitlements.errors.#{entitlement}_required"
 
         # Fail-closed: auth_org context required for entitlement checks.
         # OrganizationLoader self-heals, so nil auth_org indicates a system issue.
@@ -50,6 +54,8 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
           raise Onetime::EntitlementRequired.new(
             entitlement,
             message: 'Unable to verify entitlements (organization context unavailable)',
+            error_key: 'api.entitlements.errors.context_unavailable',
+            args: { entitlement: entitlement },
           )
         end
 
@@ -66,6 +72,8 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
           entitlement,
           current_plan: current_plan,
           upgrade_to: upgrade_to,
+          error_key: error_key,
+          args: { entitlement: entitlement },
         )
       end
     end
@@ -111,6 +119,20 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
       expect { logic.require_entitlement!(:api_access) }
         .to raise_error(Onetime::EntitlementRequired) do |error|
           expect(error.entitlement).to eq('api_access')
+        end
+    end
+
+    it 'sets error_key to the context_unavailable system-error key' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('api.entitlements.errors.context_unavailable')
+        end
+    end
+
+    it 'includes the entitlement in args for i18n interpolation' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.args).to eq(entitlement: 'api_access')
         end
     end
 
@@ -185,6 +207,35 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         end
     end
 
+    it 'auto-derives error_key from the entitlement name' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('api.entitlements.errors.api_access_required')
+        end
+    end
+
+    it 'auto-derives error_key when entitlement is given as a symbol' do
+      allow(organization).to receive(:can?).with('custom_domains').and_return(false)
+      expect { logic.require_entitlement!(:custom_domains) }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('api.entitlements.errors.custom_domains_required')
+        end
+    end
+
+    it 'lets an explicit error_key argument override the auto-derived one' do
+      expect { logic.require_entitlement!('api_access', error_key: 'custom.override.key') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('custom.override.key')
+        end
+    end
+
+    it 'includes the entitlement in args for i18n interpolation' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.args).to eq(entitlement: 'api_access')
+        end
+    end
+
     context 'with upgrade path available' do
       before do
         stub_const('Billing::PlanHelpers', double('PlanHelpers'))
@@ -229,10 +280,19 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         hash = e.to_h
         expect(hash).to include(
           entitlement: 'custom_domains',
-          current_plan: 'identity_v1'
+          current_plan: 'identity_v1',
+          error_key: 'api.entitlements.errors.custom_domains_required'
         )
         expect(hash[:error]).to include('custom domains')
       end
+    end
+
+    it 'omits error_key from to_h when none is set' do
+      # Direct construction without an error_key — to_h should compact it out
+      # so legacy callers that don't use the i18n shape see the same hash.
+      err = Onetime::EntitlementRequired.new('custom_domains', current_plan: 'identity_v1')
+      expect(err.to_h).not_to have_key(:error_key)
+      expect(err.to_h).to include(entitlement: 'custom_domains', current_plan: 'identity_v1')
     end
   end
 
