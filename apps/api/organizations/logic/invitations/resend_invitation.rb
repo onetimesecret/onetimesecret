@@ -29,23 +29,26 @@ module OrganizationAPI::Logic
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
-        raise_not_found('Invitation not found') if @invitation.nil?
+        if @invitation.nil?
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
+        end
 
         # Verify invitation belongs to this organization
         if @invitation.organization_objid != @organization.objid
-          raise_not_found('Invitation not found')
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
         end
 
         # Can only resend pending invitations
         unless @invitation.pending?
-          raise_form_error('Can only resend pending invitations', field: :token)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.resend_only_pending', field: :token)
         end
 
         # Rate limit resends
         # rubocop:disable Style/GuardClause -- Guard clause inverts logic incorrectly here
         if @invitation.resend_count.to_i >= MAX_RESENDS
           raise_form_error(
-            "Maximum resend limit (#{MAX_RESENDS}) reached",
+            error_key: 'api.organizations.invitations.errors.resend_limit_reached',
+            args: { max: MAX_RESENDS },
             field: :token,
             error_type: :rate_limited,
           )
@@ -102,6 +105,7 @@ module OrganizationAPI::Logic
           colonel: true,
           custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
           error_message: 'Only organization owners and admins can resend invitations',
+          error_key: 'api.organizations.invitations.errors.admin_required_resend',
         )
       end
 

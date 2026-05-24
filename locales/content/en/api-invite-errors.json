@@ -1,0 +1,37 @@
+{
+  "api.invite.errors.invitation_not_found_or_expired": {
+    "text": "Invitation not found or expired",
+    "context": "Returned when an invite token doesn't match or has expired",
+    "content_hash": "63657979"
+  },
+  "api.invite.errors.token_required": {
+    "text": "Token is required",
+    "context": "Returned when the invite token path parameter is missing",
+    "content_hash": "6c718161"
+  },
+  "api.invite.errors.organization_no_longer_exists": {
+    "text": "Organization no longer exists",
+    "context": "Returned when the invitation's organization has been deleted",
+    "content_hash": "a5df7d22"
+  },
+  "api.invite.errors.invitation_already_processed": {
+    "text": "Invitation has already been %{status}",
+    "context": "Returned when an invitation has already been accepted/declined/revoked",
+    "content_hash": "130c87e0"
+  },
+  "api.invite.errors.invitation_expired": {
+    "text": "Invitation has expired",
+    "context": "Returned when an invitation has passed its expiration time",
+    "content_hash": "7186297b"
+  },
+  "api.invite.errors.email_mismatch": {
+    "text": "Your email address does not match the invitation",
+    "context": "Returned when the accepting user's email doesn't match the invitee email",
+    "content_hash": "11026f46"
+  },
+  "api.invite.errors.already_member": {
+    "text": "You are already a member of this organization",
+    "context": "Returned when the accepting user is already a member",
+    "content_hash": "f56ad547"
+  }
+}

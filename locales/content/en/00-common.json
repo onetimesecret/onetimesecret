@@ -1435,6 +1435,11 @@
     "context": "Error message for recoverable server errors",
     "content_hash": "fb961f3f"
   },
+  "api.errors.authentication_required": {
+    "text": "Authentication required",
+    "context": "Returned when an authenticated endpoint receives an anonymous request",
+    "content_hash": "0fcfb12d"
+  },
   "web.COMMON.upgrade_description": {
     "text": "Upgrade to unlock more features",
     "context": "Description shown for free plan users encouraging upgrade",

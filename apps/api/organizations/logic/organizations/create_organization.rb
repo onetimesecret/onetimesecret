@@ -27,21 +27,25 @@ module OrganizationAPI::Logic
 
         # Validate display_name (basic validation before quota check)
         if display_name.empty?
-          raise_form_error('Organization name is required', field: 'display_name', error_type: :missing)
+          raise_form_error(error_key: 'api.organizations.errors.display_name_required',
+                           field: 'display_name', error_type: :missing)
         end
 
         if display_name.length > 100
-          raise_form_error('Organization name must be less than 100 characters', field: 'display_name', error_type: :invalid)
+          raise_form_error(error_key: 'api.organizations.errors.display_name_too_long',
+                           args: { max: 100 }, field: 'display_name', error_type: :invalid)
         end
 
         # Validate contact_email (optional, but must be unique if provided)
         if !contact_email.empty? && Onetime::Organization.contact_email_exists?(contact_email)
-          raise_form_error('An organization with this contact email already exists', field: 'contact_email', error_type: :exists)
+          raise_form_error(error_key: 'api.organizations.errors.contact_email_exists',
+                           field: 'contact_email', error_type: :exists)
         end
 
         # Description is optional but limit length if provided
         if !description.empty? && description.length > 500
-          raise_form_error('Description must be less than 500 characters', field: 'description', error_type: :invalid)
+          raise_form_error(error_key: 'api.organizations.errors.description_too_long',
+                           args: { max: 500 }, field: 'description', error_type: :invalid)
         end
 
         # Check organization quota AFTER basic validation
@@ -65,7 +69,7 @@ module OrganizationAPI::Logic
 
           unless lock_token
             raise_form_error(
-              'Organization creation in progress. Please try again.',
+              error_key: 'api.organizations.errors.creation_in_progress',
               field: 'display_name',
               error_type: :conflict,
             )
@@ -140,7 +144,7 @@ module OrganizationAPI::Logic
         return unless primary_org.at_limit?('organizations', current_count)
 
         raise_form_error(
-          'Organization limit reached. Upgrade your plan to create more organizations.',
+          error_key: 'api.organizations.errors.organization_limit_reached',
           field: 'display_name',
           error_type: :upgrade_required,
         )

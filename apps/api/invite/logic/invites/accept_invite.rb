@@ -23,27 +23,30 @@ module InviteAPI::Logic
         # Must be authenticated
         verify_authenticated!
 
-        raise_form_error('Token is required', field: :token) if @token.nil? || @token.empty?
+        if @token.nil? || @token.empty?
+          raise_form_error(error_key: 'api.invite.errors.token_required', field: :token)
+        end
 
         @invitation   = load_invitation(@token)
         @organization = @invitation.organization
 
         # Check if organization still exists (may have been deleted)
         unless @organization
-          raise_form_error('Organization no longer exists', field: :token)
+          raise_form_error(error_key: 'api.invite.errors.organization_no_longer_exists', field: :token)
         end
 
         # Check if invitation is still pending
         unless @invitation.pending?
           raise_form_error(
-            "Invitation has already been #{@invitation.status}",
+            error_key: 'api.invite.errors.invitation_already_processed',
+            args: { status: @invitation.status },
             field: :token,
           )
         end
 
         # Check if invitation has expired
         if @invitation.expired?
-          raise_form_error('Invitation has expired', field: :token)
+          raise_form_error(error_key: 'api.invite.errors.invitation_expired', field: :token)
         end
 
         # Strict email binding - no exceptions
@@ -53,7 +56,7 @@ module InviteAPI::Logic
 
           unless invited == user
             raise_form_error(
-              'Your email address does not match the invitation',
+              error_key: 'api.invite.errors.email_mismatch',
               field: :email,
               error_type: 'email_mismatch',
             )
@@ -62,7 +65,7 @@ module InviteAPI::Logic
 
         # Check if user is already a member
         if @organization.member?(cust)
-          raise_form_error('You are already a member of this organization', field: :token)
+          raise_form_error(error_key: 'api.invite.errors.already_member', field: :token)
         end
       end
 

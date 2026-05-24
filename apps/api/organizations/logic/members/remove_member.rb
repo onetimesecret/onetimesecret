@@ -88,7 +88,7 @@ module OrganizationAPI::Logic
 
         if membership.nil?
           raise_form_error(
-            'You must be a member of this organization',
+            error_key: 'api.organizations.members.errors.must_be_member',
             error_type: :forbidden,
           )
         end
@@ -99,7 +99,10 @@ module OrganizationAPI::Logic
       # Load member by external ID
       def load_member(extid)
         member = Onetime::Customer.find_by_extid(extid)
-        raise_not_found("Member not found: #{extid}") if member.nil?
+        if member.nil?
+          raise_not_found(error_key: 'api.organizations.members.errors.member_not_found',
+                          args: { extid: extid })
+        end
         member
       end
 
@@ -109,7 +112,9 @@ module OrganizationAPI::Logic
           organization.objid,
           member.objid,
         )
-        raise_not_found('Member not found in this organization') if membership.nil?
+        if membership.nil?
+          raise_not_found(error_key: 'api.organizations.members.errors.member_not_in_organization')
+        end
         membership
       end
 
@@ -118,7 +123,7 @@ module OrganizationAPI::Logic
         # Cannot remove owner
         if @target_membership.owner?
           raise_form_error(
-            'Cannot remove organization owner. Transfer ownership first.',
+            error_key: 'api.organizations.members.errors.cannot_remove_owner',
             error_type: :forbidden,
           )
         end
@@ -126,7 +131,7 @@ module OrganizationAPI::Logic
         # Cannot remove yourself (use leave endpoint instead)
         if @target_member.objid == cust.objid
           raise_form_error(
-            'Cannot remove yourself. Use leave organization instead.',
+            error_key: 'api.organizations.members.errors.cannot_remove_self',
             error_type: :forbidden,
           )
         end
@@ -149,14 +154,14 @@ module OrganizationAPI::Logic
           # Admin can only remove members, not other admins
           if target_role == 'admin'
             raise_form_error(
-              'Admins cannot remove other admins. Only owners can.',
+              error_key: 'api.organizations.members.errors.admin_cannot_remove_admin',
               error_type: :forbidden,
             )
           end
         else
           # Members cannot remove anyone
           raise_form_error(
-            'You do not have permission to remove members',
+            error_key: 'api.organizations.members.errors.no_permission_to_remove',
             error_type: :forbidden,
           )
         end

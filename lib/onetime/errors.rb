@@ -40,16 +40,42 @@ module Onetime
   end
 
   class RecordNotFound < Problem
+    # i18n shape: error_key + args are resolved at the HTTP edge so logic
+    # classes never touch I18n. error_key is the full dotted i18n key (e.g.
+    # 'api.organizations.errors.organization_not_found'), keeping each call
+    # site greppable from the JSON locale entry.
+    attr_accessor :error_key, :args
+
+    def initialize(message = nil, error_key: nil, args: {})
+      super(message)
+      @error_key = error_key
+      @args      = args
+    end
+
+    def to_h
+      {
+        error: 'RecordNotFound',
+        message: message,
+        error_key: error_key,
+      }.compact
+    end
   end
 
   class MissingSecret < RecordNotFound
   end
 
   class FormError < Problem
-    attr_accessor :form_fields, :field, :error_type
+    attr_accessor :form_fields, :field, :error_type, :error_key, :args
 
-    def initialize(message = nil, field: nil, error_type: nil)
+    # Two shapes:
+    # - Legacy: FormError.new('resolved string', field:, error_type:)
+    # - i18n:   FormError.new(error_key: 'api.organizations.errors.email_required',
+    #                         args: { max: 5 }, field:, error_type:)
+    # The edge handler resolves error_key+args via I18n.t; logic never does.
+    def initialize(message = nil, error_key: nil, args: {}, field: nil, error_type: nil)
       super(message)
+      @error_key  = error_key
+      @args       = args
       @field      = field
       @error_type = error_type
     end
@@ -59,6 +85,7 @@ module Onetime
         error: error_type || 'FormError',
         message: message,
         field: field,
+        error_key: error_key,
       }.compact
     end
   end
@@ -67,11 +94,21 @@ module Onetime
   end
 
   class Forbidden < RuntimeError
-    attr_reader :message
+    attr_accessor :message, :error_key, :args
 
-    def initialize(message = 'Forbidden')
-      super
-      @message = message
+    def initialize(message = 'Forbidden', error_key: nil, args: {})
+      super(message)
+      @message   = message
+      @error_key = error_key
+      @args      = args
+    end
+
+    def to_h
+      {
+        error: 'Forbidden',
+        message: message,
+        error_key: error_key,
+      }.compact
     end
   end
 

@@ -78,14 +78,15 @@ module V1
         {}
       end
 
-      def raise_not_found(msg)
-        ex = Onetime::RecordNotFound.new
-        ex.message = msg
+      # Two call shapes (and a hybrid): see lib/onetime/logic/base.rb for documentation.
+      def raise_not_found(msg = nil, error_key: nil, args: {})
+        ex = Onetime::RecordNotFound.new(msg, error_key: error_key, args: args)
         raise ex
       end
 
-      def raise_form_error(msg, field: nil, error_type: nil)
-        ex = OT::FormError.new(msg, field: field, error_type: error_type)
+      def raise_form_error(msg = nil, error_key: nil, args: {}, field: nil, error_type: nil)
+        ex = OT::FormError.new(msg, error_key: error_key, args: args,
+                                    field: field, error_type: error_type)
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
