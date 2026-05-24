@@ -97,9 +97,17 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
     end
 
-    it 'rejection message references the admin requirement' do
+    it 'rejection message resolves the EN locale entry, not the helper fallback' do
+      # The helper's hard-coded default is "...can perform this action"; the
+      # api.domains.errors.add_admin_required entry in workspace-domains.json
+      # resolves to "...can add custom domains". Matching the domain-specific
+      # phrase catches a missing/renamed locale key — pure /admin/i would
+      # silently pass on the fallback default.
       logic = build_add_domain_logic(member_user, domain: "#{run_id}-member-msg.example.com")
-      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden, /admin/i)
+      expect { logic.raise_concerns }.to raise_error(
+        Onetime::Forbidden,
+        /can add custom domains/i,
+      )
     end
 
     it 'does not create a domain when the gate rejects' do
@@ -107,6 +115,43 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
       logic = build_add_domain_logic(member_user, domain: attempted)
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
       expect(organization.list_domains.map(&:display_domain)).not_to include(attempted)
+    end
+  end
+
+  describe 'colonel bypass' do
+    # Colonels are system admins; verify_organization_admin delegates to
+    # verify_one_of_roles!(colonel: true, ...) which short-circuits on
+    # has_system_role?('colonel'). The system-role check ALSO requires a
+    # verified email (defense-in-depth in authorization_policies.rb).
+    let!(:colonel_user) do
+      customer = Onetime::Customer.create!(email: "#{run_id}_colonel@test.com")
+      customer.role = 'colonel'
+      customer.verified = 'true'
+      customer.save
+      customer
+    end
+
+    let!(:colonel_membership) do
+      # Membership role intentionally 'member' — colonel should bypass anyway.
+      organization.add_members_instance(colonel_user, through_attrs: { role: 'member' })
+    end
+
+    after do
+      colonel_membership&.destroy! rescue nil
+      colonel_user&.destroy! rescue nil
+    end
+
+    it 'passes the admin gate via the colonel system-role bypass' do
+      logic = build_add_domain_logic(colonel_user, domain: "#{run_id}-colonel.example.com")
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'unverified colonel still trips the gate (defense-in-depth)' do
+      # Strip verified flag — system-role check should fail closed.
+      colonel_user.verified = nil
+      colonel_user.save
+      logic = build_add_domain_logic(colonel_user, domain: "#{run_id}-unverified-colonel.example.com")
+      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
     end
   end
 

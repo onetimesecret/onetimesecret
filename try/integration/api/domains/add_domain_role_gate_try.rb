@@ -16,6 +16,10 @@
 #    not the session's active org)
 # 5. Non-member with explicit org_id → existing 400 form error (regression
 #    guard: resolution-stage check still fires BEFORE the role check)
+# 6. Colonel with only a `member` membership → 201 (colonel: true bypass in
+#    verify_one_of_roles!, gated on verified email)
+# 7. Rejection message resolves the EN locale entry (not the helper's
+#    fallback default), confirming the new i18n key is loaded
 
 require 'rack/test'
 require_relative '../../../support/test_helpers'
@@ -82,7 +86,7 @@ def last_response; @test.last_response; end
 post '/api/domains/add',
   { 'domain' => @owner_domain },
   {
-    'rack.session' => @owner_session.merge('organization_extid' => @org.extid),
+    'rack.session' => @owner_session.merge('organization_id' => @org.objid),
     'HTTP_ACCEPT'  => 'application/json',
   }
 last_response.status
@@ -97,7 +101,7 @@ last_response.status
 post '/api/domains/add',
   { 'domain' => @admin_domain },
   {
-    'rack.session' => @admin_session.merge('organization_extid' => @org.extid),
+    'rack.session' => @admin_session.merge('organization_id' => @org.objid),
     'HTTP_ACCEPT'  => 'application/json',
   }
 last_response.status
@@ -112,7 +116,7 @@ last_response.status
 post '/api/domains/add',
   { 'domain' => @member_domain },
   {
-    'rack.session' => @member_session.merge('organization_extid' => @org.extid),
+    'rack.session' => @member_session.merge('organization_id' => @org.objid),
     'HTTP_ACCEPT'  => 'application/json',
   }
 last_response.status
@@ -122,11 +126,12 @@ last_response.status
 @org.list_domains.map(&:display_domain).include?(@member_domain)
 #=> false
 
-## TEST 3c: Rejection message references admin requirement (loose match —
-## the exact wording comes from the api.domains.errors.add_admin_required
-## locale key plus the default fallback in the Logic helper).
-resp_body = last_response.body
-resp_body.include?('admin') || resp_body.include?('Admin')
+## TEST 3c: Rejection message resolves the EN locale entry, not the helper's
+## fallback default. The locale text is "...can add custom domains" while the
+## default fallback is "...can perform this action" — so a hit on the
+## domain-specific phrase confirms api.domains.errors.add_admin_required was
+## actually loaded (regression guard against a missing or renamed key).
+last_response.body.include?('add custom domains')
 #=> true
 
 ## TEST 4: Member rejected via explicit org_id (gate runs against target_org)
@@ -138,7 +143,7 @@ resp_body.include?('admin') || resp_body.include?('Admin')
 post '/api/domains/add',
   { 'domain' => @member_explicit_domain, 'org_id' => @org2.objid },
   {
-    'rack.session' => @member_session.merge('organization_extid' => @org.extid),
+    'rack.session' => @member_session.merge('organization_id' => @org.objid),
     'HTTP_ACCEPT'  => 'application/json',
   }
 last_response.status
@@ -157,11 +162,39 @@ last_response.status
 post '/api/domains/add',
   { 'domain' => @nonmember_domain, 'org_id' => @nonmember_org.objid },
   {
-    'rack.session' => @member_session.merge('organization_extid' => @org.extid),
+    'rack.session' => @member_session.merge('organization_id' => @org.objid),
     'HTTP_ACCEPT'  => 'application/json',
   }
 [last_response.status, last_response.body.include?('access denied') || last_response.body.include?('not found')]
 #=> [400, true]
+
+## TEST 6: Colonel with only a `member` membership → 201
+# verify_organization_admin uses verify_one_of_roles!(colonel: true, ...) which
+# bypasses every role check for colonels. has_system_role?('colonel') also
+# requires cust.verified? — set both so the bypass actually fires.
+@colonel_user = Onetime::Customer.create!(email: "role_gate_colonel_#{@ts}_#{@entropy}@test.com")
+@colonel_user.role = 'colonel'
+@colonel_user.verified = 'true'
+@colonel_user.save
+@colonel_session = {
+  'authenticated' => true,
+  'external_id'   => @colonel_user.extid,
+  'email'         => @colonel_user.email,
+}
+@colonel_membership = @org.add_members_instance(@colonel_user, through_attrs: { role: 'member' })
+@colonel_domain = "colonel-#{@ts}-#{@entropy}.example.com"
+post '/api/domains/add',
+  { 'domain' => @colonel_domain },
+  {
+    'rack.session' => @colonel_session.merge('organization_id' => @org.objid),
+    'HTTP_ACCEPT'  => 'application/json',
+  }
+last_response.status
+#=> 201
+
+## TEST 6b: Colonel-added domain landed in the org
+@org.list_domains.map(&:display_domain).include?(@colonel_domain)
+#=> true
 
 # Teardown
 @org.list_domains.each(&:destroy!)
@@ -170,9 +203,11 @@ post '/api/domains/add',
 @admin_membership.destroy! if @admin_membership&.exists?
 @member_membership.destroy! if @member_membership&.exists?
 @org2_member_membership.destroy! if @org2_member_membership&.exists?
+@colonel_membership.destroy! if @colonel_membership&.exists?
 @org.destroy!
 @org2.destroy!
 @nonmember_org.destroy!
 @admin_user.destroy!
 @member_user.destroy!
+@colonel_user.destroy!
 @owner.destroy!
