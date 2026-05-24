@@ -10,12 +10,14 @@ import { ref } from 'vue';
 const mockStatusIcon = ref('check-circle');
 const mockStatusColor = ref('text-emerald-600 dark:text-emerald-400');
 const mockDisplayStatus = ref('Active');
+const mockIsActive = ref(true);
 
 vi.mock('@/shared/composables/useDomainStatus', () => ({
   useDomainStatus: vi.fn(() => ({
     statusIcon: mockStatusIcon,
     statusColor: mockStatusColor,
     displayStatus: mockDisplayStatus,
+    isActive: mockIsActive,
   })),
 }));
 
@@ -63,6 +65,7 @@ describe('DomainHeader', () => {
     mockStatusIcon.value = 'check-circle';
     mockStatusColor.value = 'text-emerald-600 dark:text-emerald-400';
     mockDisplayStatus.value = 'Active';
+    mockIsActive.value = true;
   });
 
   function mountComponent(props: Partial<typeof defaultProps> = {}) {
@@ -142,11 +145,24 @@ describe('DomainHeader', () => {
       expect(link.isVisible()).toBe(false);
     });
 
-    it('shows external link when hasUnsavedChanges is false', () => {
+    it('shows external link when hasUnsavedChanges is false and domain is active', () => {
       const domain = createMockDomain();
       const wrapper = mountComponent({ domain, hasUnsavedChanges: false });
       const link = wrapper.find('a[target="_blank"]');
       expect(link.isVisible()).toBe(true);
+    });
+
+    it('hides external link when the domain is not active', () => {
+      // Inactive/unverified domains have no live frontend — the external
+      // link would resolve to a non-functional host. Hide it regardless
+      // of the unsaved-changes flag.
+      mockIsActive.value = false;
+      mockDisplayStatus.value = 'Pending';
+      mockStatusIcon.value = 'close-circle';
+      const domain = createMockDomain();
+      const wrapper = mountComponent({ domain, hasUnsavedChanges: false });
+      const link = wrapper.find('a[target="_blank"]');
+      expect(link.isVisible()).toBe(false);
     });
   });
 
