@@ -29,7 +29,7 @@ function requireDomainAdminRole(to: RouteLocationNormalized) {
 
   const store = useOrganizationStore();
   const org =
-    store.organizations.find((o) => o.extid === orgExtid) ??
+    store.getOrganizationByExtid(orgExtid) ??
     (store.currentOrganization?.extid === orgExtid ? store.currentOrganization : null);
 
   const role = org?.current_user_role ?? null;

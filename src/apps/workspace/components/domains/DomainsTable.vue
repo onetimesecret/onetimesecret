@@ -23,7 +23,6 @@
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { computed } from 'vue';
-  import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
 
@@ -43,9 +42,8 @@ const { t } = useI18n();
   const addDomainRoute = computed(() => `/org/${props.orgid}/domains/add`);
 
   const organizationStore = useOrganizationStore();
-  const { organizations } = storeToRefs(organizationStore);
-  const organization = computed(() =>
-    organizations.value.find((o) => o.extid === props.orgid) ?? null
+  const organization = computed(
+    () => organizationStore.getOrganizationByExtid(props.orgid) ?? null
   );
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));

@@ -24,14 +24,14 @@
   // Resolve the org backing this route by its extid (the :orgid URL param),
   // falling back to the active organization when the lookup hasn't loaded.
   const organizationStore = useOrganizationStore();
-  const { organizations, currentOrganization } = storeToRefs(organizationStore);
+  const { currentOrganization } = storeToRefs(organizationStore);
 
   const routeOrgid = computed(() => (route.params.orgid as string | undefined) ?? null);
 
   const organization = computed(() => {
     const orgid = routeOrgid.value;
     if (orgid) {
-      const matched = organizations.value.find((o) => o.extid === orgid);
+      const matched = organizationStore.getOrganizationByExtid(orgid);
       if (matched) return matched;
       if (currentOrganization.value?.extid === orgid) return currentOrganization.value;
     }
