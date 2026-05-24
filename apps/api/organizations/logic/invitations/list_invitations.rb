@@ -23,7 +23,7 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         verify_organization_admin(
           @organization,
-          error_message: 'Only organization owners and admins can view invitations',
+          error_key: 'api.organizations.invitations.errors.view_admin_required',
         )
       end
 
