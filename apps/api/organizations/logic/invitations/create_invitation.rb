@@ -155,7 +155,7 @@ module OrganizationAPI::Logic
             locale: locale,
             default: 'Member limit reached. Upgrade your plan to invite more members.',
           ),
-          field: 'email',
+          field: :email,
           error_type: :upgrade_required,
         )
       end

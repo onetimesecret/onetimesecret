@@ -153,6 +153,8 @@ module OrganizationAPI
       # @param organization [Onetime::Organization]
       # @return [Boolean]
       def organization_admin?(organization)
+        return false if cust.nil?
+
         membership = Onetime::OrganizationMembership.find_by_org_customer(
           organization.objid, cust.objid
         )

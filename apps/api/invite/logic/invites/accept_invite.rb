@@ -71,7 +71,7 @@ module InviteAPI::Logic
             raise_form_error(
               I18n.t('api.organizations.invitations.errors.accept_email_mismatch', locale: locale, default: 'Your email address does not match the invitation'),
               field: :email,
-              error_type: 'email_mismatch',
+              error_type: :email_mismatch,
             )
           end
         end
