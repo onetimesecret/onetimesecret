@@ -1,0 +1,47 @@
+{
+  "api.domains.errors.domain_id_required": {
+    "text": "Domain ID required",
+    "context": "Returned when a domains-API request is missing the extid path parameter",
+    "content_hash": "6837426b"
+  },
+  "api.domains.errors.domain_not_found": {
+    "text": "Domain not found: %{extid}",
+    "context": "Returned when CustomDomain.find_by_extid returns nil for the requested extid (apps/api/domains/logic/incoming_config/base.rb)",
+    "content_hash": "a0fd1025"
+  },
+  "api.domains.errors.organization_not_found": {
+    "text": "Organization not found for domain: %{domain}",
+    "context": "Returned when Organization.load returns nil for the domain's org_id (apps/api/domains/logic/incoming_config/base.rb)",
+    "content_hash": "632afc93"
+  },
+  "api.domains.errors.incoming_secrets_disabled": {
+    "text": "Incoming secrets is not enabled on this instance",
+    "context": "Returned when features.incoming.enabled is false at the instance level (apps/api/domains/logic/incoming_config/base.rb)",
+    "content_hash": "45c0b5c4"
+  },
+  "api.domains.errors.incoming_secrets_entitlement_required": {
+    "text": "Incoming secrets management requires the incoming_secrets entitlement. Please upgrade your plan.",
+    "context": "Returned when the owning organization lacks the incoming_secrets entitlement (apps/api/domains/logic/incoming_config/base.rb)",
+    "content_hash": "1af54ec2"
+  },
+  "api.domains.errors.incoming_config_not_found": {
+    "text": "Incoming configuration not found for domain: %{extid}",
+    "context": "Returned by DELETE /api/domains/:extid/incoming-config when no IncomingConfig record exists for the domain",
+    "content_hash": "491644a8"
+  },
+  "api.domains.errors.recipients_max_exceeded": {
+    "text": "Maximum %{max} recipients allowed",
+    "context": "Returned by PUT /api/domains/:extid/incoming-config when the request body contains more than IncomingConfig::MAX_RECIPIENTS entries",
+    "content_hash": "159842ad"
+  },
+  "api.domains.errors.recipients_invalid_email": {
+    "text": "Invalid email: %{email}",
+    "context": "Returned by PUT /api/domains/:extid/incoming-config when a recipient email fails Truemail validation",
+    "content_hash": "e9c729c7"
+  },
+  "api.domains.errors.recipients_duplicate": {
+    "text": "Duplicate recipient emails not allowed",
+    "context": "Returned by PUT /api/domains/:extid/incoming-config when the request body contains the same email address more than once",
+    "content_hash": "6de22182"
+  }
+}
