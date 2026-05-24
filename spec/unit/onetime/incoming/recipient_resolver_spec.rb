@@ -57,15 +57,14 @@ RSpec.describe Onetime::Incoming::RecipientResolver do
       end
 
       it 'serializes error_key into to_h for the HTTP response body' do
-        begin
-          resolver.require_domain_entitlement!('incoming_secrets')
-        rescue Onetime::Forbidden => e
-          expect(e.to_h).to include(
-            error: 'Forbidden',
-            message: 'Custom domain organization could not be resolved',
-            error_key: 'api.incoming.errors.custom_domain_unresolved',
-          )
-        end
+        expect { resolver.require_domain_entitlement!('incoming_secrets') }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: 'Custom domain organization could not be resolved',
+              error_key: 'api.incoming.errors.custom_domain_unresolved',
+            )
+          end
       end
     end
 

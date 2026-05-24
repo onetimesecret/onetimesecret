@@ -255,17 +255,16 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
 
     it 'provides a to_h method for serialization' do
-      begin
-        logic.require_entitlement!('custom_domains')
-      rescue Onetime::EntitlementRequired => e
-        hash = e.to_h
-        expect(hash).to include(
-          entitlement: 'custom_domains',
-          current_plan: 'identity_v1',
-          error_key: 'api.entitlements.errors.custom_domains_required'
-        )
-        expect(hash[:error]).to include('custom domains')
-      end
+      expect { logic.require_entitlement!('custom_domains') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          hash = error.to_h
+          expect(hash).to include(
+            entitlement: 'custom_domains',
+            current_plan: 'identity_v1',
+            error_key: 'api.entitlements.errors.custom_domains_required',
+          )
+          expect(hash[:error]).to include('custom domains')
+        end
     end
 
     it 'omits error_key from to_h when none is set' do

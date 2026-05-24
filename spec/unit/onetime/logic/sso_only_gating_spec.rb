@@ -68,15 +68,14 @@ RSpec.describe Onetime::Logic::SsoOnlyGating do
       end
 
       it 'serializes error_key into to_h for the HTTP response body' do
-        begin
-          instance.require_non_sso_only!
-        rescue Onetime::Forbidden => e
-          expect(e.to_h).to include(
-            error: 'Forbidden',
-            message: 'This action is not available in SSO-only mode',
-            error_key: 'api.errors.sso_only_action_blocked',
-          )
-        end
+        expect { instance.require_non_sso_only! }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.to_h).to include(
+              error: 'Forbidden',
+              message: 'This action is not available in SSO-only mode',
+              error_key: 'api.errors.sso_only_action_blocked',
+            )
+          end
       end
     end
   end

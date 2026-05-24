@@ -67,12 +67,14 @@ RSpec.describe Onetime::LimitExceeded do
         retry_after: 60, attempts: 6, max_attempts: 5,
         error_key: 'api.limits.errors.too_many_attempts',
       )
-      hash = error.to_h
-      expect(hash[:error]).to eq('LimitExceeded')
-      expect(hash[:message]).to eq('blocked')
-      expect(hash[:retry_after]).to eq(60)
-      expect(hash[:attempts]).to eq(6)
-      expect(hash[:max_attempts]).to eq(5)
+      expect(error.to_h).to eq(
+        error: 'LimitExceeded',
+        message: 'blocked',
+        retry_after: 60,
+        attempts: 6,
+        max_attempts: 5,
+        error_key: 'api.limits.errors.too_many_attempts',
+      )
     end
   end
 end
@@ -127,9 +129,11 @@ RSpec.describe Onetime::GuestRoutesDisabled do
         code: 'CUSTOM_CODE',
         error_key: 'api.guest.errors.routes_disabled',
       )
-      hash = error.to_h
-      expect(hash[:message]).to eq('nope')
-      expect(hash[:code]).to eq('CUSTOM_CODE')
+      expect(error.to_h).to eq(
+        message: 'nope',
+        code: 'CUSTOM_CODE',
+        error_key: 'api.guest.errors.routes_disabled',
+      )
     end
   end
 end
