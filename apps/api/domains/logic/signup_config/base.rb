@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'public_suffix'
 require 'onetime/models/custom_domain/signup_config'
 require_relative '../concerns/domain_config_authorization'
 
@@ -48,14 +49,9 @@ module DomainsAPI
         # @return [Array<String>] Normalized array of lowercase domain strings
         def parse_allowed_domains(value)
           return [] if value.nil?
-          return value if value.is_a?(Array)
 
-          # Handle comma-separated string
-          if value.is_a?(String)
-            value.split(',').map { it.strip.downcase }.reject(&:empty?)
-          else
-            []
-          end
+          items = value.is_a?(Array) ? value : value.to_s.split(',')
+          items.map { it.to_s.strip.downcase }.reject(&:empty?)
         end
 
         # Validate that validation_strategy is a known type.
@@ -87,6 +83,25 @@ module DomainsAPI
             field: :allowed_signup_domains,
             error_type: :missing,
           )
+        end
+
+        # Validate domain formats using PublicSuffix before model setter.
+        # Returns 422 Unprocessable Entity instead of 500 Internal Server Error.
+        #
+        # @param domains [Array<String>] The domains to validate
+        # @raise [Onetime::FormError] if any domain has invalid format
+        def validate_domain_formats(domains)
+          return if domains.nil? || domains.empty?
+
+          domains.each do |domain|
+            Onetime::Utils::DomainParser.cached_parse(domain)
+          rescue PublicSuffix::Error => ex
+            raise_form_error(
+              "Invalid domain format: #{domain} (#{ex.message})",
+              field: :allowed_signup_domains,
+              error_type: :invalid,
+            )
+          end
         end
       end
     end

@@ -316,11 +316,10 @@ module Onetime
         #
         # @return [Array<CustomDomain::SignupConfig>] All configs (newest first)
         def all
-          instances.revrangeraw(0, -1).filter_map do |identifier|
-            load(identifier)
-          rescue Onetime::RecordNotFound
-            nil
-          end
+          identifiers = instances.revrangeraw(0, -1)
+          return [] if identifiers.empty?
+
+          load_multi(identifiers).compact
         end
 
         # Count of domains with signup config.

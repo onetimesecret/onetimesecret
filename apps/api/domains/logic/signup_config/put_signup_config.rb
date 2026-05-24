@@ -58,6 +58,9 @@ module DomainsAPI
 
           # Validate domain_allowlist has at least one domain
           validate_allowlist_has_domains(@validation_strategy, @allowed_signup_domains)
+
+          # Validate domain formats before the model setter (which raises Problem -> 500)
+          validate_domain_formats(@allowed_signup_domains)
         end
 
         def process
