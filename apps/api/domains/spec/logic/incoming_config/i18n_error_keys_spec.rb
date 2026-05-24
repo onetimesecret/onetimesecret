@@ -42,6 +42,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       extid: user_extid,
       anonymous?: false,
       verified?: true,
+      role: 'user',
     )
   end
 
@@ -53,6 +54,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       extid: nil,
       anonymous?: true,
       verified?: false,
+      role: nil,
     )
   end
 
