@@ -153,11 +153,16 @@ module Onetime
 
   # Raised when guest API routes are disabled or a specific guest operation is disabled.
   # Contains an error code for the API response.
+  #
+  # i18n shape: error_key + args inherited from Forbidden are resolved at
+  # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
+  # passes the dotted i18n key and never touches I18n directly.
   class GuestRoutesDisabled < Forbidden
     attr_reader :code
 
-    def initialize(message = 'Guest API access is disabled', code: 'GUEST_ROUTES_DISABLED')
-      super(message)
+    def initialize(message = 'Guest API access is disabled', code: 'GUEST_ROUTES_DISABLED',
+                   error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
       @code = code
     end
 
@@ -165,17 +170,23 @@ module Onetime
       {
         message: message,
         code: code,
-      }
+        error_key: error_key,
+      }.compact
     end
   end
 
   # Raised when a rate limit is exceeded (too many failed attempts, etc.)
   # Used for security features like passphrase attempt limiting.
+  #
+  # i18n shape: error_key + args inherited from Forbidden are resolved at
+  # the HTTP edge by Onetime::Application::ErrorResolver, so logic code
+  # passes the dotted i18n key and never touches I18n directly.
   class LimitExceeded < Forbidden
     attr_reader :retry_after, :attempts, :max_attempts
 
-    def initialize(message = 'Rate limit exceeded', retry_after: nil, attempts: nil, max_attempts: nil)
-      super(message)
+    def initialize(message = 'Rate limit exceeded', retry_after: nil, attempts: nil, max_attempts: nil,
+                   error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
       @retry_after  = retry_after
       @attempts     = attempts
       @max_attempts = max_attempts
@@ -188,6 +199,7 @@ module Onetime
         retry_after: retry_after,
         attempts: attempts,
         max_attempts: max_attempts,
+        error_key: error_key,
       }.compact
     end
   end
