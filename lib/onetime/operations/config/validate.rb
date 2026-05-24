@@ -103,9 +103,25 @@ module Onetime
         def load_config(path)
           erb_template = ERB.new(File.read(path))
           yaml_content = erb_template.result
-          YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false, aliases: true)
+          parsed = YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false, aliases: true)
+          stringify_symbols(parsed)
         rescue Psych::SyntaxError, Psych::DisallowedClass
           nil
+        end
+
+        # Recursively coerce Ruby Symbol values to Strings so the loaded YAML
+        # is representable in JSON Schema's type system. The shipped
+        # config.defaults.yaml uses Ruby symbol notation in a few places
+        # (e.g. `default_validation_type: :regex`) because the consuming
+        # libraries (Truemail, etc.) want symbols at runtime — but JSON
+        # Schema has no symbol type, so we normalize for validation only.
+        def stringify_symbols(value)
+          case value
+          when Symbol then value.to_s
+          when Hash   then value.transform_values { |v| stringify_symbols(v) }
+          when Array  then value.map { |v| stringify_symbols(v) }
+          else value
+          end
         end
 
         def load_schema(path)

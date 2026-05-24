@@ -74,11 +74,16 @@ const featuresDomainsProxySchema = z.object({
 
 /**
  * ACME endpoint configuration (for caddy_on_demand strategy)
+ *
+ * `port` accepts string or number: the shipped YAML uses
+ * `<%= ENV['ACME_PORT'] || '12020' %>`, which renders to the bareword
+ * `12020`, and YAML auto-coerces that to an integer at parse time.
+ * Both representations are semantically the same TCP port.
  */
 const featuresDomainsAcmeSchema = z.object({
   enabled: z.boolean().default(false),
   listen_address: z.string().default('127.0.0.1'),
-  port: z.string().default('12020'),
+  port: z.union([z.string(), z.number()]).default('12020'),
 });
 
 /**
