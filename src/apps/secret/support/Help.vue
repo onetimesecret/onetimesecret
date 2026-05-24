@@ -23,16 +23,16 @@ const { t } = useI18n();
         role="region"
         aria-labelledby="signin-help">
         <div class="p-6">
-          <h3
+          <h2
             id="signin-help"
-            class="mb-4 font-medium text-gray-800 dark:text-gray-200">
+            class="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-200">
             {{ t('web.help.signin_troubleshooting') }}
-          </h3>
+          </h2>
           <div class="space-y-4 text-gray-600 dark:text-gray-400">
             <div>
-              <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
+              <h3 class="mb-2 font-medium text-gray-800 dark:text-gray-200">
                 {{ t('web.help.magic_link_not_arriving') }}
-              </h2>
+              </h3>
               <ul class="ml-4 list-disc space-y-1">
                 <li>{{ t('web.help.check_spam_folder') }}</li>
                 <li>{{ t('web.help.check_email_spelling') }}</li>
@@ -42,23 +42,23 @@ const { t } = useI18n();
             </div>
 
             <div>
-              <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
+              <h3 class="mb-2 font-medium text-gray-800 dark:text-gray-200">
                 {{ t('web.help.forgot_password') }}
-              </h2>
+              </h3>
               <p>
                 {{ t('web.help.use_magic_link_instead') }}
                 <RouterLink
                   to="/forgot"
-                  class="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                  class="ml-1 font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
                   {{ t('web.help.reset_password_link') }}
                 </RouterLink>
               </p>
             </div>
 
             <div>
-              <h2 class="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-200">
+              <h3 class="mb-2 font-medium text-gray-800 dark:text-gray-200">
                 {{ t('web.help.account_locked') }}
-              </h2>
+              </h3>
               <p>
                 {{ t('web.help.account_locked_explanation') }}
               </p>

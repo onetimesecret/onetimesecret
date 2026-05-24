@@ -100,7 +100,7 @@ describe('ColorPicker', () => {
       wrapper = mountComponent({ modelValue: '#000000' });
 
       // Open the picker so the child component is mounted via Teleport
-      await wrapper.find('[role="button"]').trigger('click');
+      await wrapper.find('button[aria-haspopup="true"]').trigger('click');
       await nextTick();
 
       // Find the stubbed picker (mounted to body via Teleport)
@@ -150,22 +150,25 @@ describe('ColorPicker', () => {
   });
 
   describe('Accessibility (ARIA roles)', () => {
-    it('has exactly one element with role="button" (the trigger)', () => {
+    it('exposes exactly one trigger button (no nested-interactive violation)', () => {
       wrapper = mountComponent();
-      const buttons = wrapper.findAll('[role="button"]');
+      const buttons = wrapper.findAll('button[aria-haspopup="true"]');
       expect(buttons).toHaveLength(1);
     });
 
-    it('does not nest the hex input inside a role="button" element', () => {
+    it('does not nest the hex input inside any button element', () => {
       wrapper = mountComponent();
       const input = wrapper.find('input[type="text"]').element as HTMLElement;
       expect(input).toBeTruthy();
 
-      // Walk ancestors and ensure none claim role="button"
+      // Walk ancestors and ensure none are a button or claim role="button"
       let parent: HTMLElement | null = input.parentElement;
       let foundButtonAncestor = false;
       while (parent && parent !== document.body) {
-        if (parent.getAttribute('role') === 'button') {
+        if (
+          parent.tagName === 'BUTTON' ||
+          parent.getAttribute('role') === 'button'
+        ) {
           foundButtonAncestor = true;
           break;
         }
@@ -176,7 +179,7 @@ describe('ColorPicker', () => {
 
     it('trigger exposes aria-expanded reflecting open state', async () => {
       wrapper = mountComponent();
-      const trigger = wrapper.find('[role="button"]');
+      const trigger = wrapper.find('button[aria-haspopup="true"]');
 
       expect(trigger.attributes('aria-expanded')).toBe('false');
       await trigger.trigger('click');

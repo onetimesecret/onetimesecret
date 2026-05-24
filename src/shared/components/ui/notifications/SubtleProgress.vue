@@ -148,6 +148,18 @@ const statusConfig = computed(() => {
 });
 
 const shouldPulse = computed(() => statusConfig.value?.pulse && !props.loading);
+
+// Static class map so Tailwind's scanner sees literal class names.
+// Dynamic `rounded-${rounded}` would be missed at build time (Tailwind v4).
+const ROUNDED_CLASSES: Record<RoundedSize, string> = {
+  none: 'rounded-none',
+  sm: 'rounded-sm',
+  md: 'rounded-md',
+  lg: 'rounded-lg',
+  xl: 'rounded-xl',
+  full: 'rounded-full',
+};
+const roundedClass = computed(() => ROUNDED_CLASSES[props.rounded]);
 </script>
 
 <template>
@@ -166,7 +178,7 @@ const shouldPulse = computed(() => statusConfig.value?.pulse && !props.loading);
           positionClasses,
           statusConfig?.bgClasses,
           statusConfig?.ringClasses,
-          `rounded-${rounded}`,
+          roundedClass,
           { 'animate-subtle-pulse': shouldPulse },
           { 'px-2': !showLabel }
         ]"

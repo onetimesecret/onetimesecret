@@ -45,8 +45,17 @@ const pickerRef = ref<HTMLElement | null>(null);
 const triggerRef = ref<HTMLElement | null>(null);
 const popoverPosition = ref({ top: 0, left: 0 });
 
-// Internal color state - vue-color preserves format, so hex in = hex out
-const internalColor = ref(props.modelValue);
+// vue-color emits either a hex string or `{hex, hex8, rgba, ...}`.
+// Collapse both shapes to an uppercase hex string for the rest of the component.
+const normalizeHex = (val: unknown): string | undefined => {
+  if (typeof val === 'string') return val.toUpperCase();
+  const obj = val as { hex8?: string; hex?: string } | null | undefined;
+  return (obj?.hex8 ?? obj?.hex)?.toUpperCase();
+};
+
+// Internal color state — kept normalized so consumers (displayHex, previewColor,
+// the picker's v-model) all see a string.
+const internalColor = ref<string>(props.modelValue);
 
 // Sync from parent
 watch(() => props.modelValue, (newVal) => {
@@ -55,14 +64,17 @@ watch(() => props.modelValue, (newVal) => {
   }
 });
 
-// Emit changes to parent when internal color changes (from picker interaction)
+// Normalize and propagate changes from the picker (which may emit objects).
 watch(internalColor, (newVal) => {
-  const raw = typeof newVal === 'string'
-    ? newVal
-    : (newVal as { hex8?: string; hex?: string } | null | undefined)?.hex8
-      ?? (newVal as { hex?: string } | null | undefined)?.hex;
-  const hex = raw?.toUpperCase();
-  if (hex && hex !== props.modelValue?.toUpperCase()) {
+  const hex = normalizeHex(newVal);
+  if (!hex) return;
+  // Coerce object payloads back into a string so the rest of the component
+  // doesn't have to handle two shapes. Re-entry terminates: the next pass is
+  // already a string and equal to itself.
+  if (internalColor.value !== hex) {
+    internalColor.value = hex;
+  }
+  if (hex !== props.modelValue?.toUpperCase()) {
     emit('update:modelValue', hex);
   }
 });
@@ -71,10 +83,10 @@ const updateFromHexInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   let newColor = `#${target.value}`.toUpperCase();
 
-  // Validate hex color (6 or 8 characters for alpha)
+  // Validate hex color (6 or 8 characters for alpha).
+  // The internalColor watcher is the single emit path.
   if (/^#[0-9A-F]{6}([0-9A-F]{2})?$/i.test(newColor)) {
     internalColor.value = newColor;
-    emit('update:modelValue', newColor);
   }
 };
 
