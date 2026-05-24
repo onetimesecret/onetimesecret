@@ -27,6 +27,7 @@ import { developmentSchema } from './section/development';
 import { userInterfaceSchema, apiSchema } from './section/ui';
 import { limitsSchema } from './section/limits';
 import { secretOptionsSchema } from './section/secret_options';
+import { jobsSchema } from './section/jobs';
 
 // ============================================================================
 // Flexible Type Helpers (for API response parsing)
@@ -368,6 +369,7 @@ export const staticConfigSchema = z.object({
   redis: redisSchema.optional(),
   emailer: emailerSchema.optional(),
   mail: mailSchema.optional(),
+  jobs: jobsSchema.optional(),
   internationalization: i18nSchema.optional(),
   diagnostics: diagnosticsSchema.optional(),
   development: developmentSchema.optional(),
@@ -442,6 +444,7 @@ export {
   apiSchema,
   limitsSchema,
   secretOptionsSchema,
+  jobsSchema,
 };
 
 // Aliases for backward compatibility

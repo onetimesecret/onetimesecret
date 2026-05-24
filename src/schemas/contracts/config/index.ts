@@ -74,6 +74,7 @@ export {
   apiSchema,
   limitsSchema,
   secretOptionsSchema,
+  jobsSchema,
   loggingSchema,
 } from './config';
 
