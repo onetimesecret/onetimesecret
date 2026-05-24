@@ -24,7 +24,11 @@ module InviteAPI::Logic
         verify_authenticated!
 
         if @token.nil? || @token.empty?
-          raise_form_error(error_key: 'api.invite.errors.token_required', field: :token)
+          raise_form_error(
+            'Token is required',
+            error_key: 'api.invite.errors.token_required',
+            field: :token,
+          )
         end
 
         @invitation   = load_invitation(@token)
@@ -32,12 +36,17 @@ module InviteAPI::Logic
 
         # Check if organization still exists (may have been deleted)
         unless @organization
-          raise_form_error(error_key: 'api.invite.errors.organization_no_longer_exists', field: :token)
+          raise_form_error(
+            'Organization no longer exists',
+            error_key: 'api.invite.errors.organization_no_longer_exists',
+            field: :token,
+          )
         end
 
         # Check if invitation is still pending
         unless @invitation.pending?
           raise_form_error(
+            "Invitation has already been #{@invitation.status}",
             error_key: 'api.invite.errors.invitation_already_processed',
             args: { status: @invitation.status },
             field: :token,
@@ -46,7 +55,11 @@ module InviteAPI::Logic
 
         # Check if invitation has expired
         if @invitation.expired?
-          raise_form_error(error_key: 'api.invite.errors.invitation_expired', field: :token)
+          raise_form_error(
+            'Invitation has expired',
+            error_key: 'api.invite.errors.invitation_expired',
+            field: :token,
+          )
         end
 
         # Strict email binding - no exceptions
@@ -65,9 +78,13 @@ module InviteAPI::Logic
         end
 
         # Check if user is already a member
-        if @organization.member?(cust)
-          raise_form_error(error_key: 'api.invite.errors.already_member', field: :token)
-        end
+        return unless @organization.member?(cust)
+
+        raise_form_error(
+          'You are already a member of this organization',
+          error_key: 'api.invite.errors.already_member',
+          field: :token,
+        )
       end
 
       def process

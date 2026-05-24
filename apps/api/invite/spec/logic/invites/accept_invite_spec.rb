@@ -109,7 +109,9 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
       let(:params) { { 'token' => '' } }
 
       it 'raises form error for missing token' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Token is required/)
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.invite.errors.token_required')
+        end
       end
     end
 
@@ -143,7 +145,9 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
       end
 
       it 'raises form error for expired invitation' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /expired/i)
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.invite.errors.invitation_expired')
+        end
       end
     end
 
@@ -167,7 +171,9 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
       end
 
       it 'raises form error for already accepted invitation' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /already been/)
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.invite.errors.invitation_already_processed')
+        end
       end
     end
 
@@ -230,7 +236,9 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
       end
 
       it 'raises form error for existing membership' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /already a member/i)
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.invite.errors.already_member')
+        end
       end
     end
 
