@@ -33,6 +33,14 @@ module Onetime
       # Maximum number of recipients per domain
       MAX_RECIPIENTS = 20
 
+      # Default policy values applied to all custom domains. Not user-configurable
+      # per-domain at this time; canonical-domain values still come from YAML
+      # (`features.incoming.*`). Consumed by RecipientResolver#config_data.
+      DEFAULTS = {
+        memo_max_length: 50,
+        default_ttl: 604_800,
+      }.freeze
+
       prefix :custom_domain__incoming_config
 
       # domain_id is the CustomDomain's identifier (objid), used as our key.
@@ -103,16 +111,35 @@ module Onetime
         self.updated         = Familia.now.to_i
       end
 
-      # Get recipients with hashed identifiers (safe for frontend).
+      # Get recipients with hashed identifiers (safe for frontend/anonymous senders).
       #
-      # @return [Array<Hash>] Array of {hash:, name:} hashes
+      # Returns string keys ('digest', 'display_name') to match the shape produced
+      # by SetupIncomingRecipients for canonical domains. Consumers like
+      # CreateIncomingSecret#lookup_recipient_display_name rely on this exact shape
+      # (r['digest'] == hash).
+      #
+      # @return [Array<Hash>] Array of { 'digest' => ..., 'display_name' => ... }
       # @raise [Onetime::Problem] if site.secret is not configured
       def public_recipients
         site_secret = self.class.ensure_site_secret
 
         recipients.map do |r|
-          { hash: self.class.hash_email(r[:email], site_secret), name: r[:name] }
+          {
+            'digest' => self.class.hash_email(r[:email], site_secret),
+            'display_name' => r[:name],
+          }
         end
+      end
+
+      # Default memo max length for this domain. Per-domain overrides are not
+      # currently a feature; the DEFAULTS constant is the source of truth.
+      def memo_max_length
+        DEFAULTS[:memo_max_length]
+      end
+
+      # Default secret TTL for this domain.
+      def default_ttl
+        DEFAULTS[:default_ttl]
       end
 
       # Look up email by recipient hash.
