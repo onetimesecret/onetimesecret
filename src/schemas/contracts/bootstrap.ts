@@ -22,6 +22,7 @@ import { z } from 'zod';
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
 import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
+import { disabledHomepageConfigSchema } from '@/schemas/contracts/disabled-homepage';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -461,6 +462,12 @@ export const bootstrapSchema = z.object({
   support_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
+
+  // Frontend rendering config for the disabled-homepage view. All knobs
+  // optional with auto-detection defaults; backend may omit entirely.
+  disabled_homepage: disabledHomepageConfigSchema.default(
+    disabledHomepageConfigSchema.parse({})
+  ),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields
