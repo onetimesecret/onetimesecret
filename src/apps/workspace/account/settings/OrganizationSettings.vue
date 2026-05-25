@@ -468,6 +468,19 @@ const canManageMembers = computed(() => {
   return can(ENTITLEMENTS.MANAGE_MEMBERS);
 });
 
+// Mirror backend check (create_invitation.rb:130): member_count + pending invitations
+// vs members_per_team limit. Limit of -1 means unlimited; null/undefined means
+// unknown (e.g. self-hosted) — treat as no limit.
+const pendingInvitationCount = computed(() =>
+  invitations.value.filter((inv) => inv.status === 'pending').length
+);
+
+const memberLimitReached = computed(() => {
+  const limit = organization.value?.limits?.members_per_team;
+  if (limit === null || limit === undefined || limit < 0) return false;
+  return membersStore.memberCount + pendingInvitationCount.value >= limit;
+});
+
 // Member management event handlers
 const handleMemberUpdated = () => {
   // Member was updated in the store, no additional action needed
@@ -871,9 +884,28 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
                 </p>
               </div>
+              <!--
+                Header CTA hierarchy:
+                - Hidden when form is open (form has its own primary submit; avoids dual-primary).
+                - "Upgrade Plan" link when member quota is reached (path forward, not a dead end).
+                - "Invite Member" button otherwise; disabled when user lacks MANAGE_MEMBERS entitlement.
+              -->
+              <router-link
+                v-if="!showInviteForm && memberLimitReached && canManageMembers"
+                :to="`/billing/${orgId}/plans`"
+                :title="t('api.organizations.invitations.errors.member_limit_reached')"
+                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-up-circle"
+                  class="-ml-0.5 mr-1.5 size-5"
+                  aria-hidden="true" />
+                {{ t('web.billing.overview.upgrade_plan') }}
+              </router-link>
               <button
+                v-else-if="!showInviteForm"
                 type="button"
-                @click="canManageMembers && (showInviteForm = !showInviteForm)"
+                @click="canManageMembers && (showInviteForm = true)"
                 :disabled="!canManageMembers"
                 :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
                 :class="[
