@@ -361,9 +361,6 @@
       </div>
 
       <BasicFormAlerts
-        v-if="error"
-        :error="error" />
-      <BasicFormAlerts
         v-if="success"
         :success="success" />
 
@@ -389,7 +386,7 @@
 
       </div>
 
-      <!-- Inline Signup Form -->
+      <!-- Inline Signup Form (handles its own error display) -->
       <InviteSignUpForm
         v-if="invitation"
         :invited-email="invitation.email"
@@ -425,9 +422,6 @@
         </h1>
       </div>
 
-      <BasicFormAlerts
-        v-if="error"
-        :error="error" />
       <BasicFormAlerts
         v-if="success"
         :success="success" />
