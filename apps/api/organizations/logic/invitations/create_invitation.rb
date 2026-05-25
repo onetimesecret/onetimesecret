@@ -34,26 +34,26 @@ module OrganizationAPI::Logic
 
         # Validate email (basic validation before quota check)
         if @email.empty?
-          raise_form_error(error_key: 'api.organizations.invitations.errors.email_required', field: :email)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.email_required', field: 'email')
         end
         unless valid_email?(@email)
-          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_email_format', field: :email)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_email_format', field: 'email')
         end
 
         # Validate role
         unless %w[member admin].include?(@role)
-          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_role', field: :role)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_role', field: 'role')
         end
 
         # Owners cannot be invited (must be assigned directly)
         if @role == 'owner'
-          raise_form_error(error_key: 'api.organizations.invitations.errors.cannot_invite_as_owner', field: :role)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.cannot_invite_as_owner', field: 'role')
         end
 
         # Check if user is already a member
         existing_customer = Onetime::Customer.find_by_email(@email)
         if existing_customer && @organization.member?(existing_customer)
-          raise_form_error(error_key: 'api.organizations.invitations.errors.user_already_member', field: :email)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.user_already_member', field: 'email')
         end
 
         # Check for existing pending invitation
@@ -61,7 +61,7 @@ module OrganizationAPI::Logic
           @organization.objid, @email
         )
         if existing_invite&.pending?
-          raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: :email)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: 'email')
         end
 
         # Check member quota AFTER basic validation

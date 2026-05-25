@@ -42,10 +42,27 @@ module AccountAPI::Logic
         # account creation and existing account scenarios uniformly, returning the same
         # success response in both cases. This prevents attackers from discovering which
         # emails are registered in the system by observing different validation error messages.
-        raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless valid_email?(email)
-        # Security: Use generic error message to prevent domain enumeration
-        raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless allowed_signup_domain?(email)
-        raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
+        unless valid_email?(email)
+          raise_form_error 'Is that a valid email address?',
+            error_key: 'api.account.errors.invalid_email',
+            field: 'login',
+            error_type: 'invalid'
+        end
+        # Security: reuse `api.account.errors.invalid_email` — identical user-visible
+        # text prevents enumeration of which domains are on the signup allowlist.
+        # Do not split into a domain-specific key without re-reviewing this threat.
+        unless allowed_signup_domain?(email)
+          raise_form_error 'Is that a valid email address?',
+            error_key: 'api.account.errors.invalid_email',
+            field: 'login',
+            error_type: 'invalid'
+        end
+        return if password.size >= 6
+
+        raise_form_error 'Password is too short',
+          error_key: 'api.account.errors.password_too_short',
+          field: 'password',
+          error_type: 'too_short'
       end
 
       def process
