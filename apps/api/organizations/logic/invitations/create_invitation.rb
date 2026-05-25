@@ -133,7 +133,7 @@ module OrganizationAPI::Logic
 
         raise_form_error(
           error_key: 'api.organizations.invitations.errors.member_limit_reached',
-          field: :email,
+          field: 'email',
           error_type: :upgrade_required,
         )
       end
