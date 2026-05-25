@@ -24,6 +24,8 @@ module InviteAPI::Logic
     # Only raises 404 for truly invalid tokens (not found).
     #
     class ShowInvite < InviteAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       attr_reader :invitation
 
       def process_params
@@ -53,7 +55,9 @@ module InviteAPI::Logic
       end
 
       def process
-        OT.ld "[ShowInvite] Showing invitation #{@invitation.objid} (status: #{@invitation.status})"
+        auth_logger.debug 'Showing invitation',
+          invitation_id: @invitation.objid,
+          status: @invitation.status
 
         success_data
       end
@@ -65,12 +69,15 @@ module InviteAPI::Logic
         result[:record][:actionable]     = actionable?
         result[:record][:account_exists] = account_exists?
 
-        OT.ld "[ShowInvite.success_data] domain_strategy=#{domain_strategy.inspect} display_domain=#{display_domain.inspect}"
-        OT.ld "[ShowInvite.success_data] custom_domain?=#{custom_domain?}"
+        auth_logger.debug 'Building success_data',
+          domain_strategy: domain_strategy,
+          display_domain: display_domain,
+          custom_domain: custom_domain?
 
         if custom_domain?
           domain = Onetime::CustomDomain.from_display_domain(display_domain)
-          OT.ld "[ShowInvite.success_data] found domain=#{domain&.display_domain.inspect}"
+          auth_logger.debug 'Found custom domain',
+            domain: domain&.display_domain
           if domain
             result[:record][:branding]     = serialize_brand_public(domain.brand_settings, domain)
             result[:record][:auth_methods] = build_auth_methods(domain.sso_config)

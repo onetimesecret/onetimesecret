@@ -40,7 +40,10 @@ module Auth::Config::Features
         # would let an attacker add invite_token=garbage to suppress the email
         # for any signup, enabling email squatting.
         auth.send_verify_account_email do
-          invite_token = request.params['invite_token'].to_s.strip
+          # Use Rodauth's `param` rather than `request.params['invite_token']` so
+          # this works under internal_request too (internal_request only populates
+          # rodauth.params, not the Rack request body).
+          invite_token = param_or_nil('invite_token').to_s.strip
           if invite_token.empty?
             super()
           else
