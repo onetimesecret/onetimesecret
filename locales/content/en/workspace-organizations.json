@@ -279,6 +279,15 @@
     "text": "members",
     "content_hash": "17373ca1"
   },
+  "web.organizations.members.member_quota": {
+    "text": "{used} of {limit} members"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} pending)"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Member limit reached."
+  },
   "web.organizations.members.name": {
     "text": "Name",
     "content_hash": "dcd1d522"
