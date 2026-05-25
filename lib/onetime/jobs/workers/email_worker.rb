@@ -52,6 +52,11 @@ module Onetime
         # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
         # @param metadata [Bunny::MessageProperties] AMQP message properties
         def work_with_params(msg, delivery_info, metadata)
+          # Instrument entry point - log before ANY other code runs
+          msg_id       = metadata&.message_id || 'unknown'
+          delivery_tag = delivery_info&.delivery_tag || 'unknown'
+          log_info 'Message received', message_id: msg_id, delivery_tag: delivery_tag
+
           store_envelope(delivery_info, metadata)
 
           data = nil
@@ -92,11 +97,19 @@ module Onetime
             log_error 'Non-transient delivery error, skipping to DLQ', ex
           end
           update_delivery_status(data, 'failed')
+          flush_logs
           reject! # Send to DLQ
         rescue StandardError => ex
           log_error 'Unexpected error delivering email', ex
           update_delivery_status(data, 'failed')
+          flush_logs
           reject! # Send to DLQ
+        rescue Exception => ex # rubocop:disable Lint/RescueException
+          # Catch non-StandardError exceptions (SignalException, SystemExit, etc.)
+          # that would otherwise escape without logging
+          log_error 'Fatal exception in email worker (non-StandardError)', ex
+          flush_logs
+          raise # Re-raise to let Sneakers handle process-level exceptions
         end
 
         # Templates that support delivery status tracking on the customer model

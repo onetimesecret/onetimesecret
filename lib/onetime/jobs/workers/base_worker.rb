@@ -105,12 +105,14 @@ module Onetime
           # @param msg [String] Raw message body
           # @return [Hash, nil] Parsed message data, or nil if invalid
           def parse_message(msg)
+            log_debug 'Parsing message', message_id: message_id, size: msg&.bytesize
             data = JSON.parse(msg, symbolize_names: true)
             return nil unless validate_schema(data)
 
             data
           rescue JSON::ParserError => ex
-            log_error "Invalid JSON: #{ex.message}"
+            log_error "Invalid JSON: #{ex.message}", message_id: message_id
+            flush_logs
             reject!
             nil
           end
@@ -121,7 +123,8 @@ module Onetime
             version = @metadata&.headers&.[]('x-schema-version') || 1
 
             unless Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
-              log_error "Unknown schema version: #{version}"
+              log_error "Unknown schema version: #{version}", message_id: message_id
+              flush_logs
               reject!
               return false
             end
@@ -154,6 +157,14 @@ module Onetime
             else
               logger.error message, worker: worker_name, **payload
             end
+          end
+
+          # Flush async log appender to ensure messages are written.
+          # Call before reject!/ack! when debugging missing logs.
+          def flush_logs
+            SemanticLogger.flush if defined?(SemanticLogger)
+          rescue StandardError
+            # Don't let flush failures break message processing
           end
 
           def worker_name
