@@ -57,8 +57,8 @@
 
   const subtitleCopy = computed(() =>
     isBranded.value
-      ? t('web.homepage.disabled_access.team_subtitle', { domain: apexDomain.value })
-      : t('web.homepage.disabled_access.public_subtitle')
+      ? t('homepage_secrets.disabled.team_subtitle', { domain: apexDomain.value })
+      : t('homepage_secrets.disabled.public_subtitle')
   );
 
   const showSignin = computed(() => authentication.value?.signin !== false);
@@ -115,10 +115,10 @@
         :style="dotStyle"
         aria-hidden="true"></span>
       <template v-if="isBranded">
-        {{ t('web.homepage.disabled_access.private_instance_eyebrow') }}
+        {{ t('homepage_secrets.disabled.private_instance_eyebrow') }}
       </template>
       <template v-else>
-        {{ t('web.homepage.disabled_access.members_only_eyebrow') }}
+        {{ t('homepage_secrets.disabled.members_only_eyebrow') }}
       </template>
     </span>
 
@@ -128,7 +128,7 @@
       style="text-wrap: balance">
       <i18n-t
         v-if="isBranded"
-        keypath="web.homepage.disabled_access.team_link_headline"
+        keypath="homepage_secrets.disabled.team_link_headline"
         tag="span"
         scope="global">
         <template #workspace>
@@ -136,9 +136,9 @@
         </template>
       </i18n-t>
       <template v-else>
-        {{ t('web.homepage.disabled_access.signin_headline_prefix') }}
+        {{ t('homepage_secrets.disabled.signin_headline_prefix') }}
         <em class="font-bold italic">{{
-          t('web.homepage.disabled_access.signin_headline_emphasis')
+          t('homepage_secrets.disabled.signin_headline_emphasis')
         }}</em>
       </template>
     </h1>
@@ -157,7 +157,7 @@
         to="/signin"
         data-testid="disabled-homepage-signin"
         class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-        {{ t('web.homepage.disabled_access.signin_cta') }}
+        {{ t('homepage_secrets.disabled.signin_cta') }}
         <OIcon
           collection="heroicons"
           name="arrow-right"
@@ -172,7 +172,7 @@
           collection="heroicons"
           name="information-circle"
           class="size-4" />
-        {{ t('web.homepage.disabled_access.what_is_this') }}
+        {{ t('homepage_secrets.disabled.what_is_this') }}
       </a>
     </div>
 
@@ -184,21 +184,21 @@
             collection="heroicons"
             name="lock-closed"
             class="size-4 text-gray-600 dark:text-gray-300" />
-          {{ t('web.homepage.disabled_access.trust_encrypted') }}
+          {{ t('homepage_secrets.disabled.trust_encrypted') }}
         </span>
         <span class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <OIcon
             collection="heroicons"
             name="eye"
             class="size-4 text-gray-600 dark:text-gray-300" />
-          {{ t('web.homepage.disabled_access.trust_viewed_once') }}
+          {{ t('homepage_secrets.disabled.trust_viewed_once') }}
         </span>
         <span class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <OIcon
             collection="heroicons"
             name="server-stack"
             class="size-4 text-gray-600 dark:text-gray-300" />
-          {{ t('web.homepage.disabled_access.trust_zero_retained') }}
+          {{ t('homepage_secrets.disabled.trust_zero_retained') }}
         </span>
       </div>
     </div>
@@ -216,16 +216,16 @@
       </span>
       <div class="text-sm leading-snug">
         <div class="font-semibold text-gray-900 dark:text-white">
-          {{ t('web.homepage.disabled_access.promo_title') }}
+          {{ t('homepage_secrets.disabled.promo_title') }}
         </div>
         <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-          {{ t('web.homepage.disabled_access.promo_subtitle') }}
+          {{ t('homepage_secrets.disabled.promo_subtitle') }}
           <a
             href="https://onetimesecret.com/plans"
             target="_blank"
             rel="noopener noreferrer"
             class="ml-1 font-semibold text-brand-700 hover:underline dark:text-brand-400">
-            {{ t('web.homepage.disabled_access.promo_learn_how') }} &rarr;
+            {{ t('homepage_secrets.disabled.promo_learn_how') }} &rarr;
           </a>
         </div>
       </div>
