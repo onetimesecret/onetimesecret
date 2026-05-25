@@ -29,6 +29,18 @@ OT.info "Cleaned Redis for SignupConfig test run"
 @org = Onetime::Organization.create!("SC Test Org #{@ts}", @owner, "sc_#{@ts}@test.com")
 @domain = Onetime::CustomDomain.create!("sc-test-#{@ts}.example.com", @org.objid)
 
+# Setup for the Network Validation section further down. Tryouts only executes
+# bare code BEFORE the first `##` block, so capture-and-restore state must be
+# established here (not mid-file between tests, which is silently ignored).
+@original_truemail_validate = Truemail.method(:validate)
+
+# Immutable mock shells matching the Truemail.validate -> .result.success
+# call chain. Built once and reused so each test avoids re-allocating Structs.
+TruemailMockResult    = Data.define(:success)
+TruemailMockValidator = Data.define(:result)
+TRUEMAIL_VALID_MOCK   = TruemailMockValidator.new(result: TruemailMockResult.new(success: true))
+TRUEMAIL_INVALID_MOCK = TruemailMockValidator.new(result: TruemailMockResult.new(success: false))
+
 # --- Constants ---
 
 ## SignupConfig defines STRATEGY_TYPES constant
@@ -268,6 +280,190 @@ end
 
 ## valid_signup_email? allows any valid email format when JSON is corrupted
 @corrupt_config.valid_signup_email?('anyone@anywhere.com')
+#=> true
+
+# --- Network Validation Strategy Tests (mx / smtp) ---
+#
+# These tests use Truemail stubbing to exercise the :mx and :smtp validation
+# strategies without making real DNS / SMTP network calls. Coverage:
+#   - Success path: Truemail validates -> valid_signup_email? returns true
+#   - Failure path: Truemail rejects  -> valid_signup_email? returns false
+#   - Early return: format check rejects malformed input before Truemail runs
+#   - Rescue path:  Truemail raises   -> falls back to format-only validation
+#   - build_truemail_config: copies global settings, sets requested type
+#   - Truemail is invoked with custom_configuration: kwarg (not with:)
+#
+# Note: @original_truemail_validate, TRUEMAIL_VALID_MOCK, and TRUEMAIL_INVALID_MOCK
+# are defined in the file's top-level setup (before the first `##` block).
+# Tryouts only runs bare code before the first test marker.
+
+## Setup: create a CustomDomain and SignupConfig for mx strategy
+@ts_mx     = Familia.now.to_i
+@domain_mx = Onetime::CustomDomain.create!("sc-mx-#{@ts_mx}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@mx_config = Onetime::CustomDomain::SignupConfig.create!(
+  domain_id: @domain_mx.identifier,
+  validation_strategy: 'mx',
+  enabled: true,
+)
+@mx_config.validation_strategy
+#=> 'mx'
+
+## Setup: create a CustomDomain and SignupConfig for smtp strategy
+@ts_smtp     = Familia.now.to_i
+@domain_smtp = Onetime::CustomDomain.create!("sc-smtp-#{@ts_smtp}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@smtp_config = Onetime::CustomDomain::SignupConfig.create!(
+  domain_id: @domain_smtp.identifier,
+  validation_strategy: 'smtp',
+  enabled: true,
+)
+@smtp_config.validation_strategy
+#=> 'smtp'
+
+# --- build_truemail_config (private helper) ---
+
+## build_truemail_config returns a Truemail::Configuration instance
+@mx_config.send(:build_truemail_config, validation_type: :mx).is_a?(Truemail::Configuration)
+#=> true
+
+## build_truemail_config sets default_validation_type to :mx
+@mx_config.send(:build_truemail_config, validation_type: :mx).default_validation_type
+#=> :mx
+
+## build_truemail_config sets default_validation_type to :smtp
+@mx_config.send(:build_truemail_config, validation_type: :smtp).default_validation_type
+#=> :smtp
+
+## build_truemail_config copies verifier_email from the global Truemail config
+@mx_config.send(:build_truemail_config, validation_type: :mx).verifier_email == Truemail.configuration.verifier_email
+#=> true
+
+## build_truemail_config copies verifier_domain from the global Truemail config
+@mx_config.send(:build_truemail_config, validation_type: :mx).verifier_domain == Truemail.configuration.verifier_domain
+#=> true
+
+## build_truemail_config copies connection_timeout from the global Truemail config
+@mx_config.send(:build_truemail_config, validation_type: :mx).connection_timeout == Truemail.configuration.connection_timeout
+#=> true
+
+## build_truemail_config copies response_timeout from the global Truemail config
+@mx_config.send(:build_truemail_config, validation_type: :mx).response_timeout == Truemail.configuration.response_timeout
+#=> true
+
+# --- mx strategy: success / failure / fallback paths ---
+
+## mx strategy returns true when Truemail validates successfully
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  TRUEMAIL_VALID_MOCK
+end
+@mx_config.valid_signup_email?('user@example.com')
+#=> true
+
+## mx strategy returns false when Truemail rejects the email
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  TRUEMAIL_INVALID_MOCK
+end
+@mx_config.valid_signup_email?('user@example.com')
+#=> false
+
+## mx strategy rejects malformed email before invoking Truemail
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  raise 'Truemail.validate should not be called for malformed input'
+end
+@mx_config.valid_signup_email?('not-an-email')
+#=> false
+
+## mx strategy falls back to format-only validation when Truemail raises (valid format passes)
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  raise StandardError, 'DNS timeout'
+end
+@mx_config.valid_signup_email?('user@example.com')
+#=> true
+
+## mx strategy rejects malformed email when Truemail raises (format check runs before Truemail)
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  raise StandardError, 'DNS timeout'
+end
+@mx_config.valid_signup_email?('not-an-email')
+#=> false
+
+# --- smtp strategy: success / failure / fallback paths ---
+
+## smtp strategy returns true when Truemail validates successfully
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  TRUEMAIL_VALID_MOCK
+end
+@smtp_config.valid_signup_email?('user@example.com')
+#=> true
+
+## smtp strategy returns false when Truemail rejects the email
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  TRUEMAIL_INVALID_MOCK
+end
+@smtp_config.valid_signup_email?('user@example.com')
+#=> false
+
+## smtp strategy rejects malformed email before invoking Truemail
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  raise 'Truemail.validate should not be called for malformed input'
+end
+@smtp_config.valid_signup_email?('not-an-email')
+#=> false
+
+## smtp strategy falls back to format-only validation when Truemail raises (valid format passes)
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  raise StandardError, 'SMTP connection refused'
+end
+@smtp_config.valid_signup_email?('user@example.com')
+#=> true
+
+# --- Verify Truemail.validate is invoked with custom_configuration kwarg ---
+#
+# The implementation must use custom_configuration: (per-call override) rather
+# than with: (which would require mutating the global Truemail config).
+
+## mx strategy invokes Truemail.validate with custom_configuration kwarg
+captured = {}
+Truemail.define_singleton_method(:validate) do |_email, **kwargs|
+  captured[:kwargs] = kwargs
+  TRUEMAIL_VALID_MOCK
+end
+@mx_config.valid_signup_email?('user@example.com')
+captured[:kwargs].key?(:custom_configuration)
+#=> true
+
+## mx strategy's custom_configuration has default_validation_type=:mx
+captured = {}
+Truemail.define_singleton_method(:validate) do |_email, **kwargs|
+  captured[:kwargs] = kwargs
+  TRUEMAIL_VALID_MOCK
+end
+@mx_config.valid_signup_email?('user@example.com')
+captured[:kwargs][:custom_configuration].default_validation_type
+#=> :mx
+
+## smtp strategy's custom_configuration has default_validation_type=:smtp
+captured = {}
+Truemail.define_singleton_method(:validate) do |_email, **kwargs|
+  captured[:kwargs] = kwargs
+  TRUEMAIL_VALID_MOCK
+end
+@smtp_config.valid_signup_email?('user@example.com')
+captured[:kwargs][:custom_configuration].default_validation_type
+#=> :smtp
+
+## Truemail.validate receives the email argument unchanged
+captured = {}
+Truemail.define_singleton_method(:validate) do |email, **_kwargs|
+  captured[:email] = email
+  TRUEMAIL_VALID_MOCK
+end
+@mx_config.valid_signup_email?('user@example.com')
+captured[:email]
+#=> 'user@example.com'
+
+## Restore the original Truemail.validate so subsequent code uses the real method
+Truemail.define_singleton_method(:validate, @original_truemail_validate)
+true
 #=> true
 
 # --- Cleanup ---
