@@ -35,21 +35,35 @@ Ruby serializer wiring is TBD — auto-detection rules apply until then.
 
 ## Flipping the variant
 
+Resolution order (highest priority first):
+
+1. **`?variant=<id>` URL query param** — dogfood / debugging escape hatch.
+   Read once per page load; invalid values fall through silently.
+2. **`bootstrap.disabled_homepage.variant`** — operator config via
+   server-injected window state.
+3. **Schema default** in `disabled-homepage.ts`.
+
 Once the Ruby serializer emits `disabled_homepage`, operator config is
-the path: change the value, bounce the app, next page load picks it up.
-No frontend release.
+the long-term path: change the value, bounce the app, next page load
+picks it up. No frontend release. Until then:
 
-Until then, two practical handles:
-
-- **Schema default** (`disabled-homepage.ts`): change
-  `disabledHomepageVariantSchema.default('v1')`. Frontend release required.
+- **Schema default**: change `disabledHomepageVariantSchema.default('v1')`.
+  Requires both a frontend release *and* regenerating the JSON schemas
+  Rhales reads (`pnpm run schemas:rhales:generate`) — Rhales applies
+  defaults server-side, so a frontend-only change is invisible.
 - **Bootstrap window state**: inject in the Ruby HTML template before
   the bundle loads, e.g.
   `window.__BOOTSTRAP_ME__.disabled_homepage = { variant: 'legacy', ... }`.
   Per-deployment, no frontend release.
+- **URL param**: `?variant=legacy` on any disabled-homepage URL.
 
-Override individual feature flags the same way — set `show_promo` /
-`show_what_is_this` to `true` / `false` / `null` (= auto).
+Override individual feature flags the same way via bootstrap — set
+`show_promo` / `show_what_is_this` to `true` / `false` / `null` (= auto).
+
+### Verifying which variant is rendering
+
+Each variant's root element carries a `data-variant` attribute (set by
+the dispatcher) so you can inspect in DevTools without a console log.
 
 ## Auto-detection (suppressed by overrides)
 

@@ -93,6 +93,11 @@ describe('useDisabledConfig', () => {
   });
 
   describe('variant selection', () => {
+    beforeEach(() => {
+      // Reset URL each test so ?variant overrides don't bleed across cases.
+      window.history.replaceState({}, '', '/');
+    });
+
     it('defaults to v1 when bootstrap omits disabled_homepage', () => {
       const { config } = setup();
       expect(config.variant.value).toBe('v1');
@@ -115,6 +120,29 @@ describe('useDisabledConfig', () => {
         },
       });
       expect(config.variant.value).toBe('legacy');
+    });
+
+    it('?variant URL override wins over bootstrap', () => {
+      window.history.replaceState({}, '', '/?variant=legacy');
+      const { config } = setup({ disabledHomepage: { variant: 'v1' } });
+      expect(config.variant.value).toBe('legacy');
+    });
+
+    it('?variant override falls through silently when the value is invalid', () => {
+      window.history.replaceState({}, '', '/?variant=banana');
+      const { config } = setup({ disabledHomepage: { variant: 'minimal' } });
+      expect(config.variant.value).toBe('minimal');
+    });
+
+    it('?variant override is read at composable-call time, not reactively', () => {
+      // Intentional: a mid-session URL mutation doesn't flip the variant
+      // without re-mounting. Mirrors how operators use the override —
+      // pick a variant on page load, not while the page is open.
+      const { config } = setup({ disabledHomepage: { variant: 'v1' } });
+      expect(config.variant.value).toBe('v1');
+
+      window.history.replaceState({}, '', '/?variant=legacy');
+      expect(config.variant.value).toBe('v1');
     });
   });
 

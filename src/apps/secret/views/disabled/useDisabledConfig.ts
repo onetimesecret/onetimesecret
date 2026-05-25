@@ -9,10 +9,29 @@
 // overrides (bootstrap.disabled_homepage) win when set.
 
 import type { DisabledHomepageVariant } from '@/schemas/contracts/disabled-homepage';
+import { disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { storeToRefs } from 'pinia';
 import { computed, type ComputedRef } from 'vue';
+
+/**
+ * Read a one-off variant override from the current URL.
+ *
+ * Operator/dogfood escape hatch: `?variant=legacy` (or `minimal` / `v1`)
+ * wins over bootstrap config. Useful for previewing a variant before
+ * flipping the deployment default, and for sanity-checking dispatch
+ * when bootstrap is suspected of carrying a stale value.
+ *
+ * Invalid or missing values fall through silently.
+ */
+function readUrlVariantOverride(): DisabledHomepageVariant | null {
+  if (typeof window === 'undefined') return null;
+  const raw = new URLSearchParams(window.location.search).get('variant');
+  if (!raw) return null;
+  const parsed = disabledHomepageVariantSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+}
 
 /**
  * Props bag shared by every disabled-homepage variant.
@@ -125,7 +144,13 @@ export function useDisabledConfig(): DisabledHomepageBindings {
 
   const showSignin = computed(() => !!authentication.value?.signin);
 
-  const variant = computed<DisabledHomepageVariant>(() => disabled_homepage.value.variant);
+  // Variant resolution: URL override → bootstrap config. URL is read once
+  // at composable-call time (page loads don't preserve query params); the
+  // bootstrap fallback stays reactive so a $patch still flips the variant.
+  const urlOverride = readUrlVariantOverride();
+  const variant = computed<DisabledHomepageVariant>(
+    () => urlOverride ?? disabled_homepage.value.variant
+  );
 
   // Getter object: `v-bind="props"` evaluates each property on every render,
   // so each getter re-reads its source computed and reactivity is preserved
