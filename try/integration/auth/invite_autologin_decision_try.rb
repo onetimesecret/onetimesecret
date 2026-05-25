@@ -24,7 +24,7 @@ require_relative '../../support/test_helpers'
 OT.boot! :test
 
 require 'web/auth/lib/logging'
-require 'apps/web/auth/operations'
+require 'web/auth/operations'
 
 @test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"
 

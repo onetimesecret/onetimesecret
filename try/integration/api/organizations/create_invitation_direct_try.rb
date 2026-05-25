@@ -48,7 +48,7 @@ true
 #=> true
 
 ## CreateInvitation logic class works directly
-require 'apps/api/organizations/logic'
+require 'api/organizations/logic'
 
 strategy_result = MockStrategyResult.new(session: @session, user: @owner)
 

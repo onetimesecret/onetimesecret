@@ -13,7 +13,7 @@
 # The enabled tests configure the feature inline within each test.
 
 require_relative '../../support/test_logic'
-require 'apps/api/incoming/logic/incoming'
+require 'api/incoming/logic/incoming'
 
 
 OT.boot! :test, false
@@ -93,19 +93,18 @@ end
 
 # Configure incoming secrets on the custom domain for V3 tests
 # The recipient hash needs to match what the config will produce
-@v3_incoming_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
-  'recipients' => [
-    { 'email' => @v3_recipient_email, 'name' => 'V3 Test Recipient' }
-  ],
-  'memo_max_length' => 100,
-  'default_ttl' => 604800
-})
-@v3_custom_domain.update_incoming_secrets_config(@v3_incoming_config)
+@v3_incoming_config = Onetime::CustomDomain::IncomingConfig.create!(
+  domain_id: @v3_custom_domain.identifier,
+  enabled: true,
+  recipients: [
+    { email: @v3_recipient_email, name: 'V3 Test Recipient' }
+  ]
+)
 
 # Get the actual hashed recipient from the config (for use in tests)
-# Note: public_incoming_recipients returns hashes with string keys
+# Note: public_recipients returns hashes with string keys ('digest', 'display_name')
 site_secret = OT.conf.dig('site', 'secret')
-@v3_recipient_hash = @v3_custom_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['digest']
+@v3_recipient_hash = @v3_incoming_config.public_recipients.first['digest']
 
 ## Incoming::Logic::GetConfig class exists
 defined?(Incoming::Logic::GetConfig)
@@ -590,7 +589,7 @@ true
 # Setup is done in global setup section above (before first ## marker).
 
 ## V3 CreateIncomingSecret with custom domain sets receipt.domain_id to resolved domain objid
-# Custom domain uses its own incoming_secrets_config, not global config
+# Custom domain uses its own IncomingConfig record, not global config
 v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
 logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
   'secret' => {

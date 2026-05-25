@@ -149,13 +149,15 @@ resolver.enabled?
 #=> false
 
 ## Custom domain with recipients becomes enabled
-# Add recipients to the domain config
-config = @test_domain.incoming_secrets_config
-config.set_incoming_recipients([
-  { 'email' => 'support@example.com', 'name' => 'Support' },
-  { 'email' => 'admin@example.com', 'name' => 'Admin' }
-])
-@test_domain.update_incoming_secrets_config(config)
+# Create IncomingConfig with explicit enabled toggle + recipients
+Onetime::CustomDomain::IncomingConfig.create!(
+  domain_id: @test_domain.identifier,
+  enabled: true,
+  recipients: [
+    { email: 'support@example.com', name: 'Support' },
+    { email: 'admin@example.com', name: 'Admin' }
+  ]
+)
 
 resolver = Onetime::Incoming::RecipientResolver.new(
   domain_strategy: :custom,

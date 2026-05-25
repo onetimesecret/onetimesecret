@@ -45,11 +45,20 @@ const featuresRegionJurisdictionSchema = z.object({
 
 /**
  * Regions feature configuration
+ *
+ * `jurisdictions` is intentionally permissive: the shipped YAML uses
+ * `<%= ENV['JURISDICTIONS'] || '' %>`, which evaluates to a string (CSV when
+ * set, empty/nil when not). Ruby parses that into the array shape elsewhere.
+ * Accepting array | string | null here lets `bin/ots config validate` pass
+ * on the raw post-ERB YAML without weakening the validated array shape when
+ * an operator does provide a structured list.
  */
 const featuresRegionsSchema = z.object({
   enabled: z.boolean().default(false),
   current_jurisdiction: nullableString,
-  jurisdictions: z.array(featuresRegionJurisdictionSchema).optional(),
+  jurisdictions: z
+    .union([z.array(featuresRegionJurisdictionSchema), z.string(), z.null()])
+    .optional(),
 });
 
 /**
@@ -65,11 +74,16 @@ const featuresDomainsProxySchema = z.object({
 
 /**
  * ACME endpoint configuration (for caddy_on_demand strategy)
+ *
+ * `port` accepts string or number: the shipped YAML uses
+ * `<%= ENV['ACME_PORT'] || '12020' %>`, which renders to the bareword
+ * `12020`, and YAML auto-coerces that to an integer at parse time.
+ * Both representations are semantically the same TCP port.
  */
 const featuresDomainsAcmeSchema = z.object({
   enabled: z.boolean().default(false),
   listen_address: z.string().default('127.0.0.1'),
-  port: z.string().default('12020'),
+  port: z.union([z.string(), z.number()]).default('12020'),
 });
 
 /**

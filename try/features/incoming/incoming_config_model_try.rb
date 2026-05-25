@@ -62,8 +62,8 @@ end
 config = IncomingConfig.create!(domain_id: "hash_test_#{@ts}_1")
 config.recipients = [{ email: 'test@example.com', name: 'Test' }]
 config.save
-hash1 = config.public_recipients.first[:hash]
-hash2 = config.public_recipients.first[:hash]
+hash1 = config.public_recipients.first['digest']
+hash2 = config.public_recipients.first['digest']
 config.destroy!
 hash1 == hash2 && hash1.length == 64
 #=> true
@@ -72,8 +72,8 @@ hash1 == hash2 && hash1.length == 64
 config = IncomingConfig.create!(domain_id: "hash_test_#{@ts}_2")
 config.recipients = [{ email: 'alice@example.com', name: 'Alice' }]
 config.save
-first_call = config.public_recipients.first[:hash]
-second_call = config.public_recipients.first[:hash]
+first_call = config.public_recipients.first['digest']
+second_call = config.public_recipients.first['digest']
 config.destroy!
 first_call == second_call
 #=> true
@@ -85,7 +85,7 @@ config.recipients = [
   { email: 'carol@example.com', name: 'Carol' }
 ]
 config.save
-bob_hash = config.public_recipients.find { |r| r[:name] == 'Bob' }[:hash]
+bob_hash = config.public_recipients.find { |r| r['display_name'] == 'Bob' }['digest']
 found_email = config.lookup_recipient_email(bob_hash)
 config.destroy!
 found_email
@@ -95,7 +95,7 @@ found_email
 config = IncomingConfig.create!(domain_id: "hash_test_#{@ts}_4")
 config.recipients = [{ email: 'verify@example.com', name: 'Verify' }]
 config.save
-pub_hash = config.public_recipients.first[:hash]
+pub_hash = config.public_recipients.first['digest']
 lookup_result = config.lookup_recipient_email(pub_hash)
 config.destroy!
 lookup_result

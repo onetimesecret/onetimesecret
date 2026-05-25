@@ -403,6 +403,18 @@
     "text": "Failed to add domain",
     "content_hash": "5fc4c4b3"
   },
+  "web.domains.add_access_denied": {
+    "text": "Access Denied",
+    "content_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "You don't have permission to add domains to this organization. Contact your organization administrator.",
+    "content_hash": "25e035c6"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Only organization owners and admins can add custom domains",
+    "content_hash": "3324aabe"
+  },
   "web.domains.domain_added_successfully": {
     "text": "Domain added successfully",
     "content_hash": "dd8180cf"

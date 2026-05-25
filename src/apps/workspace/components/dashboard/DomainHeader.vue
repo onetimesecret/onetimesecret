@@ -29,8 +29,16 @@
   // prop contract (domain is CustomDomain | null).
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
-  const { statusIcon, statusColor, displayStatus } = useDomainStatus(
+  const { statusIcon, statusColor, displayStatus, isActive } = useDomainStatus(
     () => props.domain
+  );
+
+  // The external-link icon should only appear when there's a meaningful URL
+  // to follow. Inactive/unverified domains have no live frontend, so the
+  // link would resolve to a non-functional host. Use the boolean isActive
+  // rather than displayStatus, which is a localized string.
+  const showExternalLink = computed(
+    () => !props.hasUnsavedChanges && isActive.value
   );
 </script>
 
@@ -52,7 +60,7 @@
               <a
                 :href="`https://${domain.display_domain}${externalPath}`"
                 target="_blank"
-                v-show="!hasUnsavedChanges"
+                v-show="showExternalLink"
                 rel="noopener noreferrer"
                 class="ml-1
                   text-gray-400 hover:text-gray-600

@@ -1,122 +1,25 @@
 // src/tests/fixtures/incomingConfig.fixture.ts
 //
-// Test fixtures for domain incoming secrets recipients configuration.
-// Used by composable and component tests.
+// Test fixtures for the domain incoming-secrets configuration.
+// All recipients use the plaintext admin-view shape; the legacy hashed
+// `{digest, display_name}` shape was removed alongside the
+// IncomingSecretsConfig backend.
 
-import type { DomainRecipientInput } from '@/schemas/api/domains/requests/domain-recipients';
-import type { DomainRecipientResponse } from '@/schemas/api/domains/responses/domain-recipients';
-import type { IncomingConfigFormState, IncomingConfigServerState } from '@/shared/composables/useIncomingConfig';
-
-// ---------------------------------------------------------------------------
-// Form State Fixtures (plaintext emails for user input)
-// ---------------------------------------------------------------------------
-
-export const emptyFormState: IncomingConfigFormState = {
-  enabled: false,
-  recipients: [],
-};
-
-export const singleRecipientFormState: IncomingConfigFormState = {
-  enabled: true,
-  recipients: [
-    { email: 'security@acme.com', name: 'Security Team' },
-  ],
-};
-
-export const multipleRecipientsFormState: IncomingConfigFormState = {
-  enabled: true,
-  recipients: [
-    { email: 'security@acme.com', name: 'Security Team' },
-    { email: 'support@acme.com', name: 'Support' },
-    { email: 'alerts@acme.com' },
-  ],
-};
-
-export const maxRecipientsFormState: IncomingConfigFormState = {
-  enabled: true,
-  recipients: Array.from({ length: 20 }, (_, i) => ({
-    email: `recipient${i + 1}@acme.com`,
-    name: `Recipient ${i + 1}`,
-  })),
-};
-
-export const nearLimitFormState: IncomingConfigFormState = {
-  enabled: true,
-  recipients: Array.from({ length: 18 }, (_, i) => ({
-    email: `recipient${i + 1}@acme.com`,
-    name: `Recipient ${i + 1}`,
-  })),
-};
+import type { DomainIncomingRecipient } from '@/schemas/shapes/domains/incoming-config';
+import type { IncomingConfigFormState } from '@/shared/composables/useIncomingConfig';
 
 // ---------------------------------------------------------------------------
-// Server State Fixtures (hashed digests from API responses)
+// Recipient fixtures (plaintext)
 // ---------------------------------------------------------------------------
 
-export const emptyServerState: IncomingConfigServerState = {
-  recipients: [],
-};
-
-export const singleRecipientServerState: IncomingConfigServerState = {
-  recipients: [
-    { digest: 'sha256_abc123', display_name: 'Security Team' },
-  ],
-};
-
-export const multipleRecipientsServerState: IncomingConfigServerState = {
-  recipients: [
-    { digest: 'sha256_abc123', display_name: 'Security Team' },
-    { digest: 'sha256_def456', display_name: 'Support' },
-    { digest: 'sha256_ghi789', display_name: '' },
-  ],
-};
-
-export const maxRecipientsServerState: IncomingConfigServerState = {
-  recipients: Array.from({ length: 20 }, (_, i) => ({
-    digest: `sha256_digest${i + 1}`,
-    display_name: `Recipient ${i + 1}`,
-  })),
-};
-
-// ---------------------------------------------------------------------------
-// API Response Fixtures
-// ---------------------------------------------------------------------------
-
-export const mockRecipientsResponse = {
-  recipients: multipleRecipientsServerState.recipients,
-  canManage: true,
-  maxRecipients: 20,
-};
-
-export const mockEmptyRecipientsResponse = {
-  recipients: [],
-  canManage: true,
-  maxRecipients: 20,
-};
-
-export const mockPutRecipientsResponse = {
-  recipients: [
-    { digest: 'sha256_new123', display_name: 'New Recipient' },
-  ],
-  canManage: true,
-  maxRecipients: 20,
-};
-
-export const mockDeleteRecipientsResponse = {
-  success: true,
-  message: 'Recipients deleted successfully',
-};
-
-// ---------------------------------------------------------------------------
-// Input Data Fixtures
-// ---------------------------------------------------------------------------
-
-export const validRecipientInput: DomainRecipientInput = {
+export const validRecipientInput: DomainIncomingRecipient = {
   email: 'new@example.com',
   name: 'New Recipient',
 };
 
-export const validRecipientInputNoName: DomainRecipientInput = {
+export const validRecipientInputNoName: DomainIncomingRecipient = {
   email: 'another@example.com',
+  name: 'another',
 };
 
 export const invalidEmailInputs = [
@@ -135,32 +38,117 @@ export const validEmailInputs = [
 ];
 
 // ---------------------------------------------------------------------------
-// Raw API Response Fixtures (for schema validation tests)
+// Form-state fixtures
 // ---------------------------------------------------------------------------
 
-export const mockGetRecipientsApiResponse = {
+export const emptyFormState: IncomingConfigFormState = {
+  enabled: false,
+  recipients: [],
+};
+
+export const singleRecipientFormState: IncomingConfigFormState = {
+  enabled: true,
+  recipients: [{ email: 'security@acme.com', name: 'Security Team' }],
+};
+
+export const multipleRecipientsFormState: IncomingConfigFormState = {
+  enabled: true,
+  recipients: [
+    { email: 'security@acme.com', name: 'Security Team' },
+    { email: 'support@acme.com', name: 'Support' },
+    { email: 'alerts@acme.com', name: 'alerts' },
+  ],
+};
+
+export const maxRecipientsFormState: IncomingConfigFormState = {
+  enabled: true,
+  recipients: Array.from({ length: 20 }, (_, i) => ({
+    email: `recipient${i + 1}@acme.com`,
+    name: `Recipient ${i + 1}`,
+  })),
+};
+
+export const nearLimitFormState: IncomingConfigFormState = {
+  enabled: true,
+  recipients: Array.from({ length: 19 }, (_, i) => ({
+    email: `recipient${i + 1}@acme.com`,
+    name: `Recipient ${i + 1}`,
+  })),
+};
+
+// ---------------------------------------------------------------------------
+// Service response fixtures (what IncomingConfigService returns)
+// ---------------------------------------------------------------------------
+
+export const mockEmptyConfigResponse = {
   record: {
-    recipients: multipleRecipientsServerState.recipients,
-  },
-  details: {
-    can_manage: true,
+    domain_id: 'dom_test_123',
+    enabled: false,
+    recipients: [] as DomainIncomingRecipient[],
     max_recipients: 20,
+    created_at: null,
+    updated_at: null,
   },
 };
 
-export const mockPutRecipientsApiResponse = {
+export const mockSingleRecipientConfigResponse = {
   record: {
+    domain_id: 'dom_test_123',
+    enabled: true,
+    recipients: [{ email: 'security@acme.com', name: 'Security Team' }],
+    max_recipients: 20,
+    created_at: new Date('2026-01-01T00:00:00Z'),
+    updated_at: new Date('2026-01-01T00:00:00Z'),
+  },
+};
+
+export const mockMultipleRecipientsConfigResponse = {
+  record: {
+    domain_id: 'dom_test_123',
+    enabled: true,
     recipients: [
-      { digest: 'sha256_new123', display_name: 'New Recipient' },
+      { email: 'security@acme.com', name: 'Security Team' },
+      { email: 'support@acme.com', name: 'Support' },
     ],
-  },
-  details: {
-    can_manage: true,
     max_recipients: 20,
+    created_at: new Date('2026-01-01T00:00:00Z'),
+    updated_at: new Date('2026-01-15T00:00:00Z'),
   },
 };
 
-export const mockDeleteRecipientsApiResponse = {
-  success: true,
-  message: 'Recipients deleted successfully',
+// ---------------------------------------------------------------------------
+// Raw API envelope fixtures (for schema validation tests)
+// ---------------------------------------------------------------------------
+
+export const mockGetIncomingConfigApiResponse = {
+  record: {
+    domain_id: 'dom_test_123',
+    enabled: true,
+    recipients: [
+      { email: 'security@acme.com', name: 'Security Team' },
+      { email: 'support@acme.com', name: 'Support' },
+    ],
+    max_recipients: 20,
+    created_at: 1735689600,
+    updated_at: 1736899200,
+  },
+  details: {
+    can_manage: true,
+    feature_available: true,
+  },
+};
+
+export const mockEmptyIncomingConfigApiResponse = {
+  record: {
+    domain_id: 'dom_test_123',
+    enabled: false,
+    recipients: [],
+    max_recipients: 20,
+    created_at: null,
+    updated_at: null,
+  },
+  details: {
+    can_manage: true,
+    feature_available: true,
+  },
 };

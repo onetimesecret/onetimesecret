@@ -29,17 +29,37 @@ module DomainsAPI
 
         def raise_concerns
           # Require authenticated user
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+          if cust.anonymous?
+            raise_form_error(
+              'Authentication required',
+              error_key: 'api.errors.authentication_required',
+              field: :user_id,
+              error_type: :unauthorized,
+            )
+          end
 
           # Validate domain_id parameter
-          raise_form_error('Domain ID required', field: :domain_id, error_type: :missing) if @domain_id.to_s.empty?
+          if @domain_id.to_s.empty?
+            raise_form_error(
+              'Domain ID required',
+              error_key: 'api.domains.errors.domain_id_required',
+              field: :domain_id,
+              error_type: :missing,
+            )
+          end
 
           # Load domain and organization, verify ownership and entitlement
           authorize_domain_incoming!(@domain_id)
 
           # Load incoming config
           @incoming_config = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(@custom_domain.identifier)
-          raise_not_found("Incoming configuration not found for domain: #{@domain_id}") if @incoming_config.nil?
+          if @incoming_config.nil?
+            raise_not_found(
+              "Incoming configuration not found for domain: #{@domain_id}",
+              error_key: 'api.domains.errors.incoming_config_not_found',
+              args: { extid: @domain_id },
+            )
+          end
         end
 
         def process

@@ -15,6 +15,7 @@
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { useDomainsStore } from '@/shared/stores/domainsStore';
   import { ENTITLEMENTS } from '@/types/organization';
@@ -22,7 +23,6 @@
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { computed } from 'vue';
-  import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
 
@@ -42,9 +42,8 @@ const { t } = useI18n();
   const addDomainRoute = computed(() => `/org/${props.orgid}/domains/add`);
 
   const organizationStore = useOrganizationStore();
-  const { organizations } = storeToRefs(organizationStore);
-  const organization = computed(() =>
-    organizations.value.find((o) => o.extid === props.orgid) ?? null
+  const organization = computed(
+    () => organizationStore.getOrganizationByExtid(props.orgid) ?? null
   );
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
@@ -52,11 +51,8 @@ const { t } = useI18n();
   const canEmailConfig = computed(() => isOrgsCustomMailEnabled() && can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
   const canIncomingSecrets = computed(() => isOrgsIncomingSecretsEnabled() && can(ENTITLEMENTS.INCOMING_SECRETS));
 
-  /** Current user is owner or admin — can modify domain settings */
-  const canAdmin = computed(() => {
-    const role = organization.value?.current_user_role;
-    return role === 'owner' || role === 'admin';
-  });
+  /** Role-based permissions for the org backing this table (see #3033). */
+  const { isOwnerOrAdmin: canAdmin, canCreateDomain } = useOrgPermissions(organization);
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
@@ -101,6 +97,7 @@ const { t } = useI18n();
           </p>
         </div>
         <router-link
+          v-if="canCreateDomain"
           :to="addDomainRoute"
           class="inline-flex shrink-0 whitespace-nowrap items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
           <OIcon

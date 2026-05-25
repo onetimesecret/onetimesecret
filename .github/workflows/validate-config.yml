@@ -53,16 +53,7 @@ jobs:
         run: pnpm install
 
       - name: Generate JSON schemas
-        run: pnpm run schema:generate
+        run: pnpm run schemas:json:generate
 
-      - name: Show config
-        run: pnpm run config
-
-      - name: Show config types
-        run: pnpm run config --types
-
-      - name: Validate test config
-        continue-on-error: true
-        run: |
-          echo "Validating test configuration (may have intentional errors)..."
-          bin/ots validate tests/unit/ruby/config.test.yaml || true
+      - name: Validate config.defaults.yaml against the generated schema
+        run: bin/ots config validate

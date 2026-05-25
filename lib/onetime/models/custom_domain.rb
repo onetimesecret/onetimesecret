@@ -107,7 +107,11 @@ module Onetime
     hashkey :brand
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
-    jsonkey :incoming_secrets  # Per-domain incoming secrets config (JSON blob)
+    # Legacy JSON blob. Read-only; consumed by the migrate_incoming_secrets_to_config
+    # chore that copies entries into the IncomingConfig Familia model. The field
+    # declaration is intentionally retained so the chore can read the legacy
+    # value; remove it in a follow-up release once all domains report migrated.
+    jsonkey :incoming_secrets
 
     # Familia v2 relationships
     # Participate in Organization.domains collection (auto-generated sorted_set)
@@ -487,82 +491,6 @@ module Onetime
       @brand_settings ||= BrandSettings.from_hash(brand.hgetall)
     end
 
-    # Returns incoming secrets configuration as an IncomingSecretsConfig object.
-    # The JSON blob is parsed from the incoming_secrets jsonkey.
-    #
-    # NOTE: incoming_secrets returns a JsonStringKey object, not a raw string.
-    # We must call .value to get the actual JSON string (or nil if not set).
-    #
-    # @return [IncomingSecretsConfig] Parsed config instance
-    def incoming_secrets_config
-      @incoming_secrets_config ||= IncomingSecretsConfig.from_json(incoming_secrets.value)
-    end
-
-    # Cached lookup table for incoming recipient hash-to-email mapping.
-    # Avoids recomputing SHA256 hashes on every lookup (up to 20 ops/call).
-    #
-    # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
-    # Returns frozen hash for thread safety and to match canonical domain pattern.
-    # Returns empty frozen hash when site_secret is nil/blank (fail closed).
-    #
-    # @param site_secret [String] Site secret used as hash salt
-    # @return [Hash<String, String>] Frozen hash mapping recipient hashes to emails
-    def cached_incoming_recipient_lookup(site_secret)
-      return {}.freeze if site_secret.nil? || site_secret.to_s.strip.empty?
-
-      cache_key                           = Digest::SHA256.hexdigest(site_secret.to_s)
-      (@incoming_recipient_lookup_cache ||= {})[cache_key] ||=
-        incoming_secrets_config.incoming_recipient_lookup(site_secret).freeze
-    end
-
-    # Cached public recipients list for frontend display.
-    # Avoids recomputing SHA256 hashes on every request.
-    #
-    # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
-    # Returns frozen array for thread safety and to match canonical domain pattern.
-    # Returns empty frozen array when site_secret is nil/blank (fail closed).
-    #
-    # @param site_secret [String] Site secret used as hash salt
-    # @return [Array<Hash>] Frozen array of {hash:, name:} hashes
-    def cached_public_incoming_recipients(site_secret)
-      return [].freeze if site_secret.nil? || site_secret.to_s.strip.empty?
-
-      cache_key                            = Digest::SHA256.hexdigest(site_secret.to_s)
-      (@public_incoming_recipients_cache ||= {})[cache_key] ||=
-        incoming_secrets_config.public_incoming_recipients(site_secret).freeze
-    end
-
-    # Update the incoming secrets config and persist to Redis
-    #
-    # @param config [IncomingSecretsConfig] The config to persist
-    # @return [void]
-    def update_incoming_secrets_config(config)
-      @incoming_secrets_config           = nil # clear config cache
-      @incoming_recipient_lookup_cache   = nil # clear lookup cache
-      @public_incoming_recipients_cache  = nil # clear public recipients cache
-      self.incoming_secrets              = config.to_json
-      self.updated                       = OT.now.to_i
-      save
-    end
-
-    # HomepageConfig / ApiConfig are the single source of truth post-#3023
-    # backfill, and new domains receive default-disabled records via
-    # {.create!}. A missing record at this point signals data corruption
-    # (manual Redis deletion, partial restore, etc.) — but this is a hot
-    # read path on the authorization side of a Rack handler with no
-    # supervisor, so we fail closed (return false) and log loudly rather
-    # than raise. Raising here would 5xx the user on integrity violations
-    # they have no power to fix; the log + safe default lets the request
-    # complete (denied by default, which IS the secure choice for a
-    # public-homepage toggle) while still surfacing the drift to ops.
-    #
-    # Discipline:
-    # - Write path (create! bootstrap, brand PUT upsert, migration) raises
-    #   on integrity violations — that's the right place to be strict.
-    # - Read path here returns false + logs. Operators should monitor for
-    #   this log line and treat its rate as an alertable signal.
-    # - Ruby `?`-suffix convention is preserved (boolean return), so the
-    #   predicate composes cleanly with `&&` / `||` like every other.
     def allow_public_homepage?
       homepage_config = HomepageConfig.find_by_domain_id(identifier)
       unless homepage_config
