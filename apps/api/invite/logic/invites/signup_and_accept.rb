@@ -122,10 +122,19 @@ module InviteAPI::Logic
         end
 
         # Reload the invitation to pick up the acceptance state written by the hook.
-        @invitation = load_invitation(@token)
+        # NOTE: cannot use find_by_token here — accept! removes the token from
+        # token_lookup (pending-only index, cleared for security). Look up the
+        # now-active membership via org_customer_lookup, which accept! populates.
+        org_objid   = @invitation.organization_objid
+        @invitation = Onetime::OrganizationMembership.find_by_org_customer(
+          org_objid,
+          @customer.objid,
+        )
         if @invitation.nil? || @invitation.pending?
           auth_logger.error 'Invitation not accepted by hook',
-            token_prefix: @token[0..7]
+            token_prefix: @token[0..7],
+            org_objid: org_objid,
+            customer_objid: @customer.objid
           raise_form_error('Failed to accept invitation', field: :token)
         end
 
@@ -197,17 +206,27 @@ module InviteAPI::Logic
         # branch fires (see apps/web/auth/config/features/account_management.rb).
         # Without this, Rodauth tries to build a verify-account URL and fails on
         # the missing `domain` (internal_request has no HTTP host).
-        result = Auth::Config.create_account(
+        #
+        # Rodauth's internal_request create_account returns nil on success by
+        # contract (see rodauth_spec.rb assertions of `must_be_nil`); errors are
+        # signalled via Rodauth::InternalRequestError. Look up the account row
+        # by email after the call to obtain the account_id.
+        Auth::Config.create_account(
           login: normalize_email(@email),
           password: @password,
           params: { 'invite_token' => @token },
         )
 
-        unless result
+        account = Auth::Database.connection[:accounts]
+          .where(email: normalize_email(@email)).first
+
+        unless account
+          auth_logger.error 'Account row missing after create_account',
+            email: OT::Utils.obscure_email(@email)
           raise_form_error('Failed to create account', field: :email)
         end
 
-        result # Returns account_id on success
+        account[:id]
       rescue Rodauth::InternalRequestError => ex
         auth_logger.error 'Rodauth internal_request error',
           exception: ex,

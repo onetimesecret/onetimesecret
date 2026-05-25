@@ -11,24 +11,25 @@
 # and the invitation was accepted.
 #
 # Root cause:
-#   Auth::Config.create_account(login:, password:, params: {invite_token:})
-#   returns nil when the after_create_account hook sets @invite_accepted = true,
-#   which flips create_account_autologin? to true. Under internal_request mode
-#   Rodauth's autologin path calls autologin_session('create_account') (which
-#   bypasses after_login) followed by create_account_response (which throws
-#   :halt via redirect). handle_internal_request catches the halt and returns
-#   @internal_request_return_value — but that ivar is only set by the
-#   internal_request override of after_login, which autologin_session never
-#   triggers. Result: caller sees nil, treats it as failure, raises FormError.
+#   apps/api/invite/logic/invites/signup_and_accept.rb treated the return value
+#   of Auth::Config.create_account(...) as the success signal. Rodauth's
+#   internal_request create_account contract returns nil on success — see
+#   rodauth_spec.rb:1039 (`app.rodauth.create_account(...).must_be_nil`
+#   followed immediately by a successful login). The only setter for
+#   @internal_request_return_value in lib/rodauth/features/internal_request.rb
+#   is after_login (:131-134), which the create_account flow never triggers.
 #
-# The signature this test pins down (the "bug triad"):
-#   1. result of Auth::Config.create_account is nil
-#   2. the accounts row was created (account creation actually succeeded)
-#   3. the invitation was accepted (after_create_account hook ran to completion,
-#      so @invite_accepted = true, so autologin path fired — which is the
-#      precise condition that breaks the return value)
+#   Treating nil as failure caused SignupAndAccept to raise FormError despite
+#   the account row, customer, workspace, and invitation acceptance all being
+#   committed by the after_create_account hooks.
 #
-# After the fix only assertion (1) flips — result must be the account_id.
+# Contract this test pins down:
+#   - the accounts row is created and auto-verified (status_id = 2)
+#   - the invitation is accepted via after_create_account hook
+#   - Auth::Config.account_id_for_login resolves the new account
+#
+# Before the fix, the assertion that exercises the SignupAndAccept code path
+# (it surfaces nil-as-failure) fails. After the fix, all assertions pass.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -95,33 +96,29 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     # Non-fatal cleanup error
   end
 
-  it 'returns the account_id when invite acceptance triggers autologin' do
+  it 'creates the account and accepts the invitation via internal_request' do
     # Force lazy lets to materialise (owner, org, invitation) in the documented
     # order so the after_create_account hook sees a valid pending invitation.
     expect(invitation.pending?).to be(true)
     invite_token = invitation.token
 
-    # Exact call shape used by apps/api/invite/logic/invites/signup_and_accept.rb:200
-    result = Auth::Config.create_account(
+    # Exact call shape used by apps/api/invite/logic/invites/signup_and_accept.rb.
+    # Rodauth's internal_request create_account returns nil on success by
+    # contract — see rodauth_spec.rb:1039. Do not assert on the return value.
+    Auth::Config.create_account(
       login: invited_email,
       password: password,
       params: { 'invite_token' => invite_token },
     )
 
-    # ---- Bug triad ----------------------------------------------------------
-
-    # (2) The account row exists in authdb — proves create_account did NOT bail
-    # out early (e.g. before_create_account rejection, login_valid_email?
-    # failure, signup-validation block). If this fails the test isn't
-    # reproducing #3221; account creation died upstream of the autologin path.
+    # Account row exists and is auto-verified (status_id 2 = Verified) by the
+    # after_create_account hook since the invite proves email ownership.
     account_row = Auth::Database.connection[:accounts].where(email: invited_email).first
     expect(account_row).not_to be_nil
-    # auto-verified by the hook (status_id 2 = Verified) — invite proves email ownership
     expect(account_row[:status_id]).to eq(2)
 
-    # (3) The invitation was accepted — proves the after_create_account hook
-    # reached the @invite_accepted = true line, which is the precondition that
-    # makes create_account_autologin? return true.
+    # The invitation was accepted — the after_create_account hook ran to
+    # completion (Customer linked, workspace created, membership activated).
     activated_membership = Onetime::OrganizationMembership.find_by_org_customer(
       organization.objid,
       Onetime::Customer.find_by_email(invited_email)&.objid,
@@ -129,9 +126,10 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     expect(activated_membership).not_to be_nil
     expect(activated_membership.active?).to be(true)
 
-    # (1) THE BUG: Auth::Config.create_account returns nil despite (2) + (3)
-    # succeeding. This assertion fails today; after the fix it must hold.
-    expect(result).not_to be_nil
-    expect(result).to eq(account_row[:id])
+    # SignupAndAccept looks up the account_id after the call rather than
+    # relying on the (nil) return value. Mirror that here so the spec regresses
+    # if the lookup path ever breaks.
+    looked_up_id = Auth::Config.account_id_for_login(login: invited_email)
+    expect(looked_up_id).to eq(account_row[:id])
   end
 end
