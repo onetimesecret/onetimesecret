@@ -44,6 +44,13 @@
 </script>
 
 <template>
+  <!--
+    Top-left of the page is intentionally empty. Reserved for a future
+    canonical brand logo (configured at the deployment level, distinct
+    from the per-tenant custom-domain logo which renders at the centre
+    of each variant). The disabled-homepage routes hide the layout
+    masthead so this area is genuinely free.
+  -->
   <component
     :is="ActiveVariant"
     :data-variant="variant"

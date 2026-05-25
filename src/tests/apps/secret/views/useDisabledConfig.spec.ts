@@ -1,9 +1,9 @@
-// src/tests/apps/secret/conceal/useDisabledConfig.spec.ts
+// src/tests/apps/secret/views/useDisabledConfig.spec.ts
 //
 // Unit tests for the disabled-homepage dispatcher composable. Covers:
 // - Auto-detection rules (branded vs unbranded vs canonical contexts)
 // - Tri-state operator overrides (null = auto, true/false = force)
-// - href derivation from siteHost with empty-host gating
+// - href derivation (recipient_intro from config, promo from siteHost)
 // - Variant id propagation and reactivity through Pinia
 //
 // The composable is the single composition root for the disabled-homepage
@@ -31,6 +31,7 @@ interface SetupOptions {
   siteHost?: string;
   billingEnabled?: boolean;
   authSignin?: boolean;
+  recipientIntroUrl?: string | null;
   disabledHomepage?: {
     variant?: 'v1' | 'minimal' | 'legacy';
     show_promo?: boolean | null;
@@ -52,6 +53,15 @@ function setup(opts: SetupOptions = {}) {
     authentication: {
       ...bootstrap.authentication,
       signin: opts.authSignin ?? true,
+    },
+    ui: {
+      ...bootstrap.ui,
+      homepage: {
+        ...(bootstrap.ui.homepage ?? { matching_cidrs: [], mode_header: 'O-Homepage-Mode' }),
+        public_links: {
+          recipient_intro: opts.recipientIntroUrl ?? null,
+        },
+      },
     },
     disabled_homepage: {
       variant: opts.disabledHomepage?.variant ?? 'v1',
@@ -225,18 +235,18 @@ describe('useDisabledConfig', () => {
   });
 
   describe('showWhatIsThis auto-detection', () => {
-    it('false on canonical', () => {
-      const { config } = setup({ domainStrategy: 'canonical' });
+    it('false when recipient_intro URL is not configured', () => {
+      const { config } = setup({ recipientIntroUrl: null });
       expect(config.props.showWhatIsThis).toBe(false);
     });
 
-    it('true on custom domain', () => {
-      const { config } = setup({ domainStrategy: 'custom' });
+    it('true when recipient_intro URL is configured', () => {
+      const { config } = setup({ recipientIntroUrl: 'https://example.com/about' });
       expect(config.props.showWhatIsThis).toBe(true);
     });
 
-    it('false when siteHost is empty (href would be unresolvable)', () => {
-      const { config } = setup({ domainStrategy: 'custom', siteHost: '' });
+    it('false when recipient_intro is whitespace-only', () => {
+      const { config } = setup({ recipientIntroUrl: '   ' });
       expect(config.props.showWhatIsThis).toBe(false);
     });
   });
@@ -272,43 +282,48 @@ describe('useDisabledConfig', () => {
       expect(config.props.showPromo).toBe(true);
     });
 
-    it('show_what_is_this override applies the same way', () => {
-      const a = setup({
-        domainStrategy: 'canonical',
-        disabledHomepage: { show_what_is_this: true },
-      });
-      // Forced on, but still suppressed by empty-siteHost guard isn't
-      // triggered here — siteHost has the default.
-      expect(a.config.props.showWhatIsThis).toBe(true);
-
-      const b = setup({
-        domainStrategy: 'custom',
+    it('show_what_is_this=false forces hide even when URL is configured', () => {
+      const { config } = setup({
+        recipientIntroUrl: 'https://example.com/about',
         disabledHomepage: { show_what_is_this: false },
       });
-      expect(b.config.props.showWhatIsThis).toBe(false);
+      expect(config.props.showWhatIsThis).toBe(false);
     });
 
-    it('empty siteHost suppresses even a true override', () => {
+    it('show_what_is_this=true cannot resurrect a missing URL', () => {
+      // Forcing the flag on without a configured destination would render
+      // a link with href=null. Suppress instead.
+      const { config } = setup({
+        recipientIntroUrl: null,
+        disabledHomepage: { show_what_is_this: true },
+      });
+      expect(config.props.showWhatIsThis).toBe(false);
+    });
+
+    it('empty siteHost suppresses a forced show_promo override', () => {
       const { config } = setup({
         domainStrategy: 'custom',
         siteHost: '',
-        disabledHomepage: { show_promo: true, show_what_is_this: true },
+        disabledHomepage: { show_promo: true },
       });
       expect(config.props.showPromo).toBe(false);
-      expect(config.props.showWhatIsThis).toBe(false);
     });
   });
 
   describe('href derivation', () => {
-    it('builds whatIsThisHref from siteHost', () => {
+    it('whatIsThisHref comes from the operator-configured URL', () => {
       const { config } = setup({
-        domainStrategy: 'custom',
-        siteHost: 'onetime.example.com',
+        recipientIntroUrl: 'https://example.com/about',
       });
-      expect(config.props.whatIsThisHref).toBe('https://onetime.example.com/');
+      expect(config.props.whatIsThisHref).toBe('https://example.com/about');
     });
 
-    it('builds promoHref from siteHost with /pricing path', () => {
+    it('whatIsThisHref is null when not configured', () => {
+      const { config } = setup({ recipientIntroUrl: null });
+      expect(config.props.whatIsThisHref).toBeNull();
+    });
+
+    it('promoHref still derives from siteHost (canonical pricing page)', () => {
       const { config } = setup({
         domainStrategy: 'custom',
         brandDescription: null,
@@ -318,9 +333,8 @@ describe('useDisabledConfig', () => {
       expect(config.props.promoHref).toBe('https://onetime.example.com/pricing');
     });
 
-    it('returns null hrefs when siteHost is empty', () => {
+    it('promoHref is null when siteHost is empty', () => {
       const { config } = setup({ siteHost: '' });
-      expect(config.props.whatIsThisHref).toBeNull();
       expect(config.props.promoHref).toBeNull();
     });
   });

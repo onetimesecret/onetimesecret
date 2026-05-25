@@ -70,10 +70,32 @@ the dispatcher) so you can inspect in DevTools without a console log.
 - **`isBranded`** = `isCustom && !!brand.description`
 - **`showPromo`** = unbranded custom domain on a SaaS deployment
   (`!isBranded && isCustom && billing_enabled && !!siteHost`)
-- **`showWhatIsThis`** = `isCustom && !!siteHost`
+- **`showWhatIsThis`** = `!!ui.homepage.public_links.recipient_intro`
+  (operator-configured URL is the destination; no URL means no link)
 
-Empty `site_host` produces null hrefs and forces both flags off — an
-operator override can't resurrect a link to `https:///`.
+Missing URLs suppress the matching affordance — an operator override
+can't resurrect a link to `https:///` or to `null`.
+
+## Centred logo
+
+Priority for the centred mark each variant renders:
+
+1. `logoUri` (custom-domain logo configured by the tenant)
+2. Monogram derived from `brand.description` (branded fallback)
+3. Default OTS mark
+
+The top-left of the page is intentionally empty (the layout-level
+masthead is suppressed for the disabled-homepage routes). That slot is
+reserved for a future canonical-brand logo configured at the deployment
+level.
+
+## Operator-configured links
+
+| field                                                | env var                                  |
+| ---------------------------------------------------- | ---------------------------------------- |
+| `ui.homepage.public_links.recipient_intro` (string?) | `HOMEPAGE_PUBLIC_LINKS_RECIPIENT_INTRO`  |
+
+Set in `etc/defaults/config.defaults.yaml` under `site.interface.ui.homepage.public_links`.
 
 ## Adding a variant
 

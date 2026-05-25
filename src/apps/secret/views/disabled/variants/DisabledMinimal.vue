@@ -35,10 +35,10 @@
 
 <template>
   <div class="mx-auto flex w-full max-w-xl flex-col items-center px-4 pb-12 pt-20 text-center sm:pt-28">
-    <!-- Small mark -->
+    <!-- Small mark — priority: configured custom-domain logo → branded monogram → OTS mark -->
     <div class="mb-6 flex items-center justify-center">
       <img
-        v-if="isBranded && hasUsableLogo"
+        v-if="hasUsableLogo"
         :src="logoUri ?? ''"
         :alt="$t('homepage_secrets.disabled.logo_alt', { name: workspaceName })"
         class="h-12 w-auto max-w-[120px] object-contain"

@@ -62,7 +62,7 @@ export interface DisabledHomepageProps {
   showSignin: boolean;
   /** Whether to render the "What is this?" link. */
   showWhatIsThis: boolean;
-  /** External href for "What is this?" — null when unresolvable. */
+  /** Operator-configured URL for "What is this link?" — null when unset. */
   whatIsThisHref: string | null;
   /** Whether to render the free-tier promo strip. */
   showPromo: boolean;
@@ -93,7 +93,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     storeToRefs(identityStore);
 
   const bootstrapStore = useBootstrapStore();
-  const { authentication, billing_enabled, disabled_homepage } = storeToRefs(bootstrapStore);
+  const { authentication, billing_enabled, disabled_homepage, ui } = storeToRefs(bootstrapStore);
 
   // "Branded" means a custom domain has actually been configured with a brand
   // description — distinct from isCustom, which can be true even when no
@@ -108,23 +108,26 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     (workspaceName.value || displayDomain.value || 'A').trim().charAt(0).toUpperCase()
   );
 
-  // hrefs are null when siteHost is empty — building `https:///` would
-  // navigate to the current origin in a new tab, which is surprising.
-  // Variants v-if on the show* flag, which in turn gates on the href being
-  // non-null, so they can dereference safely.
+  // The "What is this link?" affordance points at an operator-configured
+  // URL (site.interface.ui.homepage.public_links.recipient_intro). When
+  // unset, the affordance is hidden — no broken-link fallback.
+  const whatIsThisHref = computed(
+    () => ui.value?.homepage?.public_links?.recipient_intro?.trim() || null
+  );
+
+  // Promo "Learn how" still derives from siteHost since it points at the
+  // canonical pricing page, not at operator-controlled content.
   const hasSiteHost = computed(() => !!siteHost.value);
-  const whatIsThisHref = computed(() => (hasSiteHost.value ? `https://${siteHost.value}/` : null));
   const promoHref = computed(() =>
     hasSiteHost.value ? `https://${siteHost.value}/pricing` : null
   );
 
-  // Auto-detection: "What is this?" makes sense only on a custom domain
-  // (canonical visitors are already at "the source"). Operator override wins,
-  // but we still suppress when the href is unresolvable.
-  const showWhatIsThisAuto = computed(() => isCustom.value && hasSiteHost.value);
+  // Auto-detection: show "What is this link?" when the operator has
+  // configured a destination URL. Override can still force it off.
+  const showWhatIsThisAuto = computed(() => !!whatIsThisHref.value);
   const showWhatIsThis = computed(
     () =>
-      hasSiteHost.value &&
+      !!whatIsThisHref.value &&
       applyOverride(disabled_homepage.value?.show_what_is_this, showWhatIsThisAuto.value)
   );
 

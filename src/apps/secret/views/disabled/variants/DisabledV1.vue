@@ -45,10 +45,10 @@
 
 <template>
   <div class="relative mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-12 pt-16 text-center sm:pt-24">
-    <!-- Mark: branded logo, branded monogram fallback, or OTS mark -->
+    <!-- Mark — priority: configured custom-domain logo → branded monogram → OTS mark -->
     <div class="mb-8 flex items-center justify-center">
       <img
-        v-if="isBranded && hasUsableLogo"
+        v-if="hasUsableLogo"
         :src="logoUri ?? ''"
         :alt="$t('homepage_secrets.disabled.logo_alt', { name: workspaceName })"
         class="h-24 w-auto max-w-[180px] object-contain"
@@ -148,16 +148,10 @@
       </a>
     </div>
 
-    <!-- Trust strip -->
+    <!-- Trust strip — verifiable claims only. Do not add "end-to-end
+         encrypted" here: the product does not implement E2EE. -->
     <div class="mt-12 w-full max-w-xl border-t border-gray-200 pt-6 dark:border-gray-700">
       <div class="flex flex-wrap items-center justify-center gap-x-7 gap-y-3">
-        <span class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <OIcon
-            collection="heroicons"
-            name="lock-closed"
-            class="size-4 text-gray-600 dark:text-gray-300" />
-          {{ $t('homepage_secrets.disabled.trust_encrypted') }}
-        </span>
         <span class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <OIcon
             collection="heroicons"

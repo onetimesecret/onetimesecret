@@ -65,8 +65,13 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
       };
       break;
     case 'disabled-homepage':
+      // The disabled-homepage view owns its own centred logo (via the
+      // dispatcher in apps/secret/views/DisabledHomepage.vue). The
+      // top-left masthead is suppressed for canonical and custom domain
+      // alike; the slot is reserved for a future canonical brand logo.
       layoutProps = {
         ...layoutProps,
+        displayMasthead: false,
         displayFeedback: false,
         displayVersion: false,
       };
@@ -272,7 +277,9 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       layout: TransactionalLayout,
       layoutProps: {
-        displayMasthead: true,
+        // Mirror the real disabled-homepage layout: the dispatcher owns
+        // the centred logo, so the layout-level masthead is hidden.
+        displayMasthead: false,
         displayNavigation: true,
         displayFooterLinks: true,
         displayFeedback: false,

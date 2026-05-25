@@ -153,6 +153,24 @@ export const uiHelpSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
+/**
+ * Public-facing links surfaced when the homepage secret form is gated by
+ * auth. Recipients arriving via a shared link use these to learn about
+ * the service. Each field is nullable; when null/empty the corresponding
+ * affordance is hidden rather than rendered with a broken target.
+ */
+export const homepagePublicLinksSchema = z.object({
+  recipient_intro: z.string().nullable().optional(),
+});
+
+/**
+ * Homepage UI configuration: mode (CIDR/header gating) plus public-facing
+ * links surfaced on the disabled-homepage view.
+ */
+export const homepageUiConfigSchema = z.object({
+  public_links: homepagePublicLinksSchema.optional(),
+});
+
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),
@@ -161,6 +179,7 @@ export const uiInterfaceSchema = z.object({
   capabilities: uiCapabilitiesSchema.optional(),
   show_version: z.boolean().default(true),
   help: uiHelpSchema.optional(),
+  homepage: homepageUiConfigSchema.optional(),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
