@@ -481,6 +481,22 @@ const memberLimitReached = computed(() => {
   return membersStore.memberCount + pendingInvitationCount.value >= limit;
 });
 
+// Finite quota cap (positive int) or null when unlimited/unknown. Drives the
+// "X of Y" count format in the title slot.
+const memberQuotaLimit = computed(() => {
+  const limit = organization.value?.limits?.members_per_team;
+  if (limit === null || limit === undefined || limit < 0) return null;
+  return limit;
+});
+
+// Active members only — matches what the user sees in the table. Pending is
+// shown as a separate "(N pending)" qualifier rather than folded into the
+// numerator, so the count line maps directly to visible rows. memberLimitReached
+// still uses active + pending to mirror the backend; the two can diverge here
+// without confusing the reader because the pending qualifier explains why the
+// button may be disabled at a count below the limit.
+const memberQuotaUsed = computed(() => membersStore.memberCount);
+
 // Member management event handlers
 const handleMemberUpdated = () => {
   // Member was updated in the store, no additional action needed
@@ -881,7 +897,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   {{ t('web.organizations.tabs.members') }}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
+                  <template v-if="memberQuotaLimit !== null">{{ t('web.organizations.members.member_quota', { used: memberQuotaUsed, limit: memberQuotaLimit }) }}</template>
+                  <template v-else>{{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}</template>
+                  <span v-if="pendingInvitationCount > 0">&nbsp;{{ t('web.organizations.members.pending_suffix', { count: pendingInvitationCount }) }}</span>
                 </p>
               </div>
               <!--
@@ -890,37 +908,44 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 - "Upgrade Plan" link when member quota is reached (path forward, not a dead end).
                 - "Invite Member" button otherwise; disabled when user lacks MANAGE_MEMBERS entitlement.
               -->
-              <router-link
-                v-if="!showInviteForm && memberLimitReached && canManageMembers"
-                :to="`/billing/${orgId}/plans`"
-                :title="t('api.organizations.invitations.errors.member_limit_reached')"
-                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-up-circle"
-                  class="-ml-0.5 mr-1.5 size-5"
-                  aria-hidden="true" />
-                {{ t('web.billing.overview.upgrade_plan') }}
-              </router-link>
-              <button
-                v-else-if="!showInviteForm"
-                type="button"
-                @click="canManageMembers && (showInviteForm = true)"
-                :disabled="!canManageMembers"
-                :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
-                :class="[
-                  'inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                  canManageMembers
-                    ? 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400'
-                    : 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400',
-                ]">
-                <OIcon
-                  collection="heroicons"
-                  name="user-plus"
-                  class="-ml-0.5 mr-1.5 size-5"
-                  aria-hidden="true" />
-                {{ t('web.organizations.invitations.invite_member') }}
-              </button>
+              <div class="flex flex-col items-end gap-1">
+                <router-link
+                  v-if="!showInviteForm && memberLimitReached && canManageMembers"
+                  :to="`/billing/${orgId}/plans`"
+                  :title="t('api.organizations.invitations.errors.member_limit_reached')"
+                  class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                  <OIcon
+                    collection="heroicons"
+                    name="arrow-up-circle"
+                    class="-ml-0.5 mr-1.5 size-5"
+                    aria-hidden="true" />
+                  {{ t('web.billing.overview.upgrade_plan') }}
+                </router-link>
+                <button
+                  v-else-if="!showInviteForm"
+                  type="button"
+                  @click="canManageMembers && (showInviteForm = true)"
+                  :disabled="!canManageMembers"
+                  :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
+                  :class="[
+                    'inline-flex items-center rounded-md px-3 py-2 font-brand text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                    canManageMembers
+                      ? 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400'
+                      : 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400',
+                  ]">
+                  <OIcon
+                    collection="heroicons"
+                    name="user-plus"
+                    class="-ml-0.5 mr-1.5 size-5"
+                    aria-hidden="true" />
+                  {{ t('web.organizations.invitations.invite_member') }}
+                </button>
+                <p
+                  v-if="!showInviteForm && memberLimitReached && canManageMembers"
+                  class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.members.limit_reached_hint') }}
+                </p>
+              </div>
             </div>
             <div
               v-if="!canManageMembers"
