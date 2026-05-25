@@ -6,6 +6,7 @@ import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.
 import TransactionalLayout from '@/shared/layouts/TransactionalLayout.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { SCOPE_PRESETS } from '@/types/router';
+import type { LayoutProps } from '@/types/ui/layouts';
 import { RouteRecordRaw } from 'vue-router';
 
 // Extend RouteRecordRaw meta to include our custom componentMode
@@ -40,8 +41,9 @@ function determineComponentMode(): string {
 }
 
 // Get layout props for the given component mode
-function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
-  const baseProps = {
+function getLayoutPropsForMode(componentMode: string, domainStrategy: string): LayoutProps {
+  const baseProps: LayoutProps = {
+    displayHeader: true,
     displayMasthead: true,
     displayNavigation: true,
     displayFooterLinks: true,
@@ -51,7 +53,7 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
     displayToggles: true,
   };
 
-  let layoutProps = { ...baseProps };
+  let layoutProps: LayoutProps = { ...baseProps };
 
   // Apply component mode specific overrides
   switch (componentMode) {
@@ -68,9 +70,13 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
       // The disabled-homepage view owns its own centred logo (via the
       // dispatcher in apps/secret/views/DisabledHomepage.vue). The
       // top-left masthead is suppressed for canonical and custom domain
-      // alike; the slot is reserved for a future canonical brand logo.
+      // alike, and we drop the entire header chrome (the padded band)
+      // so nothing else competes with the centred mark. The header slot
+      // is reserved for a future canonical brand logo configured at the
+      // deployment level.
       layoutProps = {
         ...layoutProps,
+        displayHeader: false,
         displayMasthead: false,
         displayFeedback: false,
         displayVersion: false,
@@ -278,7 +284,9 @@ const routes: Array<RouteRecordRaw> = [
       layout: TransactionalLayout,
       layoutProps: {
         // Mirror the real disabled-homepage layout: the dispatcher owns
-        // the centred logo, so the layout-level masthead is hidden.
+        // the centred logo, so the entire header chrome is hidden and
+        // the preview banner butts directly against the brand stripe.
+        displayHeader: false,
         displayMasthead: false,
         displayNavigation: true,
         displayFooterLinks: true,

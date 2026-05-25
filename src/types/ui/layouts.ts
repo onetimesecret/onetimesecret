@@ -76,6 +76,15 @@ export interface LayoutDisplay {
  */
 export interface LayoutProps {
   displayGlobalBroadcast?: boolean;
+  /**
+   * Whether the layout-level `<header>` chrome renders at all.
+   * When false, the entire top header element is omitted (no masthead,
+   * no minimal nav, no padded band) and downstream content (e.g. the
+   * /disabled preview banner) butts directly against the brand stripe.
+   * Defaults to true. Independent of `displayMasthead`, which only
+   * controls the logo+nav inside the header bar.
+   */
+  displayHeader?: boolean;
   displayMasthead?: boolean;
   displayNavigation?: boolean;
   displayPrimaryNav?: boolean;
