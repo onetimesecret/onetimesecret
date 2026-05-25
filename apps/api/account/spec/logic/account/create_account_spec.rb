@@ -154,6 +154,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
         'verified_by=': nil,
         'role=': nil,
         'signup_domain_id=': nil,
+        'provisioning_origin=': nil,
         save: true,
         update_passphrase: true
       )
