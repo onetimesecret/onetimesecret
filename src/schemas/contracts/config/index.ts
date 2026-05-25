@@ -6,8 +6,7 @@
  * Zod v4 schemas for application configuration files (YAML/JSON)
  *
  * Purpose:
- * - Type-safe validation of configuration files
- * - Runtime validation for config parsing
+ * - Type-safe field definitions for configuration files
  * - TypeScript type inference for configuration usage
  * - Integration between backend YAML configs and frontend
  *
@@ -18,6 +17,30 @@
  * - auth.ts: Authentication configuration (auth.defaults.yaml)
  * - logging.ts: Logging configuration (logging.defaults.yaml)
  * - billing.ts: Unified billing configuration (billing.yaml)
+ *
+ * ## Tradeoff: contracts are type-only (#3212)
+ *
+ * Following the entity-contract convention, every config contract in this
+ * directory describes field names and output types only — no defaults, no
+ * numeric/length bounds. Structural modifiers (`.optional`, `.nullable`,
+ * `.nullish`) and type-format helpers (`.regex`, `.email`, `.enum`,
+ * `.literal`, `.union`, `z.looseObject`) are retained because they describe
+ * the type itself.
+ *
+ * Consequences:
+ * - **Defaults**: now the runtime layer's responsibility (Ruby application
+ *   config loader / frontend store). The contracts no longer fill in missing
+ *   fields when parsing partial input.
+ * - **CLI validators**: `bin/ots config validate` and
+ *   `bin/ots billing catalog validate` continue to validate structure and
+ *   types, but no longer enforce removed value bounds (e.g. port ranges,
+ *   passphrase length bounds, plan limit `>= -1`, Redis db number range,
+ *   empty-string rejection). The CLIs are intentionally less strict during
+ *   this interim.
+ * - **Shapes layer**: removed defaults/bounds that have a consumer (e.g.
+ *   frontend code that expected a numeric default) will move to
+ *   `src/schemas/shapes/config/` when that layer is introduced — a separate
+ *   design decision.
  */
 
 // ============================================================================

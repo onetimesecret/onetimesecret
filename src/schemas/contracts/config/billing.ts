@@ -26,6 +26,21 @@
  *   through exactly as the hand-written schema did.
  * - Required vs optional fields mirror the hand-written `required` arrays.
  *
+ * ## Tradeoff: type-only contracts and what that means for the CLI
+ *
+ * Stripping the value constraints (`.min(1)` on strings, `.min(-1)` on plan
+ * limit integers, `.min(0)` on price amounts and display_order, `.int()`
+ * everywhere, the `match_fields.default(['plan_id'])`) weakens the CLI
+ * validation performed by `bin/ots billing catalog validate`. The CLI now
+ * checks structure and types, but no longer rejects an empty description,
+ * a negative price amount, or a missing `match_fields` array. These bounds
+ * will move to a `src/schemas/shapes/config/` layer — a separate design
+ * decision, not part of this sweep — and re-tighten the CLI when that layer
+ * lands. Field-format regex patterns (`stripe_product_id`,
+ * `grandfathered_until`, `CANONICAL_PLAN_ID_PATTERN`, `schema_version`) are
+ * preserved because they describe the kind of string that is valid (a type
+ * format, not a value bound).
+ *
  * Purpose:
  * - Type-safe field definitions for billing catalog configuration
  * - TypeScript type inference for billing config usage

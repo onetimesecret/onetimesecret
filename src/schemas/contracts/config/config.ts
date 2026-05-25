@@ -12,6 +12,22 @@
  *
  * The API response schemas use booleanOrString/numberOrString for flexibility
  * when parsing backend responses that may have coerced values.
+ *
+ * ## Tradeoff: type-only contracts and what that means for the CLI
+ *
+ * Per the entity-contract convention (#3212), the composed section schemas are
+ * type-only — they describe field names and output types, no defaults, no
+ * numeric/length bounds. The JSON Schema produced from `staticConfigSchema`
+ * and consumed by `bin/ots config validate` therefore validates *structure
+ * and types* only. Value bounds that used to live in section schemas
+ * (e.g. port ranges, passphrase length bounds, Redis db number bounds) and
+ * defaults that used to live in section schemas (e.g. `host`, SMTP defaults,
+ * session expiry) no longer participate in CLI validation.
+ *
+ * Defaults are now the runtime layer's responsibility (Ruby application config
+ * loader / frontend store). Value bounds will move to a `src/schemas/shapes/
+ * config/` layer — a separate design decision, not part of this sweep. Until
+ * that layer lands, the CLI is intentionally less strict.
  */
 
 import { z } from 'zod';
