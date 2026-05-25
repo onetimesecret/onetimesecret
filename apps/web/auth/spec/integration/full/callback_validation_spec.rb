@@ -32,11 +32,11 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
-require_relative '../support/tenant_test_fixtures'
-require_relative '../support/domain_sso_test_fixtures'
-require_relative '../support/mock_omniauth_strategy'
-require_relative '../support/oauth_flow_helper'
+require_relative '../../spec_helper'
+require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/domain_sso_test_fixtures'
+require_relative '../../support/mock_omniauth_strategy'
+require_relative '../../support/oauth_flow_helper'
 require 'json'
 
 # Define module structure for hooks (normally provided by auth app boot)
@@ -48,10 +48,10 @@ module Auth
 end unless defined?(Auth::Config::Hooks)
 
 # Require Auth::Logging (used by the hook)
-require_relative '../../lib/logging'
+require_relative '../../../lib/logging'
 
 # Require the tenant resolution hook
-require_relative '../../config/hooks/omniauth_tenant'
+require_relative '../../../config/hooks/omniauth_tenant'
 
 RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
   include TenantTestFixtures
