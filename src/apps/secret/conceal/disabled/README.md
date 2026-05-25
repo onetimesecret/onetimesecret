@@ -33,6 +33,24 @@ bag. Variants are presentational — no store reads.
 All fields optional with sensible defaults; backend may omit the block.
 Ruby serializer wiring is TBD — auto-detection rules apply until then.
 
+## Flipping the variant
+
+Once the Ruby serializer emits `disabled_homepage`, operator config is
+the path: change the value, bounce the app, next page load picks it up.
+No frontend release.
+
+Until then, two practical handles:
+
+- **Schema default** (`disabled-homepage.ts`): change
+  `disabledHomepageVariantSchema.default('v1')`. Frontend release required.
+- **Bootstrap window state**: inject in the Ruby HTML template before
+  the bundle loads, e.g.
+  `window.__BOOTSTRAP_ME__.disabled_homepage = { variant: 'legacy', ... }`.
+  Per-deployment, no frontend release.
+
+Override individual feature flags the same way — set `show_promo` /
+`show_what_is_this` to `true` / `false` / `null` (= auto).
+
 ## Auto-detection (suppressed by overrides)
 
 - **`isBranded`** = `isCustom && !!brand.description`
