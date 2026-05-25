@@ -202,6 +202,7 @@ module Auth::Config::Hooks
             account_id: account_id,
             account: account,
             db: db,
+            provisioning_origin: 'sso_jit',
           ).call
         end
 

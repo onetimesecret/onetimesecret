@@ -4,6 +4,7 @@
 
 require 'onetime/models/custom_domain/signup_config'
 require_relative 'base'
+require_relative 'audit_logger'
 
 module DomainsAPI
   module Logic
@@ -21,6 +22,8 @@ module DomainsAPI
       # - enabled: Optional. Boolean to enable/disable (default: false)
       #
       class PutSignupConfig < Base
+        include AuditLogger
+
         VALID_STRATEGY_TYPES = Onetime::CustomDomain::SignupConfig::STRATEGY_TYPES.freeze
 
         attr_reader :signup_config, :existing_config
@@ -66,11 +69,29 @@ module DomainsAPI
         def process
           OT.ld "[PutSignupConfig] Replacing signup config for domain #{@domain_id} by user #{cust.extid}"
 
+          was_enabled = @existing_config&.enabled?
+
           if @existing_config
             replace_existing_config
+            log_signup_audit_event(
+              event: :domain_signup_config_replaced,
+              domain: @custom_domain,
+              org: @organization,
+              actor: cust,
+              validation_strategy: @validation_strategy,
+            )
           else
             create_new_config
+            log_signup_audit_event(
+              event: :domain_signup_config_created,
+              domain: @custom_domain,
+              org: @organization,
+              actor: cust,
+              validation_strategy: @validation_strategy,
+            )
           end
+
+          log_enabled_state_change(was_enabled, @enabled)
 
           success_data
         end
@@ -125,6 +146,32 @@ module DomainsAPI
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }
+        end
+
+        # Log enabled/disabled state change if it occurred.
+        #
+        # @param was_enabled [Boolean, nil] Previous enabled state (nil if new config)
+        # @param is_enabled [Boolean] New enabled state
+        def log_enabled_state_change(was_enabled, is_enabled)
+          return if was_enabled == is_enabled
+
+          if is_enabled && (was_enabled.nil? || was_enabled == false)
+            log_signup_audit_event(
+              event: :domain_signup_config_enabled,
+              domain: @custom_domain,
+              org: @organization,
+              actor: cust,
+              validation_strategy: @validation_strategy,
+            )
+          elsif was_enabled == true && !is_enabled
+            log_signup_audit_event(
+              event: :domain_signup_config_disabled,
+              domain: @custom_domain,
+              org: @organization,
+              actor: cust,
+              validation_strategy: @validation_strategy,
+            )
+          end
         end
       end
     end

@@ -503,6 +503,98 @@
     "text": "SSO is not yet configured for this domain. Enable single sign-on to allow team members to authenticate using your organization's identity provider.",
     "content_hash": "c439214b"
   },
+  "web.domains.signup.title": {
+    "text": "Signup Validation",
+    "content_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Configure signup validation for this domain",
+    "content_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Access Denied",
+    "content_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Upgrade your plan to configure per-domain signup validation.",
+    "content_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Configure signup",
+    "content_hash": "e8e28a2a"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Signup validation is not yet configured for this domain. Configure a strategy to control who can sign up via this domain.",
+    "content_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Signups are currently disabled at the site level. This per-domain policy is configured but will not gate any traffic until site signups are enabled.",
+    "content_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validation strategy",
+    "content_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Choose how email addresses are validated when users sign up on this domain.",
+    "content_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "This strategy performs network calls during signup, which may add latency or be blocked by some providers.",
+    "content_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Allowed signup domains",
+    "content_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Only these email domains will be allowed to sign up. Add one domain per entry.",
+    "content_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "content_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Please enter a valid domain (e.g. example.com)",
+    "content_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "This domain is already in the list",
+    "content_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Remove {domain}",
+    "content_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Enable per-domain validation",
+    "content_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "When enabled, signups on this domain use the strategy above instead of the global policy.",
+    "content_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Delete configuration",
+    "content_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Delete signup validation config? Signups will fall back to the global policy.",
+    "content_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Save configuration",
+    "content_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Signup validation updated successfully",
+    "content_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Signup validation configuration removed successfully",
+    "content_hash": "eb6add4d"
+  },
   "web.domains.email.title": {
     "text": "Email Sending",
     "content_hash": "6c428e5f"
@@ -978,5 +1070,9 @@
   "web.domains.detail.incoming_description": {
     "text": "Incoming secret recipient settings",
     "content_hash": "a7b8c9d0"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Per-domain signup validation strategy",
+    "content_hash": "3c5a511f"
   }
 }

@@ -4,6 +4,7 @@
 
 require 'onetime/models/custom_domain/signup_config'
 require_relative 'base'
+require_relative 'audit_logger'
 
 module DomainsAPI
   module Logic
@@ -18,6 +19,8 @@ module DomainsAPI
       # allowed_signup_domains configuration.
       #
       class DeleteSignupConfig < Base
+        include AuditLogger
+
         attr_reader :deleted_strategy
 
         def process_params
@@ -46,7 +49,17 @@ module DomainsAPI
         def process
           OT.ld "[DeleteSignupConfig] Deleting signup config for domain #{@domain_id} by user #{cust.extid}"
 
-          Onetime::CustomDomain::SignupConfig.delete_for_domain!(@custom_domain.identifier)
+          deleted = Onetime::CustomDomain::SignupConfig.delete_for_domain!(@custom_domain.identifier)
+
+          if deleted
+            log_signup_audit_event(
+              event: :domain_signup_config_deleted,
+              domain: @custom_domain,
+              org: @organization,
+              actor: cust,
+              validation_strategy: @deleted_strategy,
+            )
+          end
 
           success_data
         end
