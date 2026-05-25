@@ -146,6 +146,10 @@ entitlements:
     category: advanced
     description: Single sign-on configuration and management
 
+  custom_signup_validation:
+    category: advanced
+    description: Per-domain signup validation strategy (passthrough, allowlist, MX, SMTP)
+
 # Plan Definitions
 #
 # All plans are synced to Stripe via `bin/ots billing catalog push`, including
