@@ -82,7 +82,9 @@ module Onetime
 
           boot_application!
 
-          @amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          # Config file handles ENV resolution via ERB with sensible defaults.
+          # Don't read ENV directly - keeps input validation in one place.
+          @amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
 
           # Preflight check: verify RabbitMQ is reachable before proceeding
           preflight_check!
@@ -323,8 +325,8 @@ module Onetime
             },
           }
 
-          # Override vhost only if explicitly set via env var.
-          # Otherwise, let Bunny parse it from the AMQP URL.
+          # ENV override intentional: allows vhost override without changing config file.
+          # Useful for debugging or running worker against a different vhost temporarily.
           config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
 
           # TLS configuration for amqps:// connections (centralized in QueueConfig)

@@ -104,8 +104,10 @@ module Onetime
       # manage their own consumer connections internally.
       # See: docs/architecture/fork-safety.md
       def setup_rabbitmq_connection
-        url       = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', 'amqp://localhost:5672')
-        pool_size = OT.conf.dig('jobs', 'channel_pool_size') || ENV.fetch('RABBITMQ_CHANNEL_POOL_SIZE', 5).to_i
+        # Config file handles ENV resolution via ERB with sensible defaults.
+        # Don't read ENV directly - keeps input validation in one place.
+        url       = OT.conf.dig('jobs', 'rabbitmq_url')
+        pool_size = OT.conf.dig('jobs', 'channel_pool_size') || 5
 
         Onetime.bunny_logger.info "[init] RabbitMQ: Connecting to #{sanitize_url(url)}"
 

@@ -44,7 +44,7 @@ module Onetime
           end
 
           def check_dlq_depths
-            url  = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+            url  = OT.conf.dig('jobs', 'rabbitmq_url')
             conn = Bunny.new(url)
             conn.start
 
