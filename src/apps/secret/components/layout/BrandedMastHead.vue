@@ -34,6 +34,16 @@
     return hasSigninRoute && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
   });
 
+  /**
+   * Sign Up requires platform authentication — SSO users are provisioned
+   * through their identity provider, not the platform signup flow, so we
+   * mirror the canonical MastHead gating here rather than the broader SSO
+   * gating used for Sign In.
+   */
+  const showSignUp = computed(() =>
+    authentication.value?.enabled === true && authentication.value?.signup === true
+  );
+
   const handleImageError = () => {
     imageError.value = true;
   };
@@ -53,13 +63,30 @@
 
 <template>
   <div class="relative bg-white py-8 transition-colors duration-200 dark:bg-gray-900">
-    <!-- Sign In Link (for custom domain SSO users) -->
+    <!-- Auth Links (Sign Up / Sign In for custom domain users) -->
     <nav
-      v-if="showSignIn"
-      class="absolute right-4 top-4"
+      v-if="showSignUp || showSignIn"
+      class="absolute right-4 top-4 flex items-center gap-2"
       role="navigation"
       :aria-label="t('web.layout.main_navigation')">
       <router-link
+        v-if="showSignUp"
+        to="/signup"
+        :title="t('web.homepage.signup_individual_and_business_plans')"
+        data-testid="branded-signup-link"
+        class="text-sm font-bold text-gray-600 transition-colors duration-200
+          hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+        {{ t('web.COMMON.header_create_account') }}
+      </router-link>
+      <span
+        v-if="showSignUp && showSignIn"
+        class="text-sm text-gray-400"
+        aria-hidden="true"
+        role="separator">
+        |
+      </span>
+      <router-link
+        v-if="showSignIn"
         to="/signin"
         :title="t('web.homepage.log_in_to_onetime_secret')"
         data-testid="branded-signin-link"
