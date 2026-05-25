@@ -40,10 +40,24 @@ module DomainsAPI
 
         def raise_concerns
           # Require authenticated user
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+          if cust.anonymous?
+            raise_form_error(
+              'Authentication required',
+              error_key: 'api.errors.authentication_required',
+              field: :user_id,
+              error_type: :unauthorized,
+            )
+          end
 
           # Validate domain_id parameter
-          raise_form_error('Domain ID required', field: :domain_id, error_type: :missing) if @domain_id.to_s.empty?
+          if @domain_id.to_s.empty?
+            raise_form_error(
+              'Domain ID required',
+              error_key: 'api.domains.errors.domain_id_required',
+              field: :domain_id,
+              error_type: :missing,
+            )
+          end
 
           # Load domain and organization, verify ownership and entitlement
           authorize_domain_incoming!(@domain_id)
@@ -51,20 +65,37 @@ module DomainsAPI
           # Validate recipients
           max = Onetime::CustomDomain::IncomingConfig::MAX_RECIPIENTS
           if @recipients.size > max
-            raise_form_error("Maximum #{max} recipients allowed", field: :recipients, error_type: :invalid)
+            raise_form_error(
+              "Maximum #{max} recipients allowed",
+              error_key: 'api.domains.errors.recipients_max_exceeded',
+              args: { max: max },
+              field: :recipients,
+              error_type: :invalid,
+            )
           end
 
           # Validate recipient emails with Truemail (write path — admin config)
           @recipients.each do |r|
             unless valid_email?(r[:email])
-              raise_form_error("Invalid email: #{r[:email]}", field: :recipients, error_type: :invalid)
+              raise_form_error(
+                "Invalid email: #{r[:email]}",
+                error_key: 'api.domains.errors.recipients_invalid_email',
+                args: { email: r[:email] },
+                field: :recipients,
+                error_type: :invalid,
+              )
             end
           end
 
           # Check for duplicate emails
           emails = @recipients.map { |r| r[:email] }
           if emails.uniq.size != emails.size
-            raise_form_error('Duplicate recipient emails not allowed', field: :recipients, error_type: :invalid)
+            raise_form_error(
+              'Duplicate recipient emails not allowed',
+              error_key: 'api.domains.errors.recipients_duplicate',
+              field: :recipients,
+              error_type: :invalid,
+            )
           end
         end
 
@@ -79,6 +110,9 @@ module DomainsAPI
             @incoming_config.enabled = @enabled.to_s
             # Only update recipients if explicitly provided in the request.
             # This allows toggling enabled state without wiping recipients.
+            # The admin frontend always sends the full recipients list, so the
+            # provided branch is the standard path; the omitted branch supports
+            # toggle-only callers (e.g. future PATCH).
             if @recipients_provided
               @incoming_config.recipients = @recipients
             end

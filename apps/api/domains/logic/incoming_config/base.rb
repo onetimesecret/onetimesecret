@@ -32,7 +32,13 @@ module DomainsAPI
         # @raise [FormError] if domain not found
         def load_custom_domain(domain_id)
           domain = Onetime::CustomDomain.find_by_extid(domain_id)
-          raise_not_found("Domain not found: #{domain_id}") if domain.nil?
+          if domain.nil?
+            raise_not_found(
+              "Domain not found: #{domain_id}",
+              error_key: 'api.domains.errors.domain_not_found',
+              args: { extid: domain_id },
+            )
+          end
           domain
         end
 
@@ -43,7 +49,13 @@ module DomainsAPI
         # @raise [FormError] if organization not found
         def load_organization_for_domain(domain)
           org = Onetime::Organization.load(domain.org_id)
-          raise_not_found("Organization not found for domain: #{domain.display_domain}") if org.nil?
+          if org.nil?
+            raise_not_found(
+              "Organization not found for domain: #{domain.display_domain}",
+              error_key: 'api.domains.errors.organization_not_found',
+              args: { domain: domain.display_domain },
+            )
+          end
           org
         end
 
@@ -71,6 +83,7 @@ module DomainsAPI
 
           raise_form_error(
             'Incoming secrets management requires the incoming_secrets entitlement. Please upgrade your plan.',
+            error_key: 'api.domains.errors.incoming_secrets_entitlement_required',
             error_type: :forbidden,
           )
         end
@@ -82,7 +95,11 @@ module DomainsAPI
         # @return [void]
         def authorize_domain_incoming!(domain_id)
           unless OT.conf.dig('features', 'incoming', 'enabled')
-            raise_form_error('Incoming secrets is not enabled on this instance', error_type: :forbidden)
+            raise_form_error(
+              'Incoming secrets is not enabled on this instance',
+              error_key: 'api.domains.errors.incoming_secrets_disabled',
+              error_type: :forbidden,
+            )
           end
 
           @custom_domain = load_custom_domain(domain_id)

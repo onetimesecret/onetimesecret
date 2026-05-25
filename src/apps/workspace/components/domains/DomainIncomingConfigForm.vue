@@ -4,27 +4,24 @@
 /**
  * Domain Incoming Secrets Configuration Form
  *
- * Manages recipients for incoming secrets on a domain.
- *
- * Key design: dual-state architecture due to email hashing on server.
- * - serverState.recipients: read-only, hashed (digest + display_name)
- * - formState.recipients: editable, plaintext (email + name) for NEW additions
- *
- * After save, formState is cleared because we cannot recover plaintext from hashes.
- * The UI displays both lists: existing (server) as read-only + pending (form) as editable.
+ * Single editable recipients list. The composable owns plaintext
+ * recipients (admin view); this component renders/edits them and emits
+ * changes back. No dual-state, no "pending vs configured" split, no
+ * replace-warning confirm dialog — saving simply writes the current
+ * formState back to the server.
  */
 import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { z } from 'zod';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import type { IncomingConfigFormState, IncomingConfigServerState } from '@/shared/composables/useIncomingConfig';
+import type { IncomingConfigFormState } from '@/shared/composables/useIncomingConfig';
 
 const emailSchema = z.string().email();
 
 interface Props {
   formState: IncomingConfigFormState;
-  serverState: IncomingConfigServerState;
+  savedFormState: IncomingConfigFormState | null;
   isLoading?: boolean;
   isSaving?: boolean;
   isDeleting?: boolean;
@@ -39,10 +36,10 @@ const props = withDefaults(defineProps<Props>(), {
   isDeleting: false,
   hasUnsavedChanges: false,
   maxRecipients: 20,
+  savedFormState: null,
 });
 
 const emit = defineEmits<{
-  (e: 'update:formState', value: IncomingConfigFormState): void;
   (e: 'update:enabled', value: boolean): void;
   (e: 'save'): void;
   (e: 'delete'): void;
@@ -54,7 +51,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 // ---------------------------------------------------------------------------
-// Local form state for adding new recipients
+// Local state for the add-recipient row
 // ---------------------------------------------------------------------------
 
 const newEmail = ref('');
@@ -65,34 +62,30 @@ const emailError = ref<string | null>(null);
 // Computed
 // ---------------------------------------------------------------------------
 
-/** Whether incoming secrets are enabled. */
 const isEnabled = computed(() => props.formState.enabled);
 
-/** Total recipients (existing on server + pending in form). */
-const totalRecipientCount = computed(() =>
-  props.serverState.recipients.length + props.formState.recipients.length
-);
+const recipientCount = computed(() => props.formState.recipients.length);
 
-/** Whether more recipients can be added. */
-const canAddMore = computed(() => totalRecipientCount.value < props.maxRecipients);
+const canAddMore = computed(() => recipientCount.value < props.maxRecipients);
 
-/** Whether the add form is valid. */
 const isAddFormValid = computed(() => {
   const email = newEmail.value.trim();
   if (!email) return false;
   return emailSchema.safeParse(email).success;
 });
 
-/** Whether there are any recipients at all. */
-const hasAnyRecipients = computed(() =>
-  props.serverState.recipients.length > 0 || props.formState.recipients.length > 0
-);
+const hasAnyRecipients = computed(() => recipientCount.value > 0);
 
-/** Whether there are pending recipients to save. */
-const hasPendingRecipients = computed(() => props.formState.recipients.length > 0);
-
-/** Whether saving will replace existing recipients on the server. */
-const willReplaceExisting = computed(() => props.serverState.recipients.length > 0);
+/**
+ * Whether there's persisted state worth deleting. True when the saved
+ * snapshot has any recipients or the saved enabled flag is true — i.e.
+ * the server holds an IncomingConfig record.
+ */
+const canDelete = computed(() => {
+  const saved = props.savedFormState;
+  if (!saved) return false;
+  return saved.recipients.length > 0 || saved.enabled;
+});
 
 // ---------------------------------------------------------------------------
 // Validation
@@ -109,13 +102,12 @@ function validateEmail(email: string): string | null {
     return t('web.domains.incoming.validation_invalid_email');
   }
 
-  // Check for duplicates in pending recipients
   const normalizedEmail = trimmed.toLowerCase();
-  const isDuplicateInForm = props.formState.recipients.some(
-    (r) => r.email.toLowerCase() === normalizedEmail
+  const isDuplicate = props.formState.recipients.some(
+    (r) => r.email.toLowerCase() === normalizedEmail,
   );
 
-  if (isDuplicateInForm) {
+  if (isDuplicate) {
     return t('web.domains.incoming.validation_duplicate_email');
   }
 
@@ -130,7 +122,6 @@ function handleAddRecipient(): void {
   const email = newEmail.value.trim();
   const name = newName.value.trim() || undefined;
 
-  // Validate
   const validationError = validateEmail(email);
   if (validationError) {
     emailError.value = validationError;
@@ -138,46 +129,36 @@ function handleAddRecipient(): void {
   }
 
   if (!canAddMore.value) {
-    emailError.value = t('web.domains.incoming.validation_max_recipients', { max: props.maxRecipients });
+    emailError.value = t('web.domains.incoming.validation_max_recipients', {
+      max: props.maxRecipients,
+    });
     return;
   }
 
-  // Emit the add event
   emit('addRecipient', email, name);
 
-  // Clear the form
   newEmail.value = '';
   newName.value = '';
   emailError.value = null;
 }
 
-function handleRemovePending(index: number): void {
+function handleRemoveRecipient(index: number): void {
   emit('removeRecipient', index);
 }
 
 function handleSave(): void {
   if (!props.hasUnsavedChanges || props.isSaving) return;
-
-  if (hasPendingRecipients.value && willReplaceExisting.value) {
-    const confirmed = window.confirm(
-      t('web.domains.incoming.save_will_replace_confirmation')
-    );
-    if (!confirmed) return;
-  }
-
   emit('save');
 }
 
 function handleEmailInput(event: Event): void {
   const target = event.target as HTMLInputElement;
   newEmail.value = target.value;
-  // Clear error on input
   if (emailError.value) {
     emailError.value = null;
   }
 }
 
-// Delete confirmation
 const showDeleteConfirm = ref(false);
 
 function handleDelete(): void {
@@ -226,181 +207,142 @@ function handleToggleEnabled(): void {
         </p>
       </div>
 
-    <!-- Existing Recipients (from server, read-only) -->
-    <div
-      v-if="serverState.recipients.length > 0"
-      class="space-y-2">
-      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ t('web.domains.incoming.badge_configured') }}
-        <span class="ml-1 text-gray-500 dark:text-gray-400">
-          ({{ serverState.recipients.length }})
-        </span>
-      </h4>
-      <ul class="divide-y divide-gray-200 rounded-md border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
-        <li
-          v-for="recipient in serverState.recipients"
-          :key="recipient.digest"
-          class="flex items-center justify-between px-4 py-3">
-          <div class="flex items-center gap-3">
-            <div class="flex size-8 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
+      <!-- Recipients List (single source of truth) -->
+      <div
+        v-if="hasAnyRecipients"
+        class="space-y-2">
+        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ t('web.domains.incoming.badge_configured') }}
+          <span class="ml-1 text-gray-500 dark:text-gray-400">
+            ({{ recipientCount }})
+          </span>
+        </h4>
+        <ul class="divide-y divide-gray-200 rounded-md border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
+          <li
+            v-for="(recipient, index) in formState.recipients"
+            :key="`recipient-${index}-${recipient.email}`"
+            class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center gap-3">
+              <div class="flex size-8 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
+                <OIcon
+                  collection="heroicons"
+                  name="user"
+                  class="size-4 text-brand-600 dark:text-brand-400"
+                  aria-hidden="true" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ recipient.name || t('web.domains.incoming.name_placeholder') }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ recipient.email }}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="handleRemoveRecipient(index)"
+              :disabled="isSaving || isDeleting"
+              class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              :aria-label="t('web.domains.incoming.remove_recipient')">
               <OIcon
                 collection="heroicons"
-                name="user"
-                class="size-4 text-brand-600 dark:text-brand-400"
+                name="x-mark"
+                class="size-4"
                 aria-hidden="true" />
-            </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ recipient.display_name || t('web.domains.incoming.name_placeholder') }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                {{ t('web.domains.verified') }}
-              </p>
-            </div>
-          </div>
-          <!-- Individual removal of existing recipients requires re-adding all others.
-               Since emails are hashed after save, we cannot reconstruct the list.
-               Users should use "Delete All" to clear recipients and re-add. -->
-        </li>
-      </ul>
-    </div>
+              <span class="sr-only sm:not-sr-only">
+                {{ t('web.domains.incoming.remove_recipient') }}
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
 
-    <!-- Pending Recipients (in form, not yet saved) -->
-    <div
-      v-if="formState.recipients.length > 0"
-      class="space-y-2">
-      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-        {{ t('web.domains.pending_verification') }}
-        <span class="ml-1 text-gray-500 dark:text-gray-400">
-          ({{ formState.recipients.length }})
-        </span>
-      </h4>
-      <ul class="divide-y divide-gray-200 rounded-md border border-amber-300 bg-amber-50 dark:divide-gray-700 dark:border-amber-700 dark:bg-amber-900/20">
-        <li
-          v-for="(recipient, index) in formState.recipients"
-          :key="`pending-${index}`"
-          class="flex items-center justify-between px-4 py-3">
-          <div class="flex items-center gap-3">
-            <div class="flex size-8 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-              <OIcon
-                collection="heroicons"
-                name="clock"
-                class="size-4 text-amber-600 dark:text-amber-400"
-                aria-hidden="true" />
-            </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ recipient.name || recipient.email }}
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                {{ recipient.email }}
-              </p>
-            </div>
+      <!-- Empty State -->
+      <div
+        v-if="!hasAnyRecipients && !isLoading"
+        class="rounded-lg border border-gray-200 bg-gray-50 py-10 text-center dark:border-gray-700 dark:bg-gray-800/40">
+        <OIcon
+          collection="heroicons"
+          name="inbox"
+          class="mx-auto size-8 text-gray-300 dark:text-gray-600"
+          aria-hidden="true" />
+        <p class="mt-2 text-sm text-gray-400 dark:text-gray-500">
+          {{ t('web.domains.incoming.empty_state') }}
+        </p>
+      </div>
+
+      <!-- Add Recipient Form -->
+      <div
+        v-if="canAddMore"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <!-- Email Input -->
+          <div>
+            <label
+              for="recipient-email"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('web.domains.incoming.email_label') }}
+              <span class="text-red-500" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="recipient-email"
+              :value="newEmail"
+              type="email"
+              required
+              autocomplete="off"
+              :placeholder="t('web.domains.incoming.email_placeholder')"
+              :aria-invalid="!!emailError"
+              :aria-describedby="emailError ? 'email-error' : undefined"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+              :class="{ 'border-red-300 dark:border-red-600': emailError }"
+              @input="handleEmailInput"
+              @keydown.enter.prevent="handleAddRecipient" />
+            <p
+              v-if="emailError"
+              id="email-error"
+              class="mt-1 text-sm text-red-600 dark:text-red-400">
+              {{ emailError }}
+            </p>
           </div>
+
+          <!-- Name Input -->
+          <div>
+            <label
+              for="recipient-name"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('web.domains.incoming.name_label') }}
+            </label>
+            <input
+              id="recipient-name"
+              v-model="newName"
+              type="text"
+              maxlength="100"
+              autocomplete="off"
+              :placeholder="t('web.domains.incoming.name_placeholder')"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+              @keydown.enter.prevent="handleAddRecipient" />
+          </div>
+        </div>
+
+        <!-- Add Button -->
+        <div class="mt-4 flex justify-end">
           <button
             type="button"
-            @click="handleRemovePending(index)"
-            :disabled="isSaving"
-            class="inline-flex items-center gap-1 rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
-            :aria-label="t('web.domains.incoming.remove_recipient')">
+            @click="handleAddRecipient"
+            :disabled="!isAddFormValid || isSaving"
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
             <OIcon
               collection="heroicons"
-              name="x-mark"
+              name="plus"
               class="size-4"
               aria-hidden="true" />
-            <span class="sr-only sm:not-sr-only">
-              {{ t('web.domains.incoming.remove_recipient') }}
-            </span>
+            {{ t('web.domains.incoming.add_recipient') }}
           </button>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-if="!hasAnyRecipients && !isLoading"
-      class="rounded-lg border border-gray-200 bg-gray-50 py-10 text-center dark:border-gray-700 dark:bg-gray-800/40">
-      <OIcon
-        collection="heroicons"
-        name="inbox"
-        class="mx-auto size-8 text-gray-300 dark:text-gray-600"
-        aria-hidden="true" />
-      <p class="mt-2 text-sm text-gray-400 dark:text-gray-500">
-        {{ t('web.domains.incoming.empty_state') }}
-      </p>
-    </div>
-
-    <!-- Add Recipient Form -->
-    <div
-      v-if="canAddMore"
-      class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-      <div class="grid gap-4 sm:grid-cols-2">
-        <!-- Email Input -->
-        <div>
-          <label
-            for="recipient-email"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('web.domains.incoming.email_label') }}
-            <span class="text-red-500" aria-hidden="true">*</span>
-          </label>
-          <input
-            id="recipient-email"
-            :value="newEmail"
-            type="email"
-            required
-            autocomplete="off"
-            :placeholder="t('web.domains.incoming.email_placeholder')"
-            :aria-invalid="!!emailError"
-            :aria-describedby="emailError ? 'email-error' : undefined"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
-            :class="{ 'border-red-300 dark:border-red-600': emailError }"
-            @input="handleEmailInput"
-            @keydown.enter.prevent="handleAddRecipient" />
-          <p
-            v-if="emailError"
-            id="email-error"
-            class="mt-1 text-sm text-red-600 dark:text-red-400">
-            {{ emailError }}
-          </p>
-        </div>
-
-        <!-- Name Input -->
-        <div>
-          <label
-            for="recipient-name"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('web.domains.incoming.name_label') }}
-          </label>
-          <input
-            id="recipient-name"
-            v-model="newName"
-            type="text"
-            maxlength="100"
-            autocomplete="off"
-            :placeholder="t('web.domains.incoming.name_placeholder')"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
-            @keydown.enter.prevent="handleAddRecipient" />
         </div>
       </div>
 
-      <!-- Add Button -->
-      <div class="mt-4 flex justify-end">
-        <button
-          type="button"
-          @click="handleAddRecipient"
-          :disabled="!isAddFormValid || isSaving"
-          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
-          <OIcon
-            collection="heroicons"
-            name="plus"
-            class="size-4"
-            aria-hidden="true" />
-          {{ t('web.domains.incoming.add_recipient') }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Max Recipients Warning -->
+      <!-- Max Recipients Warning -->
       <p
         v-if="!canAddMore"
         class="mt-4 text-sm text-amber-600 dark:text-amber-400">
@@ -411,11 +353,10 @@ function handleToggleEnabled(): void {
       <p
         v-if="hasAnyRecipients"
         class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-        {{ totalRecipientCount }} / {{ maxRecipients }}
+        {{ recipientCount }} / {{ maxRecipients }}
         {{ t('web.domains.incoming.recipients_title').toLowerCase() }}
       </p>
     </div>
-    <!-- End of disabled form container -->
 
     <!-- Enabled Toggle -->
     <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
@@ -478,8 +419,8 @@ function handleToggleEnabled(): void {
     <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
       <!-- Left: Delete + Discard -->
       <div class="flex items-center gap-3">
-        <!-- Delete button (only when there are existing recipients) -->
-        <template v-if="serverState.recipients.length > 0 && !showDeleteConfirm">
+        <!-- Delete button (only when there's a persisted config to remove) -->
+        <template v-if="canDelete && !showDeleteConfirm">
           <button
             type="button"
             @click="showDeleteConfirm = true"
