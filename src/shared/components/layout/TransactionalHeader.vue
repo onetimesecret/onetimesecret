@@ -45,6 +45,22 @@
         class="mx-auto flex w-full max-w-xl justify-end font-brand text-sm sm:text-base">
         <template v-if="authentication?.enabled">
           <router-link
+            v-if="authentication?.signup"
+            to="/signup"
+            :title="t('web.homepage.signup_individual_and_business_plans')"
+            data-testid="header-signup-link"
+            class="font-bold text-gray-600 transition-colors duration-200
+              hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+            {{ t('web.COMMON.header_create_account') }}
+          </router-link>
+          <span
+            v-if="authentication?.signup && authentication?.signin"
+            class="mx-2 text-gray-400"
+            aria-hidden="true"
+            role="separator">
+            |
+          </span>
+          <router-link
             v-if="authentication?.signin"
             to="/signin"
             :title="t('web.homepage.log_in_to_onetime_secret')"

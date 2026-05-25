@@ -51,6 +51,7 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
     storeState: {
       domain_strategy?: string;
       domain_logo?: string | null;
+      authentication?: { enabled?: boolean; signin?: boolean; signup?: boolean };
     } = {}
   ) => {
     const pinia = createTestingPinia({
@@ -70,7 +71,12 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
               },
             },
           },
-          authentication: { enabled: true, signin: true, signup: true },
+          authentication: {
+            enabled: true,
+            signin: true,
+            signup: true,
+            ...storeState.authentication,
+          },
         },
       },
     });
@@ -83,6 +89,12 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
       },
       global: {
         plugins: [i18n, pinia],
+        stubs: {
+          'router-link': {
+            props: ['to'],
+            template: '<a :href="typeof to === \'string\' ? to : \'#\'"><slot /></a>',
+          },
+        },
       },
     });
   };
@@ -150,6 +162,60 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
     await nextTick();
     // v-if="displayMasthead" prevents MastHead from rendering
     expect(wrapper.find('.masthead').exists()).toBe(false);
+  });
+
+  describe('showMinimalNav — Sign Up + Sign In links', () => {
+    const minimalNavProps = { displayMasthead: false, displayNavigation: true };
+
+    it('renders Sign Up and Sign In when both are enabled', async () => {
+      wrapper = mountComponent(minimalNavProps, { domain_strategy: 'custom' });
+      await nextTick();
+      expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(true);
+      expect(wrapper.find('[role="separator"]').exists()).toBe(true);
+    });
+
+    it('hides Sign Up when authentication.signup is false', async () => {
+      wrapper = mountComponent(minimalNavProps, {
+        domain_strategy: 'custom',
+        authentication: { enabled: true, signin: true, signup: false },
+      });
+      await nextTick();
+      expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(true);
+      expect(wrapper.find('[role="separator"]').exists()).toBe(false);
+    });
+
+    it('hides Sign In when authentication.signin is false', async () => {
+      wrapper = mountComponent(minimalNavProps, {
+        domain_strategy: 'custom',
+        authentication: { enabled: true, signin: false, signup: true },
+      });
+      await nextTick();
+      expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(false);
+      expect(wrapper.find('[role="separator"]').exists()).toBe(false);
+    });
+
+    it('hides both links when authentication.enabled is false', async () => {
+      wrapper = mountComponent(minimalNavProps, {
+        domain_strategy: 'custom',
+        authentication: { enabled: false, signin: true, signup: true },
+      });
+      await nextTick();
+      expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(false);
+    });
+
+    it('does not render minimal nav when displayMasthead is true (canonical domain)', async () => {
+      wrapper = mountComponent(
+        { displayMasthead: true, displayNavigation: true },
+        { domain_strategy: 'canonical' }
+      );
+      await nextTick();
+      expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(false);
+    });
   });
 
   // This documents the leak: routes using TransactionalHeader on custom domains
