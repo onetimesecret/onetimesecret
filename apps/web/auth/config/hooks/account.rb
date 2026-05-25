@@ -16,6 +16,27 @@ module Auth::Config::Hooks
         # SECURITY: Two-database consistency check prevents orphaned accounts
         email = param(login_param)
 
+        # Per-domain signup validation (allowlist, MX, SMTP).
+        # Resolves the CustomDomain by display_domain and enforces its
+        # SignupConfig if one is configured and enabled. Falls back to the
+        # global allowed_signup_domains policy when no per-domain config
+        # applies. Identical user-visible error message to the existing
+        # email-conflict paths prevents enumeration of which domains, MX
+        # records, or mailboxes are accepted.
+        display_domain = request.env['onetime.display_domain']
+        unless Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+          Auth::Logging.log_auth_event(
+            :registration_blocked_signup_validation,
+            level: :info,
+            email: OT::Utils.obscure_email(email),
+            display_domain: display_domain,
+          )
+
+          set_error_flash(create_account_error_flash)
+          request.env['rodauth.error_flash'] = create_account_error_flash
+          throw_rodauth_error
+        end
+
         # Check SQLite (auth database)
         existing_account = db[:accounts].where(email: email).first
 
