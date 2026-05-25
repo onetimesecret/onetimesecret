@@ -331,6 +331,20 @@ module Onetime
           config.merge!(Onetime::Jobs::QueueConfig.tls_options(@amqp_url))
 
           Sneakers.configure(config)
+
+          # Register error reporter to catch exceptions that escape worker handlers.
+          # This surfaces errors that would otherwise be silently swallowed.
+          Sneakers.error_reporters << ->(exception, worker, context) {
+            Onetime.workers_logger.error(
+              '[Sneakers] Unhandled exception in worker',
+              worker: worker&.class&.name || 'unknown',
+              error: exception.message,
+              error_class: exception.class.name,
+              backtrace: exception.backtrace&.first(10),
+              context: context.to_s[0..500],
+            )
+            SemanticLogger.flush if defined?(SemanticLogger)
+          }
         end
 
         def determine_workers(queues_str)
