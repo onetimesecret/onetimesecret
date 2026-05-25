@@ -1,0 +1,12 @@
+{
+  "api.account.errors.invalid_email": {
+    "text": "Is that a valid email address?",
+    "context": "Returned during signup when the email is malformed OR when the email's domain is not on the per-domain/global signup allowlist. The two call sites deliberately share this key — identical user-visible text prevents enumeration of which domains are allowed.",
+    "content_hash": "21d55b60"
+  },
+  "api.account.errors.password_too_short": {
+    "text": "Password is too short",
+    "context": "Returned during signup when the supplied password is below the minimum length.",
+    "content_hash": "0d829600"
+  }
+}
