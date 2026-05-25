@@ -160,6 +160,27 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/org/:orgid/domains/:extid/signup',
+    name: 'DomainSignup',
+    component: () => import('@/apps/workspace/domains/DomainSignup.vue'),
+    meta: {
+      title: 'web.TITLES.domain_signup',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+      sentryScrubParams: false,
+    },
+    props: true,
+  },
+  {
     path: '/org/:orgid/domains/:extid/email',
     name: 'DomainEmail',
     component: () => import('@/apps/workspace/domains/DomainEmail.vue'),
