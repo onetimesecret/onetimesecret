@@ -12,13 +12,20 @@
  */
 
 import { z } from 'zod';
+import {
+  publicSecretOptionsSchema,
+  publicAuthenticationSchema,
+  publicFeaturesSchema,
+  publicSettingsSchema,
+} from '@/schemas/contracts/config/public';
+import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
   publicSecretOptionsSchema,
   publicAuthenticationSchema,
   publicFeaturesSchema,
   publicSettingsSchema,
-} from '@/schemas/contracts/config/public';
+};
 
 export type {
   PublicSecretOptions,
@@ -30,142 +37,73 @@ export type {
   Features,
 } from '@/schemas/contracts/config/public';
 
-/**
- * Public API Secret Options Shape — defaults and value bounds applied.
- */
-const publicSecretOptionsShape = z.object({
+const passphraseTree: AugmentTree = {
+  required: (b) => b.default(false),
+  /**
+   * Minimum length required for passphrases.
+   * @sync apps/api/v1/logic/secrets/base_secret_action.rb
+   */
+  minimum_length: (n) => n.int().min(0).max(256).default(4),
+  maximum_length: (n) => n.int().min(8).max(1024).default(128),
+  enforce_complexity: (b) => b.default(false),
+};
+
+const passwordGenerationTree: AugmentTree = {
+  default_length: (n) => n.int().min(4).max(128).default(12),
+  length_options: () =>
+    z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+  character_sets: {
+    uppercase: (b) => b.default(true),
+    lowercase: (b) => b.default(true),
+    numbers: (b) => b.default(true),
+    symbols: (b) => b.default(false),
+    exclude_ambiguous: (b) => b.default(true),
+  },
+};
+
+const publicSecretOptionsShape = augment(publicSecretOptionsSchema, {
   /**
    * Default Time-To-Live (TTL) for secrets in seconds
    * Default: 604800 (7 days in seconds)
    */
-  default_ttl: z.number().int().positive().default(604800),
+  default_ttl: (n) => n.int().positive().default(604800),
 
   /**
    * Available TTL options for secret creation (in seconds)
-   * Format: Array of integers representing seconds
-   * Default: [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600]
+   * Default: [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
    */
-  ttl_options: z
-    .array(z.number().int().positive().min(60).max(2592000))
-    .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+  ttl_options: () =>
+    z
+      .array(z.number().int().positive().min(60).max(2592000))
+      .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
 
-  passphrase: z
-    .object({
-      required: z.boolean().default(false),
-      /**
-       * Minimum length required for passphrases.
-       * Default: 4. Set to 0 to disable enforcement.
-       * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
-       */
-      minimum_length: z.number().int().min(0).max(256).default(4),
-      maximum_length: z.number().int().min(8).max(1024).default(128),
-      enforce_complexity: z.boolean().default(false),
-    })
-    .optional(),
-
-  password_generation: z
-    .object({
-      default_length: z.number().int().min(4).max(128).default(12),
-      length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
-      character_sets: z
-        .object({
-          uppercase: z.boolean().default(true),
-          lowercase: z.boolean().default(true),
-          numbers: z.boolean().default(true),
-          symbols: z.boolean().default(false),
-          exclude_ambiguous: z.boolean().default(true),
-        })
-        .optional(),
-    })
-    .optional(),
+  passphrase: passphraseTree,
+  password_generation: passwordGenerationTree,
 });
 
 /**
- * Public API Authentication Shape — no defaults, type-only is already correct.
- * Re-exported for consistent shape naming.
+ * Public API Authentication Shape — contract is already type-only with no
+ * defaults to inject; re-export under shape naming for consistency.
  */
-const publicAuthenticationShape = z.object({
-  enabled: z.boolean(),
-  signup: z.boolean(),
-  signin: z.boolean(),
-  autoverify: z.boolean(),
-  required: z.boolean(),
-  mode: z.enum(['simple', 'full']).optional(),
-});
-
-const jurisdictionIconShape = z.object({
-  collection: z.string(),
-  name: z.string(),
-});
-
-const jurisdictionShape = z.object({
-  identifier: z.string(),
-  display_name_i18n_key: z.string(),
-  domain: z.string(),
-  icon: jurisdictionIconShape.optional(),
-});
-
-const regionsShape = z.object({
-  enabled: z.boolean(),
-  current_jurisdiction: z.string().optional(),
-  jurisdictions: z.array(jurisdictionShape).optional(),
-});
-
-const approximatedShape = z
-  .object({
-    api_key: z.string().nullable().optional(),
-    proxy_ip: z.string().nullable().optional(),
-    proxy_host: z.string().nullable().optional(),
-    proxy_name: z.string().nullable().optional(),
-    vhost_target: z.string().nullable().optional(),
-  })
-  .strip();
-
-const acmeShape = z
-  .object({
-    enabled: z.boolean(),
-    listen_address: z.string().optional(),
-    port: z.union([z.string(), z.number()]).optional(),
-  })
-  .strip();
-
-const domainsShape = z.object({
-  enabled: z.boolean(),
-  require_verified: z.boolean().optional(),
-  default: z.string().nullable().optional(),
-  validation_strategy: z.string().optional(),
-  approximated: approximatedShape.optional(),
-  acme: acmeShape.optional(),
-});
-
-const authenticityShape = z
-  .object({
-    type: z.string(),
-  })
-  .strip();
-
-const supportShape = z.object({
-  host: z.string().optional(),
-});
+const publicAuthenticationShape = publicAuthenticationSchema;
 
 /**
- * Public API Features Shape — type-only equivalent; no defaults to inject.
+ * Public API Features Shape — same story as authentication; the contract's
+ * regions/domains nested objects are required fields without defaults.
  */
-const publicFeaturesShape = z.object({
-  regions: regionsShape,
-  domains: domainsShape,
-});
+const publicFeaturesShape = publicFeaturesSchema;
 
-const publicSettingsShape = z
-  .object({
-    host: z.string(),
-    ssl: z.boolean(),
-    authentication: publicAuthenticationShape,
-    authenticity: authenticityShape,
-    support: supportShape,
-    secret_options: publicSecretOptionsShape,
-  })
-  .strict();
+const publicSettingsShape = augment(publicSettingsSchema, {
+  secret_options: {
+    default_ttl: (n) => n.int().positive().default(604800),
+    ttl_options: () =>
+      z
+        .array(z.number().int().positive().min(60).max(2592000))
+        .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+    passphrase: passphraseTree,
+    password_generation: passwordGenerationTree,
+  },
+});
 
 export {
   publicSecretOptionsShape,

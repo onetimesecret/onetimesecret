@@ -3,13 +3,20 @@
 /**
  * Jurisdiction Configuration Shape
  *
- * Adds runtime defaults and value constraints on top of the type-only
- * jurisdiction contract — identifier length bounds and the enabled default.
+ * Adds the identifier length bounds and `enabled` default on top of the
+ * type-only jurisdiction contract.
  *
  * @see src/schemas/contracts/config/section/jurisdiction.ts
  */
 
-import { z } from 'zod';
+import {
+  jurisdictionSchema,
+  jurisdictionIconSchema,
+  regionSchema,
+  regionsConfigSchema,
+  jurisdictionDetailsSchema,
+} from '@/schemas/contracts/config/section/jurisdiction';
+import { augment } from '@/schemas/utils/augment';
 
 export {
   jurisdictionSchema,
@@ -17,7 +24,7 @@ export {
   regionSchema,
   regionsConfigSchema,
   jurisdictionDetailsSchema,
-} from '@/schemas/contracts/config/section/jurisdiction';
+};
 
 export type {
   Jurisdiction,
@@ -27,32 +34,20 @@ export type {
   JurisdictionDetails,
 } from '@/schemas/contracts/config/section/jurisdiction';
 
-const jurisdictionIconShape = z.object({
-  collection: z.string(),
-  name: z.string(),
-});
+const jurisdictionIconShape = jurisdictionIconSchema;
 
-const jurisdictionShape = z.object({
-  identifier: z.string().min(2).max(24),
-  display_name_i18n_key: z.string(),
-  domain: z.string(),
-  icon: jurisdictionIconShape.optional(),
-  enabled: z.boolean().default(true),
+const jurisdictionShape = augment(jurisdictionSchema, {
+  identifier: (s) => s.min(2).max(24),
+  enabled: (b) => b.default(true),
 });
 
 const regionShape = jurisdictionShape;
 
-const regionsConfigShape = z.object({
-  identifier: z.string().min(2).max(24),
-  enabled: z.boolean(),
-  current_jurisdiction: z.string(),
-  jurisdictions: z.array(jurisdictionShape),
+const regionsConfigShape = augment(regionsConfigSchema, {
+  identifier: (s) => s.min(2).max(24),
 });
 
-const jurisdictionDetailsShape = z.object({
-  is_default: z.boolean(),
-  is_current: z.boolean(),
-});
+const jurisdictionDetailsShape = jurisdictionDetailsSchema;
 
 export {
   jurisdictionShape,

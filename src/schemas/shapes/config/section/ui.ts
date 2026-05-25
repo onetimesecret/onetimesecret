@@ -9,8 +9,18 @@
  * @see src/schemas/contracts/config/section/ui.ts
  */
 
-import { z } from 'zod';
-import { nullableString } from '@/schemas/contracts/config/shared/primitives';
+import {
+  userInterfaceSchema,
+  uiSchema,
+  apiSchema,
+  userInterfaceLogoSchema,
+  userInterfaceHeaderSchema,
+  userInterfaceFooterLinksSchema,
+  userInterfaceHomepageSchema,
+  uiCapabilitiesSchema,
+  uiHelpSchema,
+} from '@/schemas/contracts/config/section/ui';
+import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
   userInterfaceSchema,
@@ -22,87 +32,50 @@ export {
   userInterfaceHomepageSchema,
   uiCapabilitiesSchema,
   uiHelpSchema,
-} from '@/schemas/contracts/config/section/ui';
+};
 
-const userInterfaceLogoShape = z.object({
-  url: z.string().optional(),
-  alt: z.string().optional(),
-  href: z.string().optional(),
-  show_name: z.boolean().optional(),
-  prominent: z.boolean().optional(),
+const userInterfaceLogoShape = userInterfaceLogoSchema;
+
+const homepageTree: AugmentTree = {
+  matching_cidrs: (a) => a.default([]),
+  mode_header: (s) => s.default('O-Homepage-Mode'),
+};
+
+const headerTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+};
+
+const footerLinksTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+};
+
+const userInterfaceHomepageShape = augment(userInterfaceHomepageSchema, homepageTree);
+const userInterfaceHeaderShape = augment(userInterfaceHeaderSchema, headerTree);
+const userInterfaceFooterLinksShape = augment(userInterfaceFooterLinksSchema, footerLinksTree);
+const uiCapabilitiesShape = uiCapabilitiesSchema;
+const uiHelpShape = uiHelpSchema;
+
+const uiShape = augment(uiSchema, {
+  enabled: (b) => b.default(true),
+  homepage: homepageTree,
+  header: headerTree,
+  footer_links: footerLinksTree,
+  workspace_links: { enabled: (b) => b.default(false) },
 });
 
-const userInterfaceHeaderBrandingShape = z.object({
-  logo: userInterfaceLogoShape.optional(),
-  site_name: z.string().optional(),
+const apiShape = augment(apiSchema, {
+  enabled: (b) => b.default(true),
 });
 
-const userInterfaceHeaderNavigationShape = z.object({
-  enabled: z.boolean().optional(),
-});
-
-const userInterfaceHomepageShape = z.object({
-  mode: z.string().nullable().optional(),
-  matching_cidrs: z.array(z.string()).default([]),
-  mode_header: z.string().default('O-Homepage-Mode'),
-});
-
-const userInterfaceHeaderShape = z.object({
-  enabled: z.boolean().default(true),
-  branding: userInterfaceHeaderBrandingShape.optional(),
-  navigation: userInterfaceHeaderNavigationShape.optional(),
-});
-
-const userInterfaceFooterLinkShape = z.object({
-  text: z.string().optional(),
-  i18n_key: z.string().optional(),
-  url: nullableString,
-});
-
-const userInterfaceFooterGroupShape = z.object({
-  name: z.string().optional(),
-  i18n_key: z.string().optional(),
-  links: z.array(userInterfaceFooterLinkShape).optional(),
-});
-
-const userInterfaceFooterLinksShape = z.object({
-  enabled: z.boolean().default(false),
-  groups: z.array(userInterfaceFooterGroupShape).optional(),
-});
-
-const userInterfaceWorkspaceLinksShape = z.object({
-  enabled: z.boolean().default(false),
-  links: z.array(userInterfaceFooterLinkShape).default([]),
-});
-
-const uiCapabilitiesShape = z.object({
-  burn: z.boolean().optional(),
-  show: z.boolean().optional(),
-  receipt: z.boolean().optional(),
-  recipient: z.boolean().optional(),
-});
-
-const uiHelpShape = z.object({
-  enabled: z.boolean().optional(),
-});
-
-const uiShape = z.object({
-  enabled: z.boolean().default(true),
-  homepage: userInterfaceHomepageShape.optional(),
-  header: userInterfaceHeaderShape.optional(),
-  footer_links: userInterfaceFooterLinksShape.optional(),
-  workspace_links: userInterfaceWorkspaceLinksShape.optional(),
-  capabilities: uiCapabilitiesShape.optional(),
-  help: uiHelpShape.optional(),
-});
-
-const apiShape = z.object({
-  enabled: z.boolean().default(true),
-});
-
-const userInterfaceShape = z.object({
-  ui: uiShape.optional(),
-  api: apiShape.optional(),
+const userInterfaceShape = augment(userInterfaceSchema, {
+  ui: {
+    enabled: (b) => b.default(true),
+    homepage: homepageTree,
+    header: headerTree,
+    footer_links: footerLinksTree,
+    workspace_links: { enabled: (b) => b.default(false) },
+  },
+  api: { enabled: (b) => b.default(true) },
 });
 
 export {

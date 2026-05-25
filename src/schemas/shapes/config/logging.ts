@@ -11,8 +11,16 @@
  * @see src/schemas/contracts/config/logging.ts
  */
 
-import { z } from 'zod';
-import { nullableString } from '@/schemas/contracts/config/shared/primitives';
+import {
+  loggingConfigSchema,
+  logLevelSchema,
+  formatterSchema,
+  httpCaptureSchema,
+  loggersSchema,
+  httpLoggingSchema,
+  isLoggingConfig,
+} from '@/schemas/contracts/config/logging';
+import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
   loggingConfigSchema,
@@ -22,7 +30,7 @@ export {
   loggersSchema,
   httpLoggingSchema,
   isLoggingConfig,
-} from '@/schemas/contracts/config/logging';
+};
 
 export type {
   LoggingConfig,
@@ -33,49 +41,50 @@ export type {
   HttpLogging,
 } from '@/schemas/contracts/config/logging';
 
-const logLevelShape = z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']);
+const logLevelShape = logLevelSchema;
+const formatterShape = formatterSchema;
+const httpCaptureShape = httpCaptureSchema;
 
-const formatterShape = z.enum(['color', 'json', 'default']);
+const loggersTree: AugmentTree = {
+  App: (l) => l.default('info'),
+  Auth: (l) => l.default('info'),
+  Billing: (l) => l.default('info'),
+  Boot: (l) => l.default('info'),
+  Familia: (l) => l.default('warn'),
+  HTTP: (l) => l.default('warn'),
+  Otto: (l) => l.default('warn'),
+  Rhales: (l) => l.default('error'),
+  Secret: (l) => l.default('info'),
+  Sequel: (l) => l.default('warn'),
+  Session: (l) => l.default('info'),
+};
 
-const httpCaptureShape = z.enum(['minimal', 'standard', 'debug']);
+const httpLoggingTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  capture: (e) => e.default('standard'),
+  slow_request_ms: (n) => n.int().positive().default(1000),
+  ignore_paths: (a) =>
+    a.default([
+      '/api/v1/status',
+      '/api/v2/status',
+      '/api/v3/status',
+      '/health',
+      '/healthcheck',
+      '/favicon.ico',
+      '/_vite/*',
+      '/assets/*',
+      '/dist/*',
+    ]),
+};
 
-const loggersShape = z.object({
-  App: logLevelShape.default('info'),
-  Auth: logLevelShape.default('info'),
-  Billing: logLevelShape.default('info'),
-  Boot: logLevelShape.default('info'),
-  Familia: logLevelShape.default('warn'),
-  HTTP: logLevelShape.default('warn'),
-  Otto: logLevelShape.default('warn'),
-  Rhales: logLevelShape.default('error'),
-  Secret: logLevelShape.default('info'),
-  Sequel: logLevelShape.default('warn'),
-  Session: logLevelShape.default('info'),
-}).catchall(logLevelShape);
+const loggersShape = augment(loggersSchema, loggersTree);
+const httpLoggingShape = augment(httpLoggingSchema, httpLoggingTree);
 
-const httpLoggingShape = z.object({
-  enabled: z.boolean().default(true),
-  level: nullableString,
-  capture: httpCaptureShape.default('standard'),
-  slow_request_ms: z.number().int().positive().default(1000),
-  ignore_paths: z.array(z.string()).default([
-    '/api/v1/status',
-    '/api/v2/status',
-    '/api/v3/status',
-    '/health',
-    '/healthcheck',
-    '/favicon.ico',
-    '/_vite/*',
-    '/assets/*',
-    '/dist/*',
-  ]),
-});
-
-const loggingConfigShape = z.object({
-  default_level: logLevelShape.default('info'),
-  formatter: formatterShape.default('color'),
-  loggers: loggersShape.optional(),
-  http: httpLoggingShape.optional(),
+const loggingConfigShape = augment(loggingConfigSchema, {
+  default_level: (l) => l.default('info'),
+  formatter: (f) => f.default('color'),
+  loggers: loggersTree,
+  http: httpLoggingTree,
 });
 
 export {

@@ -12,13 +12,23 @@
  * the parent decides whether sub-jobs exist. Partial worker overrides
  * (`workers: { email: { threads: 10 } }`) are still NOT supported by this
  * shape — `default({...})` on an object only fires when the whole object is
- * `undefined`. Adding field-level defaults here is the right fix only once
- * a partial-override consumer exists on main.
+ * `undefined`. The `augment` helper makes the fix trivial when a consumer
+ * for partial overrides shows up: replace the `email: () => workerConfigShape.default({...})`
+ * leaf with a sub-tree `{ threads: (n) => n.int().positive().default(4) }`.
  *
  * @see src/schemas/contracts/config/section/jobs.ts
  */
 
-import { z } from 'zod';
+import {
+  jobsSchema,
+  jobsWorkersSchema,
+  jobsSchedulerSchema,
+  jobsDomainRefreshSchema,
+  jobsExpirationWarningsSchema,
+  jobsMaintenanceSchema,
+  workerConfigSchema,
+} from '@/schemas/contracts/config/section/jobs';
+import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
   jobsSchema,
@@ -28,98 +38,121 @@ export {
   jobsExpirationWarningsSchema,
   jobsMaintenanceSchema,
   workerConfigSchema,
-} from '@/schemas/contracts/config/section/jobs';
+};
 
-const workerConfigShape = z.object({
-  threads: z.number().int().positive(),
-  prefetch: z.number().int().positive(),
+const workerConfigShape = augment(workerConfigSchema, {
+  threads: (n) => n.int().positive(),
+  prefetch: (n) => n.int().positive(),
 });
 
-const jobsWorkersShape = z.object({
-  email: workerConfigShape.default({ threads: 4, prefetch: 10 }),
-  notifications: workerConfigShape.default({ threads: 2, prefetch: 10 }),
-  billing: workerConfigShape.default({ threads: 2, prefetch: 5 }),
+const jobsWorkersShape = augment(jobsWorkersSchema, {
+  email: () => workerConfigShape.default({ threads: 4, prefetch: 10 }),
+  notifications: () => workerConfigShape.default({ threads: 2, prefetch: 10 }),
+  billing: () => workerConfigShape.default({ threads: 2, prefetch: 5 }),
 });
 
-const jobsSchedulerShape = z.object({
-  enabled: z.boolean().default(false),
+const jobsSchedulerShape = augment(jobsSchedulerSchema, {
+  enabled: (b) => b.default(false),
 });
 
-const jobsDomainRefreshShape = z.object({
-  enabled: z.boolean().default(false),
-  check_interval: z.string().default('30m'),
-  batch_size: z.number().int().positive().default(200),
-  rate_limit: z.number().nonnegative().default(0.5),
+const jobsDomainRefreshShape = augment(jobsDomainRefreshSchema, {
+  enabled: (b) => b.default(false),
+  check_interval: (s) => s.default('30m'),
+  batch_size: (n) => n.int().positive().default(200),
+  rate_limit: (n) => n.nonnegative().default(0.5),
 });
 
-const jobsExpirationWarningsShape = z.object({
-  enabled: z.boolean().default(false),
-  check_interval: z.string().default('1h'),
-  warning_hours: z.number().int().positive().default(24),
-  min_ttl_hours: z.number().int().positive().default(48),
-  batch_size: z.number().int().positive().default(100),
+const jobsExpirationWarningsShape = augment(jobsExpirationWarningsSchema, {
+  enabled: (b) => b.default(false),
+  check_interval: (s) => s.default('1h'),
+  warning_hours: (n) => n.int().positive().default(24),
+  min_ttl_hours: (n) => n.int().positive().default(48),
+  batch_size: (n) => n.int().positive().default(100),
 });
 
-const jobsPhantomCleanupShape = z.object({
-  enabled: z.boolean().default(false),
-  interval: z.string().default('1h'),
-  batch_size: z.number().int().positive().default(500),
-  auto_repair: z.boolean().default(false),
+const maintenancePhantomCleanupTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+  interval: (s) => s.default('1h'),
+  batch_size: (n) => n.int().positive().default(500),
+  auto_repair: (b) => b.default(false),
+};
+
+const maintenanceDataAuditTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+  interval: (s) => s.default('6h'),
+  sample_size: (n) => n.int().positive().default(100),
+};
+
+const maintenanceParticipationGcTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+  cron: (s) => s.default('0 5 * * *'),
+  batch_size: (n) => n.int().positive().default(500),
+  auto_repair: (b) => b.default(false),
+};
+
+const maintenanceIndexRebuildTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+  cron: (s) => s.default('0 4 * * *'),
+  auto_repair: (b) => b.default(false),
+};
+
+const maintenanceInstancesRebuildTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+  cron: (s) => s.default('0 3 * * 0'),
+  auto_repair: (b) => b.default(false),
+};
+
+const maintenanceHousekeepingTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+  cron: (s) => s.default('0 2 * * *'),
+};
+
+const jobsMaintenanceShape = augment(jobsMaintenanceSchema, {
+  enabled: (b) => b.default(false),
+  phantom_cleanup: maintenancePhantomCleanupTree,
+  data_audit: maintenanceDataAuditTree,
+  participation_gc: maintenanceParticipationGcTree,
+  index_rebuild: maintenanceIndexRebuildTree,
+  instances_rebuild: maintenanceInstancesRebuildTree,
+  housekeeping: maintenanceHousekeepingTree,
 });
 
-const jobsDataAuditShape = z.object({
-  enabled: z.boolean().default(false),
-  interval: z.string().default('6h'),
-  sample_size: z.number().int().positive().default(100),
-});
-
-const jobsParticipationGcShape = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 5 * * *'),
-  batch_size: z.number().int().positive().default(500),
-  auto_repair: z.boolean().default(false),
-});
-
-const jobsIndexRebuildShape = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 4 * * *'),
-  auto_repair: z.boolean().default(false),
-});
-
-const jobsInstancesRebuildShape = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 3 * * 0'),
-  auto_repair: z.boolean().default(false),
-});
-
-const jobsHousekeepingShape = z.object({
-  enabled: z.boolean().default(false),
-  cron: z.string().default('0 2 * * *'),
-});
-
-const jobsMaintenanceShape = z.object({
-  enabled: z.boolean().default(false),
-  phantom_cleanup: jobsPhantomCleanupShape.optional(),
-  data_audit: jobsDataAuditShape.optional(),
-  participation_gc: jobsParticipationGcShape.optional(),
-  index_rebuild: jobsIndexRebuildShape.optional(),
-  instances_rebuild: jobsInstancesRebuildShape.optional(),
-  housekeeping: jobsHousekeepingShape.optional(),
-});
-
-const jobsShape = z.object({
-  enabled: z.boolean().default(false),
-  rabbitmq_url: z.string().default('amqp://guest:guest@localhost:5672/dev'),
-  channel_pool_size: z.number().int().positive().default(5),
-  fallback_to_sync: z.boolean().default(true),
-  workers: jobsWorkersShape.optional(),
-  scheduler: jobsSchedulerShape.optional(),
-  plan_cache_refresh_enabled: z.boolean().default(false),
-  catalog_retry_enabled: z.boolean().default(false),
-  dlq_consumer_enabled: z.boolean().default(true),
-  domain_refresh: jobsDomainRefreshShape.optional(),
-  expiration_warnings: jobsExpirationWarningsShape.optional(),
-  maintenance: jobsMaintenanceShape.optional(),
+const jobsShape = augment(jobsSchema, {
+  enabled: (b) => b.default(false),
+  rabbitmq_url: (s) => s.default('amqp://guest:guest@localhost:5672/dev'),
+  channel_pool_size: (n) => n.int().positive().default(5),
+  fallback_to_sync: (b) => b.default(true),
+  workers: {
+    email: () => workerConfigShape.default({ threads: 4, prefetch: 10 }),
+    notifications: () => workerConfigShape.default({ threads: 2, prefetch: 10 }),
+    billing: () => workerConfigShape.default({ threads: 2, prefetch: 5 }),
+  },
+  scheduler: { enabled: (b) => b.default(false) },
+  plan_cache_refresh_enabled: (b) => b.default(false),
+  catalog_retry_enabled: (b) => b.default(false),
+  dlq_consumer_enabled: (b) => b.default(true),
+  domain_refresh: {
+    enabled: (b) => b.default(false),
+    check_interval: (s) => s.default('30m'),
+    batch_size: (n) => n.int().positive().default(200),
+    rate_limit: (n) => n.nonnegative().default(0.5),
+  },
+  expiration_warnings: {
+    enabled: (b) => b.default(false),
+    check_interval: (s) => s.default('1h'),
+    warning_hours: (n) => n.int().positive().default(24),
+    min_ttl_hours: (n) => n.int().positive().default(48),
+    batch_size: (n) => n.int().positive().default(100),
+  },
+  maintenance: {
+    enabled: (b) => b.default(false),
+    phantom_cleanup: maintenancePhantomCleanupTree,
+    data_audit: maintenanceDataAuditTree,
+    participation_gc: maintenanceParticipationGcTree,
+    index_rebuild: maintenanceIndexRebuildTree,
+    instances_rebuild: maintenanceInstancesRebuildTree,
+    housekeeping: maintenanceHousekeepingTree,
+  },
 });
 
 export {

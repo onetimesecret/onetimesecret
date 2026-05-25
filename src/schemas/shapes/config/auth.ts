@@ -10,8 +10,14 @@
  * @see src/schemas/contracts/config/auth.ts
  */
 
-import { z } from 'zod';
-import { nullableString } from '@/schemas/contracts/config/shared/primitives';
+import {
+  authConfigSchema,
+  authModeSchema,
+  simpleModeSchema,
+  fullModeSchema,
+  isAuthConfig,
+} from '@/schemas/contracts/config/auth';
+import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
   authConfigSchema,
@@ -19,7 +25,7 @@ export {
   simpleModeSchema,
   fullModeSchema,
   isAuthConfig,
-} from '@/schemas/contracts/config/auth';
+};
 
 export type {
   AuthConfig,
@@ -28,14 +34,14 @@ export type {
   FullModeConfig,
 } from '@/schemas/contracts/config/auth';
 
-const authModeShape = z.enum(['simple', 'full']);
+const authModeShape = authModeSchema;
 
-const simpleModeShape = z.object({
-  password_hash_cost: z.number().int().positive().optional(),
-  session_timeout: z.number().int().positive().optional(),
-});
+const simpleModeTree: AugmentTree = {
+  password_hash_cost: (n) => n.int().positive().optional(),
+  session_timeout: (n) => n.int().positive().optional(),
+};
 
-const fullModeShape = z.object({
+const fullModeTree: AugmentTree = {
   /**
    * Application database connection URL
    *
@@ -44,25 +50,16 @@ const fullModeShape = z.object({
    *   - 'sqlite://data/auth.db' - Relative path
    *   - 'sqlite:///data/auth.db' - Absolute path
    */
-  database_url: z.string().default('sqlite://data/auth.db'),
+  database_url: (s) => s.default('sqlite://data/auth.db'),
+};
 
-  /**
-   * Migrations connection (PostgreSQL, MySQL, MS SQL Server only)
-   *
-   * Used at deployment time to run all Rodauth migrations
-   */
-  database_url_migrations: nullableString,
+const simpleModeShape = augment(simpleModeSchema, simpleModeTree);
+const fullModeShape = augment(fullModeSchema, fullModeTree);
 
-  /**
-   * Service URL for internal requests
-   */
-  service_url: z.string().optional(),
-});
-
-const authConfigShape = z.object({
-  mode: authModeShape.default('simple'),
-  simple: simpleModeShape.optional(),
-  full: fullModeShape.optional(),
+const authConfigShape = augment(authConfigSchema, {
+  mode: (e) => e.default('simple'),
+  simple: simpleModeTree,
+  full: fullModeTree,
 });
 
 export { authConfigShape, authModeShape, simpleModeShape, fullModeShape };

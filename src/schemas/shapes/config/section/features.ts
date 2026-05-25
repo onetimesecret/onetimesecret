@@ -10,8 +10,15 @@
  * @see src/schemas/contracts/config/section/features.ts
  */
 
-import { z } from 'zod';
-import { nullableString } from '@/schemas/contracts/config/shared/primitives';
+import {
+  featuresSchema,
+  featuresRegionsSchema,
+  featuresIncomingSchema,
+  featuresDomainsSchema,
+  featuresDomainsProxySchema,
+  featuresDomainsAcmeSchema,
+} from '@/schemas/contracts/config/section/features';
+import { augment } from '@/schemas/utils/augment';
 
 export {
   featuresSchema,
@@ -20,82 +27,63 @@ export {
   featuresDomainsSchema,
   featuresDomainsProxySchema,
   featuresDomainsAcmeSchema,
-} from '@/schemas/contracts/config/section/features';
+};
 
-const incomingRecipientShape = z.tuple([z.string(), z.string().optional()]).nullable();
-
-const featuresIncomingShape = z.object({
-  enabled: z.boolean().default(false),
-  memo_max_length: z.number().int().positive().default(50),
-  default_ttl: z.number().int().positive().default(604800),
-  default_passphrase: z.string().nullable().optional(),
-  recipients: z.array(incomingRecipientShape).optional(),
+const featuresIncomingShape = augment(featuresIncomingSchema, {
+  enabled: (b) => b.default(false),
+  memo_max_length: (n) => n.int().positive().default(50),
+  default_ttl: (n) => n.int().positive().default(604800),
 });
 
-const featuresRegionJurisdictionIconShape = z.object({
-  collection: z.string().optional(),
-  name: z.string().optional(),
+const featuresRegionsShape = augment(featuresRegionsSchema, {
+  enabled: (b) => b.default(false),
 });
 
-const featuresRegionJurisdictionShape = z.object({
-  identifier: z.string().optional(),
-  display_name: z.string().optional(),
-  domain: z.string().optional(),
-  icon: featuresRegionJurisdictionIconShape.optional(),
-});
-
-/**
- * Regions feature shape.
- *
- * `jurisdictions` stays permissive: the shipped YAML uses
- * `<%= ENV['JURISDICTIONS'] || '' %>`, which evaluates to a CSV string when
- * set and empty when not. Ruby parses that into the array shape elsewhere.
- */
-const featuresRegionsShape = z.object({
-  enabled: z.boolean().default(false),
-  current_jurisdiction: nullableString,
-  jurisdictions: z
-    .union([z.array(featuresRegionJurisdictionShape), z.string(), z.null()])
-    .optional(),
-});
-
-const featuresDomainsProxyShape = z.object({
-  api_key: nullableString,
-  proxy_ip: nullableString,
-  proxy_host: nullableString,
-  proxy_name: nullableString,
-  vhost_target: nullableString,
-});
+const featuresDomainsProxyShape = featuresDomainsProxySchema;
 
 /**
  * ACME endpoint shape.
  *
- * `port` accepts string or number: the shipped YAML uses
- * `<%= ENV['ACME_PORT'] || '12020' %>`, which renders to the bareword `12020`
- * and YAML auto-coerces to an integer at parse time. Both representations
- * are semantically the same TCP port.
+ * `port` stays a string|number union — the shipped YAML uses
+ * `<%= ENV['ACME_PORT'] || '12020' %>`, which renders to the bareword
+ * `12020` that YAML auto-coerces to an integer. Both representations are
+ * the same TCP port. The default keeps the string form to match the
+ * env-unset path.
  */
-const featuresDomainsAcmeShape = z.object({
-  enabled: z.boolean().default(false),
-  listen_address: z.string().default('127.0.0.1'),
-  port: z.union([z.string(), z.number()]).default('12020'),
+const featuresDomainsAcmeShape = augment(featuresDomainsAcmeSchema, {
+  enabled: (b) => b.default(false),
+  listen_address: (s) => s.default('127.0.0.1'),
+  port: (u) => u.default('12020'),
 });
 
-const featuresDomainsShape = z.object({
-  enabled: z.boolean().default(false),
-  require_verified: z.boolean().default(false),
-  default: nullableString,
-  validation_strategy: z
-    .enum(['passthrough', 'approximated', 'caddy_on_demand'])
-    .default('passthrough'),
-  approximated: featuresDomainsProxyShape.optional(),
-  acme: featuresDomainsAcmeShape.optional(),
+const featuresDomainsShape = augment(featuresDomainsSchema, {
+  enabled: (b) => b.default(false),
+  require_verified: (b) => b.default(false),
+  validation_strategy: (e) => e.default('passthrough'),
+  acme: {
+    enabled: (b) => b.default(false),
+    listen_address: (s) => s.default('127.0.0.1'),
+    port: (u) => u.default('12020'),
+  },
 });
 
-const featuresShape = z.object({
-  regions: featuresRegionsShape.optional(),
-  incoming: featuresIncomingShape.optional(),
-  domains: featuresDomainsShape.optional(),
+const featuresShape = augment(featuresSchema, {
+  regions: { enabled: (b) => b.default(false) },
+  incoming: {
+    enabled: (b) => b.default(false),
+    memo_max_length: (n) => n.int().positive().default(50),
+    default_ttl: (n) => n.int().positive().default(604800),
+  },
+  domains: {
+    enabled: (b) => b.default(false),
+    require_verified: (b) => b.default(false),
+    validation_strategy: (e) => e.default('passthrough'),
+    acme: {
+      enabled: (b) => b.default(false),
+      listen_address: (s) => s.default('127.0.0.1'),
+      port: (u) => u.default('12020'),
+    },
+  },
 });
 
 export {

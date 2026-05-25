@@ -8,8 +8,14 @@
  * @see src/schemas/contracts/config/section/diagnostics.ts
  */
 
-import { z } from 'zod';
-import { nullableString } from '@/schemas/contracts/config/shared/primitives';
+import {
+  diagnosticsSchema,
+  diagnosticsSentrySchema,
+  diagnosticsSentryDefaultsSchema,
+  diagnosticsSentryBackendSchema,
+  diagnosticsSentryFrontendSchema,
+} from '@/schemas/contracts/config/section/diagnostics';
+import { augment } from '@/schemas/utils/augment';
 
 export {
   diagnosticsSchema,
@@ -17,30 +23,40 @@ export {
   diagnosticsSentryDefaultsSchema,
   diagnosticsSentryBackendSchema,
   diagnosticsSentryFrontendSchema,
-} from '@/schemas/contracts/config/section/diagnostics';
+};
 
-const diagnosticsSentryDefaultsShape = z.object({
-  dsn: nullableString,
-  sampleRate: z.union([z.string(), z.number()]).optional(),
-  maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-  logErrors: z.boolean().default(true),
+const diagnosticsSentryDefaultsShape = augment(diagnosticsSentryDefaultsSchema, {
+  logErrors: (b) => b.default(true),
 });
 
-const diagnosticsSentryBackendShape = diagnosticsSentryDefaultsShape.extend({});
-
-const diagnosticsSentryFrontendShape = diagnosticsSentryDefaultsShape.extend({
-  trackComponents: z.boolean().default(true),
+const diagnosticsSentryBackendShape = augment(diagnosticsSentryBackendSchema, {
+  logErrors: (b) => b.default(true),
 });
 
-const diagnosticsSentryShape = z.object({
-  defaults: diagnosticsSentryDefaultsShape.optional(),
-  backend: diagnosticsSentryBackendShape.optional(),
-  frontend: diagnosticsSentryFrontendShape.optional(),
+const diagnosticsSentryFrontendShape = augment(diagnosticsSentryFrontendSchema, {
+  logErrors: (b) => b.default(true),
+  trackComponents: (b) => b.default(true),
 });
 
-const diagnosticsShape = z.object({
-  enabled: z.boolean().default(false),
-  sentry: diagnosticsSentryShape.optional(),
+const diagnosticsSentryShape = augment(diagnosticsSentrySchema, {
+  defaults: { logErrors: (b) => b.default(true) },
+  backend: { logErrors: (b) => b.default(true) },
+  frontend: {
+    logErrors: (b) => b.default(true),
+    trackComponents: (b) => b.default(true),
+  },
+});
+
+const diagnosticsShape = augment(diagnosticsSchema, {
+  enabled: (b) => b.default(false),
+  sentry: {
+    defaults: { logErrors: (b) => b.default(true) },
+    backend: { logErrors: (b) => b.default(true) },
+    frontend: {
+      logErrors: (b) => b.default(true),
+      trackComponents: (b) => b.default(true),
+    },
+  },
 });
 
 export {

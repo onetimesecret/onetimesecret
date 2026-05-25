@@ -10,8 +10,18 @@
  * @see src/schemas/contracts/config/section/site.ts
  */
 
-import { z } from 'zod';
-import { nullableString } from '@/schemas/contracts/config/shared/primitives';
+import {
+  siteSchema,
+  siteAuthenticationSchema,
+  siteSecretOptionsSchema,
+  passphraseSchema,
+  passwordGenerationSchema,
+  sessionConfigSchema,
+  middlewareSchema,
+  securitySchema,
+  cspSchema,
+} from '@/schemas/contracts/config/section/site';
+import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
   siteSchema,
@@ -23,7 +33,7 @@ export {
   middlewareSchema,
   securitySchema,
   cspSchema,
-} from '@/schemas/contracts/config/section/site';
+};
 
 export type {
   SessionConfig,
@@ -32,94 +42,98 @@ export type {
   SecurityConfig,
 } from '@/schemas/contracts/config/section/site';
 
-const siteAuthenticationShape = z.object({
-  enabled: z.boolean().default(true),
-  signup: z.boolean().default(true),
-  signin: z.boolean().default(true),
-  autoverify: z.boolean().default(false),
-  required: z.boolean().default(false),
-  colonels: z.array(z.string()).default([]),
-  allowed_signup_domains: z.array(z.string()).default([]),
-});
+// ─── Section trees ────────────────────────────────────────────────────────
 
-const siteSupportShape = z.object({
-  host: z.string().nullable().optional(),
-});
+const authenticationTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  signup: (b) => b.default(true),
+  signin: (b) => b.default(true),
+  autoverify: (b) => b.default(false),
+  required: (b) => b.default(false),
+  colonels: (a) => a.default([]),
+  allowed_signup_domains: (a) => a.default([]),
+};
 
-const sessionConfigShape = z.object({
-  secret: nullableString,
-  expire_after: z.number().int().positive().default(86400),
-  key: z.string().default('onetime.session'),
-  secure: z.boolean().default(true),
-  same_site: z.enum(['strict', 'lax', 'none']).default('lax'),
-  httponly: z.boolean().default(true),
-});
+const sessionTree: AugmentTree = {
+  expire_after: (n) => n.int().positive().default(86400),
+  key: (s) => s.default('onetime.session'),
+  secure: (b) => b.default(true),
+  same_site: (e) => e.default('lax'),
+  httponly: (b) => b.default(true),
+};
 
-const cspShape = z.object({
-  enabled: z.boolean().default(false),
-});
+const cspTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+};
 
-const securityShape = z.object({
-  csp: cspShape.optional(),
-});
+const securityTree: AugmentTree = {
+  csp: cspTree,
+};
 
-const middlewareShape = z.object({
-  static_files: z.boolean().default(true),
-  utf8_sanitizer: z.boolean().default(true),
-  authenticity_token: z.boolean().default(true),
-  http_origin: z.boolean().default(false),
-  xss_header: z.boolean().default(false),
-  frame_options: z.boolean().default(false),
-  path_traversal: z.boolean().default(false),
-  cookie_tossing: z.boolean().default(false),
-  ip_spoofing: z.boolean().default(false),
-  strict_transport: z.boolean().default(false),
-});
+const middlewareTree: AugmentTree = {
+  static_files: (b) => b.default(true),
+  utf8_sanitizer: (b) => b.default(true),
+  authenticity_token: (b) => b.default(true),
+  http_origin: (b) => b.default(false),
+  xss_header: (b) => b.default(false),
+  frame_options: (b) => b.default(false),
+  path_traversal: (b) => b.default(false),
+  cookie_tossing: (b) => b.default(false),
+  ip_spoofing: (b) => b.default(false),
+  strict_transport: (b) => b.default(false),
+};
 
-const passphraseShape = z.object({
-  required: z.boolean().default(false),
+const passphraseTree: AugmentTree = {
+  required: (b) => b.default(false),
   /**
    * Minimum length required for passphrases.
-   * Default: 4. Set to 0 to disable enforcement.
-   * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
+   * @sync apps/api/v1/logic/secrets/base_secret_action.rb
    */
-  minimum_length: z.number().int().min(0).max(256).default(4),
-  maximum_length: z.number().int().positive().default(128),
-  enforce_complexity: z.boolean().default(false),
-});
+  minimum_length: (n) => n.int().min(0).max(256).default(4),
+  maximum_length: (n) => n.int().positive().default(128),
+  enforce_complexity: (b) => b.default(false),
+};
 
-const passwordGenerationCharacterSetsShape = z.object({
-  uppercase: z.boolean().default(true),
-  lowercase: z.boolean().default(true),
-  numbers: z.boolean().default(true),
-  symbols: z.boolean().default(true),
-  exclude_ambiguous: z.boolean().default(true),
-});
+const passwordGenerationTree: AugmentTree = {
+  default_length: (n) => n.int().positive().default(12),
+  character_sets: {
+    uppercase: (b) => b.default(true),
+    lowercase: (b) => b.default(true),
+    numbers: (b) => b.default(true),
+    symbols: (b) => b.default(true),
+    exclude_ambiguous: (b) => b.default(true),
+  },
+};
 
-const passwordGenerationShape = z.object({
-  default_length: z.number().int().positive().default(12),
-  character_sets: passwordGenerationCharacterSetsShape,
-});
+const siteSecretOptionsTree: AugmentTree = {
+  // Bounds-only leaves: the contract field is nullable+optional. augment unwraps
+  // those for the leaf, and the leaf re-applies them so the structural shape
+  // matches the contract (otherwise the field becomes required).
+  default_ttl: (n) => n.int().positive().nullable().optional(),
+  generated_value_display_ttl: (n) => n.int().nonnegative().optional(),
+  passphrase: passphraseTree,
+  password_generation: passwordGenerationTree,
+};
 
-const siteSecretOptionsShape = z.object({
-  default_ttl: z.number().int().positive().nullable().optional(),
-  ttl_options: z.string().nullable().optional(),
-  generated_value_display_ttl: z.number().int().nonnegative().optional(),
-  passphrase: passphraseShape,
-  password_generation: passwordGenerationShape,
-});
+// ─── Exported shapes ──────────────────────────────────────────────────────
 
-const siteShape = z.object({
-  host: z.string().default('localhost:3000'),
-  ssl: z.boolean().default(false),
-  secret: z.string().nullable().optional(),
-  interface: z.any().optional(),
-  secret_options: siteSecretOptionsShape.optional(),
-  authentication: siteAuthenticationShape.optional(),
-  support: siteSupportShape.optional(),
-  session: sessionConfigShape.optional(),
-  middleware: middlewareShape.optional(),
-  security: securityShape.optional(),
+const siteAuthenticationShape = augment(siteAuthenticationSchema, authenticationTree);
+const sessionConfigShape = augment(sessionConfigSchema, sessionTree);
+const cspShape = augment(cspSchema, cspTree);
+const securityShape = augment(securitySchema, securityTree);
+const middlewareShape = augment(middlewareSchema, middlewareTree);
+const passphraseShape = augment(passphraseSchema, passphraseTree);
+const passwordGenerationShape = augment(passwordGenerationSchema, passwordGenerationTree);
+const siteSecretOptionsShape = augment(siteSecretOptionsSchema, siteSecretOptionsTree);
+
+const siteShape = augment(siteSchema, {
+  host: (s) => s.default('localhost:3000'),
+  ssl: (b) => b.default(false),
+  secret_options: siteSecretOptionsTree,
+  authentication: authenticationTree,
+  session: sessionTree,
+  middleware: middlewareTree,
+  security: securityTree,
 });
 
 export {

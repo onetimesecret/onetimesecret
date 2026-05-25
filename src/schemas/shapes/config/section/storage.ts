@@ -11,37 +11,42 @@
  * @see src/schemas/contracts/config/section/storage.ts
  */
 
-import { z } from 'zod';
-
-export {
+import {
   redisDbsSchema,
   redisSchema,
   storageSchema,
 } from '@/schemas/contracts/config/section/storage';
+import { augment, type LeafTransform } from '@/schemas/utils/augment';
 
-const redisDbsShape = z.object({
-  session: z.number().int().min(0).max(15).default(0),
-  custom_domain: z.number().int().min(0).max(15).default(0),
-  customer: z.number().int().min(0).max(15).default(0),
-  metadata: z.number().int().min(0).max(15).default(0),
-  secret: z.number().int().min(0).max(15).default(0),
-  feedback: z.number().int().min(0).max(15).default(0),
+export { redisDbsSchema, redisSchema, storageSchema };
+
+const dbNumber: LeafTransform = (n) => n.int().min(0).max(15).default(0);
+
+const redisDbsShape = augment(redisDbsSchema, {
+  session: dbNumber,
+  custom_domain: dbNumber,
+  customer: dbNumber,
+  metadata: dbNumber,
+  secret: dbNumber,
+  feedback: dbNumber,
 });
 
-const redisShape = z.object({
-  uri: z.string().default('redis://127.0.0.1:6379'),
-  dbs: redisDbsShape.optional(),
+const redisShape = augment(redisSchema, {
+  uri: (s) => s.default('redis://127.0.0.1:6379'),
+  dbs: {
+    session: dbNumber,
+    custom_domain: dbNumber,
+    customer: dbNumber,
+    metadata: dbNumber,
+    secret: dbNumber,
+    feedback: dbNumber,
+  },
 });
 
-const storageShape = z.object({
-  db: z
-    .object({
-      connection: z.object({
-        url: z.string().default('redis://localhost:6379'),
-      }),
-      database_mapping: z.record(z.string(), z.number().nullable()).optional(),
-    })
-    .optional(),
+const storageShape = augment(storageSchema, {
+  db: {
+    connection: { url: (s) => s.default('redis://localhost:6379') },
+  },
 });
 
 export { redisDbsShape, redisShape, storageShape };
