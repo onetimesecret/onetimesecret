@@ -20,6 +20,7 @@ import { useDomain } from '@/shared/composables/useDomain';
 
 import { useSignupConfig } from '@/shared/composables/useSignupConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 
@@ -54,6 +55,18 @@ const organization = computed(() =>
 const { can } = useEntitlements(organization);
 const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+
+// Surface a warning when the per-domain config has no traffic to gate
+// (site.authentication.signup or site.authentication.enabled is false).
+// Operators can still configure ahead of enabling signups, but should
+// know the policy is currently dormant.
+const bootstrapStore = useBootstrapStore();
+const { authentication } = storeToRefs(bootstrapStore);
+const siteSignupsDisabled = computed(() => {
+  const auth = authentication.value;
+  if (!auth) return false;
+  return auth.enabled === false || auth.signup === false;
+});
 
 // ---------------------------------------------------------------------------
 // Signup config composable
@@ -214,6 +227,22 @@ watch(canCustomSignup, async (entitled) => {
         </div>
 
         <div class="p-6 space-y-6">
+          <!-- Site-level signup disabled warning -->
+          <div
+            v-if="siteSignupsDisabled"
+            role="status"
+            aria-live="polite"
+            class="flex items-start gap-3 rounded-md bg-yellow-50 px-4 py-3 dark:bg-yellow-900/20">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              class="mt-0.5 size-5 flex-shrink-0 text-yellow-500 dark:text-yellow-400"
+              aria-hidden="true" />
+            <p class="flex-1 text-sm text-yellow-700 dark:text-yellow-300">
+              {{ t('web.domains.signup.site_signups_disabled_warning') }}
+            </p>
+          </div>
+
           <!-- Not configured notice -->
           <div
             v-if="!isConfigured"

@@ -527,6 +527,10 @@
     "text": "Signup validation is not yet configured for this domain. Configure a strategy to control who can sign up via this domain.",
     "content_hash": "fc6c6eb8"
   },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Signups are currently disabled at the site level. This per-domain policy is configured but will not gate any traffic until site signups are enabled.",
+    "content_hash": "c0e59f86"
+  },
   "web.domains.signup.strategy_label": {
     "text": "Validation strategy",
     "content_hash": "a2e95531"
