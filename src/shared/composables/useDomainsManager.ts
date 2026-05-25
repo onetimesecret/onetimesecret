@@ -185,8 +185,8 @@ export function useDomainsManager() {
         }, 2000);
         return record;
       } catch (err: unknown) {
-        const axiosErr = err as { response?: { data?: { message?: string } }; message?: string };
-        const errorMessage = axiosErr?.response?.data?.message || axiosErr?.message || '';
+        const axiosErr = err as { response?: { data?: { error?: string } }; message?: string };
+        const errorMessage = axiosErr?.response?.data?.error || axiosErr?.message || '';
         const handled = await handleDomainExistsError(domain, errorMessage);
         if (handled !== undefined) return handled;
         throw err;

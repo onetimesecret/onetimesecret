@@ -34,7 +34,7 @@ export interface HttpErrorLike {
   status?: number;
   response?: {
     status?: number;
-    data?: { message?: string };
+    data?: { error?: string; error_type?: string };
   };
   message?: string;
 }
