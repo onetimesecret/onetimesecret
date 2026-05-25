@@ -22,7 +22,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe 'OmniAuth Failure Handling' do
   describe 'failure redirect configuration' do

@@ -26,7 +26,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
   include Rack::Test::Methods
@@ -72,19 +72,26 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     raise "Auth app not mounted post-boot: #{mounts.inspect}" unless mounts.any? { |m| m.include?('/auth') }
   end
 
-  # Declare JSON intent — these specs assert on JSON 4xx bodies (domain_not_allowed,
-  # invalid_email, etc.). NOTE: the auth app's OmniAuth failure handler currently
-  # redirects (302 → /signin?auth_error=sso_failed) regardless of this header,
-  # which is why the 11 domain-rejection/malformed-email specs still fail. The
-  # header documents the intent; a separate change is needed in the failure
-  # handler (or the before_omniauth_create_account hook) to honor it.
   before(:each) do
-    header 'Accept', 'application/json'
+    # Tests run on example.org (Rack::Test default) which isn't the canonical
+    # domain. Without platform fallback, the tenant hook blocks all requests
+    # before domain validation can run.
+    enable_platform_fallback
   end
 
   # ==========================================================================
   # Helper Methods
   # ==========================================================================
+
+  # Asserts the OmniAuth callback ended in a redirect to /signin with the given
+  # stable auth_error code. Matches the convention shared with email_auth and
+  # omniauth_on_failure (Login.vue dispatches the code to a localized message).
+  def expect_auth_error_redirect(code)
+    expect(last_response.status).to eq(302),
+      "Expected 302 redirect for #{code}, got #{last_response.status}: #{last_response.body}"
+    expect(last_response.location.to_s).to include("/signin?auth_error=#{code}"),
+      "Expected auth_error=#{code} in Location, got: #{last_response.location.inspect}"
+  end
 
   # Sets up OmniAuth test mode with a mock auth hash for the given email
   def setup_mock_auth(email:, provider: :oidc, uid: nil)
@@ -132,6 +139,13 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     config['site']['authentication']['allowed_signup_domains'] = domains
 
     allow(OT).to receive(:conf).and_return(config)
+  end
+
+  # Enables platform credential fallback for non-tenant requests.
+  # Required because tests run on `example.org` which isn't the canonical
+  # domain, so without this the tenant hook blocks before domain validation.
+  def enable_platform_fallback
+    allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
   end
 
   # ==========================================================================
@@ -205,7 +219,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
         configure_allowed_domains(['company.com'])
       end
 
-      it 'returns 403 for disallowed domain' do
+      it 'redirects with domain_not_allowed for disallowed domain' do
         setup_mock_auth(email: 'attacker@evil.com')
 
         begin
@@ -215,14 +229,13 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(403),
-            "Expected 403 for disallowed domain, got #{last_response.status}: #{last_response.body}"
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end
       end
 
-      it 'returns domain_not_allowed error code' do
+      it 'returns domain_not_allowed error code in Location' do
         setup_mock_auth(email: 'user@competitor.com')
 
         begin
@@ -232,11 +245,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          if last_response.status == 403
-            # Check error response contains expected error code
-            expect(last_response.body).to include('domain_not_allowed').or include('not authorized'),
-              "Expected domain_not_allowed error, got: #{last_response.body}"
-          end
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end
@@ -253,8 +262,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(403),
-            "Expected 403 for subdomain, got #{last_response.status}: #{last_response.body}"
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end
@@ -272,7 +280,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     end
 
     context 'email missing @ symbol' do
-      it 'returns 400 for email without @' do
+      it 'redirects with invalid_email for email without @' do
         setup_mock_auth(email: 'usercompany.com')
 
         begin
@@ -282,14 +290,13 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(400),
-            "Expected 400 for malformed email, got #{last_response.status}: #{last_response.body}"
+          expect_auth_error_redirect('invalid_email')
         ensure
           teardown_mock_auth
         end
       end
 
-      it 'returns invalid_email error code' do
+      it 'returns invalid_email error code in Location' do
         setup_mock_auth(email: 'noemail')
 
         begin
@@ -299,10 +306,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          if last_response.status == 400
-            expect(last_response.body).to include('invalid_email').or include('Invalid email'),
-              "Expected invalid_email error, got: #{last_response.body}"
-          end
+          expect_auth_error_redirect('invalid_email')
         ensure
           teardown_mock_auth
         end
@@ -310,7 +314,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     end
 
     context 'email with empty domain' do
-      it 'returns 400 for email with empty domain' do
+      it 'redirects with invalid_email for email with empty domain' do
         setup_mock_auth(email: 'user@')
 
         begin
@@ -320,8 +324,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(400),
-            "Expected 400 for empty domain, got #{last_response.status}: #{last_response.body}"
+          expect_auth_error_redirect('invalid_email')
         ensure
           teardown_mock_auth
         end
@@ -329,7 +332,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     end
 
     context 'email with multiple @ symbols' do
-      it 'returns 400 for email with multiple @' do
+      it 'redirects with invalid_email for email with multiple @' do
         setup_mock_auth(email: 'user@foo@company.com')
 
         begin
@@ -339,8 +342,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(400),
-            "Expected 400 for email with multiple @, got #{last_response.status}: #{last_response.body}"
+          expect_auth_error_redirect('invalid_email')
         ensure
           teardown_mock_auth
         end
@@ -348,7 +350,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     end
 
     context 'empty or nil email' do
-      it 'returns 400 for empty email' do
+      it 'redirects with invalid_email for empty email' do
         setup_mock_auth(email: '')
 
         begin
@@ -358,8 +360,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(400),
-            "Expected 400 for empty email, got #{last_response.status}: #{last_response.body}"
+          expect_auth_error_redirect('invalid_email')
         ensure
           teardown_mock_auth
         end
@@ -757,8 +758,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
           end
 
           # Malformed email should be rejected (format check still applies)
-          expect(last_response.status).to eq(400),
-            "Expected 400 for malformed email with passthrough, got #{last_response.status}"
+          expect_auth_error_redirect('invalid_email')
         ensure
           teardown_mock_auth
         end
@@ -804,8 +804,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(403),
-            "Expected 403 for domain not in per-domain allowlist, got #{last_response.status}"
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end
@@ -824,8 +823,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
           end
 
           # Per-domain takes precedence, and company.com is not in per-domain list
-          expect(last_response.status).to eq(403),
-            "Expected per-domain to override global, got #{last_response.status}"
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end
@@ -872,8 +870,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(403),
-            "Expected global rejection when per-domain disabled, got #{last_response.status}"
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end
@@ -914,8 +911,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect(last_response.status).to eq(403),
-            "Expected global rejection, got #{last_response.status}"
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end
@@ -1030,17 +1026,16 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
           skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
         end
 
-        if last_response.status == 403
-          # Response should NOT reveal which domains are allowed
-          expect(last_response.body).not_to include('secure-corp.com'),
-            "Error response reveals allowed domain: #{last_response.body}"
-        end
+        expect_auth_error_redirect('domain_not_allowed')
+        # Redirect Location must not reveal which domains are allowed
+        expect(last_response.location.to_s).not_to include('secure-corp.com'),
+          "Redirect Location reveals allowed domain: #{last_response.location}"
       ensure
         teardown_mock_auth
       end
     end
 
-    it 'uses generic error message' do
+    it 'uses generic error code' do
       setup_mock_auth(email: 'user@hacker.io')
 
       begin
@@ -1050,11 +1045,8 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
           skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
         end
 
-        if last_response.status == 403
-          # Should use generic message without revealing policy details
-          expect(last_response.body).to include('not authorized').or include('domain_not_allowed'),
-            "Expected generic error message, got: #{last_response.body}"
-        end
+        # Stable, generic code — translated by the frontend, no policy details leaked
+        expect_auth_error_redirect('domain_not_allowed')
       ensure
         teardown_mock_auth
       end
@@ -1134,13 +1126,12 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          if last_response.status == 403
-            # Response must NOT reveal which domains are in the per-domain allowlist
-            expect(last_response.body).not_to include('secret-partner.com'),
-              "Error response reveals per-domain allowed domain"
-            expect(last_response.body).not_to include('confidential.example.com'),
-              "Error response reveals per-domain allowed domain"
-          end
+          expect_auth_error_redirect('domain_not_allowed')
+          # Redirect Location must NOT reveal which domains are in the per-domain allowlist
+          expect(last_response.location.to_s).not_to include('secret-partner.com'),
+            "Redirect Location reveals per-domain allowed domain"
+          expect(last_response.location.to_s).not_to include('confidential.example.com'),
+            "Redirect Location reveals per-domain allowed domain"
         ensure
           teardown_mock_auth
         end
@@ -1156,13 +1147,12 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          if last_response.status == 403
-            # Response must NOT reveal the validation strategy type
-            expect(last_response.body).not_to include('domain_allowlist'),
-              "Error response reveals validation strategy"
-            expect(last_response.body).not_to include('passthrough'),
-              "Error response reveals validation strategy"
-          end
+          expect_auth_error_redirect('domain_not_allowed')
+          # Redirect Location must NOT reveal the validation strategy type
+          expect(last_response.location.to_s).not_to include('domain_allowlist'),
+            "Redirect Location reveals validation strategy"
+          expect(last_response.location.to_s).not_to include('passthrough'),
+            "Redirect Location reveals validation strategy"
         ensure
           teardown_mock_auth
         end
@@ -1178,13 +1168,12 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          if last_response.status == 403
-            # Response must NOT reveal the custom domain or org details
-            expect(last_response.body).not_to include(tenant_domain),
-              "Error response reveals tenant domain"
-            expect(last_response.body).not_to include("Secure Org"),
-              "Error response reveals organization name"
-          end
+          expect_auth_error_redirect('domain_not_allowed')
+          # Redirect Location must NOT reveal the custom domain or org details
+          expect(last_response.location.to_s).not_to include(tenant_domain),
+            "Redirect Location reveals tenant domain"
+          expect(last_response.location.to_s).not_to include('Secure Org'),
+            "Redirect Location reveals organization name"
         ensure
           teardown_mock_auth
         end
@@ -1200,11 +1189,8 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          if last_response.status == 403
-            # Must use same generic message regardless of rejection source
-            expect(last_response.body).to include('not authorized').or include('domain_not_allowed'),
-              "Expected generic error, got: #{last_response.body}"
-          end
+          # Same stable code regardless of source (per-domain vs global)
+          expect_auth_error_redirect('domain_not_allowed')
         ensure
           teardown_mock_auth
         end

@@ -134,7 +134,11 @@ module Auth::Config::Hooks
         email       = omniauth_email.to_s.strip.downcase
         email_parts = email.split('@')
 
-        # Reject malformed emails from IdP (distinct from policy rejection)
+        # Reject malformed emails from IdP (distinct from policy rejection).
+        # Redirect with a stable error code so Login.vue can show a localized message —
+        # matches the email_auth/omniauth_on_failure convention. Inline JSON via
+        # throw_error_status was clobbered by omniauth_on_failure, collapsing the
+        # specific code into the generic sso_failed.
         if email_parts.length != 2 || email_parts.last.to_s.empty?
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
@@ -142,7 +146,7 @@ module Auth::Config::Hooks
             email: OT::Utils.obscure_email(email),
             provider: omniauth_provider,
           )
-          throw_error_status(400, 'invalid_email', 'Invalid email address from identity provider')
+          redirect '/signin?auth_error=invalid_email'
         end
 
         # Get display_domain from DomainStrategy middleware (already in env)
@@ -158,8 +162,8 @@ module Auth::Config::Hooks
             display_domain: display_domain,
             provider: omniauth_provider,
           )
-          # Generic error message - don't reveal which domains are allowed
-          throw_error_status(403, 'domain_not_allowed', 'Your email domain is not authorized for SSO signup')
+          # Generic error code — don't reveal which domains are allowed.
+          redirect '/signin?auth_error=domain_not_allowed'
         end
 
         Auth::Logging.log_auth_event(
