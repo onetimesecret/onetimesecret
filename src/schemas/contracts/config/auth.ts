@@ -5,9 +5,11 @@
  *
  * Zod v4 schema for etc/defaults/auth.defaults.yaml
  *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and value constraints belong in shapes — not here.
+ *
  * Purpose:
- * - Type-safe validation of authentication configuration
- * - Runtime validation for YAML parsing
+ * - Type-safe field definitions for authentication configuration
  * - TypeScript type inference for auth config usage
  */
 
@@ -27,8 +29,8 @@ const authModeSchema = z.enum(['simple', 'full']);
  * Simple mode settings (Redis-only authentication)
  */
 const simpleModeSchema = z.object({
-  password_hash_cost: z.number().int().positive().optional(),
-  session_timeout: z.number().int().positive().optional(),
+  password_hash_cost: z.number().optional(),
+  session_timeout: z.number().optional(),
 });
 
 /**
@@ -43,7 +45,7 @@ const fullModeSchema = z.object({
    *   - 'sqlite://data/auth.db' - Relative path
    *   - 'sqlite:///data/auth.db' - Absolute path
    */
-  database_url: z.string().default('sqlite://data/auth.db'),
+  database_url: z.string().optional(),
 
   /**
    * Migrations connection (PostgreSQL, MySQL, MS SQL Server only)
@@ -65,7 +67,7 @@ const fullModeSchema = z.object({
  * NOTE: session has been moved to site config (site.session)
  */
 const authConfigSchema = z.object({
-  mode: authModeSchema.default('simple'),
+  mode: authModeSchema.optional(),
   simple: simpleModeSchema.optional(),
   full: fullModeSchema.optional(),
 });

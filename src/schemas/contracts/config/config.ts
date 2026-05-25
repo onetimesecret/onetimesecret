@@ -354,9 +354,12 @@ const mutableMailSchema = z.object({
 
 /**
  * Simple logging schema for static config
+ *
+ * Per contracts convention: field name + type only. Runtime default is the
+ * supplier's responsibility (Ruby / store).
  */
 const simpleLoggingSchema = z.object({
-  http_requests: z.boolean().default(true),
+  http_requests: z.boolean().optional(),
 });
 
 /**

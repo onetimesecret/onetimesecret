@@ -3,11 +3,15 @@
 /**
  * Public API Configuration Response Schemas
  *
- * These schemas validate public settings API responses where values are
- * native types (boolean, number) from Ruby/YAML serialized to JSON.
+ * These schemas describe the shape of public settings API responses where
+ * values are native types (boolean, number) from Ruby/YAML serialized to JSON.
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and value constraints (TTL bounds, passphrase length bounds,
+ * password generation length bounds) belong in shapes — not here.
  *
  * NOTE: These are distinct from the YAML config section schemas which
- * validate backend configuration file structure.
+ * describe backend configuration file structure.
  */
 
 import { z } from 'zod';
@@ -15,80 +19,56 @@ import { z } from 'zod';
 /**
  * Public API Secret Options Schema
  *
+ * Defines the fields the public settings endpoint returns for secret creation
+ * options. Defaults are supplied by the runtime layer (Ruby serializer / store).
+ *
  * @example Validate and parse the data
  *    const parsedSecretOptions: SecretOptions = publicSecretOptionsSchema.parse(receivedSecretOptions);
  */
 export const publicSecretOptionsSchema = z.object({
-  /**
-   * Default Time-To-Live (TTL) for secrets in seconds
-   * Default: 604800 (7 days in seconds)
-   */
-  default_ttl: z.number().int().positive().default(604800),
+  /** Default Time-To-Live (TTL) for secrets in seconds. */
+  default_ttl: z.number().optional(),
 
-  /**
-   * Available TTL options for secret creation (in seconds)
-   * These options will be presented to users when they create a new secret
-   * Format: Array of integers representing seconds
-   * Default: [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600]
-   */
-  ttl_options: z
-    .array(z.number().int().positive().min(60).max(2592000))
-    .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+  /** Available TTL options for secret creation (in seconds). */
+  ttl_options: z.array(z.number()).optional(),
 
-  /**
-   * Settings for the passphrase field that protects access to secrets
-   */
+  /** Settings for the passphrase field that protects access to secrets */
   passphrase: z
     .object({
-      /**
-       * Whether passphrases are required for all secrets
-       */
-      required: z.boolean().default(false),
+      /** Whether passphrases are required for all secrets. */
+      required: z.boolean().optional(),
 
       /**
        * Minimum length required for passphrases.
-       * Default: 4. Set to 0 to disable enforcement.
        * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
        */
-      minimum_length: z.number().int().min(0).max(256).default(4),
+      minimum_length: z.number().optional(),
 
-      /**
-       * Maximum length allowed for passphrases
-       */
-      maximum_length: z.number().int().min(8).max(1024).default(128),
+      /** Maximum length allowed for passphrases. */
+      maximum_length: z.number().optional(),
 
-      /**
-       * Whether to enforce complexity requirements
-       */
-      enforce_complexity: z.boolean().default(false),
+      /** Whether to enforce complexity requirements. */
+      enforce_complexity: z.boolean().optional(),
     })
     .optional(),
 
-  /**
-   * Settings for password generation feature
-   */
+  /** Settings for password generation feature */
   password_generation: z
     .object({
-      /**
-       * Default length for generated passwords
-       */
-      default_length: z.number().int().min(4).max(128).default(12),
+      /** Default length for generated passwords. */
+      default_length: z.number().optional(),
 
-      /**
-       * Available length options for password generation
-       */
-      length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+      /** Available length options for password generation. */
+      length_options: z.array(z.number()).optional(),
 
-      /**
-       * Character sets to include in generated passwords
-       */
+      /** Character sets to include in generated passwords. */
       character_sets: z
         .object({
-          uppercase: z.boolean().default(true),
-          lowercase: z.boolean().default(true),
-          numbers: z.boolean().default(true),
-          symbols: z.boolean().default(false),
-          exclude_ambiguous: z.boolean().default(true),
+          uppercase: z.boolean().optional(),
+          lowercase: z.boolean().optional(),
+          numbers: z.boolean().optional(),
+          symbols: z.boolean().optional(),
+          exclude_ambiguous: z.boolean().optional(),
         })
         .optional(),
     })
@@ -103,38 +83,26 @@ export type PublicSecretOptions = z.infer<typeof publicSecretOptionsSchema>;
 /**
  * Public API Authentication Schema
  *
- * This schema validates public settings API responses where boolean
+ * This schema describes public settings API responses where boolean
  * values are native types from Ruby/YAML serialized to JSON.
  */
 export const publicAuthenticationSchema = z.object({
-  /**
-   * Flag to enable or disable authentication
-   */
+  /** Flag to enable or disable authentication. */
   enabled: z.boolean(),
 
-  /**
-   * Flag to allow or disallow user sign-up
-   */
+  /** Flag to allow or disallow user sign-up. */
   signup: z.boolean(),
 
-  /**
-   * Flag to allow or disallow user sign-in
-   */
+  /** Flag to allow or disallow user sign-in. */
   signin: z.boolean(),
 
-  /**
-   * Flag to enable or disable automatic verification
-   */
+  /** Flag to enable or disable automatic verification. */
   autoverify: z.boolean(),
 
-  /**
-   * Flag to enable or disable homepage secret form when not logged in.
-   */
+  /** Flag to enable or disable homepage secret form when not logged in. */
   required: z.boolean(),
 
-  /**
-   * Authentication mode: 'simple' (Redis-only) or 'full' (Rodauth with SQL db)
-   */
+  /** Authentication mode: 'simple' (Redis-only) or 'full' (Rodauth with SQL db). */
   mode: z.enum(['simple', 'full']).optional(),
 });
 
@@ -237,7 +205,7 @@ const supportSchema = z.object({
 /**
  * Public API Features Schema
  *
- * This schema validates public settings API responses for feature flags
+ * This schema describes public settings API responses for feature flags
  * where boolean values are native types from Ruby/YAML serialized to JSON.
  */
 export const publicFeaturesSchema = z.object({

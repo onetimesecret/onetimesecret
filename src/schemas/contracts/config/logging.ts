@@ -5,9 +5,12 @@
  *
  * Zod v4 schema for etc/defaults/logging.defaults.yaml
  *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and value constraints (per-logger defaults, slow_request_ms bound,
+ * default ignore_paths list) belong in shapes — not here.
+ *
  * Purpose:
- * - Type-safe validation of logging configuration
- * - Runtime validation for YAML parsing
+ * - Type-safe field definitions for logging configuration
  * - TypeScript type inference for logging config usage
  *
  * Strategic categories for debugging and operational instrumentation:
@@ -44,39 +47,31 @@ const httpCaptureSchema = z.enum(['minimal', 'standard', 'debug']);
  * Named logger levels
  * Each category can be configured independently
  */
-const loggersSchema = z.object({
-  App: logLevelSchema.default('info'),
-  Auth: logLevelSchema.default('info'),
-  Billing: logLevelSchema.default('info'),
-  Boot: logLevelSchema.default('info'),
-  Familia: logLevelSchema.default('warn'),
-  HTTP: logLevelSchema.default('warn'),
-  Otto: logLevelSchema.default('warn'),
-  Rhales: logLevelSchema.default('error'),
-  Secret: logLevelSchema.default('info'),
-  Sequel: logLevelSchema.default('warn'),
-  Session: logLevelSchema.default('info'),
-}).catchall(logLevelSchema);
+const loggersSchema = z
+  .object({
+    App: logLevelSchema.optional(),
+    Auth: logLevelSchema.optional(),
+    Billing: logLevelSchema.optional(),
+    Boot: logLevelSchema.optional(),
+    Familia: logLevelSchema.optional(),
+    HTTP: logLevelSchema.optional(),
+    Otto: logLevelSchema.optional(),
+    Rhales: logLevelSchema.optional(),
+    Secret: logLevelSchema.optional(),
+    Sequel: logLevelSchema.optional(),
+    Session: logLevelSchema.optional(),
+  })
+  .catchall(logLevelSchema);
 
 /**
  * HTTP request logging configuration
  */
 const httpLoggingSchema = z.object({
-  enabled: z.boolean().default(true),
+  enabled: z.boolean().optional(),
   level: nullableString,
-  capture: httpCaptureSchema.default('standard'),
-  slow_request_ms: z.number().int().positive().default(1000),
-  ignore_paths: z.array(z.string()).default([
-    '/api/v1/status',
-    '/api/v2/status',
-    '/api/v3/status',
-    '/health',
-    '/healthcheck',
-    '/favicon.ico',
-    '/_vite/*',
-    '/assets/*',
-    '/dist/*',
-  ]),
+  capture: httpCaptureSchema.optional(),
+  slow_request_ms: z.number().optional(),
+  ignore_paths: z.array(z.string()).optional(),
 });
 
 /**
@@ -85,8 +80,8 @@ const httpLoggingSchema = z.object({
  * Matches the structure from etc/defaults/logging.defaults.yaml
  */
 const loggingConfigSchema = z.object({
-  default_level: logLevelSchema.default('info'),
-  formatter: formatterSchema.default('color'),
+  default_level: logLevelSchema.optional(),
+  formatter: formatterSchema.optional(),
   loggers: loggersSchema.optional(),
   http: httpLoggingSchema.optional(),
 });

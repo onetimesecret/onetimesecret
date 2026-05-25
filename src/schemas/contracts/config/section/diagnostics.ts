@@ -4,6 +4,9 @@
  * Diagnostics Configuration Schema
  *
  * Maps to the `diagnostics:` section in config.defaults.yaml
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and value constraints belong in shapes — not here.
  */
 
 import { z } from 'zod';
@@ -16,7 +19,7 @@ const diagnosticsSentryDefaultsSchema = z.object({
   dsn: nullableString,
   sampleRate: z.union([z.string(), z.number()]).optional(),
   maxBreadcrumbs: z.union([z.string(), z.number()]).optional(),
-  logErrors: z.boolean().default(true),
+  logErrors: z.boolean().optional(),
 });
 
 /**
@@ -28,7 +31,7 @@ const diagnosticsSentryBackendSchema = diagnosticsSentryDefaultsSchema.extend({}
  * Sentry frontend configuration
  */
 const diagnosticsSentryFrontendSchema = diagnosticsSentryDefaultsSchema.extend({
-  trackComponents: z.boolean().default(true),
+  trackComponents: z.boolean().optional(),
 });
 
 /**
@@ -44,7 +47,7 @@ const diagnosticsSentrySchema = z.object({
  * Complete diagnostics schema
  */
 const diagnosticsSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().optional(),
   sentry: diagnosticsSentrySchema.optional(),
 });
 
