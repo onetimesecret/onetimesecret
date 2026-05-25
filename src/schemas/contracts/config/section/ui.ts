@@ -36,12 +36,25 @@ const userInterfaceHeaderNavigationSchema = z.object({
 });
 
 /**
+ * Public-facing links surfaced on the homepage when the secret form is
+ * gated by auth (e.g. mode=external). Recipients arriving via a shared
+ * link use these to learn about the service.
+ *
+ * Each field is nullable — when null/empty the corresponding affordance
+ * is hidden rather than rendered with a broken target.
+ */
+const userInterfaceHomepagePublicLinksSchema = z.object({
+  recipient_intro: nullableString,
+});
+
+/**
  * Homepage mode configuration (CIDR-based or header-based)
  */
 const userInterfaceHomepageSchema = z.object({
   mode: z.string().nullable().optional(),
   matching_cidrs: z.array(z.string()).default([]),
   mode_header: z.string().default('O-Homepage-Mode'),
+  public_links: userInterfaceHomepagePublicLinksSchema.optional(),
 });
 
 /**
