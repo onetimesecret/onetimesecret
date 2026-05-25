@@ -86,6 +86,8 @@ module Onetime
           # Don't read ENV directly - keeps input validation in one place.
           @amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
 
+          Onetime.bunny_logger.info "[init] RabbitMQ: Connecting to #{mask_amqp_credentials(@amqp_url)}"
+
           # Preflight check: verify RabbitMQ is reachable before proceeding
           preflight_check!
 
