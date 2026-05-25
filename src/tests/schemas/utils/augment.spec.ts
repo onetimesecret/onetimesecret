@@ -228,4 +228,31 @@ describe('augment — catchall / strict / loose preservation', () => {
     expect(shape.parse({}).a).toBe('x');
     expect(() => shape.parse({ extra: 42 })).toThrow();
   });
+
+  it('preserves .strict() (encoded as catchall: never in v4)', () => {
+    const contract = z.object({ a: z.string().optional() }).strict();
+    const shape = augment(contract, { a: (s) => s.default('x') });
+
+    expect(shape.parse({}).a).toBe('x');
+    expect(() => shape.parse({ extra: 42 })).toThrow();
+  });
+
+  it('preserves .passthrough() (encoded as catchall: unknown in v4)', () => {
+    const contract = z.object({ a: z.string().optional() }).passthrough();
+    const shape = augment(contract, { a: (s) => s.default('x') });
+
+    const parsed = shape.parse({ extra: 42 }) as Record<string, unknown>;
+    expect(parsed.a).toBe('x');
+    expect(parsed.extra).toBe(42);
+  });
+
+  it('preserves the default strip behavior (no catchall, unknown keys dropped)', () => {
+    const contract = z.object({ a: z.string().optional() });
+    const shape = augment(contract, { a: (s) => s.default('x') });
+
+    const parsed = shape.parse({ extra: 42 }) as Record<string, unknown>;
+    expect(parsed.a).toBe('x');
+    // Strip: unknown keys silently dropped.
+    expect(parsed.extra).toBeUndefined();
+  });
 });
