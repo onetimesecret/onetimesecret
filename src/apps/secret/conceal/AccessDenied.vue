@@ -7,7 +7,6 @@
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { storeToRefs } from 'pinia';
   import { computed, ref } from 'vue';
-  import { useI18n } from 'vue-i18n';
 
   /*
     Purpose: Disabled-homepage view shown when UI is enabled but the homepage
@@ -19,7 +18,7 @@
       and a contextual headline naming the workspace.
     - Unbranded: canonical site, or a custom domain on a free plan with no
       branding configured — uses the OTS mark and surfaces a subtle promo
-      that free plans now include custom domains.
+      that free plans now include custom domains (SaaS deployments only).
 
     Audiences:
     - Recipients who arrived via a shared link and may be curious
@@ -27,14 +26,12 @@
     - Admins verifying the gated landing page
   */
 
-  const { t } = useI18n();
-
   const identityStore = useProductIdentity();
-  const { isCustom, primaryColor, logoUri, displayName, displayDomain, brand } =
+  const { isCustom, primaryColor, logoUri, displayName, displayDomain, brand, siteHost } =
     storeToRefs(identityStore);
 
   const bootstrapStore = useBootstrapStore();
-  const { authentication } = storeToRefs(bootstrapStore);
+  const { authentication, billing_enabled } = storeToRefs(bootstrapStore);
 
   // "Branded" means a custom domain has actually been configured with a brand
   // description — distinct from `isCustom`, which can be true even when no
@@ -49,20 +46,21 @@
     (workspaceName.value || displayDomain.value || 'A').trim().charAt(0).toUpperCase()
   );
 
-  // Apex form of the displayed domain (e.g. "secrets.acme.co" -> "acme.co"),
-  // used in the subtitle copy without the secrets-subdomain prefix.
-  const apexDomain = computed(() =>
-    (displayDomain.value || '').replace(/^[a-z0-9-]+\.(?=[^.]+\.[^.]+$)/i, '')
-  );
+  // "What is this?" points back to the canonical OTS site this deployment runs
+  // on. Only show when the visitor is on a custom domain — on the canonical site
+  // the link would just point back at the page they're already viewing.
+  const showWhatIsThis = computed(() => isCustom.value && !!siteHost.value);
+  const whatIsThisHref = computed(() => `https://${siteHost.value}/`);
 
-  const subtitleCopy = computed(() =>
-    isBranded.value
-      ? t('homepage_secrets.disabled.team_subtitle', { domain: apexDomain.value })
-      : t('homepage_secrets.disabled.public_subtitle')
+  // Promo invites the operator's free-tier visitors to set up their own custom
+  // domain. Self-hosted deployments without billing don't have "free plans," so
+  // the message is meaningless there. Branded custom domains already opted in.
+  const showPromo = computed(
+    () => !isBranded.value && isCustom.value && billing_enabled.value
   );
+  const promoHref = computed(() => `https://${siteHost.value}/pricing`);
 
-  const showSignin = computed(() => authentication.value?.signin !== false);
-  const showPromo = computed(() => !isBranded.value);
+  const showSignin = computed(() => authentication.value?.signin);
 
   // Image error handling for branded logos that may 404
   const logoError = ref(false);
@@ -111,21 +109,20 @@
     <span
       class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-brand-700 dark:text-brand-400">
       <span
-        class="size-[7px] rounded-full bg-brand-500 shadow-[0_0_8px_var(--tw-shadow-color)] shadow-brand-500"
+        class="size-[7px] rounded-full bg-brand-500 shadow-[0_0_8px_#dc4a22]"
         :style="dotStyle"
         aria-hidden="true"></span>
       <template v-if="isBranded">
-        {{ t('homepage_secrets.disabled.private_instance_eyebrow') }}
+        {{ $t('homepage_secrets.disabled.private_instance_eyebrow') }}
       </template>
       <template v-else>
-        {{ t('homepage_secrets.disabled.members_only_eyebrow') }}
+        {{ $t('homepage_secrets.disabled.members_only_eyebrow') }}
       </template>
     </span>
 
     <!-- Headline -->
     <h1
-      class="mt-5 max-w-2xl font-brand text-4xl font-extrabold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl"
-      style="text-wrap: balance">
+      class="mt-5 max-w-2xl text-balance font-brand text-4xl font-extrabold leading-[1.05] tracking-tight text-gray-900 dark:text-white sm:text-5xl">
       <i18n-t
         v-if="isBranded"
         keypath="homepage_secrets.disabled.team_link_headline"
@@ -135,19 +132,27 @@
           <em class="font-bold italic">{{ workspaceName }}</em>
         </template>
       </i18n-t>
-      <template v-else>
-        {{ t('homepage_secrets.disabled.signin_headline_prefix') }}
-        <em class="font-bold italic">{{
-          t('homepage_secrets.disabled.signin_headline_emphasis')
-        }}</em>
-      </template>
+      <i18n-t
+        v-else
+        keypath="homepage_secrets.disabled.signin_headline"
+        tag="span"
+        scope="global">
+        <template #action>
+          <em class="font-bold italic">{{
+            $t('homepage_secrets.disabled.signin_headline_action')
+          }}</em>
+        </template>
+      </i18n-t>
     </h1>
 
     <!-- Subtitle -->
-    <p
-      class="mt-5 max-w-xl text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg"
-      style="text-wrap: pretty">
-      {{ subtitleCopy }}
+    <p class="mt-5 max-w-xl text-pretty text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
+      <template v-if="isBranded">
+        {{ $t('homepage_secrets.disabled.team_subtitle', { domain: displayDomain }) }}
+      </template>
+      <template v-else>
+        {{ $t('homepage_secrets.disabled.public_subtitle') }}
+      </template>
     </p>
 
     <!-- CTA row -->
@@ -157,14 +162,15 @@
         to="/signin"
         data-testid="disabled-homepage-signin"
         class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 font-sans text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-        {{ t('homepage_secrets.disabled.signin_cta') }}
+        {{ $t('homepage_secrets.disabled.signin_cta') }}
         <OIcon
           collection="heroicons"
           name="arrow-right"
           class="size-4" />
       </router-link>
       <a
-        href="https://onetimesecret.com/"
+        v-if="showWhatIsThis"
+        :href="whatIsThisHref"
         target="_blank"
         rel="noopener noreferrer"
         class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -172,7 +178,7 @@
           collection="heroicons"
           name="information-circle"
           class="size-4" />
-        {{ t('homepage_secrets.disabled.what_is_this') }}
+        {{ $t('homepage_secrets.disabled.what_is_this') }}
       </a>
     </div>
 
@@ -184,26 +190,26 @@
             collection="heroicons"
             name="lock-closed"
             class="size-4 text-gray-600 dark:text-gray-300" />
-          {{ t('homepage_secrets.disabled.trust_encrypted') }}
+          {{ $t('homepage_secrets.disabled.trust_encrypted') }}
         </span>
         <span class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <OIcon
             collection="heroicons"
             name="eye"
             class="size-4 text-gray-600 dark:text-gray-300" />
-          {{ t('homepage_secrets.disabled.trust_viewed_once') }}
+          {{ $t('homepage_secrets.disabled.trust_viewed_once') }}
         </span>
         <span class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <OIcon
             collection="heroicons"
             name="server-stack"
             class="size-4 text-gray-600 dark:text-gray-300" />
-          {{ t('homepage_secrets.disabled.trust_zero_retained') }}
+          {{ $t('homepage_secrets.disabled.trust_zero_retained') }}
         </span>
       </div>
     </div>
 
-    <!-- Promo (unbranded / free-tier only) -->
+    <!-- Promo (free-tier visitors on an unbranded custom domain, SaaS only) -->
     <div
       v-if="showPromo"
       class="mt-6 inline-flex max-w-xl items-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-left dark:border-gray-700 dark:bg-gray-800/40">
@@ -216,16 +222,16 @@
       </span>
       <div class="text-sm leading-snug">
         <div class="font-semibold text-gray-900 dark:text-white">
-          {{ t('homepage_secrets.disabled.promo_title') }}
+          {{ $t('homepage_secrets.disabled.promo_title') }}
         </div>
         <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-          {{ t('homepage_secrets.disabled.promo_subtitle') }}
+          {{ $t('homepage_secrets.disabled.promo_subtitle') }}
           <a
-            href="https://onetimesecret.com/plans"
+            :href="promoHref"
             target="_blank"
             rel="noopener noreferrer"
             class="ml-1 font-semibold text-brand-700 hover:underline dark:text-brand-400">
-            {{ t('homepage_secrets.disabled.promo_learn_how') }} &rarr;
+            {{ $t('homepage_secrets.disabled.promo_learn_how') }} &rarr;
           </a>
         </div>
       </div>
