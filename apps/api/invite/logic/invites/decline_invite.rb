@@ -15,6 +15,8 @@ module InviteAPI::Logic
     # The token itself serves as proof of access.
     #
     class DeclineInvite < InviteAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       attr_reader :invitation
 
       def process_params
@@ -53,12 +55,13 @@ module InviteAPI::Logic
       end
 
       def process
-        OT.ld "[DeclineInvite] Declining invitation #{@invitation.objid}"
+        auth_logger.debug 'Declining invitation',
+          invitation_id: @invitation.objid
 
         organization = @invitation.organization
         @invitation.decline!
 
-        OT.info '[DeclineInvite] Invitation declined',
+        auth_logger.info 'Invitation declined',
           event: 'invite.declined',
           invitation_id: @invitation.objid,
           organization_id: organization&.extid,

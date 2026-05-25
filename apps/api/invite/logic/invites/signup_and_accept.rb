@@ -33,6 +33,8 @@ module InviteAPI::Logic
     # 9. Auto-logs in the user
     #
     class SignupAndAccept < InviteAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       attr_reader :invitation, :customer
 
       def process_params
@@ -98,46 +100,38 @@ module InviteAPI::Logic
       end
 
       def process
-        OT.ld "[SignupAndAccept] Creating account and accepting invitation for #{OT::Utils.obscure_email(@email)}"
+        auth_logger.debug 'Creating account and accepting invitation',
+          email: OT::Utils.obscure_email(@email)
 
-        # Create account in authdb via Rodauth internal_request
-        # This bypasses the before_create_account hook (which we already validated)
+        # Create account in authdb via Rodauth internal_request.
+        # The after_create_account hook (apps/web/auth/config/hooks/account.rb)
+        # handles Customer creation, default workspace, invitation acceptance,
+        # and auto-verification at the SQL level — all gated on the
+        # invite_token we pass through.
         account_id = create_rodauth_account
 
-        # Fetch the created account
-        account = Auth::Database.connection[:accounts].where(id: account_id).first
+        # Refetch the account; external_id is populated by the hook's
+        # CreateCustomer linking step.
+        account   = Auth::Database.connection[:accounts].where(id: account_id).first
+        @customer = Onetime::Customer.find_by_extid(account[:external_id]) if account[:external_id]
 
-        # Create Customer in Redis and link to account
-        @customer = Auth::Operations::CreateCustomer.new(
-          account_id: account_id,
-          account: account,
-          db: Auth::Database.connection,
-        ).call
+        unless @customer
+          auth_logger.error 'Customer missing after create_account',
+            account_id: account_id
+          raise_form_error('Account created but customer record missing', field: :email)
+        end
 
-        # Create default workspace
-        Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
-
-        # Accept the invitation
-        accept_result = Auth::Operations::AcceptInvitation.new(
-          customer: @customer,
-          token: @token,
-        ).call
-
-        unless accept_result[:accepted]
-          # Shouldn't happen since we validated the invite, but handle gracefully
-          OT.le "[SignupAndAccept] Invitation acceptance failed: #{accept_result[:reason]}"
+        # Reload the invitation to pick up the acceptance state written by the hook.
+        @invitation = load_invitation(@token)
+        if @invitation.nil? || @invitation.pending?
+          auth_logger.error 'Invitation not accepted by hook',
+            token_prefix: @token[0..7]
           raise_form_error('Failed to accept invitation', field: :token)
         end
 
-        # Mark account as verified (invite proves email ownership)
-        Auth::Database.connection[:accounts]
-          .where(id: account_id)
-          .update(status_id: 2) # Verified status
-
-        # Set up session for auto-login
         setup_session(account_id, account)
 
-        OT.info '[SignupAndAccept] User signed up and joined organization',
+        auth_logger.info 'User signed up and joined organization',
           event: 'invite.signup_accepted',
           invitation_id: @invitation.objid,
           organization_id: @invitation.organization.extid,
@@ -198,9 +192,15 @@ module InviteAPI::Logic
       def create_rodauth_account
         # Use Rodauth's internal_request feature to create the account
         # This ensures password hashing is done correctly (Argon2 in this project)
+        #
+        # Pass invite_token via params: so send_verify_account_email's suppression
+        # branch fires (see apps/web/auth/config/features/account_management.rb).
+        # Without this, Rodauth tries to build a verify-account URL and fails on
+        # the missing `domain` (internal_request has no HTTP host).
         result = Auth::Config.create_account(
           login: normalize_email(@email),
           password: @password,
+          params: { 'invite_token' => @token },
         )
 
         unless result
@@ -209,7 +209,10 @@ module InviteAPI::Logic
 
         result # Returns account_id on success
       rescue Rodauth::InternalRequestError => ex
-        OT.le "[SignupAndAccept] Rodauth internal_request error: #{ex.message}"
+        auth_logger.error 'Rodauth internal_request error',
+          exception: ex,
+          email: OT::Utils.obscure_email(@email),
+          token_prefix: @token[0..7]
 
         # Parse field errors from Rodauth
         if ex.field_errors&.any?

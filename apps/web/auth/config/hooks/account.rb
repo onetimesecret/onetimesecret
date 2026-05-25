@@ -4,6 +4,7 @@
 
 module Auth::Config::Hooks
   module Account
+    # rubocop:disable Metrics/PerceivedComplexity
     def self.configure(auth)
       #
       # Hook: Before Account Creation
@@ -112,9 +113,14 @@ module Auth::Config::Hooks
       # and creates a default organization and team for the new user.
       #
       auth.after_create_account do
+        # Read via Rodauth's `param_or_nil` so this hook works under both
+        # normal HTTP requests and `internal_request` (which only populates
+        # rodauth.params, not the Rack request body).
+        hook_invite_token = param_or_nil('invite_token').to_s.strip
+
         # Determine the provisioning origin from request context. This is
         # metadata only — capabilities are governed by org/team role.
-        provisioning_origin = if request.params['invite_token'].to_s.strip != ''
+        provisioning_origin = if hook_invite_token != ''
                                 'invite'
                               elsif request.env['onetime.display_domain'] &&
                                     Onetime::CustomDomain.load_by_display_domain(request.env['onetime.display_domain'])
@@ -164,9 +170,10 @@ module Auth::Config::Hooks
             )
           end
 
-          # Accept pending invitation if token provided in signup request
-          invite_token = request.params['invite_token']
-          if invite_token && !invite_token.to_s.strip.empty?
+          # Accept pending invitation if token provided in signup request.
+          # Uses the same internal_request-safe token captured above.
+          invite_token = hook_invite_token
+          unless invite_token.empty?
             Auth::Logging.log_auth_event(
               :invite_acceptance_started,
               level: :debug,
@@ -384,5 +391,6 @@ module Auth::Config::Hooks
         end
       end
     end
+    # rubocop:enable Metrics/PerceivedComplexity
   end
 end
