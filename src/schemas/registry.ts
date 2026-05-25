@@ -53,10 +53,15 @@ import { generatePayloadSchema } from './api/v3/requests/content/generate';
 import { responseSchemas } from './api/v3/responses/registry';
 
 // =============================================================================
-// Config Schemas
+// Config Shapes
+//
+// The registry consumes shape schemas (defaults + value constraints) rather
+// than the type-only contracts so the generated JSON Schema continues to
+// drive `bin/ots config validate` and `bin/ots billing catalog validate` at
+// their previous strictness.
 // =============================================================================
-import { BillingConfigSchema } from './contracts/config/billing';
-import { staticConfigSchema } from './contracts/config/config';
+import { BillingConfigShape } from './shapes/config/billing';
+import { staticConfigShape } from './shapes/config/config';
 
 // =============================================================================
 // Schema Categories
@@ -96,8 +101,8 @@ export const apiV3Schemas = {
  * `bin/ots config validate`).
  */
 export const configSchemas = {
-  'config/billing': BillingConfigSchema,
-  'config/static': staticConfigSchema,
+  'config/billing': BillingConfigShape,
+  'config/static': staticConfigShape,
 } as const;
 
 // =============================================================================

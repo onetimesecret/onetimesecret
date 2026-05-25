@@ -6,8 +6,9 @@
  * Defines the canonical structure for jurisdiction/region configuration.
  * Maps to the `regions:` section in config.defaults.yaml.
  *
- * This contract defines field names and output types only.
- * Wire-format transforms (string→boolean) live in shapes/config/jurisdiction.ts.
+ * Per contracts convention, this schema describes field names and types
+ * only. Identifier length bounds and the enabled default live in
+ * `shapes/config/section/jurisdiction.ts`.
  */
 
 import { z } from 'zod';
@@ -27,11 +28,11 @@ const jurisdictionIconSchema = z.object({
  * which components resolve via i18n. display_name is computed at runtime.
  */
 const jurisdictionSchema = z.object({
-  identifier: z.string().min(2).max(24),
+  identifier: z.string(),
   display_name_i18n_key: z.string(),
   domain: z.string(),
   icon: jurisdictionIconSchema.optional(),
-  enabled: z.boolean().default(true),
+  enabled: z.boolean().optional(),
 });
 
 /**
@@ -43,7 +44,7 @@ const regionSchema = jurisdictionSchema;
  * Canonical regions configuration schema
  */
 const regionsConfigSchema = z.object({
-  identifier: z.string().min(2).max(24),
+  identifier: z.string(),
   enabled: z.boolean(),
   current_jurisdiction: z.string(),
   jurisdictions: z.array(jurisdictionSchema),

@@ -5,10 +5,16 @@
  *
  * Consolidated Zod v4 schemas for config.defaults.yaml
  *
- * This schema supports two use cases:
+ * This module supports two use cases:
  * 1. API Response Parsing - flexible schemas that accept string/boolean unions
  *    for values that may come as strings from environment variables
- * 2. Config File Validation - strict schemas matching YAML structure
+ * 2. Config File Validation - type-only schemas matching YAML structure
+ *
+ * Per contracts convention, the strict YAML-validation schemas
+ * (`staticConfigSchema`, `mutableConfigSchema`, `runtimeConfigSchema`,
+ * `legacyStaticConfigSchema`) carry no defaults or value constraints — those
+ * live in the parallel `shapes/config/config.ts` composition, which is what
+ * `bin/ots config validate` and JSON Schema generation actually consume.
  *
  * The API response schemas use booleanOrString/numberOrString for flexibility
  * when parsing backend responses that may have coerced values.
@@ -354,9 +360,12 @@ const mutableMailSchema = z.object({
 
 /**
  * Simple logging schema for static config
+ *
+ * Per contracts convention, the default for `http_requests` lives in
+ * `shapes/config/config.ts`.
  */
 const simpleLoggingSchema = z.object({
-  http_requests: z.boolean().default(true),
+  http_requests: z.boolean().optional(),
 });
 
 /**

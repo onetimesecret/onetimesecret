@@ -6,6 +6,10 @@
  * These schemas validate public settings API responses where values are
  * native types (boolean, number) from Ruby/YAML serialized to JSON.
  *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults, TTL bounds, passphrase length limits, and password-generation
+ * bounds live in `shapes/config/public.ts`.
+ *
  * NOTE: These are distinct from the YAML config section schemas which
  * validate backend configuration file structure.
  */
@@ -21,19 +25,15 @@ import { z } from 'zod';
 export const publicSecretOptionsSchema = z.object({
   /**
    * Default Time-To-Live (TTL) for secrets in seconds
-   * Default: 604800 (7 days in seconds)
    */
-  default_ttl: z.number().int().positive().default(604800),
+  default_ttl: z.number().optional(),
 
   /**
    * Available TTL options for secret creation (in seconds)
    * These options will be presented to users when they create a new secret
    * Format: Array of integers representing seconds
-   * Default: [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600]
    */
-  ttl_options: z
-    .array(z.number().int().positive().min(60).max(2592000))
-    .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+  ttl_options: z.array(z.number()).optional(),
 
   /**
    * Settings for the passphrase field that protects access to secrets
@@ -43,24 +43,23 @@ export const publicSecretOptionsSchema = z.object({
       /**
        * Whether passphrases are required for all secrets
        */
-      required: z.boolean().default(false),
+      required: z.boolean().optional(),
 
       /**
        * Minimum length required for passphrases.
-       * Default: 4. Set to 0 to disable enforcement.
        * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
        */
-      minimum_length: z.number().int().min(0).max(256).default(4),
+      minimum_length: z.number().optional(),
 
       /**
        * Maximum length allowed for passphrases
        */
-      maximum_length: z.number().int().min(8).max(1024).default(128),
+      maximum_length: z.number().optional(),
 
       /**
        * Whether to enforce complexity requirements
        */
-      enforce_complexity: z.boolean().default(false),
+      enforce_complexity: z.boolean().optional(),
     })
     .optional(),
 
@@ -72,23 +71,23 @@ export const publicSecretOptionsSchema = z.object({
       /**
        * Default length for generated passwords
        */
-      default_length: z.number().int().min(4).max(128).default(12),
+      default_length: z.number().optional(),
 
       /**
        * Available length options for password generation
        */
-      length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+      length_options: z.array(z.number()).optional(),
 
       /**
        * Character sets to include in generated passwords
        */
       character_sets: z
         .object({
-          uppercase: z.boolean().default(true),
-          lowercase: z.boolean().default(true),
-          numbers: z.boolean().default(true),
-          symbols: z.boolean().default(false),
-          exclude_ambiguous: z.boolean().default(true),
+          uppercase: z.boolean().optional(),
+          lowercase: z.boolean().optional(),
+          numbers: z.boolean().optional(),
+          symbols: z.boolean().optional(),
+          exclude_ambiguous: z.boolean().optional(),
         })
         .optional(),
     })
