@@ -23,23 +23,23 @@ export interface InviteAuthResult {
   accountExists?: boolean;
 }
 
-/** Shape of Rodauth-style error responses */
-interface RodauthErrorResponse {
+/** Shape of API error responses */
+interface ApiErrorResponse {
   error?: string;
   'field-error'?: [string, string];
 }
 
 /** Shape of axios-style errors */
 interface AxiosLikeError {
-  response?: { data?: RodauthErrorResponse };
+  response?: { data?: ApiErrorResponse };
   message?: string;
 }
 
 /**
- * Extracts error info from a Rodauth-style response or axios error.
+ * Extracts error info from an API response or axios error.
  */
 function extractErrorInfo(
-  data: RodauthErrorResponse | undefined,
+  data: ApiErrorResponse | undefined,
   err?: AxiosLikeError
 ): { message: string | null; fieldError?: [string, string] } {
   const errorData = data ?? err?.response?.data;
