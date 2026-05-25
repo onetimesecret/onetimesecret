@@ -17,9 +17,12 @@
     presentational props bag derived in `useDisabledConfig`.
 
     Operators can flip the variant or override individual feature flags via
-    `bootstrap.disabled_homepage` without a frontend release. New variants:
-    add the component, register it here, and add its name to
-    `disabledHomepageVariantSchema`.
+    `bootstrap.disabled_homepage` without a frontend release. Adding a new
+    variant requires touching three places:
+      1. drop the component under `disabled/variants/`,
+      2. register it in the VARIANTS map below,
+      3. add its name to `disabledHomepageVariantSchema` in
+         `src/schemas/contracts/disabled-homepage.ts`.
 
     Audiences:
     - Recipients who arrived via a shared link and may be curious
@@ -34,7 +37,10 @@
   };
 
   const { variant, props } = useDisabledConfig();
-  const ActiveVariant = computed(() => VARIANTS[variant] ?? DisabledV1);
+  // Fallback to v1 covers the (statically unreachable) case where bootstrap
+  // carries a variant id the frontend doesn't recognise — e.g. backend
+  // emits a new variant before the matching component ships.
+  const ActiveVariant = computed(() => VARIANTS[variant.value] ?? DisabledV1);
 </script>
 
 <template>

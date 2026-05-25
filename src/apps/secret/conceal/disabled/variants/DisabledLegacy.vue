@@ -15,9 +15,9 @@
     the dispatcher, but only consumes what it needs.
   */
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the legacy
-  // variant ignores most of the new props bag; the destructure documents
-  // the contract it accepts.
+  // Legacy variant ignores the props bag entirely — kept for contract
+  // compatibility with the dispatcher. The `_` prefix matches the project's
+  // unused-vars lint allowlist.
   const _props = defineProps<DisabledHomepageProps>();
 </script>
 

@@ -16,7 +16,6 @@
 
   const identityStore = useProductIdentity();
   const { isCustom } = storeToRefs(identityStore);
-  const { displayDomain, siteHost } = identityStore;
   const route = useRoute();
 
   // Get component mode from route meta (set by beforeEnter hook)
@@ -46,9 +45,7 @@
       mode="out-in">
       <Component
         :key="componentMode + (isCustom ? '-branded' : '-standard')"
-        :is="currentComponent"
-        :display-domain="displayDomain"
-        :site-host="siteHost" />
+        :is="currentComponent" />
     </Transition>
   </div>
 </template>

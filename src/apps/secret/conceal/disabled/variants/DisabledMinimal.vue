@@ -4,7 +4,7 @@
   import MonotoneJapaneseSecretButtonIcon from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { DisabledHomepageProps } from '../useDisabledConfig';
-  import { computed, ref } from 'vue';
+  import { computed, ref, watch } from 'vue';
 
   /*
     Minimal — a quiet refresh of the legacy two-tagline view.
@@ -19,6 +19,12 @@
   const props = defineProps<DisabledHomepageProps>();
 
   const logoError = ref(false);
+  watch(
+    () => props.logoUri,
+    () => {
+      logoError.value = false;
+    }
+  );
   const onLogoError = () => {
     logoError.value = true;
   };
@@ -34,7 +40,7 @@
       <img
         v-if="isBranded && hasUsableLogo"
         :src="logoUri ?? ''"
-        :alt="workspaceName"
+        :alt="$t('homepage_secrets.disabled.logo_alt', { name: workspaceName })"
         class="h-12 w-auto max-w-[120px] object-contain"
         @error="onLogoError" />
       <div
@@ -102,12 +108,13 @@
           class="size-4" />
       </router-link>
       <a
-        v-if="showWhatIsThis"
+        v-if="showWhatIsThis && whatIsThisHref"
         :href="whatIsThisHref"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        class="rounded-sm text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:ring-offset-gray-900">
         {{ $t('homepage_secrets.disabled.what_is_this') }}
+        <span class="sr-only">{{ $t('homepage_secrets.disabled.opens_in_new_tab') }}</span>
       </a>
     </div>
   </div>

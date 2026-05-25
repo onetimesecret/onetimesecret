@@ -12,7 +12,7 @@ import type { DisabledHomepageVariant } from '@/schemas/contracts/disabled-homep
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+import { computed, type ComputedRef } from 'vue';
 
 /**
  * Props bag shared by every disabled-homepage variant.
@@ -20,6 +20,11 @@ import { computed } from 'vue';
  * Variants should treat these as the complete contract — anything they
  * need from app state should be added here, not read directly inside
  * variant components, so dispatch stays the single composition root.
+ *
+ * `whatIsThisHref` and `promoHref` are nullable: an empty `siteHost`
+ * would produce `https:///`, which is useless. The dispatcher gates the
+ * matching `show*` flag whenever the href is null, so variants can
+ * assume the href is a real URL whenever the flag is true.
  */
 export interface DisabledHomepageProps {
   /** Branded = custom domain with a configured brand description. */
@@ -38,16 +43,20 @@ export interface DisabledHomepageProps {
   showSignin: boolean;
   /** Whether to render the "What is this?" link. */
   showWhatIsThis: boolean;
-  /** External href for "What is this?" (canonical site for this deployment). */
-  whatIsThisHref: string;
+  /** External href for "What is this?" — null when unresolvable. */
+  whatIsThisHref: string | null;
   /** Whether to render the free-tier promo strip. */
   showPromo: boolean;
-  /** External href for the promo's "Learn how" link. */
-  promoHref: string;
+  /** External href for the promo's "Learn how" link — null when unresolvable. */
+  promoHref: string | null;
 }
 
 interface DisabledHomepageBindings {
-  variant: DisabledHomepageVariant;
+  /** Reactive variant id — re-reads bootstrap on every access so a config
+   *  refresh (re-hydration / login / logout) flips the rendered variant. */
+  variant: ComputedRef<DisabledHomepageVariant>;
+  /** Reactive props bag. Each property is a getter so `v-bind="props"`
+   *  re-reads on every render, preserving reactivity through the spread. */
   props: DisabledHomepageProps;
 }
 
@@ -80,33 +89,47 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     (workspaceName.value || displayDomain.value || 'A').trim().charAt(0).toUpperCase()
   );
 
+  // hrefs are null when siteHost is empty — building `https:///` would
+  // navigate to the current origin in a new tab, which is surprising.
+  // Variants v-if on the show* flag, which in turn gates on the href being
+  // non-null, so they can dereference safely.
+  const hasSiteHost = computed(() => !!siteHost.value);
+  const whatIsThisHref = computed(() => (hasSiteHost.value ? `https://${siteHost.value}/` : null));
+  const promoHref = computed(() =>
+    hasSiteHost.value ? `https://${siteHost.value}/pricing` : null
+  );
+
   // Auto-detection: "What is this?" makes sense only on a custom domain
-  // (canonical visitors are already at "the source"). Operator override wins.
-  const showWhatIsThisAuto = computed(() => isCustom.value && !!siteHost.value);
-  const showWhatIsThis = computed(() =>
-    applyOverride(disabled_homepage.value?.show_what_is_this, showWhatIsThisAuto.value)
+  // (canonical visitors are already at "the source"). Operator override wins,
+  // but we still suppress when the href is unresolvable.
+  const showWhatIsThisAuto = computed(() => isCustom.value && hasSiteHost.value);
+  const showWhatIsThis = computed(
+    () =>
+      hasSiteHost.value &&
+      applyOverride(disabled_homepage.value?.show_what_is_this, showWhatIsThisAuto.value)
   );
 
   // Auto-detection: the "free plans now include custom domains" promo is
   // SaaS-specific marketing aimed at visitors to free-tier custom domains.
   // Self-hosted (billing_enabled=false), canonical site, and branded domains
-  // all suppress it. Operator override wins.
+  // all suppress it. Operator override wins, but again we suppress when the
+  // href is unresolvable.
   const showPromoAuto = computed(
-    () => !isBranded.value && isCustom.value && billing_enabled.value
+    () => !isBranded.value && isCustom.value && billing_enabled.value && hasSiteHost.value
   );
-  const showPromo = computed(() =>
-    applyOverride(disabled_homepage.value?.show_promo, showPromoAuto.value)
+  const showPromo = computed(
+    () =>
+      hasSiteHost.value &&
+      applyOverride(disabled_homepage.value?.show_promo, showPromoAuto.value)
   );
 
   const showSignin = computed(() => !!authentication.value?.signin);
 
-  const whatIsThisHref = computed(() => `https://${siteHost.value}/`);
-  const promoHref = computed(() => `https://${siteHost.value}/pricing`);
+  const variant = computed<DisabledHomepageVariant>(() => disabled_homepage.value.variant);
 
-  // Pinia refs are unwrapped on read in the consuming template, but the
-  // returned object freezes a snapshot of refs at call time. Wrap reactive
-  // reads in a getter object so the dispatcher's template re-renders as
-  // store values change.
+  // Getter object: `v-bind="props"` evaluates each property on every render,
+  // so each getter re-reads its source computed and reactivity is preserved
+  // through the spread. Plain destructuring would freeze values at call time.
   const props = {
     get isBranded() { return isBranded.value; },
     get workspaceName() { return workspaceName.value; },
@@ -119,10 +142,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     get whatIsThisHref() { return whatIsThisHref.value; },
     get showPromo() { return showPromo.value; },
     get promoHref() { return promoHref.value; },
-  } as DisabledHomepageProps;
+  } satisfies DisabledHomepageProps;
 
-  return {
-    variant: disabled_homepage.value?.variant ?? 'v1',
-    props,
-  };
+  return { variant, props };
 }

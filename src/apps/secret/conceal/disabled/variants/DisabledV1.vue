@@ -4,7 +4,7 @@
   import MonotoneJapaneseSecretButtonIcon from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { DisabledHomepageProps } from '../useDisabledConfig';
-  import { computed, ref } from 'vue';
+  import { computed, ref, watch } from 'vue';
 
   /*
     V1 — "Composed refresh" of the disabled-homepage view.
@@ -19,19 +19,28 @@
 
   const props = defineProps<DisabledHomepageProps>();
 
-  // Image error handling for branded logos that may 404
+  // Image error handling for branded logos that may 404. Reset whenever the
+  // logo URL changes so a subsequent valid URL gets a chance to load.
   const logoError = ref(false);
+  watch(
+    () => props.logoUri,
+    () => {
+      logoError.value = false;
+    }
+  );
   const onLogoError = () => {
     logoError.value = true;
   };
   const hasUsableLogo = computed(() => !!props.logoUri && !logoError.value);
 
   const monogramStyle = computed(() => ({ backgroundColor: props.primaryColor }));
-  const dotStyle = computed(() =>
-    props.isBranded
-      ? { backgroundColor: props.primaryColor, boxShadow: `0 0 8px ${props.primaryColor}` }
-      : {}
-  );
+  // Always emit the dot's accent color from primaryColor so branded mode
+  // uses the workspace color and unbranded falls back to OTS orange. Avoids
+  // the stale hard-coded shadow color in the static class fallback.
+  const dotStyle = computed(() => {
+    const color = props.isBranded ? props.primaryColor : '#dc4a22';
+    return { backgroundColor: color, boxShadow: `0 0 8px ${color}` };
+  });
 </script>
 
 <template>
@@ -41,7 +50,7 @@
       <img
         v-if="isBranded && hasUsableLogo"
         :src="logoUri ?? ''"
-        :alt="workspaceName"
+        :alt="$t('homepage_secrets.disabled.logo_alt', { name: workspaceName })"
         class="h-24 w-auto max-w-[180px] object-contain"
         @error="onLogoError" />
       <div
@@ -65,7 +74,7 @@
     <span
       class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-brand-700 dark:text-brand-400">
       <span
-        class="size-[7px] rounded-full bg-brand-500 shadow-[0_0_8px_#dc4a22]"
+        class="size-[7px] rounded-full"
         :style="dotStyle"
         aria-hidden="true"></span>
       <template v-if="isBranded">
@@ -125,16 +134,17 @@
           class="size-4" />
       </router-link>
       <a
-        v-if="showWhatIsThis"
+        v-if="showWhatIsThis && whatIsThisHref"
         :href="whatIsThisHref"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        class="inline-flex items-center gap-1.5 rounded-md text-sm font-semibold text-gray-500 transition-colors hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-200 dark:focus:ring-offset-gray-900">
         <OIcon
           collection="heroicons"
           name="information-circle"
           class="size-4" />
         {{ $t('homepage_secrets.disabled.what_is_this') }}
+        <span class="sr-only">{{ $t('homepage_secrets.disabled.opens_in_new_tab') }}</span>
       </a>
     </div>
 
@@ -167,7 +177,7 @@
 
     <!-- Promo (free-tier visitors on an unbranded custom domain, SaaS only) -->
     <div
-      v-if="showPromo"
+      v-if="showPromo && promoHref"
       class="mt-6 inline-flex max-w-xl items-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-left dark:border-gray-700 dark:bg-gray-800/40">
       <span
         class="inline-flex size-9 flex-shrink-0 items-center justify-center rounded-lg border border-brandcomp-500/30 bg-brandcomp-500/10 text-brandcomp-600 dark:text-brandcomp-400">
@@ -186,8 +196,9 @@
             :href="promoHref"
             target="_blank"
             rel="noopener noreferrer"
-            class="ml-1 font-semibold text-brand-700 hover:underline dark:text-brand-400">
+            class="ml-1 rounded-sm font-semibold text-brand-700 hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-brand-400 dark:focus:ring-offset-gray-900">
             {{ $t('homepage_secrets.disabled.promo_learn_how') }} &rarr;
+            <span class="sr-only">{{ $t('homepage_secrets.disabled.opens_in_new_tab') }}</span>
           </a>
         </div>
       </div>

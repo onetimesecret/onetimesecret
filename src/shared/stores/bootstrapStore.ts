@@ -297,6 +297,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
         regions: this.regions,
         secret_options: this.secret_options,
         diagnostics: this.diagnostics,
+        disabled_homepage: this.disabled_homepage,
       };
 
       // Use built-in $reset to restore all state to DEFAULTS
@@ -312,6 +313,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
         state.regions = preservedConfig.regions;
         state.secret_options = preservedConfig.secret_options;
         state.diagnostics = preservedConfig.diagnostics;
+        state.disabled_homepage = preservedConfig.disabled_homepage;
         state._initialized = true;
       });
 
