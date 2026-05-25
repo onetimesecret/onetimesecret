@@ -169,12 +169,10 @@ export function useSignupConfig(domainExtId: string) {
           enabled: formState.value.enabled,
         };
 
-        // Only include allowed_signup_domains when relevant (avoids sending
-        // an unused list on, e.g., MX strategy).
-        if (
-          formState.value.validation_strategy === 'domain_allowlist' ||
-          formState.value.allowed_signup_domains.length > 0
-        ) {
+        // Only include allowed_signup_domains when the strategy actually
+        // uses it. Backend treats the omitted field as an empty list under
+        // PUT semantics, so switching away from domain_allowlist clears it.
+        if (formState.value.validation_strategy === 'domain_allowlist') {
           payload.allowed_signup_domains = formState.value.allowed_signup_domains;
         }
 
