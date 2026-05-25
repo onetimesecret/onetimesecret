@@ -1,4 +1,4 @@
-<!-- src/apps/secret/conceal/disabled/variants/DisabledV1.vue -->
+<!-- src/apps/secret/views/disabled/variants/DisabledV1.vue -->
 
 <script setup lang="ts">
   import MonotoneJapaneseSecretButtonIcon from '@/shared/components/icons/MonotoneJapaneseSecretButtonIcon.vue';

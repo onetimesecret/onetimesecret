@@ -1,4 +1,4 @@
-<!-- src/apps/secret/conceal/DisabledHomepage.vue -->
+<!-- src/apps/secret/views/DisabledHomepage.vue -->
 
 <script setup lang="ts">
   import type { DisabledHomepageVariant } from '@/schemas/contracts/disabled-homepage';

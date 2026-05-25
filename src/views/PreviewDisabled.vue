@@ -1,7 +1,7 @@
 <!-- src/views/PreviewDisabled.vue -->
 
 <script setup lang="ts">
-  import DisabledHomepage from '@/apps/secret/conceal/DisabledHomepage.vue';
+  import DisabledHomepage from '@/apps/secret/views/DisabledHomepage.vue';
 </script>
 
 <template>

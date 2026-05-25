@@ -9,7 +9,7 @@
 // The composable is the single composition root for the disabled-homepage
 // view, so any regression here ripples through every variant.
 
-import { useDisabledConfig } from '@/apps/secret/conceal/disabled/useDisabledConfig';
+import { useDisabledConfig } from '@/apps/secret/views/disabled/useDisabledConfig';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { createPinia, setActivePinia } from 'pinia';

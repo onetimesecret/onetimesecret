@@ -1,4 +1,4 @@
-// src/apps/secret/conceal/disabled/useDisabledConfig.ts
+// src/apps/secret/views/disabled/useDisabledConfig.ts
 //
 // Derives all rendering inputs for the disabled-homepage variants from
 // bootstrap + identity stores in one place, so the dispatcher can pass a

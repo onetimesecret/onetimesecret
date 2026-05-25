@@ -6,7 +6,7 @@ gated by auth (`auth.required` or `homepage_mode === 'external'`).
 ## Layout
 
 ```
-src/apps/secret/conceal/
+src/apps/secret/views/
 ├── DisabledHomepage.vue        dispatcher (entry point)
 └── disabled/
     ├── useDisabledConfig.ts    derives { variant, props } from stores
@@ -72,7 +72,7 @@ would already reject the value at parse time).
 
 ## Tests
 
-`src/tests/apps/secret/conceal/useDisabledConfig.spec.ts` covers the
+`src/tests/apps/secret/views/useDisabledConfig.spec.ts` covers the
 auto-detection matrix, override semantics, href derivation, and
 reactivity. No variant snapshot tests — visual regression lives
 elsewhere.

@@ -1,4 +1,4 @@
-<!-- src/apps/secret/conceal/disabled/variants/DisabledLegacy.vue -->
+<!-- src/apps/secret/views/disabled/variants/DisabledLegacy.vue -->
 
 <script setup lang="ts">
   import DisabledHomepageTaglines from '@/apps/secret/components/conceal/DisabledHomepageTaglines.vue';
