@@ -33,8 +33,13 @@ OT.info "Cleaned Redis for SignupConfig test run"
 # bare code BEFORE the first `##` block, so capture-and-restore state must be
 # established here (not mid-file between tests, which is silently ignored).
 @original_truemail_validate = Truemail.method(:validate)
-TRUEMAIL_VALID_MOCK   = Struct.new(:result).new(Struct.new(:success).new(true))
-TRUEMAIL_INVALID_MOCK = Struct.new(:result).new(Struct.new(:success).new(false))
+
+# Immutable mock shells matching the Truemail.validate -> .result.success
+# call chain. Built once and reused so each test avoids re-allocating Structs.
+TruemailMockResult    = Data.define(:success)
+TruemailMockValidator = Data.define(:result)
+TRUEMAIL_VALID_MOCK   = TruemailMockValidator.new(result: TruemailMockResult.new(success: true))
+TRUEMAIL_INVALID_MOCK = TruemailMockValidator.new(result: TruemailMockResult.new(success: false))
 
 # --- Constants ---
 
