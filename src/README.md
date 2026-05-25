@@ -111,7 +111,7 @@ Request to /
 │  (Deployment-time)  │
 └─────────────────────┘
       │
-      ├─ External ──────► AccessDenied.vue (stop here)
+      ├─ External ──────► DisabledHomepage.vue (stop here)
       │
       ▼ Open/Internal
 ┌─────────────────────┐

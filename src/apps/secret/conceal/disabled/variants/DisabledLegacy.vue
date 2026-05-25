@@ -9,7 +9,7 @@
 
     Kept as a rollback target for the V1 refresh. Renders the same
     `DisabledHomepageTaglines` component the `disabled-ui` mode still uses,
-    so behaviour is identical to the pre-refresh AccessDenied.
+    so behaviour is identical to the pre-refresh DisabledHomepage.
 
     Accepts the full DisabledHomepageProps contract for compatibility with
     the dispatcher, but only consumes what it needs.

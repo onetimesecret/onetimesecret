@@ -1,7 +1,7 @@
 <!-- src/views/PreviewDisabled.vue -->
 
 <script setup lang="ts">
-  import AccessDenied from '@/apps/secret/conceal/AccessDenied.vue';
+  import DisabledHomepage from '@/apps/secret/conceal/DisabledHomepage.vue';
 </script>
 
 <template>
@@ -37,6 +37,6 @@
       </div>
     </div>
 
-    <AccessDenied />
+    <DisabledHomepage />
   </div>
 </template>

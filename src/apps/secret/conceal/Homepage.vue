@@ -7,7 +7,7 @@
   import { useRoute } from 'vue-router';
 
   import BrandedHomepage from './BrandedHomepage.vue';
-  import DisabledHomepage from './AccessDenied.vue';
+  import DisabledHomepage from './DisabledHomepage.vue';
   import DisabledUI from './DisabledUI.vue';
   import HomepageContent from './HomepageContent.vue';
 

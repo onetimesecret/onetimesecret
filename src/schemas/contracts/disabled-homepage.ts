@@ -1,7 +1,7 @@
 // src/schemas/contracts/disabled-homepage.ts
 //
 // Disabled-homepage view configuration — frontend rendering knobs for the
-// AccessDenied view shown when the homepage secret form is gated by auth.
+// DisabledHomepage view shown when the homepage secret form is gated by auth.
 //
 // All fields are optional with sensible auto-detection defaults so the
 // contract is forward-compatible: a backend that doesn't emit this block
@@ -23,7 +23,7 @@ import { z } from 'zod';
  * - `legacy`: the original two-tagline placeholder (rollback target)
  *
  * New variants must be registered in the dispatcher map in
- * `AccessDenied.vue` *and* added here.
+ * `DisabledHomepage.vue` *and* added here.
  */
 export const disabledHomepageVariantSchema = z.enum(['v1', 'minimal', 'legacy']);
 export type DisabledHomepageVariant = z.infer<typeof disabledHomepageVariantSchema>;

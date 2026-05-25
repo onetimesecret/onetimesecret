@@ -254,7 +254,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   // Developer tool: preview the disabled-homepage view alongside the live MastHead
-  // (not linked from navigation). Renders the same AccessDenied content the real
+  // (not linked from navigation). Renders the same DisabledHomepage content the real
   // disabled-homepage mode shows, but with a prominent notice making clear the
   // site is not actually disabled. Useful for verifying branding env vars
   // (LOGO_URL, LOGO_SHOW_NAME, SITE_NAME, LOGO_PROMINENT) without toggling
