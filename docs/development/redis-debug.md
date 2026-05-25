@@ -1,3 +1,6 @@
+# docs/development/redis-debug.md
+---
+
 # Enabling Redis DEBUG POPULATE Command
 
 To enable the ```DEBUG POPULATE``` command, you need to modify your Redis configuration:

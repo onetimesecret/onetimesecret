@@ -23,7 +23,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 require 'json'
 
 RSpec.describe 'OmniAuth CSRF Configuration' do

@@ -98,6 +98,15 @@ module AuthModeHelpers
     # DEPRECATED: Alias for sso_enabled? — retained for Rodauth integration
     alias omniauth_enabled? sso_enabled?
 
+    # Whether custom domains without their own CustomDomain::SsoConfig
+    # can fall back to platform ENV-based SSO credentials.
+    # Mirrors Onetime::AuthConfig#allow_platform_fallback_for_tenants?.
+    # Defaults to false; specs that need a non-canonical host to reach
+    # downstream auth hooks must stub this to true.
+    def allow_platform_fallback_for_tenants?
+      false
+    end
+
     def restrict_to
       return nil unless full_enabled?
 

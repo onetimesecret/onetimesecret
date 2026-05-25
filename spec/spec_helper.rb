@@ -249,6 +249,12 @@ RSpec.configure do |config|
     @__original_runtime_i18n  = Onetime::Runtime.internationalization
     # Save boot state - tests that manipulate boot state need this restored
     @__original_boot_state    = Onetime.boot_state
+
+    # Ensure I18n is usable for code paths calling I18n.t — without this,
+    # enforce_available_locales! raises InvalidLocale before default: falls back.
+    # Production runs SetupI18n initializer at boot; unit tests skip boot!.
+    I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
+    I18n.default_locale = :en
   end
 
   # Clean Redis/Valkey database after each integration test to prevent state leakage.

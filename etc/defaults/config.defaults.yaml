@@ -58,6 +58,13 @@ site:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
+        # Links rendered when a public visitor lands on the homepage but
+        # the secret form is gated by auth (e.g. mode=external). Recipients
+        # arriving via a shared link use these to learn about the service.
+        public_links:
+          # URL the "What is this link?" affordance points at. When empty,
+          # the affordance is hidden in the disabled-homepage view.
+          recipient_intro: <%= ENV['HOMEPAGE_PUBLIC_LINKS_RECIPIENT_INTRO'] || nil %>
 
       # Form field visibility flags
       # Controls which optional fields appear on the secret creation form.

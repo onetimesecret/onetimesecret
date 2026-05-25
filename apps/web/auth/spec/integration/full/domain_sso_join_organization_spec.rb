@@ -43,10 +43,10 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
-require_relative '../support/tenant_test_fixtures'
-require_relative '../support/domain_sso_test_fixtures'
-require_relative '../support/oauth_flow_helper'
+require_relative '../../spec_helper'
+require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/domain_sso_test_fixtures'
+require_relative '../../support/oauth_flow_helper'
 
 RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integration do
   include TenantTestFixtures
@@ -55,7 +55,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   before(:all) do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
-    require_relative '../../operations/join_domain_organization'
+    require_relative '../../../operations/join_domain_organization'
   end
 
   let(:test_run_id) { SecureRandom.hex(8) }

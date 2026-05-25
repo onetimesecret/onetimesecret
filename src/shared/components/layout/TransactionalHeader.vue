@@ -12,6 +12,7 @@
   const { t } = useI18n();
 
   const props = withDefaults(defineProps<LayoutProps>(), {
+    displayHeader: true,
     displayMasthead: true,
     displayNavigation: true,
     colonel: false,
@@ -32,7 +33,9 @@
 </script>
 
 <template>
-  <header class="bg-white dark:bg-gray-900">
+  <header
+    v-if="displayHeader"
+    class="bg-white dark:bg-gray-900">
     <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
       <MastHead v-if="displayMasthead" v-bind="props" />
 

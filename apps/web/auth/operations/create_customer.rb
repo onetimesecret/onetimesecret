@@ -15,10 +15,14 @@ module Auth
       # @param account_id [Integer] The ID of the Rodauth account
       # @param account [Hash] The Rodauth account hash, containing at least :email
       # @param db [Sequel::Database] The database connection (optional)
-      def initialize(account_id:, account:, db: nil)
-        @account_id = account_id
-        @account    = account
-        @db         = db || Auth::Database.connection
+      # @param provisioning_origin [String, nil] One of Onetime::Customer::PROVISIONING_ORIGINS.
+      #   Set on newly-created Customer records as lifecycle/audit metadata.
+      #   Ignored when the customer already exists (we don't rewrite history).
+      def initialize(account_id:, account:, db: nil, provisioning_origin: nil)
+        @account_id          = account_id
+        @account             = account
+        @db                  = db || Auth::Database.connection
+        @provisioning_origin = provisioning_origin
       end
 
       # Executes the customer creation/loading operation
@@ -47,9 +51,10 @@ module Auth
             email: @account[:email],
             role: 'customer',
             verified: false, # needs to be updated in after_verify_account
+            provisioning_origin: @provisioning_origin,
           )
 
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer)"
+          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, origin: #{@provisioning_origin || 'unknown'})"
         end
 
         customer

@@ -22,6 +22,7 @@ import { z } from 'zod';
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
 import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
+import { disabledHomepageConfigSchema } from '@/schemas/contracts/disabled-homepage';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -152,6 +153,24 @@ export const uiHelpSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
+/**
+ * Public-facing links surfaced when the homepage secret form is gated by
+ * auth. Recipients arriving via a shared link use these to learn about
+ * the service. Each field is nullable; when null/empty the corresponding
+ * affordance is hidden rather than rendered with a broken target.
+ */
+export const homepagePublicLinksSchema = z.object({
+  recipient_intro: z.string().nullable().optional(),
+});
+
+/**
+ * Homepage UI configuration: mode (CIDR/header gating) plus public-facing
+ * links surfaced on the disabled-homepage view.
+ */
+export const homepageUiConfigSchema = z.object({
+  public_links: homepagePublicLinksSchema.optional(),
+});
+
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),
@@ -160,6 +179,7 @@ export const uiInterfaceSchema = z.object({
   capabilities: uiCapabilitiesSchema.optional(),
   show_version: z.boolean().default(true),
   help: uiHelpSchema.optional(),
+  homepage: homepageUiConfigSchema.optional(),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -461,6 +481,12 @@ export const bootstrapSchema = z.object({
   support_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
+
+  // Frontend rendering config for the disabled-homepage view. All knobs
+  // optional with auto-detection defaults; backend may omit entirely.
+  disabled_homepage: disabledHomepageConfigSchema.default(
+    disabledHomepageConfigSchema.parse({})
+  ),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // AuthenticationSerializer fields

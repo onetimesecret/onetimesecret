@@ -23,14 +23,14 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe 'after_omniauth_create_account operations', type: :integration do
   before(:all) do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
-    require_relative '../../operations/create_customer'
-    require_relative '../../operations/create_default_workspace'
+    require_relative '../../../operations/create_customer'
+    require_relative '../../../operations/create_default_workspace'
   end
 
   # Track created resources for cleanup

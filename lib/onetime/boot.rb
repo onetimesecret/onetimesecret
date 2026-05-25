@@ -101,9 +101,16 @@ module Onetime
     # is useful for testing or when you want to run code without necessary
     # loading all or any of the models.
     #
-    def boot!(mode = nil, connect_to_db = true)
+    # When `force: true` is passed in test mode, the existing boot state is
+    # reset before booting so the suite gets a fresh boot against current
+    # ENV/WebMock state. Ignored outside test mode (the underlying
+    # reset_all_boot_state! raises in non-test modes).
+    #
+    def boot!(mode = nil, connect_to_db = true, force: false) # rubocop:disable Metrics/PerceivedComplexity
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
+
+      reset_all_boot_state! if force && OT.testing?
 
       # boot_guard! returns false if boot should be skipped (already complete in test mode)
       return nil unless boot_guard!
@@ -319,7 +326,10 @@ module Onetime
       # Handles all four states explicitly to prevent ambiguity
       case [boot_state, OT.testing?]
       in [BOOT_STARTED | BOOT_STARTING, true]
-        # Idempotent in test mode - skip re-execution (handles re-entrant calls)
+        # Idempotent in test mode - skip re-execution (handles re-entrant calls).
+        # Warn so silent state-reuse across specs is audible; callers that want a
+        # fresh boot should pass `force: true` to boot!.
+        OT.boot_logger.warn 'boot! re-entered in test mode without force: — reusing existing state'
         return false
       in [BOOT_STARTED, false]
         raise OT::Problem, 'Boot already completed'

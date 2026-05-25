@@ -29,7 +29,7 @@ full:
     mfa: false
     email_auth: false
     webauthn: false
-    sso: false
+    sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 
   # Restrict login page to a single auth method.
   # Values: password, email_auth, webauthn, sso (or blank for all)

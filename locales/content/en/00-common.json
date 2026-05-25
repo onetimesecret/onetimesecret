@@ -1322,6 +1322,10 @@
     "text": "Domain SSO",
     "content_hash": "13161464"
   },
+  "web.TITLES.domain_signup": {
+    "text": "Domain Signup Validation",
+    "content_hash": "c8ce809a"
+  },
   "web.TITLES.domain_email": {
     "text": "Email Configuration",
     "content_hash": "6f38aa51"

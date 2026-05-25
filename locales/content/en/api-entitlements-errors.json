@@ -73,5 +73,10 @@
     "text": "Audit logs require a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for audit_logs",
     "content_hash": "aca9ec44"
+  },
+  "api.entitlements.errors.custom_signup_validation_required": {
+    "text": "Custom signup validation requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for custom_signup_validation",
+    "content_hash": "93c9befa"
   }
 }

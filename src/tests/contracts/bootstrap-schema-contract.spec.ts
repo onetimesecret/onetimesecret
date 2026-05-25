@@ -69,6 +69,10 @@ const FRONTEND_ONLY_FIELDS: Record<string, string> = {
   // Stripe fields are loaded via billing module, not bootstrap serializers
   stripe_customer: 'Loaded via billing module; not from bootstrap serializers.',
   stripe_subscriptions: 'Loaded via billing module; not from bootstrap serializers.',
+
+  // Frontend-only contract awaiting backend support — operators can flip the
+  // variant or override feature toggles via this block. See PR #3219.
+  disabled_homepage: 'Frontend rendering knobs; Ruby serializer wiring TBD.',
 };
 
 // ============================================================================

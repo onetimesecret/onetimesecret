@@ -113,6 +113,21 @@
     "text": "This sign-in link is invalid. Please request a new one.",
     "content_hash": "270c6401"
   },
+  "web.login.errors.sso_not_configured": {
+    "text": "Single sign-on is not configured for this domain. Please contact your administrator.",
+    "context": "Shown on signin page when SSO is attempted on a domain that has no SSO configuration and platform fallback is disabled.",
+    "content_hash": "c4a82915"
+  },
+  "web.login.errors.invalid_email": {
+    "text": "The email address from your identity provider is invalid. Please contact your administrator.",
+    "context": "Shown on signin page when SSO callback returns a malformed email (missing @, empty domain, multiple @).",
+    "content_hash": "10c12029"
+  },
+  "web.login.errors.domain_not_allowed": {
+    "text": "Your email domain is not authorized for SSO signup. Please contact your administrator.",
+    "context": "Shown on signin page when SSO signup is blocked by the email domain policy (per-domain SignupConfig or global allowed_signup_domains).",
+    "content_hash": "87603782"
+  },
   "web.signup.create_your_account": {
     "text": "Create Your Account",
     "content_hash": "5f4c33d7"
