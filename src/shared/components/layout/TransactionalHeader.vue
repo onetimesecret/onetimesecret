@@ -19,9 +19,15 @@
 
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
-  const { authentication } = storeToRefs(bootstrapStore);
+  const { authentication, homepage_config } = storeToRefs(bootstrapStore);
 
   const isUserPresent = computed(() => authStore.isUserPresent);
+
+  // Per-domain link toggles (custom-domain homepage). Default to enabled
+  // when no domain config exists. System-level flags remain the master
+  // switch — both layers must be true for the link to render.
+  const showDomainSignup = computed(() => homepage_config.value?.signup_enabled !== false);
+  const showDomainSignin = computed(() => homepage_config.value?.signin_enabled !== false);
 
   // Show minimal nav when MastHead is hidden but navigation is enabled.
   // This handles custom domain pages where the logo lives in page content
@@ -45,7 +51,7 @@
         class="mx-auto flex w-full max-w-xl justify-end font-brand text-sm sm:text-base">
         <template v-if="authentication?.enabled">
           <router-link
-            v-if="authentication?.signup"
+            v-if="authentication?.signup && showDomainSignup"
             to="/signup"
             :title="t('web.homepage.signup_individual_and_business_plans')"
             data-testid="header-signup-link"
@@ -54,14 +60,14 @@
             {{ t('web.COMMON.header_create_account') }}
           </router-link>
           <span
-            v-if="authentication?.signup && authentication?.signin"
+            v-if="authentication?.signup && showDomainSignup && authentication?.signin && showDomainSignin"
             class="mx-2 text-gray-400"
             aria-hidden="true"
             role="separator">
             |
           </span>
           <router-link
-            v-if="authentication?.signin"
+            v-if="authentication?.signin && showDomainSignin"
             to="/signin"
             :title="t('web.homepage.log_in_to_onetime_secret')"
             data-testid="header-signin-link"

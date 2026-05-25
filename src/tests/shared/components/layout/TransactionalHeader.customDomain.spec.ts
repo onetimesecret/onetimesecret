@@ -46,12 +46,22 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
     }
   });
 
+  type HomepageConfigState = {
+    domain_id?: string;
+    enabled?: boolean;
+    signup_enabled?: boolean;
+    signin_enabled?: boolean;
+    created_at?: number | null;
+    updated_at?: number | null;
+  } | null;
+
   const mountComponent = (
     props: Record<string, unknown> = {},
     storeState: {
       domain_strategy?: string;
       domain_logo?: string | null;
       authentication?: { enabled?: boolean; signin?: boolean; signup?: boolean };
+      homepage_config?: HomepageConfigState;
     } = {}
   ) => {
     const pinia = createTestingPinia({
@@ -62,6 +72,9 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
           authenticated: false,
           domain_strategy: storeState.domain_strategy ?? 'canonical',
           domain_logo: storeState.domain_logo ?? null,
+          homepage_config: storeState.homepage_config !== undefined
+            ? storeState.homepage_config
+            : null,
           ui: {
             header: {
               navigation: { enabled: true },
@@ -215,6 +228,100 @@ describe('TransactionalHeader — Custom Domain Leak Vector', () => {
       await nextTick();
       expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(false);
+    });
+
+    describe('homepage_config domain-level toggles', () => {
+      // System authentication flags are both true in all cases below so the
+      // domain-layer toggle is the only variable under test.
+
+      it('hides Sign Up when homepage_config.signup_enabled is false (system signup=true)', async () => {
+        wrapper = mountComponent(minimalNavProps, {
+          domain_strategy: 'custom',
+          authentication: { enabled: true, signin: true, signup: true },
+          homepage_config: {
+            domain_id: 'test-domain-id',
+            enabled: true,
+            signup_enabled: false,
+            signin_enabled: true,
+            created_at: null,
+            updated_at: null,
+          },
+        });
+        await nextTick();
+        expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(true);
+        // Separator requires both sides to be visible
+        expect(wrapper.find('[role="separator"]').exists()).toBe(false);
+      });
+
+      it('hides Sign In when homepage_config.signin_enabled is false (system signin=true)', async () => {
+        wrapper = mountComponent(minimalNavProps, {
+          domain_strategy: 'custom',
+          authentication: { enabled: true, signin: true, signup: true },
+          homepage_config: {
+            domain_id: 'test-domain-id',
+            enabled: true,
+            signup_enabled: true,
+            signin_enabled: false,
+            created_at: null,
+            updated_at: null,
+          },
+        });
+        await nextTick();
+        expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(false);
+        expect(wrapper.find('[role="separator"]').exists()).toBe(false);
+      });
+
+      it('hides both links when homepage_config has both disabled; no separator renders', async () => {
+        wrapper = mountComponent(minimalNavProps, {
+          domain_strategy: 'custom',
+          authentication: { enabled: true, signin: true, signup: true },
+          homepage_config: {
+            domain_id: 'test-domain-id',
+            enabled: true,
+            signup_enabled: false,
+            signin_enabled: false,
+            created_at: null,
+            updated_at: null,
+          },
+        });
+        await nextTick();
+        expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(false);
+        expect(wrapper.find('[role="separator"]').exists()).toBe(false);
+      });
+
+      it('renders both links when homepage_config is null (canonical domain, no restriction)', async () => {
+        wrapper = mountComponent(minimalNavProps, {
+          domain_strategy: 'custom',
+          authentication: { enabled: true, signin: true, signup: true },
+          homepage_config: null,
+        });
+        await nextTick();
+        expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(true);
+        expect(wrapper.find('[role="separator"]').exists()).toBe(true);
+      });
+
+      it('renders both links when homepage_config has both explicitly true', async () => {
+        wrapper = mountComponent(minimalNavProps, {
+          domain_strategy: 'custom',
+          authentication: { enabled: true, signin: true, signup: true },
+          homepage_config: {
+            domain_id: 'test-domain-id',
+            enabled: true,
+            signup_enabled: true,
+            signin_enabled: true,
+            created_at: null,
+            updated_at: null,
+          },
+        });
+        await nextTick();
+        expect(wrapper.find('[data-testid="header-signup-link"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="header-signin-link"]').exists()).toBe(true);
+        expect(wrapper.find('[role="separator"]').exists()).toBe(true);
+      });
     });
   });
 

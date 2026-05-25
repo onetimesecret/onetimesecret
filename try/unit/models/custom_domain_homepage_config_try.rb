@@ -219,5 +219,131 @@ rescue Onetime::Problem => e
 end
 #=> 'domain_id is required'
 
+# -------------------------------------------------------------------
+# signup_enabled / signin_enabled field coverage
+# -------------------------------------------------------------------
+
+# --- upsert: new record defaults ---
+
+## Setup: fresh domain for signup/signin default tests
+@su_domain = Onetime::CustomDomain.create!("hp-cfg-su-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@su_domain.identifier)
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@su_domain.identifier)
+#=> false
+
+## upsert without signup_enabled/signin_enabled defaults signup_enabled? to true
+@su_cfg = Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, enabled: false)
+@su_cfg.signup_enabled?
+#=> true
+
+## upsert without signup_enabled/signin_enabled defaults signin_enabled? to true
+@su_cfg.signin_enabled?
+#=> true
+
+# --- upsert: explicit false persists ---
+
+## upsert with explicit signup_enabled: false stores false; signup_enabled? returns false
+@su_cfg2 = Onetime::CustomDomain::HomepageConfig.upsert(
+  domain_id: @su_domain.identifier, enabled: false, signup_enabled: false
+)
+@su_cfg2.signup_enabled?
+#=> false
+
+## reload from Redis confirms signup_enabled: false was persisted
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@su_domain.identifier).signup_enabled?
+#=> false
+
+## upsert with explicit signin_enabled: false stores false; signin_enabled? returns false
+@su_cfg3 = Onetime::CustomDomain::HomepageConfig.upsert(
+  domain_id: @su_domain.identifier, enabled: false, signin_enabled: false
+)
+@su_cfg3.signin_enabled?
+#=> false
+
+## reload from Redis confirms signin_enabled: false was persisted
+Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@su_domain.identifier).signin_enabled?
+#=> false
+
+# --- upsert: no-clobber when kwargs omitted ---
+# At this point @su_domain has signup_enabled=false, signin_enabled=false.
+# Calling upsert with only `enabled:` must NOT reset them to true.
+
+## upsert without signup_enabled/signin_enabled kwargs does not clobber stored false values
+Onetime::CustomDomain::HomepageConfig.upsert(domain_id: @su_domain.identifier, enabled: true)
+@noclobber = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@su_domain.identifier)
+@noclobber.signup_enabled?
+#=> false
+
+## signin_enabled also preserved after clobber-risk upsert
+@noclobber.signin_enabled?
+#=> false
+
+# --- predicate: nil field treated as enabled ---
+# Familia's instantiate_from_hash uses allocate (no initialize), so init() is
+# NOT called on load. A record saved without signup_enabled/signin_enabled will
+# have those fields as nil when read back from Redis.
+# We simulate this by directly constructing an in-memory instance with nil fields.
+
+## signup_enabled? returns true when field is nil (legacy record, no field in Redis)
+@legacy = Onetime::CustomDomain::HomepageConfig.new(domain_id: @su_domain.identifier)
+@legacy.signup_enabled = nil
+@legacy.signup_enabled?
+#=> true
+
+## signin_enabled? returns true when field is nil (legacy record)
+@legacy.signin_enabled = nil
+@legacy.signin_enabled?
+#=> true
+
+# --- CustomDomain.create! bootstrap includes signup/signin enabled ---
+
+## Setup: fresh domain, bootstrap record created by create!
+@boot_domain = Onetime::CustomDomain.create!("hp-cfg-boot-#{@ts}-#{@entropy}.example.com", @org.objid)
+@boot_cfg = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@boot_domain.identifier)
+@boot_cfg.nil?
+#=> false
+
+## Bootstrapped record has signup_enabled? true
+@boot_cfg.signup_enabled?
+#=> true
+
+## Bootstrapped record has signin_enabled? true
+@boot_cfg.signin_enabled?
+#=> true
+
+# --- find_or_create_for_domain: persists new fields; preserves existing ---
+
+## Setup: fresh domain, delete auto-bootstrap
+@focd2_domain = Onetime::CustomDomain.create!("hp-cfg-focd2-#{@ts}-#{@entropy}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@focd2_domain.identifier)
+Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@focd2_domain.identifier)
+#=> false
+
+## find_or_create_for_domain with signup_enabled: false persists the value
+@focd2_cfg, _ = Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(
+  domain_id: @focd2_domain.identifier, enabled: true, signup_enabled: false, signin_enabled: false
+)
+@focd2_cfg.signup_enabled?
+#=> false
+
+## find_or_create_for_domain with signin_enabled: false persists the value
+@focd2_cfg.signin_enabled?
+#=> false
+
+## find_or_create_for_domain on existing record does not overwrite stored signup_enabled
+@focd2_cfg2, @focd2_outcome2 = Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(
+  domain_id: @focd2_domain.identifier, enabled: true, signup_enabled: true, signin_enabled: true
+)
+@focd2_outcome2
+#=> :existed
+
+## Stored signup_enabled: false is preserved (proposed true did NOT overwrite it)
+@focd2_cfg2.signup_enabled?
+#=> false
+
+## Stored signin_enabled: false is preserved
+@focd2_cfg2.signin_enabled?
+#=> false
+
 # Teardown
 Familia.dbclient.flushdb
