@@ -501,6 +501,192 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     end
   end
 
+  # Regression: GH #3221 — post-acceptance invitation reload must NOT use
+  # find_by_token. The after_create_account hook calls AcceptInvitation, which
+  # calls invitation.accept!, which removes the token from token_lookup
+  # (pending-only index, cleared for security). Reloading via find_by_token
+  # after the hook returns nil → 404 "Invitation not found or expired".
+  #
+  # Correct behavior: reload via find_by_org_customer, which accept! populates
+  # on the now-active membership (org_membership.rb:330-331).
+  describe '#process invitation reload after acceptance' do
+    let(:new_customer) do
+      cust = build_mock_customer(
+        objid: 'cust-new-123',
+        custid: 'cust-new-123',
+        extid: 'ext-new-123',
+        email: invited_email,
+        obscure_email: 'ne***@example.com'
+      )
+      allow(cust).to receive(:role).and_return('customer')
+      allow(cust).to receive(:locale).and_return('en')
+      cust
+    end
+
+    let(:accepted_invitation) do
+      inv = build_mock_invitation(
+        objid: 'inv-active-456',
+        token: nil, # accept! clears the token
+        invited_email: invited_email,
+        role: 'member',
+        organization: organization,
+        organization_objid: 'org-test-123',
+        status: 'active',
+        'pending?' => false,
+        'active?' => true,
+        'expired?' => false
+      )
+      allow(inv).to receive(:joined_at).and_return(Time.now.to_i)
+      inv
+    end
+
+    let(:rate_limiter) { instance_double(Onetime::Security::InviteTokenRateLimiter) }
+
+    let(:account_row) { { id: 123, email: normalized_email, external_id: 'ext-new-123' } }
+
+    before do
+      allow(Onetime::Security::InviteTokenRateLimiter).to receive(:new)
+        .with(client_ip)
+        .and_return(rate_limiter)
+      allow(rate_limiter).to receive(:check!)
+      allow(rate_limiter).to receive(:record_attempt)
+
+      # raise_concerns path: token lookup succeeds (invitation still pending)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_token)
+        .with(invite_token)
+        .and_return(invitation)
+      allow(Onetime::Customer).to receive(:email_exists?)
+        .with(normalized_email)
+        .and_return(false)
+
+      # Rodauth create_account: documented contract returns nil on success.
+      # The after_create_account hook (production: apps/web/auth/config/hooks/
+      # account.rb) handles CreateCustomer + AcceptInvitation + accept!, which
+      # removes the token from token_lookup. We model the hook's side effects
+      # via the Customer.find_by_extid + find_by_org_customer stubs below.
+      allow(Auth::Config).to receive(:create_account).and_return(nil)
+
+      # Sequel dataset double: chains .where(...).where(...).first/any?/update.
+      # raise_concerns calls email_exists_in_authdb? (chained where + .any?);
+      # create_rodauth_account / process call .where(id|email).first.
+      accounts_ds = double('accounts_ds')
+      allow(accounts_ds).to receive(:where).and_return(accounts_ds)
+      allow(accounts_ds).to receive(:first).and_return(account_row)
+      allow(accounts_ds).to receive(:any?).and_return(false)
+      allow(accounts_ds).to receive(:update)
+      allow(Auth::Database).to receive(:connection).and_return(double(:[] => accounts_ds))
+
+      allow(Onetime::Customer).to receive(:find_by_extid)
+        .with('ext-new-123')
+        .and_return(new_customer)
+
+      allow(Auth::Logging).to receive(:log_auth_event)
+      allow(Familia).to receive(:now).and_return(double(to_i: Time.now.to_i, to_f: Time.now.to_f))
+      allow(Familia).to receive(:dbclient).and_return(double(del: true))
+    end
+
+    subject(:logic) { described_class.new(strategy_result, valid_params) }
+
+    context 'when the hook successfully accepted the invitation (happy path)' do
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-test-123', 'cust-new-123')
+          .and_return(accepted_invitation)
+        logic.raise_concerns
+      end
+
+      it 'reloads the invitation via org_customer_lookup, not token_lookup' do
+        # Allow the raise_concerns find_by_token call but assert it is not
+        # called during process (token has been removed from token_lookup by
+        # the time the hook returns).
+        expect(Onetime::OrganizationMembership).not_to receive(:find_by_token)
+        expect(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-test-123', 'cust-new-123')
+          .and_return(accepted_invitation)
+        logic.process
+      end
+
+      it 'returns success data with the accepted invitation state' do
+        result = logic.process
+        expect(result[:record][:auto_login]).to be true
+        expect(result[:record][:role]).to eq('member')
+      end
+    end
+
+    context 'when find_by_org_customer returns nil (hook silently failed)' do
+      # AcceptInvitation rescues StandardError and returns {accepted: false}
+      # instead of raising. The reload is the safety net that converts that
+      # silent failure into a user-visible error.
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-test-123', 'cust-new-123')
+          .and_return(nil)
+        logic.raise_concerns
+      end
+
+      it 'raises a form error on the token field' do
+        expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+          expect(err.message).to match(/Failed to accept invitation/)
+          expect(err.field).to eq(:token)
+        end
+      end
+    end
+
+    context 'when find_by_org_customer returns a still-pending invitation' do
+      # Defense-in-depth: even if a row exists, treat non-active as failure.
+      let(:still_pending_invitation) do
+        inv = build_mock_invitation(
+          objid: 'inv-test-123',
+          invited_email: invited_email,
+          role: 'member',
+          organization: organization,
+          organization_objid: 'org-test-123',
+          status: 'pending',
+          'pending?' => true,
+          'active?' => false,
+          'expired?' => false
+        )
+        allow(inv).to receive(:joined_at).and_return(nil)
+        inv
+      end
+
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-test-123', 'cust-new-123')
+          .and_return(still_pending_invitation)
+        logic.raise_concerns
+      end
+
+      it 'raises a form error on the token field' do
+        expect { logic.process }.to raise_error(Onetime::FormError, /Failed to accept invitation/)
+      end
+    end
+
+    context 'when find_by_token is called during process (regression guard)' do
+      # The bug: signup_and_accept.rb used to call load_invitation(@token)
+      # after the hook, which delegates to find_by_token. If anyone reintroduces
+      # that pattern, this spec fails — token_lookup has been wiped by accept!.
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-test-123', 'cust-new-123')
+          .and_return(accepted_invitation)
+        logic.raise_concerns
+
+        # Simulate the real post-acceptance state: token has been removed from
+        # token_lookup, so any post-process find_by_token call returns nil.
+        allow(Onetime::OrganizationMembership).to receive(:find_by_token)
+          .with(invite_token)
+          .and_return(nil)
+      end
+
+      it 'completes successfully even when find_by_token would return nil' do
+        # If process ever calls find_by_token again, load_invitation raises
+        # Onetime::RecordNotFound and this expectation fails.
+        expect { logic.process }.not_to raise_error
+      end
+    end
+  end
+
   # Integration-style tests (require full app boot with Valkey)
   describe 'integration behavior', type: :integration do
     # These tests use ProductionConfigHelper and require:
