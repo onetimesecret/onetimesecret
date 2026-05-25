@@ -12,9 +12,17 @@ require_relative 'models/custom_domain'
 # Receipt.participates_in declarations reference those classes
 require_relative 'models/receipt'
 require_relative 'models/feedback'
-require_relative 'models/custom_domain/sso_config'
-require_relative 'models/custom_domain/mailer_config'
+
+# CustomDomain sibling configs — loaded after CustomDomain so the
+# nested-class reopens (`class CustomDomain; class ApiConfig; ...`)
+# resolve against the defined parent. Kept alphabetical.
+require_relative 'models/custom_domain/api_config'
+require_relative 'models/custom_domain/brand_settings'
+require_relative 'models/custom_domain/homepage_config'
 require_relative 'models/custom_domain/incoming_config'
+require_relative 'models/custom_domain/mailer_config'
+require_relative 'models/custom_domain/signup_config'
+require_relative 'models/custom_domain/sso_config'
 
 # Housekeeping chores - loaded after models so chore DSL is available.
 # Sort for deterministic load order across platforms.

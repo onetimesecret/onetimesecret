@@ -66,6 +66,7 @@ const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
 const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
 
 /** Current user is owner or admin — can modify domain settings */
 const canAdmin = computed(() => {
@@ -151,6 +152,17 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.sso_description',
     available: isOrgsSsoEnabled(),
     locked: !canManageSso.value,
+    toggleable: false,
+    enabled: false,
+  },
+  {
+    key: 'signup',
+    route: { name: 'DomainSignup', params: { orgid: props.orgid, extid: props.extid } },
+    icon: { collection: 'heroicons', name: 'user-plus' },
+    titleKey: 'web.domains.signup.configure_signup',
+    descriptionKey: 'web.domains.detail.signup_description',
+    available: true,
+    locked: !canCustomSignup.value,
     toggleable: false,
     enabled: false,
   },

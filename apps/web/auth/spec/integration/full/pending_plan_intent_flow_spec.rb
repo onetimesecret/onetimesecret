@@ -26,7 +26,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 require 'rack/test'
 
 RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
@@ -35,16 +35,16 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   before(:all) do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
-    require_relative '../../operations/create_customer'
-    require_relative '../../operations/create_default_workspace'
+    require_relative '../../../operations/create_customer'
+    require_relative '../../../operations/create_default_workspace'
 
     # Load the billing hooks module (for extract_pending_plan_intent)
     module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
-    require_relative '../../config/hooks/billing'
+    require_relative '../../../config/hooks/billing'
 
     # Load billing dependencies for plan validation
     begin
-      require_relative '../../../billing/lib/plan_resolver'
+      require_relative '../../../../billing/lib/plan_resolver'
     rescue LoadError
       # Billing may not be available in all environments
     end

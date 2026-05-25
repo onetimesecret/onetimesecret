@@ -75,4 +75,9 @@ RSpec.describe 'API error_key locale coverage' do
     include_examples 'a locale file in sync with code',
       prefix: 'api.invite.', locale_filename: 'api-invite-errors.json'
   end
+
+  describe 'api.account.* (api-account-errors.json)' do
+    include_examples 'a locale file in sync with code',
+      prefix: 'api.account.', locale_filename: 'api-account-errors.json'
+  end
 end

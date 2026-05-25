@@ -244,7 +244,7 @@ module Auth::Config::Hooks
         host: host,
       )
 
-      rodauth.throw_error_status(403, 'sso_not_configured', 'SSO not configured for this domain')
+      rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
     end
 
     # Inject tenant credentials into the OmniAuth strategy.
@@ -278,7 +278,8 @@ module Auth::Config::Hooks
           domain_id: sso_config.domain_id,
           provider_type: sso_config.provider_type,
         )
-        rodauth.throw_error_status(
+        rodauth.send(
+          :throw_error_status,
           400,
           'provider_mismatch',
           "SSO provider mismatch: tenant configured #{sso_config.provider_type}, but request is for #{strategy.class.name}",

@@ -130,6 +130,7 @@ module RodauthTestHelper
     create_security_tables(db)
     create_mfa_tables(db)
     create_email_auth_tables(db)
+    create_omniauth_tables(db)
     create_webauthn_tables(db)
     create_audit_tables(db)
     create_password_tables(db)
@@ -228,6 +229,17 @@ module RodauthTestHelper
       String :key, null: false
       DateTime :deadline, null: false
       DateTime :email_last_sent, null: false, default: Sequel::CURRENT_TIMESTAMP
+    end
+  end
+
+  # Creates tables for OmniAuth (SSO identity linking)
+  def self.create_omniauth_tables(db)
+    db.create_table(:account_identities) do
+      primary_key :id, type: :Bignum
+      foreign_key :account_id, :accounts, type: :Bignum, null: false
+      String :provider, null: false
+      String :uid, null: false
+      index [:provider, :uid], unique: true
     end
   end
 
