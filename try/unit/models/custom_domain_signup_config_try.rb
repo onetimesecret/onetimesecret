@@ -29,6 +29,13 @@ OT.info "Cleaned Redis for SignupConfig test run"
 @org = Onetime::Organization.create!("SC Test Org #{@ts}", @owner, "sc_#{@ts}@test.com")
 @domain = Onetime::CustomDomain.create!("sc-test-#{@ts}.example.com", @org.objid)
 
+# Setup for the Network Validation section further down. Tryouts only executes
+# bare code BEFORE the first `##` block, so capture-and-restore state must be
+# established here (not mid-file between tests, which is silently ignored).
+@original_truemail_validate = Truemail.method(:validate)
+TRUEMAIL_VALID_MOCK   = Struct.new(:result).new(Struct.new(:success).new(true))
+TRUEMAIL_INVALID_MOCK = Struct.new(:result).new(Struct.new(:success).new(false))
+
 # --- Constants ---
 
 ## SignupConfig defines STRATEGY_TYPES constant
@@ -280,11 +287,10 @@ end
 #   - Rescue path:  Truemail raises   -> falls back to format-only validation
 #   - build_truemail_config: copies global settings, sets requested type
 #   - Truemail is invoked with custom_configuration: kwarg (not with:)
-
-# Save the original Truemail.validate so we can restore it after these tests.
-# build_truemail_config reads Truemail.configuration (not stubbed) so the
-# real global config remains in effect.
-@original_truemail_validate = Truemail.method(:validate)
+#
+# Note: @original_truemail_validate, TRUEMAIL_VALID_MOCK, and TRUEMAIL_INVALID_MOCK
+# are defined in the file's top-level setup (before the first `##` block).
+# Tryouts only runs bare code before the first test marker.
 
 ## Setup: create a CustomDomain and SignupConfig for mx strategy
 @ts_mx     = Familia.now.to_i
@@ -342,14 +348,14 @@ end
 
 ## mx strategy returns true when Truemail validates successfully
 Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
-  Struct.new(:result).new(Struct.new(:success).new(true))
+  TRUEMAIL_VALID_MOCK
 end
 @mx_config.valid_signup_email?('user@example.com')
 #=> true
 
 ## mx strategy returns false when Truemail rejects the email
 Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
-  Struct.new(:result).new(Struct.new(:success).new(false))
+  TRUEMAIL_INVALID_MOCK
 end
 @mx_config.valid_signup_email?('user@example.com')
 #=> false
@@ -379,14 +385,14 @@ end
 
 ## smtp strategy returns true when Truemail validates successfully
 Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
-  Struct.new(:result).new(Struct.new(:success).new(true))
+  TRUEMAIL_VALID_MOCK
 end
 @smtp_config.valid_signup_email?('user@example.com')
 #=> true
 
 ## smtp strategy returns false when Truemail rejects the email
 Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
-  Struct.new(:result).new(Struct.new(:success).new(false))
+  TRUEMAIL_INVALID_MOCK
 end
 @smtp_config.valid_signup_email?('user@example.com')
 #=> false
@@ -414,7 +420,7 @@ end
 captured = {}
 Truemail.define_singleton_method(:validate) do |_email, **kwargs|
   captured[:kwargs] = kwargs
-  Struct.new(:result).new(Struct.new(:success).new(true))
+  TRUEMAIL_VALID_MOCK
 end
 @mx_config.valid_signup_email?('user@example.com')
 captured[:kwargs].key?(:custom_configuration)
@@ -424,7 +430,7 @@ captured[:kwargs].key?(:custom_configuration)
 captured = {}
 Truemail.define_singleton_method(:validate) do |_email, **kwargs|
   captured[:kwargs] = kwargs
-  Struct.new(:result).new(Struct.new(:success).new(true))
+  TRUEMAIL_VALID_MOCK
 end
 @mx_config.valid_signup_email?('user@example.com')
 captured[:kwargs][:custom_configuration].default_validation_type
@@ -434,7 +440,7 @@ captured[:kwargs][:custom_configuration].default_validation_type
 captured = {}
 Truemail.define_singleton_method(:validate) do |_email, **kwargs|
   captured[:kwargs] = kwargs
-  Struct.new(:result).new(Struct.new(:success).new(true))
+  TRUEMAIL_VALID_MOCK
 end
 @smtp_config.valid_signup_email?('user@example.com')
 captured[:kwargs][:custom_configuration].default_validation_type
@@ -444,7 +450,7 @@ captured[:kwargs][:custom_configuration].default_validation_type
 captured = {}
 Truemail.define_singleton_method(:validate) do |email, **_kwargs|
   captured[:email] = email
-  Struct.new(:result).new(Struct.new(:success).new(true))
+  TRUEMAIL_VALID_MOCK
 end
 @mx_config.valid_signup_email?('user@example.com')
 captured[:email]
