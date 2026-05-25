@@ -90,8 +90,8 @@
         to="/signin"
         :title="t('web.homepage.log_in_to_onetime_secret')"
         data-testid="branded-signin-link"
-        class="text-sm text-gray-500 transition-colors duration-200
-          hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        class="text-sm text-gray-600 transition-colors duration-200
+          hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
         {{ t('web.COMMON.header_sign_in') }}
       </router-link>
     </nav>
