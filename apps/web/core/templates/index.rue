@@ -78,10 +78,10 @@
              data-show-text="true|false"  "Loading..." text with blinking dots -->
       <div class="app-fallback" data-show-orb="true" data-show-text="true">
         <div class="app-fallback-inner">
-          <div class="loader-orb" role="status" aria-label="Loading"></div>
-          <div class="loader-text">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+          <div class="loader-orb" aria-hidden="true"></div>
+          <div class="loader-text" role="status">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
           <noscript>
-            <p style="margin-top: 0.5rem;">JavaScript is required to use this application.</p>
+            <p>JavaScript is required to use this application.</p>
           </noscript>
         </div>
       </div>
@@ -140,10 +140,12 @@
         content: "";
         position: absolute;
         inset: 4px;
-        background: #ffffff;
+        /* --bg-color is set on <html> by the inline script in <head> before
+           first paint, so the inner disc tracks the body background in both
+           themes without a separate dark override. */
+        background: var(--bg-color, #ffffff);
         border-radius: 50%;
       }
-      html.dark .loader-orb::after { background: rgb(17, 24, 39); }
       @keyframes orb-spin { to { transform: rotate(360deg); } }
       .dot {
         animation: blink 1.4s infinite;
