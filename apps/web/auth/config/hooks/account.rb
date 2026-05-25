@@ -112,11 +112,23 @@ module Auth::Config::Hooks
       # and creates a default organization and team for the new user.
       #
       auth.after_create_account do
+        # Determine the provisioning origin from request context. This is
+        # metadata only — capabilities are governed by org/team role.
+        provisioning_origin = if request.params['invite_token'].to_s.strip != ''
+                                'invite'
+                              elsif request.env['onetime.display_domain'] &&
+                                    Onetime::CustomDomain.load_by_display_domain(request.env['onetime.display_domain'])
+                                'domain_signup'
+                              else
+                                'canonical_signup'
+                              end
+
         customer = Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::CreateCustomer.new(
             account_id: account_id,
             account: account,
             db: Auth::Database.connection,
+            provisioning_origin: provisioning_origin,
           ).call
         end
 

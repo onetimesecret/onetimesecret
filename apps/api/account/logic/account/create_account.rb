@@ -100,11 +100,20 @@ module AccountAPI::Logic
           cust.verified_by = 'autoverify' if @autoverify  # Track verification method
           cust.role        = @customer_role
 
-          # Capture the signup domain for re-verification and background jobs
-          if display_domain
-            custom_domain         = Onetime::CustomDomain.load_by_display_domain(display_domain)
-            cust.signup_domain_id = custom_domain.identifier if custom_domain
-          end
+          # Capture the signup domain for re-verification and background jobs,
+          # and record the provisioning origin as lifecycle/audit metadata.
+          # Origin is metadata only — capabilities are governed by org role.
+          custom_domain = if display_domain
+                            Onetime::CustomDomain.load_by_display_domain(display_domain)
+                          end
+          cust.signup_domain_id    = custom_domain.identifier if custom_domain
+          cust.provisioning_origin = if params['invite_token'].to_s.strip != ''
+                                       'invite'
+                                     elsif custom_domain
+                                       'domain_signup'
+                                     else
+                                       'canonical_signup'
+                                     end
 
           cust.save
 
