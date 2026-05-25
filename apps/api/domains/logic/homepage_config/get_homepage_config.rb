@@ -43,6 +43,8 @@ module DomainsAPI
                       {
                         domain_id: @homepage_config.domain_id,
                         enabled: @homepage_config.enabled?,
+                        signup_enabled: @homepage_config.signup_enabled?,
+                        signin_enabled: @homepage_config.signin_enabled?,
                         created_at: @homepage_config.created.to_i,
                         updated_at: @homepage_config.updated.to_i,
                       }

@@ -84,6 +84,8 @@ module Onetime::CustomDomain::Features
           {
             domain_id: config.domain_id,
             enabled: config.enabled?,
+            signup_enabled: config.signup_enabled?,
+            signin_enabled: config.signin_enabled?,
             created_at: config.created&.to_i,
             updated_at: config.updated&.to_i,
           }

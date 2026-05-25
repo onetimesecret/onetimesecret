@@ -27,6 +27,20 @@ export const homepageConfigCanonical = z.object({
   /** Whether homepage secrets is enabled for this domain. */
   enabled: z.boolean().default(false),
 
+  /**
+   * Whether the Sign Up link renders on this domain's homepage.
+   * Defaults to true (link visible). The site-level authentication.signup
+   * flag remains the master switch — the frontend ANDs both layers.
+   */
+  signup_enabled: z.boolean().default(true),
+
+  /**
+   * Whether the Sign In link renders on this domain's homepage.
+   * Defaults to true (link visible). The site-level authentication.signin
+   * flag remains the master switch — the frontend ANDs both layers.
+   */
+  signin_enabled: z.boolean().default(true),
+
   /** Configuration creation timestamp (Unix epoch seconds). Null if unconfigured. */
   created_at: z.number().nullable(),
 

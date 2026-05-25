@@ -13,11 +13,21 @@
 
   const productIdentity = useProductIdentity();
   const bootstrapStore = useBootstrapStore();
-  const { authentication } = storeToRefs(bootstrapStore);
+  const { authentication, homepage_config } = storeToRefs(bootstrapStore);
   const imageError = ref(false);
 
   /**
-   * Show Sign In link when signin route is available AND either:
+   * Per-domain narrowing for the auth nav links. Defaults to enabled when
+   * no homepage_config exists for the domain. The frontend ANDs the system
+   * authentication flags with these domain-level toggles — the domain owner
+   * can only narrow, never broaden.
+   */
+  const domainSignupEnabled = computed(() => homepage_config.value?.signup_enabled !== false);
+  const domainSigninEnabled = computed(() => homepage_config.value?.signin_enabled !== false);
+
+  /**
+   * Show Sign In link when signin route is available AND the domain hasn't
+   * disabled it AND either:
    * - Platform authentication is enabled (authentication.enabled), OR
    * - Platform-level SSO is configured (features.sso.enabled), OR
    * - Domain-level SSO is enabled (features.organizations.sso_enabled)
@@ -31,7 +41,9 @@
     const platformSsoEnabled = isSsoEnabled();
     const domainSsoEnabled = isOrgsSsoEnabled();
 
-    return hasSigninRoute && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
+    return hasSigninRoute
+      && domainSigninEnabled.value
+      && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
   });
 
   /**
@@ -41,7 +53,9 @@
    * gating used for Sign In.
    */
   const showSignUp = computed(() =>
-    authentication.value?.enabled === true && authentication.value?.signup === true
+    authentication.value?.enabled === true
+    && authentication.value?.signup === true
+    && domainSignupEnabled.value
   );
 
   const handleImageError = () => {

@@ -16,13 +16,17 @@ module DomainsAPI
       #
       # Request body:
       # - enabled: Boolean (required)
+      # - signup_enabled: Boolean (optional) — toggles Sign Up link on the homepage
+      # - signin_enabled: Boolean (optional) — toggles Sign In link on the homepage
       #
       class PutHomepageConfig < Base
         attr_reader :homepage_config
 
         def process_params
-          @domain_id = sanitize_identifier(params['extid'])
-          @enabled   = parse_boolean(params['enabled'])
+          @domain_id       = sanitize_identifier(params['extid'])
+          @enabled         = parse_boolean(params['enabled'])
+          @signup_enabled  = parse_boolean(params['signup_enabled']) if params.key?('signup_enabled')
+          @signin_enabled  = parse_boolean(params['signin_enabled']) if params.key?('signin_enabled')
         end
 
         def raise_concerns
@@ -33,14 +37,20 @@ module DomainsAPI
         end
 
         def process
-          OT.ld "[PutHomepageConfig] domain=#{@custom_domain.identifier} extid=#{@domain_id} enabled=#{@enabled} org=#{@organization.identifier} user=#{cust.extid}"
+          OT.ld "[PutHomepageConfig] domain=#{@custom_domain.identifier} extid=#{@domain_id} " \
+                "enabled=#{@enabled} signup=#{@signup_enabled.inspect} signin=#{@signin_enabled.inspect} " \
+                "org=#{@organization.identifier} user=#{cust.extid}"
 
           @homepage_config = Onetime::CustomDomain::HomepageConfig.upsert(
             domain_id: @custom_domain.identifier,
             enabled: @enabled,
+            signup_enabled: @signup_enabled,
+            signin_enabled: @signin_enabled,
           )
 
-          OT.ld "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} enabled=#{@homepage_config.enabled?} updated=#{@homepage_config.updated}"
+          OT.ld "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} " \
+                "enabled=#{@homepage_config.enabled?} signup=#{@homepage_config.signup_enabled?} " \
+                "signin=#{@homepage_config.signin_enabled?} updated=#{@homepage_config.updated}"
 
           success_data
         end
@@ -51,6 +61,8 @@ module DomainsAPI
             record: {
               domain_id: @homepage_config.domain_id,
               enabled: @homepage_config.enabled?,
+              signup_enabled: @homepage_config.signup_enabled?,
+              signin_enabled: @homepage_config.signin_enabled?,
               created_at: @homepage_config.created.to_i,
               updated_at: @homepage_config.updated.to_i,
             },
