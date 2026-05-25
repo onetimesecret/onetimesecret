@@ -92,7 +92,7 @@ module Onetime
         end
 
         def check_rabbitmq_connection
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
           conn     = Bunny.new(amqp_url)
           conn.start
 
@@ -112,7 +112,7 @@ module Onetime
         end
 
         def check_queue_depths
-          conn = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          conn = Bunny.new(OT.conf.dig('jobs', 'rabbitmq_url'))
           conn.start
 
           queues = {}
@@ -141,7 +141,7 @@ module Onetime
         end
 
         def check_exchanges
-          conn = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          conn = Bunny.new(OT.conf.dig('jobs', 'rabbitmq_url'))
           conn.start
 
           exchanges = {}
@@ -203,7 +203,7 @@ module Onetime
         end
 
         def check_dlq_policies
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
           parsed   = parse_amqp_url(amqp_url)
           vhost    = URI.encode_www_form_component(parsed[:vhost])
 

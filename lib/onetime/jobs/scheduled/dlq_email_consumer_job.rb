@@ -124,8 +124,7 @@ module Onetime
             if $rmq_conn&.open?
               [$rmq_conn, $rmq_conn.create_channel, false]
             else
-              url  = OT.conf.dig('jobs', 'rabbitmq_url') ||
-                     ENV.fetch('RABBITMQ_URL', 'amqp://localhost:5672')
+              url  = OT.conf.dig('jobs', 'rabbitmq_url')
               conn = Bunny.new(url)
               conn.start
               [conn, conn.create_channel, true]

@@ -32,13 +32,15 @@ module Onetime
         end
 
         # Base URL for the RabbitMQ Management HTTP API.
+        # ENV override intentional: management API often on different host/port than AMQP.
         def management_url
-          ENV.fetch('RABBITMQ_MANAGEMENT_URL', 'http://localhost:15672')
+          OT.conf.dig('jobs', 'rabbitmq_management_url') ||
+            ENV.fetch('RABBITMQ_MANAGEMENT_URL', 'http://localhost:15672')
         end
 
-        # Returns [user, password] extracted from RABBITMQ_URL.
+        # Returns [user, password] extracted from rabbitmq_url config.
         def management_credentials
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
           parsed   = parse_amqp_url(amqp_url)
           [parsed[:user], parsed[:password]]
         end

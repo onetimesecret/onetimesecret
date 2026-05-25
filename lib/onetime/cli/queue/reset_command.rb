@@ -82,7 +82,7 @@ module Onetime
         private
 
         def reset_queues(queue_names)
-          conn    = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          conn    = Bunny.new(OT.conf.dig('jobs', 'rabbitmq_url'))
           conn.start
           channel = conn.create_channel
 

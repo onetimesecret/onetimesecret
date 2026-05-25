@@ -421,7 +421,7 @@ module Onetime
 
         require 'bunny'
 
-        url  = OT.conf.dig('jobs', 'rabbitmq_url') || ENV.fetch('RABBITMQ_URL', 'amqp://localhost:5672')
+        url  = OT.conf.dig('jobs', 'rabbitmq_url')
         conn = Bunny.new(url)
         conn.start
 
