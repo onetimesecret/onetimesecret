@@ -1109,9 +1109,7 @@ module Onetime
   end
 end
 
-# Load after class definition to avoid superclass mismatch
-require_relative 'custom_domain/api_config'
-require_relative 'custom_domain/brand_settings'
-require_relative 'custom_domain/homepage_config'
-require_relative 'custom_domain/incoming_secrets_config'
-require_relative 'custom_domain/signup_config'
+# CustomDomain sibling configs (api_config, brand_settings, homepage_config,
+# incoming_config, mailer_config, signup_config, sso_config) are required from
+# lib/onetime/models.rb after this file loads. Loading them here would create
+# a circular require since they reopen Onetime::CustomDomain.
