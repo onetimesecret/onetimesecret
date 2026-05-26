@@ -96,7 +96,10 @@ module Onetime
     end
 
     def owner?(customer)
-      customer && customer.custid == owner_id
+      return false unless customer
+
+      membership = OrganizationMembership.find_by_org_customer(objid, customer.objid)
+      (membership&.active? && membership.owner?) || false
     end
 
     # Member management - Familia v2 auto-generated methods
