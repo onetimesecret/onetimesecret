@@ -83,6 +83,28 @@ require_relative 'support/mock_omniauth_strategy'
 require_relative '../database'
 
 # =============================================================================
+# PRE-LOAD AUTH APPLICATION (#3234)
+# =============================================================================
+# Force-load Auth::Application so the full constant chain
+# (Onetime::Boot::Initializer, Auth::Config, Auth::Config::Features::*,
+# Auth::Config::Hooks::*, the initializer subclasses) is defined before any
+# example runs.
+#
+# Without this, unit specs that mock Onetime/Auth::Database in isolation pass
+# fine on their own but fail when paired with an integration spec that boots
+# the real app: the integration spec's `Onetime.boot!` is memoized
+# process-wide, and the unit spec's stub of `Onetime.auth_config` leaks across
+# example boundaries unless the namespace is stable up front.
+#
+# Safe to load eagerly here because Auth::Config's OAuth feature block only
+# runs when `Onetime.auth_config.oauth_enabled?` returns true (config.rb:149),
+# which requires AUTH_OAUTH_ENABLED=true in the environment. Integration specs
+# that need OAuth set the env var BEFORE `require_relative '../spec_helper'`;
+# unit specs leave it unset and the RSA-key requirement (features/oauth.rb:234)
+# stays dormant.
+require_relative '../application'
+
+# =============================================================================
 # TENANT VERIFYING MOCK REGISTRATION
 # =============================================================================
 #

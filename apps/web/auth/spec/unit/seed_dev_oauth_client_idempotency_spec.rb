@@ -6,6 +6,13 @@
 # exactly one row with client_id="onetimesecret-sp-dev".
 #
 # Issue #3104, task 6.
+#
+# Uses the auth spec_helper (not the root one) so Auth::Application — and
+# transitively Onetime::Boot::Initializer that SeedDevOAuthClient subclasses
+# — is loaded before the example runs. See spec_helper #3234 note for why
+# pre-loading matters when this file runs alongside integration specs.
+
+require_relative '../spec_helper'
 
 require 'sequel'
 require 'bcrypt'
