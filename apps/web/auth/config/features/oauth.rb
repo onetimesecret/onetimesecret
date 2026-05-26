@@ -207,6 +207,30 @@ module Auth::Config::Features
         end
       end
 
+      # ─── ID-token: omit auth_time when sessionless ────────────────────
+      # FIX (#3233): rodauth-oauth's id_token_claims (oidc.rb:567) writes
+      # `claims[:auth_time] = get_oidc_account_last_login_at(account_id).to_i`
+      # unconditionally. The default `get_oidc_account_last_login_at`
+      # (oidc.rb:352) queries `active_sessions` and returns nil when the
+      # account has no active session — and `nil.to_i == 0`. The gem then
+      # emits `auth_time: 0` in the ID token, which OIDC Core 1.0 §2 does
+      # not permit: `auth_time` is "Time when the End-User authentication
+      # occurred"; absent that signal, the claim should be omitted entirely.
+      # Emitting 0 (epoch) misrepresents the authentication moment as
+      # 1970-01-01T00:00:00Z.
+      #
+      # We call super and drop `:auth_time` when it serializes to 0,
+      # leaving the rest of the gem's claims (sub, aud, iat, exp, iss,
+      # nonce, acr, at_hash, c_hash) intact. A non-zero auth_time from
+      # an active session passes through unchanged.
+      auth.auth_class_eval do
+        define_method(:id_token_claims) do |oauth_grant, signing_algorithm|
+          claims = super(oauth_grant, signing_algorithm)
+          claims.delete(:auth_time) if claims[:auth_time].to_i.zero?
+          claims
+        end
+      end
+
       # ─── Grant types ───────────────────────────────────────────────────
       # No client_credentials, device_code, password, or assertion grants in v1.
       auth.oauth_grant_types_supported %w[authorization_code refresh_token]

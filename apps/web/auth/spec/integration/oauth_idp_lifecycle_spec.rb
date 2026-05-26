@@ -467,20 +467,21 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
       expect(payload).not_to have_key('nonce')
     end
 
-    it 'emits auth_time=0 for accounts without an active session row' do
-      # FINDING: oidc.rb:567 unconditionally calls
-      # `get_oidc_account_last_login_at(account_id).to_i` even for grants
-      # whose account never went through the rodauth login flow (which is
-      # the case for our direct-seeded test accounts AND for any future
-      # account where active_sessions is enabled but a row hasn't been
-      # written yet). With no row, the helper returns nil, nil.to_i==0,
-      # and the id_token surfaces `auth_time: 0`. Per OIDC Core §2 this is
-      # technically a NumericDate of "epoch 1970-01-01" and arguably wrong.
-      # Track in #3104 follow-up (consider overriding to omit when nil).
+    it 'omits auth_time for accounts without an active session row (#3233)' do
+      # rodauth-oauth's id_token_claims (oidc.rb:567) unconditionally calls
+      # `get_oidc_account_last_login_at(account_id).to_i`. With no
+      # active_sessions row the helper returns nil, nil.to_i==0, and the
+      # gem would emit `auth_time: 0` — a NumericDate of 1970-01-01, which
+      # OIDC Core §2 does not allow ("Time when the End-User authentication
+      # occurred").
+      #
+      # apps/web/auth/config/features/oauth.rb overrides id_token_claims to
+      # drop :auth_time when it serializes to 0. A non-zero auth_time from
+      # an active session still passes through.
       result = redeem_fresh_grant
       payload, _h = decode_id_token(result)
-      expect(payload['auth_time']).to eq(0),
-        "Expected auth_time=0 absent an active_sessions row; got #{payload['auth_time'].inspect}"
+      expect(payload).not_to have_key('auth_time'),
+        "Expected auth_time to be omitted absent an active_sessions row; got #{payload['auth_time'].inspect}"
     end
 
     it 'signs with a kid advertised in JWKS' do
