@@ -18,11 +18,16 @@ module Auth
       # @param provisioning_origin [String, nil] One of Onetime::Customer::PROVISIONING_ORIGINS.
       #   Set on newly-created Customer records as lifecycle/audit metadata.
       #   Ignored when the customer already exists (we don't rewrite history).
-      def initialize(account_id:, account:, db: nil, provisioning_origin: nil)
+      # @param signup_domain_id [String, nil] CustomDomain identifier captured at signup.
+      #   Set on newly-created Customer records. Ignored for existing customers to
+      #   preserve original signup context (same "don't rewrite history" rule as
+      #   provisioning_origin).
+      def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil)
         @account_id          = account_id
         @account             = account
         @db                  = db || Auth::Database.connection
         @provisioning_origin = provisioning_origin
+        @signup_domain_id    = signup_domain_id
       end
 
       # Executes the customer creation/loading operation
@@ -52,9 +57,10 @@ module Auth
             role: 'customer',
             verified: false, # needs to be updated in after_verify_account
             provisioning_origin: @provisioning_origin,
+            signup_domain_id: @signup_domain_id,
           )
 
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, origin: #{@provisioning_origin || 'unknown'})"
+          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, origin: #{@provisioning_origin || 'unknown'}, signup_domain_id: #{@signup_domain_id || 'none'})"
         end
 
         customer
