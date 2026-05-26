@@ -122,6 +122,36 @@ module Onetime
         end
 
         module InstanceMethods
+          # Materialize standalone-mode entitlements onto this org.
+          #
+          # When billing is disabled (self-hosted/standalone deployments), there is
+          # no Stripe webhook to drive materialization. This method writes the
+          # STANDALONE_ENTITLEMENTS set into the org's materialized storage so the
+          # runtime fallback at `#entitlements` is no longer the sole source of
+          # truth.
+          #
+          # No-op (returns false) when billing is enabled — those orgs are
+          # materialized by the subscription webhook from the assigned plan.
+          #
+          # Idempotent: safe to call multiple times. Each call re-runs the
+          # reconciliation (plan + grants − revokes) via
+          # `materialize_entitlements_from_config`.
+          #
+          # Called from `Organization.create!` (new orgs) and the
+          # `materialize_standalone_entitlements` chore (backfill of existing
+          # orgs). See ADR-012 §Standalone mode.
+          #
+          # @return [Boolean] false in billing mode; otherwise the result of
+          #   `materialize_entitlements_from_config` (true on success).
+          def materialize_standalone_entitlements!
+            return false if billing_enabled?
+
+            materialize_entitlements_from_config(
+              entitlements: STANDALONE_ENTITLEMENTS,
+              limits: {},
+            )
+          end
+
           # Get all entitlements for current plan.
           #
           # Overrides WithEntitlements#entitlements with the Plan.load fallback

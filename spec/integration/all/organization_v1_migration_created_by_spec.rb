@@ -80,4 +80,19 @@ RSpec.describe 'Organization.create_from_v1_customer! created_by dual-write',
     expect(dump[:created_by]).to eq(@customer.custid)
     expect(dump[:created_by]).to eq(dump[:owner_id])
   end
+
+  # ADR-012 §Standalone mode (Stage 2 Unit C): the v1 migration path
+  # routes through Organization.create! at
+  # lib/onetime/models/organization/features/migration_fields.rb:70, so the
+  # create-time materialization that Unit C wired in must propagate
+  # transitively. Pinning this invariant catches a future refactor that
+  # bypasses create! and silently leaves migrated orgs unmaterialized.
+  it 'marks the migrated org as materialized (transitively via create!)' do
+    expect(@org.entitlements_materialized?).to be true
+  end
+
+  it 'materializes STANDALONE_ENTITLEMENTS on the migrated org' do
+    expected = Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS
+    expect(@org.materialized_entitlements.to_a.sort).to eq(expected.sort)
+  end
 end

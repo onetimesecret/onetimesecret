@@ -343,6 +343,13 @@ module Onetime
           # Add owner as first member with owner role using Familia v2 auto-generated bidirectional method
           org.add_members_instance(owner_customer, through_attrs: { role: 'owner' })
 
+          # Standalone-mode materialization (ADR-012 §Standalone mode).
+          # In billing-enabled mode this returns false and the subscription
+          # webhook handles materialization from the assigned plan instead.
+          # No-op is intentional; owner membership exists prior so Stage 3
+          # membership materialization invariants will hold.
+          org.materialize_standalone_entitlements!
+
           OT.ld "[Organization.create!] org: #{org.extid}, owner: #{owner_customer.custid}"
 
           org

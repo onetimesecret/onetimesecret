@@ -113,4 +113,23 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
     # Use wrapper method for Familia v2 serialization compatibility
     expect(@workspace[:organization].member?(@new_customer.objid)).to eq(true)
   end
+
+  # Standalone-mode materialization (ADR-012 §Standalone mode, Stage 2 Unit C).
+  # The default test environment has billing disabled (see billing_isolation.rb),
+  # so Organization.create! should materialize STANDALONE_ENTITLEMENTS at create
+  # time. This pins the create-time invariant against future refactors.
+  describe 'Standalone-mode entitlement materialization at create time' do
+    it 'marks the org as materialized after create!' do
+      expect(@org.entitlements_materialized?).to be true
+    end
+
+    it 'writes STANDALONE_ENTITLEMENTS into materialized_entitlements' do
+      expected = Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS
+      expect(@org.materialized_entitlements.to_a.sort).to eq(expected.sort)
+    end
+
+    it 'stamps materialized_entitlements_at in timestamp:hash form' do
+      expect(@org.materialized_entitlements_at.to_s).to match(/\A\d+:[0-9a-f]{12}\z/)
+    end
+  end
 end
