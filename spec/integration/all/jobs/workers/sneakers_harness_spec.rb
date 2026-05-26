@@ -233,7 +233,7 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
     describe '#parse_message' do
       before do
         # Store minimal envelope for validate_schema
-        metadata = double('metadata', headers: { 'x-schema-version' => 1 })
+        metadata = double('metadata', message_id: nil, headers: { 'x-schema-version' => 1 })
         worker.store_envelope(nil, metadata)
       end
 
@@ -249,7 +249,7 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
       end
 
       it 'rejects unknown schema versions' do
-        metadata = double('metadata', headers: { 'x-schema-version' => 999 })
+        metadata = double('metadata', message_id: nil, headers: { 'x-schema-version' => 999 })
         worker.store_envelope(nil, metadata)
 
         result = worker.parse_message('{"key": "value"}')
