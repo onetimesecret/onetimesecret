@@ -10,7 +10,7 @@
 #   normal maintenance until: TBD
 #   end of life: 2028-03 (est)
 #
-ruby '>= 3.2'
+ruby '>= 3.4.7'
 
 source 'https://rubygems.org/'
 
@@ -103,10 +103,10 @@ gem 'webauthn', '~> 3.0'
 gem 'base64'
 gem 'irb'
 gem 'logger'
-gem 'psych', '~> 5.1'
+gem 'psych', '~> 5.2.3'
 gem 'rdoc'
 gem 'reline'
-gem 'stringio', '>= 3.0'
+gem 'stringio', '~> 3.1.6'
 
 # ====================================
 # Background Job Processing
