@@ -526,17 +526,14 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     end
   end
 
-  describe 'RABBITMQ_CHANNEL_POOL_SIZE environment variable' do
+  describe 'channel_pool_size config' do
+    # RABBITMQ_CHANNEL_POOL_SIZE env var is resolved at config-load time
+    # by ERB in etc/defaults/config.defaults.yaml; runtime code reads
+    # OT.conf.dig('jobs', 'channel_pool_size') and never touches ENV.
     around do |example|
-      original_pool_size = ENV['RABBITMQ_CHANNEL_POOL_SIZE']
       original_skip = ENV['SKIP_RABBITMQ_SETUP']
       example.run
     ensure
-      if original_pool_size.nil?
-        ENV.delete('RABBITMQ_CHANNEL_POOL_SIZE')
-      else
-        ENV['RABBITMQ_CHANNEL_POOL_SIZE'] = original_pool_size
-      end
       if original_skip.nil?
         ENV.delete('SKIP_RABBITMQ_SETUP')
       else
@@ -544,20 +541,19 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       end
     end
 
-    context 'when RABBITMQ_CHANNEL_POOL_SIZE is set' do
+    context 'when channel_pool_size is set in config' do
       before do
-        ENV['RABBITMQ_CHANNEL_POOL_SIZE'] = '10'
         ENV.delete('SKIP_RABBITMQ_SETUP')
         allow(OT).to receive(:conf).and_return({
           'jobs' => {
             'enabled' => true,
-            'rabbitmq_url' => 'amqp://localhost'
-            # Note: no channel_pool_size in config - should use env var
+            'rabbitmq_url' => 'amqp://localhost',
+            'channel_pool_size' => 10,
           }
         })
       end
 
-      it 'uses the environment variable value for pool size' do
+      it 'uses the configured value for pool size' do
         mock_conn = instance_double(Bunny::Session, start: true, open?: true)
         mock_channel = instance_double(Bunny::Channel)
         mock_pool = instance_double(ConnectionPool)
