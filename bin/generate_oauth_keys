@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+# bin/generate_oauth_keys
+#
+# frozen_string_literal: true
+
+# Generate an RSA 2048 keypair for the local IdP (rodauth-oauth).
+# Prints a ready-to-paste .env snippet on stdout.
+#
+# The OneTimeSecret IdP uses this key to sign OIDC ID tokens and JWT access
+# tokens. The same PEM must be present on every boot — regenerating it
+# invalidates every live token.
+#
+# Usage:
+#   $ bin/generate_oauth_keys              # print to stdout
+#   $ bin/generate_oauth_keys >> .env      # append directly to .env
+#
+# See: apps/web/auth/config/features/oauth.rb
+# See: https://github.com/onetimesecret/onetimesecret/issues/3104
+
+require 'openssl'
+require 'securerandom'
+
+key = OpenSSL::PKey::RSA.new(2048)
+pem = key.to_pem
+
+# .env doesn't support raw multiline values; emit a single-line form with
+# escaped newlines that Ruby's OpenSSL parser accepts after unescaping.
+escaped = pem.gsub("\n", '\n')
+
+sp_secret = SecureRandom.hex(24)
+
+puts <<~ENV_BLOCK
+  # ─── OAuth/OIDC IdP (rodauth-oauth) — generated #{Time.now.utc.iso8601} ───
+  # NEVER regenerate in production — invalidates every live ID/access token.
+  # Required when AUTH_OAUTH_ENABLED=true.
+  OAUTH_JWT_RSA_PRIVATE_KEY="#{escaped}"
+
+  # Plaintext client secret for the seeded dev SP (onetimesecret-sp-dev).
+  # The DB stores its bcrypt hash; this env var lets the SP authenticate.
+  OAUTH_SP_DEV_CLIENT_SECRET=#{sp_secret}
+ENV_BLOCK

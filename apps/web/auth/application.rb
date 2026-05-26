@@ -13,6 +13,7 @@ require_relative 'router'
 
 # Load initializers
 require_relative 'initializers/rodauth_migrations'
+require_relative 'initializers/seed_dev_oauth_client'
 
 module Auth
   class Application < Onetime::Application::Base
