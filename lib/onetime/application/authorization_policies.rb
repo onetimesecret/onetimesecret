@@ -174,6 +174,10 @@ module Onetime
 
       # Verify current user owns the organization
       #
+      # DEPRECATED (ADR-012 Stage 3): Use require_entitlement! with an owner-level
+      # entitlement (e.g., 'manage_orgs', 'manage_sso') instead. Role predicates
+      # like owner? remain for display logic; authorization should use entitlements.
+      #
       # Colonels (site admins) have automatic superuser bypass.
       # Otherwise, user must be organization owner.
       #
@@ -181,6 +185,7 @@ module Onetime
       # @param error_key [String] I18n key for the rejection message
       # @raise [Onetime::Forbidden] If user is not owner and not colonel
       def verify_organization_owner(organization, error_key: 'api.organizations.errors.organization_owner_required')
+        OT.ld '[DEPRECATED] verify_organization_owner — migrate to require_entitlement!'
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) },
@@ -191,6 +196,10 @@ module Onetime
 
       # Verify current user is an organization member
       #
+      # DEPRECATED (ADR-012 Stage 3): Use require_entitlement! with a member-level
+      # entitlement (e.g., 'api_access', 'create_secrets') instead. Membership
+      # is implied by having any entitlement; role predicates remain for display logic.
+      #
       # Colonels (site admins) have automatic superuser bypass.
       # Otherwise, user must be organization member.
       #
@@ -198,6 +207,7 @@ module Onetime
       # @param error_key [String] I18n key for the rejection message
       # @raise [Onetime::Forbidden] If user is not a member and not colonel
       def verify_organization_member(organization, error_key: 'api.organizations.errors.organization_member_required')
+        OT.ld '[DEPRECATED] verify_organization_member — migrate to require_entitlement!'
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.member?(cust) },
@@ -208,6 +218,10 @@ module Onetime
 
       # Verify current user has admin privileges in the organization
       #
+      # DEPRECATED (ADR-012 Stage 3): Use require_entitlement! with an admin-level
+      # entitlement (e.g., 'manage_teams', 'manage_members', 'audit_logs') instead.
+      # Role predicates remain for display logic; authorization should use entitlements.
+      #
       # Owner is implicitly admin. Colonels (site admins) bypass.
       #
       # @param organization [Onetime::Organization]
@@ -216,6 +230,7 @@ module Onetime
       #   (e.g. 'api.domains.errors.add_admin_required').
       # @raise [Onetime::Forbidden] If user is not owner/admin
       def verify_organization_admin(organization, error_key: 'api.organizations.errors.organization_admin_required')
+        OT.ld '[DEPRECATED] verify_organization_admin — migrate to require_entitlement!'
         verify_one_of_roles!(
           colonel: true,
           custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },

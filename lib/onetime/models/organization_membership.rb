@@ -44,16 +44,73 @@ module Onetime
   # API responses return organization.extid (not objid) to prevent enumeration.
   # See safe_dump_fields for serialization details.
   #
+  # rubocop:disable Metrics/ClassLength
   class OrganizationMembership < Familia::Horreum
+    include Familia::Features::Autoloader
+
     using Familia::Refinements::TimeLiterals
 
     INVITATION_TTL_SECONDS = 7.days.to_i
+
+    # Role -> Entitlement Templates (ADR-012 Stage 3)
+    #
+    # Defines which entitlements each role template permits. The hierarchy
+    # composes via set union: owner includes admin, admin includes member.
+    #
+    # At materialization, effective entitlements are:
+    #   org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]
+    #
+    # This ensures a membership never exceeds its org's plan. Role predicates
+    # (`owner?`, `admin?`, `member?`) remain for display logic; authority lives
+    # in the materialized entitlements, not role string checks.
+    #
+    # Categories mirror billing.example.yaml entitlement definitions:
+    # - owner: org-level management, billing, SSO
+    # - admin: team/member management, workspace branding, audit
+    # - member: core usage entitlements
+    #
+    MEMBER_ENTITLEMENTS = Set[
+      'create_secrets',
+      'view_receipt',
+      'api_access',
+      'extended_default_expiration',
+      'notifications',
+    ].freeze
+
+    ADMIN_ENTITLEMENTS = Set[
+      'manage_teams',
+      'manage_members',
+      'audit_logs',
+      'workspace_branding',
+      'ip_access_rules',
+    ].freeze
+
+    OWNER_ENTITLEMENTS = Set[
+      'custom_domains',
+      'homepage_secrets',
+      'incoming_secrets',
+      'custom_branding',
+      'custom_privacy_defaults',
+      'custom_mail_sender',
+      'flexible_from_domain',
+      'custom_signup_validation',
+      'manage_sso',
+      'manage_orgs',
+      'manage_billing',
+    ].freeze
+
+    ROLE_ENTITLEMENTS = {
+      'owner' => (OWNER_ENTITLEMENTS | ADMIN_ENTITLEMENTS | MEMBER_ENTITLEMENTS).freeze,
+      'admin' => (ADMIN_ENTITLEMENTS | MEMBER_ENTITLEMENTS).freeze,
+      'member' => MEMBER_ENTITLEMENTS.freeze,
+    }.freeze
 
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
     feature :relationships
     feature :safe_dump
     feature :housekeeping
+    feature :membership_materialized_entitlements
 
     prefix :org_membership
     identifier_field :objid
@@ -210,6 +267,31 @@ module Onetime
 
     def member?
       role == 'member' || admin?
+    end
+
+    # Change the membership's role and re-materialize entitlements.
+    #
+    # ADR-012 Stage 3: Role changes trigger re-materialization so the effective
+    # entitlement set reflects the new role template. This is the canonical way
+    # to change a membership's role — direct assignment (self.role = 'admin')
+    # does not trigger re-materialization.
+    #
+    # @param new_role [String] The new role ('owner', 'admin', or 'member')
+    # @return [Boolean] True if role change and materialization succeeded
+    # @raise [Onetime::Problem] If new_role is invalid
+    def change_role!(new_role)
+      new_role = new_role.to_s
+      unless ROLE_ENTITLEMENTS.key?(new_role)
+        raise Onetime::Problem, "Invalid role: #{new_role}. Must be one of: #{ROLE_ENTITLEMENTS.keys.join(', ')}"
+      end
+
+      return true if role == new_role # No-op if unchanged
+
+      self.role = new_role
+      save
+
+      # Re-materialize entitlements with new role template
+      materialize_for_role!
     end
 
     def org_scoped?
@@ -381,6 +463,19 @@ module Onetime
       # Populate active-state OTS index on the NEW composite-keyed model
       if activated.org_customer_key
         self.class.org_customer_lookup[activated.org_customer_key] = activated.objid
+      end
+
+      # Materialize entitlements for the activated membership (ADR-012 Stage 3).
+      # Computes org.entitlements ∩ ROLE_ENTITLEMENTS[role] and persists to Redis.
+      # Uses the activated model (composite-keyed) which has the correct org reference.
+      begin
+        activated.materialize_for_role!
+      rescue StandardError => ex
+        # Materialization is degradable — the fallback path in entitlements()
+        # computes on-the-fly from org + role. Log and continue.
+        OT.le '[activate!] entitlement materialization failed, fallback applies',
+          exception: ex,
+          membership_objid: activated.objid
       end
 
       # Update in-memory state so callers see the activated state.
@@ -691,7 +786,7 @@ module Onetime
             end
           end
 
-          organization.add_members_instance(
+          membership = organization.add_members_instance(
             customer,
             through_attrs: {
               role: role,
@@ -701,6 +796,17 @@ module Onetime
               provisioning_source: provisioning_source,
             },
           )
+
+          # Materialize entitlements for the new direct-add membership (ADR-012 Stage 3).
+          # The accept! path materializes in activate!; this handles SSO first-auth
+          # and other direct-add scenarios.
+          begin
+            membership.materialize_for_role! if membership
+          rescue StandardError => ex
+            OT.le '[ensure_membership] entitlement materialization failed, fallback applies',
+              exception: ex,
+              membership_objid: membership&.objid
+          end
         end
 
         # Final convergence lookup: regardless of which path succeeded
@@ -742,4 +848,5 @@ module Onetime
       end
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

@@ -247,6 +247,36 @@ module Onetime
       owner?(current_user)
     end
 
+    # Re-materialize entitlements for all active memberships.
+    #
+    # ADR-012 Stage 3: Called when the org's plan changes (subscription webhook)
+    # to propagate the new entitlement set to all memberships. Each membership's
+    # effective entitlements are: org.entitlements ∩ ROLE_ENTITLEMENTS[role].
+    #
+    # At current scale (orgs are low hundreds of members), this is acceptable
+    # inline or in a background job. If org sizes grow to thousands, consider
+    # batching or Redis pipelining.
+    #
+    # @return [Hash] { success: count, failed: count, total: count }
+    def rematerialize_all_memberships!
+      memberships = OrganizationMembership.active_for_org(self)
+      result      = { success: 0, failed: 0, total: memberships.size }
+
+      memberships.each do |membership|
+        membership.materialize_for_role!
+        result[:success] += 1
+      rescue StandardError => ex
+        OT.le '[rematerialize_all_memberships!] failed for membership',
+          exception: ex,
+          membership_objid: membership.objid,
+          org_extid: extid
+        result[:failed] += 1
+      end
+
+      OT.info "[rematerialize_all_memberships!] org=#{extid} success=#{result[:success]} failed=#{result[:failed]}"
+      result
+    end
+
     # Low-level delete with index cleanup
     #
     # Overrides Familia::Horreum#delete! to ensure contact_email_index
@@ -346,8 +376,6 @@ module Onetime
           # Standalone-mode materialization (ADR-012 §Standalone mode).
           # In billing-enabled mode this returns false and the subscription
           # webhook handles materialization from the assigned plan instead.
-          # No-op is intentional; owner membership exists prior so Stage 3
-          # membership materialization invariants will hold.
           #
           # Explicit rescue: materialization is degradable while the runtime
           # fallback at WithPlanEntitlements#entitlements remains. If this
@@ -356,6 +384,18 @@ module Onetime
             org.materialize_standalone_entitlements!
           rescue StandardError => ex
             OT.le '[Organization.create!] standalone materialization failed, fallback applies',
+              exception: ex,
+              org_extid: org.extid
+          end
+
+          # Materialize owner membership entitlements (ADR-012 Stage 3).
+          # Must run after org.materialize_standalone_entitlements! so the org's
+          # materialized set is populated for the intersection computation.
+          begin
+            owner_membership = OrganizationMembership.find_by_org_customer(org.objid, owner_customer.objid)
+            owner_membership&.materialize_for_role!
+          rescue StandardError => ex
+            OT.le '[Organization.create!] owner membership materialization failed, fallback applies',
               exception: ex,
               org_extid: org.extid
           end

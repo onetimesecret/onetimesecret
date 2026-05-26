@@ -36,19 +36,23 @@ module Onetime
       # When billing is properly configured, quota checks are strictly enforced.
       # Internal errors (Redis failures, missing plan data) should propagate as
       # exceptions rather than silently allowing resource creation. This protects
-      # revenue and ensures plan limits are respected.
+      # from misuse and ensures plan limits are respected.
       #
       module WithPlanEntitlements
         Familia::Base.add_feature self, :with_plan_entitlements
 
         # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
+        # Must include all entitlements from ROLE_ENTITLEMENTS (ADR-012) so the
+        # membership intersection (org ∩ role) doesn't exclude member-level ones.
         STANDALONE_ENTITLEMENTS = %w[
-          api_access custom_privacy_defaults extended_default_expiration
-          custom_domains custom_branding homepage_secrets
-          incoming_secrets custom_mail_sender flexible_from_domain
-          manage_orgs manage_teams manage_members manage_sso audit_logs
-          custom_signup_validation
+          create_secrets view_receipt api_access notifications
+          extended_default_expiration
+          manage_teams manage_members audit_logs workspace_branding ip_access_rules
+          custom_domains homepage_secrets incoming_secrets
+          custom_branding custom_privacy_defaults
+          custom_mail_sender flexible_from_domain
+          custom_signup_validation manage_sso manage_orgs manage_billing
         ].freeze
 
         # Free tier entitlements as fallback when billing is enabled

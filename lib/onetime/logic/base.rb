@@ -151,14 +151,23 @@ module Onetime
       # error_key is the full dotted i18n key. The HTTP edge resolves it per
       # request locale; logic stays free of locale/I18n boot concerns.
       def raise_form_error(msg = nil, error_key: nil, args: {}, field: nil, error_type: nil)
-        ex = OT::FormError.new(msg, error_key: error_key, args: args,
-                                    field: field, error_type: error_type)
+        ex             = OT::FormError.new(
+          msg,
+          error_key: error_key,
+          args: args,
+          field: field,
+          error_type: error_type,
+        )
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
 
-      # Require that the organization has a specific entitlement.
+      # Require that the authenticated user's membership has a specific entitlement.
       # Raises EntitlementRequired with upgrade path if check fails.
+      #
+      # ADR-012 Stage 3: Authorization checks use auth_membership.can?, not auth_org.can?.
+      # The membership is the single source of truth for "what can this caller do in this org."
+      # Effective entitlements are: org.entitlements ∩ ROLE_ENTITLEMENTS[role] + grants - revokes.
       #
       # For anonymous users (noauth routes), entitlement checks are skipped.
       # Guest route gating (GuestRouteGating concern) handles access control
@@ -167,9 +176,9 @@ module Onetime
       # @param entitlement [String, Symbol] The entitlement to check
       # @param error_key [String, nil] Optional dotted i18n key for the raised
       #   error. Defaults to "api.entitlements.errors.#{entitlement}_required".
-      #   The "no auth_org" path uses a fixed system-error key
+      #   The "no auth_org/auth_membership" path uses a fixed system-error key
       #   ('api.entitlements.errors.context_unavailable') and ignores this arg.
-      # @raise [Onetime::EntitlementRequired] If org lacks the entitlement
+      # @raise [Onetime::EntitlementRequired] If membership lacks the entitlement
       # @return [true] If entitlement check passes
       def require_entitlement!(entitlement, error_key: nil)
         entitlement = entitlement.to_s
@@ -193,8 +202,26 @@ module Onetime
           )
         end
 
-        # Check if auth_org has the entitlement
-        return true if auth_org.can?(entitlement)
+        # Fail-closed: auth_membership required for authenticated entitlement checks.
+        # Missing membership for an authenticated user indicates a system issue —
+        # the customer should always have a membership in their auth_org.
+        unless auth_membership
+          OT.le format(
+            '[require_entitlement!] No auth_membership for %s (cust=%s, org=%s)',
+            entitlement,
+            cust&.custid,
+            auth_org&.extid,
+          )
+          raise Onetime::EntitlementRequired.new(
+            entitlement,
+            message: 'Unable to verify entitlements (membership context unavailable)',
+            error_key: 'api.entitlements.errors.context_unavailable',
+            args: { entitlement: entitlement },
+          )
+        end
+
+        # Check if auth_membership has the entitlement (ADR-012 Stage 3)
+        return true if auth_membership.can?(entitlement)
 
         # Build upgrade path info
         current_plan = auth_org.planid
