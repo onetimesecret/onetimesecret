@@ -141,6 +141,15 @@ module Auth
         Hooks::OmniAuthTenant.configure(self)
       end
 
+      # OAuth2/OIDC Identity Provider: this OTS instance acts as an IdP.
+      # Hooks (key loading, scope/claim mapping) and seeded clients land in
+      # tasks 5 and 6 of issue #3104. Configuring the feature now is safe:
+      # without keys, the runtime endpoints raise, but boot is unaffected.
+      if Onetime.auth_config.oauth_enabled?
+        Features::OAuth.configure(self)
+        Hooks::OAuth.configure(self)
+      end
+
       # Billing: plan selection carry-through for checkout flow
       if Onetime.conf.dig('billing', 'enabled').to_s == 'true'
         Hooks::Billing.configure(self)

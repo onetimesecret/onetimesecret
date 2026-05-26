@@ -111,6 +111,25 @@ module Auth
           }
       end
 
+      # OAuth/OIDC discovery routes (not auto-mounted by rodauth-oauth).
+      # Must be invoked from the routing block; the helpers register their
+      # own `request.on('.well-known/...')` matchers internally.
+      #
+      # JWKS at /jwks is auto-mounted by :oauth_jwt_jwks (pulled in by :oidc)
+      # — do not mount it here.
+      #
+      # See: apps/web/auth/config/features/oauth.rb
+      # See: rodauth-oauth-1.6.4/lib/rodauth/features/oidc.rb:188
+      # See: rodauth-oauth-1.6.4/lib/rodauth/features/oauth_base.rb:150
+      if Onetime.auth_config.oauth_enabled?
+        rodauth.load_openid_configuration_route
+        # Called without an issuer arg: the optional positional is a path
+        # suffix appended to base_url (oauth_base.rb:746–748), not a full
+        # issuer URI. Passing rodauth.oauth_jwt_issuer fails because that
+        # method is private at the routing-instance level.
+        rodauth.load_oauth_server_metadata_route
+      end
+
       # Root path - Auth app info
       # When mounted at /auth, this handles requests to /auth and /auth/
       r.is do
