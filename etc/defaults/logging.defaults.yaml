@@ -8,6 +8,7 @@
 #   Bunny     - RabbitMQ AMQP client (connection, heartbeats)
 #   Familia   - Redis operations via Familia ORM
 #   HTTP      - HTTP requests, responses, and middleware
+#   Jobs      - Job publishing (enqueue_email, fallback handling)
 #   Otto      - Otto framework operations
 #   Rhales    - Rhales template rendering (future)
 #   Scheduler - Scheduled/recurring background jobs (rufus-scheduler)
@@ -24,6 +25,7 @@
 #   DEBUG_AUTH=1                          - Quick debug flag for Auth
 #   DEBUG_BUNNY=1                         - Quick debug flag for Bunny (RabbitMQ)
 #   DEBUG_HTTP=1                          - Quick debug flag for HTTP
+#   DEBUG_JOBS=1                          - Quick debug flag for Jobs (publishing)
 #   DEBUG_SCHEDULER=1                     - Quick debug flag for Scheduler
 #   DEBUG_SECRET=1                        - Quick debug flag for Secret
 #   DEBUG_SESSION=1                       - Quick debug flag for Session
@@ -56,6 +58,7 @@ loggers:
   Billing: info   # Only used when billing.enabled=true
   Boot: info      # During initialization
   Bunny: info     # RabbitMQ client (heartbeats at debug level)
+  Jobs: info      # Job publishing (Publisher.enqueue_email, fallbacks)
   CLI: info       # Command-line interface operations
   Familia: info   # Redis/Familia main database operations
   HTTP: info      # HTTP requests and middleware operations

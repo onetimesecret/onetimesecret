@@ -483,7 +483,8 @@ describe('secretStore', () => {
 
     describe('GUEST_ROUTES_DISABLED errors', () => {
       const guestRoutesDisabledResponse = {
-        message: 'Guest API access is disabled',
+        error: 'Guest API access is disabled',
+        error_type: 'GuestRoutesDisabled',
         code: 'GUEST_ROUTES_DISABLED',
       };
 
@@ -539,7 +540,8 @@ describe('secretStore', () => {
       it('conceal() rejects with GUEST_CONCEAL_DISABLED code', async () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/conceal').reply(403, {
-          message: 'Guest conceal is disabled',
+          error: 'Guest conceal is disabled',
+          error_type: 'GuestRoutesDisabled',
           code: 'GUEST_CONCEAL_DISABLED',
         });
 
@@ -551,7 +553,8 @@ describe('secretStore', () => {
       it('generate() rejects with GUEST_GENERATE_DISABLED code', async () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/generate').reply(403, {
-          message: 'Guest generate is disabled',
+          error: 'Guest generate is disabled',
+          error_type: 'GuestRoutesDisabled',
           code: 'GUEST_GENERATE_DISABLED',
         });
 
@@ -561,7 +564,8 @@ describe('secretStore', () => {
       it('reveal() rejects with GUEST_REVEAL_DISABLED code', async () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/abc123/reveal').reply(403, {
-          message: 'Guest reveal is disabled',
+          error: 'Guest reveal is disabled',
+          error_type: 'GuestRoutesDisabled',
           code: 'GUEST_REVEAL_DISABLED',
         });
 
@@ -571,7 +575,8 @@ describe('secretStore', () => {
       it('fetch() rejects with GUEST_SHOW_DISABLED code', async () => {
         store.setApiMode('public');
         axiosMock?.onGet('/api/v3/guest/secret/abc123').reply(403, {
-          message: 'Guest show is disabled',
+          error: 'Guest show is disabled',
+          error_type: 'GuestRoutesDisabled',
           code: 'GUEST_SHOW_DISABLED',
         });
 

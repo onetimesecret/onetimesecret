@@ -64,8 +64,8 @@ module Onetime
 
     def to_h
       {
-        error: 'RecordNotFound',
-        message: message,
+        error: message,
+        error_type: 'RecordNotFound',
         error_key: error_key,
       }.compact
     end
@@ -92,8 +92,8 @@ module Onetime
 
     def to_h
       {
-        error: error_type || 'FormError',
-        message: message,
+        error: message,
+        error_type: error_type,
         field: field,
         error_key: error_key,
       }.compact
@@ -121,8 +121,8 @@ module Onetime
 
     def to_h
       {
-        error: 'Forbidden',
-        message: message,
+        error: message,
+        error_type: 'Forbidden',
         error_key: error_key,
       }.compact
     end
@@ -140,9 +140,9 @@ module Onetime
 
     def initialize(entitlement, current_plan: nil, upgrade_to: nil, message: nil,
                    error_key: nil, args: {})
-      @entitlement  = entitlement
-      @current_plan = current_plan
-      @upgrade_to   = upgrade_to
+      @entitlement    = entitlement
+      @current_plan   = current_plan
+      @upgrade_to     = upgrade_to
       default_message = "Feature requires #{entitlement.to_s.tr('_', ' ')} entitlement"
       super(message || default_message, error_key: error_key, args: args)
     end
@@ -150,6 +150,7 @@ module Onetime
     def to_h
       {
         error: message,
+        error_type: 'EntitlementRequired',
         entitlement: entitlement,
         current_plan: current_plan,
         upgrade_to: upgrade_to,
@@ -184,7 +185,8 @@ module Onetime
 
     def to_h
       {
-        message: message,
+        error: message,
+        error_type: 'GuestRoutesDisabled',
         code: code,
         error_key: error_key,
       }.compact
@@ -210,8 +212,8 @@ module Onetime
 
     def to_h
       {
-        error: 'LimitExceeded',
-        message: message,
+        error: message,
+        error_type: 'LimitExceeded',
         retry_after: retry_after,
         attempts: attempts,
         max_attempts: max_attempts,

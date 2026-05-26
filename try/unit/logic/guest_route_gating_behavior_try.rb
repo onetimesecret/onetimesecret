@@ -93,10 +93,10 @@ exc = Onetime::GuestRoutesDisabled.new("Test", code: "TEST_CODE")
 exc.code
 #=> "TEST_CODE"
 
-## GuestRoutesDisabled to_h includes message and code
+## GuestRoutesDisabled to_h includes error, error_type, and code
 exc = Onetime::GuestRoutesDisabled.new("Test message", code: "TEST_CODE")
 exc.to_h
-#=> {message: "Test message", code: "TEST_CODE"}
+#=> {error: "Test message", error_type: "GuestRoutesDisabled", code: "TEST_CODE"}
 
 ## Default config has guest routes enabled
 config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')

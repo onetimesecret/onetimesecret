@@ -29,8 +29,9 @@ module Auth
   end
 
   module Config
-    def self.create_account(login:, password:)
-      # Return mock account_id
+    def self.create_account(login:, password:, params: {})
+      # Return mock account_id. Real Rodauth internal_request returns nil on
+      # success; tests that exercise that contract should override this stub.
       12345
     end
   end

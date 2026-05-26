@@ -76,7 +76,7 @@ module Onetime
         private
 
         def ping_queues(queue_names, wait_seconds)
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
 
           bunny_config = {
             logger: Onetime.get_logger('Bunny'),

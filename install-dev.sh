@@ -6,6 +6,7 @@
 #   - Links shared dev resources from OTS_DEV_CONFIG
 #   - Installs Ruby gems (bundle install)
 #   - Installs Node packages (pnpm install)
+#   - Installs the pre-commit/pre-push git hooks and their tool envs
 #   - Cleans any pre-existing frontend build output (pnpm run clean)
 #   - Points the Caddy webroot symlink at this checkout's public/web
 #
@@ -138,6 +139,55 @@ link_caddy_webroot() {
     fi
 }
 
+# Install the pre-commit-managed git hooks and pre-build their isolated
+# tool environments (rubocop, eslint, etc). Two configs are in play:
+#   .pre-commit-config.yaml  -> pre-commit, prepare-commit-msg, post-* hooks
+#                               (hook types come from default_install_hook_types)
+#   .pre-push-config.yaml    -> pre-push hooks (separate config + hook type)
+#
+# --install-hooks pre-builds the hook environments so the first commit/push
+# is not slowed down by a one-time dependency download. Hooks land in the
+# common git dir, so a worktree forest shares one set — re-running here is
+# idempotent.
+install_git_hooks() {
+    if [[ "${has_pre_commit}" != true ]]; then
+        echo "Skip: pre-commit not installed — git hooks not configured"
+        return
+    fi
+
+    # pre-commit refuses to install while core.hooksPath is set, since it
+    # cannot guarantee git will invoke the hooks it writes. Surface the
+    # one-line fix instead of aborting the whole script.
+    local hooks_path
+    hooks_path="$(git config --get core.hooksPath || true)"
+    if [[ -n "$hooks_path" ]]; then
+        echo ""
+        echo ">>> WARNING: git hooks NOT installed"
+        echo "    pre-commit will not install while core.hooksPath is set."
+        echo "    Current value: $hooks_path"
+
+        # If it merely pins git's own default hooks dir, clearing it
+        # changes nothing — say so, so the user isn't left guessing.
+        local default_hooks resolved_hooks
+        default_hooks="$(cd "$(git rev-parse --git-path hooks)" 2>/dev/null && pwd -P || true)"
+        resolved_hooks="$(cd "$hooks_path" 2>/dev/null && pwd -P || true)"
+        if [[ -n "$default_hooks" && "$resolved_hooks" == "$default_hooks" ]]; then
+            echo "    (This is git's default hooks directory. Clearing the setting for this local checkout is safe.)"
+        fi
+
+        echo "    To enable git hooks, clear it and re-run this script:"
+        echo "      git config --unset-all core.hooksPath"
+        echo ""
+        return
+    fi
+
+    pre-commit install --install-hooks \
+        || { echo "Warning: pre-commit hook install failed — git hooks not configured"; return; }
+    pre-commit install --hook-type pre-push \
+        --config .pre-push-config.yaml --install-hooks \
+        || { echo "Warning: pre-push hook install failed"; return; }
+}
+
 link_resource() {
     local local_path="$1"
     local shared_name="$2"
@@ -203,6 +253,20 @@ if ! command -v overmind &>/dev/null; then
     echo ""
 fi
 
+# Check for pre-commit (manages the git pre-commit/pre-push hooks) — cache
+# result for reuse below. Not required to run the app, so warn and continue.
+has_pre_commit=true
+if ! command -v pre-commit &>/dev/null; then
+    has_pre_commit=false
+    echo "Warning: pre-commit not found — git pre-commit/pre-push hooks will not be installed"
+    echo "  Install one of:"
+    echo "    pipx install pre-commit        (recommended — isolated)"
+    echo "    brew install pre-commit        (macOS)"
+    echo "    pip install --user pre-commit"
+    echo "  Docs: https://pre-commit.com"
+    echo ""
+fi
+
 # Warn if shared config directory is absent
 if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
     echo "Warning: $OTS_DEV_CONFIG does not exist — config symlinks will be skipped"
@@ -248,6 +312,10 @@ bundle install
 echo "---"
 echo "Installing Node packages..."
 pnpm install
+
+echo "---"
+echo "Installing git hooks (pre-commit, pre-push)..."
+install_git_hooks
 
 echo "---"
 echo "Removing frontend build output (public/web/dist)..."

@@ -40,7 +40,7 @@ module OrganizationAPI::Logic
 
         # Can only revoke pending invitations
         unless @invitation.pending?
-          raise_form_error(error_key: 'api.organizations.invitations.errors.revoke_only_pending', field: :token)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.revoke_only_pending', field: :token, error_type: :invalid)
         end
       end
 

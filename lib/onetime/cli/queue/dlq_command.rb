@@ -47,7 +47,7 @@ module Onetime
         end
 
         def with_rabbitmq_connection
-          url  = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          url  = OT.conf.dig('jobs', 'rabbitmq_url')
           conn = Bunny.new(url)
           conn.start
           yield conn

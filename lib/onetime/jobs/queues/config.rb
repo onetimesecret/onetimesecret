@@ -145,6 +145,9 @@ module Onetime
       # Managed services (Northflank, CloudAMQP) provide valid certificates that work
       # with system CA bundle - no custom certs needed.
       #
+      # ENV reads are intentional here: TLS settings are deployment-specific and often
+      # need override without config file changes (e.g., disable verify_peer in dev).
+      #
       # Environment variables:
       # - RABBITMQ_VERIFY_PEER: 'true' (default) or 'false' for local dev
       # - RABBITMQ_CA_CERTIFICATES: Optional path to custom CA cert file

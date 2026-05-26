@@ -224,6 +224,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
         allow(worker).to receive(:reject!)
         mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
+        allow(mock_logger).to receive(:debug)
         expect(mock_logger).to receive(:error).with(/Invalid JSON/, hash_including(:worker))
 
         worker.parse_message(invalid_message)

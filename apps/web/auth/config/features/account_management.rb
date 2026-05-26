@@ -30,17 +30,21 @@ module Auth::Config::Features
         # Suppress verification email only for valid invite signups.
         # The invite link proves email ownership, so no extra verification needed.
         #
-        # HOOK ORDERING: verify_account's after_create_account calls
-        # setup_account_verification (which calls send_verify_account_email)
-        # BEFORE the user's after_create_account block runs. This means the
-        # token has NOT yet been consumed by AcceptInvitation when this code
-        # executes, so find_by_token correctly finds it.
+        # As of issue #3221's fix, the invitation token is no longer consumed
+        # by the after_create_account hook — acceptance happens via the explicit
+        # POST /api/invite/:token/accept call the frontend issues against the
+        # established session. find_by_token therefore continues to resolve the
+        # invitation across the entire signup lifecycle (before/during/after
+        # account creation).
         #
         # SECURITY: Token must be validated here — checking the raw param alone
         # would let an attacker add invite_token=garbage to suppress the email
         # for any signup, enabling email squatting.
         auth.send_verify_account_email do
-          invite_token = request.params['invite_token'].to_s.strip
+          # Use Rodauth's `param` rather than `request.params['invite_token']` so
+          # this works under internal_request too (internal_request only populates
+          # rodauth.params, not the Rack request body).
+          invite_token = param_or_nil('invite_token').to_s.strip
           if invite_token.empty?
             super()
           else

@@ -39,6 +39,7 @@ module Onetime
         'Bunny' => 'DEBUG_BUNNY',
         'Familia' => 'DEBUG_FAMILIA',
         'HTTP' => 'DEBUG_HTTP',
+        'Jobs' => 'DEBUG_JOBS',
         'Otto' => 'DEBUG_OTTO',
         'Rhales' => 'DEBUG_RHALES',
         'Scheduler' => 'DEBUG_SCHEDULER',

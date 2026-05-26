@@ -82,7 +82,11 @@ module Onetime
 
           boot_application!
 
-          @amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          # Config file handles ENV resolution via ERB with sensible defaults.
+          # Don't read ENV directly - keeps input validation in one place.
+          @amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
+
+          Onetime.bunny_logger.info "[init] RabbitMQ: Connecting to #{mask_amqp_credentials(@amqp_url)}"
 
           # Preflight check: verify RabbitMQ is reachable before proceeding
           preflight_check!
@@ -323,14 +327,28 @@ module Onetime
             },
           }
 
-          # Override vhost only if explicitly set via env var.
-          # Otherwise, let Bunny parse it from the AMQP URL.
+          # ENV override intentional: allows vhost override without changing config file.
+          # Useful for debugging or running worker against a different vhost temporarily.
           config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
 
           # TLS configuration for amqps:// connections (centralized in QueueConfig)
           config.merge!(Onetime::Jobs::QueueConfig.tls_options(@amqp_url))
 
           Sneakers.configure(config)
+
+          # Register error reporter to catch exceptions that escape worker handlers.
+          # This surfaces errors that would otherwise be silently swallowed.
+          Sneakers.error_reporters << ->(exception, worker, context) {
+            Onetime.workers_logger.error(
+              '[Sneakers] Unhandled exception in worker',
+              worker: worker&.class&.name || 'unknown',
+              error: exception.message,
+              error_class: exception.class.name,
+              backtrace: exception.backtrace&.first(10),
+              context: context.to_s[0..500],
+            )
+            SemanticLogger.flush if defined?(SemanticLogger)
+          }
         end
 
         def determine_workers(queues_str)

@@ -13,6 +13,8 @@ module InviteAPI::Logic
     # Creates the organization membership and clears the invitation token.
     #
     class AcceptInvite < InviteAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       attr_reader :invitation, :organization, :membership
 
       def process_params
@@ -28,6 +30,7 @@ module InviteAPI::Logic
             'Token is required',
             error_key: 'api.invite.errors.token_required',
             field: :token,
+            error_type: :missing,
           )
         end
 
@@ -40,6 +43,7 @@ module InviteAPI::Logic
             'Organization no longer exists',
             error_key: 'api.invite.errors.organization_no_longer_exists',
             field: :token,
+            error_type: :missing,
           )
         end
 
@@ -50,6 +54,7 @@ module InviteAPI::Logic
             error_key: 'api.invite.errors.invitation_already_processed',
             args: { status: @invitation.status },
             field: :token,
+            error_type: :invalid,
           )
         end
 
@@ -59,6 +64,7 @@ module InviteAPI::Logic
             'Invitation has expired',
             error_key: 'api.invite.errors.invitation_expired',
             field: :token,
+            error_type: :expired,
           )
         end
 
@@ -84,18 +90,21 @@ module InviteAPI::Logic
           'You are already a member of this organization',
           error_key: 'api.invite.errors.already_member',
           field: :token,
+          error_type: :exists,
         )
       end
 
       def process
-        OT.ld "[AcceptInvite] Accepting invitation #{@invitation.objid} for user #{cust.obscure_email}"
+        auth_logger.debug 'Accepting invitation',
+          invitation_id: @invitation.objid,
+          user: cust.obscure_email
 
         # Accept the invitation (updates membership status and adds to org).
         # provisioning_source: 'invited' attributes lifecycle to the invitation
         # flow, distinct from SSO JIT provisioning. See OrganizationMembership.
         @invitation.accept!(cust, provisioning_source: 'invited')
 
-        OT.info '[AcceptInvite] User joined organization',
+        auth_logger.info 'User joined organization',
           event: 'invite.accepted',
           invitation_id: @invitation.objid,
           organization_id: @organization.extid,

@@ -43,7 +43,7 @@ module OrganizationAPI::Logic
 
         # Can only resend pending invitations
         unless @invitation.pending?
-          raise_form_error(error_key: 'api.organizations.invitations.errors.resend_only_pending', field: :token)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.resend_only_pending', field: :token, error_type: :invalid)
         end
 
         # Rate limit resends

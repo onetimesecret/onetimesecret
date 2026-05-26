@@ -4,6 +4,7 @@
 
 module Auth::Config::Hooks
   module Account
+    # rubocop:disable Metrics/PerceivedComplexity
     def self.configure(auth)
       #
       # Hook: Before Account Creation
@@ -82,6 +83,42 @@ module Auth::Config::Hooks
           request.env['rodauth.error_flash'] = create_account_error_flash
           throw_rodauth_error
         end
+
+        # When an invite_token is supplied, validate the invitation up front:
+        # invitation exists, still pending, not expired, and the signup email
+        # matches the invited email. Failing precondition checks here aborts
+        # before any account/customer row is written, so we never roll back
+        # partial Redis state on email-mismatch or expired tokens.
+        invite_token = param_or_nil('invite_token').to_s.strip
+        unless invite_token.empty?
+          invitation = Onetime::OrganizationMembership.find_by_token(invite_token)
+
+          invalid_reason =
+            if invitation.nil?
+              'token_not_found'
+            elsif !invitation.pending?
+              'not_pending'
+            elsif invitation.expired?
+              'expired'
+            elsif OT::Utils.normalize_email(email) !=
+                  OT::Utils.normalize_email(invitation.invited_email)
+              'email_mismatch'
+            end
+
+          if invalid_reason
+            Auth::Logging.log_auth_event(
+              :registration_blocked_invalid_invite,
+              level: :warn,
+              email: OT::Utils.obscure_email(email),
+              invite_token_prefix: invite_token[0..7],
+              reason: invalid_reason,
+            )
+
+            set_error_flash(create_account_error_flash)
+            request.env['rodauth.error_flash'] = create_account_error_flash
+            throw_rodauth_error
+          end
+        end
       end
 
       # When this is part of a regular user signup flow, we'll have already
@@ -112,9 +149,14 @@ module Auth::Config::Hooks
       # and creates a default organization and team for the new user.
       #
       auth.after_create_account do
+        # Read via Rodauth's `param_or_nil` so this hook works under both
+        # normal HTTP requests and `internal_request` (which only populates
+        # rodauth.params, not the Rack request body).
+        hook_invite_token = param_or_nil('invite_token').to_s.strip
+
         # Determine the provisioning origin from request context. This is
         # metadata only — capabilities are governed by org/team role.
-        provisioning_origin = if request.params['invite_token'].to_s.strip != ''
+        provisioning_origin = if hook_invite_token != ''
                                 'invite'
                               elsif request.env['onetime.display_domain'] &&
                                     Onetime::CustomDomain.load_by_display_domain(request.env['onetime.display_domain'])
@@ -132,14 +174,56 @@ module Auth::Config::Hooks
           ).call
         end
 
-        # Create default organization and team for the new customer
-        # Note: These are hidden from individual plan users in the UI
         if customer.is_a?(Onetime::Customer)
-          Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
-            Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+          invite_token  = hook_invite_token
+          invite_signup = !invite_token.empty?
+
+          if invite_signup
+            # Invite signup: skip default workspace creation. The user is joining
+            # an existing org via the explicit POST /api/invite/:token/accept
+            # call that follows signup. A personal default workspace would be
+            # dead state they never use.
+            #
+            # Auto-verify at both the Redis (customer) and SQL (account) layers.
+            # The invite link itself proves email ownership — before_create_account
+            # already validated the token and that the signup email matches the
+            # invited email, so we can mark the customer verified here without
+            # a separate email round-trip.
+            Onetime::ErrorHandler.safe_execute('auto_verify_invite_signup', extid: customer.extid) do
+              customer.verified    = true
+              customer.verified_by = 'invite_token'
+              customer.save
+
+              update_account(account_status_column => account_open_status_value)
+
+              had_verify_key = respond_to?(:remove_verify_account_key)
+              remove_verify_account_key if had_verify_key
+
+              # Signal to create_account_autologin? that this is an invite signup.
+              # The user gets a session immediately so the frontend can POST to
+              # /api/invite/:token/accept with the active cookie. The token is
+              # NOT consumed here — that's the point of the explicit accept step.
+              @invite_accepted = true
+
+              Auth::Logging.log_auth_event(
+                :invite_signup_verified,
+                level: :info,
+                email: customer.email,
+                account_id: account_id,
+                invite_token_prefix: invite_token[0..7],
+                verify_key_removed: had_verify_key,
+                autologin_flag_set: true,
+              )
+            end
+          else
+            # Standard signup: provision the default organization and team so
+            # the user has a workspace to land in after email verification.
+            Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
+              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+            end
           end
 
-          # Capture plan intent for email verification flow (issue #3126)
+          # Capture plan intent for email verification flow (issue #3126).
           # Session-based billing redirect doesn't survive email verification, so we
           # persist the plan selection on the Customer record with a 24h TTL.
           product  = request.params['product']
@@ -162,58 +246,6 @@ module Auth::Config::Hooks
               product: product,
               interval: interval,
             )
-          end
-
-          # Accept pending invitation if token provided in signup request
-          invite_token = request.params['invite_token']
-          if invite_token && !invite_token.to_s.strip.empty?
-            Auth::Logging.log_auth_event(
-              :invite_acceptance_started,
-              level: :debug,
-              email: customer.email,
-              account_id: account_id,
-              invite_token_prefix: invite_token.to_s[0..7],
-            )
-
-            Onetime::ErrorHandler.safe_execute('accept_invitation', token: invite_token) do
-              result = Auth::Operations::AcceptInvitation.new(
-                customer: customer,
-                token: invite_token,
-              ).call
-
-              if result[:accepted]
-                # Auto-verify at SQL level — invite link proves email ownership
-                update_account(account_status_column => account_open_status_value)
-                # Remove verification key — clean up the key row
-                had_verify_key = respond_to?(:remove_verify_account_key)
-                remove_verify_account_key if had_verify_key
-
-                # Signal to create_account_autologin? that this signup has a verified invite.
-                # Set AFTER DB operations so autologin only fires if verification succeeded.
-                @invite_accepted = true
-
-                Auth::Logging.log_auth_event(
-                  :invitation_accepted,
-                  level: :info,
-                  email: customer.email,
-                  account_id: account_id,
-                  organization_id: result[:organization_id],
-                  role: result[:role],
-                  account_auto_verified: true,
-                  verify_key_removed: had_verify_key,
-                  autologin_flag_set: true,
-                )
-              else
-                Auth::Logging.log_auth_event(
-                  :invitation_not_accepted,
-                  level: :warn,
-                  email: customer.email,
-                  account_id: account_id,
-                  reason: result[:reason],
-                  invite_token_prefix: invite_token.to_s[0..7],
-                )
-              end
-            end
           end
         end
       end
@@ -384,5 +416,6 @@ module Auth::Config::Hooks
         end
       end
     end
+    # rubocop:enable Metrics/PerceivedComplexity
   end
 end

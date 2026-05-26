@@ -82,6 +82,14 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     db
   end
 
+  # Source uses auth_logger (Onetime.get_logger('Auth')) for its semantic logs,
+  # not the OT.info shim. Stub the Auth logger so .debug/.info/.error during
+  # the spec don't fail the test, and so individual examples can set focused
+  # expectations on it.
+  let(:auth_logger_double) do
+    instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil)
+  end
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
@@ -89,6 +97,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     allow(OT::Utils).to receive(:normalize_email).and_return(normalized_email)
     allow(OT::Utils).to receive(:obscure_email).and_return('ne***@example.com')
     allow(Auth::Database).to receive(:connection).and_return(mock_auth_db)
+    allow(Onetime).to receive(:get_logger).with('Auth').and_return(auth_logger_double)
   end
 
   describe '#process_params' do
@@ -314,150 +323,14 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     end
   end
 
-  describe '#process' do
-    let(:new_customer) do
-      cust = build_mock_customer(
-        objid: 'cust-new-123',
-        custid: 'cust-new-123',
-        extid: 'ext-new-123',
-        email: invited_email,
-        obscure_email: 'ne***@example.com'
-      )
-      allow(cust).to receive(:role).and_return('customer')
-      allow(cust).to receive(:locale).and_return('en')
-      cust
-    end
-
-    let(:rate_limiter) { instance_double(Onetime::Security::InviteTokenRateLimiter) }
-
-    before do
-      allow(Onetime::Security::InviteTokenRateLimiter).to receive(:new)
-        .with(client_ip)
-        .and_return(rate_limiter)
-      allow(rate_limiter).to receive(:check!)
-      allow(rate_limiter).to receive(:record_attempt)
-
-      allow(Onetime::OrganizationMembership).to receive(:find_by_token)
-        .with(invite_token)
-        .and_return(invitation)
-      allow(Onetime::Customer).to receive(:email_exists?)
-        .with(normalized_email)
-        .and_return(false)
-
-      # Mock account creation via Rodauth internal_request
-      allow(Auth::Config).to receive(:create_account).and_return(123)
-
-      # Mock CreateCustomer operation
-      create_customer_op = instance_double(Auth::Operations::CreateCustomer)
-      allow(Auth::Operations::CreateCustomer).to receive(:new).and_return(create_customer_op)
-      allow(create_customer_op).to receive(:call).and_return(new_customer)
-
-      # Mock CreateDefaultWorkspace operation
-      workspace_op = instance_double(Auth::Operations::CreateDefaultWorkspace)
-      allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new).and_return(workspace_op)
-      allow(workspace_op).to receive(:call)
-
-      # Mock AcceptInvitation operation
-      accept_op = instance_double(Auth::Operations::AcceptInvitation)
-      allow(Auth::Operations::AcceptInvitation).to receive(:new).and_return(accept_op)
-      allow(accept_op).to receive(:call).and_return({ accepted: true, organization_id: 'org-test-123', role: 'member' })
-
-      # Mock logging
-      allow(Auth::Logging).to receive(:log_auth_event)
-      allow(Familia).to receive(:now).and_return(double(to_i: Time.now.to_i))
-      allow(Familia).to receive(:dbclient).and_return(double(del: true))
-    end
-
-    subject(:logic) { described_class.new(strategy_result, valid_params) }
-
-    context 'with valid request (happy path)' do
-      before do
-        logic.raise_concerns
-      end
-
-      it 'creates Rodauth account via internal_request' do
-        expect(Auth::Config).to receive(:create_account).with(
-          login: normalized_email,
-          password: valid_password
-        )
-        logic.process
-      end
-
-      it 'creates Customer in Redis' do
-        expect(Auth::Operations::CreateCustomer).to receive(:new).with(
-          account_id: 123,
-          account: hash_including(id: 123, email: normalized_email),
-          db: mock_auth_db
-        )
-        logic.process
-      end
-
-      it 'creates default workspace' do
-        expect(Auth::Operations::CreateDefaultWorkspace).to receive(:new)
-          .with(customer: new_customer)
-        logic.process
-      end
-
-      it 'accepts the invitation' do
-        expect(Auth::Operations::AcceptInvitation).to receive(:new).with(
-          customer: new_customer,
-          token: invite_token
-        )
-        logic.process
-      end
-
-      it 'marks account as verified in authdb' do
-        accounts_ds = mock_auth_db[:accounts]
-        expect(accounts_ds).to receive(:where).with(id: 123).and_return(accounts_ds)
-        expect(accounts_ds).to receive(:update).with(status_id: 2)
-        logic.process
-      end
-
-      it 'sets up session for auto-login' do
-        logic.process
-        expect(session['authenticated']).to be true
-        expect(session['external_id']).to eq('ext-new-123')
-      end
-
-      it 'returns success data with record wrapper' do
-        result = logic.process
-        expect(result).to have_key(:record)
-        expect(result[:record]).to include(:user_id, :organization, :role, :joined_at, :auto_login)
-      end
-
-      it 'logs the signup event' do
-        expect(OT).to receive(:info).with(
-          '[SignupAndAccept] User signed up and joined organization',
-          hash_including(event: 'invite.signup_accepted', result: :success)
-        )
-        logic.process
-      end
-    end
-
-    context 'when Rodauth account creation fails' do
-      before do
-        logic.raise_concerns
-        allow(Auth::Config).to receive(:create_account).and_return(nil)
-      end
-
-      it 'raises form error' do
-        expect { logic.process }.to raise_error(Onetime::FormError, /Failed to create account/)
-      end
-    end
-
-    context 'when invitation acceptance fails' do
-      before do
-        logic.raise_concerns
-        accept_op = instance_double(Auth::Operations::AcceptInvitation)
-        allow(Auth::Operations::AcceptInvitation).to receive(:new).and_return(accept_op)
-        allow(accept_op).to receive(:call).and_return({ accepted: false, reason: 'error' })
-      end
-
-      it 'raises form error' do
-        expect { logic.process }.to raise_error(Onetime::FormError, /Failed to accept invitation/)
-      end
-    end
-  end
+  # NOTE: The historical "#process" describe block tested an obsolete contract
+  # where this logic class directly invoked Auth::Operations::CreateCustomer /
+  # CreateDefaultWorkspace / AcceptInvitation. The current source (#3221)
+  # delegates Customer/workspace creation to Rodauth's after_create_account
+  # hook (apps/web/auth/config/hooks/account.rb) and reserves invitation
+  # acceptance for a separate explicit /accept call. The current contract is
+  # covered by "#process invitation reload after signup" below; see also the
+  # success_data block.
 
   describe '#success_data' do
     let(:new_customer) do
@@ -490,14 +363,202 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       expect(data[:record][:role]).to eq('member')
     end
 
-    it 'returns joined_at timestamp' do
+    it 'returns the invitation status (pending until the explicit /accept call)' do
+      allow(invitation).to receive(:status).and_return('pending')
       data = logic.success_data
-      expect(data[:record]).to have_key(:joined_at)
+      expect(data[:record][:invitation_status]).to eq('pending')
     end
 
     it 'includes auto_login flag' do
       data = logic.success_data
       expect(data[:record][:auto_login]).to be true
+    end
+  end
+
+  # GH #3221 — the after_create_account hook leaves the invitation in pending
+  # state. SignupAndAccept reloads via find_by_token (still valid post-signup)
+  # and asserts the invitation has NOT been accepted yet — the frontend
+  # completes the join via an explicit POST /api/invite/:token/accept against
+  # the session this endpoint just established.
+  describe '#process invitation reload after signup' do
+    let(:new_customer) do
+      cust = build_mock_customer(
+        objid: 'cust-new-123',
+        custid: 'cust-new-123',
+        extid: 'ext-new-123',
+        email: invited_email,
+        obscure_email: 'ne***@example.com'
+      )
+      allow(cust).to receive(:role).and_return('customer')
+      allow(cust).to receive(:locale).and_return('en')
+      cust
+    end
+
+    let(:rate_limiter) { instance_double(Onetime::Security::InviteTokenRateLimiter) }
+
+    let(:account_row) { { id: 123, email: normalized_email, external_id: 'ext-new-123' } }
+
+    # Sequel dataset double for accounts table operations. Exposed as a let
+    # so individual contexts can override .first to exercise error branches
+    # (e.g. account row missing after create_account).
+    let(:accounts_ds) do
+      ds = double('accounts_ds')
+      allow(ds).to receive(:where).and_return(ds)
+      allow(ds).to receive(:first).and_return(account_row)
+      allow(ds).to receive(:any?).and_return(false)
+      allow(ds).to receive(:update)
+      ds
+    end
+
+    before do
+      allow(Onetime::Security::InviteTokenRateLimiter).to receive(:new)
+        .with(client_ip)
+        .and_return(rate_limiter)
+      allow(rate_limiter).to receive(:check!)
+      allow(rate_limiter).to receive(:record_attempt)
+
+      # raise_concerns and post-signup reload both go through find_by_token.
+      allow(Onetime::OrganizationMembership).to receive(:find_by_token)
+        .with(invite_token)
+        .and_return(invitation)
+      allow(Onetime::Customer).to receive(:email_exists?)
+        .with(normalized_email)
+        .and_return(false)
+
+      # Rodauth create_account returns nil on success. The real hook chain
+      # (apps/web/auth/config/hooks/account.rb) creates the customer and
+      # auto-verifies the SQL account but does NOT call accept! — the
+      # invitation stays pending. We model that here.
+      allow(Auth::Config).to receive(:create_account).and_return(nil)
+
+      allow(Auth::Database).to receive(:connection).and_return(double(:[] => accounts_ds))
+
+      allow(Onetime::Customer).to receive(:find_by_extid)
+        .with('ext-new-123')
+        .and_return(new_customer)
+
+      allow(Auth::Logging).to receive(:log_auth_event)
+      allow(Familia).to receive(:now).and_return(double(to_i: Time.now.to_i, to_f: Time.now.to_f))
+      allow(Familia).to receive(:dbclient).and_return(double(del: true))
+    end
+
+    subject(:logic) { described_class.new(strategy_result, valid_params) }
+
+    context 'when the hook leaves the invitation pending (happy path)' do
+      before do
+        logic.raise_concerns
+      end
+
+      it 'reloads the still-pending invitation via find_by_token' do
+        expect(Onetime::OrganizationMembership).to receive(:find_by_token)
+          .with(invite_token)
+          .at_least(:once)
+          .and_return(invitation)
+        expect(Onetime::OrganizationMembership).not_to receive(:find_by_org_customer)
+        logic.process
+      end
+
+      it 'returns success data carrying the pending invitation status' do
+        allow(invitation).to receive(:status).and_return('pending')
+        result = logic.process
+        expect(result[:record][:auto_login]).to be true
+        expect(result[:record][:role]).to eq('member')
+        expect(result[:record][:invitation_status]).to eq('pending')
+      end
+
+      it 'creates the Rodauth account via internal_request with the invite_token' do
+        expect(Auth::Config).to receive(:create_account).with(
+          login: normalized_email,
+          password: valid_password,
+          params: { 'invite_token' => invite_token }
+        )
+        logic.process
+      end
+
+      it 'returns success_data with the expected record wrapper keys' do
+        result = logic.process
+        expect(result).to have_key(:record)
+        expect(result[:record]).to include(:user_id, :organization, :role, :invitation_status, :auto_login)
+      end
+
+      it 'sets up the session for auto-login' do
+        logic.process
+        expect(session['authenticated']).to be true
+        expect(session['external_id']).to eq('ext-new-123')
+        expect(session['account_id']).to eq(123)
+      end
+
+      it 'logs the pending-accept signup event on the auth logger' do
+        expect(auth_logger_double).to receive(:info).with(
+          'User signed up; invitation pending explicit accept',
+          hash_including(event: 'invite.signup_pending_accept', result: :success)
+        )
+        logic.process
+      end
+    end
+
+    context 'when the account row is missing after create_account' do
+      # Mirrors signup_and_accept.rb:228 — create_account succeeded with no
+      # error, but the followup .where(email: ...).first lookup returns nil.
+      # We trigger this by stubbing .first to nil so the account branch raises
+      # before the customer-missing branch (which has its own assertion).
+      before do
+        allow(accounts_ds).to receive(:first).and_return(nil)
+        logic.raise_concerns
+      end
+
+      it 'raises a form error indicating account creation failed' do
+        expect { logic.process }.to raise_error(Onetime::FormError, /Failed to create account/)
+      end
+    end
+
+    context 'when find_by_token returns nil after signup' do
+      # Defensive: if anything wiped token_lookup mid-flight (cache flush,
+      # operator action, concurrent revoke), surface a user-visible error
+      # rather than handing back a half-baked success.
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_token)
+          .with(invite_token)
+          .and_return(invitation, nil)
+        logic.raise_concerns
+      end
+
+      it 'raises a form error on the token field' do
+        expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+          expect(err.message).to match(/Invitation no longer available/)
+          expect(err.field).to eq(:token)
+        end
+      end
+    end
+
+    context 'when find_by_token returns a non-pending invitation' do
+      let(:active_invitation) do
+        inv = build_mock_invitation(
+          objid: 'inv-active-789',
+          token: nil,
+          invited_email: invited_email,
+          role: 'member',
+          organization: organization,
+          organization_objid: 'org-test-123',
+          status: 'active',
+          'pending?' => false,
+          'active?' => true,
+          'expired?' => false
+        )
+        allow(inv).to receive(:joined_at).and_return(Time.now.to_i)
+        inv
+      end
+
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_token)
+          .with(invite_token)
+          .and_return(invitation, active_invitation)
+        logic.raise_concerns
+      end
+
+      it 'raises a form error on the token field' do
+        expect { logic.process }.to raise_error(Onetime::FormError, /Invitation no longer available/)
+      end
     end
   end
 
