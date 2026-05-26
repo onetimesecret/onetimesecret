@@ -1,0 +1,57 @@
+---
+id: "013"
+status: proposed
+title: "ADR-013: API 4xx/5xx Error Response Wire Format"
+---
+
+## Status
+
+Proposed
+
+## Date
+
+2026-05-26
+
+## Context
+
+Backend error responses for the JSON APIs (v2, v3, account, organizations, domains) had drifted into two incompatible shapes:
+
+- Application errors (`RecordNotFound`, `FormError`, `Forbidden`, `LimitExceeded`, `EntitlementRequired`, `GuestRoutesDisabled`) emitted `{ error: <class-name>, message: <user-facing text> }`. Some variants omitted one field or used `code:` instead of a type.
+- Otto router fallbacks for `not_found` and `server_error` emitted `{ message:, code: }` (in `base_json_api.rb`) or `{ error: <message> }` with no type (in V1/V2).
+
+The frontend compensated with fallback chains (`details.message || details.error`) and ambiguous interfaces (`HttpErrorLike` accepting `data?: { message?: string }`). `error:` carrying a class name forced callers to guess whether the field was machine-readable or user-readable.
+
+Rodauth, which OTS already runs on the auth surface, emits `{ error: <user-facing message>, "field-error": [...] }`. That convention is the de facto standard the rest of the stack was being measured against.
+
+## Decision
+
+**4xx and 5xx JSON responses emit `{ error: <user-facing message>, error_type: <class name> }`.**
+
+- `error` is the field the frontend displays. It is always a sentence aimed at the end user.
+- `error_type` is the field the frontend branches on. It is the Ruby class name (`RecordNotFound`, `FormError`, `Forbidden`, `LimitExceeded`, `EntitlementRequired`, `GuestRoutesDisabled`, `NotFound`, `ServerError`).
+- Class-specific fields may accompany the pair without renaming it: `field` on `FormError`, `error_key` for i18n lookup, `retry_after`/`attempts`/`max_attempts` on `LimitExceeded`, `entitlement`/`current_plan`/`upgrade_to` on `EntitlementRequired`.
+- `code` is reserved for per-operation discriminators that are not redundant with `error_type`. `GuestRoutesDisabled` uses it (`GUEST_CONCEAL_DISABLED`, `GUEST_REVEAL_DISABLED`, ...) because the class is one and the operations are many. New errors should justify a `code` before adding one; in most cases `error_type` is sufficient.
+
+This applies uniformly to application errors raised from logic classes and to Otto router fallback responses (`router.not_found`, `router.server_error`).
+
+The frontend reads only `error` for display and `error_type` for type branching. Fallback chains (`message || error`) are removed. The `HttpErrorLike` shape is `data?: { error?: string; error_type?: string }`.
+
+Aligning on this shape mirrors Rodauth, removes the field-meaning ambiguity that produced the fallback chains, and lets `error_type` evolve independently of human-readable copy.
+
+## Trade-offs
+
+- **We lose**: backward compatibility for any external consumer reading `message:` on error responses. `GuestRoutesDisabled` is the most likely external break (documented in PR #3221 as a wire-format change).
+- **We gain**: a single, unambiguous error contract across all JSON APIs. Frontend error handling collapses to two field reads.
+## Out of Scope
+
+- **V1 API.** Frozen by policy (see V1 application docstring). Existing V1 error bodies stay as-is.
+- **Success-confirmation payloads.** Endpoints in `apps/api/domains/logic/**` that return `{ success: true, message: ... }` are not error responses and are not governed by this ADR.
+
+## Implementation Notes
+
+Migration tracked in #3221.
+
+### Related ADRs
+
+- ADR-003 (API Parameter Naming): general API field-naming guidance.
+- ADR-010 (Error Handling at Layer Boundaries): when to raise vs. return a default. This ADR governs the wire shape once an error reaches the boundary.
