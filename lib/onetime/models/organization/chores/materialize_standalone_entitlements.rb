@@ -59,15 +59,14 @@ Onetime::Organization.chore :materialize_standalone_entitlements do |org|
   next if org.entitlements_materialized?
 
   # Branch 3: standalone + not materialized → materialize now.
-  result = org.materialize_standalone_entitlements!
+  org.materialize_standalone_entitlements!
 
   entitlement_count = org.materialized_entitlements.size
 
-  logger.info 'Materializing standalone entitlements',
+  logger.info 'Materialized standalone entitlements',
     chore: :materialize_standalone_entitlements,
     org_extid: org.extid,
-    entitlement_count: entitlement_count,
-    result: result
+    entitlement_count: entitlement_count
 
   true
 end
