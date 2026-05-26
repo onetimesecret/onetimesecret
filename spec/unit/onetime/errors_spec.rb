@@ -68,8 +68,8 @@ RSpec.describe Onetime::LimitExceeded do
         error_key: 'api.limits.errors.too_many_attempts',
       )
       expect(error.to_h).to eq(
-        error: 'LimitExceeded',
-        message: 'blocked',
+        error: 'blocked',
+        error_type: 'LimitExceeded',
         retry_after: 60,
         attempts: 6,
         max_attempts: 5,
@@ -130,7 +130,8 @@ RSpec.describe Onetime::GuestRoutesDisabled do
         error_key: 'api.guest.errors.routes_disabled',
       )
       expect(error.to_h).to eq(
-        message: 'nope',
+        error: 'nope',
+        error_type: 'GuestRoutesDisabled',
         code: 'CUSTOM_CODE',
         error_key: 'api.guest.errors.routes_disabled',
       )
