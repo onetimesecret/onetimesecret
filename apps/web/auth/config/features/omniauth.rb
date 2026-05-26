@@ -201,7 +201,7 @@ module Auth::Config::Features
       auth.omniauth_provider(
         :openid_connect,
         name: provider_name,
-        scope: [:openid, :email, :profile],
+        scope: [:openid, :email, :profile, :offline_access],
         response_type: :code,
         issuer: issuer,
         client_options: {
