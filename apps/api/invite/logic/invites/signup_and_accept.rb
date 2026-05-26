@@ -6,7 +6,7 @@ require 'onetime/security/invite_token_rate_limiter'
 
 module InviteAPI::Logic
   module Invites
-    # Atomic signup + invitation acceptance for org invites
+    # Signup for org invite (consent step happens separately via /accept)
     #
     # POST /api/invite/:token/signup
     #
@@ -27,10 +27,15 @@ module InviteAPI::Logic
     # 3. Checks if email exists in EITHER database -> error with signin hint
     # 4. Validates password meets requirements
     # 5. Creates account in authdb via Rodauth internal_request
-    # 6. Creates Customer in Redis
-    # 7. Creates default workspace
-    # 8. Accepts the invitation (adds user to org)
-    # 9. Auto-logs in the user
+    #    (the after_create_account hook creates the Customer, auto-verifies
+    #    the SQL account, and skips default-workspace creation)
+    # 6. Auto-logs in the user
+    #
+    # The invitation is NOT accepted here — the token survives, and the
+    # frontend completes the join by POSTing to /api/invite/:token/accept
+    # against the session this endpoint just established. This keeps a single
+    # acceptance code path regardless of whether the user signed up fresh
+    # or already had an account.
     #
     class SignupAndAccept < InviteAPI::Logic::Base
       include Onetime::LoggerMethods
@@ -121,27 +126,24 @@ module InviteAPI::Logic
           raise_form_error('Account created but customer record missing', field: :email)
         end
 
-        # Reload the invitation to pick up the acceptance state written by the hook.
-        # NOTE: cannot use find_by_token here — accept! removes the token from
-        # token_lookup (pending-only index, cleared for security). Look up the
-        # now-active membership via org_customer_lookup, which accept! populates.
+        # Reload the invitation via the still-valid token. The after_create_account
+        # hook does not accept the invitation — that's the explicit /accept call
+        # the frontend makes next. The invitation must still be pending here.
         org_objid   = @invitation.organization_objid
-        @invitation = Onetime::OrganizationMembership.find_by_org_customer(
-          org_objid,
-          @customer.objid,
-        )
-        if @invitation.nil? || @invitation.pending?
-          auth_logger.error 'Invitation not accepted by hook',
+        @invitation = Onetime::OrganizationMembership.find_by_token(@token)
+        if @invitation.nil? || !@invitation.pending?
+          auth_logger.error 'Invitation missing or not pending after signup',
             token_prefix: @token[0..7],
             org_objid: org_objid,
-            customer_objid: @customer.objid
-          raise_form_error('Failed to accept invitation', field: :token)
+            customer_objid: @customer.objid,
+            invitation_status: @invitation&.status
+          raise_form_error('Invitation no longer available', field: :token)
         end
 
         setup_session(account_id, account)
 
-        auth_logger.info 'User signed up and joined organization',
-          event: 'invite.signup_accepted',
+        auth_logger.info 'User signed up; invitation pending explicit accept',
+          event: 'invite.signup_pending_accept',
           invitation_id: @invitation.objid,
           organization_id: @invitation.organization.extid,
           user: @customer.obscure_email,
@@ -160,7 +162,7 @@ module InviteAPI::Logic
               display_name: @invitation.organization.display_name,
             },
             role: @invitation.role,
-            joined_at: @invitation.joined_at,
+            invitation_status: @invitation.status,
             auto_login: true,
           },
         }
