@@ -3,13 +3,17 @@
 // Disabled-homepage view configuration — frontend rendering knobs for the
 // DisabledHomepage view shown when the homepage secret form is gated by auth.
 //
-// All fields are optional with sensible auto-detection defaults so the
-// contract is forward-compatible: a backend that doesn't emit this block
-// still produces the default behaviour, and operators can flip individual
-// knobs without a frontend release once the backend wires it up.
+// Two layers live here:
 //
-// Auto-detection rules live in `useDisabledConfig` — these are the
-// operator overrides.
+//  1. The variant enum + frontend default. The variant itself is a
+//     per-domain setting (lives on homepageConfigCanonical), with a
+//     frontend constant fallback for the canonical site / unconfigured
+//     domains. Keeping the enum here lets both the URL-override parser
+//     and the per-domain field share a single source of truth.
+//
+//  2. Tri-state operator overrides for the optional affordances
+//     (show_promo, show_what_is_this). Auto-detection rules live in
+//     `useDisabledConfig` — these are the operator overrides on top.
 
 import { z } from 'zod';
 
@@ -17,9 +21,9 @@ import { z } from 'zod';
  * Visual variant for the disabled-homepage view.
  *
  * - `v1`: the full hero refresh — mark, eyebrow, headline, CTA, trust strip,
- *   optional promo (default)
+ *   optional promo
  * - `minimal`: quiet refresh of the legacy two-tagline shape — small mark,
- *   headline, subtitle, ghost CTA. No trust strip or promo.
+ *   headline, subtitle, ghost CTA. No trust strip or promo (default).
  * - `legacy`: the original two-tagline placeholder (rollback target)
  *
  * New variants must be registered in the dispatcher map in
@@ -29,13 +33,20 @@ export const disabledHomepageVariantSchema = z.enum(['v1', 'minimal', 'legacy'])
 export type DisabledHomepageVariant = z.infer<typeof disabledHomepageVariantSchema>;
 
 /**
+ * Frontend fallback variant — used when neither the per-domain
+ * `homepage_config.disabled_homepage_variant` nor the `?variant` URL
+ * override resolves to a value. The dispatcher and the composable both
+ * import this so the default stays in one place.
+ */
+export const DEFAULT_DISABLED_HOMEPAGE_VARIANT: DisabledHomepageVariant = 'minimal';
+
+/**
  * Tri-state operator override: null = use auto-detection rules,
  * true = force-show, false = force-hide.
  */
 const overrideSchema = z.boolean().nullable().default(null);
 
 export const disabledHomepageConfigSchema = z.object({
-  variant: disabledHomepageVariantSchema.default('v1'),
   show_promo: overrideSchema,
   show_what_is_this: overrideSchema,
 });

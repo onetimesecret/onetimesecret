@@ -13,12 +13,15 @@
 
     Shown when UI is enabled but the homepage secret form is gated by
     authentication (auth required, or homepage mode is "external"). Picks a
-    visual variant from bootstrap config and renders it with a single
+    visual variant from per-domain config and renders it with a single
     presentational props bag derived in `useDisabledConfig`.
 
-    Operators can flip the variant or override individual feature flags via
-    `bootstrap.disabled_homepage` without a frontend release. Adding a new
-    variant requires touching three places:
+    Variant resolution (see useDisabledConfig):
+      1. `?variant` URL override (dogfood / preview)
+      2. `homepage_config.disabled_homepage_variant` for the active domain
+      3. `DEFAULT_DISABLED_HOMEPAGE_VARIANT` frontend constant
+
+    Adding a new variant requires touching three places:
       1. drop the component under `disabled/variants/`,
       2. register it in the VARIANTS map below,
       3. add its name to `disabledHomepageVariantSchema` in
@@ -37,10 +40,7 @@
   };
 
   const { variant, props } = useDisabledConfig();
-  // Fallback to v1 covers the (statically unreachable) case where bootstrap
-  // carries a variant id the frontend doesn't recognise — e.g. backend
-  // emits a new variant before the matching component ships.
-  const ActiveVariant = computed(() => VARIANTS[variant.value] ?? DisabledV1);
+  const ActiveVariant = computed(() => VARIANTS[variant.value]);
 </script>
 
 <template>
@@ -53,6 +53,5 @@
   -->
   <component
     :is="ActiveVariant"
-    :data-variant="variant"
     v-bind="props" />
 </template>
