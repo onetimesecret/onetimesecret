@@ -83,10 +83,11 @@ module Auth::Config::Features
         # (`/auth`), the generated URLs come out without that prefix
         # (e.g. `http://host/authorize` instead of `http://host/auth/authorize`).
         #
-        # Setting rodauth.prefix system-wide is the cleaner fix (issue #3104
-        # follow-up — handoff item #12) but has broader fall-out: every URL
-        # rodauth generates would change shape. For the discovery doc we just
-        # need the endpoint URLs to be reachable, so we patch them here.
+        # Setting rodauth.prefix system-wide is NOT a viable fix: doing so
+        # also changes `request.is *_path` matching, but `remaining_path` is
+        # already `/token` after Rack::URLMap strips SCRIPT_NAME, breaking
+        # every rodauth route. The mismatch is structural — see
+        # apps/web/auth/docs/rodauth-prefix-mismatch.md for the full analysis.
         define_method(:oauth_server_metadata_body) do |path = nil|
           body          = super(path)
           body[:issuer] = authorization_server_url
@@ -188,7 +189,7 @@ module Auth::Config::Features
       # empty string but Auth::Router mounted at /auth, those comparisons
       # never match and the gem's intended CSRF exemption silently fails
       # back to super. (Underlying issue: rodauth prefix mismatch — see
-      # issue #3104 follow-up item #12.)
+      # apps/web/auth/docs/rodauth-prefix-mismatch.md.)
       #
       # Endpoints in OAUTH_NO_CSRF_PATHS (defined above) are reached
       # programmatically by SP clients without a browser session, so CSRF
