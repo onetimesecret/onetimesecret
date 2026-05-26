@@ -189,8 +189,9 @@ last_response.status >= 400
 ## POST /api/invite/:token/accept - Email mismatch response body carries resolved English message
 # Asserts the ErrorResolver -> FormError#to_h seam: the response payload includes
 # the localized message text resolved from error_key 'api.invite.errors.email_mismatch'.
+# FormError#to_h puts the resolved message in the 'error' field.
 resp = JSON.parse(last_response.body)
-resp['message']
+resp['error']
 #=> 'Your email address does not match the invitation'
 
 ## POST /api/invite/:token/accept - Email mismatch response body surfaces error_key
@@ -201,10 +202,10 @@ resp['error_key']
 #=> 'api.invite.errors.email_mismatch'
 
 ## POST /api/invite/:token/accept - Email mismatch response body uses email_mismatch error type
-# accept_invite.rb passes error_type: :email_mismatch, which FormError#to_h serializes
-# as the 'error' field (overriding the default 'FormError' value).
+# accept_invite.rb passes error_type: :email_mismatch; FormError#to_h serializes it
+# into the 'error_type' field of the response body.
 resp = JSON.parse(last_response.body)
-resp['error']
+resp['error_type']
 #=> 'email_mismatch'
 
 ## POST /api/invite/:token/accept - Email mismatch doesn't change membership status
@@ -276,14 +277,14 @@ resp = JSON.parse(last_response.body)
 resp['error_key']
 #=> 'api.invite.errors.invitation_not_found_or_expired'
 
-## POST /api/invite/:token/accept - Already-accepted response includes a message field
+## POST /api/invite/:token/accept - Already-accepted response includes an error field
 # The pure-i18n call site (raise_not_found with no pre-set message) means resolution
 # depends on the i18n bundle being loaded. With generated/locales/ unpopulated in this
-# test env, the resolver writes the error_key into message as the documented fallback
-# (error_resolver.rb:60-65). Asserting non-empty proves the body field is present and
-# populated end-to-end — without coupling the test to whether i18n is wired up.
+# test env, the resolver writes the error_key into error.message as the documented
+# fallback (error_resolver.rb:60-65), and RecordNotFound#to_h surfaces it as 'error'.
+# Asserting non-empty proves the body field is present and populated end-to-end.
 resp = JSON.parse(last_response.body)
-[resp.key?('message'), resp['message'].to_s.empty?]
+[resp.key?('error'), resp['error'].to_s.empty?]
 #=> [true, false]
 
 ## GET /api/invite/:token - Returns 400 for already accepted invitation
