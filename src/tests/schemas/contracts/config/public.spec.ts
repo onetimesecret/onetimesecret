@@ -1,8 +1,10 @@
-// src/tests/schemas/shapes/config/public.spec.ts
-
+// src/tests/schemas/contracts/config/public.spec.ts
 //
-// Tests for publicSecretOptionsSchema covering various configurations
-// that may be encountered from different deployment environments.
+// Contract-level tests for publicSecretOptionsSchema and
+// publicAuthenticationSchema. The contract is type-only: it accepts any
+// well-typed input and does not enforce TTL/passphrase/password-generation
+// bounds and does not supply defaults. Defaults and bounds are exercised
+// against the shape in `src/tests/schemas/shapes/config/public.spec.ts`.
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -11,67 +13,54 @@ import {
   type SecretOptions,
 } from '@/schemas/contracts/config/public';
 
-describe('publicSecretOptionsSchema', () => {
-  describe('default values', () => {
-    it('parses empty object with all defaults', () => {
+describe('publicSecretOptionsSchema (contract)', () => {
+  describe('empty / partial input', () => {
+    it('parses empty object — every field is optional in the contract', () => {
       const result = publicSecretOptionsSchema.parse({});
 
-      expect(result.default_ttl).toBe(604800); // 7 days
-      expect(result.ttl_options).toEqual([
-        300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000,
-      ]);
+      expect(result.default_ttl).toBeUndefined();
+      expect(result.ttl_options).toBeUndefined();
       expect(result.passphrase).toBeUndefined();
       expect(result.password_generation).toBeUndefined();
     });
 
-    it('applies default TTL of 7 days (604800 seconds)', () => {
-      const result = publicSecretOptionsSchema.parse({});
-      expect(result.default_ttl).toBe(604800);
+    it('parses partial passphrase input without rejecting missing fields', () => {
+      const result = publicSecretOptionsSchema.parse({
+        passphrase: { required: true },
+      });
+
+      expect(result.passphrase?.required).toBe(true);
+      expect(result.passphrase?.minimum_length).toBeUndefined();
+      expect(result.passphrase?.maximum_length).toBeUndefined();
+      expect(result.passphrase?.enforce_complexity).toBeUndefined();
     });
   });
 
   describe('TTL configuration', () => {
     it('accepts custom default_ttl', () => {
-      const result = publicSecretOptionsSchema.parse({
-        default_ttl: 86400, // 1 day
-      });
+      const result = publicSecretOptionsSchema.parse({ default_ttl: 86400 });
       expect(result.default_ttl).toBe(86400);
     });
 
     it('accepts custom ttl_options array', () => {
       const customOptions = [300, 3600, 86400];
-      const result = publicSecretOptionsSchema.parse({
-        ttl_options: customOptions,
-      });
+      const result = publicSecretOptionsSchema.parse({ ttl_options: customOptions });
       expect(result.ttl_options).toEqual(customOptions);
     });
 
-    it('enforces minimum TTL of 60 seconds in options', () => {
-      expect(() =>
-        publicSecretOptionsSchema.parse({
-          ttl_options: [30], // Below minimum
-        })
-      ).toThrow();
+    it('accepts TTL values below the historic min — bounds are a shape concern', () => {
+      const result = publicSecretOptionsSchema.parse({ ttl_options: [30] });
+      expect(result.ttl_options).toEqual([30]);
     });
 
-    it('enforces maximum TTL of 30 days (2592000 seconds) in options', () => {
-      expect(() =>
-        publicSecretOptionsSchema.parse({
-          ttl_options: [3000000], // Above maximum
-        })
-      ).toThrow();
-    });
-
-    it('accepts boundary TTL values', () => {
-      const result = publicSecretOptionsSchema.parse({
-        ttl_options: [60, 2592000], // Min and max allowed
-      });
-      expect(result.ttl_options).toEqual([60, 2592000]);
+    it('accepts TTL values above the historic max — bounds are a shape concern', () => {
+      const result = publicSecretOptionsSchema.parse({ ttl_options: [3000000] });
+      expect(result.ttl_options).toEqual([3000000]);
     });
   });
 
   describe('passphrase configuration', () => {
-    it('accepts passphrase settings object', () => {
+    it('accepts the full passphrase block', () => {
       const result = publicSecretOptionsSchema.parse({
         passphrase: {
           required: true,
@@ -87,62 +76,22 @@ describe('publicSecretOptionsSchema', () => {
       expect(result.passphrase?.enforce_complexity).toBe(true);
     });
 
-    it('applies passphrase defaults when partial object provided', () => {
-      const result = publicSecretOptionsSchema.parse({
-        passphrase: {
-          required: true,
-        },
-      });
-
-      expect(result.passphrase?.required).toBe(true);
-      expect(result.passphrase?.minimum_length).toBe(4); // default
-      expect(result.passphrase?.maximum_length).toBe(128); // default
-      expect(result.passphrase?.enforce_complexity).toBe(false); // default
-    });
-
-    it('accepts native boolean for required field', () => {
-      const result = publicSecretOptionsSchema.parse({
-        passphrase: {
-          required: true,
-        },
-      });
-
-      expect(result.passphrase?.required).toBe(true);
-    });
-
-    it('accepts zero for minimum_length (no enforcement)', () => {
-      const result = publicSecretOptionsSchema.parse({
-        passphrase: {
-          minimum_length: 0,
-        },
-      });
-
+    it('accepts zero for minimum_length', () => {
+      const result = publicSecretOptionsSchema.parse({ passphrase: { minimum_length: 0 } });
       expect(result.passphrase?.minimum_length).toBe(0);
     });
 
-    it('enforces maximum passphrase minimum_length constraint', () => {
-      expect(() =>
-        publicSecretOptionsSchema.parse({
-          passphrase: {
-            minimum_length: 300, // Above maximum of 256
-          },
-        })
-      ).toThrow();
-    });
-
-    it('enforces maximum passphrase length constraints', () => {
-      expect(() =>
-        publicSecretOptionsSchema.parse({
-          passphrase: {
-            maximum_length: 2000, // Above maximum of 1024
-          },
-        })
-      ).toThrow();
+    it('accepts values beyond the historic length bounds (shape enforces those)', () => {
+      const result = publicSecretOptionsSchema.parse({
+        passphrase: { minimum_length: 300, maximum_length: 2000 },
+      });
+      expect(result.passphrase?.minimum_length).toBe(300);
+      expect(result.passphrase?.maximum_length).toBe(2000);
     });
   });
 
   describe('password generation configuration', () => {
-    it('accepts password generation settings', () => {
+    it('accepts the full password_generation block', () => {
       const result = publicSecretOptionsSchema.parse({
         password_generation: {
           default_length: 16,
@@ -163,38 +112,27 @@ describe('publicSecretOptionsSchema', () => {
       expect(result.password_generation?.character_sets?.exclude_ambiguous).toBe(false);
     });
 
-    it('applies password generation defaults', () => {
+    it('parses empty password_generation without applying defaults', () => {
+      const result = publicSecretOptionsSchema.parse({ password_generation: {} });
+      expect(result.password_generation?.default_length).toBeUndefined();
+      expect(result.password_generation?.length_options).toBeUndefined();
+    });
+
+    it('accepts length values beyond the historic 4–128 range', () => {
       const result = publicSecretOptionsSchema.parse({
-        password_generation: {},
+        password_generation: { default_length: 2 },
       });
+      expect(result.password_generation?.default_length).toBe(2);
 
-      expect(result.password_generation?.default_length).toBe(12);
-      expect(result.password_generation?.length_options).toEqual([8, 12, 16, 20, 24, 32]);
-    });
-
-    it('enforces password length minimum of 4', () => {
-      expect(() =>
-        publicSecretOptionsSchema.parse({
-          password_generation: {
-            default_length: 2,
-          },
-        })
-      ).toThrow();
-    });
-
-    it('enforces password length maximum of 128', () => {
-      expect(() =>
-        publicSecretOptionsSchema.parse({
-          password_generation: {
-            default_length: 256,
-          },
-        })
-      ).toThrow();
+      const result2 = publicSecretOptionsSchema.parse({
+        password_generation: { default_length: 256 },
+      });
+      expect(result2.password_generation?.default_length).toBe(256);
     });
   });
 
   describe('full configuration scenarios', () => {
-    it('parses production-like configuration', () => {
+    it('parses a fully populated production-like configuration', () => {
       const productionConfig = {
         default_ttl: 604800,
         ttl_options: [3600, 86400, 604800, 1209600],
@@ -221,29 +159,8 @@ describe('publicSecretOptionsSchema', () => {
       expect(result).toMatchObject(productionConfig);
     });
 
-    it('parses high-security configuration', () => {
-      const securityConfig = {
-        default_ttl: 3600, // 1 hour max
-        ttl_options: [300, 1800, 3600],
-        passphrase: {
-          required: true,
-          minimum_length: 16,
-          maximum_length: 256,
-          enforce_complexity: true,
-        },
-      };
-
-      const result = publicSecretOptionsSchema.parse(securityConfig);
-      expect(result.passphrase?.required).toBe(true);
-      expect(result.passphrase?.minimum_length).toBe(16);
-    });
-
-    it('parses minimal self-hosted configuration', () => {
-      const minimalConfig = {
-        default_ttl: 86400,
-        ttl_options: [86400],
-      };
-
+    it('parses a minimal self-hosted configuration', () => {
+      const minimalConfig = { default_ttl: 86400, ttl_options: [86400] };
       const result = publicSecretOptionsSchema.parse(minimalConfig);
       expect(result.default_ttl).toBe(86400);
       expect(result.ttl_options).toEqual([86400]);
@@ -251,15 +168,17 @@ describe('publicSecretOptionsSchema', () => {
   });
 
   describe('type inference', () => {
-    it('infers correct TypeScript type', () => {
-      const config: SecretOptions = publicSecretOptionsSchema.parse({});
+    it('infers fields as optional numbers / arrays', () => {
+      const config: SecretOptions = publicSecretOptionsSchema.parse({
+        default_ttl: 100,
+        ttl_options: [100],
+      });
 
-      // Type assertions - these would fail compilation if types are wrong
-      const _ttl: number = config.default_ttl;
-      const _options: number[] = config.ttl_options;
+      const _ttl: number | undefined = config.default_ttl;
+      const _options: number[] | undefined = config.ttl_options;
 
-      expect(_ttl).toBeDefined();
-      expect(_options).toBeDefined();
+      expect(_ttl).toBe(100);
+      expect(_options).toEqual([100]);
     });
   });
 });

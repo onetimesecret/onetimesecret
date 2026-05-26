@@ -4,6 +4,9 @@
  * Features Configuration Schema
  *
  * Maps to the `features:` section in config.defaults.yaml
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and value constraints belong in `shapes/config/section/features.ts`.
  */
 
 import { z } from 'zod';
@@ -18,9 +21,9 @@ const incomingRecipientSchema = z.tuple([z.string(), z.string().optional()]).nul
  * Incoming secrets feature configuration
  */
 const featuresIncomingSchema = z.object({
-  enabled: z.boolean().default(false),
-  memo_max_length: z.number().int().positive().default(50),
-  default_ttl: z.number().int().positive().default(604800),
+  enabled: z.boolean().optional(),
+  memo_max_length: z.number().optional(),
+  default_ttl: z.number().optional(),
   default_passphrase: z.string().nullable().optional(),
   recipients: z.array(incomingRecipientSchema).optional(),
 });
@@ -54,7 +57,7 @@ const featuresRegionJurisdictionSchema = z.object({
  * an operator does provide a structured list.
  */
 const featuresRegionsSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().optional(),
   current_jurisdiction: nullableString,
   jurisdictions: z
     .union([z.array(featuresRegionJurisdictionSchema), z.string(), z.null()])
@@ -81,9 +84,9 @@ const featuresDomainsProxySchema = z.object({
  * Both representations are semantically the same TCP port.
  */
 const featuresDomainsAcmeSchema = z.object({
-  enabled: z.boolean().default(false),
-  listen_address: z.string().default('127.0.0.1'),
-  port: z.union([z.string(), z.number()]).default('12020'),
+  enabled: z.boolean().optional(),
+  listen_address: z.string().optional(),
+  port: z.union([z.string(), z.number()]).optional(),
 });
 
 /**
@@ -94,12 +97,12 @@ const featuresDomainsAcmeSchema = z.object({
  * rename here must be applied on the Ruby side as well.
  */
 const featuresDomainsSchema = z.object({
-  enabled: z.boolean().default(false),
-  require_verified: z.boolean().default(false),
+  enabled: z.boolean().optional(),
+  require_verified: z.boolean().optional(),
   default: nullableString,
   validation_strategy: z
     .enum(['passthrough', 'approximated', 'caddy_on_demand'])
-    .default('passthrough'),
+    .optional(),
   approximated: featuresDomainsProxySchema.optional(),
   acme: featuresDomainsAcmeSchema.optional(),
 });

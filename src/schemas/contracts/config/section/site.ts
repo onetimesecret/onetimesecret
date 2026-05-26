@@ -4,6 +4,9 @@
  * Site Configuration Schema
  *
  * Maps to the `site:` section in config.defaults.yaml
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and value constraints belong in `shapes/config/section/site.ts`.
  */
 
 import { z } from 'zod';
@@ -13,13 +16,13 @@ import { nullableString } from '../shared/primitives';
  * Authentication settings within site configuration
  */
 const siteAuthenticationSchema = z.object({
-  enabled: z.boolean().default(true),
-  signup: z.boolean().default(true),
-  signin: z.boolean().default(true),
-  autoverify: z.boolean().default(false),
-  required: z.boolean().default(false),
-  colonels: z.array(z.string()).default([]),
-  allowed_signup_domains: z.array(z.string()).default([]),
+  enabled: z.boolean().optional(),
+  signup: z.boolean().optional(),
+  signin: z.boolean().optional(),
+  autoverify: z.boolean().optional(),
+  required: z.boolean().optional(),
+  colonels: z.array(z.string()).optional(),
+  allowed_signup_domains: z.array(z.string()).optional(),
 });
 
 /**
@@ -37,18 +40,18 @@ const siteSupportSchema = z.object({
  */
 const sessionConfigSchema = z.object({
   secret: nullableString,
-  expire_after: z.number().int().positive().default(86400), // 24 hours
-  key: z.string().default('onetime.session'),
-  secure: z.boolean().default(true),
-  same_site: z.enum(['strict', 'lax', 'none']).default('lax'),
-  httponly: z.boolean().default(true),
+  expire_after: z.number().optional(),
+  key: z.string().optional(),
+  secure: z.boolean().optional(),
+  same_site: z.enum(['strict', 'lax', 'none']).optional(),
+  httponly: z.boolean().optional(),
 });
 
 /**
  * Content Security Policy configuration
  */
 const cspSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().optional(),
 });
 
 /**
@@ -67,46 +70,45 @@ const securitySchema = z.object({
  * Relocated from experimental to site as these are now stable.
  */
 const middlewareSchema = z.object({
-  static_files: z.boolean().default(true),
-  utf8_sanitizer: z.boolean().default(true),
-  authenticity_token: z.boolean().default(true),
-  http_origin: z.boolean().default(false),
-  xss_header: z.boolean().default(false),
-  frame_options: z.boolean().default(false),
-  path_traversal: z.boolean().default(false),
-  cookie_tossing: z.boolean().default(false),
-  ip_spoofing: z.boolean().default(false),
-  strict_transport: z.boolean().default(false),
+  static_files: z.boolean().optional(),
+  utf8_sanitizer: z.boolean().optional(),
+  authenticity_token: z.boolean().optional(),
+  http_origin: z.boolean().optional(),
+  xss_header: z.boolean().optional(),
+  frame_options: z.boolean().optional(),
+  path_traversal: z.boolean().optional(),
+  cookie_tossing: z.boolean().optional(),
+  ip_spoofing: z.boolean().optional(),
+  strict_transport: z.boolean().optional(),
 });
 
 /**
  * Secret options - passphrase settings
  */
 const passphraseSchema = z.object({
-  required: z.boolean().default(false),
+  required: z.boolean().optional(),
   /**
    * Minimum length required for passphrases.
-   * Default: 4. Set to 0 to disable enforcement.
    * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
    */
-  minimum_length: z.number().int().min(0).max(256).default(4),
-  maximum_length: z.number().int().positive().default(128),
-  enforce_complexity: z.boolean().default(false),
+  minimum_length: z.number().optional(),
+  maximum_length: z.number().optional(),
+  enforce_complexity: z.boolean().optional(),
 });
 
 /**
  * Secret options - password generation settings
  */
 const passwordGenerationCharacterSetsSchema = z.object({
-  uppercase: z.boolean().default(true),
-  lowercase: z.boolean().default(true),
-  numbers: z.boolean().default(true),
-  symbols: z.boolean().default(true),
-  exclude_ambiguous: z.boolean().default(true),
+  uppercase: z.boolean().optional(),
+  lowercase: z.boolean().optional(),
+  numbers: z.boolean().optional(),
+  symbols: z.boolean().optional(),
+  exclude_ambiguous: z.boolean().optional(),
 });
 
 const passwordGenerationSchema = z.object({
-  default_length: z.number().int().positive().default(12),
+  default_length: z.number().optional(),
   character_sets: passwordGenerationCharacterSetsSchema,
 });
 
@@ -114,9 +116,9 @@ const passwordGenerationSchema = z.object({
  * Secret options configuration
  */
 const siteSecretOptionsSchema = z.object({
-  default_ttl: z.number().int().positive().nullable().optional(),
+  default_ttl: z.number().nullable().optional(),
   ttl_options: z.string().nullable().optional(), // Raw string from env, parsed elsewhere
-  generated_value_display_ttl: z.number().int().nonnegative().optional(),
+  generated_value_display_ttl: z.number().optional(),
   passphrase: passphraseSchema,
   password_generation: passwordGenerationSchema,
 });
@@ -125,8 +127,8 @@ const siteSecretOptionsSchema = z.object({
  * Complete site schema matching config.defaults.yaml site: section
  */
 const siteSchema = z.object({
-  host: z.string().default('localhost:3000'),
-  ssl: z.boolean().default(false),
+  host: z.string().optional(),
+  ssl: z.boolean().optional(),
   secret: z.string().nullable().optional(),
   interface: z.any().optional(), // Defined in ui.ts for mutable config
   secret_options: siteSecretOptionsSchema.optional(),
