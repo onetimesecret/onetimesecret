@@ -89,7 +89,7 @@ module Auth
             subject_type: 'public',
             id_token_signed_response_alg: 'RS256',
             token_endpoint_auth_method: 'client_secret_basic',
-            grant_types: 'authorization_code',
+            grant_types: 'authorization_code refresh_token',
             response_types: 'code',
           )
           Onetime.auth_logger.info "[SeedDevOAuthClient] inserted dev SP client: #{DEV_CLIENT_ID}"
