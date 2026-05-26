@@ -60,8 +60,8 @@ RSpec.describe Onetime::Incoming::RecipientResolver do
         expect { resolver.require_domain_entitlement!('incoming_secrets') }
           .to raise_error(Onetime::Forbidden) do |error|
             expect(error.to_h).to include(
-              error: 'Forbidden',
-              message: 'Custom domain organization could not be resolved',
+              error: 'Custom domain organization could not be resolved',
+              error_type: 'Forbidden',
               error_key: 'api.incoming.errors.custom_domain_unresolved',
             )
           end

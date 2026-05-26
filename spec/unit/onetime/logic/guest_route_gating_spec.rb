@@ -244,12 +244,13 @@ RSpec.describe Onetime::Logic::GuestRouteGating do
       expect(error.code).to eq('CUSTOM_CODE')
     end
 
-    it 'serializes to hash with message and code' do
+    it 'serializes to hash with error, error_type, and code' do
       error = Onetime::GuestRoutesDisabled.new('Test message', code: 'TEST_CODE')
       hash = error.to_h
 
       expect(hash).to eq({
-        message: 'Test message',
+        error: 'Test message',
+        error_type: 'GuestRoutesDisabled',
         code: 'TEST_CODE',
       })
     end

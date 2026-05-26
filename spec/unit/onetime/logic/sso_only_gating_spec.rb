@@ -71,8 +71,8 @@ RSpec.describe Onetime::Logic::SsoOnlyGating do
         expect { instance.require_non_sso_only! }
           .to raise_error(Onetime::Forbidden) do |error|
             expect(error.to_h).to include(
-              error: 'Forbidden',
-              message: 'This action is not available in SSO-only mode',
+              error: 'This action is not available in SSO-only mode',
+              error_type: 'Forbidden',
               error_key: 'api.errors.sso_only_action_blocked',
             )
           end

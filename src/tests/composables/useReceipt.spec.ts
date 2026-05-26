@@ -244,7 +244,7 @@ describe('useReceipt', () => {
         undefined,
         {
           status: 404,
-          data: { message: 'Secret not found or has been burned' },
+          data: { error: 'Secret not found or has been burned' },
         } as any
       );
 
