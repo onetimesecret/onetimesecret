@@ -40,6 +40,11 @@ require 'rodauth/oauth'
 
 module Auth::Config::Features
   module OAuth
+    # Endpoints reached programmatically by SP clients — no browser session,
+    # no CSRF. /authorize is intentionally absent: it is browser-driven and
+    # must keep CSRF protection. See the check_csrf? override below.
+    OAUTH_NO_CSRF_PATHS = %w[/token /userinfo /revoke /jwks].freeze
+
     def self.configure(auth)
       auth.enable :oauth_authorization_code_grant,
         :oauth_pkce,
@@ -72,9 +77,55 @@ module Auth::Config::Features
           ENV.fetch('OAUTH_ISSUER') { "#{base_url}#{Auth::Application.uri_prefix}" }
         end
 
+        # The gem's *_url methods build `base_url + route_path(name)`, and
+        # route_path uses rodauth's `prefix` (empty by default). Since this
+        # rodauth instance is mounted under Auth::Application.uri_prefix
+        # (`/auth`), the generated URLs come out without that prefix
+        # (e.g. `http://host/authorize` instead of `http://host/auth/authorize`).
+        #
+        # Setting rodauth.prefix system-wide is the cleaner fix (issue #3104
+        # follow-up — handoff item #12) but has broader fall-out: every URL
+        # rodauth generates would change shape. For the discovery doc we just
+        # need the endpoint URLs to be reachable, so we patch them here.
         define_method(:oauth_server_metadata_body) do |path = nil|
           body          = super(path)
           body[:issuer] = authorization_server_url
+
+          prefix_oauth_endpoint_urls!(body)
+          body
+        end
+
+        # OIDC discovery (`/.well-known/openid-configuration`) goes through
+        # `openid_configuration_body`, which calls oauth_server_metadata_body
+        # but then merges in `userinfo_endpoint: userinfo_url` AFTER our patch
+        # (oidc.rb:811). Re-apply the prefix patch after super so userinfo
+        # comes out with /auth.
+        define_method(:openid_configuration_body) do |path = nil|
+          body = super(path)
+          prefix_oauth_endpoint_urls!(body)
+          body
+        end
+
+        # Shared helper to rewrite endpoint URLs in a metadata body, adding
+        # the Rack mount prefix when missing. rodauth-oauth builds URLs from
+        # `base_url + route_path(name)` and route_path uses rodauth's own
+        # `prefix` (empty by default); since the auth app is mounted under
+        # /auth, the generated URLs need the prefix added.
+        define_method(:prefix_oauth_endpoint_urls!) do |body|
+          uri_prefix = Auth::Application.uri_prefix
+          [:authorization_endpoint, :token_endpoint, :userinfo_endpoint, :jwks_uri, :revocation_endpoint, :registration_endpoint, :introspection_endpoint, :end_session_endpoint].each do |key|
+            next unless body[key].is_a?(String)
+
+            uri = URI.parse(body[key])
+            # Treat as already-prefixed only when the path starts with
+            # "/auth/" or equals "/auth" — guard against substring matches
+            # (e.g. URI "/authorize" contains "/auth" but is NOT prefixed).
+            next if uri.path == uri_prefix
+            next if uri.path.start_with?("#{uri_prefix}/")
+
+            uri.path  = "#{uri_prefix}#{uri.path}"
+            body[key] = uri.to_s
+          end
           body
         end
       end
@@ -126,6 +177,33 @@ module Auth::Config::Features
       auth.auth_class_eval do
         define_method(:check_valid_response_type?) do
           oauth_response_types_supported.include?(param_or_nil('response_type'))
+        end
+      end
+
+      # ─── CSRF bypass for IdP endpoints ─────────────────────────────────
+      # rodauth-oauth's per-feature `check_csrf?` overrides compare against
+      # *unprefixed* path names (e.g. `/token`), but rodauth's `request.path`
+      # returns the full Rack `SCRIPT_NAME + PATH_INFO` (e.g. `/auth/token`)
+      # — see oauth_base.rb:158. With rodauth's `prefix` left at the default
+      # empty string but Auth::Router mounted at /auth, those comparisons
+      # never match and the gem's intended CSRF exemption silently fails
+      # back to super. (Underlying issue: rodauth prefix mismatch — see
+      # issue #3104 follow-up item #12.)
+      #
+      # Endpoints in OAUTH_NO_CSRF_PATHS (defined above) are reached
+      # programmatically by SP clients without a browser session, so CSRF
+      # doesn't apply. PKCE + client_secret on /token + bearer auth on
+      # /userinfo provide the protocol-level equivalents. /authorize is *not*
+      # in this set — it is browser-driven and must keep CSRF protection
+      # (matches gem behavior in non-JSON mode).
+      auth.auth_class_eval do
+        define_method(:check_csrf?) do
+          paths      = Auth::Config::Features::OAuth::OAUTH_NO_CSRF_PATHS
+          full_paths = paths.map { |p| "#{Auth::Application.uri_prefix}#{p}" }
+          return false if full_paths.include?(request.path)
+          return false if request.path.start_with?("#{Auth::Application.uri_prefix}/.well-known/")
+
+          super()
         end
       end
 

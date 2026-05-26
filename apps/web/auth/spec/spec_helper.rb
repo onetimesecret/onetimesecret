@@ -411,6 +411,19 @@ module ProductionConfigHelper
     # Only install once
     return if defined?(@@tenant_mock_hook_installed) && @@tenant_mock_hook_installed
 
+    # features.rb uses the shorthand `module Auth::Config::Features`, which
+    # requires Auth::Config to already be defined. In normal full-suite runs
+    # an earlier spec (e.g. env_feature_loading_spec.rb) has populated the
+    # namespace before this point. When this hook runs in isolation (a
+    # single-file rspec invocation of an integration spec), Auth::Config is
+    # still undefined — and the original `require_relative '../config/features'`
+    # blew up with NameError. The TenantVerifyingMock is only used by tenant-SSO
+    # specs; if the auth namespace isn't ready, skip cleanly so unrelated
+    # integration specs can boot.
+    unless defined?(Auth::Config)
+      return
+    end
+
     # Load the Auth features module structure
     require_relative '../config/features'
 
