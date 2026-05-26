@@ -28,7 +28,10 @@ module Auth
     class << self
       attr_accessor :configured
 
-      # Reset configuration state (for testing only)
+      # Reset configuration state (for testing only).
+      # WARNING: Does NOT undo features, routes, included ancestors, or hook
+      # chains. See docs/auth-config-one-shot.md for why a real re-configure
+      # would require recreating the class.
       def reset_configuration!
         @configured = false
       end
