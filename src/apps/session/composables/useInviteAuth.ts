@@ -58,7 +58,12 @@ function extractErrorInfo(
  * Key differences from useAuth:
  * - Does NOT navigate - returns results for parent component to handle
  * - Handles invite token alongside auth operations
- * - Supports atomic signup+accept via invite_token parameter
+ *
+ * Explicit-consent design: signup and login establish a session but do NOT
+ * consume the invitation. The user must explicitly click Accept (or Decline)
+ * on the AcceptInvite view, which fires POST /api/invite/:token/accept against
+ * the live token. This keeps the join action visible and reversible until the
+ * user confirms.
  */
 /* eslint-disable max-lines-per-function */
 export function useInviteAuth() {
@@ -91,33 +96,16 @@ export function useInviteAuth() {
   }
 
   /**
-   * Completes the invitation acceptance by POSTing to /api/invite/:token/accept.
+   * Creates a new account for an invite, establishing a session.
    *
-   * Called after signup or login succeeds and a session is established. The
-   * backend leaves the invitation pending after auth so the acceptance step
-   * stays explicit and the same code path serves both flows. A non-success
-   * response here is logged but not propagated — the user is authenticated,
-   * the AcceptInvite page will recover via its direct_accept handler on
-   * the next render.
-   */
-  async function acceptPendingInvite(inviteToken: string): Promise<void> {
-    try {
-      await $api.post(`/api/invite/${inviteToken}/accept`, {
-        shrimp: csrfStore.shrimp,
-      });
-    } catch (e) {
-      console.warn('[useInviteAuth] /accept after auth failed:', e);
-    }
-  }
-
-  /**
-   * Creates a new account and atomically accepts the invitation.
-   * Uses the dedicated invite signup endpoint which derives email from the token.
+   * Does NOT consume the invitation — the backend leaves the membership in
+   * pending state. The parent view transitions to the explicit Decline/Accept
+   * screen and the user issues the /accept call themselves.
    *
    * @returns InviteAuthResult with accountExists: true if the backend indicates
    *          the account already exists (caller should switch to signin flow).
    */
-  async function signupAndAccept(
+  async function signupForInvite(
     _email: string, // Kept for API compatibility; backend derives email from token
     password: string,
     termsAgreed: boolean,
@@ -150,18 +138,11 @@ export function useInviteAuth() {
       // Server set session cookie via create_account_autologin — sync frontend state.
       // Fire-and-forget: awaiting would yield to the microtask queue, letting Vue
       // flush a re-render that unmounts InviteSignUpForm (inviteState transitions
-      // from signup_required → direct_accept) before emit('success') reaches the
-      // parent. The ACCEPT_SUCCESS_REDIRECT_DELAY_MS in AcceptInvite.vue gives
-      // the background refresh ample time to complete before navigation.
+      // from signup_required → direct_accept) before emit('success') reaches
+      // the parent.
       authStore.setAuthenticated(true).catch((err) => {
         console.warn('[useInviteAuth] Background auth sync failed after signup:', err);
       });
-
-      // Complete the join: the signup endpoint creates the account and
-      // session but leaves the invitation pending. Issue the explicit
-      // /accept call now while the token is still valid and the user is
-      // authenticated.
-      await acceptPendingInvite(inviteToken);
 
       return { success: true };
     } catch (e) {
@@ -178,11 +159,13 @@ export function useInviteAuth() {
   }
 
   /**
-   * Logs in an existing user and accepts the invitation atomically.
-   * The backend after_login hook handles invite acceptance when invite_token is present.
-   * Handles MFA by returning requiresMfa: true for parent to redirect.
+   * Logs in an existing user invited to an organization.
+   *
+   * Does NOT consume the invitation — only establishes the session. The user
+   * must explicitly click Accept on the AcceptInvite view to complete the join.
+   * Handles MFA by returning requiresMfa: true for the parent to redirect.
    */
-  async function loginAndAccept(
+  async function loginForInvite(
     email: string,
     password: string,
     inviteToken: string
@@ -194,8 +177,9 @@ export function useInviteAuth() {
     try {
       await refreshCsrf();
 
-      // Single call - backend after_login hook handles invite acceptance
-      // when invite_token is provided in the login request
+      // The invite_token is passed for telemetry/context; the after_login hook
+      // does not auto-accept. Acceptance happens via the explicit user click on
+      // the AcceptInvite view post-login.
       const loginResp = await $api.post('/auth/login', {
         login: email,
         password,
@@ -217,16 +201,16 @@ export function useInviteAuth() {
         return { success: false, requiresMfa: true, redirect: `/invite/${inviteToken}` };
       }
 
-      // Login established the session; complete the join via the explicit
-      // /accept call. The after_login hook no longer accepts invitations —
-      // signup and login share the same downstream acceptance path.
-      // Fire-and-forget setAuthenticated: awaiting triggers a reactive
-      // cascade that unmounts the form before emit('success') fires.
+      // Login established the session. The invitation is NOT accepted here —
+      // the user must explicitly click Accept on the AcceptInvite view. The
+      // after_login hook no longer auto-accepts; signup and login share the
+      // same downstream acceptance path (explicit user click).
+      //
+      // Fire-and-forget setAuthenticated: awaiting triggers a reactive cascade
+      // that unmounts the form before emit('success') fires.
       authStore.setAuthenticated(true).catch((err) => {
         console.warn('[useInviteAuth] Background auth sync failed after login:', err);
       });
-
-      await acceptPendingInvite(inviteToken);
 
       return { success: true };
     } catch (e) {
@@ -245,8 +229,8 @@ export function useInviteAuth() {
   }
 
   return {
-    signupAndAccept,
-    loginAndAccept,
+    signupForInvite,
+    loginForInvite,
     clearErrors,
     isLoading,
     error,
