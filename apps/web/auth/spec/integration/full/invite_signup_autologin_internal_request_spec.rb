@@ -6,30 +6,22 @@
 # TEST TYPE: Integration (regression for issue #3221)
 # =============================================================================
 #
-# Reproduces the bug surfaced by POST /api/invite/:token/signup returning
-# 422 "Failed to create account" *after* the account was successfully created
-# and the invitation was accepted.
+# Pins the post-signup contract from the bug fix in this branch:
 #
-# Root cause:
-#   apps/api/invite/logic/invites/signup_and_accept.rb treated the return value
-#   of Auth::Config.create_account(...) as the success signal. Rodauth's
-#   internal_request create_account contract returns nil on success — see
-#   rodauth_spec.rb:1039 (`app.rodauth.create_account(...).must_be_nil`
-#   followed immediately by a successful login). The only setter for
-#   @internal_request_return_value in lib/rodauth/features/internal_request.rb
-#   is after_login (:131-134), which the create_account flow never triggers.
+#   1. POST /api/invite/:token/signup creates the account, auto-verifies it,
+#      and skips default-workspace creation (the user is joining an existing
+#      org via invite — a personal workspace would be dead state).
+#   2. The after_create_account hook does NOT accept the invitation. The
+#      token stays valid in token_lookup, the invitation stays in `pending`
+#      state. Acceptance happens via the explicit POST /api/invite/:token/
+#      accept call the frontend issues against the established session —
+#      one acceptance code path for both signup and login flows.
+#   3. After the explicit /accept call, the invitation reaches `active` and
+#      the customer appears in org.members.
 #
-#   Treating nil as failure caused SignupAndAccept to raise FormError despite
-#   the account row, customer, workspace, and invitation acceptance all being
-#   committed by the after_create_account hooks.
-#
-# Contract this test pins down:
-#   - the accounts row is created and auto-verified (status_id = 2)
-#   - the invitation is accepted via after_create_account hook
-#   - Auth::Config.account_id_for_login resolves the new account
-#
-# Before the fix, the assertion that exercises the SignupAndAccept code path
-# (it surfaces nil-as-failure) fails. After the fix, all assertions pass.
+# Before the bug fix, the hook auto-accepted via Auth::Operations::AcceptInvitation
+# during after_create_account, wiping token_lookup before the user's Accept
+# click could resolve it (404), and rendering Decline non-functional.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -96,15 +88,12 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     # Non-fatal cleanup error
   end
 
-  it 'creates the account and accepts the invitation via internal_request' do
+  it 'creates the account and leaves the invitation pending for explicit accept' do
     # Force lazy lets to materialise (owner, org, invitation) in the documented
     # order so the after_create_account hook sees a valid pending invitation.
     expect(invitation.pending?).to be(true)
     invite_token = invitation.token
 
-    # Exact call shape used by apps/api/invite/logic/invites/signup_and_accept.rb.
-    # Rodauth's internal_request create_account returns nil on success by
-    # contract — see rodauth_spec.rb:1039. Do not assert on the return value.
     Auth::Config.create_account(
       login: invited_email,
       password: password,
@@ -117,19 +106,112 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     expect(account_row).not_to be_nil
     expect(account_row[:status_id]).to eq(2)
 
-    # The invitation was accepted — the after_create_account hook ran to
-    # completion (Customer linked, workspace created, membership activated).
-    activated_membership = Onetime::OrganizationMembership.find_by_org_customer(
-      organization.objid,
-      Onetime::Customer.find_by_email(invited_email)&.objid,
-    )
-    expect(activated_membership).not_to be_nil
-    expect(activated_membership.active?).to be(true)
+    # The invitation is NOT yet accepted. Token survives in token_lookup so
+    # the frontend's explicit POST /api/invite/:token/accept can complete the
+    # join against the session that internal_request established.
+    looked_up_via_token = Onetime::OrganizationMembership.find_by_token(invite_token)
+    expect(looked_up_via_token).not_to be_nil
+    expect(looked_up_via_token.pending?).to be(true)
 
-    # SignupAndAccept looks up the account_id after the call rather than
-    # relying on the (nil) return value. Mirror that here so the spec regresses
-    # if the lookup path ever breaks.
+    # No membership in org.members yet — accept! has not run.
+    invitee_customer = Onetime::Customer.find_by_email(invited_email)
+    expect(invitee_customer).not_to be_nil
+    expect(organization.member?(invitee_customer)).to be(false)
+    expect(
+      Onetime::OrganizationMembership.find_by_org_customer(
+        organization.objid,
+        invitee_customer.objid,
+      ),
+    ).to be_nil
+
+    # Default workspace is intentionally skipped for invite signups — invitees
+    # join an existing org, so a personal default workspace would be dead state.
+    expect(invitee_customer.verified?).to be(true)
+
     looked_up_id = Auth::Config.account_id_for_login(login: invited_email)
     expect(looked_up_id).to eq(account_row[:id])
+  end
+
+  it 'completes the join when /accept runs after signup' do
+    expect(invitation.pending?).to be(true)
+    invite_token = invitation.token
+
+    Auth::Config.create_account(
+      login: invited_email,
+      password: password,
+      params: { 'invite_token' => invite_token },
+    )
+
+    invitee_customer = Onetime::Customer.find_by_email(invited_email)
+    expect(invitee_customer).not_to be_nil
+
+    # Simulate the explicit POST /api/invite/:token/accept the frontend issues
+    # with the established session: load the still-pending invitation and call
+    # accept!. Org membership flips to active in one step (auto-promote, since
+    # requires_admin_approval? is false).
+    invitation_for_accept = Onetime::OrganizationMembership.find_by_token(invite_token)
+    expect(invitation_for_accept).not_to be_nil
+    expect(invitation_for_accept.pending?).to be(true)
+
+    invitation_for_accept.accept!(invitee_customer, provisioning_source: 'invited')
+
+    expect(organization.member?(invitee_customer)).to be(true)
+
+    active_membership = Onetime::OrganizationMembership.find_by_org_customer(
+      organization.objid,
+      invitee_customer.objid,
+    )
+    expect(active_membership).not_to be_nil
+    expect(active_membership.active?).to be(true)
+
+    # Token consumed on accept — find_by_token must no longer resolve.
+    expect(Onetime::OrganizationMembership.find_by_token(invite_token)).to be_nil
+  end
+
+  it 'preserves the token after signup so /decline stays functional' do
+    expect(invitation.pending?).to be(true)
+    invite_token = invitation.token
+
+    Auth::Config.create_account(
+      login: invited_email,
+      password: password,
+      params: { 'invite_token' => invite_token },
+    )
+
+    invitation_for_decline = Onetime::OrganizationMembership.find_by_token(invite_token)
+    expect(invitation_for_decline).not_to be_nil
+    expect(invitation_for_decline.pending?).to be(true)
+
+    invitation_for_decline.decline!
+
+    expect(invitation_for_decline.status).to eq('declined')
+    # SQL account intact — the user can still log in as a personal account.
+    account_row = Auth::Database.connection[:accounts].where(email: invited_email).first
+    expect(account_row).not_to be_nil
+  end
+
+  it 'blocks signup when invite_token email does not match login email' do
+    expect(invitation.pending?).to be(true)
+    invite_token = invitation.token
+    other_email  = "other_#{test_suffix}@onetimesecret.com"
+
+    expect {
+      Auth::Config.create_account(
+        login: other_email,
+        password: password,
+        params: { 'invite_token' => invite_token },
+      )
+    }.to raise_error(Rodauth::InternalRequestError)
+
+    # No account written: before_create_account aborted the flow.
+    other_account = Auth::Database.connection[:accounts].where(email: other_email).first
+    expect(other_account).to be_nil
+
+    # Invitation still resolves by its token (untouched).
+    untouched = Onetime::OrganizationMembership.find_by_token(invite_token)
+    expect(untouched).not_to be_nil
+    expect(untouched.pending?).to be(true)
+  ensure
+    Auth::Database.connection[:accounts].where(email: other_email).delete if defined?(other_email)
   end
 end
