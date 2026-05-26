@@ -344,7 +344,7 @@ GEM
     prettier_print (1.2.1)
     prettyprint (0.2.0)
     prism (1.9.0)
-    psych (5.2.6)
+    psych (5.3.1)
       date
       stringio
     public_suffix (7.0.5)
@@ -642,7 +642,7 @@ DEPENDENCIES
   otto (~> 2.0.0)
   passforge (~> 1.1)
   pg (~> 1.6)
-  psych (~> 5.2.3)
+  psych (~> 5.1)
   public_suffix
   puma (>= 6.0, < 8.0)
   rack (>= 3.2.6, < 4.0)
@@ -685,7 +685,7 @@ DEPENDENCIES
   solargraph
   sqlite3 (~> 2.0)
   stackprof
-  stringio (~> 3.1.6)
+  stringio (>= 3.0)
   stripe
   syntax_tree
   tilt
