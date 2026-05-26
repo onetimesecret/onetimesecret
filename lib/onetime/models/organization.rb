@@ -65,6 +65,7 @@ module Onetime
     field :display_name
     field :description
     field :owner_id       # custid of organization owner (internal objid of Customer)
+    field :created_by     # Immutable audit field — custid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
 
@@ -315,6 +316,7 @@ module Onetime
         org = new(
           display_name: display_name,
           owner_id: owner_customer.custid,
+          created_by: owner_customer.custid,
           contact_email: contact_email,
           **,
         )

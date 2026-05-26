@@ -20,6 +20,11 @@ module Onetime::Organization::Features
       base.safe_dump_field :display_name
       base.safe_dump_field :description
       base.safe_dump_field :owner_id
+      # Immutable audit field (ADR-012). owner_id is kept for backward-
+      # compatible JSON consumers during the deprecation window; the two
+      # are kept identical via Organization.create! wiring and the
+      # standardize_owner_id housekeeping chore.
+      base.safe_dump_field :created_by
       base.safe_dump_field :contact_email
       base.safe_dump_field :billing_email
       base.safe_dump_field :is_default
