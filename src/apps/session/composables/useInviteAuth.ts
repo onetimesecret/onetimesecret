@@ -91,6 +91,26 @@ export function useInviteAuth() {
   }
 
   /**
+   * Completes the invitation acceptance by POSTing to /api/invite/:token/accept.
+   *
+   * Called after signup or login succeeds and a session is established. The
+   * backend leaves the invitation pending after auth so the acceptance step
+   * stays explicit and the same code path serves both flows. A non-success
+   * response here is logged but not propagated — the user is authenticated,
+   * the AcceptInvite page will recover via its direct_accept handler on
+   * the next render.
+   */
+  async function acceptPendingInvite(inviteToken: string): Promise<void> {
+    try {
+      await $api.post(`/api/invite/${inviteToken}/accept`, {
+        shrimp: csrfStore.shrimp,
+      });
+    } catch (e) {
+      console.warn('[useInviteAuth] /accept after auth failed:', e);
+    }
+  }
+
+  /**
    * Creates a new account and atomically accepts the invitation.
    * Uses the dedicated invite signup endpoint which derives email from the token.
    *
@@ -136,6 +156,13 @@ export function useInviteAuth() {
       authStore.setAuthenticated(true).catch((err) => {
         console.warn('[useInviteAuth] Background auth sync failed after signup:', err);
       });
+
+      // Complete the join: the signup endpoint creates the account and
+      // session but leaves the invitation pending. Issue the explicit
+      // /accept call now while the token is still valid and the user is
+      // authenticated.
+      await acceptPendingInvite(inviteToken);
+
       return { success: true };
     } catch (e) {
       const info = extractErrorInfo(undefined, e as AxiosLikeError);
@@ -190,12 +217,16 @@ export function useInviteAuth() {
         return { success: false, requiresMfa: true, redirect: `/invite/${inviteToken}` };
       }
 
-      // Login successful - membership already created by after_login hook.
-      // Fire-and-forget: same reasoning as signupAndAccept — awaiting triggers
-      // a reactive cascade that unmounts the form before emit('success') fires.
+      // Login established the session; complete the join via the explicit
+      // /accept call. The after_login hook no longer accepts invitations —
+      // signup and login share the same downstream acceptance path.
+      // Fire-and-forget setAuthenticated: awaiting triggers a reactive
+      // cascade that unmounts the form before emit('success') fires.
       authStore.setAuthenticated(true).catch((err) => {
         console.warn('[useInviteAuth] Background auth sync failed after login:', err);
       });
+
+      await acceptPendingInvite(inviteToken);
 
       return { success: true };
     } catch (e) {
