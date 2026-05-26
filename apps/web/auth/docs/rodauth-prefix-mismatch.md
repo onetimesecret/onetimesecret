@@ -72,6 +72,40 @@ the framework level.
 `apps/web/auth/config/json_mode.rb:43` independently applies the same
 `Auth::Application.uri_prefix` prefixing for json-mode path matching.
 
+### Nuance: `oauth_token_revocation` enforces CSRF on form requests
+
+Of the four per-feature `check_csrf?` overrides listed in Symptom 2,
+`oauth_token_revocation.rb:71-78` is structurally different from the
+others:
+
+```ruby
+def check_csrf?
+  case request.path
+  when revoke_path
+    !json_request?   # enforce CSRF on form requests, skip on JSON
+  else
+    super
+  end
+end
+```
+
+The other three (`oauth_base`, `oidc`, `oauth_authorize_base`) return
+`false` unconditionally on path match. Revocation alone *requires* CSRF
+for form-encoded requests. This is inverted from OAuth 2.0 spec
+expectations: RFC 7009 defines `/revoke` as form-encoded and
+authenticated by client credentials, not CSRF tokens.
+
+Two things follow:
+
+1. Even with the prefix mismatch resolved, a standard form-encoded
+   `/revoke` from an SP would still be CSRF-blocked by the gem's own
+   override. The local `check_csrf?` override
+   (`features/oauth.rb:199`) sidesteps this by exempting `/revoke`
+   regardless of content type — correct for OAuth semantics.
+2. If we ever drop the local override expecting "rodauth-oauth handles
+   this correctly once prefix matches," form-encoded revoke breaks.
+   The exemption is load-bearing, not merely a prefix workaround.
+
 ## Why we don't fix the root cause
 
 Three approaches were considered and rejected:
