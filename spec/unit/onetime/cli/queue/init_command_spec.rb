@@ -16,10 +16,19 @@ RSpec.describe Onetime::CLI::Queue::InitCommand do
   let(:encoded_name) { URI.encode_www_form_component(policy[:name]) }
   let(:policy_url) { "#{management_base}/api/policies/#{encoded_vhost}/#{encoded_name}" }
 
+  # RabbitMQ URL and Management URL are read from OT.conf (not ENV directly)
+  # since commit ec718be6a routed all RabbitMQ URL reads through config.
+  let(:test_conf) do
+    {
+      'jobs' => {
+        'rabbitmq_url' => amqp_url,
+        'rabbitmq_management_url' => management_base,
+      },
+    }
+  end
+
   before do
-    allow(ENV).to receive(:fetch).and_call_original
-    allow(ENV).to receive(:fetch).with('RABBITMQ_URL', anything).and_return(amqp_url)
-    allow(ENV).to receive(:fetch).with('RABBITMQ_MANAGEMENT_URL', anything).and_return(management_base)
+    allow(OT).to receive(:conf).and_return(test_conf)
     allow(command).to receive(:boot_application!)
     allow(command).to receive(:create_vhost)
     allow(command).to receive(:set_permissions)
