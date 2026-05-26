@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   import type { DisabledHomepageVariant } from '@/schemas/contracts/disabled-homepage';
-  import { DEFAULT_DISABLED_HOMEPAGE_VARIANT } from '@/schemas/contracts/disabled-homepage';
   import { computed, type Component } from 'vue';
   import DisabledLegacy from './disabled/variants/DisabledLegacy.vue';
   import DisabledMinimal from './disabled/variants/DisabledMinimal.vue';
@@ -41,14 +40,7 @@
   };
 
   const { variant, props } = useDisabledConfig();
-  // Fallback covers the (statically unreachable) case where the per-domain
-  // config carries a variant id the frontend doesn't recognise — e.g.
-  // server emits a new variant before the matching component ships. The
-  // frontend default is the source of truth for "if we can't dispatch,
-  // what do we render?" — keep it in sync with the constant.
-  const ActiveVariant = computed(
-    () => VARIANTS[variant.value] ?? VARIANTS[DEFAULT_DISABLED_HOMEPAGE_VARIANT]
-  );
+  const ActiveVariant = computed(() => VARIANTS[variant.value]);
 </script>
 
 <template>
