@@ -22,16 +22,26 @@ bag. Variants are presentational — no store reads.
 
 ## Bootstrap contract
 
-`bootstrap.disabled_homepage` (`schemas/contracts/disabled-homepage.ts`):
+The variant is a **per-domain** setting, living on
+`homepage_config.disabled_homepage_variant`
+(`schemas/contracts/custom-domain/homepage-config.ts`). It rides the
+existing `/homepage-config` endpoint that already gates
+`signup_enabled` / `signin_enabled` per custom domain — `null` means
+"use the deployment-wide frontend default".
 
-| field               | type                                   | semantics                                              |
-| ------------------- | -------------------------------------- | ------------------------------------------------------ |
-| `variant`           | `'v1' \| 'minimal' \| 'legacy'`        | which component to render                              |
-| `show_promo`        | `boolean \| null`                      | tri-state override (`null` = auto, `true/false` = force) |
-| `show_what_is_this` | `boolean \| null`                      | same                                                   |
+The optional affordance overrides stay on the site-level
+`bootstrap.disabled_homepage` block
+(`schemas/contracts/disabled-homepage.ts`):
 
-All fields optional with sensible defaults; backend may omit the block.
-Ruby serializer wiring is TBD — auto-detection rules apply until then.
+| location                                          | field                       | type                            | semantics                                                |
+| ------------------------------------------------- | --------------------------- | ------------------------------- | -------------------------------------------------------- |
+| `homepage_config`                                 | `disabled_homepage_variant` | `'v1' \| 'minimal' \| 'legacy' \| null` | which component this domain renders (`null` = default)   |
+| `bootstrap.disabled_homepage`                     | `show_promo`                | `boolean \| null`               | tri-state override (`null` = auto, `true/false` = force) |
+| `bootstrap.disabled_homepage`                     | `show_what_is_this`         | `boolean \| null`               | same                                                     |
+
+All fields optional with sensible defaults; backend may omit either.
+Ruby serializer wiring for the per-domain variant field is TBD —
+auto-detection / frontend default applies until then.
 
 ## Flipping the variant
 
@@ -39,26 +49,23 @@ Resolution order (highest priority first):
 
 1. **`?variant=<id>` URL query param** — dogfood / debugging escape hatch.
    Read once per page load; invalid values fall through silently.
-2. **`bootstrap.disabled_homepage.variant`** — operator config via
-   server-injected window state.
-3. **Schema default** in `disabled-homepage.ts`.
+2. **`homepage_config.disabled_homepage_variant`** — per-domain
+   operator config via the `/homepage-config` endpoint.
+3. **`DEFAULT_DISABLED_HOMEPAGE_VARIANT`** — frontend constant in
+   `schemas/contracts/disabled-homepage.ts`.
 
-Once the Ruby serializer emits `disabled_homepage`, operator config is
-the long-term path: change the value, bounce the app, next page load
-picks it up. No frontend release. Until then:
+Once the Ruby `/homepage-config` endpoint accepts the variant field,
+per-domain operator config is the long-term path: PATCH the value, no
+frontend release. Until then:
 
-- **Schema default**: change `disabledHomepageVariantSchema.default('v1')`.
-  Requires both a frontend release *and* regenerating the JSON schemas
-  Rhales reads (`pnpm run schemas:rhales:generate`) — Rhales applies
-  defaults server-side, so a frontend-only change is invisible.
-- **Bootstrap window state**: inject in the Ruby HTML template before
-  the bundle loads, e.g.
-  `window.__BOOTSTRAP_ME__.disabled_homepage = { variant: 'legacy', ... }`.
-  Per-deployment, no frontend release.
+- **Frontend default**: change `DEFAULT_DISABLED_HOMEPAGE_VARIANT` in
+  `disabled-homepage.ts`. Requires a frontend release. This is the
+  source of truth for unconfigured domains and the canonical site.
 - **URL param**: `?variant=legacy` on any disabled-homepage URL.
 
-Override individual feature flags the same way via bootstrap — set
-`show_promo` / `show_what_is_this` to `true` / `false` / `null` (= auto).
+Override individual feature flags via the site-level bootstrap block —
+set `show_promo` / `show_what_is_this` to `true` / `false` / `null`
+(= auto).
 
 ### Verifying which variant is rendering
 
@@ -103,8 +110,8 @@ Set in `etc/defaults/config.defaults.yaml` under `site.interface.ui.homepage.pub
 2. Register in `VARIANTS` in `DisabledHomepage.vue`.
 3. Add `'x'` to `disabledHomepageVariantSchema`.
 
-Unrecognized variant ids fall back to `v1` (defense in depth — Zod
-would already reject the value at parse time).
+Unrecognized variant ids fall back to `DEFAULT_DISABLED_HOMEPAGE_VARIANT`
+(defense in depth — Zod would already reject the value at parse time).
 
 ## Tests
 

@@ -7,6 +7,8 @@
 
 import { z } from 'zod';
 
+import { disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Homepage config canonical schema
 // ─────────────────────────────────────────────────────────────────────────────
@@ -40,6 +42,16 @@ export const homepageConfigCanonical = z.object({
    * flag remains the master switch — the frontend ANDs both layers.
    */
   signin_enabled: z.boolean().default(true),
+
+  /**
+   * Which disabled-homepage variant this domain renders when the homepage
+   * secret form is gated by auth. Null means "use the frontend default"
+   * (DEFAULT_DISABLED_HOMEPAGE_VARIANT) — operators only set this when
+   * they want to deviate from the deployment-wide default.
+   *
+   * The ?variant URL override still wins for dogfood/preview.
+   */
+  disabled_homepage_variant: disabledHomepageVariantSchema.nullable().default(null),
 
   /** Configuration creation timestamp (Unix epoch seconds). Null if unconfigured. */
   created_at: z.number().nullable(),
