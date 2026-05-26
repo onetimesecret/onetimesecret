@@ -201,6 +201,7 @@ module Auth::Config::Features
       auth.omniauth_provider(
         :openid_connect,
         name: provider_name,
+        # offline_access is required by rodauth-oauth (oidc.rb:769-773) for refresh-token issuance; do not remove.
         scope: [:openid, :email, :profile, :offline_access],
         response_type: :code,
         issuer: issuer,
