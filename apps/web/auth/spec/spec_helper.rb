@@ -102,6 +102,16 @@ require_relative '../database'
 # that need OAuth set the env var BEFORE `require_relative '../spec_helper'`;
 # unit specs leave it unset and the RSA-key requirement (features/oauth.rb:234)
 # stays dormant.
+#
+# Reload Onetime.auth_config before requiring the application. The
+# AuthConfig singleton was first instantiated during `require 'onetime'`
+# (lib/onetime/initializers.rb:75, called from the root spec_helper) — at
+# which point AUTHENTICATION_MODE was unset, so mode cached as 'simple'.
+# Without a reload here, Auth::Database.connection returns nil (full-mode
+# guard at database.rb:111), and rodauth's post_configure (base.rb:443)
+# crashes calling db.database_type on nil. Mirrors the reload performed
+# by ProductionConfigHelper#boot_onetime_app for integration specs.
+Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
 require_relative '../application'
 
 # =============================================================================
