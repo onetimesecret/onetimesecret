@@ -211,6 +211,50 @@ module Auth::Config::Features
       # No client_credentials, device_code, password, or assertion grants in v1.
       auth.oauth_grant_types_supported %w[authorization_code refresh_token]
 
+      # ─── /userinfo JWT exp enforcement — defense-in-depth gap ─────────
+      # FINDING (#3231): rodauth-oauth's json-jwt branch
+      # (oauth_jwt_base.rb:217-285) is the active code path here because both
+      # json-jwt and ruby-jwt are loaded and `defined?(JSON::JWT)` wins at
+      # gem load time (oauth_jwt_base.rb:132). Its post-decode claim
+      # validation at lines 269-278 is an AND-chain:
+      #
+      #   if verify_claims &&
+      #      (!claims[:exp] || Time.at(claims[:exp]) < now) &&
+      #      claims[:nbf] && Time.at(claims[:nbf]) < now &&
+      #      claims[:iat] && Time.at(claims[:iat]) < now &&
+      #      verify_iss && claims[:iss] != oauth_jwt_issuer &&
+      #      verify_aud && !verify_aud(claims[:aud], claims[:client_id]) &&
+      #      verify_jti && !verify_jti(claims[:jti], claims)
+      #     return
+      #   end
+      #
+      # So the gem only rejects a JWT when EVERY claim check fails
+      # simultaneously. A token with a valid iss/aud/iat/jti but a past `exp`
+      # slips through the JWT-level gate. JSON::JWT.decode itself also does
+      # not enforce `exp`.
+      #
+      # In practice /userinfo is protected by the DB-row gate:
+      # `valid_oauth_grant_ds` (oauth_base.rb:596-602) filters
+      # `oauth_grants.expires_in >= CURRENT_TIMESTAMP`, and /token bumps
+      # that column to `now + oauth_access_token_expires_in` (3600s) on every
+      # exchange. The DB row's expiry is the effective expiry for issued
+      # access tokens, and an attacker cannot forge a row.
+      #
+      # We do NOT override `jwt_decode` here. Patching the gem's predicate
+      # safely requires re-implementing all six claim checks, which we'd
+      # have to keep in sync with upstream on every gem bump. A correct fix
+      # belongs upstream.
+      #
+      # Regression coverage that pins both halves of this:
+      #   - spec/integration/oauth_idp_lifecycle_spec.rb:312
+      #     'FINDING: does NOT enforce JWT exp at /userinfo' — documents the
+      #     gem's current (broken) behavior. If this starts failing with 401,
+      #     the gem fixed the AND-chain and the documentation here should be
+      #     revisited.
+      #   - spec/integration/oauth_idp_lifecycle_spec.rb:355
+      #     'rejects /userinfo when the DB grant row is expired' — pins the
+      #     DB-row gate we actually rely on.
+
       # ─── JWT signing keys ──────────────────────────────────────────────
       #
       # RSA keypair for signing OIDC ID tokens and JWT access tokens.
