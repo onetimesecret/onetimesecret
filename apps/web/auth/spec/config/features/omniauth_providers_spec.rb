@@ -393,7 +393,11 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       it 'skips when OAUTH_SP_DEV_CLIENT_SECRET is missing' do
         expect(auth).not_to receive(:omniauth_provider)
 
-        ClimateControl.modify({}) do
+        # Explicitly unset (not just modify {}) so this test is independent of
+        # whether an earlier spec in the rspec invocation left the var set in
+        # the outer process. ClimateControl.modify({}) is a no-op when the
+        # outer env already has the key.
+        ClimateControl.modify(OAUTH_SP_DEV_CLIENT_SECRET: nil) do
           Auth::Config::Features::OmniAuth.configure_local_idp_provider(auth)
         end
 
@@ -405,7 +409,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
           :openid_connect,
           hash_including(
             name: :local,
-            scope: [:openid, :email, :profile],
+            scope: [:openid, :email, :profile, :offline_access],
             response_type: :code,
             issuer: 'http://localhost:3000/auth',
             client_options: {
