@@ -36,11 +36,7 @@
     notify: false,
   });
 
-  // Delay before redirecting so the success message is visible and the
-  // background authStore sync (fire-and-forget from useInviteAuth) has time
-  // to settle before /orgs mounts and queries the store.
-  const ACCEPT_SUCCESS_REDIRECT_DELAY_MS = 1500;
-  // Longer delay for the direct accept/decline paths where the server has
+  // Delay for the direct accept/decline paths where the server has
   // already confirmed and no background auth sync is pending.
   const DIRECT_ACTION_REDIRECT_DELAY_MS = 2000;
 
@@ -214,16 +210,15 @@
   const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
 
   /**
-   * Handler for successful signup/signin + accept flow.
-   * Redirects to organizations page.
+   * Handler for successful signup/signin (auth established, session live).
+   *
+   * Does NOT redirect — the invitation is still pending. The state machine
+   * recomputes to direct_accept once authStore.isAuthenticated flips, which
+   * renders the explicit Accept/Decline buttons. The user must click one.
    */
-  function onAcceptSuccess() {
-    success.value = t('web.organizations.invitations.accept_success');
-    // Reset organization store to force refetch on next mount
-    organizationStore.$reset();
-    setTimeout(() => {
-      router.push('/orgs');
-    }, ACCEPT_SUCCESS_REDIRECT_DELAY_MS);
+  function onAuthSuccess() {
+    error.value = '';
+    success.value = t('web.organizations.invitations.confirm_join_below');
   }
 
   /**
@@ -393,7 +388,7 @@
         :invite-token="invitationToken"
         :org-name="invitation.organization_name"
         :auth-methods="invitation.auth_methods || []"
-        @success="onAcceptSuccess"
+        @success="onAuthSuccess"
         @error="onFormError"
         @decline="handleDecline"
         @account-exists="onAccountExists" />
@@ -474,7 +469,7 @@
           :invite-token="invitationToken"
           :org-name="invitation.organization_name"
           :auth-methods="invitation.auth_methods || []"
-          @success="onAcceptSuccess"
+          @success="onAuthSuccess"
           @error="onFormError"
           @mfa-required="onMfaRequired"
           @decline="handleDecline" />

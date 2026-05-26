@@ -50,7 +50,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { signupAndAccept, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
+const { signupForInvite, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
 const {
   requestMagicLink,
   sent: magicLinkSent,
@@ -171,7 +171,7 @@ const handleSubmit = async () => {
   clearErrors();
 
   try {
-    const result = await signupAndAccept(
+    const result = await signupForInvite(
       props.invitedEmail,
       password.value,
       termsAgreed.value,
@@ -538,7 +538,7 @@ const handleSubmit = async () => {
                 data-testid="invite-signup-submit">
                 <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
                 <template v-else>
-                  {{ t('web.organizations.invitations.create_account_and_join') }}
+                  {{ t('web.organizations.invitations.signup_continue') }}
                   <OIcon collection="heroicons"
 name="arrow-right"
 class="size-4"
@@ -929,7 +929,7 @@ aria-hidden="true" />
             data-testid="invite-signup-submit">
             <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
             <template v-else>
-              {{ t('web.organizations.invitations.create_account_and_join') }}
+              {{ t('web.organizations.invitations.signup_continue') }}
               <OIcon collection="heroicons"
 name="arrow-right"
 class="size-4"
