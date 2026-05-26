@@ -228,7 +228,6 @@ GEM
       net-pop
       net-smtp
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.27.0)
     multi_xml (0.8.1)
       bigdecimal (>= 3.1, < 5)
@@ -245,9 +244,6 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.5)
-    nokogiri (1.19.3)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.19.3-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.19.3-aarch64-linux-musl)
@@ -413,6 +409,9 @@ GEM
     rodauth (2.42.0)
       roda (>= 2.6.0)
       sequel (>= 4)
+    rodauth-oauth (1.6.4)
+      base64
+      rodauth (~> 2.0)
     rodauth-omniauth (0.6.2)
       omniauth (~> 2.0)
       rodauth (~> 2.36)
@@ -517,8 +516,6 @@ GEM
       yard-solargraph (~> 0.1)
     sorted_set (1.1.0)
       rbtree
-    sqlite3 (2.9.2)
-      mini_portile2 (~> 2.8.0)
     sqlite3 (2.9.2-aarch64-linux-gnu)
     sqlite3 (2.9.2-aarch64-linux-musl)
     sqlite3 (2.9.2-arm-linux-gnu)
@@ -601,7 +598,6 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin
-  ruby
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
@@ -660,6 +656,7 @@ DEPENDENCIES
   rhales (~> 0.6.2)
   roda (~> 3.0)
   rodauth (~> 2.0)
+  rodauth-oauth (~> 1.6)
   rodauth-omniauth (~> 0.4)
   rodauth-tools (~> 0.3.1)
   rotp (~> 6.2)
