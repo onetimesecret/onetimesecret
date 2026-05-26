@@ -244,8 +244,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect { subject.send(:validate_domain_permissions, domain_record) }
           .to raise_error(Onetime::Forbidden) do |error|
             expect(error.to_h).to include(
-              error: 'Forbidden',
-              message: "You do not have permission to use domain: #{share_domain}",
+              error: "You do not have permission to use domain: #{share_domain}",
+              error_type: 'Forbidden',
               error_key: 'api.secrets.errors.domain_permission_authenticated_non_owner',
             )
           end
@@ -287,8 +287,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect { subject.send(:validate_domain_permissions, domain_record) }
           .to raise_error(Onetime::Forbidden) do |error|
             expect(error.to_h).to include(
-              error: 'Forbidden',
-              message: "Public sharing disabled for domain: #{share_domain}",
+              error: "Public sharing disabled for domain: #{share_domain}",
+              error_type: 'Forbidden',
               error_key: 'api.secrets.errors.domain_public_sharing_disabled',
             )
           end
@@ -330,8 +330,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect { subject.send(:validate_domain_permissions, domain_record) }
           .to raise_error(Onetime::Forbidden) do |error|
             expect(error.to_h).to include(
-              error: 'Forbidden',
-              message: "You do not have permission to use domain: #{share_domain}",
+              error: "You do not have permission to use domain: #{share_domain}",
+              error_type: 'Forbidden',
               error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
             )
           end
