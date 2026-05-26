@@ -30,6 +30,7 @@ module InviteAPI::Logic
             'Token is required',
             error_key: 'api.invite.errors.token_required',
             field: :token,
+            error_type: :missing,
           )
         end
 
@@ -42,6 +43,7 @@ module InviteAPI::Logic
             'Organization no longer exists',
             error_key: 'api.invite.errors.organization_no_longer_exists',
             field: :token,
+            error_type: :missing,
           )
         end
 
@@ -52,6 +54,7 @@ module InviteAPI::Logic
             error_key: 'api.invite.errors.invitation_already_processed',
             args: { status: @invitation.status },
             field: :token,
+            error_type: :invalid,
           )
         end
 
@@ -61,6 +64,7 @@ module InviteAPI::Logic
             'Invitation has expired',
             error_key: 'api.invite.errors.invitation_expired',
             field: :token,
+            error_type: :expired,
           )
         end
 
@@ -86,6 +90,7 @@ module InviteAPI::Logic
           'You are already a member of this organization',
           error_key: 'api.invite.errors.already_member',
           field: :token,
+          error_type: :exists,
         )
       end
 

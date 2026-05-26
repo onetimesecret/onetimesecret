@@ -96,8 +96,10 @@ module OrganizationAPI::Logic
       def load_member(extid)
         member = Onetime::Customer.find_by_extid(extid)
         if member.nil?
-          raise_not_found(error_key: 'api.organizations.members.errors.member_not_found',
-                          args: { extid: extid })
+          raise_not_found(
+            error_key: 'api.organizations.members.errors.member_not_found',
+            args: { extid: extid },
+          )
         end
         member
       end
@@ -112,7 +114,7 @@ module OrganizationAPI::Logic
           raise_not_found(error_key: 'api.organizations.members.errors.member_not_in_organization')
         end
         unless membership.active?
-          raise_form_error(error_key: 'api.organizations.members.errors.member_not_active')
+          raise_form_error(error_key: 'api.organizations.members.errors.member_not_active', error_type: :invalid)
         end
         membership
       end
@@ -125,6 +127,7 @@ module OrganizationAPI::Logic
             error_key: 'api.organizations.members.errors.invalid_role_value',
             args: { roles: VALID_ROLES.join(', ') },
             field: :role,
+            error_type: :invalid,
           )
         end
 
@@ -133,6 +136,7 @@ module OrganizationAPI::Logic
           raise_form_error(
             error_key: 'api.organizations.members.errors.cannot_change_owner_role',
             field: :role,
+            error_type: :forbidden,
           )
         end
 
@@ -142,6 +146,7 @@ module OrganizationAPI::Logic
             error_key: 'api.organizations.members.errors.member_already_has_role',
             args: { role: @new_role },
             field: :role,
+            error_type: :conflict,
           )
         end
 
@@ -151,6 +156,7 @@ module OrganizationAPI::Logic
         raise_form_error(
           error_key: 'api.organizations.members.errors.cannot_promote_to_owner',
           field: :role,
+          error_type: :forbidden,
         )
       end
     end
