@@ -20,6 +20,7 @@
 require 'spec_helper'
 
 require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_entitlements'
+require_relative '../../../../../lib/onetime/models/organization/features/with_materialized_limits'
 
 RSpec.describe 'WithMaterializedEntitlements', billing: true do
 
@@ -75,6 +76,7 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
     Class.new do
       # Pull in InstanceMethods and ClassMethods (mirrors what base.include/extend does)
       include Onetime::Models::Features::WithMaterializedEntitlements::InstanceMethods
+      include Onetime::Models::Features::WithMaterializedLimits::InstanceMethods
       extend cm
 
       attr_accessor :materialized_entitlements_at

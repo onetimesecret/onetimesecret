@@ -38,7 +38,7 @@ require_relative '../../../apps/web/billing/errors'
 # Override the private billing_enabled? method for this instance
 @org.define_singleton_method(:billing_enabled?) { false }
 @org.entitlements.sort
-#=> Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.sort
+#=> Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS.sort
 
 ## Standalone: can? returns true for standard entitlements
 @org.can?('api_access')
@@ -57,7 +57,7 @@ require_relative '../../../apps/web/billing/errors'
 @org.define_singleton_method(:billing_enabled?) { true }
 @org.planid = ""
 @org.entitlements.sort
-#=> Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.sort
+#=> Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS.sort
 
 ## SaaS empty planid: can? returns true for FREE tier entitlements
 @org.can?('api_access')

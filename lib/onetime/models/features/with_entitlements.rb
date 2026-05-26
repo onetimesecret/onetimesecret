@@ -5,50 +5,36 @@
 module Onetime
   module Models
     module Features
-      # Entitlement-Based Authorization Feature
+      # Entitlement-Based Authorization Feature (Portable Base)
       #
-      # Adds entitlement checking to models (primarily Organization).
-      # Features and limits are separated:
-      # - Entitlements: Can the org do X? (boolean check)
-      # - Limits: How many times can org do X? (numeric/quota check)
+      # Slim, portable foundation for entitlement checking. Any Familia::Horreum
+      # subclass that has a `materialized_entitlements` set (typically provided by
+      # `WithMaterializedEntitlements`) can include this feature to gain the
+      # boolean predicate `can?(entitlement)` and the read-only `entitlements`
+      # accessor, plus the `billing_enabled?` helper used by sibling features.
+      #
+      # Plan-resolution semantics (fallback to Billing::Plan.load when
+      # materialization hasn't happened yet) live in WithPlanEntitlements,
+      # which is Organization-only. Likewise, limits and quota predicates live
+      # in WithMaterializedLimits.
+      #
+      # Method-resolution-order pattern:
+      # WithPlanEntitlements#entitlements overrides this module's
+      # implementation and calls `super` to reach the materialized-only path.
+      # The Organization model lists `with_plan_entitlements` AFTER
+      # `with_entitlements` so its override sits at the top of the chain.
       #
       # Usage:
       #   org.can?('custom_domains')        # => true/false
       #   org.entitlements                  # => ["api_access", "custom_domains", ...]
-      #   org.limit_for('teams')            # => 1 (or Float::INFINITY)
-      #   org.check_entitlement('api_access') # => {allowed: false, upgrade_needed: true, ...}
       #
       # == Fail-Open / Fail-Closed Design
       #
-      # This module implements a dual-mode authorization strategy to support both
-      # self-hosted (open source) and SaaS deployments:
-      #
-      # === FAIL-OPEN (Self-Hosted / Standalone Mode)
-      #
-      # When billing is disabled or no entitlements exist, we allow unlimited
-      # resource creation. This ensures self-hosted instances work without any
-      # billing configuration. Conditions that trigger fail-open:
-      # - billing_enabled? returns false
-      # - No plan assigned (planid empty)
-      # - entitlements array is empty
-      #
-      # Result: STANDALONE_ENTITLEMENTS (full access), limits return Float::INFINITY
-      #
-      # === FAIL-CLOSED (SaaS / Billing Enabled)
-      #
-      # When billing is properly configured, quota checks are strictly enforced.
-      # Internal errors (Redis failures, missing plan data) should propagate as
-      # exceptions rather than silently allowing resource creation. This protects
-      # revenue and ensures plan limits are respected.
-      #
-      # Result: Plan-defined entitlements and limits, errors raise exceptions
-      #
-      # == Quota Enforcement Locations
-      #
-      # Quota checks using at_limit? occur in:
-      # - CreateOrganization#check_organization_quota! (organization limits)
-      # - CreateInvitation#check_member_quota! (member limits, see #2224)
-      # - BaseSecretAction (secret lifetime limits via limit_for)
+      # See WithPlanEntitlements for the full fail-open / fail-closed rationale.
+      # In this portable base, behavior is intentionally conservative:
+      # - If the host model has not been materialized, `entitlements` returns
+      #   an empty array. Callers that want the Plan.load fallback chain must
+      #   include WithPlanEntitlements.
       #
       module WithEntitlements
         Familia::Base.add_feature self, :with_entitlements
@@ -67,97 +53,37 @@ module Onetime
         # plan. See #3111 for the drift bug this constant previously caused.
         DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
-        # Full entitlement set for standalone mode
-        # When billing is disabled or plan cache is empty, users get full access
-        STANDALONE_ENTITLEMENTS = %w[
-          api_access custom_privacy_defaults extended_default_expiration
-          custom_domains custom_branding homepage_secrets
-          incoming_secrets custom_mail_sender flexible_from_domain
-          manage_orgs manage_teams manage_members manage_sso audit_logs
-          custom_signup_validation
-        ].freeze
-
-        # Free tier entitlements as fallback when billing is enabled
-        # but plan cache is empty. This prevents showing "No features available"
-        # and provides a failsafe degraded experience.
-        #
-        # These match the free_v1 plan in billing.yaml.
-        FREE_TIER_ENTITLEMENTS = %w[
-          create_secrets
-          view_receipt
-          api_access
-          custom_domains
-          incoming_secrets
-          homepage_secrets
-        ].freeze
-
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
-          base.extend ClassMethods
           base.include InstanceMethods
         end
 
-        module ClassMethods
-          # Parse TTL value from environment variable with strict validation
-          #
-          # Uses Integer() for strict parsing to reject malformed values like "123abc".
-          # Applies bounds validation: minimum 0, maximum MAX_TTL (365 days).
-          #
-          # @param env_var [String] Environment variable name
-          # @param default [Integer] Default value if env var is not set or invalid
-          # @return [Integer] Validated TTL value in seconds (0 to MAX_TTL)
-          #
-          # @example
-          #   Organization.parse_ttl_env('PLAN_TTL_ANONYMOUS', 604_800)
-          def parse_ttl_env(env_var, default)
-            raw = ENV.fetch(env_var, nil)
-            return default if raw.nil? || raw.strip.empty?
-
-            begin
-              value = Integer(raw.strip, 10)
-              value.clamp(0, MAX_TTL)
-            rescue ArgumentError
-              OT.lw "[WithEntitlements] Invalid #{env_var} value, using default",
-                { env_var: env_var, default: default }
-              default
-            end
-          end
-
-          # FREE tier default limits when cache is unavailable
-          #
-          # The secret_lifetime.max value can be overridden via PLAN_TTL_ANONYMOUS
-          # environment variable for Docker/self-hosted deployments.
-          #
-          # Results are memoized at class level for consistent behavior.
-          #
-          # @see https://github.com/onetimesecret/onetimesecret/issues/2390
-          # @see https://github.com/onetimesecret/onetimesecret/issues/3111
-          def free_tier_limits
-            @free_tier_limits ||= {
-              'organizations.max' => 5,
-              'teams.max' => 0,
-              'members_per_team.max' => 0,
-              'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', DEFAULT_FREE_TTL),
-            }.freeze
-          end
-
-          # Reset memoized free_tier_limits (for testing)
-          def reset_free_tier_limits!
-            @free_tier_limits = nil
-          end
-        end
-
         module InstanceMethods
-          # Check if organization has a specific entitlement
+          # Check if model has a specific entitlement
           #
           # @param entitlement [String, Symbol] Entitlement to check
-          # @return [Boolean] True if org has the entitlement
+          # @return [Boolean] True if model has the entitlement
           #
           # @example
           #   org.can?('custom_domains')  # => true
           #   org.can?(:api_access)       # => false
           def can?(entitlement)
             entitlements.include?(entitlement.to_s)
+          end
+
+          # Get entitlements from materialized state.
+          #
+          # This portable base returns the materialized set when available,
+          # otherwise an empty array. WithPlanEntitlements overrides this
+          # method to add the Plan.load fallback chain via `super`.
+          #
+          # @return [Array<String>] List of entitlement strings
+          def entitlements
+            if respond_to?(:entitlements_materialized?) && entitlements_materialized?
+              return materialized_entitlements.to_a
+            end
+
+            []
           end
 
           # Get entitlements with request context for preview mode support
@@ -187,288 +113,21 @@ module Onetime
             entitlements
           end
 
-          # Get limit with request context for preview mode support
-          #
-          # Call sites that have session access should use this method instead
-          # of `limit_for` when preview mode needs to be respected.
-          #
-          # @param resource [String, Symbol] Resource to check limit for
-          # @param session [Hash, nil] Rack session hash (or hash-like object)
-          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
-          #
-          # @example Controller usage
-          #   org.limit_for_request('teams', env['rack.session'])
-          def limit_for_request(resource, session = nil)
-            return limit_for(resource) unless session.respond_to?(:key?)
-
-            preview_planid = session[:entitlement_preview_planid]
-
-            if preview_planid && !preview_planid.to_s.empty?
-              return test_plan_limit_for(preview_planid, resource)
-            end
-
-            limit_for(resource)
-          end
-
-          # Get all entitlements for current plan
-          #
-          # @return [Array<String>] List of entitlement strings
-          #
-          # Fallback hierarchy:
-          # 1. If billing disabled (standalone mode) -> STANDALONE_ENTITLEMENTS (full access)
-          # 2. If no planid set -> FREE_TIER_ENTITLEMENTS
-          # 3. If plan found in cache -> plan.entitlements
-          # 4. If plan not in cache, try billing.yaml config fallback
-          # 5. Final fallback -> FREE_TIER_ENTITLEMENTS (prevents "No features" error)
-          #
-          # @example
-          #   org.entitlements  # => ["api_access", "custom_domains", "manage_teams"]
-          def entitlements
-            # Fail-open: self-hosted/standalone gets full access
-            unless billing_enabled?
-              return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
-            end
-
-            # Phase 2: Read from materialized org-local state when available
-            # This eliminates the Plan.load call on the request hot path.
-            # Guard: check if WithMaterializedEntitlements is included
-            if respond_to?(:entitlements_materialized?) && entitlements_materialized?
-              return materialized_entitlements.to_a
-            end
-
-            # Legacy path (migration): org hasn't been materialized yet
-            # Fall back to Plan.load chain until all orgs are migrated
-            if planid.to_s.empty?
-              return WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
-            end
-
-            # Guard: Billing module may not be loaded (e.g. app built without
-            # the billing feature). Fall through to FREE tier below.
-            if defined?(::Billing::Plan)
-              # Try loading from Redis cache first
-              plan = ::Billing::Plan.load(planid)
-              if plan
-                return plan.entitlements.to_a
-              end
-
-              # Plan not in cache - try billing.yaml config fallback
-              config_plan = ::Billing::Plan.load_from_config(planid)
-              if config_plan && config_plan[:entitlements]
-                OT.ld "[WithEntitlements] Using config fallback for plan: #{planid}"
-                return config_plan[:entitlements].dup
-              end
-            end
-
-            # Fail-closed: unknown plan ID is an ops problem, not a silent degradation.
-            # This catches catalog misconfigurations and stale planid values that
-            # would otherwise silently grant free-tier access.
-            raise Billing::PlanCacheMissError.new(
-              'Plan not found in cache or config',
-              plan_id: planid,
-              context: 'WithEntitlements#entitlements',
-              organization_id: extid,
-            )
-          end
-
-          # Get limit for a specific resource
-          #
-          # @param resource [String, Symbol] Resource to check limit for
-          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
-          #
-          # Fallback hierarchy:
-          # 1. If billing disabled (standalone mode) -> Float::INFINITY (unlimited)
-          # 2. If no planid set -> free_tier_limits
-          # 3. If plan found in cache -> plan.limits
-          # 4. If plan not in cache, try billing.yaml config fallback
-          # 5. Final fallback -> free_tier_limits (conservative defaults)
-          #
-          # @example
-          #   org.limit_for('teams')            # => 1
-          #   org.limit_for(:members_per_team)  # => Float::INFINITY
-          #   org.limit_for('unknown')          # => 0
-          def limit_for(resource)
-            # Fail-open: self-hosted/standalone gets unlimited
-            return Float::INFINITY unless billing_enabled?
-
-            # Flattened key: "teams" => "teams.max"
-            key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
-
-            # Phase 2: Read from materialized org-local limits when available
-            # Guard: check if WithMaterializedEntitlements is included
-            if respond_to?(:entitlements_materialized?) && entitlements_materialized?
-              return materialized_limit_for(key)
-            end
-
-            # Legacy path (migration): org hasn't been materialized yet
-            if planid.to_s.empty?
-              return free_tier_limit_for(key)
-            end
-
-            # Guard: Billing module may not be loaded. Fall through to FREE tier.
-            if defined?(::Billing::Plan)
-              # Try loading from Redis cache first
-              plan = ::Billing::Plan.load(planid)
-              if plan
-                val = plan.limits[key]
-                return parse_limit_value(val)
-              end
-
-              # Plan not in cache - try billing.yaml config fallback
-              config_plan = ::Billing::Plan.load_from_config(planid)
-              if config_plan && config_plan[:limits]
-                val = config_plan[:limits][key]
-                return parse_limit_value(val) unless val.nil?
-              end
-            end
-
-            # Fail-closed: unknown plan ID is an ops problem, not a silent degradation.
-            raise Billing::PlanCacheMissError.new(
-              'Plan not found in cache or config',
-              plan_id: planid,
-              context: 'WithEntitlements#limit_for',
-              resource: key,
-              organization_id: extid,
-            )
-          end
-
-          # Check entitlement with detailed response for upgrade messaging
-          #
-          # @param entitlement [String, Symbol] Entitlement to check
-          # @return [Hash] Result with upgrade path information
-          #
-          # Response includes:
-          # - allowed: boolean indicating if entitlement is available
-          # - entitlement: the requested entitlement
-          # - current_plan: organization's current plan ID
-          # - upgrade_needed: boolean indicating if upgrade required
-          # - upgrade_to: suggested plan ID (if upgrade needed)
-          #
-          # @example
-          #   org.check_entitlement('custom_domains')
-          #   # => {
-          #   #   allowed: false,
-          #   #   entitlement: "custom_domains",
-          #   #   current_plan: "free",
-          #   #   upgrade_needed: true,
-          #   #   upgrade_to: "identity_v1"
-          #   # }
-          def check_entitlement(entitlement)
-            allowed = can?(entitlement)
-            result  = {
-              allowed: allowed,
-              entitlement: entitlement.to_s,
-              current_plan: planid,
-              upgrade_needed: !allowed,
-            }
-
-            if !allowed && defined?(Billing::PlanHelpers)
-              result[:upgrade_to] = Billing::PlanHelpers.upgrade_path_for(entitlement, planid)
-            end
-
-            result
-          end
-
-          # Check if organization is at or over limit for a resource
-          #
-          # @param resource [String, Symbol] Resource to check
-          # @param current_count [Integer] Current usage count
-          # @return [Boolean] True if at or over limit
-          #
-          # @example
-          #   org.at_limit?('teams', 1)  # => true (if limit is 1)
-          #   org.at_limit?('teams', 0)  # => false
-          def at_limit?(resource, current_count)
-            limit = limit_for(resource)
-            return false if limit == Float::INFINITY
-
-            current_count >= limit
-          end
-
-          private
-
-          # Get entitlements for a test plan (colonel test mode)
-          #
-          # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
-          # to billing.yaml config (for development when Stripe cache is empty).
-          #
-          # @param test_planid [String] Plan ID to test
-          # @return [Array<String>] List of entitlements for the test plan
-          def test_plan_entitlements(test_planid)
-            # Guard: billing must be enabled and Billing::Plan must exist
-            unless billing_enabled? && defined?(::Billing::Plan)
-              return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
-            end
-
-            # Check Billing::Plan cache first (production/Stripe-synced)
-            plan = ::Billing::Plan.load(test_planid)
-            return plan.entitlements.to_a if plan
-
-            # Fall back to billing.yaml config when Stripe cache is empty
-            config_plan = ::Billing::Plan.load_from_config(test_planid)
-            return config_plan[:entitlements].dup if config_plan
-
-            []
-          end
-
-          # Get limit for a resource from a test plan (colonel test mode)
-          #
-          # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
-          # to billing.yaml config (for development when Stripe cache is empty).
-          #
-          # @param test_planid [String] Plan ID to test
-          # @param resource [String, Symbol] Resource to check limit for
-          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
-          def test_plan_limit_for(test_planid, resource)
-            # Guard: billing must be enabled and Billing::Plan must exist
-            return Float::INFINITY unless billing_enabled? && defined?(::Billing::Plan)
-
-            # Flattened key: "teams" => "teams.max"
-            key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
-
-            # Check Billing::Plan cache first (production/Stripe-synced)
-            plan = ::Billing::Plan.load(test_planid)
-            if plan
-              limits_hash = plan.limits.hgetall || {}
-              val         = limits_hash[key]
-              return 0 if val.nil? || val.to_s.empty?
-              return Float::INFINITY if val == 'unlimited'
-
-              return val.to_i
-            end
-
-            # Fall back to billing.yaml config when Stripe cache is empty
-            config_plan = ::Billing::Plan.load_from_config(test_planid)
-            if config_plan
-              val = config_plan[:limits][key]
-              return 0 if val.nil?
-              return Float::INFINITY if val == 'unlimited'
-
-              return val.to_i
-            end
-
-            0
-          end
-
           # Check if billing system is enabled
-          # Returns false in standalone mode
+          # Returns false in standalone mode. Portable across models.
           def billing_enabled?
             Onetime::BillingConfig.instance.enabled?
           rescue StandardError
             false # If BillingConfig fails, assume billing disabled
           end
 
-          # Get FREE tier limit for a resource key
+          private
+
+          # Parse a limit value from string/nil to numeric.
           #
-          # @param key [String] Flattened limit key (e.g., "teams.max")
-          # @return [Numeric] Limit value, defaults to 0 for unknown keys
-          def free_tier_limit_for(key)
-            val = self.class.free_tier_limits[key]
-            return 0 if val.nil?
-
-            val
-          end
-
-          # Parse a limit value from string/nil to numeric
+          # Kept here as a portable utility used by WithMaterializedLimits and
+          # WithPlanEntitlements. Lives in the base because it has no plan or
+          # organization coupling.
           #
           # @param val [String, Integer, nil] Raw limit value
           # @return [Numeric] Parsed limit (0, integer, or Float::INFINITY)

@@ -443,11 +443,11 @@ Onetime::CustomDomain::MailerConfig.delete_for_domain!('')
 # --- Entitlement rename: custom_mail_sender ---
 
 ## STANDALONE_ENTITLEMENTS includes custom_mail_sender (renamed from custom_mail_defaults)
-Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('custom_mail_sender')
+Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS.include?('custom_mail_sender')
 #=> true
 
 ## STANDALONE_ENTITLEMENTS does not include old name custom_mail_defaults
-Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.include?('custom_mail_defaults')
+Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS.include?('custom_mail_defaults')
 #=> false
 
 # --- Create with each valid provider type ---

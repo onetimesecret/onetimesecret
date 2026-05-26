@@ -77,7 +77,7 @@ When billing is disabled, `STANDALONE_ENTITLEMENTS` are materialized onto the or
 
 ### Module extraction
 
-`WithEntitlements` is split: the plan-based fallback hierarchy (planid lookup, billing_enabled? check, free-tier fallback, `PlanCacheMissError`) moves to a new `WithPlanEntitlements` module included only on Organization. `WithEntitlements` retains `can?`, `check_entitlement`, and the `STANDALONE_ENTITLEMENTS` / `FREE_TIER_ENTITLEMENTS` constants. OrganizationMembership includes `WithMaterializedEntitlements` and defines its own `can?` and `entitlements` methods without the plan fallback chain.
+`WithEntitlements` is split: the plan-based fallback hierarchy (planid lookup, billing_enabled? check, free-tier fallback, `PlanCacheMissError`) moves to a new `WithPlanEntitlements` module included only on Organization, along with the `STANDALONE_ENTITLEMENTS` and `FREE_TIER_ENTITLEMENTS` constants that the fallback path consumes. `WithEntitlements` retains `can?`, `check_entitlement`, `entitlements_for_request`, `billing_enabled?`, and a base `entitlements` method that only reads from the materialized set — no plan-system references. This keeps the portable base free of org-specific concepts so OrganizationMembership (Stage 3) can include it without inheriting standalone-mode or free-tier semantics.
 
 Limits (`limits_plan`, `limit_for`, `at_limit?`) move to a separate `WithMaterializedLimits` module included only on Organization. Limits are org-scoped resources (secret TTL, team count), not per-member. This prevents dead `limits_plan` hashkeys on membership Redis entries.
 

@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'erb'
 require 'yaml'
+require_relative '../../../../../apps/web/billing/errors'
 
 # Unit tests for WithEntitlements TTL Environment Variable Support
 #
@@ -21,6 +22,8 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
   let(:test_class) do
     Class.new do
       include Onetime::Models::Features::WithEntitlements
+      include Onetime::Models::Features::WithMaterializedLimits
+      include Onetime::Models::Features::WithPlanEntitlements
 
       attr_accessor :planid
 
@@ -117,7 +120,7 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
 
       it 'logs a warning with env var name' do
         expect(OT).to receive(:lw).with(
-          '[WithEntitlements] Invalid TEST_TTL_VAR value, using default',
+          '[WithPlanEntitlements] Invalid TEST_TTL_VAR value, using default',
           hash_including(env_var: 'TEST_TTL_VAR', default: default_value)
         )
         test_class.parse_ttl_env('TEST_TTL_VAR', default_value)

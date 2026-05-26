@@ -48,6 +48,8 @@ module Onetime
     feature :with_organization_billing
     feature :with_materialized_entitlements
     feature :with_entitlements
+    feature :with_materialized_limits
+    feature :with_plan_entitlements
     feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete

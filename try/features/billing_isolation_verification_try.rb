@@ -37,9 +37,13 @@ defined?(Billing::Plan) ? Billing::Plan.all.empty? : true
 #=> true
 
 ## Creating a test class with entitlements mixin
-# Tests that billing_enabled? works correctly in the mixin
+# Tests that billing_enabled? works correctly in the mixin.
+# WithPlanEntitlements must be included AFTER WithEntitlements so its
+# `entitlements` override (with STANDALONE_ENTITLEMENTS short-circuit and
+# Plan.load fallback) sits at the top of the method-resolution chain.
 @test_class = Class.new do
   include Onetime::Models::Features::WithEntitlements
+  include Onetime::Models::Features::WithPlanEntitlements
 
   attr_accessor :planid
 

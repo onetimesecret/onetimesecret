@@ -106,8 +106,8 @@ module Onetime
 
         # Build known entitlements set (memoized)
         @known_entitlements ||= (
-          ::Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS +
-          ::Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+          ::Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS +
+          ::Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         ).to_set
 
         unknown = entitlements.reject { |e| @known_entitlements.include?(e) }

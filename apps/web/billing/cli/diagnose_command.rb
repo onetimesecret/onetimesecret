@@ -286,7 +286,7 @@ module Onetime
         puts '-' * 70
 
         unless billing_on
-          ents = Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.dup
+          ents = Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS.dup
           puts '  Source: STANDALONE_ENTITLEMENTS (billing disabled)'
           puts "  Count:  #{ents.size}"
           puts
@@ -294,7 +294,7 @@ module Onetime
         end
 
         if planid.empty?
-          ents = Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
+          ents = Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS.dup
           puts '  Source: FREE_TIER_ENTITLEMENTS (no plan assigned)'
           puts "  Count:  #{ents.size}"
           puts
@@ -333,7 +333,7 @@ module Onetime
         puts "  billing.yaml: MISS for '#{planid}'"
 
         # Final fallback
-        ents = Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
+        ents = Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS.dup
         puts '  Source: FREE_TIER_ENTITLEMENTS (final fallback)'
         puts "  Count:  #{ents.size}"
         puts

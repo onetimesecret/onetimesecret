@@ -44,6 +44,9 @@ module Onetime
 
           # Plan-derived limits (copied from Billing::Plan at materialization)
           # Flattened keys: "teams.max" => "5", "secret_lifetime.max" => "unlimited"
+          # NOTE: storage decl lives here because materialize_entitlements_from_plan
+          # and materialize_entitlements_from_config (below) write to it.
+          # The reader (`materialized_limit_for`) lives in WithMaterializedLimits.
           base.hashkey :limits_plan
 
           # Operator overrides (grants add, revokes remove)
@@ -156,17 +159,6 @@ module Onetime
             end
 
             materialized_entitlements.to_a
-          end
-
-          # Get limit value from materialized limits
-          #
-          # @param key [String] Limit key (e.g., "teams.max")
-          # @return [Numeric] Limit value, Float::INFINITY for "unlimited"
-          def materialized_limit_for(key)
-            val = limits_plan[key]
-            return 0 if val.nil?
-
-            val == 'unlimited' ? Float::INFINITY : val.to_i
           end
 
           # Reconcile entitlements with session-scoped overrides
