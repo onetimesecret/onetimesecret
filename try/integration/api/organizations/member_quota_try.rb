@@ -74,8 +74,8 @@ def run_billing_test_invite(org, session, email, plan)
       result[:record_id] = resp['record']['id']
       result[:record_email] = resp['record']['email']
     else
-      result[:error_type] = resp['error']
-      result[:error_message] = resp['message']
+      result[:error_type] = resp['error_type']
+      result[:error_message] = resp['error']
     end
   end
   result

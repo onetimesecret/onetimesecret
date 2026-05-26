@@ -97,7 +97,7 @@ with_guest_routes_config({ 'enabled' => false }) do
     { secret: { secret: 'test secret', ttl: 3600 } }.to_json,
     json_headers
   body = JSON.parse(last_response.body)
-  body['message']
+  body['error']
 end
 #=> "Guest API access is disabled"
 
@@ -141,7 +141,7 @@ with_guest_routes_config({ 'enabled' => true, 'conceal' => false }) do
     { secret: { secret: 'test secret', ttl: 3600 } }.to_json,
     json_headers
   body = JSON.parse(last_response.body)
-  body['message']
+  body['error']
 end
 #=> "Guest conceal is disabled"
 
@@ -235,7 +235,7 @@ with_guest_routes_config({ 'enabled' => false }) do
   body = JSON.parse(last_response.body)
   body.keys.sort
 end
-#=> ["code", "message"]
+#=> ["code", "error", "error_type"]
 
 # Teardown
 @cust.destroy!
