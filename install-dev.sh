@@ -253,6 +253,21 @@ echo "---"
 echo "Removing frontend build output (public/web/dist)..."
 pnpm run clean
 
+# Schemas and locales are backend inputs, not frontend build output:
+# the Ruby side reads generated/schemas/**/*.schema.json (e.g.
+# `bin/ots billing catalog validate`) and the compiled locale JSON at
+# runtime. They're normally produced as a side-effect of `pnpm run
+# build`, which this script intentionally skips, so wire them in
+# explicitly — the no-build rationale above only concerns public/web
+# frontend assets.
+echo "---"
+echo "Generating JSON schemas from Zod definitions..."
+pnpm run schemas:json:generate
+
+echo "---"
+echo "Compiling locale files..."
+pnpm run locales:sync
+
 echo "---"
 echo "Configuring Caddy webroot..."
 link_caddy_webroot
