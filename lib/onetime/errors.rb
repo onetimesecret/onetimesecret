@@ -150,6 +150,7 @@ module Onetime
     def to_h
       {
         error: message,
+        error_type: 'EntitlementRequired',
         entitlement: entitlement,
         current_plan: current_plan,
         upgrade_to: upgrade_to,
@@ -184,7 +185,8 @@ module Onetime
 
     def to_h
       {
-        message: message,
+        error: message,
+        error_type: 'GuestRoutesDisabled',
         code: code,
         error_key: error_key,
       }.compact
