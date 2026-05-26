@@ -87,7 +87,7 @@ GEM
     base64 (0.3.0)
     bcrypt (3.1.22)
     benchmark (0.5.0)
-    bigdecimal (4.1.1)
+    bigdecimal (4.1.2)
     bindata (2.5.1)
     bunny (2.24.0)
       amq-protocol (~> 2.3)
@@ -396,7 +396,7 @@ GEM
       redis-client (>= 0.22.0)
     redis-client (0.28.0)
       connection_pool
-    regexp_parser (2.11.3)
+    regexp_parser (2.12.0)
     reline (0.6.3)
       io-console (~> 0.5)
     rerun (0.14.0)
@@ -404,7 +404,7 @@ GEM
     reverse_markdown (3.0.2)
       nokogiri
     rexml (3.4.4)
-    rhales (0.6.0)
+    rhales (0.6.2)
       json_schemer (~> 2)
       logger
       tilt (~> 2)
@@ -657,7 +657,7 @@ DEPENDENCIES
   redis (~> 5.4.0)
   reline
   rerun (~> 0.14)
-  rhales (~> 0.6.0)
+  rhales (~> 0.6.2)
   roda (~> 3.0)
   rodauth (~> 2.0)
   rodauth-omniauth (~> 0.4)
@@ -698,7 +698,7 @@ DEPENDENCIES
   webmock (~> 3.0)
 
 RUBY VERSION
-   ruby 3.4.8p72
+  ruby 3.4.8p72
 
 BUNDLED WITH
-   2.7.2
+  4.0.9
