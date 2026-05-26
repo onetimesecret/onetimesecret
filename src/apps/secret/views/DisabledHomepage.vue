@@ -53,6 +53,5 @@
   -->
   <component
     :is="ActiveVariant"
-    :data-variant="variant"
     v-bind="props" />
 </template>

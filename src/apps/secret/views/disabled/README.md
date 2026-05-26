@@ -67,11 +67,6 @@ Override individual feature flags via the site-level bootstrap block —
 set `show_promo` / `show_what_is_this` to `true` / `false` / `null`
 (= auto).
 
-### Verifying which variant is rendering
-
-Each variant's root element carries a `data-variant` attribute (set by
-the dispatcher) so you can inspect in DevTools without a console log.
-
 ## Auto-detection (suppressed by overrides)
 
 - **`isBranded`** = `isCustom && !!brand.description`
