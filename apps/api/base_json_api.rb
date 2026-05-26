@@ -73,19 +73,21 @@ class BaseJSONAPI < Onetime::Application::Base
     # Register authentication strategies
     self.class.auth_strategy_module.register_essential(router)
 
-    # Default error responses matching v3 REST schema
-    # Schema: { message: string, code?: string, details?: object }
+    # Default error responses per ADR-013 (4xx/5xx wire format).
+    # Schema: { error: string, error_type: string }
+    # - `error` is the user-facing message displayed by the frontend
+    # - `error_type` is the discriminator the frontend branches on (Ruby class name)
     # Note: No 'success' field - HTTP status codes indicate success/error
     headers             = { 'content-type' => 'application/json' }
     router.not_found    = [
       404,
       headers,
-      [{ message: 'Not Found', code: 'NOT_FOUND' }.to_json],
+      [{ error: 'Not Found', error_type: 'NotFound' }.to_json],
     ]
     router.server_error = [
       500,
       headers,
-      [{ message: 'Internal Server Error', code: 'SERVER_ERROR' }.to_json],
+      [{ error: 'Internal Server Error', error_type: 'ServerError' }.to_json],
     ]
 
     router

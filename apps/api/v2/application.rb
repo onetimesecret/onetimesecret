@@ -61,10 +61,11 @@ module V2
       # Register authentication strategies
       V2::AuthStrategies.register_essential(router)
 
-      # Default error responses
+      # Default error responses per ADR-013 (4xx/5xx wire format).
+      # Schema: { error: string, error_type: string }
       headers             = { 'content-type' => 'application/json' }
-      router.not_found    = [404, headers, [{ error: 'Not Found' }.to_json]]
-      router.server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
+      router.not_found    = [404, headers, [{ error: 'Not Found', error_type: 'NotFound' }.to_json]]
+      router.server_error = [500, headers, [{ error: 'Internal Server Error', error_type: 'ServerError' }.to_json]]
 
       router
     end
