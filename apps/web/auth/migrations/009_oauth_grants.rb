@@ -12,7 +12,7 @@
 #   2. `/token` clears `code` and populates `token` and/or `refresh_token`
 #   3. revocation sets `revoked_at`
 #
-# Token hashing: by default the gem stores bcrypt hashes of `token` and
+# Token hashing: by default the gem stores SHA256 hashes of `token` and
 # `refresh_token` in the same columns it reads from. No separate hash columns.
 #
 # Usage:
@@ -41,7 +41,7 @@ Sequel.migration do
       # Auth code: set at /authorize, cleared at /token
       String :code, null: true
 
-      # bcrypt hashes of the bearer/refresh tokens (default hashing behavior)
+      # SHA256 hashes of the bearer/refresh tokens (default hashing behavior)
       String :token, null: true
       String :refresh_token, null: true
 
