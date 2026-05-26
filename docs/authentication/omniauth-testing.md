@@ -2,6 +2,12 @@
 
 ## Local IdP Setup
 
+### Self-Contained Loopback (no external IdP)
+
+OTS can act as its own IdP via the `:local` SP provider — useful when OmniAuth's `:test` mode doesn't exercise the full HTTP loop (token exchange, JWKS verification, real PKCE) and you don't want to run Zitadel or Keycloak alongside the test process.
+
+See [OAuth/OIDC Local Development](oauth-local-development.md) for setup and the SP → IdP → SP flow. The rest of this document covers external IdPs.
+
 ### Zitadel (recommended)
 
 ```bash
