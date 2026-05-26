@@ -8,7 +8,7 @@
 # - When billing_enabled: false → return STANDALONE_ENTITLEMENTS (full access)
 # - When billing_enabled: true but planid empty → return FREE_TIER_ENTITLEMENTS
 # - When billing_enabled: true and plan in cache → return plan entitlements
-# - When billing_enabled: true but plan cache miss → return FREE_TIER_ENTITLEMENTS (graceful degradation)
+# - When billing_enabled: true but plan cache miss → raise PlanCacheMissError (fail-closed)
 
 require_relative '../../support/test_models'
 

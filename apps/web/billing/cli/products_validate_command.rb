@@ -117,7 +117,7 @@ module Onetime
           product_id: product.id,
           type: :unknown_entitlements,
           message: "Unknown entitlement(s): #{unknown.join(', ')}",
-          details: 'Entitlement keys not found in WithEntitlements constants',
+          details: 'Entitlement keys not found in WithPlanEntitlements constants',
         }
       end
 
