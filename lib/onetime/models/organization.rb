@@ -113,6 +113,14 @@ module Onetime
       members.member?(dummy_customer)
     end
 
+    # Whether new memberships require explicit admin approval after the invitee
+    # consents (clicks Accept). Hardcoded to false until the approval workflow
+    # ships in a follow-up iteration; OrganizationMembership#accept! auto-promotes
+    # via activate! while this stays false.
+    def requires_admin_approval?
+      false
+    end
+
     def member_count
       # members is auto-generated sorted_set
       members.size
