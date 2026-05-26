@@ -3,9 +3,9 @@
 ## Constraint
 
 `Auth::Config < Rodauth::Auth` (apps/web/auth/config.rb:21) can be configured
-exactly once per process. The `@configured = true` guard at line 166 enforces
-this; without the guard, re-running the `configure do ... end` block would
-corrupt the class.
+exactly once per process. The `@configured` guard at lines 51-54 enforces
+this (with the flag flipped at line 161); without the guard, re-running the
+`configure do ... end` block would corrupt the class.
 
 ## Why it's structural — not a flag we can flip
 
@@ -45,10 +45,11 @@ Auth::Config = Class.new(Rodauth::Auth)
 That is invasive, has no upstream support, and is not warranted for the
 problem at hand.
 
-## What `reset_configuration!` does today
+## Why `reset_configuration!` was removed
 
-It flips `@configured` back to `false` (apps/web/auth/config.rb:32-34).
-Nothing else. It does **not** undo:
+Earlier versions of `Auth::Config` exposed a `reset_configuration!` method
+"for testing only" that flipped `@configured` back to `false`. It did
+**not** undo:
 
 - `@features` (the Set of enabled feature symbols)
 - `@routes` (the Array of route handler method names)
@@ -56,11 +57,12 @@ Nothing else. It does **not** undo:
 - Instance methods grafted by `def_auth_method` / `def_auth_value_method`
 - Hooks bound via `before_*` / `after_*`
 
-Calling `reset_configuration!` and then `configure` again would trigger the
-double-include/append problems above. It is currently unused (`rg -F
-'reset_configuration!'` returns only the definition) and should stay that way
-until either rodauth grows a re-configure API or someone is willing to do the
-class-recreation work above.
+Calling it and then `configure` again would trigger the double-include /
+append problems above. With no production callers and no spec callers,
+keeping it around was a footgun named "for testing only" that did not
+actually deliver safe re-configuration. It was removed in favor of the
+capture-and-restore ENV pattern documented under "Convention going forward"
+below.
 
 ## What surfaces this constraint
 
@@ -88,10 +90,10 @@ first configure call match the integration specs' expectations.
 If anyone tries to call `Auth::Config.configure` a second time without
 resetting:
 
-- The guard at line 56-59 hits and the block returns immediately. Existing
+- The guard at lines 51-54 hits and the block returns immediately. Existing
   state is preserved. Nothing breaks. Nothing changes.
 
-If anyone removes the guard or calls `reset_configuration!` first:
+If anyone removes the guard:
 
 - Routes for `:base` get appended again (extra entries in the routing table —
   whether this is harmful depends on rodauth-internal dedup in route
@@ -129,12 +131,10 @@ Neither is on the rodauth roadmap as of v2.42.
   bounded to that file (see `5541ae845`). The first-loaded spec wins on
   *which configure choices are baked*; later specs must work with whatever
   the first one selected.
-- Do not call `reset_configuration!` from production code. It is a footgun
-  named "for testing only" but it does not actually deliver safe
-  re-configuration.
 
 ## Links
 
+- Tracking issue: #3238
 - Spec workaround: commit `5541ae845`
 - Boot-path fix (load order): commits `73b9b3ff3`, `88d675bb5`
 - Rodauth feature/configure source: `gems/rodauth-2.42.0/lib/rodauth.rb`
