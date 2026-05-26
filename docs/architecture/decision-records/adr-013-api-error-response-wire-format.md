@@ -47,6 +47,18 @@ Aligning on this shape mirrors Rodauth, removes the field-meaning ambiguity that
 - **V1 API.** Frozen by policy (see V1 application docstring). Existing V1 error bodies stay as-is.
 - **Success-confirmation payloads.** Endpoints in `apps/api/domains/logic/**` that return `{ success: true, message: ... }` are not error responses and are not governed by this ADR.
 
+## Future Considerations
+
+Outside the scope of #3221 but on the long-term trajectory of this contract:
+
+- **Centralize exception handling in `apps/web/billing` and the Roda auth app.** Both still flatten exceptions per-action, dropping class-specific fields. `apps/api/*` already centralizes via Otto request hooks; the remaining layers should follow.
+
+- **Eliminate the `json_error` helper.** Once controllers raise typed exceptions and centralized handlers render them, `json_error` is redundant. Where only a message-string path exists today, introduce a typed exception subclass instead.
+
+- **Frontend branches on `error_type`.** The HTTP error classifier currently uses status plus presence-of-message heuristics. Once `error_type` is reliable across the surface, it can branch on that directly.
+
+- **Schema-validated contract spec.** Generalize the existing error-response shape spec into a structural assertion: every registered error class's `to_h` must validate against an ADR-013 JSON Schema. Broken shapes fail CI rather than surfacing as frontend bugs.
+
 ## Implementation Notes
 
 Migration tracked in #3221.
