@@ -68,11 +68,20 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
 
   subject(:logic) { described_class.new(strategy_result, params) }
 
+  # Source uses auth_logger (Onetime.get_logger('Auth')) for its semantic logs,
+  # not the OT.info shim. Stub the Auth logger so .debug/.info/.error during
+  # the spec don't fail the test, and so individual examples can set focused
+  # expectations on it.
+  let(:auth_logger_double) do
+    instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil)
+  end
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
     allow(OT::Utils).to receive(:normalize_email) { |e| e.to_s.downcase.strip }
+    allow(Onetime).to receive(:get_logger).with('Auth').and_return(auth_logger_double)
   end
 
   describe '#process_params' do
@@ -279,8 +288,8 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
       end
 
       it 'logs the acceptance' do
-        expect(OT).to receive(:info).with(
-          '[AcceptInvite] User joined organization',
+        expect(auth_logger_double).to receive(:info).with(
+          'User joined organization',
           hash_including(event: 'invite.accepted', result: :success)
         )
         logic.process
