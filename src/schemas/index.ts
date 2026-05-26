@@ -10,12 +10,10 @@
 export {
   createApiResponseSchema,
   createApiListResponseSchema,
-  apiErrorResponseSchema,
 } from './api/base';
 
 export type {
   ApiBaseResponse,
-  ApiErrorResponse,
   ApiRecordResponse,
   ApiRecordsResponse,
 } from './api/base';
