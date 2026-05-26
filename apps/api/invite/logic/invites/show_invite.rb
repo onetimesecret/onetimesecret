@@ -40,14 +40,14 @@ module InviteAPI::Logic
         rate_limiter.record_attempt
 
         if @token.nil? || @token.empty?
-          raise_form_error(error_key: 'api.invite.errors.token_required', field: :token)
+          raise_form_error(error_key: 'api.invite.errors.token_required', field: :token, error_type: :missing)
         end
 
         @invitation = load_invitation(@token)
 
         # Check if organization still exists (may have been deleted)
         unless @invitation.organization
-          raise_form_error(error_key: 'api.invite.errors.organization_no_longer_exists', field: :token)
+          raise_form_error(error_key: 'api.invite.errors.organization_no_longer_exists', field: :token, error_type: :missing)
         end
 
         # NOTE: We no longer raise errors for non-pending or expired invitations.
