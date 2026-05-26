@@ -85,22 +85,38 @@ module Auth::Config::Features
       auth.oauth_application_scopes %w[openid profile email]
 
       # ─── URI schemes ───────────────────────────────────────────────────
-      # `http` is allowed so localhost callbacks work in dev. In production
-      # this list should be tightened to %w[https] only; do so by setting
-      # OAUTH_VALID_URI_SCHEMES or via a deploy-time override in this
-      # feature module.
-      auth.oauth_valid_uri_schemes %w[http https]
+      # `http` is allowed by default so localhost callbacks work in dev. In
+      # production, tighten by setting OAUTH_VALID_URI_SCHEMES=https (a
+      # space-separated list); when unset, both http and https are accepted.
+      auth.oauth_valid_uri_schemes ENV.fetch('OAUTH_VALID_URI_SCHEMES', 'http https').split
 
       # ─── Token endpoint auth methods ───────────────────────────────────
       # No `client_secret_jwt` or `private_key_jwt` for v1.
       auth.oauth_token_endpoint_auth_methods_supported %w[client_secret_basic client_secret_post]
 
       # ─── Response types ────────────────────────────────────────────────
-      # Even though enabling :oidc transitively pulls in :oauth_implicit_grant,
-      # we restrict the advertised + accepted response_types to "code" only.
-      # This makes implicit + hybrid flows unavailable at the protocol level,
-      # which is the v1 security stance.
+      # Enabling :oidc transitively pulls in :oauth_implicit_grant. We want
+      # "code" only — no implicit or hybrid flows in v1.
+      #
+      # The setter below changes what is advertised in discovery metadata.
+      # Note: this advertises `response_types_supported: ["code"]` which is
+      # narrower than OIDC Discovery 1.0 §3 requires for a Dynamic OP (which
+      # must list `code id_token` and `token id_token`). This is intentional
+      # — we are the only consumer of our own IdP. Strict third-party clients
+      # may refuse this discovery doc; that's by design for v1.
       auth.oauth_response_types_supported %w[code]
+
+      # The setter alone does NOT block implicit/hybrid at /authorize. Request
+      # validation routes through `check_valid_response_type?`, whose default
+      # chain hardcodes acceptance of "token" (oauth_implicit_grant.rb:89-93)
+      # and "id_token", "code id_token", "code token", "id_token token",
+      # "code id_token token", "none" (oidc.rb:695-703). To actually reject
+      # those response types, we have to override the predicate itself.
+      auth.auth_class_eval do
+        define_method(:check_valid_response_type?) do
+          oauth_response_types_supported.include?(param_or_nil('response_type'))
+        end
+      end
 
       # ─── Grant types ───────────────────────────────────────────────────
       # No client_credentials, device_code, password, or assertion grants in v1.

@@ -75,6 +75,11 @@ Sequel.migration do
 
       index :client_id, unique: true
       index :account_id
+      # NOTE: the gem's migration template declares `index: { unique: true }`
+      # on :client_secret. We deliberately omit it because the column stores
+      # a bcrypt hash (per-row salt, ~60-char output) so collisions are
+      # vanishingly improbable and a unique index adds no real safety. Lookups
+      # are always by client_id, not by client_secret.
     end
 
     case database_type

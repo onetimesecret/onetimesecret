@@ -47,36 +47,23 @@ module Auth::Config::Hooks
 
     def self.configure(auth)
       # ========================================================================
-      # JSON Mode Override for OAuth/OIDC Endpoints
+      # JSON Mode Override for OAuth/OIDC Endpoints — now centralized
       # ========================================================================
       #
-      # Disable JSON-only mode for the OAuth/OIDC endpoints. Several of these
-      # routes are not JSON-mode compatible:
+      # OAUTH_EXEMPT_PATHS above is the source of truth for the exempt set.
+      # The actual `only_json?` setter is owned by Auth::Config::JsonMode
+      # (apps/web/auth/config/json_mode.rb) because rodauth's
+      # def_auth_value_method REPLACES rather than chains. If we kept a
+      # per-hook block here, it would silently clobber the OmniAuth block
+      # whenever both AUTH_SSO_ENABLED and AUTH_OAUTH_ENABLED were true.
       #
-      #   - /authorize             — browser-driven (302 redirects, HTML forms)
-      #   - /token                 — application/x-www-form-urlencoded body
-      #   - /revoke                — application/x-www-form-urlencoded body
-      #   - /.well-known/*         — polled by browsers and SDKs without
-      #                              Content-Type: application/json
-      #   - /jwks                  — same; clients GET without a JSON Content-Type
-      #   - /userinfo              — Bearer-only GET/POST; clients omit JSON CT
-      #
-      # Without this override, the :json feature's `before_rodauth` hook in
-      # base.rb (auth.only_json? true) rejects each of these with a 400
-      # "Only JSON format requests are allowed".
-      #
-      # This mirrors apps/web/auth/config/hooks/omniauth.rb (the OmniAuth
-      # SSO exemption) which uses the same shape.
-      #
-      auth.only_json? do
-        path           = request.path
-        prefix         = Auth::Application.uri_prefix
-        is_oauth_route = OAUTH_EXEMPT_PATHS.any? do |p|
-          full = "#{prefix}#{p}"
-          path == full || path.start_with?("#{full}/")
-        end
-        !is_oauth_route
-      end
+      # Endpoints in OAUTH_EXEMPT_PATHS that need to skip JSON-only mode:
+      #   - /authorize     — browser-driven (302 redirects, HTML forms)
+      #   - /token         — application/x-www-form-urlencoded body
+      #   - /revoke        — application/x-www-form-urlencoded body
+      #   - /.well-known/* — polled by browsers/SDKs without JSON Content-Type
+      #   - /jwks          — clients GET without a JSON Content-Type
+      #   - /userinfo      — Bearer-only GET/POST; clients omit JSON CT
 
       # ========================================================================
       # HOOK: get_oidc_param  (rodauth-oauth oidc.rb:583, proxied at oidc.rb:620)

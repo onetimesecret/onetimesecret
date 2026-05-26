@@ -37,7 +37,7 @@ Symbols passed to `enable :foo`:
   - Default challenge method `S256`. Override `oauth_pkce_challenge_method "plain"` if needed.
   - File: `lib/rodauth/features/oauth_pkce.rb` (lines 9–17).
 - `:oidc` — OpenID Connect Core. Enables `/.well-known/openid-configuration` route loader and `/userinfo` endpoint.
-  - **`depends :active_sessions, :oauth_jwt, :oauth_jwt_jwks, :oauth_authorization_code_grant, :oauth_implicit_grant`** — you cannot enable `:oidc` without also pulling in `:oauth_implicit_grant`. The implicit flow tables/columns will exist; you have to disable the response_type at the application registration level or refuse `token`/`id_token` response types in config to keep it from being usable.
+  - **`depends :active_sessions, :oauth_jwt, :oauth_jwt_jwks, :oauth_authorization_code_grant, :oauth_implicit_grant`** — you cannot enable `:oidc` without also pulling in `:oauth_implicit_grant`. The implicit flow tables/columns will exist; the only way to actually keep implicit + hybrid response types from being accepted at `/authorize` is to **override the `check_valid_response_type?` predicate**. The `oauth_response_types_supported` DSL setter only affects discovery metadata — request validation in `oauth_implicit_grant.rb:89-93` and `oidc.rb:695-703` hardcodes acceptance of `token`, `id_token`, `code id_token`, `code token`, `id_token token`, `code id_token token`, `none` regardless of that setting. See `apps/web/auth/config/features/oauth.rb` for the override.
   - File: `lib/rodauth/features/oidc.rb` line 71.
 - `:oauth_jwt` — JWT access tokens + issuance config. `depends :oauth_jwt_base, :oauth_jwt_jwks`. Pulled in transitively by `:oidc`.
 - `:oauth_jwt_jwks` — exposes `/jwks` route. `depends :oauth_jwt_base`. Pulled in transitively by `:oidc`.
@@ -127,7 +127,7 @@ Route → feature → handler:
 methods you call from your Roda routing block:
 
 - `GET /.well-known/openid-configuration` — call `rodauth.load_openid_configuration_route` inside `route do |r|`. Source: `oidc.rb:188`.
-- `GET /.well-known/oauth-authorization-server` — call `rodauth.load_oauth_server_metadata_route(issuer)` inside `route do |r|`. Source: `oauth_base.rb:150`.
+- `GET /.well-known/oauth-authorization-server` — call `rodauth.load_oauth_server_metadata_route` inside `route do |r|`. The optional positional argument is a *path suffix* appended to the auth base URL (oauth_base.rb:746-748), NOT a full issuer URI. Source: `oauth_base.rb:150`.
 - `GET /.well-known/webfinger` (optional, OIDC SelfIssued) — `rodauth.load_webfinger_route`. Source: `oidc.rb:200`.
 
 Confirmed by README of MIGRATION-GUIDE-v1.md line 236:
@@ -206,7 +206,7 @@ Route hooks (one pair per `auth_server_route(:name)`):
 
 OIDC user-claim hooks (override in config block):
 
-- `get_oidc_param { |account, param, scope_claims| account.public_send(param) }` — required when you advertise OIDC scopes beyond `openid`. Without it, the gem `warn`s at runtime (`oidc.rb:634`).
+- `get_oidc_param { |account, param| account[:column_name] }` — required when you advertise OIDC scopes beyond `openid`. Without it, the gem `warn`s at runtime (`oidc.rb:634`). The proxy at `oidc.rb:651-659` inspects the block arity and dispatches to either `(account, param)` (2-arg, our usage) or `(account, param, claims_locales)` (3-arg, only when locales are configured). `account` is a Sequel row Hash (`oidc.rb:130`), so use Hash access (`account[:email]`), not `account.public_send`.
 - `get_additional_param { |account, param| … }` — for custom (non-spec) claims.
 - `fill_with_account_claims { |claims, account, scopes, claims_locales| … }` — override the whole claims-fill step.
 - `id_token_claims(oauth_grant, signing_algorithm)` — the function that returns the claim hash before signing. Override to add/remove claims. `oidc.rb:559`.

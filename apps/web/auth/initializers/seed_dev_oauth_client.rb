@@ -63,22 +63,29 @@ module Auth
           return
         end
 
-        applications.insert(
-          account_id: nil, # system-owned
-          name: 'OneTimeSecret SP (development)',
-          description: 'Local dev Service Provider — authenticates against this instance via OAuth/OIDC.',
-          redirect_uri: ENV.fetch('OAUTH_SP_DEV_REDIRECT_URI', DEFAULT_REDIRECT_URI),
-          client_id: DEV_CLIENT_ID,
-          client_secret: BCrypt::Password.create(secret),
-          scopes: 'openid email profile',
-          subject_type: 'public',
-          id_token_signed_response_alg: 'RS256',
-          token_endpoint_auth_method: 'client_secret_basic',
-          grant_types: 'authorization_code',
-          response_types: 'code',
-        )
-
-        Onetime.auth_logger.info "[SeedDevOAuthClient] inserted dev SP client: #{DEV_CLIENT_ID}"
+        # The where/insert pair above is NOT atomic; under concurrent boot
+        # (two workers seeding at once) both can pass the check_and_then.
+        # The unique index on client_id is the actual safety net, so we
+        # treat the race-loser's UniqueConstraintViolation as success.
+        begin
+          applications.insert(
+            account_id: nil, # system-owned
+            name: 'OneTimeSecret SP (development)',
+            description: 'Local dev Service Provider — authenticates against this instance via OAuth/OIDC.',
+            redirect_uri: ENV.fetch('OAUTH_SP_DEV_REDIRECT_URI', DEFAULT_REDIRECT_URI),
+            client_id: DEV_CLIENT_ID,
+            client_secret: BCrypt::Password.create(secret),
+            scopes: 'openid email profile',
+            subject_type: 'public',
+            id_token_signed_response_alg: 'RS256',
+            token_endpoint_auth_method: 'client_secret_basic',
+            grant_types: 'authorization_code',
+            response_types: 'code',
+          )
+          Onetime.auth_logger.info "[SeedDevOAuthClient] inserted dev SP client: #{DEV_CLIENT_ID}"
+        rescue Sequel::UniqueConstraintViolation
+          Onetime.auth_logger.debug "[SeedDevOAuthClient] #{DEV_CLIENT_ID} created concurrently — skipping"
+        end
       end
     end
   end
