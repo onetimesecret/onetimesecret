@@ -98,6 +98,7 @@ describe('useInviteAuth', () => {
 
     it('returns success when server accepts the signup', async () => {
       axiosMock.onPost('/api/invite/invite-token-abc123/signup').reply(200, {});
+      axiosMock.onPost('/api/invite/invite-token-abc123/accept').reply(200, {});
       // Mock setAuthenticated to avoid the real implementation side-effects
       vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
 
@@ -110,6 +111,40 @@ describe('useInviteAuth', () => {
       );
 
       expect(result).toEqual({ success: true });
+    });
+
+    // Regression for issue #3221: the signup endpoint leaves the invitation
+    // in pending state. The composable must chain POST /api/invite/:token/accept
+    // against the established session to complete the join. If this regresses,
+    // users land at /orgs with a still-pending invitation and no membership.
+    it('POSTs /api/invite/:token/accept after a successful signup', async () => {
+      axiosMock.onPost('/api/invite/chain-token/signup').reply(200, {});
+      axiosMock.onPost('/api/invite/chain-token/accept').reply(200, {});
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+
+      const { signupAndAccept } = useInviteAuth();
+      const result = await signupAndAccept('u@e.com', 'pw12345678', true, 'chain-token');
+
+      expect(result.success).toBe(true);
+      const acceptCall = axiosMock.history.post.find(
+        (req) => req.url === '/api/invite/chain-token/accept'
+      );
+      expect(acceptCall).toBeDefined();
+    });
+
+    // /accept failure post-signup is non-fatal: the user is authenticated, and
+    // the AcceptInvite page's direct_accept handler will let them retry.
+    // signupAndAccept still returns success so the parent view can render the
+    // post-signup state.
+    it('returns success even when /accept fails after signup', async () => {
+      axiosMock.onPost('/api/invite/tok-nf/signup').reply(200, {});
+      axiosMock.onPost('/api/invite/tok-nf/accept').reply(404, { error: 'not found' });
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+
+      const { signupAndAccept } = useInviteAuth();
+      const result = await signupAndAccept('u@e.com', 'pw12345678', true, 'tok-nf');
+
+      expect(result.success).toBe(true);
     });
 
     it('calls setAuthenticated(true) on success', async () => {
@@ -285,12 +320,31 @@ describe('useInviteAuth', () => {
   describe('loginAndAccept', () => {
     it('returns success when server accepts the login', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
+      axiosMock.onPost('/api/invite/tok-abc/accept').reply(200, {});
       vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
 
       const { loginAndAccept } = useInviteAuth();
       const result = await loginAndAccept('user@example.com', 'pw12345678', 'tok-abc');
 
       expect(result).toEqual({ success: true });
+    });
+
+    // Regression for issue #3221: after_login no longer auto-accepts. The
+    // composable issues the explicit POST /api/invite/:token/accept so the
+    // existing-user flow lands on the same acceptance path as the signup flow.
+    it('POSTs /api/invite/:token/accept after a successful login', async () => {
+      axiosMock.onPost('/auth/login').reply(200, {});
+      axiosMock.onPost('/api/invite/login-chain/accept').reply(200, {});
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+
+      const { loginAndAccept } = useInviteAuth();
+      const result = await loginAndAccept('u@e.com', 'pw12345678', 'login-chain');
+
+      expect(result.success).toBe(true);
+      const acceptCall = axiosMock.history.post.find(
+        (req) => req.url === '/api/invite/login-chain/accept'
+      );
+      expect(acceptCall).toBeDefined();
     });
 
     it('calls setAuthenticated(true) on success', async () => {
