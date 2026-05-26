@@ -166,6 +166,16 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
     JSON.parse(last_response.body)
   end
 
+  def csrf_patch(path, params = {})
+    csrf_token = ensure_csrf_token
+
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    header 'X-CSRF-Token', csrf_token if csrf_token
+
+    patch path, JSON.generate(params.merge(shrimp: csrf_token))
+  end
+
   # ==========================================================================
   # PUT /api/domains/:extid/signup-config - Create/Replace Signup Config
   # ==========================================================================
@@ -309,7 +319,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Validation strategy')
+          expect(body['error']).to include('Validation strategy')
         end
 
         it 'returns 422 for invalid validation_strategy' do
@@ -320,7 +330,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('validation_strategy must be one of')
+          expect(body['error']).to include('validation_strategy must be one of')
         end
 
         it 'returns 422 for domain_allowlist without allowed_signup_domains' do
@@ -331,7 +341,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('allowed_signup_domains')
+          expect(body['error']).to include('allowed_signup_domains')
         end
 
         it 'returns 422 for domain_allowlist with empty allowed_signup_domains array' do
@@ -343,7 +353,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('allowed_signup_domains')
+          expect(body['error']).to include('allowed_signup_domains')
         end
       end
     end
@@ -366,7 +376,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         # Non-owner check uses verify_one_of_roles! -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['message']).to include('owner')
+        expect(body['error']).to include('owner')
       end
 
       it 'returns 422 when organization lacks custom_signup_validation entitlement' do
@@ -382,7 +392,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         # Entitlement check uses raise_form_error -> FormError -> 422
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('custom_signup_validation')
+        expect(body['error']).to include('custom_signup_validation')
       end
 
       it 'returns 404 for non-existent domain' do
@@ -391,7 +401,179 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Domain not found')
+        expect(body['error']).to include('Domain not found')
+      end
+    end
+  end
+
+  # ==========================================================================
+  # PATCH /api/domains/:extid/signup-config - Partial Update Signup Config
+  # ==========================================================================
+
+  describe 'PATCH /api/domains/:extid/signup-config' do
+    context 'when existing config exists' do
+      before do
+        Onetime::CustomDomain::SignupConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          validation_strategy: 'domain_allowlist',
+          allowed_signup_domains: ['original.com', 'partner.com'],
+          enabled: false,
+        )
+      end
+
+      context 'when authenticated as organization owner' do
+        before do
+          login_as(test_owner)
+        end
+
+        it 'updates only provided fields (PATCH semantics)' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            enabled: true,
+          }
+
+          expect(last_response.status).to eq(200)
+
+          body = json_body
+          record = body['record']
+
+          # Updated field
+          expect(record['enabled']).to be true
+
+          # Preserved fields
+          expect(record['validation_strategy']).to eq('domain_allowlist')
+          expect(record['allowed_signup_domains']).to contain_exactly('original.com', 'partner.com')
+        end
+
+        it 'preserves allowed_signup_domains when not provided' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            enabled: true,
+          }
+
+          expect(last_response.status).to eq(200)
+
+          body = json_body
+          record = body['record']
+          expect(record['allowed_signup_domains']).to contain_exactly('original.com', 'partner.com')
+        end
+
+        it 'replaces allowed_signup_domains when provided with values' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            allowed_signup_domains: ['new-domain.com'],
+          }
+
+          expect(last_response.status).to eq(200)
+
+          body = json_body
+          record = body['record']
+          expect(record['allowed_signup_domains']).to contain_exactly('new-domain.com')
+          # Strategy preserved
+          expect(record['validation_strategy']).to eq('domain_allowlist')
+        end
+
+        it 'updates strategy and preserves enabled state when not provided' do
+          # Start enabled
+          existing = Onetime::CustomDomain::SignupConfig.find_by_domain_id(test_custom_domain.identifier)
+          existing.enabled = 'true'
+          existing.save
+
+          csrf_patch api_path(test_custom_domain.extid), {
+            validation_strategy: 'passthrough',
+          }
+
+          expect(last_response.status).to eq(200)
+
+          body = json_body
+          record = body['record']
+          expect(record['validation_strategy']).to eq('passthrough')
+          expect(record['enabled']).to be true
+        end
+
+        it 'returns 422 when switching to domain_allowlist without provided domains and existing is empty' do
+          # Replace existing config with non-allowlist that has no domains
+          Onetime::CustomDomain::SignupConfig.delete_for_domain!(test_custom_domain.identifier)
+          Onetime::CustomDomain::SignupConfig.create!(
+            domain_id: test_custom_domain.identifier,
+            validation_strategy: 'passthrough',
+            enabled: true,
+          )
+
+          csrf_patch api_path(test_custom_domain.extid), {
+            validation_strategy: 'domain_allowlist',
+          }
+
+          expect(last_response.status).to eq(422)
+          body = json_body
+          expect(body['error']).to include('allowed_signup_domains')
+        end
+
+        it 'returns 422 for invalid validation_strategy' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            validation_strategy: 'invalid_strategy',
+          }
+
+          expect(last_response.status).to eq(422)
+          body = json_body
+          expect(body['error']).to include('validation_strategy must be one of')
+        end
+      end
+    end
+
+    context 'when no existing config' do
+      before do
+        login_as(test_owner)
+      end
+
+      it 'creates new config when providing all required fields (PATCH-as-create)' do
+        csrf_patch api_path(test_custom_domain.extid), valid_passthrough_params
+
+        expect(last_response.status).to eq(200)
+
+        body = json_body
+        record = body['record']
+        expect(record['validation_strategy']).to eq('passthrough')
+        expect(record['enabled']).to be true
+      end
+
+      it 'returns 422 when validation_strategy missing for creation' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          enabled: true,
+        }
+
+        expect(last_response.status).to eq(422)
+        body = json_body
+        expect(body['error']).to include('Validation strategy')
+      end
+    end
+
+    context 'authorization checks' do
+      before do
+        Onetime::CustomDomain::SignupConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          validation_strategy: 'passthrough',
+          enabled: false,
+        )
+      end
+
+      it 'returns 401 for unauthenticated requests' do
+        header 'Accept', 'application/json'
+        header 'Content-Type', 'application/json'
+        patch api_path(test_custom_domain.extid), JSON.generate({ enabled: true })
+
+        expect(last_response.status).to eq(401)
+      end
+
+      it 'returns 403 for non-owner of organization' do
+        login_as(test_non_owner)
+        csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+
+        expect(last_response.status).to eq(403)
+      end
+
+      it 'returns 404 for non-existent domain' do
+        login_as(test_owner)
+        csrf_patch api_path('nonexistent-domain-extid'), { enabled: true }
+
+        expect(last_response.status).to eq(404)
       end
     end
   end
@@ -467,7 +649,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Signup configuration not found')
+        expect(body['error']).to include('Signup configuration not found')
       end
     end
 
@@ -499,7 +681,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Domain not found')
+        expect(body['error']).to include('Domain not found')
       end
     end
   end
@@ -552,7 +734,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Signup configuration not found')
+        expect(body['error']).to include('Signup configuration not found')
       end
     end
 
@@ -584,7 +766,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Domain not found')
+        expect(body['error']).to include('Domain not found')
       end
     end
   end

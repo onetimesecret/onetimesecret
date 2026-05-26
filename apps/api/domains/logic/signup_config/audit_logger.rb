@@ -17,6 +17,7 @@ module DomainsAPI
       # Events:
       #   - domain_signup_config_created: New signup configuration created
       #   - domain_signup_config_replaced: Existing signup configuration fully replaced (PUT)
+      #   - domain_signup_config_updated: Signup configuration partially updated (PATCH)
       #   - domain_signup_config_deleted: Signup configuration removed
       #   - domain_signup_config_enabled: Signup validation enabled for domain
       #   - domain_signup_config_disabled: Signup validation disabled for domain
