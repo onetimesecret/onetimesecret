@@ -77,6 +77,11 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
       expect(@created_org.owner_id).to eq(@customer.custid)
     end
 
+    it 'sets created_by in lock-step with owner_id (ADR-012)' do
+      expect(@created_org.created_by).to eq(@customer.custid)
+      expect(@created_org.created_by).to eq(@created_org.owner_id)
+    end
+
     it 'adds customer as member' do
       expect(@created_org.member?(@customer)).to be true
     end

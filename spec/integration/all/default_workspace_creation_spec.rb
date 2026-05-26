@@ -58,6 +58,18 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
     expect(@org.owner_id).to eq(@customer.custid)
   end
 
+  it 'Organization.created_by is set in lock-step with owner_id (ADR-012)' do
+    expect(@org.created_by).to eq(@customer.custid)
+    expect(@org.created_by).to eq(@org.owner_id)
+  end
+
+  it 'safe_dump exposes both owner_id and created_by keys' do
+    dump = @org.safe_dump
+    expect(dump[:owner_id]).to eq(@customer.custid)
+    expect(dump[:created_by]).to eq(@customer.custid)
+    expect(dump[:created_by]).to eq(dump[:owner_id])
+  end
+
   it 'Organization has default name' do
     expect(@org.display_name).to eq("Default Workspace")
   end
