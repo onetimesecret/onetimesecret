@@ -52,19 +52,30 @@ module Auth::Config::Features
       auth.oauth_applications_table :oauth_applications
       auth.oauth_grants_table :oauth_grants
 
-      # ─── Issuer ─────────────────────────────────────────────────────────
-      # Block form so the value is evaluated per-request, not at load time.
-      # This lets the same boot serve multiple custom domains correctly
-      # (e.g. dev-and-prod from one container with different HOST values).
+      # ─── Issuer / authorization server URL ────────────────────────────
+      # The OP is mounted at base_url + Auth::Application.uri_prefix
+      # (e.g. http://localhost:3000/auth). The gem's default
+      # `authorization_server_url` returns just `base_url`, missing the
+      # mount prefix — that would make ID tokens claim `iss:
+      # http://localhost:3000` while OmniAuth/discovery clients expect
+      # `http://localhost:3000/auth`.
       #
-      # Resolution order:
-      #   1. OAUTH_ISSUER env var (explicit override; usually for prod)
-      #   2. site.host from etc/config.yaml (project-wide site identity)
-      #   3. http://localhost:3000/auth (dev/test fallback)
-      auth.oauth_jwt_issuer do
-        ENV.fetch('OAUTH_ISSUER') do
-          host = Onetime.conf.dig('site', 'host')
-          host && !host.to_s.empty? ? "https://#{host}/auth" : 'http://localhost:3000/auth'
+      # We override `authorization_server_url` (consumed by the default
+      # `oauth_jwt_issuer`, oauth_jwt_base.rb:36) AND
+      # `oauth_server_metadata_body` so the discovery `issuer` field
+      # honors the same value — by default that field is `base_url`
+      # ignoring authorization_server_url (oauth_base.rb:746-748).
+      #
+      # OAUTH_ISSUER overrides both for static prod deployments.
+      auth.auth_class_eval do
+        define_method(:authorization_server_url) do
+          ENV.fetch('OAUTH_ISSUER') { "#{base_url}#{Auth::Application.uri_prefix}" }
+        end
+
+        define_method(:oauth_server_metadata_body) do |path = nil|
+          body          = super(path)
+          body[:issuer] = authorization_server_url
+          body
         end
       end
 

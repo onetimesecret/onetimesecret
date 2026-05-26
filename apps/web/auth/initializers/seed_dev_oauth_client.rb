@@ -26,8 +26,18 @@ module Auth
       @provides   = [:dev_oauth_client]
       @optional   = true
 
-      DEV_CLIENT_ID        = 'onetimesecret-sp-dev'
-      DEFAULT_REDIRECT_URI = 'http://localhost:3000/auth/sso/oidc/callback'
+      DEV_CLIENT_ID = 'onetimesecret-sp-dev'
+
+      # The redirect_uri stored on the seeded row MUST match the SP-side
+      # provider's callback URL exactly (rodauth-oauth requires exact-match
+      # validation in /authorize). The default below mirrors the formula
+      # used by Features::OmniAuth.configure_local_idp_provider so that when
+      # OAUTH_SP_DEV_ROUTE_NAME is overridden, both ends stay in lockstep.
+      # Override the final URL directly via OAUTH_SP_DEV_REDIRECT_URI.
+      def self.default_redirect_uri
+        route_name = ENV.fetch('OAUTH_SP_DEV_ROUTE_NAME', 'local')
+        "http://localhost:3000/auth/sso/#{route_name}/callback"
+      end
 
       def should_skip?
         # Only relevant in full mode
@@ -72,7 +82,7 @@ module Auth
             account_id: nil, # system-owned
             name: 'OneTimeSecret SP (development)',
             description: 'Local dev Service Provider — authenticates against this instance via OAuth/OIDC.',
-            redirect_uri: ENV.fetch('OAUTH_SP_DEV_REDIRECT_URI', DEFAULT_REDIRECT_URI),
+            redirect_uri: ENV.fetch('OAUTH_SP_DEV_REDIRECT_URI', self.class.default_redirect_uri),
             client_id: DEV_CLIENT_ID,
             client_secret: BCrypt::Password.create(secret),
             scopes: 'openid email profile',

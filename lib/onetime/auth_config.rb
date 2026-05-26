@@ -285,6 +285,11 @@ module Onetime
       provider_definitions.filter_map do |defn|
         next unless defn[:required_vars].all? { |var| env_present?(var) }
 
+        # Optional gate beyond env-var presence (e.g., the local IdP needs
+        # AUTH_OAUTH_ENABLED=true on top of OAUTH_SP_DEV_CLIENT_SECRET).
+        condition = defn[:condition]
+        next if condition && !condition.call(self)
+
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
         {
           'route_name' => ENV.fetch(defn[:route_var], defn[:route_default]),
@@ -370,6 +375,19 @@ module Onetime
           route_default: 'github',
           display_var: 'GITHUB_DISPLAY_NAME',
           display_default: 'GitHub',
+        },
+        # Local IdP — see configure_local_idp_provider in features/omniauth.rb.
+        # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
+        # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
+        # actually running). Without the second check, the frontend would
+        # render a "Local IdP" button that posts to a non-existent route.
+        {
+          required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
+          condition: ->(cfg) { cfg.oauth_enabled? },
+          route_var: 'OAUTH_SP_DEV_ROUTE_NAME',
+          route_default: 'local',
+          display_var: 'OAUTH_SP_DEV_DISPLAY_NAME',
+          display_default: 'Local IdP',
         },
       ]
     end
