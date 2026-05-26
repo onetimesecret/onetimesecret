@@ -348,7 +348,17 @@ module Onetime
           # webhook handles materialization from the assigned plan instead.
           # No-op is intentional; owner membership exists prior so Stage 3
           # membership materialization invariants will hold.
-          org.materialize_standalone_entitlements!
+          #
+          # Explicit rescue: materialization is degradable while the runtime
+          # fallback at WithPlanEntitlements#entitlements remains. If this
+          # raises, org creation succeeds and the fallback applies.
+          begin
+            org.materialize_standalone_entitlements!
+          rescue StandardError => ex
+            OT.le '[Organization.create!] standalone materialization failed, fallback applies',
+              exception: ex,
+              org_extid: org.extid
+          end
 
           OT.ld "[Organization.create!] org: #{org.extid}, owner: #{owner_customer.custid}"
 
