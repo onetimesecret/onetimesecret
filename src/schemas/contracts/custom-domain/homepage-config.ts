@@ -49,9 +49,14 @@ export const homepageConfigCanonical = z.object({
    * (DEFAULT_DISABLED_HOMEPAGE_VARIANT) — operators only set this when
    * they want to deviate from the deployment-wide default.
    *
+   * `.catch(null)` over `.default(null)`: a future backend may emit a
+   * variant id this frontend version doesn't recognise; degrading to
+   * null (and thus to the frontend default) is preferable to crashing
+   * the whole bootstrap payload parse.
+   *
    * The ?variant URL override still wins for dogfood/preview.
    */
-  disabled_homepage_variant: disabledHomepageVariantSchema.nullable().default(null),
+  disabled_homepage_variant: disabledHomepageVariantSchema.nullable().catch(null),
 
   /** Configuration creation timestamp (Unix epoch seconds). Null if unconfigured. */
   created_at: z.number().nullable(),
