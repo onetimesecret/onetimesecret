@@ -520,6 +520,55 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
       end
     end
 
+    # End-to-end wiring proof for the PATCH -> audit-log seam fixed under
+    # issue #3202 ("Fix audit-log false positives in PATCH signup config").
+    # PatchSignupConfig#normalized_change_params feeds compute_signup_changes a
+    # parsed Array (not the raw comma-separated string), so a string-form input
+    # whose values match the existing Array (after normalization) must not
+    # surface as a change in the audit log. Exhaustive normalization coverage
+    # of compute_signup_changes lives in the unit spec at
+    # apps/api/domains/spec/logic/signup_config/audit_logger_spec.rb. See #3245.
+    context 'audit log change detection' do
+      before do
+        Onetime::CustomDomain::SignupConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          validation_strategy: 'domain_allowlist',
+          allowed_signup_domains: ['a.com', 'b.com'],
+          enabled: false,
+        )
+        login_as(test_owner)
+      end
+
+      it 'does not record allowed_signup_domains as changed when string form matches existing array' do
+        # Captures the structured payload emitted by log_signup_audit_event,
+        # which writes via OT.info as: "[DOMAIN_SIGNUP_AUDIT] <event>", <json>.
+        # Forwards to the original logger so normal side-effects are preserved.
+        events = []
+        allow(OT).to receive(:info).and_wrap_original do |original, *args, **kwargs|
+          prefix = args.first.to_s
+          if prefix.start_with?('[DOMAIN_SIGNUP_AUDIT]')
+            events << {
+              event: prefix.sub('[DOMAIN_SIGNUP_AUDIT] ', ''),
+              payload: JSON.parse(args[1]),
+            }
+          end
+          original.call(*args, **kwargs)
+        end
+
+        csrf_patch api_path(test_custom_domain.extid), {
+          validation_strategy: 'domain_allowlist',
+          allowed_signup_domains: 'a.com, b.com',
+        }
+
+        expect(last_response.status).to eq(200)
+
+        update_event = events.find { |e| e[:event] == 'domain_signup_config_updated' }
+        expect(update_event).not_to be_nil
+        # build_audit_payload omits the :changes key when the hash is empty.
+        expect(update_event[:payload]).not_to have_key('changes')
+      end
+    end
+
     context 'when no existing config' do
       before do
         login_as(test_owner)
