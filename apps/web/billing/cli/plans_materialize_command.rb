@@ -3,20 +3,27 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative '../operations/materialize_plans'
 
 module Onetime
   module CLI
     # Materialize entitlements on organizations
     #
+    # Thin wrapper over Billing::Operations::MaterializePlans. Owns option
+    # parsing and human-readable output; the operation owns iteration,
+    # accounting, logging, and cascade semantics so non-CLI callers can
+    # use the same logic.
+    #
     # Use cases:
     # - Initial migration: materialize all orgs so legacy Plan.load fallback can be removed
     # - Catalog refresh: re-materialize orgs on a specific plan after plan definition changes
+    # - Membership consistency: cascade after plan catalog changes
     #
     # Usage:
-    #   bin/ots billing plans materialize --all                 # Dry run all orgs
-    #   bin/ots billing plans materialize --all --run           # Execute on all orgs
-    #   bin/ots billing plans materialize --plan=identity_plus_v1 --run  # Specific plan
-    #   bin/ots billing plans materialize --stale --run         # Only stale orgs
+    #   bin/ots billing plans materialize --all                              # Dry run all orgs
+    #   bin/ots billing plans materialize --all --run                        # Execute on all orgs
+    #   bin/ots billing plans materialize --plan=identity_plus_v1 --run      # Specific plan
+    #   bin/ots billing plans materialize --all --include-memberships --run  # Cascade to memberships
     #
     class BillingPlansMaterializeCommand < Command
       include BillingHelpers
@@ -33,15 +40,10 @@ module Onetime
         default: nil,
         desc: 'Materialize only organizations on this plan ID'
 
-      option :stale,
+      option :include_memberships,
         type: :boolean,
         default: false,
-        desc: 'Only materialize orgs where entitlements are stale vs current plan'
-
-      option :force,
-        type: :boolean,
-        default: false,
-        desc: 'Force re-materialization even if entitlements are up to date'
+        desc: 'Cascade re-materialization to all active memberships after each org'
 
       option :run,
         type: :boolean,
@@ -52,7 +54,13 @@ module Onetime
         type: :boolean,
         default: false,
         aliases: ['v'],
-        desc: 'Show detailed progress for each organization'
+        desc: 'Also show per-membership detail (objid, role, planid, entitlements count)'
+
+      option :quiet,
+        type: :boolean,
+        default: false,
+        aliases: ['q'],
+        desc: 'Suppress per-org progress; show only banner and final summary'
 
       option :help,
         type: :boolean,
@@ -60,7 +68,7 @@ module Onetime
         aliases: ['h'],
         desc: 'Show help message'
 
-      def call(all: false, plan: nil, stale: false, force: false, run: false, verbose: false, help: false, **)
+      def call(all: false, plan: nil, include_memberships: false, run: false, verbose: false, quiet: false, help: false, **)
         return show_usage_help if help
 
         boot_application!
@@ -71,62 +79,50 @@ module Onetime
           return
         end
 
-        puts "\nEntitlement Materialization"
-        puts '=' * 60
-
         dry_run = !run
         total   = Onetime::Organization.instances.element_count
+
+        puts "\nEntitlement Materialization"
+        puts '=' * 60
 
         if total.zero?
           puts 'No organizations found.'
           return
         end
 
-        print_mode_banner(dry_run, all, plan, stale, force)
+        print_mode_banner(dry_run: dry_run, all: all, plan: plan,
+                          include_memberships: include_memberships)
 
-        stats             = { total: 0, materialized: 0, skipped_no_plan: 0, skipped_up_to_date: 0, skipped_plan_filter: 0, errors: [] }
-        progress_interval = [total / 10, 1].max
+        verbosity = resolve_verbosity(verbose: verbose, quiet: quiet)
+        renderer  = ProgressRenderer.new(total: total,
+                                         verbosity: verbosity,
+                                         dry_run: dry_run,
+                                         include_memberships: include_memberships)
 
-        # Preload all plans (only ~5) so no Redis reads happen inside the loop.
-        # This allows both reads and writes to be batched via pipelining.
-        # Includes both Stripe-synced and config-only plans (via upsert_config_only_plans).
-        plans_cache = ::Billing::Plan.list_plans.to_h { |p| [p.plan_id, p] }
+        result = ::Billing::Operations::MaterializePlans.call(
+          plan_filter: plan,
+          include_memberships: include_memberships,
+          dry_run: dry_run,
+        ) { |event| renderer.render(event) }
 
-        Onetime::Organization.instances.each_record(batch_size: 100) do |org|
-          process_org(org, stats, total, dry_run, verbose, stale, force, plan, progress_interval, plans_cache)
-        end
+        print_results(result, dry_run, verbosity, include_memberships)
+        print_next_steps(dry_run, result.succeeded, all, plan, include_memberships)
+      end
 
-        print_results(stats, dry_run, verbose)
-        print_next_steps(dry_run, stats[:materialized], all, plan)
+      # Per-org output is on by default so the run produces a useful audit
+      # trail. --quiet drops it; --verbose adds per-membership lines.
+      def resolve_verbosity(verbose:, quiet:)
+        return :quiet if quiet
+        return :verbose if verbose
+
+        :default
       end
 
       private
 
-      def skip_for_plan_filter?(org, plan_filter)
-        return false unless plan_filter
-
-        org.planid.to_s != plan_filter
-      end
-
-      def skip_for_stale_filter?(org, stale_only, force, plans_cache)
-        return false if force
-        return false unless stale_only
-        return false unless org.entitlements_materialized?
-
-        plan = plans_cache[org.planid]
-        return true unless plan
-
-        !org.entitlements_stale?(plan)
-      end
-
-      def print_mode_banner(dry_run, all, plan, stale, force)
-        scope  = if all
-                  'all organizations'
-                else
-                  "organizations on plan '#{plan}'"
-                end
-        scope += ' (stale only)' if stale
-        scope += ' (force)' if force
+      def print_mode_banner(dry_run:, all:, plan:, include_memberships:)
+        scope  = all ? 'all organizations' : "organizations on plan '#{plan}'"
+        scope += ' + memberships cascade' if include_memberships
 
         if dry_run
           puts "\nDRY RUN MODE - No changes will be made"
@@ -138,103 +134,43 @@ module Onetime
         end
       end
 
-      # rubocop:disable Metrics/PerceivedComplexity
-      def process_org(org, stats, total, dry_run, verbose, stale_only, force, plan_filter, progress_interval, plans_cache)
-        stats[:total] += 1
-        idx            = stats[:total]
-
-        if skip_for_plan_filter?(org, plan_filter)
-          stats[:skipped_plan_filter] += 1
-          print_progress(idx, total, verbose, progress_interval)
-          return
-        end
-
-        if org.planid.to_s.empty?
-          stats[:skipped_no_plan] += 1
-          puts "  [#{idx}/#{total}] Skipping (no planid): #{org.extid}" if verbose
-          print_progress(idx, total, verbose, progress_interval)
-          return
-        end
-
-        if skip_for_stale_filter?(org, stale_only, force, plans_cache)
-          stats[:skipped_up_to_date] += 1
-          puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
-          print_progress(idx, total, verbose, progress_interval)
-          return
-        end
-
-        plan = plans_cache[org.planid]
-
-        unless plan
-          stats[:errors] << "#{org.extid}: Plan '#{org.planid}' not found"
-          puts "  [#{idx}/#{total}] Error: Plan not found for #{org.extid}" if verbose
-          print_progress(idx, total, verbose, progress_interval)
-          return
-        end
-
-        if !force && !stale_only && org.entitlements_materialized? && !org.entitlements_stale?(plan)
-          stats[:skipped_up_to_date] += 1
-          puts "  [#{idx}/#{total}] Skipping (up to date): #{org.extid}" if verbose
-          print_progress(idx, total, verbose, progress_interval)
-          return
-        end
-
-        if dry_run
-          puts "  [#{idx}/#{total}] Would materialize: #{org.extid} (#{org.planid}, #{plan.entitlements.size} entitlements)"
-        else
-          begin
-            org.materialize_entitlements_from_plan(plan)
-            puts "  [#{idx}/#{total}] Materialized: #{org.extid}" if verbose
-          rescue StandardError => ex
-            stats[:errors] << "#{org.extid}: #{ex.message}"
-            puts "  [#{idx}/#{total}] Error: #{ex.message}" if verbose
-            print_progress(idx, total, verbose, progress_interval)
-            return
-          end
-        end
-
-        stats[:materialized] += 1
-        print_progress(idx, total, verbose, progress_interval)
-      end
-      # rubocop:enable Metrics/PerceivedComplexity
-
-      def print_progress(current, total, verbose, interval)
-        return if verbose
-        return unless (current % interval).zero? || current == total
-
-        print "\r  Progress: #{current}/#{total} organizations processed"
-      end
-
-      def print_results(stats, dry_run, verbose)
-        print "\r" + (' ' * 80) + "\r" unless verbose
-
+      def print_results(result, dry_run, verbosity, include_memberships)
         puts "\n" + ('=' * 60)
         puts "Materialization #{dry_run ? 'Preview' : 'Complete'}"
         puts '=' * 60
         puts "\nStatistics:"
-        puts '  Total scanned:'.ljust(30) + stats[:total].to_s
-        puts '  Materialized:'.ljust(30) + stats[:materialized].to_s
-        puts '  Skipped (plan filter):'.ljust(30) + stats[:skipped_plan_filter].to_s if stats[:skipped_plan_filter] > 0
-        puts '  Skipped (no plan):'.ljust(30) + stats[:skipped_no_plan].to_s
-        puts '  Skipped (up to date):'.ljust(30) + stats[:skipped_up_to_date].to_s
+        puts '  Total scanned:'.ljust(30) + result.scanned.to_s
+        puts '  Succeeded:'.ljust(30) + result.succeeded.to_s
+        puts '  Failed:'.ljust(30) + result.failed.to_s if result.failed > 0
+        puts '  Skipped (plan filter):'.ljust(30) + result.skipped_plan_filter.to_s if result.skipped_plan_filter > 0
+        puts '  Skipped (no plan):'.ljust(30) + result.skipped_no_plan.to_s
 
-        return unless stats[:errors].any?
+        if include_memberships && !dry_run
+          puts '  Orgs cascaded:'.ljust(30) + result.orgs_cascaded.to_s
+          puts '  Memberships materialized:'.ljust(30) + result.memberships_succeeded.to_s
+          puts '  Memberships failed:'.ljust(30) + result.memberships_failed.to_s if result.memberships_failed > 0
+        end
 
-        puts "\n  Errors:".ljust(30) + stats[:errors].size.to_s
-        return unless verbose
+        return if result.errors.empty?
+
+        puts "\n  Errors:".ljust(30) + result.errors.size.to_s
+        # Error detail list always rendered unless quiet — it's small, useful
+        # in audit logs, and the operator usually wants to see failure reasons.
+        return if verbosity == :quiet
 
         puts "\n  Error details:"
-        stats[:errors].each { |err| puts "    - #{err}" }
+        result.errors.each { |err| puts "    - #{err[:org_extid]}: #{err[:reason]}" }
       end
 
-      def print_next_steps(dry_run, materialized_count, all, plan)
-        return unless dry_run && materialized_count > 0
+      def print_next_steps(dry_run, succeeded_count, all, plan, include_memberships)
+        return unless dry_run && succeeded_count > 0
 
         cmd = if all
                 'bin/ots billing plans materialize --all --run'
               else
                 "bin/ots billing plans materialize --plan=#{plan} --run"
               end
+        cmd += ' --include-memberships' if include_memberships
 
         puts <<~MESSAGE
 
@@ -258,13 +194,14 @@ module Onetime
             instead of calling Plan.load on every request.
 
           Options:
-            --all                 Materialize all organizations (migration mode)
-            --plan=<plan_id>      Materialize only organizations on this plan
-            --stale               Only materialize orgs where entitlements are stale
-            --force               Force re-materialization even if up to date
-            --run                 Execute materialization (default is dry-run)
-            --verbose, -v         Show detailed progress for each organization
-            --help, -h            Show this help message
+            --all                   Materialize all organizations (migration mode)
+            --plan=<plan_id>        Materialize only organizations on this plan
+            --include-memberships   Cascade re-materialization to all active memberships
+            --run                   Execute materialization (default is dry-run)
+            --verbose, -v           Also print per-membership detail (objid, role,
+                                    planid, entitlements count)
+            --quiet, -q             Suppress per-org progress; banner + summary only
+            --help, -h              Show this help message
 
           Examples:
             # Preview migration (all orgs, dry run)
@@ -276,20 +213,106 @@ module Onetime
             # Re-materialize after plan definition change
             bin/ots billing plans materialize --plan=identity_plus_v1 --run
 
-            # Only update stale orgs (efficient for large deployments)
-            bin/ots billing plans materialize --all --stale --run
+            # Re-materialize all orgs AND cascade to their active memberships
+            bin/ots billing plans materialize --all --include-memberships --run
 
-            # Force re-materialize all orgs (ignore up-to-date checks)
-            bin/ots billing plans materialize --all --force --run
+            # Show per-membership detail for cascade audit
+            bin/ots billing plans materialize --all --include-memberships --run -v
+
+            # Minimal output for cron / log forwarders
+            bin/ots billing plans materialize --all --run --quiet
 
           Notes:
-            - Command is idempotent (safe to run multiple times)
-            - Skips orgs already up-to-date unless --stale is used
-            - Plans are preloaded before iteration (no Redis reads in loop)
-            - Reports errors for orgs with invalid planid values
+            - Output: per-org lines are on by default so the run produces a
+              useful audit trail. --verbose adds per-membership detail under
+              each cascaded org. --quiet drops per-org lines, keeping only the
+              banner and final summary.
+            - Command is idempotent (safe to run multiple times). Every in-scope
+              org has its entitlements re-written from the plan definition; there
+              is no "skip if already up-to-date" optimization because the perf
+              gain is minor and pairing it with --include-memberships caused
+              cascades to be silently skipped for up-to-date orgs.
+            - Plans are preloaded before iteration (no Redis reads in loop).
+            - --include-memberships cascades for every in-scope org, including
+              orgs whose entitlement set hasn't changed — memberships can drift
+              independently of the org plan.
+            - Cascade failures count the org as FAILED (not succeeded). Partial
+              membership materialization is reported in the errors list.
 
         USAGE
         true
+      end
+
+      # Renders streaming progress events to stdout.
+      #
+      # Three modes:
+      #   :default — one line per org (the audit-log baseline)
+      #   :verbose — :default plus one line per membership under each cascade
+      #   :quiet   — no per-org output (banner and final summary only)
+      #
+      # Decoupled from the operation so other callers (jobs, future UIs)
+      # can plug in their own renderers.
+      class ProgressRenderer
+        def initialize(total:, verbosity:, dry_run:, include_memberships:)
+          @total               = total
+          @verbosity           = verbosity
+          @dry_run             = dry_run
+          @include_memberships = include_memberships
+          @processed           = 0
+        end
+
+        def render(event)
+          @processed += 1
+          return if @verbosity == :quiet
+
+          puts "  [#{@processed}/#{@total}] #{describe(event)}"
+          render_membership_detail(event) if @verbosity == :verbose
+        end
+
+        private
+
+        def render_membership_detail(event)
+          details = event.cascade && event.cascade[:details]
+          return if details.nil? || details.empty?
+
+          details.each do |m|
+            puts "      ↳ #{format_membership(m)}"
+          end
+        end
+
+        def format_membership(detail)
+          role = detail[:role] || 'member'
+          if detail[:status] == :ok
+            "#{detail[:objid]} (role=#{role}, plan=#{detail[:planid]}): " \
+              "#{detail[:entitlements_count]} entitlements"
+          else
+            "#{detail[:objid]} (role=#{role}): FAILED — #{detail[:error]}"
+          end
+        end
+
+        def describe(event)
+          case event.event
+          when :materialized
+            cascade = event.cascade ? " + cascaded #{event.cascade[:success]}/#{event.cascade[:total]} memberships" : ''
+            "Materialized: #{event.org_extid} (#{event.planid}, #{event.entitlements_count} entitlements)#{cascade}"
+          when :would_materialize
+            cascade_hint = @include_memberships ? ' (+memberships cascade)' : ''
+            "Would materialize: #{event.org_extid} (#{event.planid}, #{event.entitlements_count} entitlements)#{cascade_hint}"
+          when :skipped_plan_filter
+            "Skipping (plan filter): #{event.org_extid}"
+          when :skipped_no_plan
+            "Skipping (no planid): #{event.org_extid}"
+          when :failed_plan_not_found
+            "Error: #{event.reason} (#{event.org_extid})"
+          when :failed_org_write
+            "Error: org write failed for #{event.org_extid}: #{event.reason}"
+          when :failed_cascade
+            cascade = event.cascade ? " (#{event.cascade[:success]}/#{event.cascade[:total]} succeeded)" : ''
+            "Error: cascade failed for #{event.org_extid}: #{event.reason}#{cascade}"
+          else
+            "[#{event.event}] #{event.org_extid}"
+          end
+        end
       end
     end
   end
