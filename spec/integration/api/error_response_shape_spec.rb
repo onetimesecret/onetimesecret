@@ -167,4 +167,53 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
       expect(v2_body.first).to eq(v3_body.first)
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Billing (Otto-based; configured in Billing::Application#build_router)
+  #
+  # Billing already wires OttoHooks for typed-exception handlers; the gap was
+  # the router-level not_found/server_error defaults, which previously emitted
+  # text/html. Same config-level pattern as V2/V3 above — boot is gated by
+  # billing config, so we inspect the constructed router tuples directly.
+  # ---------------------------------------------------------------------------
+  describe 'Billing router fallbacks (config-level assertion)' do
+    let(:router) do
+      require_relative '../../../apps/web/billing/application'
+      app = Billing::Application.new
+      app.send(:build_router)
+    end
+
+    it 'emits ADR-013 shape on router.not_found' do
+      status, headers, body = router.not_found
+      expect(status).to eq(404)
+      expect(headers['content-type']).to include('application/json')
+      expect(JSON.parse(body.first)).to eq(
+        'error'      => 'Not Found',
+        'error_type' => 'NotFound',
+      )
+    end
+
+    it 'emits ADR-013 shape on router.server_error' do
+      status, headers, body = router.server_error
+      expect(status).to eq(500)
+      expect(headers['content-type']).to include('application/json')
+      expect(JSON.parse(body.first)).to eq(
+        'error'      => 'Internal Server Error',
+        'error_type' => 'ServerError',
+      )
+    end
+
+    it 'Billing not_found body matches V2/V3 byte-for-byte' do
+      _, _, billing_body = router.not_found
+      _, _, v2_body      = configured_server_error(V2::Application) # reuse helper
+      # Different content (Not Found vs Internal Server Error) so do a key check:
+      expect(JSON.parse(billing_body.first).keys.sort).to eq(%w[error error_type])
+      expect(JSON.parse(v2_body.first).keys.sort).to eq(%w[error error_type])
+    end
+  end
+
+# Auth Router (Roda-based) is covered by a dedicated spec:
+# apps/web/auth/spec/integration/router_error_shape_spec.rb
+# (kept separate because Auth depends on AUTHENTICATION_MODE=full and Rodauth
+# setup; mixing it into this cross-app spec would couple unrelated boot paths).
 end

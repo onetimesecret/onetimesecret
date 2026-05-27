@@ -11,6 +11,7 @@ require 'json'
 require 'onetime/logger_methods'
 
 require_relative 'config'
+require_relative 'error_translator'
 require_relative 'routes/account'
 require_relative 'routes/active_sessions'
 require_relative 'routes/mfa'
@@ -49,9 +50,33 @@ module Auth
     # Use its Config class for all authentication configuration.
     plugin :rodauth, auth_class: Auth::Config
 
-    # Status handlers
+    # Translate typed Onetime exceptions to ADR-013 wire shape
+    # ({ error, error_type, ...class-specific }) when they propagate out of a
+    # route block. Additive: existing per-route `rescue StandardError` blocks
+    # still intercept first, so this handler only fires for exceptions that
+    # escape them — typically typed exceptions raised from routes that have
+    # been converted to the typed-raise pattern.
+    #
+    # Rodauth's own auth-flow errors are caught inside Rodauth before
+    # propagating here and are unaffected.
+    #
+    # The body is JSON-serialized in-line rather than relying on `plugin :json`
+    # auto-wrapping the :error_handler return value; that interaction depends
+    # on plugin load order and is brittle. Serializing here keeps the wire
+    # shape correct regardless of plugin layering.
+    plugin :error_handler do |e|
+      status, body = Auth::ErrorTranslator.translate(e)
+      response.status           = status
+      response['content-type']  = 'application/json'
+      body.to_json
+    end
+
+    # Both router-level 404 paths (status_handler and the route-block
+    # catch-all below) return Auth::ErrorTranslator::NOT_FOUND_BODY so they
+    # cannot drift apart. The spec at
+    # apps/web/auth/spec/integration/router_error_shape_spec.rb pins the shape.
     status_handler(404) do
-      { error: 'Not found' }
+      Auth::ErrorTranslator::NOT_FOUND_BODY
     end
 
     # Main routing logic
@@ -92,9 +117,9 @@ module Auth
 
       handle_health_routes(r)
 
-      # Catch-all for undefined routes
+      # Catch-all for undefined routes (ADR-013 shape; shared with status_handler(404))
       response.status = 404
-      { error: 'Endpoint not found' }
+      Auth::ErrorTranslator::NOT_FOUND_BODY
     end
 
     # # Returns the current customer from session or nil (anonymous)

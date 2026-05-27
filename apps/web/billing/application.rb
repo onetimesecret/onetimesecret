@@ -75,10 +75,26 @@ module Billing
       # Billing endpoints require session auth except webhooks
       Core::AuthStrategies.register_essential(router)
 
-      # Default error responses
-      headers             = { 'content-type' => 'text/html' }
-      router.not_found    = [404, headers, ['Not Found']]
-      router.server_error = [500, headers, ['Internal Server Error']]
+      # Default error responses per ADR-013 (4xx/5xx wire format).
+      # Schema: { error: string, error_type: string }
+      # - `error` is the user-facing message displayed by the frontend
+      # - `error_type` is the discriminator the frontend branches on (Ruby class name)
+      #
+      # Typed Onetime exceptions raised from logic classes are rendered by the
+      # per-class handlers registered above in configure_otto_request_hook.
+      # These router-level defaults catch routing-layer 404s (no matching route)
+      # and uncaught 500s (exceptions Otto's handlers don't cover).
+      headers             = { 'content-type' => 'application/json' }
+      router.not_found    = [
+        404,
+        headers,
+        [{ error: 'Not Found', error_type: 'NotFound' }.to_json],
+      ]
+      router.server_error = [
+        500,
+        headers,
+        [{ error: 'Internal Server Error', error_type: 'ServerError' }.to_json],
+      ]
 
       router
     end
