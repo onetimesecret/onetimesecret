@@ -26,6 +26,11 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
     double('materialized_entitlements', size: 6)
   end
 
+  # Mock rematerialize result for membership cascade
+  let(:rematerialize_result) do
+    { success: 2, failed: 0, total: 2 }
+  end
+
   # Org double with writable attributes and materialization support
   let(:org) do
     instance_double(
@@ -37,7 +42,8 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
       'stripe_subscription_id=' => nil,
       extid: 'on_test123',
       materialize_entitlements_from_config: true,
-      materialized_entitlements: materialized_entitlements_mock
+      materialized_entitlements: materialized_entitlements_mock,
+      rematerialize_all_memberships!: rematerialize_result
     )
   end
 
