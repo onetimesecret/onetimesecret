@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.1.2",
   "scripts": {
-    "prebuild": "pnpm run locales:sync && pnpm run docs:billing:generate",
+    "prebuild": "pnpm run locales:sync",
     "build": "vite build --config vite.config.ts",
     "build:local": "vite build --config vite.config.local.ts",
     "schemas:rhales:generate": "bundle exec rake rhales:schema:generate TEMPLATES_DIR=./apps/web/core/templates OUTPUT_DIR=./public/schemas",
@@ -26,7 +26,7 @@
     "docs:schemas": "typedoc --options typedoc.schemas.json",
     "docs:schemas:watch": "typedoc --options typedoc.schemas.json --watch",
     "docs:schemas:serve": "npx serve generated/docs/schemas",
-    "docs:billing:generate": "bundle exec bin/ots billing catalog generate-docs",
+    "docs:billing:generate": "bash scripts/billing-docs-generate.sh",
     "predev": "pnpm run i18n:generate-types && pnpm run docs:billing:generate",
     "dev": "vite --host",
     "dev:local": "vite --config vite.config.local.ts --host",
