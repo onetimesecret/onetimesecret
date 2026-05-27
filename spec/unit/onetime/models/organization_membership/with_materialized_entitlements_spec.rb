@@ -246,6 +246,31 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
       expect(membership.materialized_entitlements.to_a).to eq(['create_secrets'])
       expect(membership.materialized_entitlements.to_a).not_to include('manage_billing')
     end
+
+    context 'when pre-loaded org is passed' do
+      let(:preloaded_org) do
+        ents = FakeSet.new
+        %w[create_secrets api_access manage_billing].each { |e| ents.add(e) }
+        Class.new do
+          define_method(:materialized_entitlements) { ents }
+        end.new
+      end
+
+      it 'uses the passed org instead of calling organization' do
+        membership.role = 'owner'
+        # Spy on organization to verify it's not called
+        organization_called = false
+        allow(membership).to receive(:organization) do
+          organization_called = true
+          nil # Return nil to fail fast if it were called
+        end
+
+        membership.materialize_for_role!(preloaded_org)
+
+        expect(organization_called).to be false
+        expect(membership.materialized_entitlements.to_a).to include('manage_billing')
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
