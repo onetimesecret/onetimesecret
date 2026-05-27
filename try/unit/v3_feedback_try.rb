@@ -205,3 +205,60 @@ ensure
   OT.conf['emailer'] = original_emailer
 end
 #=> true
+
+## client_ip pulls the ip from strategy_result.metadata
+strategy_result = MockStrategyResult.anonymous(metadata: { ip: '203.0.113.7' })
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+logic.send(:client_ip)
+#=> '203.0.113.7'
+
+## client_ip falls back to ip_address key
+strategy_result = MockStrategyResult.anonymous(metadata: { ip_address: '203.0.113.8' })
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+logic.send(:client_ip)
+#=> '203.0.113.8'
+
+## client_ip returns nil when metadata has neither key
+strategy_result = MockStrategyResult.anonymous(metadata: {})
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+logic.send(:client_ip).nil?
+#=> true
+
+## raise_concerns does not raise the rate-limit error when IP is unknown
+# Blank IP is a no-op in FeedbackRateLimiter, so an unknown-IP submission
+# should still fall through to the regular empty-message check.
+strategy_result = MockStrategyResult.anonymous(metadata: {})
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+result = begin
+  logic.raise_concerns
+  :no_error
+rescue Onetime::LimitExceeded
+  :limit_exceeded
+rescue StandardError
+  :other_error
+end
+result
+#=> :no_error
+
+## raise_concerns raises LimitExceeded once the IP is locked
+# Manually lock the test IP via the rate limiter, then verify the logic
+# class refuses further submissions from that IP.
+@rate_limited_ip = "203.0.113.#{rand(1..254)}"
+redis = Onetime::Feedback.dbclient
+redis.del("feedback:submissions:#{@rate_limited_ip}", "feedback:locked:#{@rate_limited_ip}")
+# Drive the counter to lockout via the public API to exercise the real path
+strategy_result = MockStrategyResult.anonymous(metadata: { ip: @rate_limited_ip })
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+Onetime::Security::FeedbackRateLimiter::MAX_SUBMISSIONS.times do
+  logic.send(:record_feedback_submission!, @rate_limited_ip)
+end
+result = begin
+  logic.raise_concerns
+  :no_error
+rescue Onetime::LimitExceeded => e
+  [:limit_exceeded, e.max_attempts]
+end
+# Clean up before reporting result
+logic.send(:clear_feedback_rate_limit!, @rate_limited_ip)
+result
+#=> [:limit_exceeded, 10]
