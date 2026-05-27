@@ -26,9 +26,6 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
     allow(Billing::Plan).to receive(:list_plans).and_return([plan])
     allow(iterator).to receive(:each_record).and_yield(org)
 
-    # Default org state: not yet materialized, will be processed.
-    allow(org).to receive(:entitlements_materialized?).and_return(false)
-    allow(org).to receive(:entitlements_stale?).and_return(false)
     allow(org).to receive(:materialize_entitlements_from_plan)
     allow(org).to receive(:rematerialize_all_memberships!)
       .and_return({ success: 3, failed: 0, total: 3 })
@@ -152,28 +149,6 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         expect(result.succeeded).to eq(0)
       end
 
-      it 'skips fresh orgs by default and does NOT cascade' do
-        allow(org).to receive(:entitlements_materialized?).and_return(true)
-        allow(org).to receive(:entitlements_stale?).and_return(false)
-
-        result = described_class.call(include_memberships: true, iterator: iterator)
-
-        expect(result.skipped_up_to_date).to eq(1)
-        expect(org).not_to have_received(:materialize_entitlements_from_plan)
-        expect(org).not_to have_received(:rematerialize_all_memberships!)
-      end
-
-      it '--force overrides the up-to-date skip and still cascades' do
-        allow(org).to receive(:entitlements_materialized?).and_return(true)
-        allow(org).to receive(:entitlements_stale?).and_return(false)
-
-        result = described_class.call(force: true, include_memberships: true, iterator: iterator)
-
-        expect(org).to have_received(:materialize_entitlements_from_plan).with(plan)
-        expect(org).to have_received(:rematerialize_all_memberships!)
-        expect(result.succeeded).to eq(1)
-      end
-
       it 'records a failure when the plan is not in the catalog' do
         allow(org).to receive(:planid).and_return('missing_plan')
 
@@ -181,6 +156,35 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
 
         expect(result.failed).to eq(1)
         expect(result.errors.first[:reason]).to include("Plan 'missing_plan'")
+      end
+    end
+
+    context 'idempotency (no "up-to-date" skip)' do
+      # The earlier --stale / --force / skip-if-fresh behavior was removed:
+      # the perf gain was minor and it caused cascades to be silently skipped
+      # for up-to-date orgs when --include-memberships was set. Memberships
+      # can drift independently of the org's entitlement set, so every
+      # in-scope org is now processed unconditionally.
+
+      it 'materializes an already-fresh org instead of skipping it' do
+        allow(org).to receive(:entitlements_materialized?).and_return(true)
+        allow(org).to receive(:entitlements_stale?).and_return(false)
+
+        result = described_class.call(iterator: iterator)
+
+        expect(org).to have_received(:materialize_entitlements_from_plan).with(plan)
+        expect(result.succeeded).to eq(1)
+      end
+
+      it 'cascades to memberships of an already-fresh org when --include-memberships is set' do
+        allow(org).to receive(:entitlements_materialized?).and_return(true)
+        allow(org).to receive(:entitlements_stale?).and_return(false)
+
+        result = described_class.call(include_memberships: true, iterator: iterator)
+
+        expect(org).to have_received(:rematerialize_all_memberships!)
+        expect(result.succeeded).to eq(1)
+        expect(result.orgs_cascaded).to eq(1)
       end
     end
 

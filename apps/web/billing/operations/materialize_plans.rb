@@ -7,7 +7,7 @@ module Billing
     # Per-org outcome reported via the progress block.
     #
     # @!attribute event [Symbol] One of :materialized, :would_materialize,
-    #   :skipped_no_plan, :skipped_up_to_date, :skipped_plan_filter,
+    #   :skipped_no_plan, :skipped_plan_filter,
     #   :failed_plan_not_found, :failed_org_write, :failed_cascade
     # @!attribute org_extid [String]
     # @!attribute planid [String, nil]
@@ -28,7 +28,6 @@ module Billing
     # @!attribute succeeded [Integer] Org write OK and (no cascade OR cascade fully OK)
     # @!attribute failed [Integer] Org write raised OR cascade had any failures
     # @!attribute skipped_no_plan [Integer] Org has empty planid
-    # @!attribute skipped_up_to_date [Integer] Fresh and not forced
     # @!attribute skipped_plan_filter [Integer] Org not on --plan filter
     # @!attribute memberships_succeeded [Integer] Total memberships re-materialized
     # @!attribute memberships_failed [Integer] Total memberships that errored during cascade
@@ -36,7 +35,7 @@ module Billing
     # @!attribute errors [Array<Hash>] [{org_extid:, reason:}]
     MaterializePlansResult = Data.define(
       :scanned, :succeeded, :failed,
-      :skipped_no_plan, :skipped_up_to_date, :skipped_plan_filter,
+      :skipped_no_plan, :skipped_plan_filter,
       :memberships_succeeded, :memberships_failed, :orgs_cascaded,
       :errors,
     )
@@ -48,10 +47,12 @@ module Billing
     # rake tasks, future admin UIs) can run the same logic with consistent
     # accounting and logging.
     #
-    # Per-org logic mirrors what the webhook path does via
-    # ApplySubscriptionToOrg.materialize_entitlements_for_org, but in a batch
-    # shape: preloaded plan cache, structured per-org events, opt-in cascade,
-    # and a single aggregate result.
+    # The operation is idempotent: every in-scope org gets its entitlements
+    # re-written from the plan definition on every run. An earlier "skip if
+    # fresh" optimization was removed — the perf gain was minor, and pairing
+    # it with --include-memberships caused cascades to be silently skipped
+    # for up-to-date orgs (memberships can drift independently of the org's
+    # entitlement set, so skipping them masked real consistency problems).
     #
     # Cascade semantics: when include_memberships is set and the org write
     # succeeded, org.rematerialize_all_memberships! runs. If that method
@@ -73,23 +74,16 @@ module Billing
       DEFAULT_BATCH_SIZE = 100
 
       # @param plan_filter [String, nil] Only orgs whose planid matches this value
-      # @param stale [Boolean] Caller hint that only stale orgs matter — currently
-      #   equivalent to default behavior (fresh orgs are always skipped unless
-      #   --force). Preserved as a parameter for future divergence and CLI parity.
-      # @param force [Boolean] Re-materialize even if fresh
       # @param include_memberships [Boolean] Cascade to active memberships
       # @param dry_run [Boolean] Preview without writing
       # @param batch_size [Integer] each_record batch size
       # @param iterator [#each_record, nil] Override iteration source (testing)
       # @yieldparam event [MaterializePlansEvent] Per-org outcome
       # @return [MaterializePlansResult]
-      def self.call(plan_filter: nil, stale: false, force: false,
-                    include_memberships: false, dry_run: false,
+      def self.call(plan_filter: nil, include_memberships: false, dry_run: false,
                     batch_size: DEFAULT_BATCH_SIZE, iterator: nil, &progress_block)
         new(
           plan_filter: plan_filter,
-          stale: stale,
-          force: force,
           include_memberships: include_memberships,
           dry_run: dry_run,
           batch_size: batch_size,
@@ -98,11 +92,9 @@ module Billing
         ).call
       end
 
-      def initialize(plan_filter:, stale:, force:, include_memberships:,
-                     dry_run:, batch_size:, iterator:, progress_block:)
+      def initialize(plan_filter:, include_memberships:, dry_run:,
+                     batch_size:, iterator:, progress_block:)
         @plan_filter         = plan_filter
-        @stale               = stale
-        @force               = force
         @include_memberships = include_memberships
         @dry_run             = dry_run
         @batch_size          = batch_size
@@ -142,7 +134,6 @@ module Billing
 
         plan = plans_cache[org.planid]
         return if missing_plan?(org, plan)
-        return if skip_for_fresh?(org, plan)
 
         if @dry_run
           emit(:would_materialize, org, planid: org.planid,
@@ -181,18 +172,6 @@ module Billing
         emit(:failed_plan_not_found, org, planid: org.planid, reason: reason)
         logger.warn 'Plan not found in catalog or config',
           org_extid: org.extid, planid: org.planid
-        true
-      end
-
-      def skip_for_fresh?(org, plan)
-        return false if @force
-        return false unless org.entitlements_materialized?
-        return false if org.entitlements_stale?(plan)
-
-        @counts[:skipped_up_to_date] += 1
-        emit(:skipped_up_to_date, org, planid: org.planid,
-                                       reason: 'Entitlements already materialized and not stale')
-        logger.debug 'Skip org: up to date', org_extid: org.extid, planid: org.planid
         true
       end
 
@@ -304,7 +283,6 @@ module Billing
           succeeded: @counts[:succeeded],
           failed: @counts[:failed],
           skipped_no_plan: @counts[:skipped_no_plan],
-          skipped_up_to_date: @counts[:skipped_up_to_date],
           skipped_plan_filter: @counts[:skipped_plan_filter],
           memberships_succeeded: @counts[:memberships_succeeded],
           memberships_failed: @counts[:memberships_failed],
@@ -317,8 +295,6 @@ module Billing
         logger.info 'Materializing org entitlements from plan catalog',
           dry_run: @dry_run,
           plan_filter: @plan_filter,
-          stale: @stale,
-          force: @force,
           include_memberships: @include_memberships
       end
 
@@ -328,7 +304,6 @@ module Billing
           scanned: result.scanned,
           succeeded: result.succeeded,
           failed: result.failed,
-          skipped_up_to_date: result.skipped_up_to_date,
           skipped_no_plan: result.skipped_no_plan,
           skipped_plan_filter: result.skipped_plan_filter,
           orgs_cascaded: result.orgs_cascaded,

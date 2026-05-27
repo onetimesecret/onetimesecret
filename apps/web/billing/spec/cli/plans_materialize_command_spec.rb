@@ -28,7 +28,7 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
   end
 
   def stub_result(succeeded: 0, failed: 0, scanned: 1,
-                  skipped_no_plan: 0, skipped_up_to_date: 0, skipped_plan_filter: 0,
+                  skipped_no_plan: 0, skipped_plan_filter: 0,
                   memberships_succeeded: 0, memberships_failed: 0, orgs_cascaded: 0,
                   errors: [])
     Billing::Operations::MaterializePlansResult.new(
@@ -36,7 +36,6 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
       succeeded: succeeded,
       failed: failed,
       skipped_no_plan: skipped_no_plan,
-      skipped_up_to_date: skipped_up_to_date,
       skipped_plan_filter: skipped_plan_filter,
       memberships_succeeded: memberships_succeeded,
       memberships_failed: memberships_failed,
@@ -52,18 +51,18 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
   end
 
   describe '--help' do
-    it 'documents the --force option' do
-      output = run_command(help: true)
-
-      expect(output).to include('--force')
-      expect(output).to include('Force re-materialization')
-    end
-
     it 'documents the --include-memberships option' do
       output = run_command(help: true)
 
       expect(output).to include('--include-memberships')
       expect(output).to include('Cascade re-materialization')
+    end
+
+    it 'does not advertise the removed --force / --stale flags' do
+      output = run_command(help: true)
+
+      expect(output).not_to include('--force')
+      expect(output).not_to include('--stale')
     end
   end
 
@@ -79,18 +78,15 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
   end
 
   describe 'option forwarding' do
-    it 'forwards --plan, --stale, --force, --include-memberships, and dry_run to the operation' do
+    it 'forwards --plan, --include-memberships, and dry_run to the operation' do
       allow(Billing::Operations::MaterializePlans).to receive(:call)
         .and_return(stub_result(succeeded: 1))
 
-      run_command(plan: 'identity_plus_v1', stale: true, force: true,
-                  include_memberships: true, run: true)
+      run_command(plan: 'identity_plus_v1', include_memberships: true, run: true)
 
       expect(Billing::Operations::MaterializePlans).to have_received(:call).with(
         hash_including(
           plan_filter: 'identity_plus_v1',
-          stale: true,
-          force: true,
           include_memberships: true,
           dry_run: false,
         ),
@@ -123,11 +119,6 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
     it 'shows the cascade scope when --include-memberships is set' do
       output = run_command(all: true, include_memberships: true)
       expect(output).to include('+ memberships cascade')
-    end
-
-    it 'shows (force) in the scope when --force is set' do
-      output = run_command(all: true, force: true)
-      expect(output).to include('(force)')
     end
   end
 
