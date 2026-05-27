@@ -83,10 +83,10 @@ module Onetime
       'audit_logs',
       'workspace_branding',
       'ip_access_rules',
+      'custom_domains',
     ].freeze
 
     OWNER_ENTITLEMENTS = Set[
-      'custom_domains',
       'homepage_secrets',
       'incoming_secrets',
       'custom_branding',

@@ -126,12 +126,10 @@ last_response.status
 @org.list_domains.map(&:display_domain).include?(@member_domain)
 #=> false
 
-## TEST 3c: Rejection message resolves the EN locale entry, not the helper's
-## fallback default. The locale text is "...can add custom domains" while the
-## default fallback is "...can perform this action" — so a hit on the
-## domain-specific phrase confirms api.domains.errors.add_admin_required was
-## actually loaded (regression guard against a missing or renamed key).
-last_response.body.include?('add custom domains')
+## TEST 3c: Rejection includes the entitlement error key for client-side i18n.
+## The error_key api.entitlements.errors.custom_domains_required is passed so
+## the frontend can resolve the localized message.
+last_response.body.include?('api.entitlements.errors.custom_domains_required')
 #=> true
 
 ## TEST 4: Member rejected via explicit org_id (gate runs against target_org)

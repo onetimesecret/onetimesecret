@@ -48,7 +48,7 @@ def last_response; @test.last_response; end
   tier: 'free',
   interval: 'month',
   region: 'us',
-  entitlements: ['create_secrets'],
+  entitlements: ['create_secrets', 'manage_members'],
   limits: { 'members_per_team.max' => '3' }  # Limit: 3 total members
 }
 
@@ -58,6 +58,9 @@ def run_billing_test_invite(org, session, email, plan)
   BillingTestHelpers.with_billing_enabled(plans: [plan]) do
     org.planid = plan[:plan_id]
     org.save
+    # Materialize entitlements on org and cascade to memberships
+    org.materialize_entitlements_from_config(plan)
+    org.rematerialize_all_memberships!
     org = Onetime::Organization.load(org.objid)
 
     # Capture counts before the API call

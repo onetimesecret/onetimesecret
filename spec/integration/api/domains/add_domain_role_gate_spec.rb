@@ -97,11 +97,11 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
   end
 
   describe 'admin role' do
-    # ADR-012 Stage 3: custom_domains is an owner-only entitlement
-    # Admins have manage_teams, manage_members, etc. but not custom_domains
-    it 'rejects with EntitlementRequired (admins lack custom_domains entitlement)' do
+    # ADR-012 Stage 3: custom_domains is an admin-level entitlement
+    # Admins can add custom domains (same as owners)
+    it 'passes the admin gate' do
       logic = build_add_domain_logic(admin_user, domain: "#{run_id}-admin.example.com")
-      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
+      expect { logic.raise_concerns }.not_to raise_error
     end
   end
 
