@@ -422,16 +422,16 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(body['error']).to include('not enabled')
       end
 
-      it 'returns 403 for non-owner of organization' do
+      it 'returns 403 for non-member of organization' do
         enable_sender_feature_flag
         login_as(test_non_owner)
 
         csrf_put api_path(test_custom_domain.extid), valid_ses_params
 
-        # Non-owner check uses verify_one_of_roles! -> Onetime::Forbidden -> 403
+        # Non-member check uses require_entitlement_in! -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['error']).to include('owner')
+        expect(body['error']).to include('member')
       end
 
       it 'returns 422 when organization lacks custom_mail_sender entitlement' do
@@ -909,14 +909,14 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'returns 403 for non-owner of organization' do
+      it 'returns 403 for non-member of organization' do
         login_as(test_non_owner)
 
         csrf_post provision_path(test_custom_domain.extid), {}
 
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['error']).to include('owner')
+        expect(body['error']).to include('member')
       end
 
       it 'returns 422 when organization lacks custom_mail_sender entitlement' do

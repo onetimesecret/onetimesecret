@@ -17,11 +17,14 @@ RSpec.describe 'WithEntitlements Preview Mode', billing: true do
   let(:test_class) do
     Class.new do
       include Onetime::Models::Features::WithEntitlements
+      include Onetime::Models::Features::WithMaterializedLimits
+      include Onetime::Models::Features::WithPlanEntitlements
 
-      attr_accessor :planid
+      attr_accessor :planid, :extid
 
-      def initialize(planid)
+      def initialize(planid, extid: 'test_org_preview_spec')
         @planid = planid
+        @extid = extid
       end
 
       # Mock billing_enabled? to return true for tests
@@ -209,13 +212,13 @@ RSpec.describe 'WithEntitlements Preview Mode', billing: true do
 
       it 'returns FREE tier entitlements (graceful degradation)' do
         expect(no_plan_org.entitlements).to eq(
-          Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+          Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         )
       end
 
       it 'returns FREE tier entitlements via entitlements_for_request' do
         expect(no_plan_org.entitlements_for_request(nil)).to eq(
-          Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+          Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         )
       end
     end
@@ -225,7 +228,7 @@ RSpec.describe 'WithEntitlements Preview Mode', billing: true do
 
       it 'returns FREE tier entitlements (graceful degradation)' do
         expect(empty_plan_org.entitlements).to eq(
-          Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+          Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         )
       end
     end

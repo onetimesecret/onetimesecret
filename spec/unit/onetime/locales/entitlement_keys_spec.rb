@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'json'
 require 'onetime/models/features/with_entitlements'
+require 'onetime/models/organization/features/with_plan_entitlements'
 
 # Lockdown spec for the auto-derivation convention.
 #
@@ -16,9 +17,9 @@ require 'onetime/models/features/with_entitlements'
 # fall back to the legacy English message.
 #
 # This spec enforces that the locale file stays in sync with the canonical
-# entitlement list in WithEntitlements::STANDALONE_ENTITLEMENTS. It uses the
-# constant directly (rather than a hardcoded list) so that any change to the
-# entitlement set forces a corresponding locale update.
+# entitlement list in WithPlanEntitlements::STANDALONE_ENTITLEMENTS. It uses
+# the constant directly (rather than a hardcoded list) so that any change to
+# the entitlement set forces a corresponding locale update.
 RSpec.describe 'api.entitlements.errors locale keys' do
   locale_path = File.join(
     Onetime::HOME, 'locales', 'content', 'en', 'api-entitlements-errors.json',
@@ -26,7 +27,7 @@ RSpec.describe 'api.entitlements.errors locale keys' do
 
   let(:locale_keys) { JSON.parse(File.read(locale_path)).keys }
   let(:entitlements) do
-    Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS
+    Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS
   end
 
   it 'has a context_unavailable system-error key' do

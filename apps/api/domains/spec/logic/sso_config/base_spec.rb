@@ -79,12 +79,34 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
   let(:params) { { 'domain_id' => 'ext-domain123' } }
   let(:logic) { described_logic_class.new(strategy_result, params) }
 
+  # ADR-012 Stage 4: membership with entitlements for authorization
+  let(:owner_membership) do
+    instance_double(
+      Onetime::OrganizationMembership,
+      active?: true,
+      can?: true  # Default: has all entitlements (owner-level)
+    )
+  end
+
+  let(:non_owner_membership) do
+    instance_double(
+      Onetime::OrganizationMembership,
+      active?: true,
+      can?: false  # Member without owner-level entitlements
+    )
+  end
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
     allow(OT).to receive(:now).and_return(Time.now.to_i)
+
+    # Default: stub membership lookup for owner
+    allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+      .with('org123', 'owner123')
+      .and_return(owner_membership)
   end
 
   describe 'concern integration' do
@@ -183,7 +205,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
       end
     end
 
-    context 'when user is not organization owner' do
+    context 'when user lacks manage_orgs entitlement' do
       let(:non_owner_strategy_result) do
         double('StrategyResult',
           session: session,
@@ -206,13 +228,18 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
         allow(logic).to receive(:cust).and_return(non_owner)
         # Colonel check - user is not a colonel
         allow(non_owner).to receive(:role).and_return('customer')
+        # ADR-012 Stage 4: membership without manage_orgs entitlement
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org123', 'nonowner123')
+          .and_return(non_owner_membership)
+        allow(organization).to receive(:planid).and_return('basic')
       end
 
-      it 'raises Forbidden for non-owner (via verify_one_of_roles!)' do
+      it 'raises EntitlementRequired for user without manage_orgs entitlement' do
         expect {
           logic.send(:authorize_domain_sso!, 'ext-domain123')
-        }.to raise_error(Onetime::Forbidden) do |error|
-          expect(error.message).to include('owner')
+        }.to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.entitlement).to eq('manage_orgs')
         end
       end
     end
@@ -227,9 +254,12 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
         allow(Onetime::Organization).to receive(:load)
           .with('org123').and_return(organization)
         allow(organization).to receive(:owner?).with(owner).and_return(true)
+        # Org lacks manage_sso entitlement (checked by verify_config_entitlement)
         allow(organization).to receive(:can?).with('manage_sso').and_return(false)
         allow(logic).to receive(:cust).and_return(owner)
         allow(owner).to receive(:role).and_return('customer')
+        # ADR-012 Stage 4: owner has manage_orgs (passes require_entitlement_in!)
+        # but org lacks manage_sso (fails verify_config_entitlement)
       end
 
       it 'raises forbidden error for missing entitlement' do

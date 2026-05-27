@@ -517,9 +517,12 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementPreview', type: :integ
       # Create test organization
       test_class = Class.new do
         include Onetime::Models::Features::WithEntitlements
-        attr_accessor :planid
+        include Onetime::Models::Features::WithMaterializedLimits
+        include Onetime::Models::Features::WithPlanEntitlements
+        attr_accessor :planid, :extid
         def initialize(planid)
           @planid = planid
+          @extid = 'test_preview_integration'
         end
 
         def billing_enabled?

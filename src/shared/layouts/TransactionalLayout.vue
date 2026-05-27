@@ -8,7 +8,12 @@
 
   import BaseLayout from './BaseLayout.vue';
 
+  // Defaults for every boolean prop this layout consumes. Vue coerces a
+  // missing Boolean prop to `false`; once `false` is bound, the child
+  // component's own withDefaults can't recover it. So each `display*` flag
+  // must have its true-default declared here, not relied on downstream.
   const props = withDefaults(defineProps<LayoutProps>(), {
+    displayHeader: true,
     displayFeedback: true,
     displayFooterLinks: true,
     displayMasthead: true,

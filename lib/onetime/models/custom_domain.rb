@@ -267,7 +267,7 @@ module Onetime
       customer = cust.is_a?(Onetime::Customer) ? cust : Onetime::Customer.load(cust)
       return false unless customer
 
-      org.owner_id == customer.custid || org.member?(customer)
+      org.owner?(customer) || org.member?(customer)
     end
 
     # Check if this domain is owned by the given organization

@@ -31,6 +31,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       materialize_entitlements_from_plan: true,
       materialize_entitlements_from_config: true,
       materialized_entitlements: materialized_set,
+      rematerialize_all_memberships!: { success: 0, skipped: 0 },
       save: true,
     )
   end
@@ -365,8 +366,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       it 'logs entitlements_count from materialized set' do
         subscription = build_subscription
         allow(org).to receive(:materialize_entitlements_from_plan)
+        allow(OT).to receive(:info)
 
-        expect(OT).to receive(:info).with(
+        described_class.call(org, subscription, owner: true)
+
+        expect(OT).to have_received(:info).with(
           '[ApplySubscriptionToOrg] Materialized entitlements for org',
           hash_including(
             org_extid: 'on_test_org',
@@ -375,8 +379,6 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
             source: 'cache',
           ),
         )
-
-        described_class.call(org, subscription, owner: true)
       end
     end
 
@@ -408,13 +410,14 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
       it 'logs entitlements_count from materialized set' do
         subscription = build_subscription
+        allow(OT).to receive(:info)
 
-        expect(OT).to receive(:info).with(
+        described_class.call(org, subscription, owner: true)
+
+        expect(OT).to have_received(:info).with(
           '[ApplySubscriptionToOrg] Materialized entitlements for org',
           hash_including(entitlements_count: 4, source: 'config'),
         )
-
-        described_class.call(org, subscription, owner: true)
       end
     end
 
@@ -488,6 +491,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         extid: 'on_cancel_org',
         materialize_entitlements_from_config: true,
         materialized_entitlements: materialized_set,
+        rematerialize_all_memberships!: { success: 0, skipped: 0 },
         save: true,
       )
     end
@@ -514,8 +518,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
       it 'logs the materialization event' do
         allow(free_tier_org).to receive(:materialize_entitlements_from_config)
+        allow(OT).to receive(:info)
 
-        expect(OT).to receive(:info).with(
+        described_class.apply_free_tier(free_tier_org, owner: true)
+
+        expect(OT).to have_received(:info).with(
           '[ApplySubscriptionToOrg] Materialized free tier entitlements',
           hash_including(
             org_extid: 'on_cancel_org',
@@ -523,8 +530,6 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
             entitlements_count: 4,
           ),
         )
-
-        described_class.apply_free_tier(free_tier_org, owner: true)
       end
     end
 
@@ -598,6 +603,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         materialize_entitlements_from_plan: true,
         materialize_entitlements_from_config: true,
         materialized_entitlements: materialized_set,
+        rematerialize_all_memberships!: { success: 0, skipped: 0 },
       )
     end
 
@@ -708,25 +714,27 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
       it 'logs source as a string (not symbol)' do
         allow(fresh_org).to receive(:materialize_entitlements_from_plan)
+        allow(OT).to receive(:info)
 
-        expect(OT).to receive(:info).with(
+        described_class.send(:execute_materialize, fresh_org, plan, :cache)
+
+        expect(OT).to have_received(:info).with(
           '[ApplySubscriptionToOrg] Materialized entitlements for org',
           hash_including(source: 'cache'),
         )
-
-        described_class.send(:execute_materialize, fresh_org, plan, :cache)
       end
 
       it 'logs source "config" as a string when source is :config' do
         config_data = { entitlements: [], limits: {} }
         allow(fresh_org).to receive(:materialize_entitlements_from_config)
+        allow(OT).to receive(:info)
 
-        expect(OT).to receive(:info).with(
+        described_class.send(:execute_materialize, fresh_org, config_data, :config)
+
+        expect(OT).to have_received(:info).with(
           '[ApplySubscriptionToOrg] Materialized entitlements for org',
           hash_including(source: 'config'),
         )
-
-        described_class.send(:execute_materialize, fresh_org, config_data, :config)
       end
     end
 
@@ -857,6 +865,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         materialize_entitlements_from_plan: true,
         materialize_entitlements_from_config: true,
         materialized_entitlements: materialized_set,
+        rematerialize_all_memberships!: { success: 0, skipped: 0 },
       )
     end
 
@@ -1097,8 +1106,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
         it 'logs the materialization event with string source' do
           allow(org).to receive(:materialize_entitlements_from_plan)
+          allow(OT).to receive(:info)
 
-          expect(OT).to receive(:info).with(
+          described_class.materialize_entitlements_for_org(org)
+
+          expect(OT).to have_received(:info).with(
             '[ApplySubscriptionToOrg] Materialized entitlements for org',
             hash_including(
               org_extid: 'on_test_org',
@@ -1107,8 +1119,6 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
               source: 'cache',
             ),
           )
-
-          described_class.materialize_entitlements_for_org(org)
         end
       end
 
@@ -1133,13 +1143,14 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
         it 'logs with source "config"' do
           allow(org).to receive(:materialize_entitlements_from_config)
+          allow(OT).to receive(:info)
 
-          expect(OT).to receive(:info).with(
+          described_class.materialize_entitlements_for_org(org)
+
+          expect(OT).to have_received(:info).with(
             '[ApplySubscriptionToOrg] Materialized entitlements for org',
             hash_including(source: 'config'),
           )
-
-          described_class.materialize_entitlements_for_org(org)
         end
       end
     end

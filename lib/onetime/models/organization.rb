@@ -48,6 +48,8 @@ module Onetime
     feature :with_organization_billing
     feature :with_materialized_entitlements
     feature :with_entitlements
+    feature :with_materialized_limits
+    feature :with_plan_entitlements
     feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
@@ -63,6 +65,7 @@ module Onetime
     field :display_name
     field :description
     field :owner_id       # custid of organization owner (internal objid of Customer)
+    field :created_by     # Immutable audit field — custid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
 
@@ -93,7 +96,10 @@ module Onetime
     end
 
     def owner?(customer)
-      customer && customer.custid == owner_id
+      return false unless customer
+
+      membership = OrganizationMembership.find_by_org_customer(objid, customer.objid)
+      (membership&.active? && membership.owner?) || false
     end
 
     # Member management - Familia v2 auto-generated methods
@@ -241,6 +247,36 @@ module Onetime
       owner?(current_user)
     end
 
+    # Re-materialize entitlements for all active memberships.
+    #
+    # ADR-012 Stage 3: Called when the org's plan changes (subscription webhook)
+    # to propagate the new entitlement set to all memberships. Each membership's
+    # effective entitlements are: org.entitlements ∩ ROLE_ENTITLEMENTS[role].
+    #
+    # At current scale (orgs are low hundreds of members), this is acceptable
+    # inline or in a background job. If org sizes grow to thousands, consider
+    # batching or Redis pipelining.
+    #
+    # @return [Hash] { success: count, failed: count, total: count }
+    def rematerialize_all_memberships!
+      memberships = OrganizationMembership.active_for_org(self)
+      result      = { success: 0, failed: 0, total: memberships.size }
+
+      memberships.each do |membership|
+        membership.materialize_for_role!(self)
+        result[:success] += 1
+      rescue StandardError => ex
+        OT.le '[rematerialize_all_memberships!] failed for membership',
+          exception: ex,
+          membership_objid: membership.objid,
+          org_extid: extid
+        result[:failed] += 1
+      end
+
+      OT.info "[rematerialize_all_memberships!] org=#{extid} success=#{result[:success]} failed=#{result[:failed]}"
+      result
+    end
+
     # Low-level delete with index cleanup
     #
     # Overrides Familia::Horreum#delete! to ensure contact_email_index
@@ -313,6 +349,7 @@ module Onetime
         org = new(
           display_name: display_name,
           owner_id: owner_customer.custid,
+          created_by: owner_customer.custid,
           contact_email: contact_email,
           **,
         )
@@ -335,6 +372,33 @@ module Onetime
 
           # Add owner as first member with owner role using Familia v2 auto-generated bidirectional method
           org.add_members_instance(owner_customer, through_attrs: { role: 'owner' })
+
+          # Standalone-mode materialization (ADR-012 §Standalone mode).
+          # In billing-enabled mode this returns false and the subscription
+          # webhook handles materialization from the assigned plan instead.
+          #
+          # Explicit rescue: materialization is degradable while the runtime
+          # fallback at WithPlanEntitlements#entitlements remains. If this
+          # raises, org creation succeeds and the fallback applies.
+          begin
+            org.materialize_standalone_entitlements!
+          rescue StandardError => ex
+            OT.le '[Organization.create!] standalone materialization failed, fallback applies',
+              exception: ex,
+              org_extid: org.extid
+          end
+
+          # Materialize owner membership entitlements (ADR-012 Stage 3).
+          # Must run after org.materialize_standalone_entitlements! so the org's
+          # materialized set is populated for the intersection computation.
+          begin
+            owner_membership = OrganizationMembership.find_by_org_customer(org.objid, owner_customer.objid)
+            owner_membership&.materialize_for_role!
+          rescue StandardError => ex
+            OT.le '[Organization.create!] owner membership materialization failed, fallback applies',
+              exception: ex,
+              org_extid: org.extid
+          end
 
           OT.ld "[Organization.create!] org: #{org.extid}, owner: #{owner_customer.custid}"
 

@@ -368,15 +368,17 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'returns 403 for non-owner of organization' do
+      it 'returns 403 for non-member of organization' do
         login_as(test_non_owner)
 
         csrf_put api_path(test_custom_domain.extid), valid_passthrough_params
 
-        # Non-owner check uses verify_one_of_roles! -> Onetime::Forbidden -> 403
+        # ADR-012 Stage 4: require_entitlement_in! checks membership first
+        # Non-member -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['error']).to include('owner')
+        expect(body['error']).to include('member')
+        expect(body['error_key']).to eq('api.organizations.errors.organization_member_required')
       end
 
       it 'returns 422 when organization lacks custom_signup_validation entitlement' do
@@ -753,7 +755,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'returns 403 for non-owner' do
+      it 'returns 403 for non-member' do
         login_as(test_non_owner)
         csrf_delete api_path(test_custom_domain.extid)
 

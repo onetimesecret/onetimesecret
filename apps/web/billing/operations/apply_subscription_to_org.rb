@@ -114,6 +114,22 @@ module Billing
               planid: Billing::Metadata::FREE_PLAN_ID,
               entitlements_count: org.materialized_entitlements.size,
             }
+
+          # ADR-012 Stage 3: Re-materialize all memberships after downgrade to free tier.
+          begin
+            membership_result = org.rematerialize_all_memberships!
+            OT.info '[ApplySubscriptionToOrg] Re-materialized membership entitlements (free tier)',
+              {
+                org_extid: org.extid,
+                success: membership_result[:success],
+                failed: membership_result[:failed],
+                total: membership_result[:total],
+              }
+          rescue StandardError => ex
+            OT.le '[ApplySubscriptionToOrg] membership re-materialization failed (free tier)',
+              exception: ex,
+              org_extid: org.extid
+          end
         else
           OT.lw '[ApplySubscriptionToOrg] Free plan not in config, cannot materialize',
             {
@@ -185,6 +201,27 @@ module Billing
             entitlements_count: count,
             source: source.to_s,
           }
+
+        # ADR-012 Stage 3: Re-materialize all memberships after org plan change.
+        # Each membership's effective entitlements are org.entitlements ∩ ROLE_ENTITLEMENTS[role].
+        # This propagates the new plan's entitlements to all active members.
+        begin
+          membership_result = org.rematerialize_all_memberships!
+          OT.info '[ApplySubscriptionToOrg] Re-materialized membership entitlements',
+            {
+              org_extid: org.extid,
+              planid: planid,
+              success: membership_result[:success],
+              failed: membership_result[:failed],
+              total: membership_result[:total],
+            }
+        rescue StandardError => ex
+          # Membership re-materialization is degradable — the fallback path in
+          # membership.entitlements computes on-the-fly. Log and continue.
+          OT.le '[ApplySubscriptionToOrg] membership re-materialization failed',
+            exception: ex,
+            org_extid: org.extid
+        end
 
         MaterializeResult.new(
           status: :materialized,

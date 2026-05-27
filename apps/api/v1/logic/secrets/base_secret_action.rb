@@ -334,8 +334,7 @@ module V1::Logic
 
         # Anonymous users: free tier limit
         if cust.nil? || cust.anonymous?
-          free_max = Onetime::Models::Features::WithEntitlements
-                       .free_tier_limits['secret_lifetime.max']
+          free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max']
           return free_max.positive? ? free_max : config_max
         end
 
@@ -347,8 +346,7 @@ module V1::Logic
         end
 
         # No org found (edge case): fall back to free tier limit
-        free_max = Onetime::Models::Features::WithEntitlements
-                     .free_tier_limits['secret_lifetime.max']
+        free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max']
         free_max.positive? ? free_max : config_max
       rescue StandardError => e
         OT.ld "[BaseSecretAction] TTL limit resolution failed: #{e.message}"

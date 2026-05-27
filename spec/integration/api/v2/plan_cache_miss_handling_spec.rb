@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../../apps/web/billing/errors'
 
 # Integration tests for API behavior when Billing::PlanCacheMissError is raised.
 #
@@ -43,6 +44,8 @@ RSpec.describe 'API V2 PlanCacheMissError Handling', type: :integration, billing
   def create_test_org_class
     Class.new do
       include Onetime::Models::Features::WithEntitlements
+      include Onetime::Models::Features::WithMaterializedLimits
+      include Onetime::Models::Features::WithPlanEntitlements
 
       attr_accessor :planid, :extid
 
@@ -67,7 +70,7 @@ RSpec.describe 'API V2 PlanCacheMissError Handling', type: :integration, billing
       expect { org.entitlements }.to raise_error(Billing::PlanCacheMissError) do |error|
         expect(error.plan_id).to eq('nonexistent_plan_xyz_12345')
         expect(error.organization_id).to eq('org_test_123')
-        expect(error.context).to eq('WithEntitlements#entitlements')
+        expect(error.context).to eq('WithPlanEntitlements#entitlements')
       end
     end
 
@@ -78,7 +81,7 @@ RSpec.describe 'API V2 PlanCacheMissError Handling', type: :integration, billing
       expect { org.limit_for('teams') }.to raise_error(Billing::PlanCacheMissError) do |error|
         expect(error.plan_id).to eq('nonexistent_plan_xyz_12345')
         expect(error.resource).to eq('teams.max')
-        expect(error.context).to eq('WithEntitlements#limit_for')
+        expect(error.context).to eq('WithMaterializedLimits#limit_for')
       end
     end
 
@@ -90,7 +93,7 @@ RSpec.describe 'API V2 PlanCacheMissError Handling', type: :integration, billing
       expect { org.can?(:api_access) }.to raise_error(Billing::PlanCacheMissError) do |error|
         expect(error.plan_id).to eq('nonexistent_plan_xyz_12345')
         expect(error.organization_id).to eq('org_test_789')
-        expect(error.context).to eq('WithEntitlements#entitlements')
+        expect(error.context).to eq('WithPlanEntitlements#entitlements')
       end
     end
 

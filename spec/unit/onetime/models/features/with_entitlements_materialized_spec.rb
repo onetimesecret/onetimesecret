@@ -40,6 +40,8 @@ RSpec.describe 'WithEntitlements read path — materialized guard', billing: tru
 
     Class.new do
       include Onetime::Models::Features::WithEntitlements
+      include Onetime::Models::Features::WithMaterializedLimits
+      include Onetime::Models::Features::WithPlanEntitlements
 
       attr_accessor :planid, :extid
 
@@ -129,6 +131,7 @@ RSpec.describe 'WithEntitlements read path — materialized guard', billing: tru
       let(:klass) do
         Class.new do
           include Onetime::Models::Features::WithEntitlements
+          include Onetime::Models::Features::WithPlanEntitlements
 
           attr_accessor :planid, :extid
 

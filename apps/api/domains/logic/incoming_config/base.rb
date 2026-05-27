@@ -59,21 +59,6 @@ module DomainsAPI
           org
         end
 
-        # Verify current user owns the organization.
-        #
-        # Colonels (site admins) have automatic superuser bypass.
-        # Otherwise, user must be organization owner.
-        #
-        # @param organization [Onetime::Organization]
-        # @raise [FormError] If user is not owner and not admin
-        def verify_organization_owner(organization)
-          verify_one_of_roles!(
-            colonel: true,
-            custom_check: -> { organization.owner?(cust) },
-            error_message: 'Only organization owner can perform this action',
-          )
-        end
-
         # Verify organization has incoming_secrets entitlement.
         #
         # @param organization [Onetime::Organization]
@@ -105,7 +90,7 @@ module DomainsAPI
           @custom_domain = load_custom_domain(domain_id)
           @organization  = load_organization_for_domain(@custom_domain)
 
-          verify_organization_owner(@organization)
+          require_entitlement_in!(@organization, 'manage_orgs')
           verify_incoming_secrets_entitlement(@organization)
         end
 

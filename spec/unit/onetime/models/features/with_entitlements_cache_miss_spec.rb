@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../../../apps/web/billing/errors'
 
 # Tests for fail-closed behavior when plan cache miss occurs.
 # Issue #3089: Plan ID Matching Overhaul
@@ -14,6 +15,8 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
   let(:test_class) do
     Class.new do
       include Onetime::Models::Features::WithEntitlements
+      include Onetime::Models::Features::WithMaterializedLimits
+      include Onetime::Models::Features::WithPlanEntitlements
 
       attr_accessor :planid, :extid
 
@@ -36,7 +39,7 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
         expect { org.entitlements }
           .to raise_error(Billing::PlanCacheMissError) { |error|
             expect(error.plan_id).to eq('nonexistent_plan_xyz')
-            expect(error.context).to eq('WithEntitlements#entitlements')
+            expect(error.context).to eq('WithPlanEntitlements#entitlements')
             expect(error.organization_id).to eq('test_org_abc123')
           }
       end
@@ -47,7 +50,7 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
 
       it 'returns FREE_TIER_ENTITLEMENTS (not an error)' do
         expect(org.entitlements).to eq(
-          Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+          Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         )
       end
     end
@@ -57,7 +60,7 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
 
       it 'returns FREE_TIER_ENTITLEMENTS (not an error)' do
         expect(org.entitlements).to eq(
-          Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+          Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         )
       end
     end
@@ -71,7 +74,7 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
 
       it 'returns STANDALONE_ENTITLEMENTS (fail-open for self-hosted)' do
         expect(org.entitlements).to eq(
-          Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS
+          Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS
         )
       end
     end
@@ -93,7 +96,7 @@ RSpec.describe 'WithEntitlements cache miss behavior', billing: true do
         expect { org.limit_for('teams') }
           .to raise_error(Billing::PlanCacheMissError) { |error|
             expect(error.plan_id).to eq('nonexistent_plan_xyz')
-            expect(error.context).to eq('WithEntitlements#limit_for')
+            expect(error.context).to eq('WithMaterializedLimits#limit_for')
             expect(error.resource).to eq('teams.max')
             expect(error.organization_id).to eq('test_org_abc123')
           }

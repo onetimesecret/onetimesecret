@@ -32,7 +32,7 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_member(@organization)
+        require_entitlement_in!(@organization, 'api_access')
       end
 
       def process

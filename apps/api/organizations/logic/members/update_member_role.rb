@@ -41,8 +41,8 @@ module OrganizationAPI::Logic
 
         @organization = load_organization(@extid)
 
-        # Only owners can change roles
-        verify_organization_owner(@organization)
+        # Only users with manage_orgs entitlement can change roles
+        require_entitlement_in!(@organization, 'manage_orgs')
 
         # Load target member
         @target_member     = load_member(@member_extid)
@@ -58,7 +58,7 @@ module OrganizationAPI::Logic
 
         OT.ld "[UpdateMemberRole] Changing role for #{@target_member.extid} from #{@old_role} to #{@new_role}"
 
-        @target_membership.role       = @new_role
+        @target_membership.change_role!(@new_role)
         @target_membership.updated_at = Familia.now.to_f
         @target_membership.save
 

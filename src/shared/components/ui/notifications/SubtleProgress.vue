@@ -4,10 +4,11 @@
   - position: 'top' | 'bottom' (default: 'top') — store value takes precedence
   - alignment: 'left' | 'right' (default: 'right') — horizontal corner
   - showLabel: show message text (default: true) — false for icon-only pill
-  - duration: ms before auto-dismiss (default: 2000) — overrides store's 5000ms
-  - autoDismiss: enable auto-dismiss (default: true)
   - loading: show spinner state (default: false)
   - rounded: border radius (default: 'full') — 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
+
+  Auto-dismiss is owned by the store. Pass `duration` to `notifications.show()`
+  (default DEFAULT_AUTO_HIDE_MS in notificationsStore); use 0 to disable dismiss.
 
   STYLING (in getStatusConfig):
   - ringClasses: ring color/opacity per severity, e.g. 'ring-green-300/50'
@@ -23,15 +24,13 @@ import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { NotificationAlignment } from '@/types/ui/notifications';
-import { computed, watch, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
 
 const { t, te } = useI18n();
 
 type RoundedSize = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 interface Props {
-  autoDismiss?: boolean;
-  duration?: number;
   loading?: boolean;
   position?: 'top' | 'bottom';
   alignment?: Exclude<NotificationAlignment, 'center'>;
@@ -40,8 +39,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  autoDismiss: true,
-  duration: 2000,
   loading: false,
   position: undefined,
   alignment: 'right',
@@ -50,30 +47,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const notifications = useNotificationsStore();
-
-let hideTimer: ReturnType<typeof setTimeout> | null = null;
-
-function clearHideTimer() {
-  if (hideTimer !== null) {
-    clearTimeout(hideTimer);
-    hideTimer = null;
-  }
-}
-
-watch(
-  [() => notifications.isVisible, () => notifications.message],
-  ([visible]) => {
-    clearHideTimer();
-    if (visible && props.autoDismiss && !props.loading) {
-      hideTimer = setTimeout(() => {
-        notifications.hide();
-      }, props.duration);
-    }
-  },
-  { immediate: true }
-);
-
-onBeforeUnmount(clearHideTimer);
 
 const effectivePosition = computed(() =>
   notifications.position || props.position || 'top'
@@ -193,7 +166,7 @@ const roundedClass = computed(() => ROUNDED_CLASSES[props.rounded]);
 
         <span
           v-if="showLabel && translatedMessage"
-          class="max-w-48 truncate text-sm font-medium transition-all duration-200"
+          class="max-w-sm break-words text-sm font-medium transition-all duration-200"
           :class="statusConfig?.textClasses">
           {{ translatedMessage }}
         </span>

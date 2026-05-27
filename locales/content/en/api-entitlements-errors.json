@@ -78,5 +78,29 @@
     "text": "Custom signup validation requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for custom_signup_validation",
     "content_hash": "93c9befa"
+  },
+  "api.entitlements.errors.create_secrets_required": {
+    "text": "Creating secrets requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for create_secrets"
+  },
+  "api.entitlements.errors.view_receipt_required": {
+    "text": "Viewing receipts requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for view_receipt"
+  },
+  "api.entitlements.errors.notifications_required": {
+    "text": "Notifications require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for notifications"
+  },
+  "api.entitlements.errors.workspace_branding_required": {
+    "text": "Workspace branding requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for workspace_branding"
+  },
+  "api.entitlements.errors.ip_access_rules_required": {
+    "text": "IP access rules require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for ip_access_rules"
+  },
+  "api.entitlements.errors.manage_billing_required": {
+    "text": "Billing management requires a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for manage_billing"
   }
 }

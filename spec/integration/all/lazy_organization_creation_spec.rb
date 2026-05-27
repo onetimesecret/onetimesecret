@@ -77,6 +77,11 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
       expect(@created_org.owner_id).to eq(@customer.custid)
     end
 
+    it 'sets created_by in lock-step with owner_id (ADR-012)' do
+      expect(@created_org.created_by).to eq(@customer.custid)
+      expect(@created_org.created_by).to eq(@created_org.owner_id)
+    end
+
     it 'adds customer as member' do
       expect(@created_org.member?(@customer)).to be true
     end
@@ -87,6 +92,19 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
 
     it 'customer now has exactly one organization' do
       expect(@customer.organization_instances.count).to eq(1)
+    end
+
+    # ADR-012 §Standalone mode (Stage 2 Unit C): in standalone deployments
+    # Organization.create! materializes STANDALONE_ENTITLEMENTS at create time.
+    # The lazy-creation path routes through create! transitively, so the
+    # invariant must hold here too.
+    it 'marks the org as materialized after lazy creation' do
+      expect(@created_org.entitlements_materialized?).to be true
+    end
+
+    it 'materializes STANDALONE_ENTITLEMENTS via lazy create' do
+      expected = Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS
+      expect(@created_org.materialized_entitlements.to_a.sort).to eq(expected.sort)
     end
   end
 
@@ -250,6 +268,29 @@ RSpec.describe 'Billing Webhook Organization Creation Paths', type: :integration
         is_default: true
       )
       expect(org.contact_email).to be_nil
+      org.destroy!
+    end
+
+    # ADR-012 §Standalone mode (Stage 2 Unit C): create-time materialization
+    # is standalone-only. In billing-enabled mode the subscription webhook
+    # materializes the org from its assigned plan later — create! must NOT
+    # write STANDALONE_ENTITLEMENTS, because doing so would shadow the
+    # plan-driven materialization with the full-access standalone set.
+    #
+    # `billing: true` enables billing for this single example.
+    # `shared_db_state: true` on the outer describe means after(:each) won't
+    # flush, so we destroy the org explicitly to keep state clean.
+    it 'does NOT materialize entitlements when billing is enabled', billing: true do
+      org = Onetime::Organization.create!(
+        "Billing Mode No-op #{@test_suffix}",
+        @owner,
+        "billing_mode_noop_#{@test_suffix}@example.com",
+        is_default: true,
+      )
+
+      expect(org.entitlements_materialized?).to be false
+      expect(org.materialized_entitlements.to_a).to be_empty
+
       org.destroy!
     end
   end

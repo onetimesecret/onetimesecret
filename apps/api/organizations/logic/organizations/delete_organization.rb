@@ -24,15 +24,18 @@ module OrganizationAPI::Logic
 
         # Validate extid parameter
         if @extid.to_s.empty?
-          raise_form_error(error_key: 'api.organizations.errors.extid_required',
-                           field: :extid, error_type: :missing)
+          raise_form_error(
+            error_key: 'api.organizations.errors.extid_required',
+            field: :extid,
+            error_type: :missing,
+          )
         end
 
         # Load organization
         @organization = load_organization(@extid)
 
-        # Verify user is owner
-        verify_organization_owner(@organization)
+        # Verify user has manage_orgs entitlement in this organization
+        require_entitlement_in!(@organization, 'manage_orgs')
       end
 
       def process

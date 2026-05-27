@@ -106,8 +106,8 @@ module Onetime
 
         # Build known entitlements set (memoized)
         @known_entitlements ||= (
-          ::Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS +
-          ::Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+          ::Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS +
+          ::Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS
         ).to_set
 
         unknown = entitlements.reject { |e| @known_entitlements.include?(e) }
@@ -117,7 +117,7 @@ module Onetime
           product_id: product.id,
           type: :unknown_entitlements,
           message: "Unknown entitlement(s): #{unknown.join(', ')}",
-          details: 'Entitlement keys not found in WithEntitlements constants',
+          details: 'Entitlement keys not found in WithPlanEntitlements constants',
         }
       end
 

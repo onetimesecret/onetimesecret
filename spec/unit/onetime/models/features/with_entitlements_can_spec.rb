@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../../../apps/web/billing/errors'
 
 # Unit tests for WithEntitlements#can? predicate, focused on
 # `extended_default_expiration` because it gates TTLs above
@@ -16,6 +17,7 @@ RSpec.describe 'WithEntitlements#can? for extended_default_expiration', billing:
   let(:test_class) do
     Class.new do
       include Onetime::Models::Features::WithEntitlements
+      include Onetime::Models::Features::WithPlanEntitlements
 
       attr_accessor :planid, :extid
 
@@ -84,7 +86,7 @@ RSpec.describe 'WithEntitlements#can? for extended_default_expiration', billing:
       expect { org.can?('extended_default_expiration') }
         .to raise_error(Billing::PlanCacheMissError) { |error|
           expect(error.plan_id).to eq('unknown_plan_id')
-          expect(error.context).to eq('WithEntitlements#entitlements')
+          expect(error.context).to eq('WithPlanEntitlements#entitlements')
           expect(error.organization_id).to eq('test_org_can_spec')
         }
     end
@@ -96,7 +98,7 @@ RSpec.describe 'WithEntitlements#can? for extended_default_expiration', billing:
       # Including this entitlement here would silently grant 30-day TTLs to any
       # mis-configured plan and defeat the gate's purpose.
       expect(
-        Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS,
+        Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS,
       ).not_to include('extended_default_expiration')
     end
   end
@@ -106,7 +108,7 @@ RSpec.describe 'WithEntitlements#can? for extended_default_expiration', billing:
       # Standalone/self-hosted (billing disabled) gets full access; the gate
       # must not impede self-hosted users.
       expect(
-        Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS,
+        Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS,
       ).to include('extended_default_expiration')
     end
   end
