@@ -109,6 +109,7 @@ require_relative 'cli/passwords_command'
 require_relative 'cli/test_data_command'
 require_relative 'cli/session_command'
 require_relative 'cli/totp_command'
+require_relative 'cli/ratelimit_command'
 
 # Load worker and scheduler commands (top-level)
 require_relative 'cli/worker_command'
