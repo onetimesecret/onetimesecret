@@ -310,7 +310,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Provider type')
+          expect(body['error']).to include('Provider type')
         end
 
         it 'returns 422 for invalid provider_type' do
@@ -320,7 +320,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Invalid provider type')
+          expect(body['error']).to include('Invalid provider type')
         end
 
         it 'returns 422 for missing client_id' do
@@ -331,7 +331,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Client ID')
+          expect(body['error']).to include('Client ID')
         end
 
         it 'returns 422 for missing client_secret on PUT' do
@@ -342,7 +342,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Client secret')
+          expect(body['error']).to include('Client secret')
         end
 
         it 'returns 422 for missing tenant_id on Entra ID provider' do
@@ -353,7 +353,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Tenant ID')
+          expect(body['error']).to include('Tenant ID')
         end
 
         it 'returns 422 for missing issuer on OIDC provider' do
@@ -364,7 +364,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Issuer URL')
+          expect(body['error']).to include('Issuer URL')
         end
 
         it 'returns 422 for non-HTTPS issuer URL' do
@@ -374,7 +374,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Issuer URL')
+          expect(body['error']).to include('Issuer URL')
         end
       end
     end
@@ -398,7 +398,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         # Feature flag check uses raise_form_error → FormError → 422
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('SSO is not enabled')
+        expect(body['error']).to include('SSO is not enabled')
       end
 
       it 'returns 403 for non-owner of organization' do
@@ -409,7 +409,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         # Non-owner check uses verify_one_of_roles! → Onetime::Forbidden → 403
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['message']).to include('owner')
+        expect(body['error']).to include('owner')
       end
 
       it 'returns 422 when organization lacks manage_sso entitlement' do
@@ -424,7 +424,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         # Entitlement check uses raise_form_error → FormError → 422
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('manage_sso')
+        expect(body['error']).to include('manage_sso')
       end
 
       it 'returns 404 for non-existent domain' do
@@ -433,7 +433,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Domain not found')
+        expect(body['error']).to include('Domain not found')
       end
     end
   end
@@ -517,7 +517,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('SSO configuration not found')
+        expect(body['error']).to include('SSO configuration not found')
       end
     end
 
@@ -673,7 +673,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('required')
+        expect(body['error']).to include('required')
       end
     end
   end
@@ -725,7 +725,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('SSO configuration not found')
+        expect(body['error']).to include('SSO configuration not found')
       end
     end
 
@@ -841,7 +841,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('Provider type')
+        expect(body['error']).to include('Provider type')
       end
 
       it 'returns 422 for missing client_id' do
@@ -852,7 +852,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('Client ID')
+        expect(body['error']).to include('Client ID')
       end
 
       it 'returns 422 for missing tenant_id on Entra ID' do
@@ -863,7 +863,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('Tenant ID')
+        expect(body['error']).to include('Tenant ID')
       end
 
       it 'returns 422 for invalid tenant_id format on Entra ID' do
@@ -875,7 +875,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('UUID')
+        expect(body['error']).to include('UUID')
       end
 
       it 'returns 422 for missing issuer on OIDC' do
@@ -886,7 +886,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('Issuer URL')
+        expect(body['error']).to include('Issuer URL')
       end
 
       it 'returns 422 for invalid Google client_id format' do
@@ -897,7 +897,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('googleusercontent.com')
+        expect(body['error']).to include('googleusercontent.com')
       end
 
       it 'returns 422 for invalid GitHub client_id format' do
@@ -908,7 +908,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('Iv1')
+        expect(body['error']).to include('Iv1')
       end
     end
 
@@ -937,7 +937,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         # Non-owner check uses verify_one_of_roles! -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['message']).to include('owner')
+        expect(body['error']).to include('owner')
       end
     end
   end

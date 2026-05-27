@@ -192,6 +192,13 @@ module Auth::Config::Hooks
           provider: omniauth_provider,
         )
 
+        # Capture the signup domain so it can be set on the new Customer in a
+        # single write (instead of save-then-update). Lookup is cheap and pure;
+        # leave it outside safe_execute so failures still surface.
+        display_domain   = request.env['onetime.display_domain']
+        custom_domain    = display_domain ? Onetime::CustomDomain.load_by_display_domain(display_domain) : nil
+        signup_domain_id = custom_domain&.identifier
+
         # Create Customer record (same as regular signup)
         customer = Onetime::ErrorHandler.safe_execute(
           'create_customer_omniauth',
@@ -203,21 +210,12 @@ module Auth::Config::Hooks
             account: account,
             db: db,
             provisioning_origin: 'sso_jit',
+            signup_domain_id: signup_domain_id,
           ).call
         end
 
         # Create default organization and team
         if customer.is_a?(Onetime::Customer)
-          # Capture the signup domain for re-verification and background jobs
-          display_domain = request.env['onetime.display_domain']
-          if display_domain
-            custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-            if custom_domain
-              customer.signup_domain_id = custom_domain.identifier
-              customer.save
-            end
-          end
-
           Onetime::ErrorHandler.safe_execute(
             'create_default_workspace_omniauth',
             extid: customer.extid,

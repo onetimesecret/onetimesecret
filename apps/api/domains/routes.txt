@@ -57,4 +57,5 @@ DELETE /:extid/incoming-config           DomainsAPI::Logic::IncomingConfig::Dele
 # Domain Signup Configuration (Per-domain email validation strategy)
 GET    /:extid/signup-config             DomainsAPI::Logic::SignupConfig::GetSignupConfig response=json auth=sessionauth
 PUT    /:extid/signup-config             DomainsAPI::Logic::SignupConfig::PutSignupConfig response=json auth=sessionauth
+PATCH  /:extid/signup-config             DomainsAPI::Logic::SignupConfig::PatchSignupConfig response=json auth=sessionauth
 DELETE /:extid/signup-config             DomainsAPI::Logic::SignupConfig::DeleteSignupConfig response=json auth=sessionauth

@@ -416,6 +416,13 @@ end
 @smtp_config.valid_signup_email?('user@example.com')
 #=> true
 
+## smtp strategy rejects malformed email when Truemail raises (format check runs before Truemail)
+Truemail.define_singleton_method(:validate) do |_email, **_kwargs|
+  raise StandardError, 'SMTP connection refused'
+end
+@smtp_config.valid_signup_email?('not-an-email')
+#=> false
+
 # --- Verify Truemail.validate is invoked with custom_configuration kwarg ---
 #
 # The implementation must use custom_configuration: (per-call override) rather
