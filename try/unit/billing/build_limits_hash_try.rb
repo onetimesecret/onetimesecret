@@ -103,6 +103,10 @@ BillingTestHelpers.clear_plan_cache!
 #=> {}
 
 ## Unmaterialized org with plan in cache: returns plan limits
+# Clear materialization state so the org appears unmaterialized
+@org2.materialized_entitlements_at = nil
+@org2.materialized_entitlements.clear
+@org2.limits_plan.clear
 BillingTestHelpers.with_billing_enabled(plans: [{
   plan_id: 'fallback_test_plan',
   name: 'Fallback Plan',

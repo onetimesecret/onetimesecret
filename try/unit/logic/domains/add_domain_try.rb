@@ -26,9 +26,17 @@ require 'api/domains/logic/domains/add_domain'
 @org1 = Onetime::Organization.create!("First Corp", @owner1, "domains1_#{@timestamp}@first.com")
 @org2 = Onetime::Organization.create!("Second Corp", @owner2, "domains2_#{@timestamp}@second.com")
 
-# Enable standalone mode (billing disabled) to grant custom_domains entitlement
+# Enable standalone mode (billing disabled) to grant custom_domains entitlement.
+# Note: The singleton method override happens AFTER org creation, so we must
+# re-materialize the owner memberships with the overridden org instance.
 @org1.define_singleton_method(:billing_enabled?) { false }
 @org2.define_singleton_method(:billing_enabled?) { false }
+
+# Re-materialize owner memberships with the billing-disabled org instances.
+# Without this, the memberships' entitlements were computed during create!
+# using the original org (with billing_enabled? returning its default value).
+Onetime::OrganizationMembership.find_by_org_customer(@org1.objid, @owner1.objid)&.materialize_for_role!(@org1)
+Onetime::OrganizationMembership.find_by_org_customer(@org2.objid, @owner2.objid)&.materialize_for_role!(@org2)
 
 # Define unique test domain names
 @test_domain1 = "secrets-#{@timestamp}.example.com"
@@ -170,12 +178,14 @@ end
 # This enables org context to persist across navigation when session hasn't been updated
 
 ## Membership was returned (not nil)
-# Add owner1 as admin of org2 so they can add domains to it via explicit org_id.
-# The role must satisfy the #3033 admin gate enforced by verify_organization_admin;
-# 'member' would be rejected and turn these explicit-org_id resolution tests into
-# accidental role-gate failures. Role-gate coverage lives in the separate cases
-# further down (and in the integration specs).
-@membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'admin' })
+# Add owner1 as owner of org2 so they can add domains to it via explicit org_id.
+# The role 'owner' includes custom_domains entitlement (ADR-012 Stage 3).
+# 'admin' lacks custom_domains, and 'member' lacks the admin-gate check —
+# explicit-org_id tests focus on resolution, not role-gate behavior.
+# Role-gate coverage lives in the separate cases further down.
+@membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'owner' })
+# Re-materialize with the billing-disabled org instance (see note at top of file)
+@membership.materialize_for_role!(@org2)
 @membership.nil?
 #=> false
 
@@ -232,9 +242,10 @@ end
 #=> "Organization not found or access denied"
 
 # -----------------------------------------------------------------------------
-# Role gate (#3033 §2): only owners and admins may add custom domains.
+# Role gate (#3033 §2, ADR-012 Stage 3): custom_domains is an owner-level
+# entitlement by default. Admins need an explicit grant to add domains.
 # Owner path is exercised by every preceding case (owners created the orgs).
-# The new cases below cover admin (allowed) and member (rejected).
+# The cases below cover: admin with explicit grant (allowed), member (rejected).
 # -----------------------------------------------------------------------------
 
 ## Setup: invite a plain member and an admin into @org1 for the role-gate cases
@@ -242,6 +253,12 @@ end
 @admin_user  = Onetime::Customer.create!(email: "admin_#{@timestamp}@test.com")
 @member_membership = @org1.add_members_instance(@member_user, through_attrs: { role: 'member' })
 @admin_membership  = @org1.add_members_instance(@admin_user,  through_attrs: { role: 'admin'  })
+# Re-materialize with the billing-disabled org instance (see note at top of file)
+@member_membership.materialize_for_role!(@org1)
+@admin_membership.materialize_for_role!(@org1)
+# Grant custom_domains to admin explicitly (ADR-012: custom_domains is owner-only by default;
+# this test verifies admin + explicit grant can add domains)
+@admin_membership.grant_entitlement('custom_domains')
 [@member_membership.role, @admin_membership.role]
 #=> ['member', 'admin']
 
