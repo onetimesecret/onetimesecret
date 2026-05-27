@@ -32,8 +32,11 @@ interface SetupOptions {
   billingEnabled?: boolean;
   authSignin?: boolean;
   recipientIntroUrl?: string | null;
+  /** Per-domain disabled-homepage variant. Null/omitted means
+   *  "use the frontend DEFAULT_DISABLED_HOMEPAGE_VARIANT". */
+  homepageVariant?: 'v1' | 'minimal' | 'legacy' | null;
+  /** Tri-state operator overrides for the auto-detected affordances. */
   disabledHomepage?: {
-    variant?: 'v1' | 'minimal' | 'legacy';
     show_promo?: boolean | null;
     show_what_is_this?: boolean | null;
   };
@@ -64,10 +67,21 @@ function setup(opts: SetupOptions = {}) {
       },
     },
     disabled_homepage: {
-      variant: opts.disabledHomepage?.variant ?? 'v1',
       show_promo: opts.disabledHomepage?.show_promo ?? null,
       show_what_is_this: opts.disabledHomepage?.show_what_is_this ?? null,
     },
+    homepage_config:
+      opts.homepageVariant === undefined
+        ? null
+        : {
+            domain_id: 'test-domain',
+            enabled: true,
+            signup_enabled: true,
+            signin_enabled: true,
+            disabled_homepage_variant: opts.homepageVariant,
+            created_at: null,
+            updated_at: null,
+          },
   });
 
   const identity = useProductIdentity();
@@ -108,39 +122,44 @@ describe('useDisabledConfig', () => {
       window.history.replaceState({}, '', '/');
     });
 
-    it('defaults to v1 when bootstrap omits disabled_homepage', () => {
+    it('falls back to the frontend default (minimal) when no per-domain config', () => {
       const { config } = setup();
-      expect(config.variant.value).toBe('v1');
-    });
-
-    it('respects the configured variant', () => {
-      const { config } = setup({ disabledHomepage: { variant: 'minimal' } });
       expect(config.variant.value).toBe('minimal');
     });
 
-    it('reacts when bootstrap mutates the variant mid-session', () => {
-      const { config, bootstrap } = setup({ disabledHomepage: { variant: 'v1' } });
+    it('falls back to the frontend default when homepage_config sets variant=null', () => {
+      // Null means "no per-domain override" — operator never opted in.
+      const { config } = setup({ homepageVariant: null });
+      expect(config.variant.value).toBe('minimal');
+    });
+
+    it('respects the per-domain variant from homepage_config', () => {
+      const { config } = setup({ homepageVariant: 'v1' });
+      expect(config.variant.value).toBe('v1');
+    });
+
+    it('reacts when homepage_config mutates mid-session', () => {
+      const { config, bootstrap } = setup({ homepageVariant: 'v1' });
       expect(config.variant.value).toBe('v1');
 
       bootstrap.$patch({
-        disabled_homepage: {
-          variant: 'legacy',
-          show_promo: null,
-          show_what_is_this: null,
+        homepage_config: {
+          ...bootstrap.homepage_config!,
+          disabled_homepage_variant: 'legacy',
         },
       });
       expect(config.variant.value).toBe('legacy');
     });
 
-    it('?variant URL override wins over bootstrap', () => {
+    it('?variant URL override wins over homepage_config', () => {
       window.history.replaceState({}, '', '/?variant=legacy');
-      const { config } = setup({ disabledHomepage: { variant: 'v1' } });
+      const { config } = setup({ homepageVariant: 'v1' });
       expect(config.variant.value).toBe('legacy');
     });
 
     it('?variant override falls through silently when the value is invalid', () => {
       window.history.replaceState({}, '', '/?variant=banana');
-      const { config } = setup({ disabledHomepage: { variant: 'minimal' } });
+      const { config } = setup({ homepageVariant: 'minimal' });
       expect(config.variant.value).toBe('minimal');
     });
 
@@ -148,7 +167,7 @@ describe('useDisabledConfig', () => {
       // Intentional: a mid-session URL mutation doesn't flip the variant
       // without re-mounting. Mirrors how operators use the override —
       // pick a variant on page load, not while the page is open.
-      const { config } = setup({ disabledHomepage: { variant: 'v1' } });
+      const { config } = setup({ homepageVariant: 'v1' });
       expect(config.variant.value).toBe('v1');
 
       window.history.replaceState({}, '', '/?variant=legacy');

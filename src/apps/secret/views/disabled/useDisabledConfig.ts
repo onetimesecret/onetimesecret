@@ -5,11 +5,17 @@
 // single props bag to whichever variant is selected and the variants stay
 // purely presentational.
 //
-// The composable applies auto-detection rules by default and lets operator
-// overrides (bootstrap.disabled_homepage) win when set.
+// Variant comes from the per-domain `homepage_config.disabled_homepage_variant`
+// (with a `?variant` URL override and a frontend-constant fallback). The
+// affordance flags (show_promo / show_what_is_this) come from auto-detection
+// rules plus operator overrides on the site-level `bootstrap.disabled_homepage`
+// block.
 
 import type { DisabledHomepageVariant } from '@/schemas/contracts/disabled-homepage';
-import { disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
+import {
+  DEFAULT_DISABLED_HOMEPAGE_VARIANT,
+  disabledHomepageVariantSchema,
+} from '@/schemas/contracts/disabled-homepage';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { storeToRefs } from 'pinia';
@@ -93,7 +99,8 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     storeToRefs(identityStore);
 
   const bootstrapStore = useBootstrapStore();
-  const { authentication, billing_enabled, disabled_homepage, ui } = storeToRefs(bootstrapStore);
+  const { authentication, billing_enabled, disabled_homepage, homepage_config, ui } =
+    storeToRefs(bootstrapStore);
 
   // "Branded" means a custom domain has actually been configured with a brand
   // description — distinct from isCustom, which can be true even when no
@@ -147,12 +154,19 @@ export function useDisabledConfig(): DisabledHomepageBindings {
 
   const showSignin = computed(() => !!authentication.value?.signin);
 
-  // Variant resolution: URL override → bootstrap config. URL is read once
-  // at composable-call time (page loads don't preserve query params); the
-  // bootstrap fallback stays reactive so a $patch still flips the variant.
+  // Variant resolution: URL override → per-domain homepage_config →
+  // frontend default. URL is read once at composable-call time (page
+  // loads don't preserve query params); the homepage_config fallback
+  // stays reactive so a $patch on the domain config still flips the
+  // variant. When neither resolves, fall through to the frontend
+  // constant — homepage_config is null on the canonical site and on
+  // any custom domain that hasn't opted into a non-default variant.
   const urlOverride = readUrlVariantOverride();
   const variant = computed<DisabledHomepageVariant>(
-    () => urlOverride ?? disabled_homepage.value.variant
+    () =>
+      urlOverride ??
+      homepage_config.value?.disabled_homepage_variant ??
+      DEFAULT_DISABLED_HOMEPAGE_VARIANT
   );
 
   // Getter object: `v-bind="props"` evaluates each property on every render,
