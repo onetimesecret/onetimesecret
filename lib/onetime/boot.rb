@@ -159,8 +159,11 @@ module Onetime
         ordered = @boot_registry.execution_order
         ordered.each do |init|
           # Skip database-related initializers
-          next if [:configure_familia, :setup_connection_pool,
-                   :check_global_banner].include?(init.name)
+          next if %i[
+            onetime.initializers.configure_familia
+            onetime.initializers.setup_connection_pool
+            onetime.initializers.check_global_banner
+          ].include?(init.name)
 
           # Check if initializer wants to skip itself (e.g., feature disabled)
           if init.should_skip?
