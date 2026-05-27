@@ -205,9 +205,7 @@ module Billing
         @errors << { org_extid: org.extid, reason: "Org write failed: #{ex.message}" }
         emit(:failed_org_write, org, planid: org.planid, reason: ex.message)
         logger.error 'Org write failed',
-          org_extid: org.extid, planid: org.planid, message: ex.message
-        logger.debug 'Org write failed (backtrace)',
-          org_extid: org.extid, backtrace: ex.backtrace&.join("\n")
+          org_extid: org.extid, planid: org.planid, exception: ex
       end
 
       # Cascade to memberships. Returns :ok or :failed.
@@ -238,10 +236,7 @@ module Billing
             logger.error 'Membership re-materialization failed',
               org_extid: org.extid,
               membership_objid: membership.objid,
-              message: ex.message
-            logger.debug 'Membership re-materialization failed (backtrace)',
-              membership_objid: membership.objid,
-              backtrace: ex.backtrace&.join("\n")
+              exception: ex
           end
         end
 
@@ -304,9 +299,7 @@ module Billing
         @errors << { org_extid: org.extid, reason: reason }
         emit(:failed_cascade, org, planid: org.planid, reason: reason)
         logger.error 'Cascade raised',
-          org_extid: org.extid, planid: org.planid, message: ex.message
-        logger.debug 'Cascade raised (backtrace)',
-          org_extid: org.extid, backtrace: ex.backtrace&.join("\n")
+          org_extid: org.extid, planid: org.planid, exception: ex
       end
 
       def emit(event, org, planid: nil, entitlements_count: nil, cascade: nil, reason: nil)
