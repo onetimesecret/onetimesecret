@@ -24,7 +24,7 @@ module AccountAPI::Logic
         # has an active browser session, not just valid API credentials.
         session_authenticated = @sess['authenticated'] == true
         unless session_authenticated
-          raise_form_error('Session authentication required', field: :session, error_type: :unauthorized)
+          raise_form_error('Session authentication required', field: :session, error_type: :authentication_required)
         end
 
         verify_authenticated!

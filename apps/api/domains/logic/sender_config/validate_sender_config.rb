@@ -57,7 +57,7 @@ module DomainsAPI
         end
 
         def raise_concerns
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+          raise_form_error('Authentication required', field: :user_id, error_type: :authentication_required) if cust.anonymous?
           raise_form_error('Domain ID required', field: :domain_id, error_type: :missing) if @domain_id.to_s.empty?
 
           authorize_sender_config!(@domain_id)
