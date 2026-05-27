@@ -240,6 +240,7 @@ module Onetime
         'teams' => ->(value) { value == 0 ? 'No team access' : '' },
         'members_per_team' => ->(value) { value == 1 ? 'Individual only' : '' },
       }.freeze
+      private_constant :LIMIT_NOTE_FORMATTERS
 
       def limit_notes(resource, value)
         formatter = LIMIT_NOTE_FORMATTERS[resource]
