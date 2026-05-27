@@ -78,6 +78,7 @@ module Onetime
         if [true, 1].include?(is_locked)
           raise Onetime::LimitExceeded.new(
             'Too many feedback submissions. Please try again later.',
+            error_key: 'api.feedback.errors.rate_limit_exceeded',
             retry_after: ttl > 0 ? ttl : LOCKOUT_DURATION,
             max_attempts: MAX_SUBMISSIONS,
           )

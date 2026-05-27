@@ -71,9 +71,9 @@ begin
   @tester.check_feedback_rate_limit!(@test_ip)
   :no_error
 rescue Onetime::LimitExceeded => e
-  [e.class.name, e.retry_after.positive?, e.max_attempts]
+  [e.class.name, e.retry_after.positive?, e.max_attempts, e.error_key]
 end
-#=> ['Onetime::LimitExceeded', true, 10]
+#=> ['Onetime::LimitExceeded', true, 10, 'api.feedback.errors.rate_limit_exceeded']
 
 ## clear_feedback_rate_limit! removes lockout
 @tester.clear_feedback_rate_limit!(@test_ip)
