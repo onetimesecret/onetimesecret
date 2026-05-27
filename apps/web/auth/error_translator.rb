@@ -68,12 +68,13 @@ module Auth
     def self.body_for(exception)
       return generic_body unless known_typed?(exception)
 
-      # Typed Onetime::Problem and Onetime::Forbidden subclasses define a
-      # purpose-built #to_h that returns the ADR-013 shape with any
-      # class-specific fields (field, retry_after, entitlement, etc.).
-      return exception.to_h if exception.respond_to?(:to_h) &&
-                               (exception.is_a?(Onetime::Problem) ||
-                                exception.is_a?(Onetime::Forbidden))
+      # Typed Onetime exceptions in STATUS_BY_CLASS that define #to_h
+      # (Onetime::Problem and Onetime::Forbidden subclasses) return their
+      # purpose-built ADR-013 hash with class-specific fields (field,
+      # retry_after, entitlement, etc.). Using respond_to? rather than
+      # explicit is_a? checks avoids drift as new typed exceptions are
+      # registered.
+      return exception.to_h if exception.respond_to?(:to_h)
 
       # Onetime::Unauthorized is a marker class with no #to_h. The message
       # is caller-supplied and not sensitive at the auth boundary (e.g.
@@ -81,19 +82,22 @@ module Auth
       { error: exception.message, error_type: short_class_name(exception) }
     end
 
+    # Walk the exception's actual inheritance chain (not STATUS_BY_CLASS
+    # iteration order) so the lookup is robust to hash reordering and
+    # returns the closest ancestor's status.
     def self.ancestor_status(exception)
-      STATUS_BY_CLASS.each_pair do |klass, status|
-        return status if exception.is_a?(klass)
+      exception.class.ancestors.each do |ancestor|
+        return STATUS_BY_CLASS[ancestor] if STATUS_BY_CLASS.key?(ancestor)
       end
       nil
     end
     private_class_method :ancestor_status
 
-    # An exception is "typed" iff it is an instance (or subclass) of a class
-    # in STATUS_BY_CLASS. Tying the typed-check to the same source of truth
+    # An exception is "typed" iff one of its ancestors is a key in
+    # STATUS_BY_CLASS. Tying the typed-check to the same source of truth
     # as the status mapping prevents drift.
     def self.known_typed?(exception)
-      STATUS_BY_CLASS.each_key.any? { |klass| exception.is_a?(klass) }
+      exception.class.ancestors.any? { |ancestor| STATUS_BY_CLASS.key?(ancestor) }
     end
     private_class_method :known_typed?
 

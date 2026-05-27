@@ -64,8 +64,19 @@ module Auth
     # auto-wrapping the :error_handler return value; that interaction depends
     # on plugin load order and is brittle. Serializing here keeps the wire
     # shape correct regardless of plugin layering.
+    #
+    # Logging: 500s log at :error with backtrace so production failures are
+    # not silent (Roda's :error_handler does not log by default). Translated
+    # typed exceptions log at :info — they are expected outcomes (404/422/
+    # 401/403/429), not bugs.
     plugin :error_handler do |e|
       status, body = Auth::ErrorTranslator.translate(e)
+      if status >= 500
+        auth_logger.error 'Auth router unhandled exception', exception: e
+      else
+        auth_logger.info 'Auth router translated exception',
+          exception_class: e.class.name, status: status
+      end
       response.status           = status
       response['content-type']  = 'application/json'
       body.to_json
