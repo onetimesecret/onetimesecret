@@ -45,7 +45,21 @@ module Onetime
         # No-op if trusted proxy support is not enabled. This allows us to avoid
         # changing default Rack behavior that trusts X-Forwarded-For when
         # REMOTE_ADDR is private (according to RFC1918).
-        return unless config[:enabled]
+        #
+        # Log the disabled path explicitly: when ops debug "why does my IP look
+        # wrong behind Cloudflare?", the first thing to check is whether this
+        # initializer fired. A silent return leaves them guessing.
+        unless config && config[:enabled]
+          boot_logger.info 'Trusted proxy disabled; Rack::Request#ip will use REMOTE_ADDR',
+            configured: !config.nil?
+          return
+        end
+
+        boot_logger.info 'Trusted proxy enabled',
+          mode: config[:mode],
+          header: config[:header],
+          cidrs: config[:cidrs],
+          depth: config[:depth]
 
         case config[:mode]
         when 'depth'
@@ -58,30 +72,16 @@ module Onetime
       private
 
       def load_config
-        site_config   = OT.conf['site'] || {}
-        network       = site_config['network'] || {}
-        trusted_proxy = network['trusted_proxy'] || {}
+        trusted_proxy = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
+        return unless trusted_proxy.key?('enabled')
 
-        # New nested config takes precedence
-        if trusted_proxy.key?('enabled')
-          {
-            enabled: trusted_proxy['enabled'] == true,
-            mode: trusted_proxy['mode'] || 'filter',
-            header: trusted_proxy['header'] || 'X-Forwarded-For',
-            cidrs: Array(trusted_proxy['cidrs']),
-            depth: trusted_proxy['depth'].to_i.clamp(1, 10),
-          }
-        else
-          # Legacy fallback: site.trusted_proxy_depth / site.trusted_ip_header
-          legacy_depth = site_config['trusted_proxy_depth'].to_i
-          {
-            enabled: legacy_depth > 0,
-            mode: 'filter',
-            header: site_config['trusted_ip_header'] || 'X-Forwarded-For',
-            cidrs: Array(site_config['trusted_proxy_cidrs']),
-            depth: legacy_depth.clamp(1, 10),
-          }
-        end
+        {
+          enabled: trusted_proxy['enabled'] == true,
+          mode: trusted_proxy['mode'] || 'filter',
+          header: trusted_proxy['header'] || 'X-Forwarded-For',
+          cidrs: Array(trusted_proxy['cidrs']),
+          depth: trusted_proxy['depth'].to_i.clamp(1, 10),
+        }
       end
 
       # Filter mode: Rack's built-in IP-based filtering
@@ -95,7 +95,10 @@ module Onetime
           configure_custom_cidrs(config[:cidrs])
         end
 
-        app_logger.debug "[init] Trusted proxy: mode=filter, header=#{config[:header]}, cidrs=#{config[:cidrs].size}"
+        boot_logger.info 'Configured trusted proxy filter mode',
+          header: config[:header],
+          forwarded_priority: Rack::Request.forwarded_priority,
+          custom_cidrs: config[:cidrs].size
       end
 
       # Depth mode: Position-based counting
@@ -116,7 +119,9 @@ module Onetime
           end
         end
 
-        app_logger.debug "[init] Trusted proxy: mode=depth, depth=#{depth}, header=#{header}"
+        boot_logger.info 'Configured trusted proxy depth mode',
+          header: header,
+          depth: depth
       end
 
       def header_priority_for(header_pref)
@@ -134,11 +139,17 @@ module Onetime
         parsed_ranges = cidrs.filter_map do |cidr|
           IPAddr.new(cidr)
         rescue IPAddr::InvalidAddressError => ex
-          app_logger.warn "[init] Invalid trusted_proxy_cidr '#{cidr}': #{ex.message}"
+          boot_logger.warn 'Invalid trusted_proxy CIDR; skipping',
+            cidr: cidr,
+            error: ex.message
           nil
         end
 
-        return if parsed_ranges.empty?
+        if parsed_ranges.empty?
+          boot_logger.warn 'No valid trusted_proxy CIDRs registered; default RFC1918 filter unchanged',
+            requested: cidrs
+          return
+        end
 
         # Extend Rack's default filter to also trust the configured CIDRs.
         #
@@ -154,6 +165,10 @@ module Onetime
         rescue IPAddr::InvalidAddressError
           false
         end
+
+        boot_logger.info 'Extended Rack::Request.ip_filter with custom trusted_proxy CIDRs',
+          registered: parsed_ranges.size,
+          requested: cidrs.size
       end
     end
   end

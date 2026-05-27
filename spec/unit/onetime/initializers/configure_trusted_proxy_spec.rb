@@ -8,7 +8,7 @@ require 'ipaddr'
 RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
   let(:instance) { described_class.new }
   let(:context) { {} }
-  let(:logger) { instance_double('Logger', debug: nil, warn: nil) }
+  let(:logger) { double('logger', debug: nil, info: nil, warn: nil) }
 
   before do
     allow(instance).to receive(:app_logger).and_return(logger)
@@ -84,119 +84,6 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
     # ==========================================================================
     # Priority 1: Legacy config fallback (trusted_proxy_depth)
     # ==========================================================================
-    context 'legacy config: trusted_proxy_depth = 0' do
-      before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => {
-            'trusted_proxy_depth' => 0
-          }
-        })
-      end
-
-      it 'treats depth=0 as disabled and preserves Rack defaults' do
-        original_priority = Rack::Request.forwarded_priority
-        instance.execute(context)
-        expect(Rack::Request.forwarded_priority).to eq(original_priority)
-      end
-    end
-
-    context 'legacy config: trusted_proxy_depth > 0' do
-      before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => {
-            'trusted_proxy_depth' => 1
-          }
-        })
-      end
-
-      it 'enables filter mode' do
-        instance.execute(context)
-        expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
-      end
-
-      it 'uses X-Forwarded-For header by default' do
-        instance.execute(context)
-        expect(logger).to have_received(:debug).with(/header=X-Forwarded-For/)
-      end
-    end
-
-    context 'legacy config: with trusted_ip_header' do
-      before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => {
-            'trusted_proxy_depth' => 1,
-            'trusted_ip_header' => 'Forwarded'
-          }
-        })
-      end
-
-      it 'respects trusted_ip_header setting' do
-        instance.execute(context)
-        expect(Rack::Request.forwarded_priority).to eq([:forwarded])
-      end
-    end
-
-    context 'legacy config: with trusted_proxy_cidrs' do
-      before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => {
-            'trusted_proxy_depth' => 1,
-            'trusted_proxy_cidrs' => ['203.0.113.0/24']
-          }
-        })
-      end
-
-      it 'configures custom CIDRs' do
-        instance.execute(context)
-        filter = Rack::Request.ip_filter
-        expect(filter.call('203.0.113.50')).to be true
-      end
-    end
-
-    context 'legacy config: with CIDRs + Forwarded header' do
-      before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => {
-            'trusted_proxy_depth' => 1,
-            'trusted_ip_header' => 'Forwarded',
-            'trusted_proxy_cidrs' => ['203.0.113.0/24']
-          }
-        })
-      end
-
-      it 'uses Forwarded header priority' do
-        instance.execute(context)
-        expect(Rack::Request.forwarded_priority).to eq([:forwarded])
-      end
-
-      it 'configures custom CIDRs' do
-        instance.execute(context)
-        filter = Rack::Request.ip_filter
-        expect(filter.call('203.0.113.50')).to be true
-      end
-    end
-
-    context 'legacy config: with invalid CIDRs' do
-      before do
-        allow(OT).to receive(:conf).and_return({
-          'site' => {
-            'trusted_proxy_depth' => 1,
-            'trusted_proxy_cidrs' => ['not-valid', '203.0.113.0/24']
-          }
-        })
-      end
-
-      it 'logs warning for invalid CIDR' do
-        instance.execute(context)
-        expect(logger).to have_received(:warn).with(/Invalid trusted_proxy_cidr 'not-valid'/)
-      end
-
-      it 'continues with valid CIDRs' do
-        instance.execute(context)
-        filter = Rack::Request.ip_filter
-        expect(filter.call('203.0.113.50')).to be true
-      end
-    end
 
     context 'when site config is missing entirely' do
       before do
@@ -241,7 +128,9 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
 
         it 'logs mode and header' do
           instance.execute(context)
-          expect(logger).to have_received(:debug).with(/mode=filter.*header=X-Forwarded-For/)
+          expect(logger).to have_received(:info).with(
+            'Configured trusted proxy filter mode', hash_including(header: 'X-Forwarded-For')
+          )
         end
       end
 
@@ -373,7 +262,9 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
 
         it 'logs cidrs count' do
           instance.execute(context)
-          expect(logger).to have_received(:debug).with(/cidrs=2/)
+          expect(logger).to have_received(:info).with(
+            'Configured trusted proxy filter mode', hash_including(custom_cidrs: 2)
+          )
         end
       end
 
@@ -454,7 +345,10 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
 
       it 'logs mode, depth, and header' do
         instance.execute(context)
-        expect(logger).to have_received(:debug).with(/mode=depth.*depth=2.*header=X-Forwarded-For/)
+        expect(logger).to have_received(:info).with(
+          'Configured trusted proxy depth mode',
+          hash_including(depth: 2, header: 'X-Forwarded-For')
+        )
       end
 
       context 'with depth clamped to valid range' do
@@ -604,7 +498,7 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
 
       it 'logs as filter mode' do
         instance.execute(context)
-        expect(logger).to have_received(:debug).with(/mode=filter/)
+        expect(logger).to have_received(:info).with('Configured trusted proxy filter mode', anything)
       end
     end
 
@@ -630,7 +524,9 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
 
       it 'logs warning for invalid CIDR' do
         instance.execute(context)
-        expect(logger).to have_received(:warn).with(/Invalid trusted_proxy_cidr 'invalid-cidr'/)
+        expect(logger).to have_received(:warn).with(
+          'Invalid trusted_proxy CIDR; skipping', hash_including(cidr: 'invalid-cidr')
+        )
       end
 
       it 'continues processing valid CIDRs' do
@@ -663,7 +559,10 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
 
       it 'logs warning for each invalid CIDR' do
         instance.execute(context)
-        expect(logger).to have_received(:warn).twice
+        # Two per-CIDR warnings + one summary "no valid CIDRs registered" warning
+        expect(logger).to have_received(:warn).with(
+          'Invalid trusted_proxy CIDR; skipping', anything
+        ).twice
       end
 
       it 'does not modify ip_filter when all CIDRs are invalid' do
@@ -697,7 +596,9 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
 
       it 'logs cidrs=0' do
         instance.execute(context)
-        expect(logger).to have_received(:debug).with(/cidrs=0/)
+        expect(logger).to have_received(:info).with(
+          'Configured trusted proxy filter mode', hash_including(custom_cidrs: 0)
+        )
       end
     end
 
@@ -795,7 +696,7 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
   describe 'integration: middleware chain IP resolution' do
     let(:instance) { described_class.new }
     let(:context) { {} }
-    let(:logger) { instance_double('Logger', debug: nil, warn: nil) }
+    let(:logger) { double('logger', debug: nil, info: nil, warn: nil) }
 
     before do
       allow(instance).to receive(:app_logger).and_return(logger)

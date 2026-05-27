@@ -4,6 +4,7 @@
 
 require_relative 'base'
 require_relative '../../../../lib/onetime/jobs/publisher'
+require 'onetime/security/feedback_rate_limiter'
 
 module V3
   module Logic
@@ -11,15 +12,13 @@ module V3
     #   optional timezone and client version metadata. Available to
     #   both authenticated and anonymous users.
     #
-    # Rate limiting: 10 requests per hour per IP to prevent abuse.
-    # This prevents email storms to colonels and feedback store flooding.
+    # Rate limiting is enforced via Onetime::Security::FeedbackRateLimiter,
+    # which tracks per-IP submissions in Redis and locks abusers out for
+    # an hour after exceeding the threshold.
     class ReceiveFeedback < V3::Logic::Base
-      SCHEMAS = { response: 'feedback' }.freeze
+      include Onetime::Security::FeedbackRateLimiter
 
-      # Rate limit: 10 feedback submissions per hour per IP
-      # Generous enough for legitimate use, restrictive enough to prevent abuse
-      FEEDBACK_RATE_LIMIT_MAX    = 10
-      FEEDBACK_RATE_LIMIT_WINDOW = 3600 # 1 hour
+      SCHEMAS = { response: 'feedback' }.freeze
 
       # Frontend forms (FeedbackForm.vue, FeedbackModalForm.vue) mirror this
       # value via their local MAX_MSG_LENGTH constant so users see a counter
@@ -38,6 +37,7 @@ module V3
       end
 
       def raise_concerns
+        check_feedback_rate_limit!(client_ip)
         raise_form_error 'You can be more original than that!' if @msg.empty?
       end
 
@@ -67,8 +67,22 @@ module V3
         # colonel admin view can read submitter / TZ / version without a join.
         Onetime::Feedback.add formatted_for_storage(msg)
 
+        # Count this submission for rate-limit accounting. Recording after
+        # storage means failed validation / empty messages don't burn quota.
+        record_feedback_submission!(client_ip)
+
         success_data
       end
+
+      # Resolve the submitter's IP from the auth strategy metadata.
+      # Logic classes don't receive the Rack request directly; auth
+      # strategies populate metadata[:ip] via build_metadata (see
+      # lib/onetime/application/auth_strategies/helpers.rb). Returns nil
+      # if absent — the rate limiter treats blank IPs as a no-op.
+      def client_ip
+        strategy_result&.metadata&.dig(:ip)
+      end
+      private :client_ip
 
       # Identifier for the submitter. Authenticated users get their extid;
       # anonymous users get a stable-per-session anon prefix.
