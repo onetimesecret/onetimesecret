@@ -50,12 +50,12 @@ module Onetime
         # wrong behind Cloudflare?", the first thing to check is whether this
         # initializer fired. A silent return leaves them guessing.
         unless config && config[:enabled]
-          app_logger.info 'Trusted proxy disabled; Rack::Request#ip will use REMOTE_ADDR',
+          boot_logger.info 'Trusted proxy disabled; Rack::Request#ip will use REMOTE_ADDR',
             configured: !config.nil?
           return
         end
 
-        app_logger.info 'Trusted proxy enabled',
+        boot_logger.info 'Trusted proxy enabled',
           mode: config[:mode],
           header: config[:header],
           cidrs: config[:cidrs],
@@ -95,7 +95,7 @@ module Onetime
           configure_custom_cidrs(config[:cidrs])
         end
 
-        app_logger.info 'Configured trusted proxy filter mode',
+        boot_logger.info 'Configured trusted proxy filter mode',
           header: config[:header],
           forwarded_priority: Rack::Request.forwarded_priority,
           custom_cidrs: config[:cidrs].size
@@ -119,7 +119,7 @@ module Onetime
           end
         end
 
-        app_logger.info 'Configured trusted proxy depth mode',
+        boot_logger.info 'Configured trusted proxy depth mode',
           header: header,
           depth: depth
       end
@@ -139,14 +139,14 @@ module Onetime
         parsed_ranges = cidrs.filter_map do |cidr|
           IPAddr.new(cidr)
         rescue IPAddr::InvalidAddressError => ex
-          app_logger.warn 'Invalid trusted_proxy CIDR; skipping',
+          boot_logger.warn 'Invalid trusted_proxy CIDR; skipping',
             cidr: cidr,
             error: ex.message
           nil
         end
 
         if parsed_ranges.empty?
-          app_logger.warn 'No valid trusted_proxy CIDRs registered; default RFC1918 filter unchanged',
+          boot_logger.warn 'No valid trusted_proxy CIDRs registered; default RFC1918 filter unchanged',
             requested: cidrs
           return
         end
@@ -166,7 +166,7 @@ module Onetime
           false
         end
 
-        app_logger.info 'Extended Rack::Request.ip_filter with custom trusted_proxy CIDRs',
+        boot_logger.info 'Extended Rack::Request.ip_filter with custom trusted_proxy CIDRs',
           registered: parsed_ranges.size,
           requested: cidrs.size
       end
