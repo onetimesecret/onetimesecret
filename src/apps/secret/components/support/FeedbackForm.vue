@@ -60,7 +60,9 @@
   const bootstrapStore = useBootstrapStore();
   const { cust, ot_version_long } = storeToRefs(bootstrapStore);
 
-  const emit = defineEmits(['feedback-sent']);
+  const emit = defineEmits<{
+    'feedback-sent': [message: string];
+  }>();
 
   const submitWithCheck = async (event?: Event) => {
     console.debug('Submitting exception form');
@@ -72,7 +74,7 @@
     url: '/api/v3/feedback',
     successMessage: t('web.LABELS.feedback_received'),
     onSuccess: () => {
-      emit('feedback-sent');
+      emit('feedback-sent', feedbackMessage.value);
       resetForm();
     },
     onError: (data: unknown) => {

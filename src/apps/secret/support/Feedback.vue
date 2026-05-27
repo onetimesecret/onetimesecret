@@ -5,13 +5,20 @@
   import { useRoute } from 'vue-router';
   import { computed } from 'vue';
   import FeedbackForm from '@/apps/secret/components/support/FeedbackForm.vue';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 
   const { t } = useI18n();
   const route = useRoute();
+  const notifications = useNotificationsStore();
 
   const reason = computed(
     () => (route.query.reason as string) || ''
   );
+
+  const onFeedbackSent = (message: string) => {
+    const preview = message.trim() || t('web.LABELS.feedback_received');
+    notifications.show(preview, 'success', 'top', 5000);
+  };
 </script>
 
 <template>
@@ -23,7 +30,9 @@
       {{ t('web.feedback.share_your_feedback') }}
     </h1>
 
-    <FeedbackForm :show-red-button="true" :reason="reason" />
+    <FeedbackForm :show-red-button="true"
+:reason="reason"
+@feedback-sent="onFeedbackSent" />
 
     <!-- Founder's Message -->
     <div

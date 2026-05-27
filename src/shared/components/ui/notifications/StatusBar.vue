@@ -101,15 +101,15 @@ const statusConfig = computed(() => {
         ]"
         role="status"
         aria-live="polite">
-        <div class="flex items-center space-x-3">
+        <div class="flex min-w-0 flex-1 items-center space-x-3">
           <OIcon
             collection="mdi"
             :name="statusConfig?.icon || 'information'"
-            class="size-5 transition-all duration-200"
+            class="size-5 shrink-0 transition-all duration-200"
             :class="statusConfig?.iconClasses"
             aria-hidden="true" />
           <span
-            class="text-sm font-medium transition-all duration-200"
+            class="text-sm font-medium break-words transition-all duration-200"
             :class="statusConfig?.textClasses">
             {{ translatedMessage }}
           </span>
