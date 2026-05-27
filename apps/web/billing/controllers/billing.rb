@@ -45,8 +45,12 @@ module Billing
         end
 
         json_response(data)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403). Listed
+        # before StandardError so the catch-all below doesn't downgrade
+        # typed access-control errors to 500 (Onetime::Forbidden inherits
+        # from RuntimeError, not OT::Problem, so it's a StandardError).
+        raise
       rescue StandardError => ex
         billing_logger.error 'Failed to load billing overview',
           {
@@ -209,8 +213,6 @@ module Billing
             session_id: checkout_session.id,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         if Billing::CurrencyMigrationService.currency_conflict?(ex)
           currencies = Billing::CurrencyMigrationService.parse_currency_conflict(
@@ -329,8 +331,6 @@ module Billing
             has_more: invoices.has_more,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
         billing_logger.error 'Failed to retrieve invoices',
           {
@@ -444,8 +444,6 @@ module Billing
         enrich_with_pending_migration!(data, org)
 
         json_response(data)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
         billing_logger.error 'Failed to retrieve subscription status',
           {
@@ -559,8 +557,6 @@ module Billing
             actual_next_billing_due: actual_next_billing_due, # What they'll actually pay at next billing
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid plan change preview request',
           {
@@ -720,8 +716,6 @@ module Billing
             current_period_end: updated_subscription.items.data.first.current_period_end,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid plan change request',
           {
@@ -761,8 +755,9 @@ module Billing
           }
 
         json_response({ success: true })
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403).
+        raise
       rescue StandardError => ex
         billing_logger.error 'Failed to dismiss federation notification',
           {
@@ -810,8 +805,6 @@ module Billing
             status: canceled_subscription.status,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid subscription cancellation request',
           {
@@ -873,8 +866,6 @@ module Billing
             status: updated_subscription.status,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid subscription reactivation request',
           {
@@ -957,8 +948,6 @@ module Billing
         else
           json_response({ currency_mismatch: false })
         end
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
         billing_logger.error 'Currency migration check failed',
           {
@@ -1047,8 +1036,6 @@ module Billing
           }
 
         json_response(result)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Currency migration request failed',
           {

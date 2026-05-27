@@ -55,8 +55,9 @@ module Billing
         }
 
         json_response(data)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403).
+        raise
       rescue StandardError => ex
         billing_logger.error 'Failed to load entitlements',
           {
@@ -124,8 +125,9 @@ module Billing
         end
 
         json_response(result)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403).
+        raise
       rescue StandardError => ex
         billing_logger.error 'Failed entitlement check',
           {
