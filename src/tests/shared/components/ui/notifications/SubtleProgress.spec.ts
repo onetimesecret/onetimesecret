@@ -1,11 +1,15 @@
 // src/tests/shared/components/ui/notifications/SubtleProgress.spec.ts
 //
-// Tests for SubtleProgress auto-dismiss timer behavior.
+// Tests for notification auto-dismiss timer behavior.
+//
+// Auto-dismiss is owned by the store (not the component). Duration is
+// passed to `notifications.show(msg, sev, pos, duration)`; the store's
+// setTimeout calls the closure `hide` directly, so assertions check
+// `isVisible` rather than spying on `notifications.hide`.
 //
 // Load-bearing regression: when a new notification message arrives while
 // one is already visible, the auto-dismiss timer must be RESET so the new
-// message gets its full duration before hiding. Prior behavior watched
-// only isVisible, which left the old timer running over the new message.
+// message gets its full duration before hiding.
 
 import SubtleProgress from '@/shared/components/ui/notifications/SubtleProgress.vue';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
@@ -51,81 +55,63 @@ describe('SubtleProgress', () => {
 
   const mountComponent = (props: Record<string, unknown> = {}) =>
     mount(SubtleProgress, {
-      props: {
-        duration: 2000,
-        autoDismiss: true,
-        loading: false,
-        ...props,
-      },
+      props,
       global: { plugins: [i18n] },
       attachTo: document.body,
     });
 
   describe('Auto-dismiss timer', () => {
     it('hides the notification after the duration elapses', async () => {
-      wrapper = mountComponent({ duration: 2000 });
-      const hideSpy = vi.spyOn(notifications, 'hide');
+      wrapper = mountComponent();
 
-      notifications.show('first', 'success');
+      notifications.show('first', 'success', undefined, 2000);
       await nextTick();
+      expect(notifications.isVisible).toBe(true);
 
       // Halfway through — still visible
       vi.advanceTimersByTime(1000);
-      expect(hideSpy).not.toHaveBeenCalled();
+      expect(notifications.isVisible).toBe(true);
 
       // Past full duration — timer fires
       vi.advanceTimersByTime(1100);
-      expect(hideSpy).toHaveBeenCalled();
+      expect(notifications.isVisible).toBe(false);
     });
   });
 
   describe('Timer reset on new message (regression)', () => {
     it('resets the auto-dismiss timer when the message changes mid-flight', async () => {
-      wrapper = mountComponent({ duration: 2000 });
-      const hideSpy = vi.spyOn(notifications, 'hide');
+      wrapper = mountComponent();
 
-      notifications.show('first', 'success');
+      notifications.show('first', 'success', undefined, 2000);
       await nextTick();
 
       // Advance partway through the first timer
       vi.advanceTimersByTime(1500);
-      expect(hideSpy).not.toHaveBeenCalled();
+      expect(notifications.isVisible).toBe(true);
 
       // New message arrives while still visible
-      notifications.show('second', 'info');
+      notifications.show('second', 'info', undefined, 2000);
       await nextTick();
 
       // Advance past where the *old* timer would have fired (500ms more)
       vi.advanceTimersByTime(600);
-      expect(hideSpy).not.toHaveBeenCalled();
+      expect(notifications.isVisible).toBe(true);
 
       // Advance past the full new duration from the second show
       vi.advanceTimersByTime(1500);
-      expect(hideSpy).toHaveBeenCalled();
+      expect(notifications.isVisible).toBe(false);
     });
   });
 
   describe('Conditions that disable the timer', () => {
-    it('does not start a timer when autoDismiss is false', async () => {
-      wrapper = mountComponent({ autoDismiss: false, duration: 1000 });
-      const hideSpy = vi.spyOn(notifications, 'hide');
+    it('does not start a timer when duration is 0', async () => {
+      wrapper = mountComponent();
 
-      notifications.show('first', 'success');
+      notifications.show('first', 'success', undefined, 0);
       await nextTick();
 
-      vi.advanceTimersByTime(5000);
-      expect(hideSpy).not.toHaveBeenCalled();
-    });
-
-    it('does not start a timer when loading is true', async () => {
-      wrapper = mountComponent({ loading: true, duration: 1000 });
-      const hideSpy = vi.spyOn(notifications, 'hide');
-
-      notifications.show('first', 'success');
-      await nextTick();
-
-      vi.advanceTimersByTime(5000);
-      expect(hideSpy).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(10_000);
+      expect(notifications.isVisible).toBe(true);
     });
   });
 });
