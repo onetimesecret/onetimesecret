@@ -166,11 +166,11 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     end
   end
 
-  describe V1::Logic::Secrets::ConcealSecret do
+  describe 'V1::Logic::Secrets::ConcealSecret' do
     include_examples 'V1 extended_default_expiration TTL gate', -> { V1::Logic::Secrets::ConcealSecret }
   end
 
-  describe V1::Logic::Secrets::GenerateSecret do
+  describe 'V1::Logic::Secrets::GenerateSecret' do
     include_examples 'V1 extended_default_expiration TTL gate', -> { V1::Logic::Secrets::GenerateSecret }
   end
 end
