@@ -54,7 +54,13 @@ module Onetime
         type: :boolean,
         default: false,
         aliases: ['v'],
-        desc: 'Show detailed progress for each organization'
+        desc: 'Also show per-membership detail (objid, role, planid, entitlements count)'
+
+      option :quiet,
+        type: :boolean,
+        default: false,
+        aliases: ['q'],
+        desc: 'Suppress per-org progress; show only banner and final summary'
 
       option :help,
         type: :boolean,
@@ -62,7 +68,7 @@ module Onetime
         aliases: ['h'],
         desc: 'Show help message'
 
-      def call(all: false, plan: nil, include_memberships: false, run: false, verbose: false, help: false, **)
+      def call(all: false, plan: nil, include_memberships: false, run: false, verbose: false, quiet: false, help: false, **)
         return show_usage_help if help
 
         boot_application!
@@ -87,11 +93,11 @@ module Onetime
         print_mode_banner(dry_run: dry_run, all: all, plan: plan,
                           include_memberships: include_memberships)
 
-        progress_interval = [total / 10, 1].max
-        renderer          = ProgressRenderer.new(total: total, verbose: verbose,
-                                                 progress_interval: progress_interval,
-                                                 dry_run: dry_run,
-                                                 include_memberships: include_memberships)
+        verbosity = resolve_verbosity(verbose: verbose, quiet: quiet)
+        renderer  = ProgressRenderer.new(total: total,
+                                         verbosity: verbosity,
+                                         dry_run: dry_run,
+                                         include_memberships: include_memberships)
 
         result = ::Billing::Operations::MaterializePlans.call(
           plan_filter: plan,
@@ -99,9 +105,17 @@ module Onetime
           dry_run: dry_run,
         ) { |event| renderer.render(event) }
 
-        renderer.finish
-        print_results(result, dry_run, verbose, include_memberships)
+        print_results(result, dry_run, verbosity, include_memberships)
         print_next_steps(dry_run, result.succeeded, all, plan, include_memberships)
+      end
+
+      # Per-org output is on by default so the run produces a useful audit
+      # trail. --quiet drops it; --verbose adds per-membership lines.
+      def resolve_verbosity(verbose:, quiet:)
+        return :quiet if quiet
+        return :verbose if verbose
+
+        :default
       end
 
       private
@@ -120,7 +134,7 @@ module Onetime
         end
       end
 
-      def print_results(result, dry_run, verbose, include_memberships)
+      def print_results(result, dry_run, verbosity, include_memberships)
         puts "\n" + ('=' * 60)
         puts "Materialization #{dry_run ? 'Preview' : 'Complete'}"
         puts '=' * 60
@@ -140,7 +154,9 @@ module Onetime
         return if result.errors.empty?
 
         puts "\n  Errors:".ljust(30) + result.errors.size.to_s
-        return unless verbose
+        # Error detail list always rendered unless quiet — it's small, useful
+        # in audit logs, and the operator usually wants to see failure reasons.
+        return if verbosity == :quiet
 
         puts "\n  Error details:"
         result.errors.each { |err| puts "    - #{err[:org_extid]}: #{err[:reason]}" }
@@ -182,7 +198,9 @@ module Onetime
             --plan=<plan_id>        Materialize only organizations on this plan
             --include-memberships   Cascade re-materialization to all active memberships
             --run                   Execute materialization (default is dry-run)
-            --verbose, -v           Show detailed progress for each organization
+            --verbose, -v           Also print per-membership detail (objid, role,
+                                    planid, entitlements count)
+            --quiet, -q             Suppress per-org progress; banner + summary only
             --help, -h              Show this help message
 
           Examples:
@@ -198,7 +216,17 @@ module Onetime
             # Re-materialize all orgs AND cascade to their active memberships
             bin/ots billing plans materialize --all --include-memberships --run
 
+            # Show per-membership detail for cascade audit
+            bin/ots billing plans materialize --all --include-memberships --run -v
+
+            # Minimal output for cron / log forwarders
+            bin/ots billing plans materialize --all --run --quiet
+
           Notes:
+            - Output: per-org lines are on by default so the run produces a
+              useful audit trail. --verbose adds per-membership detail under
+              each cascaded org. --quiet drops per-org lines, keeping only the
+              banner and final summary.
             - Command is idempotent (safe to run multiple times). Every in-scope
               org has its entitlements re-written from the plan definition; there
               is no "skip if already up-to-date" optimization because the perf
@@ -217,14 +245,17 @@ module Onetime
 
       # Renders streaming progress events to stdout.
       #
-      # Verbose mode prints one line per org; non-verbose prints a periodic
-      # one-line progress indicator. Decoupled from the operation so other
-      # callers (jobs, future UIs) can plug in their own renderers.
+      # Three modes:
+      #   :default — one line per org (the audit-log baseline)
+      #   :verbose — :default plus one line per membership under each cascade
+      #   :quiet   — no per-org output (banner and final summary only)
+      #
+      # Decoupled from the operation so other callers (jobs, future UIs)
+      # can plug in their own renderers.
       class ProgressRenderer
-        def initialize(total:, verbose:, progress_interval:, dry_run:, include_memberships:)
+        def initialize(total:, verbosity:, dry_run:, include_memberships:)
           @total               = total
-          @verbose             = verbose
-          @progress_interval   = progress_interval
+          @verbosity           = verbosity
           @dry_run             = dry_run
           @include_memberships = include_memberships
           @processed           = 0
@@ -232,32 +263,37 @@ module Onetime
 
         def render(event)
           @processed += 1
-          render_verbose(event) if @verbose
-          render_compact unless @verbose
-        end
+          return if @verbosity == :quiet
 
-        def finish
-          # Clear the progress line if we were rendering one.
-          print "\r" + (' ' * 80) + "\r" unless @verbose
+          puts "  [#{@processed}/#{@total}] #{describe(event)}"
+          render_membership_detail(event) if @verbosity == :verbose
         end
 
         private
 
-        def render_verbose(event)
-          line = "  [#{@processed}/#{@total}] #{describe(event)}"
-          puts line
+        def render_membership_detail(event)
+          details = event.cascade && event.cascade[:details]
+          return if details.nil? || details.empty?
+
+          details.each do |m|
+            puts "      ↳ #{format_membership(m)}"
+          end
         end
 
-        def render_compact
-          return unless (@processed % @progress_interval).zero? || @processed == @total
-
-          print "\r  Progress: #{@processed}/#{@total} organizations processed"
+        def format_membership(detail)
+          role = detail[:role] || 'member'
+          if detail[:status] == :ok
+            "#{detail[:objid]} (role=#{role}, plan=#{detail[:planid]}): " \
+              "#{detail[:entitlements_count]} entitlements"
+          else
+            "#{detail[:objid]} (role=#{role}): FAILED — #{detail[:error]}"
+          end
         end
 
         def describe(event)
           case event.event
           when :materialized
-            cascade = event.cascade ? " (+#{event.cascade[:success]} memberships)" : ''
+            cascade = event.cascade ? " + cascaded #{event.cascade[:success]}/#{event.cascade[:total]} memberships" : ''
             "Materialized: #{event.org_extid} (#{event.planid}, #{event.entitlements_count} entitlements)#{cascade}"
           when :would_materialize
             cascade_hint = @include_memberships ? ' (+memberships cascade)' : ''
@@ -271,7 +307,8 @@ module Onetime
           when :failed_org_write
             "Error: org write failed for #{event.org_extid}: #{event.reason}"
           when :failed_cascade
-            "Error: cascade failed for #{event.org_extid}: #{event.reason}"
+            cascade = event.cascade ? " (#{event.cascade[:success]}/#{event.cascade[:total]} succeeded)" : ''
+            "Error: cascade failed for #{event.org_extid}: #{event.reason}#{cascade}"
           else
             "[#{event.event}] #{event.org_extid}"
           end

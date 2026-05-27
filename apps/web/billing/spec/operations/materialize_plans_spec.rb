@@ -21,14 +21,33 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
   let(:iterator) { double('iterator') }
   let(:fake_logger) { instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil) }
 
+  # Builds a membership double with the methods the operation calls inline
+  # during the cascade. materialized_entitlements is read after a successful
+  # materialize_for_role! to capture per-membership entitlement counts.
+  def build_membership(objid:, role: 'member', entitlements_count: 4)
+    membership = instance_double(Onetime::OrganizationMembership,
+      objid: objid, role: role)
+    allow(membership).to receive(:materialize_for_role!).with(org).and_return(true)
+    allow(membership).to receive(:materialized_entitlements)
+      .and_return(double('Set', size: entitlements_count))
+    membership
+  end
+
+  let(:memberships) do
+    [
+      build_membership(objid: 'mem_aaa', role: 'owner', entitlements_count: 12),
+      build_membership(objid: 'mem_bbb', role: 'admin', entitlements_count: 8),
+      build_membership(objid: 'mem_ccc', role: 'member', entitlements_count: 4),
+    ]
+  end
+
   before do
     allow(plan).to receive(:entitlements).and_return(plan_entitlements)
     allow(Billing::Plan).to receive(:list_plans).and_return([plan])
     allow(iterator).to receive(:each_record).and_yield(org)
 
     allow(org).to receive(:materialize_entitlements_from_plan)
-    allow(org).to receive(:rematerialize_all_memberships!)
-      .and_return({ success: 3, failed: 0, total: 3 })
+    allow(Onetime::OrganizationMembership).to receive(:active_for_org).with(org).and_return(memberships)
 
     # Route the operation's logger to a controllable fake so tests can
     # assert on log calls without depending on the live billing category.
@@ -49,7 +68,9 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
       it 'does not cascade in dry-run even when --include-memberships is set' do
         described_class.call(dry_run: true, include_memberships: true, iterator: iterator)
 
-        expect(org).not_to have_received(:rematerialize_all_memberships!)
+        memberships.each do |m|
+          expect(m).not_to have_received(:materialize_for_role!)
+        end
       end
 
       it 'emits :would_materialize via the progress block' do
@@ -66,7 +87,7 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         result = described_class.call(iterator: iterator)
 
         expect(org).to have_received(:materialize_entitlements_from_plan).with(plan)
-        expect(org).not_to have_received(:rematerialize_all_memberships!)
+        expect(Onetime::OrganizationMembership).not_to have_received(:active_for_org)
         expect(result.succeeded).to eq(1)
         expect(result.failed).to eq(0)
         expect(result.orgs_cascaded).to eq(0)
@@ -85,10 +106,12 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
     end
 
     context 'write mode with --include-memberships' do
-      it 'cascades and counts org as succeeded when all memberships materialize' do
+      it 'cascades to every active membership and counts org as succeeded' do
         result = described_class.call(include_memberships: true, iterator: iterator)
 
-        expect(org).to have_received(:rematerialize_all_memberships!)
+        memberships.each do |m|
+          expect(m).to have_received(:materialize_for_role!).with(org)
+        end
         expect(result.succeeded).to eq(1)
         expect(result.failed).to eq(0)
         expect(result.orgs_cascaded).to eq(1)
@@ -96,9 +119,25 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         expect(result.memberships_failed).to eq(0)
       end
 
-      it 'counts org as FAILED when any memberships fail (no masked partial success)' do
-        allow(org).to receive(:rematerialize_all_memberships!)
-          .and_return({ success: 2, failed: 1, total: 3 })
+      it 'captures per-membership detail in the progress event for the verbose renderer' do
+        events = []
+        described_class.call(include_memberships: true, iterator: iterator) { |e| events << e }
+
+        materialized = events.find { |e| e.event == :materialized }
+        expect(materialized).not_to be_nil
+        expect(materialized.cascade[:details].size).to eq(3)
+
+        owner_detail = materialized.cascade[:details].find { |d| d[:objid] == 'mem_aaa' }
+        expect(owner_detail).to include(
+          role: 'owner',
+          planid: 'test_plan_v1',
+          entitlements_count: 12,
+          status: :ok,
+        )
+      end
+
+      it 'counts org as FAILED when any single membership raises (no masked partial success)' do
+        allow(memberships[1]).to receive(:materialize_for_role!).and_raise(StandardError, 'membership boom')
 
         result = described_class.call(include_memberships: true, iterator: iterator)
 
@@ -110,8 +149,21 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         expect(result.errors.first[:reason]).to include('1/3 membership failures')
       end
 
-      it 'counts org as FAILED when cascade raises' do
-        allow(org).to receive(:rematerialize_all_memberships!).and_raise(StandardError, 'cascade boom')
+      it 'records the failed-membership error string in the cascade details for audit' do
+        allow(memberships[2]).to receive(:materialize_for_role!).and_raise(StandardError, 'membership boom')
+
+        events = []
+        described_class.call(include_memberships: true, iterator: iterator) { |e| events << e }
+
+        failed_event = events.find { |e| e.event == :failed_cascade }
+        expect(failed_event).not_to be_nil
+        failed_detail = failed_event.cascade[:details].find { |d| d[:status] == :failed }
+        expect(failed_detail[:error]).to include('membership boom')
+      end
+
+      it 'counts org as FAILED when active_for_org itself raises' do
+        allow(Onetime::OrganizationMembership).to receive(:active_for_org)
+          .and_raise(StandardError, 'cascade boom')
 
         result = described_class.call(include_memberships: true, iterator: iterator)
 
@@ -125,7 +177,7 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
 
         described_class.call(include_memberships: true, iterator: iterator)
 
-        expect(org).not_to have_received(:rematerialize_all_memberships!)
+        expect(Onetime::OrganizationMembership).not_to have_received(:active_for_org)
       end
     end
 
@@ -182,7 +234,9 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
 
         result = described_class.call(include_memberships: true, iterator: iterator)
 
-        expect(org).to have_received(:rematerialize_all_memberships!)
+        memberships.each do |m|
+          expect(m).to have_received(:materialize_for_role!).with(org)
+        end
         expect(result.succeeded).to eq(1)
         expect(result.orgs_cascaded).to eq(1)
       end
@@ -198,15 +252,17 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         expect(events.first.org_extid).to eq('org_test123')
       end
 
-      it 'yields :failed_cascade when cascade reports failures' do
-        allow(org).to receive(:rematerialize_all_memberships!)
-          .and_return({ success: 1, failed: 2, total: 3 })
+      it 'yields :failed_cascade when any membership materialization fails' do
+        allow(memberships[0]).to receive(:materialize_for_role!).and_raise(StandardError, 'mem boom')
+        allow(memberships[2]).to receive(:materialize_for_role!).and_raise(StandardError, 'mem boom')
 
         events = []
         described_class.call(include_memberships: true, iterator: iterator) { |e| events << e }
 
         expect(events.map(&:event)).to eq([:failed_cascade])
-        expect(events.first.cascade).to eq({ success: 1, failed: 2, total: 3 })
+        expect(events.first.cascade[:success]).to eq(1)
+        expect(events.first.cascade[:failed]).to eq(2)
+        expect(events.first.cascade[:total]).to eq(3)
       end
     end
 
@@ -225,11 +281,16 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
       end
 
       it 'logs cascade failures at error level (paired with debug backtrace path)' do
-        allow(org).to receive(:rematerialize_all_memberships!)
-          .and_return({ success: 0, failed: 3, total: 3 })
+        memberships.each do |m|
+          allow(m).to receive(:materialize_for_role!).and_raise(StandardError, 'mem boom')
+        end
 
         described_class.call(include_memberships: true, iterator: iterator)
 
+        expect(fake_logger).to have_received(:error).with(
+          'Membership re-materialization failed',
+          hash_including(:org_extid, :membership_objid, :message),
+        ).at_least(:once)
         expect(fake_logger).to have_received(:error).with(
           'Cascade had membership failures',
           hash_including(:org_extid, :planid, :memberships_failed),
@@ -237,7 +298,8 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
       end
 
       it 'logs cascade exceptions at error level and emits a debug backtrace line' do
-        allow(org).to receive(:rematerialize_all_memberships!).and_raise(StandardError, 'kaboom')
+        allow(Onetime::OrganizationMembership).to receive(:active_for_org)
+          .and_raise(StandardError, 'kaboom')
 
         described_class.call(include_memberships: true, iterator: iterator)
 

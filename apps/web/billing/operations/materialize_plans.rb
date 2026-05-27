@@ -215,27 +215,74 @@ module Billing
       # An org with any membership failures is counted as failed at the org
       # level so partial success doesn't masquerade as a clean run. The
       # successful-membership count is still aggregated for visibility.
+      #
+      # Iterates memberships inline (rather than calling
+      # org.rematerialize_all_memberships!) so the operation can capture
+      # per-membership detail (objid, role, planid, entitlements_count) for
+      # the --verbose renderer and for richer audit logs. The webhook path
+      # continues to use the org's aggregate method.
       def run_cascade(org)
-        cascade_result = org.rematerialize_all_memberships!
+        memberships = Onetime::OrganizationMembership.active_for_org(org)
+        details     = []
+        succeeded   = 0
+        failed      = 0
 
-        @counts[:orgs_cascaded]            += 1
-        @counts[:memberships_succeeded]    += cascade_result[:success]
-        @counts[:memberships_failed]       += cascade_result[:failed]
-        @cascade_payload                    = cascade_result
+        memberships.each do |membership|
+          begin
+            membership.materialize_for_role!(org)
+            succeeded += 1
+            details   << build_membership_detail(membership, org, :ok)
+          rescue StandardError => ex
+            failed  += 1
+            details << build_membership_detail(membership, org, :failed, error: ex.message)
+            logger.error 'Membership re-materialization failed',
+              org_extid: org.extid,
+              membership_objid: membership.objid,
+              message: ex.message
+            logger.debug 'Membership re-materialization failed (backtrace)',
+              membership_objid: membership.objid,
+              backtrace: ex.backtrace&.join("\n")
+          end
+        end
 
-        if cascade_result[:failed].positive?
+        cascade_result = {
+          success: succeeded,
+          failed:  failed,
+          total:   memberships.size,
+          details: details,
+        }
+
+        @counts[:orgs_cascaded]         += 1
+        @counts[:memberships_succeeded] += succeeded
+        @counts[:memberships_failed]    += failed
+        @cascade_payload                 = cascade_result
+
+        if failed.positive?
           handle_cascade_partial(org, cascade_result)
           :failed
         else
           logger.debug 'Cascade succeeded',
             org_extid: org.extid,
-            memberships_total: cascade_result[:total],
-            memberships_succeeded: cascade_result[:success]
+            memberships_total: memberships.size,
+            memberships_succeeded: succeeded
           :ok
         end
       rescue StandardError => ex
         handle_cascade_exception(org, ex)
         :failed
+      end
+
+      # Snapshot of a membership's post-cascade state, used by the CLI
+      # renderer for --verbose output and by audit-log consumers.
+      def build_membership_detail(membership, org, status, error: nil)
+        {
+          objid:              membership.objid,
+          role:               membership.role,
+          planid:             org.planid,
+          entitlements_count: status == :ok ? membership.materialized_entitlements.size : nil,
+          status:             status,
+          error:              error,
+        }
       end
 
       def handle_cascade_partial(org, cascade_result)

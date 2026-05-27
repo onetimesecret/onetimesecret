@@ -58,6 +58,13 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
       expect(output).to include('Cascade re-materialization')
     end
 
+    it 'documents the --quiet and repurposed --verbose flags' do
+      output = run_command(help: true)
+
+      expect(output).to include('--quiet')
+      expect(output).to include('per-membership detail')
+    end
+
     it 'does not advertise the removed --force / --stale flags' do
       output = run_command(help: true)
 
@@ -149,13 +156,23 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
       expect(output).to match(/Memberships materialized:\s+3/)
     end
 
-    it 'shows verbose error details when --verbose is set' do
+    it 'shows error details by default (verbosity = :default)' do
       allow(Billing::Operations::MaterializePlans).to receive(:call)
         .and_return(stub_result(failed: 1, errors: [{ org_extid: 'org_x', reason: 'plan missing' }]))
 
-      output = run_command(all: true, run: true, verbose: true)
+      output = run_command(all: true, run: true)
       expect(output).to include('org_x')
       expect(output).to include('plan missing')
+    end
+
+    it 'suppresses error details under --quiet' do
+      allow(Billing::Operations::MaterializePlans).to receive(:call)
+        .and_return(stub_result(failed: 1, errors: [{ org_extid: 'org_x', reason: 'plan missing' }]))
+
+      output = run_command(all: true, run: true, quiet: true)
+      expect(output).not_to include('plan missing')
+      # The failure count still appears in the summary; only the per-error list is hidden.
+      expect(output).to match(/Failed:\s+1/)
     end
   end
 
@@ -178,36 +195,91 @@ RSpec.describe 'Billing Plans Materialize CLI', :billing_cli do
   end
 
   describe 'progress streaming' do
-    it 'renders verbose per-org lines from progress events' do
+    def stub_with_event(event)
       allow(Billing::Operations::MaterializePlans).to receive(:call) do |**, &blk|
-        blk.call(
-          Billing::Operations::MaterializePlansEvent.new(
-            event: :materialized, org_extid: 'org_v', planid: 'p1',
-            entitlements_count: 4, cascade: nil, reason: nil,
-          ),
-        )
+        blk.call(event)
         stub_result(succeeded: 1)
       end
+    end
 
-      output = run_command(all: true, run: true, verbose: true)
+    it 'renders per-org lines BY DEFAULT (no flag needed) so audit logs capture progress' do
+      stub_with_event(
+        Billing::Operations::MaterializePlansEvent.new(
+          event: :materialized, org_extid: 'org_v', planid: 'p1',
+          entitlements_count: 4, cascade: nil, reason: nil,
+        ),
+      )
+
+      output = run_command(all: true, run: true)
       expect(output).to include('Materialized: org_v')
       expect(output).to include('p1')
     end
 
     it 'shows cascade hint in dry-run preview when --include-memberships is set' do
-      allow(Billing::Operations::MaterializePlans).to receive(:call) do |**, &blk|
-        blk.call(
-          Billing::Operations::MaterializePlansEvent.new(
-            event: :would_materialize, org_extid: 'org_v', planid: 'p1',
-            entitlements_count: 4, cascade: nil, reason: nil,
-          ),
-        )
-        stub_result(succeeded: 1)
-      end
+      stub_with_event(
+        Billing::Operations::MaterializePlansEvent.new(
+          event: :would_materialize, org_extid: 'org_v', planid: 'p1',
+          entitlements_count: 4, cascade: nil, reason: nil,
+        ),
+      )
 
-      output = run_command(all: true, include_memberships: true, verbose: true)
+      output = run_command(all: true, include_memberships: true)
       expect(output).to include('Would materialize: org_v')
       expect(output).to include('(+memberships cascade)')
+    end
+
+    it 'shows cascade summary (M/T memberships) on the per-org line after a cascaded run' do
+      stub_with_event(
+        Billing::Operations::MaterializePlansEvent.new(
+          event: :materialized, org_extid: 'org_v', planid: 'p1',
+          entitlements_count: 4,
+          cascade: { success: 3, failed: 0, total: 3, details: [] },
+          reason: nil,
+        ),
+      )
+
+      output = run_command(all: true, include_memberships: true, run: true)
+      expect(output).to include('Materialized: org_v')
+      expect(output).to include('cascaded 3/3 memberships')
+    end
+
+    it '--verbose adds per-membership detail lines under each cascaded org' do
+      stub_with_event(
+        Billing::Operations::MaterializePlansEvent.new(
+          event: :materialized, org_extid: 'org_v', planid: 'p1',
+          entitlements_count: 4,
+          cascade: {
+            success: 2, failed: 0, total: 2,
+            details: [
+              { objid: 'mem_aaa', role: 'owner',  planid: 'p1', entitlements_count: 12, status: :ok, error: nil },
+              { objid: 'mem_bbb', role: 'member', planid: 'p1', entitlements_count: 4,  status: :ok, error: nil },
+            ],
+          },
+          reason: nil,
+        ),
+      )
+
+      output = run_command(all: true, include_memberships: true, run: true, verbose: true)
+      expect(output).to include('mem_aaa')
+      expect(output).to include('role=owner')
+      expect(output).to include('plan=p1')
+      expect(output).to include('12 entitlements')
+      expect(output).to include('mem_bbb')
+    end
+
+    it '--quiet suppresses per-org lines (banner + summary only)' do
+      stub_with_event(
+        Billing::Operations::MaterializePlansEvent.new(
+          event: :materialized, org_extid: 'org_v', planid: 'p1',
+          entitlements_count: 4, cascade: nil, reason: nil,
+        ),
+      )
+
+      output = run_command(all: true, run: true, quiet: true)
+      expect(output).not_to include('Materialized: org_v')
+      # Banner + summary still present
+      expect(output).to include('Entitlement Materialization')
+      expect(output).to match(/Succeeded:\s+1/)
     end
   end
 
