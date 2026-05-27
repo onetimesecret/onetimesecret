@@ -14,8 +14,9 @@ require_relative '../../support/test_models'
 
 OT.boot! :test
 
-# Load Billing module for PlanCacheMissError
+# Load Billing module for PlanCacheMissError and Plan model
 require_relative '../../../apps/web/billing/errors'
+require_relative '../../../apps/web/billing/models/plan'
 
 # Setup test data
 @timestamp = Familia.now.to_i
@@ -136,6 +137,83 @@ rescue Billing::PlanCacheMissError
   :raised_plan_cache_miss_error
 end
 #=> :raised_plan_cache_miss_error
+
+## SAAS MODE TEST: billing enabled with valid plan via config fallback
+# Load a real plan from billing.yaml config (works without Stripe sync)
+# Note: This exercises the load_from_config fallback, not Redis cache hit
+@test_plan_id = 'identity_plus_v1'
+@test_plan_config = Billing::Plan.load_from_config(@test_plan_id)
+@test_plan_config.nil?
+#=> false
+
+## SaaS with plan via config: setup org with planid pointing to valid plan
+# Clear any materialization to force the Plan.load fallback path
+@org.materialized_entitlements_at = nil
+@org.materialized_entitlements.clear
+@org.limits_plan.clear
+@org.define_singleton_method(:billing_enabled?) { true }
+@org.planid = @test_plan_id
+# Entitlements should come from config fallback (billing.yaml)
+@org.entitlements.sort
+#=> Billing::Plan.load_from_config('identity_plus_v1')[:entitlements].sort
+
+## SaaS with plan via config: can? returns true for plan entitlements
+@org.can?('api_access')
+#=> true
+
+## SaaS with plan via config: can? returns true for custom_branding (identity_plus_v1 feature)
+@org.can?('custom_branding')
+#=> true
+
+## SaaS with plan via config: can? returns false for entitlements not in plan
+# manage_teams is in team_plus_v1, not identity_plus_v1
+@org.can?('manage_teams')
+#=> false
+
+## SaaS with plan via config: limit_for returns plan-specific limit from config
+# identity_plus_v1 has organizations.max = 1 (from billing.yaml)
+# Verify limit_for returns the same value as in the config
+@org.limit_for('organizations')
+#=> Billing::Plan.load_from_config('identity_plus_v1')[:limits]['organizations.max'].to_i
+
+## SAAS MATERIALIZED PATH TEST: materialized org reads from local storage
+# Materialize the org with plan entitlements using config data
+@org.materialize_entitlements_from_config(@test_plan_config)
+@org.entitlements_materialized?
+#=> true
+
+## Materialized path: entitlements come from materialized_entitlements set
+@org.materialized_entitlements.to_a.sort
+#=> Billing::Plan.load_from_config('identity_plus_v1')[:entitlements].sort
+
+## Materialized path: can? reads from materialized entitlements
+@org.can?('custom_branding')
+#=> true
+
+## Materialized path: can? returns false for non-materialized entitlements
+@org.can?('manage_teams')
+#=> false
+
+## Materialized path: limit_for reads from materialized limits_plan
+# identity_plus_v1 has secret_lifetime.max = 2592000 (30 days per billing.yaml)
+# Verify limit_for returns the same value as in the materialized config
+@org.limit_for('secret_lifetime')
+#=> Billing::Plan.load_from_config('identity_plus_v1')[:limits]['secret_lifetime.max'].to_i
+
+## Materialized path: grants override plan entitlements
+@org.grant_entitlement('manage_teams')
+@org.can?('manage_teams')
+#=> true
+
+## Materialized path: revokes override plan entitlements
+@org.revoke_entitlement('custom_branding')
+@org.can?('custom_branding')
+#=> false
+
+## Materialized path: clear overrides restores plan entitlements
+@org.clear_entitlement_overrides
+[@org.can?('custom_branding'), @org.can?('manage_teams')]
+#=> [true, false]
 
 # Teardown
 @org.destroy!
