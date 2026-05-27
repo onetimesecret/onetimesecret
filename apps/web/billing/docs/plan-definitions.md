@@ -174,9 +174,9 @@ Each Stripe product must include specific metadata fields to be recognized by th
 
 ```json
 {
-  "{"app" => "onetimesecret"}": "",
-  "{"tier" => "Tier identifier (single_account, single_team, multi_team, etc.)"}": "",
-  "{"tenancy" => "Tenancy type (multi, dedicated)"}": ""
+  "app": "onetimesecret",
+  "tier": "Tier identifier (single_account, single_team, multi_team, etc.)",
+  "tenancy": "Tenancy type (multi, dedicated)"
 }
 ```
 
@@ -184,17 +184,17 @@ Each Stripe product must include specific metadata fields to be recognized by th
 
 ```json
 {
-  "{"plan_id" => "Unique plan identifier (auto-generated if not provided)"}": "",
-  "{"region" => "Regional scope (e.g., EU, US, CA); omit for global plans"}": "",
-  "{"display_order" => "Sort order on plans page (lower = earlier, default: 0)"}": "",
-  "{"show_on_plans_page" => "Visibility on plans page (true/false, default: true)"}": "",
-  "{"entitlements" => "Comma-separated entitlement list"}": "",
-  "{"created" => "ISO 8601 creation timestamp"}": "",
-  "{"limit_teams" => "Max teams (-1 for unlimited)"}": "",
-  "{"limit_members_per_team" => "Max members per team (-1 for unlimited)"}": "",
-  "{"limit_custom_domains" => "Max custom domains (-1 for unlimited)"}": "",
-  "{"limit_secret_lifetime" => "Max secret lifetime in seconds (-1 for unlimited)"}": "",
-  "{"limit_secrets_per_day" => "Daily secret creation limit (-1 for unlimited)"}": ""
+  "plan_id": "Unique plan identifier (auto-generated if not provided)",
+  "region": "Regional scope (e.g., EU, US, CA); omit for global plans",
+  "display_order": "Sort order on plans page (lower = earlier, default: 0)",
+  "show_on_plans_page": "Visibility on plans page (true/false, default: true)",
+  "entitlements": "Comma-separated entitlement list",
+  "created": "ISO 8601 creation timestamp",
+  "limit_teams": "Max teams (-1 for unlimited)",
+  "limit_members_per_team": "Max members per team (-1 for unlimited)",
+  "limit_custom_domains": "Max custom domains (-1 for unlimited)",
+  "limit_secret_lifetime": "Max secret lifetime in seconds (-1 for unlimited)",
+  "limit_secrets_per_day": "Daily secret creation limit (-1 for unlimited)"
 }
 ```
 

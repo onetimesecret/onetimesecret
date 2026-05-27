@@ -80,9 +80,10 @@ module Onetime
           updated_meta['display_order']          = options[:display_order] if options[:display_order]
           updated_meta['show_on_plans_page']     = options[:show_on_plans_page].to_s if options.key?(:show_on_plans_page)
 
+          # Coerce to String since Stripe metadata values are always strings.
           Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
             option_key               = field_name.to_sym
-            updated_meta[field_name] = options[option_key] if options[option_key]
+            updated_meta[field_name] = options[option_key].to_s if options[option_key]
           end
 
           updated_meta

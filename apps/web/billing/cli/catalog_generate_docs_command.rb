@@ -235,10 +235,12 @@ module Onetime
       # Per-resource note formatters keyed by Billing::Metadata::LIMIT_FIELDS value.
       # When adding a new limit, add a formatter here only if it needs a contextual
       # note; otherwise the default (empty string) is fine and renders nothing.
+      # Values are coerced with to_i so YAML/CLI string inputs work uniformly, and
+      # negative sentinels (-1 = unlimited) are skipped rather than rendered.
       LIMIT_NOTE_FORMATTERS = {
-        'secret_lifetime' => ->(value) { value ? "#{value / 86_400} days" : '' },
-        'teams' => ->(value) { value == 0 ? 'No team access' : '' },
-        'members_per_team' => ->(value) { value == 1 ? 'Individual only' : '' },
+        'secret_lifetime' => ->(value) { value && value.to_i > 0 ? "#{value.to_i / 86_400} days" : '' },
+        'teams' => ->(value) { value&.to_i == 0 ? 'No team access' : '' },
+        'members_per_team' => ->(value) { value&.to_i == 1 ? 'Individual only' : '' },
       }.freeze
       private_constant :LIMIT_NOTE_FORMATTERS
 
@@ -260,8 +262,12 @@ module Onetime
           parts << '```json'
           parts << '{'
 
-          schema['required'].each_with_index do |(key, desc), idx|
-            comma = idx < schema['required'].size - 1 ? ',' : ''
+          schema['required'].each_with_index do |entry, idx|
+            # YAML loads each entry as a single-key Hash; pull the kv pair out
+            # explicitly rather than relying on destructuring (which would bind
+            # `key` to the whole Hash and emit malformed JSON).
+            key, desc = entry.is_a?(Hash) ? entry.first : [entry, '']
+            comma     = idx < schema['required'].size - 1 ? ',' : ''
             parts << "  \"#{key}\": \"#{desc}\"#{comma}"
           end
 
@@ -276,8 +282,9 @@ module Onetime
           parts << '```json'
           parts << '{'
 
-          schema['optional'].each_with_index do |(key, desc), idx|
-            comma = idx < schema['optional'].size - 1 ? ',' : ''
+          schema['optional'].each_with_index do |entry, idx|
+            key, desc = entry.is_a?(Hash) ? entry.first : [entry, '']
+            comma     = idx < schema['optional'].size - 1 ? ',' : ''
             parts << "  \"#{key}\": \"#{desc}\"#{comma}"
           end
 

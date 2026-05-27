@@ -84,10 +84,11 @@ module Onetime
             'show_on_plans_page' => options[:show_on_plans_page].to_s,
           }
 
-          # Add limit fields from registry if provided via CLI options
+          # Add limit fields from registry if provided via CLI options.
+          # Coerce to String since Stripe metadata values are always strings.
           Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
             option_key                = field_name.to_sym
-            base_metadata[field_name] = options[option_key] if options[option_key]
+            base_metadata[field_name] = options[option_key].to_s if options[option_key]
           end
 
           base_metadata
