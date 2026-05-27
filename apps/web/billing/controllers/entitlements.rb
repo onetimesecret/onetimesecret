@@ -55,9 +55,9 @@ module Billing
         }
 
         json_response(data)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue StandardError => ex
+        raise if ex.is_a?(OT::Problem)
+
         billing_logger.error 'Failed to load entitlements',
           {
             exception: ex,
@@ -124,9 +124,9 @@ module Billing
         end
 
         json_response(result)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue StandardError => ex
+        raise if ex.is_a?(OT::Problem)
+
         billing_logger.error 'Failed entitlement check',
           {
             exception: ex,

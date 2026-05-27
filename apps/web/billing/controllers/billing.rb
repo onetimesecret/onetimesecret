@@ -45,9 +45,9 @@ module Billing
         end
 
         json_response(data)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue StandardError => ex
+        raise if ex.is_a?(OT::Problem)
+
         billing_logger.error 'Failed to load billing overview',
           {
             exception: ex,
@@ -209,8 +209,6 @@ module Billing
             session_id: checkout_session.id,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         if Billing::CurrencyMigrationService.currency_conflict?(ex)
           currencies = Billing::CurrencyMigrationService.parse_currency_conflict(
@@ -329,8 +327,6 @@ module Billing
             has_more: invoices.has_more,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
         billing_logger.error 'Failed to retrieve invoices',
           {
@@ -444,8 +440,6 @@ module Billing
         enrich_with_pending_migration!(data, org)
 
         json_response(data)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
         billing_logger.error 'Failed to retrieve subscription status',
           {
@@ -559,8 +553,6 @@ module Billing
             actual_next_billing_due: actual_next_billing_due, # What they'll actually pay at next billing
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid plan change preview request',
           {
@@ -720,8 +712,6 @@ module Billing
             current_period_end: updated_subscription.items.data.first.current_period_end,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid plan change request',
           {
@@ -761,9 +751,9 @@ module Billing
           }
 
         json_response({ success: true })
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue StandardError => ex
+        raise if ex.is_a?(OT::Problem)
+
         billing_logger.error 'Failed to dismiss federation notification',
           {
             exception: ex,
@@ -810,8 +800,6 @@ module Billing
             status: canceled_subscription.status,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid subscription cancellation request',
           {
@@ -873,8 +861,6 @@ module Billing
             status: updated_subscription.status,
           },
         )
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Invalid subscription reactivation request',
           {
@@ -957,8 +943,6 @@ module Billing
         else
           json_response({ currency_mismatch: false })
         end
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
         billing_logger.error 'Currency migration check failed',
           {
@@ -1047,8 +1031,6 @@ module Billing
           }
 
         json_response(result)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
         billing_logger.warn 'Currency migration request failed',
           {
