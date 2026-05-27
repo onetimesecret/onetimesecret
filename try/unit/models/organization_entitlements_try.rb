@@ -53,6 +53,10 @@ require_relative '../../../apps/web/billing/errors'
 #=> Float::INFINITY
 
 ## SAAS MODE TEST: billing enabled with empty planid returns FREE tier entitlements
+# Clear materialization state to exercise SaaS fallback chain
+@org.materialized_entitlements_at = nil
+@org.materialized_entitlements.clear
+@org.limits_plan.clear
 # Switch to billing enabled mode
 @org.define_singleton_method(:billing_enabled?) { true }
 @org.planid = ""
