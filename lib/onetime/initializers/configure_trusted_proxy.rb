@@ -58,30 +58,16 @@ module Onetime
       private
 
       def load_config
-        site_config   = OT.conf['site'] || {}
-        network       = site_config['network'] || {}
-        trusted_proxy = network['trusted_proxy'] || {}
+        trusted_proxy = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
+        return unless trusted_proxy.key?('enabled')
 
-        # New nested config takes precedence
-        if trusted_proxy.key?('enabled')
-          {
-            enabled: trusted_proxy['enabled'] == true,
-            mode: trusted_proxy['mode'] || 'filter',
-            header: trusted_proxy['header'] || 'X-Forwarded-For',
-            cidrs: Array(trusted_proxy['cidrs']),
-            depth: trusted_proxy['depth'].to_i.clamp(1, 10),
-          }
-        else
-          # Legacy fallback: site.trusted_proxy_depth / site.trusted_ip_header
-          legacy_depth = site_config['trusted_proxy_depth'].to_i
-          {
-            enabled: legacy_depth > 0,
-            mode: 'filter',
-            header: site_config['trusted_ip_header'] || 'X-Forwarded-For',
-            cidrs: Array(site_config['trusted_proxy_cidrs']),
-            depth: legacy_depth.clamp(1, 10),
-          }
-        end
+        {
+          enabled: trusted_proxy['enabled'] == true,
+          mode: trusted_proxy['mode'] || 'filter',
+          header: trusted_proxy['header'] || 'X-Forwarded-For',
+          cidrs: Array(trusted_proxy['cidrs']),
+          depth: trusted_proxy['depth'].to_i.clamp(1, 10),
+        }
       end
 
       # Filter mode: Rack's built-in IP-based filtering
