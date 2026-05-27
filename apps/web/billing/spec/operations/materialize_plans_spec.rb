@@ -19,7 +19,7 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
   let(:plan) { instance_double(Billing::Plan, plan_id: 'test_plan_v1') }
   let(:plan_entitlements) { double('entitlements', size: 5) }
   let(:iterator) { double('iterator') }
-  let(:fake_logger) { instance_double(Logger, info: nil, debug: nil, warn: nil, error: nil) }
+  let(:fake_logger) { instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil) }
 
   before do
     allow(plan).to receive(:entitlements).and_return(plan_entitlements)
