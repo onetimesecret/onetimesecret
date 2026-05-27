@@ -103,6 +103,28 @@ module Onetime
   class Unauthorized < RuntimeError
   end
 
+  # =========================================================================
+  # CRITICAL ARCHITECTURAL WARNING: EXCEPTION HANDLER ORDERING
+  # =========================================================================
+  #
+  # Onetime::Forbidden represents a standard access-control error (ADR-013).
+  # It inherits from RuntimeError (which is a subclass of StandardError).
+  #
+  # Because of this class hierarchy, in any controller action or middleware
+  # that uses a catch-all rescue block (`rescue StandardError => ex`),
+  # Onetime::Forbidden WILL be caught by that block if not handled first.
+  #
+  # To prevent access control errors from being swallowed, logged as system
+  # failures, and downgraded to 500 Internal Server Errors, you MUST rescue
+  # Onetime::Forbidden explicitly BEFORE StandardError and re-raise it:
+  #
+  #   rescue Onetime::Forbidden
+  #     raise # Propagate up to OttoHooks Forbidden 403 handler
+  #   rescue StandardError => ex
+  #     # Handle unexpected 500 system errors here
+  #   end
+  #
+  # =========================================================================
   class Forbidden < RuntimeError
     attr_accessor :message, :error_key, :args
 
