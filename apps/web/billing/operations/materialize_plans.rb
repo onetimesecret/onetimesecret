@@ -71,7 +71,6 @@ module Billing
     #   end
     class MaterializePlans
       DEFAULT_BATCH_SIZE = 100
-      LOG_PREFIX         = '[MaterializePlans]'
 
       # @param plan_filter [String, nil] Only orgs whose planid matches this value
       # @param stale [Boolean] Caller hint that only stale orgs matter — currently
@@ -124,11 +123,14 @@ module Billing
 
       private
 
+      def logger
+        Onetime.billing_logger
+      end
+
       # Preload all plans (~5) so no Redis reads happen inside the loop.
       def preload_plans
         plans = ::Billing::Plan.list_plans.to_h { |p| [p.plan_id, p] }
-        OT.ld "#{LOG_PREFIX} preloaded plan cache",
-          plan_ids: plans.keys, count: plans.size
+        logger.debug 'Preloaded plan cache', plan_ids: plans.keys, count: plans.size
         plans
       end
 
@@ -166,7 +168,7 @@ module Billing
 
         @counts[:skipped_no_plan] += 1
         emit(:skipped_no_plan, org, reason: 'Organization has no planid')
-        OT.ld "#{LOG_PREFIX} skip: no planid", org_extid: org.extid
+        logger.debug 'Skip org: no planid', org_extid: org.extid
         true
       end
 
@@ -177,7 +179,8 @@ module Billing
         @counts[:failed] += 1
         @errors << { org_extid: org.extid, reason: reason }
         emit(:failed_plan_not_found, org, planid: org.planid, reason: reason)
-        OT.lw "#{LOG_PREFIX} plan not found", org_extid: org.extid, planid: org.planid
+        logger.warn 'Plan not found in catalog or config',
+          org_extid: org.extid, planid: org.planid
         true
       end
 
@@ -189,13 +192,13 @@ module Billing
         @counts[:skipped_up_to_date] += 1
         emit(:skipped_up_to_date, org, planid: org.planid,
                                        reason: 'Entitlements already materialized and not stale')
-        OT.ld "#{LOG_PREFIX} skip: up to date", org_extid: org.extid, planid: org.planid
+        logger.debug 'Skip org: up to date', org_extid: org.extid, planid: org.planid
         true
       end
 
       def materialize_and_cascade(org, plan)
         org.materialize_entitlements_from_plan(plan)
-        OT.info "#{LOG_PREFIX} materialized org entitlements",
+        logger.debug 'Materialized org entitlements',
           org_extid: org.extid, planid: org.planid,
           entitlements_count: plan.entitlements.size
       rescue StandardError => ex
@@ -222,8 +225,10 @@ module Billing
         @counts[:failed] += 1
         @errors << { org_extid: org.extid, reason: "Org write failed: #{ex.message}" }
         emit(:failed_org_write, org, planid: org.planid, reason: ex.message)
-        OT.le "#{LOG_PREFIX} org write failed",
-          exception: ex, org_extid: org.extid, planid: org.planid
+        logger.error 'Org write failed',
+          org_extid: org.extid, planid: org.planid, message: ex.message
+        logger.debug 'Org write failed (backtrace)',
+          org_extid: org.extid, backtrace: ex.backtrace&.join("\n")
       end
 
       # Cascade to memberships. Returns :ok or :failed.
@@ -243,7 +248,7 @@ module Billing
           handle_cascade_partial(org, cascade_result)
           :failed
         else
-          OT.info "#{LOG_PREFIX} cascade succeeded",
+          logger.debug 'Cascade succeeded',
             org_extid: org.extid,
             memberships_total: cascade_result[:total],
             memberships_succeeded: cascade_result[:success]
@@ -261,7 +266,7 @@ module Billing
         emit(:failed_cascade, org, planid: org.planid,
                                    cascade: cascade_result,
                                    reason: reason)
-        OT.le "#{LOG_PREFIX} cascade had membership failures",
+        logger.error 'Cascade had membership failures',
           org_extid: org.extid, planid: org.planid,
           memberships_total: cascade_result[:total],
           memberships_failed: cascade_result[:failed]
@@ -272,8 +277,10 @@ module Billing
         @counts[:failed] += 1
         @errors << { org_extid: org.extid, reason: reason }
         emit(:failed_cascade, org, planid: org.planid, reason: reason)
-        OT.le "#{LOG_PREFIX} cascade raised",
-          exception: ex, org_extid: org.extid, planid: org.planid
+        logger.error 'Cascade raised',
+          org_extid: org.extid, planid: org.planid, message: ex.message
+        logger.debug 'Cascade raised (backtrace)',
+          org_extid: org.extid, backtrace: ex.backtrace&.join("\n")
       end
 
       def emit(event, org, planid: nil, entitlements_count: nil, cascade: nil, reason: nil)
@@ -307,7 +314,7 @@ module Billing
       end
 
       def log_start
-        OT.info "#{LOG_PREFIX} starting",
+        logger.info 'Materializing org entitlements from plan catalog',
           dry_run: @dry_run,
           plan_filter: @plan_filter,
           stale: @stale,
@@ -316,7 +323,7 @@ module Billing
       end
 
       def log_end(result)
-        OT.info "#{LOG_PREFIX} complete",
+        logger.info 'Materialization complete',
           dry_run: @dry_run,
           scanned: result.scanned,
           succeeded: result.succeeded,

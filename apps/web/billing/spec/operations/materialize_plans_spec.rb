@@ -19,6 +19,7 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
   let(:plan) { instance_double(Billing::Plan, plan_id: 'test_plan_v1') }
   let(:plan_entitlements) { double('entitlements', size: 5) }
   let(:iterator) { double('iterator') }
+  let(:fake_logger) { instance_double(Logger, info: nil, debug: nil, warn: nil, error: nil) }
 
   before do
     allow(plan).to receive(:entitlements).and_return(plan_entitlements)
@@ -32,11 +33,9 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
     allow(org).to receive(:rematerialize_all_memberships!)
       .and_return({ success: 3, failed: 0, total: 3 })
 
-    # Silence info/debug logging in test output.
-    allow(OT).to receive(:info)
-    allow(OT).to receive(:ld)
-    allow(OT).to receive(:lw)
-    allow(OT).to receive(:le)
+    # Route the operation's logger to a controllable fake so tests can
+    # assert on log calls without depending on the live billing category.
+    allow(Onetime).to receive(:billing_logger).and_return(fake_logger)
   end
 
   describe '.call' do
@@ -208,20 +207,64 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
     end
 
     context 'logging' do
-      it 'logs start and end at info level' do
+      it 'logs start and end lifecycle milestones at info level via the billing logger' do
         described_class.call(iterator: iterator)
 
-        expect(OT).to have_received(:info).with(/starting/, hash_including(:dry_run, :include_memberships))
-        expect(OT).to have_received(:info).with(/complete/, hash_including(:scanned, :succeeded))
+        expect(fake_logger).to have_received(:info).with(
+          'Materializing org entitlements from plan catalog',
+          hash_including(:dry_run, :include_memberships),
+        )
+        expect(fake_logger).to have_received(:info).with(
+          'Materialization complete',
+          hash_including(:scanned, :succeeded, :failed),
+        )
       end
 
-      it 'logs cascade failures at error level' do
+      it 'logs cascade failures at error level (paired with debug backtrace path)' do
         allow(org).to receive(:rematerialize_all_memberships!)
           .and_return({ success: 0, failed: 3, total: 3 })
 
         described_class.call(include_memberships: true, iterator: iterator)
 
-        expect(OT).to have_received(:le).with(/cascade had membership failures/, hash_including(:org_extid))
+        expect(fake_logger).to have_received(:error).with(
+          'Cascade had membership failures',
+          hash_including(:org_extid, :planid, :memberships_failed),
+        )
+      end
+
+      it 'logs cascade exceptions at error level and emits a debug backtrace line' do
+        allow(org).to receive(:rematerialize_all_memberships!).and_raise(StandardError, 'kaboom')
+
+        described_class.call(include_memberships: true, iterator: iterator)
+
+        expect(fake_logger).to have_received(:error).with(
+          'Cascade raised',
+          hash_including(:org_extid, :message),
+        )
+        expect(fake_logger).to have_received(:debug).with(
+          'Cascade raised (backtrace)',
+          hash_including(:org_extid, :backtrace),
+        )
+      end
+
+      it 'logs plan-not-found at warn level' do
+        allow(org).to receive(:planid).and_return('missing_plan')
+
+        described_class.call(iterator: iterator)
+
+        expect(fake_logger).to have_received(:warn).with(
+          'Plan not found in catalog or config',
+          hash_including(:org_extid, :planid),
+        )
+      end
+
+      it 'logs routine per-org progress at debug level (not info)' do
+        described_class.call(iterator: iterator)
+
+        expect(fake_logger).to have_received(:debug).with(
+          'Materialized org entitlements',
+          hash_including(:org_extid, :planid, :entitlements_count),
+        )
       end
     end
   end
