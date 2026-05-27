@@ -21,22 +21,18 @@
 #   LOG_LEVEL=debug                       - Set global log level
 #   DEBUG_LOGGERS=Auth:debug,Secret:trace - Set specific logger levels
 #
-# Application category quick flags:
+# There are quick debug flags for each named logger:
 #   DEBUG_AUTH=1                          - Quick debug flag for Auth
 #   DEBUG_BUNNY=1                         - Quick debug flag for Bunny (RabbitMQ)
 #   DEBUG_HTTP=1                          - Quick debug flag for HTTP
-#   DEBUG_JOBS=1                          - Quick debug flag for Jobs (publishing)
-#   DEBUG_SCHEDULER=1                     - Quick debug flag for Scheduler
-#   DEBUG_SECRET=1                        - Quick debug flag for Secret
-#   DEBUG_SESSION=1                       - Quick debug flag for Session
-#   DEBUG_WORKERS=1                       - Quick debug flag for Workers
+#   ...
+#
+# For ad-hoc loggers that are not defined in the list below, use DEBUG_LOGGERS:
+#   DEBUG_LOGGERS=Sequel:debug,Rhales:trace
 #
 # External library debug flags (use library's own flags):
 #   FAMILIA_DEBUG=1                       - Familia's built-in debug flag
 #   FAMILIA_SAMPLE_RATE=0.01              - Familia command sampling (0.0-1.0)
-#
-# For libraries without built-in flags, use DEBUG_LOGGERS:
-#   DEBUG_LOGGERS=Sequel:debug,Rhales:trace
 
 # Global default log level
 # Options: trace, debug, info, warn, error, fatal
@@ -53,11 +49,12 @@ formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>
 # Each category can be configured independently. Loggers added here are
 # made available by the setup_loggers initializer.
 loggers:
-  App: info       # Default application logger
+  App: warn       # Default application logger
   Auth: info      # Authentication/authorization flows
-  Billing: info   # Only used when billing.enabled=true
-  Boot: info      # During initialization
-  Bunny: info     # RabbitMQ client (heartbeats at debug level)
+  Billing: warn   # Only used when billing.enabled=true
+  Boot: warn      # During initialization
+  Bunny: warn     # RabbitMQ client (heartbeats at debug level)
+  Chores: info    # Familia::Horreum models housekeeping chores
   Jobs: info      # Job publishing (Publisher.enqueue_email, fallbacks)
   CLI: info       # Command-line interface operations
   Familia: info   # Redis/Familia main database operations
@@ -66,10 +63,9 @@ loggers:
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
   Scheduler: info # Scheduled/recurring background jobs
   Secret: info    # Secret lifecycle (create, view, burn)
-  Sequel: info    # Database queries and operations (SQL logged at :trace level)
+  Sequel: warn    # Database queries and operations (SQL logged at :trace level)
   Session: info   # Session lifecycle (create, update, destroy)
   Workers: info   # RabbitMQ worker message processing and orchestration
-  Chores: info    # Familia::Horreum models housekeeping chores
 
 # HTTP request logging configuration
 http:
