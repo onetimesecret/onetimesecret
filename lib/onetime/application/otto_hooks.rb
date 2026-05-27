@@ -85,6 +85,15 @@ module Onetime
           error.to_h
         end
 
+        # Unauthorized errors return 401. Onetime::Unauthorized is a marker
+        # class (no #to_h); messages are caller-supplied and verified
+        # non-sensitive across call sites ('Invalid credentials',
+        # 'Not authorized to update this receipt'). Symmetric with
+        # Auth::ErrorTranslator so the Roda and Otto layers agree.
+        router.register_error_handler(Onetime::Unauthorized, status: 401, log_level: :warn) do |error, _req|
+          { error: error.message, error_type: 'Unauthorized' }
+        end
+
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|

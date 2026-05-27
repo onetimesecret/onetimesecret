@@ -16,7 +16,10 @@ module Auth
   #
   # The status-code mapping intentionally parallels otto_hooks.rb. If a typed
   # exception's status changes in one place, it should change here as well.
-  # A future refactor may extract a shared registry consumed by both layers.
+  # Coverage symmetry as of this commit: RecordNotFound, MissingSecret,
+  # FormError, LimitExceeded, EntitlementRequired, GuestRoutesDisabled,
+  # Forbidden, Unauthorized are registered in BOTH layers. A future refactor
+  # may extract a shared registry consumed by both layers.
   #
   # This module is pure: input is an Exception, output is a [status, body_hash]
   # pair. It performs no logging, no i18n resolution, and no IO. The caller is

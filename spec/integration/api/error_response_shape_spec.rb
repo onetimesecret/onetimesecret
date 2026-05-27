@@ -131,16 +131,17 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
   # We do, however, assert the *configured* shape directly to guard against
   # someone editing only the server_error line without exercising it.
   # ---------------------------------------------------------------------------
-  describe 'router.server_error fallback (config-level assertion)' do
-    # Build router instances the same way the apps do, then inspect the
-    # configured server_error tuple. This sidesteps the need to trigger a
-    # real 500 over HTTP while still pinning the wire shape.
-    def configured_server_error(app_class)
-      app = app_class.new
-      router = app.send(:build_router)
-      router.server_error
-    end
+  # Build router instances the same way the apps do, then inspect the
+  # configured server_error tuple. This sidesteps the need to trigger a
+  # real 500 over HTTP while still pinning the wire shape. Defined at the
+  # outer describe so sibling examples (Billing) can reuse it.
+  def configured_server_error(app_class)
+    app = app_class.new
+    router = app.send(:build_router)
+    router.server_error
+  end
 
+  describe 'router.server_error fallback (config-level assertion)' do
     it 'V3 (BaseJSONAPI) emits ADR-013 shape on 500' do
       status, headers, body = configured_server_error(V3::Application)
       expect(status).to eq(500)
@@ -177,14 +178,15 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
   # billing config, so we inspect the constructed router tuples directly.
   # ---------------------------------------------------------------------------
   describe 'Billing router fallbacks (config-level assertion)' do
-    let(:router) do
+    # Build the router once for the describe. Per-example `let` would rebuild
+    # the full middleware/initializer stack on each it-block.
+    before(:all) do
       require_relative '../../../apps/web/billing/application'
-      app = Billing::Application.new
-      app.send(:build_router)
+      @billing_router = Billing::Application.new.send(:build_router)
     end
 
     it 'emits ADR-013 shape on router.not_found' do
-      status, headers, body = router.not_found
+      status, headers, body = @billing_router.not_found
       expect(status).to eq(404)
       expect(headers['content-type']).to include('application/json')
       expect(JSON.parse(body.first)).to eq(
@@ -194,7 +196,7 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
     end
 
     it 'emits ADR-013 shape on router.server_error' do
-      status, headers, body = router.server_error
+      status, headers, body = @billing_router.server_error
       expect(status).to eq(500)
       expect(headers['content-type']).to include('application/json')
       expect(JSON.parse(body.first)).to eq(
@@ -203,10 +205,9 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
       )
     end
 
-    it 'Billing not_found body matches V2/V3 byte-for-byte' do
-      _, _, billing_body = router.not_found
-      _, _, v2_body      = configured_server_error(V2::Application) # reuse helper
-      # Different content (Not Found vs Internal Server Error) so do a key check:
+    it 'Billing not_found body has the same ADR-013 key set as V2' do
+      _, _, billing_body = @billing_router.not_found
+      _, _, v2_body      = configured_server_error(V2::Application)
       expect(JSON.parse(billing_body.first).keys.sort).to eq(%w[error error_type])
       expect(JSON.parse(v2_body.first).keys.sort).to eq(%w[error error_type])
     end

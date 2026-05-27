@@ -1,9 +1,9 @@
-# apps/web/auth/spec/integration/router_error_shape_spec.rb
+# apps/web/auth/spec/router_error_shape_spec.rb
 #
 # frozen_string_literal: true
 
 # =============================================================================
-# TEST TYPE: Integration (wiring) + Unit (translator)
+# TEST TYPE: Unit (translator) + Wiring (stub Roda app)
 # =============================================================================
 #
 # Regression guard for ADR-013 on the Auth Router.
@@ -15,27 +15,25 @@
 # This spec covers two layers:
 #
 #   1. ErrorTranslator (pure unit) — per-exception status + body assertions.
-#   2. Wiring (integration) — a stub Roda app that wires the translator the
-#      same way Auth::Router does, exercised via Rack::Test. If the wiring
-#      pattern stops working in a Roda upgrade or refactor, this fails.
+#   2. Wiring — a stub Roda app that mirrors production Auth::Router
+#      configuration (plugin order, body encoding), exercised via Rack::Test.
+#      If the wiring pattern stops working in a Roda upgrade or refactor,
+#      this fails.
 #
-# A separate at-the-edge HTTP test against Auth::Router is intentionally
-# omitted: booting the production router requires AUTHENTICATION_MODE=full and
-# Rodauth's full DB plumbing, and the value-add over the stub app is small.
-# The status_handler(404) and route-block catch-all shapes are short enough
-# to defend by code review; this spec pins their underlying contract via
-# direct hash literal comparisons.
+# Lives at apps/web/auth/spec/ root (not under integration/) because the
+# spec needs no Valkey, no DB, and no full-mode boot — the auth spec_helper
+# gates integration helpers and DB flushing on type: :integration tag.
 #
 # RUN:
-#   pnpm run test:rspec apps/web/auth/spec/integration/router_error_shape_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/router_error_shape_spec.rb
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative 'spec_helper'
 require 'rack/test'
 require 'roda'
 require 'json'
-require_relative '../../error_translator'
+require_relative '../error_translator'
 
 RSpec.describe 'Auth Router ADR-013 error shape' do
   # ---------------------------------------------------------------------------
@@ -124,11 +122,17 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
     include Rack::Test::Methods
 
     let(:app) do
-      # Mirror Auth::Router's :error_handler wiring exactly. Do NOT add
-      # plugin :json here — production explicitly JSON-encodes inside the
-      # error_handler block to avoid plugin-order coupling. Testing the same
-      # pattern guards against regressions in that contract.
+      # Mirror Auth::Router's plugin order EXACTLY:
+      #   plugin :json, parser: true     <- loaded first
+      #   plugin :error_handler          <- loaded after :json
+      # The error_handler block explicitly .to_json's the body so that the
+      # wire shape is invariant under future Roda plugin-order changes. If
+      # someone removes the manual encoding believing :json will wrap the
+      # error_handler return value, the production app may silently break
+      # under a Roda upgrade — this spec proves the current contract works
+      # with the actual plugin layering.
       Class.new(Roda) do
+        plugin :json, parser: true
         plugin :error_handler do |e|
           status, body = Auth::ErrorTranslator.translate(e)
           response.status           = status
