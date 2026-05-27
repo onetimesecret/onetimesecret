@@ -41,7 +41,11 @@ def last_response; @test.last_response; end
 
 @session = { 'authenticated' => true, 'external_id' => @owner.extid, 'email' => @owner.email }
 
-# Plan data used across all billing blocks
+# Plan data used across all billing blocks.
+#
+# Per-role limits are set to 'unlimited' so the existing aggregate-cap
+# scenarios remain driven by `members_per_team.max`. A separate plan below
+# exercises the per-role bucket enforcement.
 @limited_plan = {
   plan_id: 'limited_members',
   name: 'Limited Members Plan',
@@ -49,7 +53,29 @@ def last_response; @test.last_response; end
   interval: 'month',
   region: 'us',
   entitlements: ['create_secrets', 'manage_members'],
-  limits: { 'members_per_team.max' => '3' }  # Limit: 3 total members
+  limits: {
+    'members_per_team.max' => '3',
+    'owners_per_team.max' => '1',
+    'admins_per_team.max' => 'unlimited',
+    'regular_members_per_team.max' => 'unlimited',
+  }
+}
+
+# Plan with a strict regular-members cap and a generous aggregate cap.
+# Exercises the per-role bucket check independently of `members_per_team`.
+@role_capped_plan = {
+  plan_id: 'role_capped_members',
+  name: 'Role Capped Members Plan',
+  tier: 'free',
+  interval: 'month',
+  region: 'us',
+  entitlements: ['create_secrets', 'manage_members'],
+  limits: {
+    'members_per_team.max' => 'unlimited',
+    'owners_per_team.max' => '1',
+    'admins_per_team.max' => 'unlimited',
+    'regular_members_per_team.max' => '1',
+  }
 }
 
 # Helper to run billing-enabled test and return results
@@ -156,6 +182,17 @@ reloaded_org.pending_invitation_count
 @invite3_id = @result3[:record_id]
 @result3[:record_email]
 #=> "member4_#{@timestamp}@example.com"
+
+## Per-role cap: with regular_members_per_team=1 already met, a member invite is rejected
+# Org currently has 1 active regular member (@member1) and 1 pending member invite (@invite3)
+# under the role_capped_plan whose regular_members_per_team limit is 1.
+@result4 = run_billing_test_invite(@org, @session, "member5_#{@timestamp}@example.com", @role_capped_plan)
+@result4[:status]
+#=> 422
+
+## Per-role cap error indicates upgrade required
+@result4[:error_type]
+#=> "upgrade_required"
 
 # Teardown
 # invite1 was accepted (now active membership for @member1)

@@ -132,6 +132,14 @@ module Onetime
       members.size
     end
 
+    # Count active memberships by role.
+    #
+    # @param role [String, Symbol] Role to count ('owner', 'admin', 'member')
+    # @return [Integer] Number of active memberships matching the role
+    def member_count_by_role(role)
+      OrganizationMembership.active_for_org(self).count { |m| m.role == role.to_s }
+    end
+
     def list_members
       # Bulk loading with auto-generated members collection
       # compact filters stale references (IDs in set but record deleted/not migrated)
@@ -149,6 +157,14 @@ module Onetime
 
     def pending_invitation_count
       pending_invitations.size
+    end
+
+    # Count pending invitations by role.
+    #
+    # @param role [String, Symbol] Role to count ('owner', 'admin', 'member')
+    # @return [Integer] Number of pending invitations matching the role
+    def pending_invitation_count_by_role(role)
+      list_pending_invitations.count { |inv| inv.role == role.to_s }
     end
 
     def list_pending_invitations

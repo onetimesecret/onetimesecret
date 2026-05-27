@@ -201,6 +201,13 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
         expect(limits['teams.max']).to eq(0)
         expect(limits['members_per_team.max']).to eq(0)
       end
+
+      it 'returns default role-specific member limits' do
+        limits = test_class.free_tier_limits
+        expect(limits['owners_per_team.max']).to eq(1)
+        expect(limits['admins_per_team.max']).to eq(0)
+        expect(limits['regular_members_per_team.max']).to eq(0)
+      end
     end
 
     context 'when PLAN_TTL_ANONYMOUS is set to 30 days' do
