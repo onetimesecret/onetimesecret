@@ -131,16 +131,17 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
   # We do, however, assert the *configured* shape directly to guard against
   # someone editing only the server_error line without exercising it.
   # ---------------------------------------------------------------------------
-  describe 'router.server_error fallback (config-level assertion)' do
-    # Build router instances the same way the apps do, then inspect the
-    # configured server_error tuple. This sidesteps the need to trigger a
-    # real 500 over HTTP while still pinning the wire shape.
-    def configured_server_error(app_class)
-      app = app_class.new
-      router = app.send(:build_router)
-      router.server_error
-    end
+  # Build router instances the same way the apps do, then inspect the
+  # configured server_error tuple. This sidesteps the need to trigger a
+  # real 500 over HTTP while still pinning the wire shape. Defined at the
+  # outer describe so sibling examples (Billing) can reuse it.
+  def configured_server_error(app_class)
+    app = app_class.new
+    router = app.send(:build_router)
+    router.server_error
+  end
 
+  describe 'router.server_error fallback (config-level assertion)' do
     it 'V3 (BaseJSONAPI) emits ADR-013 shape on 500' do
       status, headers, body = configured_server_error(V3::Application)
       expect(status).to eq(500)
@@ -167,4 +168,53 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
       expect(v2_body.first).to eq(v3_body.first)
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Billing (Otto-based; configured in Billing::Application#build_router)
+  #
+  # Billing already wires OttoHooks for typed-exception handlers; the gap was
+  # the router-level not_found/server_error defaults, which previously emitted
+  # text/html. Same config-level pattern as V2/V3 above — boot is gated by
+  # billing config, so we inspect the constructed router tuples directly.
+  # ---------------------------------------------------------------------------
+  describe 'Billing router fallbacks (config-level assertion)' do
+    # Build the router once for the describe. Per-example `let` would rebuild
+    # the full middleware/initializer stack on each it-block.
+    before(:all) do
+      require_relative '../../../apps/web/billing/application'
+      @billing_router = Billing::Application.new.send(:build_router)
+    end
+
+    it 'emits ADR-013 shape on router.not_found' do
+      status, headers, body = @billing_router.not_found
+      expect(status).to eq(404)
+      expect(headers['content-type']).to include('application/json')
+      expect(JSON.parse(body.first)).to eq(
+        'error'      => 'Not Found',
+        'error_type' => 'NotFound',
+      )
+    end
+
+    it 'emits ADR-013 shape on router.server_error' do
+      status, headers, body = @billing_router.server_error
+      expect(status).to eq(500)
+      expect(headers['content-type']).to include('application/json')
+      expect(JSON.parse(body.first)).to eq(
+        'error'      => 'Internal Server Error',
+        'error_type' => 'ServerError',
+      )
+    end
+
+    it 'Billing not_found body has the same ADR-013 key set as V2' do
+      _, _, billing_body = @billing_router.not_found
+      _, _, v2_body      = configured_server_error(V2::Application)
+      expect(JSON.parse(billing_body.first).keys.sort).to eq(%w[error error_type])
+      expect(JSON.parse(v2_body.first).keys.sort).to eq(%w[error error_type])
+    end
+  end
+
+# Auth Router (Roda-based) is covered by a dedicated spec:
+# apps/web/auth/spec/integration/router_error_shape_spec.rb
+# (kept separate because Auth depends on AUTHENTICATION_MODE=full and Rodauth
+# setup; mixing it into this cross-app spec would couple unrelated boot paths).
 end
