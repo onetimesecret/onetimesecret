@@ -55,13 +55,9 @@ module DomainsAPI::Logic
           @target_organization = organization
         end
 
-        # Authorization: only owners and admins of the target organization may
-        # add a custom domain. Members (including SSO-provisioned members) are
-        # rejected with 403. Colonels bypass via verify_one_of_roles!.
-        verify_organization_admin(
-          @target_organization,
-          error_key: 'api.domains.errors.add_admin_required',
-        )
+        # Authorization: only users with custom_domains entitlement in the target
+        # organization may add a custom domain. Colonels bypass via require_entitlement_in!.
+        require_entitlement_in!(@target_organization, 'custom_domains')
 
         # Custom domains are now available to all plans (free included)
         # Entitlement check removed - this feature is universally available

@@ -106,6 +106,15 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     }
   end
 
+  # ADR-012 Stage 4: membership with entitlements for authorization
+  let(:owner_membership) do
+    instance_double(
+      Onetime::OrganizationMembership,
+      active?: true,
+      can?: true  # Default: has all entitlements (owner-level)
+    )
+  end
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
@@ -122,6 +131,11 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
     allow(organization).to receive(:can?).with('incoming_secrets').and_return(true)
     allow(Onetime::CustomDomain::IncomingConfig).to receive(:find_by_domain_id)
       .with(domain_identifier).and_return(nil)
+
+    # ADR-012 Stage 4: stub membership lookup for owner
+    allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+      .with(org_id, 'cust-test')
+      .and_return(owner_membership)
   end
 
   # ===========================================================================

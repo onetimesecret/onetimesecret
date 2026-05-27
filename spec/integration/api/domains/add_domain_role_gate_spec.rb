@@ -28,7 +28,13 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
   end
 
   let!(:organization) do
-    Onetime::Organization.create!("Role Gate Org #{run_id}", owner, "#{run_id}_org@test.com")
+    org = Onetime::Organization.create!("Role Gate Org #{run_id}", owner, "#{run_id}_org@test.com")
+    # Materialize standalone entitlements for the org (required for membership entitlement checks)
+    org.materialize_standalone_entitlements! if org.respond_to?(:materialize_standalone_entitlements!)
+    # The owner membership needs to have its entitlements materialized
+    owner_m = Onetime::OrganizationMembership.find_by_org_customer(org.objid, owner.objid)
+    owner_m&.materialize_for_role! if owner_m&.respond_to?(:materialize_for_role!)
+    org
   end
 
   let!(:admin_user) do
@@ -40,11 +46,17 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
   end
 
   let!(:admin_membership) do
-    organization.add_members_instance(admin_user, through_attrs: { role: 'admin' })
+    membership = organization.add_members_instance(admin_user, through_attrs: { role: 'admin' })
+    # Materialize entitlements for require_entitlement_in! checks (ADR-012 Stage 3)
+    membership.materialize_for_role! if membership.respond_to?(:materialize_for_role!)
+    membership
   end
 
   let!(:member_membership) do
-    organization.add_members_instance(member_user, through_attrs: { role: 'member' })
+    membership = organization.add_members_instance(member_user, through_attrs: { role: 'member' })
+    # Materialize entitlements (members get limited entitlements per role template)
+    membership.materialize_for_role! if membership.respond_to?(:materialize_for_role!)
+    membership
   end
 
   after do
@@ -85,34 +97,38 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
   end
 
   describe 'admin role' do
-    it 'passes the admin gate' do
+    # ADR-012 Stage 3: custom_domains is an owner-only entitlement
+    # Admins have manage_teams, manage_members, etc. but not custom_domains
+    it 'rejects with EntitlementRequired (admins lack custom_domains entitlement)' do
       logic = build_add_domain_logic(admin_user, domain: "#{run_id}-admin.example.com")
-      expect { logic.raise_concerns }.not_to raise_error
+      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
     end
   end
 
   describe 'member role' do
-    it 'rejects with Onetime::Forbidden (not FormError)' do
+    it 'rejects with Onetime::EntitlementRequired (ADR-012 Stage 3)' do
+      # Members have membership but lack the custom_domains entitlement,
+      # so they get EntitlementRequired rather than Forbidden
       logic = build_add_domain_logic(member_user, domain: "#{run_id}-member.example.com")
-      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
+      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
     end
 
-    it 'tags the Forbidden with the domain-specific i18n key' do
+    it 'tags the error with the entitlement-required i18n key' do
       # Asserting error_key (not the message text) keeps the spec stable across
       # locale-text edits while still catching a missing/renamed key. The HTTP
       # edge resolves the key via ErrorResolver before the response body is
       # rendered — that end-to-end resolution is covered by the try-side
       # integration test (add_domain_role_gate_try.rb test 3c).
       logic = build_add_domain_logic(member_user, domain: "#{run_id}-member-msg.example.com")
-      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
-        expect(error.error_key).to eq('api.domains.errors.add_admin_required')
+      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
+        expect(error.error_key).to eq('api.entitlements.errors.custom_domains_required')
       end
     end
 
     it 'does not create a domain when the gate rejects' do
       attempted = "#{run_id}-member-nocreate.example.com"
       logic = build_add_domain_logic(member_user, domain: attempted)
-      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
+      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
       expect(organization.list_domains.map(&:display_domain)).not_to include(attempted)
     end
   end
@@ -131,8 +147,10 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
     end
 
     let!(:colonel_membership) do
-      # Membership role intentionally 'member' — colonel should bypass anyway.
-      organization.add_members_instance(colonel_user, through_attrs: { role: 'member' })
+      # Membership role intentionally 'member' — colonel should bypass anyway via has_system_role?.
+      membership = organization.add_members_instance(colonel_user, through_attrs: { role: 'member' })
+      membership.materialize_for_role! if membership.respond_to?(:materialize_for_role!)
+      membership
     end
 
     after do
@@ -156,11 +174,15 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
 
   describe 'member with explicit org_id' do
     let!(:secondary_org) do
-      Onetime::Organization.create!("Secondary Org #{run_id}", owner, "#{run_id}_secondary@test.com")
+      org = Onetime::Organization.create!("Secondary Org #{run_id}", owner, "#{run_id}_secondary@test.com")
+      org.materialize_standalone_entitlements! if org.respond_to?(:materialize_standalone_entitlements!)
+      org
     end
 
     let!(:secondary_member_membership) do
-      secondary_org.add_members_instance(member_user, through_attrs: { role: 'member' })
+      membership = secondary_org.add_members_instance(member_user, through_attrs: { role: 'member' })
+      membership.materialize_for_role! if membership.respond_to?(:materialize_for_role!)
+      membership
     end
 
     after do
@@ -169,13 +191,13 @@ RSpec.describe 'AddDomain role gate (#3033)', type: :integration do
       secondary_org&.destroy! rescue nil
     end
 
-    it 'rejects with Onetime::Forbidden — gate runs against target_organization' do
+    it 'rejects with Onetime::EntitlementRequired — member lacks custom_domains entitlement' do
       logic = build_add_domain_logic(
         member_user,
         domain: "#{run_id}-member-explicit.example.com",
         org_id: secondary_org.objid,
       )
-      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
+      expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
     end
   end
 

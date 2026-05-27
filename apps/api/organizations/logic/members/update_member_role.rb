@@ -41,8 +41,8 @@ module OrganizationAPI::Logic
 
         @organization = load_organization(@extid)
 
-        # Only owners can change roles
-        verify_organization_owner(@organization)
+        # Only users with manage_orgs entitlement can change roles
+        require_entitlement_in!(@organization, 'manage_orgs')
 
         # Load target member
         @target_member     = load_member(@member_extid)

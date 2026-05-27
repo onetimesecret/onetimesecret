@@ -21,10 +21,7 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(
-          @organization,
-          error_key: 'api.organizations.invitations.errors.admin_required_list',
-        )
+        require_entitlement_in!(@organization, 'manage_members')
       end
 
       def process

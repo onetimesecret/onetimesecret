@@ -55,6 +55,15 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
     )
   end
 
+  # ADR-012 Stage 4: owner's membership with entitlements for authorization
+  let(:owner_membership) do
+    instance_double(
+      Onetime::OrganizationMembership,
+      active?: true,
+      can?: true  # Owner has all entitlements including manage_orgs
+    )
+  end
+
   let(:session) { { 'csrf' => 'test-csrf-token' } }
 
   let(:strategy_result) do
@@ -103,6 +112,10 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid)
         .with('ext-cust-target').and_return(target_member)
+      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      # Stub target membership (loaded after auth check passes)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-target-456').and_return(target_membership)
     end
@@ -135,14 +148,23 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
     end
 
-    context 'when user is not owner' do
-      before do
-        allow(organization).to receive(:owner?).with(owner).and_return(false)
+    context 'when user lacks manage_orgs entitlement' do
+      let(:owner_membership) do
+        instance_double(
+          Onetime::OrganizationMembership,
+          active?: true,
+          can?: false  # Member without manage_orgs entitlement
+        )
       end
 
-      it 'raises forbidden error' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
-          expect(error.error_key).to eq('api.organizations.errors.organization_owner_required')
+      before do
+        allow(organization).to receive(:owner?).with(owner).and_return(false)
+        allow(organization).to receive(:planid).and_return('basic')
+      end
+
+      it 'raises entitlement required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.entitlement).to eq('manage_orgs')
         end
       end
     end
@@ -159,10 +181,14 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
     end
 
-    context 'when membership not found' do
+    context 'when target membership not found' do
       before do
+        # ADR-012 Stage 4: owner's membership must pass auth check
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-          .and_return(nil)
+          .with('org-123', 'cust-owner-123').and_return(owner_membership)
+        # Target membership not found
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-123', 'cust-target-456').and_return(nil)
       end
 
       it 'raises not found error' do
@@ -256,8 +282,12 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid).and_return(target_member)
+      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-        .and_return(target_membership)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      # Stub target membership (loaded after auth check)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-target-456').and_return(target_membership)
 
       # Setup mutable role tracking - initially returns 'member'
       role_value = current_role
@@ -318,8 +348,12 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid).and_return(target_member)
+      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-        .and_return(target_membership)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      # Stub target membership (loaded after auth check)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-target-456').and_return(target_membership)
 
       # Setup mutable role tracking
       role_value = 'member'

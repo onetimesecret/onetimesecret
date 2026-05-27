@@ -72,10 +72,10 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:target_organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
-    # PR #3033 §2: stub the admin gate so existing #process/#success_data tests
+    # ADR-012 Stage 4: stub the entitlement gate so existing #process/#success_data tests
     # don't need to wire up a real OrganizationMembership for the mock org.
     # The gate itself is exercised by add_domain_role_gate_try.rb.
-    allow(logic).to receive(:verify_organization_admin)
+    allow(logic).to receive(:require_entitlement_in!)
 
     # Allow vhost= and updated= setters on the custom_domain mock
     allow(custom_domain).to receive(:vhost=)

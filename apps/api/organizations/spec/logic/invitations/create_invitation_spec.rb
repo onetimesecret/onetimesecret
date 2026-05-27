@@ -86,12 +86,25 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   end
 
   describe '#raise_concerns' do
+    # Default membership mock for require_entitlement_in! check
+    let(:owner_membership) do
+      instance_double(
+        Onetime::OrganizationMembership,
+        active?: true,
+        admin?: true
+      )
+    end
+
     before do
       allow(Onetime::Organization).to receive(:find_by_extid)
         .with('ext-org-123').and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
     end
 
     context 'when customer is anonymous' do
@@ -122,17 +135,36 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
     end
 
-    context 'when user is not owner or admin' do
+    context 'when user is not a member' do
       before do
         allow(organization).to receive(:owner?).with(customer).and_return(false)
+        # No membership found - user is not a member of the organization
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-          .and_return(nil)
+          .with('org-123', 'cust-owner-123').and_return(nil)
       end
 
       it 'raises authorization error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
-          expect(error.error_key).to eq('api.organizations.invitations.errors.admin_required_create')
+          expect(error.error_key).to eq('api.organizations.errors.organization_member_required')
         end
+      end
+    end
+
+    context 'when user lacks manage_members entitlement' do
+      let(:member_without_entitlement) do
+        instance_double(Onetime::OrganizationMembership, active?: true)
+      end
+
+      before do
+        allow(organization).to receive(:owner?).with(customer).and_return(false)
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-123', 'cust-owner-123').and_return(member_without_entitlement)
+        allow(member_without_entitlement).to receive(:can?).with('manage_members').and_return(false)
+        allow(organization).to receive(:planid).and_return('free')
+      end
+
+      it 'raises entitlement required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
       end
     end
 
@@ -229,13 +261,14 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
     context 'with valid params and admin permission' do
       let(:admin_membership) do
-        instance_double(Onetime::OrganizationMembership, admin?: true)
+        instance_double(Onetime::OrganizationMembership, admin?: true, active?: true)
       end
 
       before do
         allow(organization).to receive(:owner?).with(customer).and_return(false)
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
           .with('org-123', 'cust-owner-123').and_return(admin_membership)
+        allow(admin_membership).to receive(:can?).with('manage_members').and_return(true)
       end
 
       it 'allows admin to create invitation' do
@@ -254,6 +287,10 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       )
     end
 
+    let(:owner_membership) do
+      instance_double(Onetime::OrganizationMembership, active?: true)
+    end
+
     before do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
@@ -262,6 +299,10 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(Onetime::OrganizationMembership).to receive(:create_invitation!)
         .and_return(new_membership)
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
+      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
 
       # Call raise_concerns to set up @organization
       logic.raise_concerns
@@ -342,6 +383,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   describe '#check_member_quota!' do
     let(:entitlements) { double('SortedSet', any?: has_entitlements) }
     let(:has_entitlements) { false }
+    let(:owner_membership) do
+      instance_double(Onetime::OrganizationMembership, active?: true)
+    end
 
     before do
       allow(Onetime::Organization).to receive(:find_by_extid)
@@ -353,6 +397,10 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:pending_invitation_count).and_return(2)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
     end
 
     context 'when billing is disabled (no entitlements)' do

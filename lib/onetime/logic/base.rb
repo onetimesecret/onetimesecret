@@ -238,6 +238,66 @@ module Onetime
         )
       end
 
+      # Require that the user's membership in a specific organization has an entitlement.
+      #
+      # Unlike require_entitlement! (which checks auth_membership in auth_org),
+      # this method checks the user's membership in a *target* organization.
+      # Used by Organization API endpoints that operate on organizations loaded
+      # from URL parameters rather than the user's auth context.
+      #
+      # @param organization [Onetime::Organization] The target organization
+      # @param entitlement [String, Symbol] The entitlement to check
+      # @param error_key [String, nil] Optional i18n key for the raised error
+      # @raise [Onetime::EntitlementRequired] If membership lacks the entitlement
+      # @raise [Onetime::Forbidden] If user is not a member of the organization
+      # @return [true] If entitlement check passes
+      def require_entitlement_in!(organization, entitlement, error_key: nil)
+        entitlement = entitlement.to_s
+        error_key ||= "api.entitlements.errors.#{entitlement}_required"
+
+        # Colonels (site admins) bypass all entitlement checks
+        return true if has_system_role?('colonel')
+
+        # Anonymous users can't have entitlements in any organization
+        if anonymous_user?
+          raise Onetime::Forbidden.new(
+            'Authentication required',
+            error_key: 'api.errors.authentication_required',
+          )
+        end
+
+        # Load user's membership in the target organization
+        membership = Onetime::OrganizationMembership.find_by_org_customer(
+          organization.objid,
+          cust.objid,
+        )
+
+        # User must be a member of the target organization
+        unless membership&.active?
+          raise Onetime::Forbidden.new(
+            'You must be a member of this organization',
+            error_key: 'api.organizations.errors.organization_member_required',
+          )
+        end
+
+        # Check if membership has the entitlement
+        return true if membership.can?(entitlement)
+
+        # Build upgrade path info
+        current_plan = organization.planid
+        upgrade_to   = if defined?(Billing::PlanHelpers)
+                         Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
+                       end
+
+        raise Onetime::EntitlementRequired.new(
+          entitlement,
+          current_plan: current_plan,
+          upgrade_to: upgrade_to,
+          error_key: error_key,
+          args: { entitlement: entitlement },
+        )
+      end
+
       # Safely extract session ID when the session object might be a Hash
       # (e.g. from BasicAuth) rather than a proper session with an #id method.
       def safe_session_id

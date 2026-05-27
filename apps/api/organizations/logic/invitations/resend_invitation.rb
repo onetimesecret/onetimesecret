@@ -25,10 +25,7 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(
-          @organization,
-          error_key: 'api.organizations.invitations.errors.admin_required_resend',
-        )
+        require_entitlement_in!(@organization, 'manage_members')
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)

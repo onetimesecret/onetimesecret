@@ -318,7 +318,11 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     %w[api_access custom_domains create_teams audit_logs advanced_analytics].each do |entitlement|
       context "with '#{entitlement}' entitlement" do
         before do
-          allow(organization).to receive(:can?).with(entitlement).and_return(false)
+          # ADR-012 Stage 3: auth_membership is resolved via find_by_org_customer
+          allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+            .with(organization.objid, authenticated_cust.objid)
+            .and_return(membership)
+          allow(membership).to receive(:can?).with(entitlement).and_return(false)
           allow(organization).to receive(:planid).and_return('free')
         end
 

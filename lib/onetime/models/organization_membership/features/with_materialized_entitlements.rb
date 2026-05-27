@@ -92,9 +92,9 @@ module Onetime
             role_template = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS[current_role]
             return false unless role_template
 
-            # Intersection: org's entitlements ∩ role template
-            # This ensures membership never exceeds org's plan
-            org_entitlements       = org.entitlements.to_set
+            # Intersection: org's materialized_entitlements ∩ role template
+            # This ensures membership never exceeds org's plan (ADR-012 Stage 3)
+            org_entitlements       = org.materialized_entitlements.to_set
             effective_entitlements = (org_entitlements & role_template).to_a
 
             # Compute content hash and set metadata
@@ -226,7 +226,7 @@ module Onetime
             role_template = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS[current_role]
             return [] unless role_template
 
-            org_entitlements = org.entitlements.to_set
+            org_entitlements = org.materialized_entitlements.to_set
             (org_entitlements & role_template).to_a
           end
         end
