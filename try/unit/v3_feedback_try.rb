@@ -212,13 +212,7 @@ logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
 logic.send(:client_ip)
 #=> '203.0.113.7'
 
-## client_ip falls back to ip_address key
-strategy_result = MockStrategyResult.anonymous(metadata: { ip_address: '203.0.113.8' })
-logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
-logic.send(:client_ip)
-#=> '203.0.113.8'
-
-## client_ip returns nil when metadata has neither key
+## client_ip returns nil when metadata has no ip key
 strategy_result = MockStrategyResult.anonymous(metadata: {})
 logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
 logic.send(:client_ip).nil?

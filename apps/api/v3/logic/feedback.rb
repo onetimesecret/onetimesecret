@@ -75,16 +75,12 @@ module V3
       end
 
       # Resolve the submitter's IP from the auth strategy metadata.
-      # Logic classes don't receive the Rack request directly; the auth
-      # strategies populate strategy_result.metadata[:ip] (see
-      # apps/web/auth/spec/unit/*_strategy_spec.rb). A few callers use
-      # :ip_address instead, so we accept both. Returns nil if neither is
-      # present — the rate limiter treats blank IPs as a no-op.
+      # Logic classes don't receive the Rack request directly; auth
+      # strategies populate metadata[:ip] via build_metadata (see
+      # lib/onetime/application/auth_strategies/helpers.rb). Returns nil
+      # if absent — the rate limiter treats blank IPs as a no-op.
       def client_ip
-        meta = strategy_result&.metadata
-        return nil unless meta
-
-        meta[:ip] || meta[:ip_address] || meta['ip'] || meta['ip_address']
+        strategy_result&.metadata&.dig(:ip)
       end
       private :client_ip
 
