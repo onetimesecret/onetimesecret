@@ -28,17 +28,35 @@ module Auth
     # HTTP status codes for typed Onetime exceptions. Lookup is exact-class
     # first, then ancestor walk for subclasses not directly registered.
     STATUS_BY_CLASS = {
-      Onetime::MissingSecret       => 404,
-      Onetime::RecordNotFound      => 404,
-      Onetime::FormError           => 422,
-      Onetime::LimitExceeded       => 429,
+      Onetime::MissingSecret => 404,
+      Onetime::RecordNotFound => 404,
+      Onetime::FormError => 422,
+      Onetime::LimitExceeded => 429,
       Onetime::EntitlementRequired => 403,
       Onetime::GuestRoutesDisabled => 403,
-      Onetime::Forbidden           => 403,
-      Onetime::Unauthorized        => 401,
+      Onetime::Forbidden => 403,
+      Onetime::Unauthorized => 401,
+    }.freeze
+
+    # Per-class log severity for translated exceptions. Mirrors the
+    # `log_level:` values passed to `router.register_error_handler` in
+    # `lib/onetime/application/otto_hooks.rb` so the Roda Auth app and Otto
+    # apps emit at the same level for the same exception class. Exceptions
+    # not present here fall back to DEFAULT_LOG_LEVEL (the unhandled-500
+    # path; matches Otto's `structured_log(:error, 'Unhandled error …')`).
+    LOG_LEVEL_BY_CLASS = {
+      Onetime::MissingSecret => :info,
+      Onetime::RecordNotFound => :info,
+      Onetime::FormError => :info,
+      Onetime::LimitExceeded => :warn,
+      Onetime::EntitlementRequired => :info,
+      Onetime::GuestRoutesDisabled => :info,
+      Onetime::Forbidden => :warn,
+      Onetime::Unauthorized => :warn,
     }.freeze
 
     DEFAULT_STATUS     = 500
+    DEFAULT_LOG_LEVEL  = :error
     DEFAULT_ERROR_TYPE = 'ServerError'
     DEFAULT_MESSAGE    = 'Internal Server Error'
 
@@ -61,6 +79,12 @@ module Auth
     # @return [Integer] HTTP status code
     def self.status_for(exception)
       STATUS_BY_CLASS[exception.class] || ancestor_status(exception) || DEFAULT_STATUS
+    end
+
+    # @param exception [Exception]
+    # @return [Symbol] Log severity (:info, :warn, :error)
+    def self.level_for(exception)
+      LOG_LEVEL_BY_CLASS[exception.class] || ancestor_level(exception) || DEFAULT_LOG_LEVEL
     end
 
     # @param exception [Exception]
@@ -92,6 +116,14 @@ module Auth
       nil
     end
     private_class_method :ancestor_status
+
+    def self.ancestor_level(exception)
+      exception.class.ancestors.each do |ancestor|
+        return LOG_LEVEL_BY_CLASS[ancestor] if LOG_LEVEL_BY_CLASS.key?(ancestor)
+      end
+      nil
+    end
+    private_class_method :ancestor_level
 
     # An exception is "typed" iff one of its ancestors is a key in
     # STATUS_BY_CLASS. Tying the typed-check to the same source of truth

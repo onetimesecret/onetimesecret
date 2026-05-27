@@ -67,18 +67,26 @@ module Auth
     #
     # Logging: 500s log at :error with backtrace so production failures are
     # not silent (Roda's :error_handler does not log by default). Translated
-    # typed exceptions log at :info — they are expected outcomes (404/422/
-    # 401/403/429), not bugs.
+    # typed exceptions log at the per-class level from
+    # Auth::ErrorTranslator::LOG_LEVEL_BY_CLASS, which mirrors the
+    # `log_level:` values passed to `register_error_handler` in
+    # `lib/onetime/application/otto_hooks.rb`. That keeps the Roda Auth app
+    # and Otto apps emitting at the same level for the same exception class.
     plugin :error_handler do |e|
-      status, body = Auth::ErrorTranslator.translate(e)
+      status, body             = Auth::ErrorTranslator.translate(e)
       if status >= 500
         auth_logger.error 'Auth router unhandled exception', exception: e
       else
-        auth_logger.info 'Auth router translated exception',
-          exception_class: e.class.name, status: status
+        level = Auth::ErrorTranslator.level_for(e)
+        auth_logger.public_send(
+          level,
+          'Auth router translated exception',
+          exception_class: e.class.name,
+          status: status,
+        )
       end
-      response.status           = status
-      response['content-type']  = 'application/json'
+      response.status          = status
+      response['content-type'] = 'application/json'
       body.to_json
     end
 

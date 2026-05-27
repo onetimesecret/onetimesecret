@@ -108,6 +108,58 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       expect(status).to eq(500)
       expect(body[:error_type]).to eq('ServerError')
     end
+
+    # -------------------------------------------------------------------------
+    # level_for: per-class log severity (mirrors otto_hooks.rb `log_level:`)
+    # -------------------------------------------------------------------------
+    describe '.level_for' do
+      it 'returns :info for RecordNotFound (matches otto_hooks)' do
+        expect(described_class.level_for(Onetime::RecordNotFound.new('x'))).to eq(:info)
+      end
+
+      it 'returns :info for MissingSecret (direct key, like RecordNotFound)' do
+        expect(described_class.level_for(Onetime::MissingSecret.new('x'))).to eq(:info)
+      end
+
+      it 'falls back to a registered ancestor when the exact class is unregistered' do
+        # Anonymous subclass of Forbidden — not present in LOG_LEVEL_BY_CLASS,
+        # so lookup must walk ancestors and return Forbidden's :warn.
+        subclass = Class.new(Onetime::Forbidden)
+        expect(described_class.level_for(subclass.new('x'))).to eq(:warn)
+      end
+
+      it 'returns :info for FormError' do
+        ex = Onetime::FormError.new('x', field: 'f', error_type: 'FormError')
+        expect(described_class.level_for(ex)).to eq(:info)
+      end
+
+      it 'returns :warn for Forbidden (matches otto_hooks)' do
+        expect(described_class.level_for(Onetime::Forbidden.new('x'))).to eq(:warn)
+      end
+
+      it 'returns :warn for LimitExceeded (matches otto_hooks)' do
+        ex = Onetime::LimitExceeded.new('x', retry_after: 1)
+        expect(described_class.level_for(ex)).to eq(:warn)
+      end
+
+      it 'returns :warn for Unauthorized (matches otto_hooks)' do
+        expect(described_class.level_for(Onetime::Unauthorized.new('x'))).to eq(:warn)
+      end
+
+      it 'returns :info for EntitlementRequired' do
+        ex = Onetime::EntitlementRequired.new(:api_access)
+        expect(described_class.level_for(ex)).to eq(:info)
+      end
+
+      it 'returns :info for GuestRoutesDisabled' do
+        ex = Onetime::GuestRoutesDisabled.new('x', code: 'X')
+        expect(described_class.level_for(ex)).to eq(:info)
+      end
+
+      it 'falls back to :error for unknown exceptions (matches otto unhandled path)' do
+        expect(described_class.level_for(StandardError.new('x'))).to eq(:error)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
