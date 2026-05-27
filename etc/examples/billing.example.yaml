@@ -317,6 +317,7 @@ stripe_metadata_schema:
     - show_on_plans_page: "Visibility on plans page (true/false, default: true)"
     - entitlements: "Comma-separated entitlement list"
     - created: "ISO 8601 creation timestamp"
+    - limit_teams: "Max teams (-1 for unlimited)"
     - limit_members_per_team: "Max members per team (-1 for unlimited)"
     - limit_custom_domains: "Max custom domains (-1 for unlimited)"
     - limit_secret_lifetime: "Max secret lifetime in seconds (-1 for unlimited)"
