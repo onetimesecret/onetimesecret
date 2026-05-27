@@ -27,11 +27,11 @@ module Onetime
       # Maximum submissions per IP within the rate window
       MAX_SUBMISSIONS = 10
 
-      # Window in seconds for counting submissions (1 hour)
-      RATE_WINDOW = 3600
+      # Window in seconds for counting submissions
+      RATE_WINDOW = 1200 # 20m
 
-      # Lockout duration after exceeding limit (1 hour)
-      LOCKOUT_DURATION = 3600
+      # Lockout duration after exceeding limit
+      LOCKOUT_DURATION = 1200 # 20m
 
       # Lua script to atomically increment submissions and handle expiration/lockout
       RECORD_SUBMISSION_SCRIPT = <<~LUA
