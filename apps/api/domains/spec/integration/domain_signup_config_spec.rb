@@ -520,8 +520,8 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
       end
     end
 
-    # End-to-end wiring proof for the PATCH -> audit-log seam fixed in
-    # f22c959 ("[#3202] Fix audit-log false positives in PATCH signup config").
+    # End-to-end wiring proof for the PATCH -> audit-log seam fixed under
+    # issue #3202 ("Fix audit-log false positives in PATCH signup config").
     # PatchSignupConfig#normalized_change_params feeds compute_signup_changes a
     # parsed Array (not the raw comma-separated string), so a string-form input
     # whose values match the existing Array (after normalization) must not

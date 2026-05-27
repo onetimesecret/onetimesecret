@@ -287,8 +287,8 @@ RSpec.describe DomainsAPI::Logic::SignupConfig::AuditLogger do
       end
 
       # Pins the negative behavior PatchSignupConfig#normalized_change_params
-      # guards against (commit f22c959, issue #3245). compute_signup_changes
-      # does not parse strings; a String falls through normalize_value's `else`
+      # guards against (issues #3202 and #3245). compute_signup_changes does
+      # not parse strings; a String falls through normalize_value's `else`
       # branch unchanged and mismatches the sorted Array form of the existing
       # value. If a future refactor makes normalize_value parse strings
       # itself, this test should be revisited — but the contract today is
