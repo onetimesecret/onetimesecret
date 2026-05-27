@@ -520,16 +520,14 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
       end
     end
 
-    # Regression coverage for commit f22c959 ("[#3202] Fix audit-log false
-    # positives in PATCH signup config"). compute_signup_changes is fed a
-    # normalized hash from normalized_change_params; if a future change reverts
-    # to raw params, the comma-separated string vs parsed Array mismatch (and
-    # the blank-strategy fallthrough) would silently reintroduce false-change
-    # audit entries. See issue #3245.
-    #
-    # The first two tests fail on revert; the third is a positive control that
-    # ensures the audit pipeline still records real changes (it passes either
-    # way, since `enabled` coercion is identical under raw vs normalized).
+    # End-to-end wiring proof for the PATCH -> audit-log seam fixed in
+    # f22c959 ("[#3202] Fix audit-log false positives in PATCH signup config").
+    # PatchSignupConfig#normalized_change_params feeds compute_signup_changes a
+    # parsed Array (not the raw comma-separated string), so a string-form input
+    # whose values match the existing Array (after normalization) must not
+    # surface as a change in the audit log. Exhaustive normalization coverage
+    # of compute_signup_changes lives in the unit spec at
+    # apps/api/domains/spec/logic/signup_config/audit_logger_spec.rb. See #3245.
     context 'audit log change detection' do
       before do
         Onetime::CustomDomain::SignupConfig.create!(
@@ -541,27 +539,21 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         login_as(test_owner)
       end
 
-      # Captures the structured payloads emitted by log_signup_audit_event,
-      # which writes via OT.info with a "[DOMAIN_SIGNUP_AUDIT] <event>" prefix
-      # and a JSON payload string. Forwards to the original so the integration
-      # path keeps its normal logging side-effects.
-      def capture_signup_audit_events
+      it 'does not record allowed_signup_domains as changed when string form matches existing array' do
+        # Captures the structured payload emitted by log_signup_audit_event,
+        # which writes via OT.info as: "[DOMAIN_SIGNUP_AUDIT] <event>", <json>.
+        # Forwards to the original logger so normal side-effects are preserved.
         events = []
         allow(OT).to receive(:info).and_wrap_original do |original, *args, **kwargs|
           prefix = args.first.to_s
           if prefix.start_with?('[DOMAIN_SIGNUP_AUDIT]')
             events << {
               event: prefix.sub('[DOMAIN_SIGNUP_AUDIT] ', ''),
-              payload: args[1] ? JSON.parse(args[1]) : {},
+              payload: JSON.parse(args[1]),
             }
           end
           original.call(*args, **kwargs)
         end
-        events
-      end
-
-      it 'does not record allowed_signup_domains as changed when string form matches existing array' do
-        events = capture_signup_audit_events
 
         csrf_patch api_path(test_custom_domain.extid), {
           validation_strategy: 'domain_allowlist',
@@ -574,36 +566,6 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         expect(update_event).not_to be_nil
         # build_audit_payload omits the :changes key when the hash is empty.
         expect(update_event[:payload]).not_to have_key('changes')
-      end
-
-      it 'does not record validation_strategy as changed when sent blank and resolver falls back to existing' do
-        events = capture_signup_audit_events
-
-        csrf_patch api_path(test_custom_domain.extid), {
-          validation_strategy: '',
-        }
-
-        expect(last_response.status).to eq(200)
-
-        update_event = events.find { |e| e[:event] == 'domain_signup_config_updated' }
-        expect(update_event).not_to be_nil
-        expect(update_event[:payload]).not_to have_key('changes')
-      end
-
-      it 'records enabled as a change when toggled' do
-        events = capture_signup_audit_events
-
-        csrf_patch api_path(test_custom_domain.extid), {
-          enabled: true,
-        }
-
-        expect(last_response.status).to eq(200)
-
-        update_event = events.find { |e| e[:event] == 'domain_signup_config_updated' }
-        expect(update_event).not_to be_nil
-        expect(update_event[:payload]).to have_key('changes')
-        expect(update_event[:payload]['changes']).to have_key('enabled')
-        expect(update_event[:payload]['changes']['enabled']).to eq('from' => false, 'to' => true)
       end
     end
 
