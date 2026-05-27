@@ -280,16 +280,19 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         )
       end
 
-      it 'logs cascade failures at error level (paired with debug backtrace path)' do
+      it 'logs per-membership and aggregate cascade failures via SemanticLogger exception field' do
         memberships.each do |m|
           allow(m).to receive(:materialize_for_role!).and_raise(StandardError, 'mem boom')
         end
 
         described_class.call(include_memberships: true, iterator: iterator)
 
+        # `exception:` routes through SemanticLogger's `log.exception` slot so
+        # the production formatter's backtrace truncation (setup_loggers.rb)
+        # applies. A raw `backtrace:` payload field bypasses that policy.
         expect(fake_logger).to have_received(:error).with(
           'Membership re-materialization failed',
-          hash_including(:org_extid, :membership_objid, :message),
+          hash_including(:org_extid, :membership_objid, exception: kind_of(StandardError)),
         ).at_least(:once)
         expect(fake_logger).to have_received(:error).with(
           'Cascade had membership failures',
@@ -297,7 +300,7 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         )
       end
 
-      it 'logs cascade exceptions at error level and emits a debug backtrace line' do
+      it 'logs cascade exceptions via SemanticLogger exception field (production-truncated)' do
         allow(Onetime::OrganizationMembership).to receive(:active_for_org)
           .and_raise(StandardError, 'kaboom')
 
@@ -305,11 +308,7 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
 
         expect(fake_logger).to have_received(:error).with(
           'Cascade raised',
-          hash_including(:org_extid, :message),
-        )
-        expect(fake_logger).to have_received(:debug).with(
-          'Cascade raised (backtrace)',
-          hash_including(:org_extid, :backtrace),
+          hash_including(:org_extid, exception: kind_of(StandardError)),
         )
       end
 

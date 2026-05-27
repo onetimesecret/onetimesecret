@@ -281,7 +281,7 @@ module Onetime
         end
 
         def format_membership(detail)
-          role = detail[:role] || 'member'
+          role = detail[:role]
           if detail[:status] == :ok
             "#{detail[:objid]} (role=#{role}, plan=#{detail[:planid]}): " \
               "#{detail[:entitlements_count]} entitlements"
