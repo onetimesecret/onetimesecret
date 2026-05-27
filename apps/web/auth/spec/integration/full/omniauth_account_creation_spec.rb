@@ -139,6 +139,72 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       expect(found.custid).to eq(customer1.custid)
     end
 
+    # Regression guard for the immutability rule documented on CreateCustomer:
+    # signup_domain_id and provisioning_origin are set only when the customer
+    # is first created and must not be rewritten on subsequent SSO logins.
+    # Before PR #3237 the omniauth callback overwrote signup_domain_id after
+    # every SSO login via a custom domain; the fix moved the assignment into
+    # the initial create! and relies on the existing-customer branch being a
+    # no-op for these fields. If that guard is reverted, this spec fails.
+    it 'preserves signup_domain_id on subsequent calls for an existing customer' do
+      email = unique_test_email('signup-domain-immutable')
+      account = create_test_account(email: email)
+      original_domain_id = "domain-original-#{SecureRandom.hex(4)}"
+      different_domain_id = "domain-different-#{SecureRandom.hex(4)}"
+
+      # First call: customer is created with the original signup_domain_id
+      customer1 = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        signup_domain_id: original_domain_id,
+      ).call
+      created_customers << customer1
+      expect(customer1.signup_domain_id).to eq(original_domain_id)
+
+      # Second call: same email, different signup_domain_id (simulates a
+      # subsequent SSO login arriving via a different custom domain).
+      customer2 = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        signup_domain_id: different_domain_id,
+      ).call
+
+      # Same customer record, original signup_domain_id intact.
+      expect(customer2.custid).to eq(customer1.custid)
+      expect(customer2.signup_domain_id).to eq(original_domain_id)
+
+      # Reload from Redis to confirm nothing was persisted under the new value.
+      reloaded = Onetime::Customer.load(customer1.custid)
+      expect(reloaded.signup_domain_id).to eq(original_domain_id)
+    end
+
+    it 'preserves provisioning_origin on subsequent calls for an existing customer' do
+      email = unique_test_email('provisioning-origin-immutable')
+      account = create_test_account(email: email)
+
+      # First call seeds the customer as an SSO JIT signup.
+      customer1 = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        provisioning_origin: 'sso_jit',
+      ).call
+      created_customers << customer1
+      expect(customer1.provisioning_origin).to eq('sso_jit')
+
+      # A later call must not relabel the provisioning origin.
+      customer2 = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        provisioning_origin: 'canonical_signup',
+      ).call
+
+      expect(customer2.custid).to eq(customer1.custid)
+      expect(customer2.provisioning_origin).to eq('sso_jit')
+
+      reloaded = Onetime::Customer.load(customer1.custid)
+      expect(reloaded.provisioning_origin).to eq('sso_jit')
+    end
+
     it 'sets default role to customer (not admin or colonel)' do
       email = unique_test_email('default-role')
       account = create_test_account(email: email)
