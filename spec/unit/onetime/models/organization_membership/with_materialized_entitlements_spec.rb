@@ -120,7 +120,8 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
 
       attr_accessor :materialized_entitlements_at
       attr_accessor :role
-      attr_accessor :org_entitlements # simulates org.materialized_entitlements
+      attr_accessor :organization_objid
+      attr_accessor :org_entitlements # simulates org.entitlements
 
       def initialize
         @entitlements_plan         = FakeSet.new
@@ -129,6 +130,7 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
         @materialized_entitlements = FakeSet.new
         @materialized_entitlements_at = nil
         @role = 'member'
+        @organization_objid = nil
         @org_entitlements = FakeSet.new
       end
 
@@ -137,11 +139,11 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
       def entitlements_revokes      = @entitlements_revokes
       def materialized_entitlements = @materialized_entitlements
 
-      # Stub organization to return a fake org with materialized_entitlements
+      # Stub organization to return a fake org with entitlements method
       def organization
         org_ents = @org_entitlements
         Class.new do
-          define_method(:materialized_entitlements) { org_ents }
+          define_method(:entitlements) { org_ents.to_a }
         end.new
       end
 
@@ -249,10 +251,9 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
 
     context 'when pre-loaded org is passed' do
       let(:preloaded_org) do
-        ents = FakeSet.new
-        %w[create_secrets api_access manage_billing].each { |e| ents.add(e) }
+        ents = %w[create_secrets api_access manage_billing]
         Class.new do
-          define_method(:materialized_entitlements) { ents }
+          define_method(:entitlements) { ents }
         end.new
       end
 
@@ -569,4 +570,5 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
       expect(h.length).to eq(12)
     end
   end
+
 end

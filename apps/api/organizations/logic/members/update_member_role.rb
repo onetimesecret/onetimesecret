@@ -58,7 +58,7 @@ module OrganizationAPI::Logic
 
         OT.ld "[UpdateMemberRole] Changing role for #{@target_member.extid} from #{@old_role} to #{@new_role}"
 
-        @target_membership.role       = @new_role
+        @target_membership.change_role!(@new_role)
         @target_membership.updated_at = Familia.now.to_f
         @target_membership.save
 

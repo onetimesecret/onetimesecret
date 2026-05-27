@@ -220,6 +220,24 @@ module Onetime
           )
         end
 
+        # Fail-closed: membership must be active. A stale org_customer_lookup entry
+        # for a pending/accepted membership must not pass entitlement checks.
+        unless auth_membership.active?
+          OT.le format(
+            '[require_entitlement!] auth_membership not active for %s (cust=%s, org=%s, status=%s)',
+            entitlement,
+            cust&.custid,
+            auth_org&.extid,
+            auth_membership.status,
+          )
+          raise Onetime::EntitlementRequired.new(
+            entitlement,
+            message: 'Unable to verify entitlements (membership not active)',
+            error_key: 'api.entitlements.errors.context_unavailable',
+            args: { entitlement: entitlement },
+          )
+        end
+
         # Check if auth_membership has the entitlement (ADR-012 Stage 3)
         return true if auth_membership.can?(entitlement)
 
@@ -252,6 +270,8 @@ module Onetime
       # @raise [Onetime::Forbidden] If user is not a member of the organization
       # @return [true] If entitlement check passes
       def require_entitlement_in!(organization, entitlement, error_key: nil)
+        raise Onetime::Problem, 'Organization context unavailable' if organization.nil?
+
         entitlement = entitlement.to_s
         error_key ||= "api.entitlements.errors.#{entitlement}_required"
 

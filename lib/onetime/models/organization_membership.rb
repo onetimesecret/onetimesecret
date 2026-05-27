@@ -290,7 +290,11 @@ module Onetime
       self.role = new_role
 
       # Re-materialize entitlements with new role template (persists role field)
-      materialize_for_role!
+      unless materialize_for_role!
+        raise Onetime::Problem, "Materialization failed for role change to #{new_role}"
+      end
+
+      true
     end
 
     def org_scoped?

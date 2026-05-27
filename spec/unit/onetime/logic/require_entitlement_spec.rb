@@ -61,6 +61,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     instance_double(
       Onetime::OrganizationMembership,
       objid: 'membership-123',
+      active?: true,
       can?: false
     )
   end
@@ -148,6 +149,53 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
   end
 
+  describe 'when auth_membership is not active (fail-closed behavior)' do
+    subject(:logic) do
+      sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
+      test_class.new(sr, cust: authenticated_cust)
+    end
+
+    let(:inactive_membership) do
+      instance_double(
+        Onetime::OrganizationMembership,
+        objid: 'membership-123',
+        active?: false,
+        status: 'pending'
+      )
+    end
+
+    before do
+      # Stub membership lookup (ADR-012 Stage 3: auth_membership resolution)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with(organization.objid, authenticated_cust.objid)
+        .and_return(inactive_membership)
+    end
+
+    it 'raises EntitlementRequired (fail-closed)' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired)
+    end
+
+    it 'includes a message about membership not active' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.message).to include('membership not active')
+        end
+    end
+
+    it 'sets error_key to the context_unavailable system-error key' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.error_key).to eq('api.entitlements.errors.context_unavailable')
+        end
+    end
+
+    it 'never reaches membership.can? check' do
+      expect(inactive_membership).not_to receive(:can?)
+      expect { logic.require_entitlement!('api_access') }.to raise_error(Onetime::EntitlementRequired)
+    end
+  end
+
   describe 'when auth_membership has the entitlement' do
     subject(:logic) do
       sr = strategy_result_class.new(metadata: { organization_context: { organization: organization } })
@@ -159,6 +207,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with(organization.objid, authenticated_cust.objid)
         .and_return(membership)
+      allow(membership).to receive(:active?).and_return(true)
       allow(membership).to receive(:can?).with('api_access').and_return(true)
     end
 

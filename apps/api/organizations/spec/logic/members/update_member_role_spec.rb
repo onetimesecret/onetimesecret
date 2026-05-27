@@ -51,6 +51,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       active?: true,
       owner?: false,
       save: true,
+      change_role!: true,
       joined_at: 1700000000.0
     )
   end
@@ -292,20 +293,28 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       # Setup mutable role tracking - initially returns 'member'
       role_value = current_role
       allow(target_membership).to receive(:role) { role_value }
-      allow(target_membership).to receive(:role=) { |new_val| role_value = new_val }
+      # change_role! updates the role value (simulating the real behavior)
+      allow(target_membership).to receive(:change_role!) do |new_val|
+        role_value = new_val
+        true
+      end
       allow(target_membership).to receive(:updated_at=)
 
       logic.raise_concerns
     end
 
-    it 'updates membership role' do
-      expect(target_membership).to receive(:role=).with('admin')
-      expect(target_membership).to receive(:save)
+    it 'calls change_role! which handles role update and materialization' do
+      expect(target_membership).to receive(:change_role!).with('admin').and_return(true)
       logic.process
     end
 
     it 'updates membership timestamp' do
       expect(target_membership).to receive(:updated_at=)
+      logic.process
+    end
+
+    it 'saves updated_at after change_role! succeeds' do
+      expect(target_membership).to receive(:save)
       logic.process
     end
 
@@ -358,7 +367,10 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       # Setup mutable role tracking
       role_value = 'member'
       allow(target_membership).to receive(:role) { role_value }
-      allow(target_membership).to receive(:role=) { |new_val| role_value = new_val }
+      allow(target_membership).to receive(:change_role!) do |new_val|
+        role_value = new_val
+        true
+      end
       allow(target_membership).to receive(:updated_at=)
 
       logic.raise_concerns
