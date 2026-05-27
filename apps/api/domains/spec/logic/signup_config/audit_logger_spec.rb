@@ -73,6 +73,15 @@ RSpec.describe DomainsAPI::Logic::SignupConfig::AuditLogger do
         result = host.compute_signup_changes(old_config, { enabled: true })
         expect(result).to have_key('enabled')
       end
+
+      it 'applies value coercion under symbol keys (closes the params[field.to_sym] branch)' do
+        # extract_new_value reads `params[field] || params[field.to_sym]`. The
+        # string-key tests cover coercion; this confirms coercion still
+        # applies when the key is a symbol — same enabled-coercion logic
+        # runs on either lookup path.
+        result = host.compute_signup_changes(old_config, { enabled: 'true' })
+        expect(result['enabled']).to eq(from: false, to: true)
+      end
     end
 
     describe 'validation_strategy' do
@@ -112,6 +121,25 @@ RSpec.describe DomainsAPI::Logic::SignupConfig::AuditLogger do
         # test should be revisited.
         it 'is recorded as a change' do
           expect(changes['validation_strategy']).to eq(from: 'domain_allowlist', to: '')
+        end
+      end
+
+      context 'when existing is nil and provided as empty string' do
+        let(:old_config) do
+          config_double(
+            validation_strategy: nil,
+            allowed_signup_domains: [],
+            enabled: false,
+          )
+        end
+        let(:new_params) { { 'validation_strategy' => '' } }
+
+        # Pins normalize_value's collapse of nil and '' to the same nil
+        # bucket: when both sides normalize to nil, values_equal? returns
+        # true and no change is recorded. This is the symmetric counterpart
+        # to the previous context.
+        it 'is omitted from changes (nil and "" both normalize to nil)' do
+          expect(changes).not_to have_key('validation_strategy')
         end
       end
     end
