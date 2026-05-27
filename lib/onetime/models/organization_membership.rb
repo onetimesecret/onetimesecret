@@ -288,9 +288,8 @@ module Onetime
       return true if role == new_role # No-op if unchanged
 
       self.role = new_role
-      save
 
-      # Re-materialize entitlements with new role template
+      # Re-materialize entitlements with new role template (persists role field)
       materialize_for_role!
     end
 

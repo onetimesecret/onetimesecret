@@ -61,6 +61,10 @@ Onetime::Organization.chore :materialize_standalone_entitlements do |org|
   # Branch 3: standalone + not materialized → materialize now.
   org.materialize_standalone_entitlements!
 
+  # Cascade to memberships so they're consistent with the org's new entitlements.
+  # Without this, memberships remain stale and the runtime fallback can't be removed.
+  org.rematerialize_all_memberships!
+
   entitlement_count = org.materialized_entitlements.size
 
   logger.info 'Materialized standalone entitlements',

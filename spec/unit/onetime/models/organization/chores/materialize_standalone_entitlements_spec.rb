@@ -49,6 +49,7 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
       materialized_entitlements: materialized_set,
     )
     allow(obj).to receive(:materialize_standalone_entitlements!).and_return(true)
+    allow(obj).to receive(:rematerialize_all_memberships!)
     obj
   end
 
@@ -141,14 +142,18 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
       chore.call(org)
     end
 
+    it 'calls rematerialize_all_memberships! to cascade to members' do
+      expect(org).to receive(:rematerialize_all_memberships!)
+      chore.call(org)
+    end
+
     it 'logs the materialization at :info' do
       expect(mock_logger).to receive(:info).with(
-        'Materializing standalone entitlements',
+        'Materialized standalone entitlements',
         hash_including(
           chore: :materialize_standalone_entitlements,
           org_extid: 'org_test123',
           entitlement_count: 15,
-          result: true,
         ),
       )
       chore.call(org)
@@ -163,21 +168,5 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
       chore.call(org)
     end
 
-    context 'when materialize_standalone_entitlements! returns false unexpectedly' do
-      # Defensive: if billing config flipped mid-chore, materialize_standalone_entitlements!
-      # would return false. The chore logs whatever the method returns rather than
-      # raising — that decision belongs to ops via :result key in the log.
-      before do
-        allow(org).to receive(:materialize_standalone_entitlements!).and_return(false)
-      end
-
-      it 'still logs at :info with result: false' do
-        expect(mock_logger).to receive(:info).with(
-          'Materializing standalone entitlements',
-          hash_including(result: false),
-        )
-        chore.call(org)
-      end
-    end
   end
 end

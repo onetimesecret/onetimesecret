@@ -263,7 +263,7 @@ module Onetime
       result      = { success: 0, failed: 0, total: memberships.size }
 
       memberships.each do |membership|
-        membership.materialize_for_role!
+        membership.materialize_for_role!(self)
         result[:success] += 1
       rescue StandardError => ex
         OT.le '[rematerialize_all_memberships!] failed for membership',

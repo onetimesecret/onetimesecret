@@ -83,9 +83,10 @@ module Onetime
           # - Role change
           # - Org plan change (via background job re-materializing all members)
           #
+          # @param org [Organization, nil] Pre-loaded org to avoid N+1 Redis lookup
           # @return [Boolean] True if materialization succeeded
-          def materialize_for_role!
-            org = organization
+          def materialize_for_role!(org = nil)
+            org ||= organization
             return false unless org
 
             current_role  = role || 'member'
@@ -123,11 +124,14 @@ module Onetime
             grant_members  = entitlements_grants.to_a
             revoke_members = entitlements_revokes.to_a
 
+            # Compute effective set in Ruby first, then write once.
+            # Reduces Redis commands inside transaction from clear + N + M + K
+            # to clear + effective_count.
+            effective = (plan_members + grant_members) - revoke_members
+
             transaction do
               materialized_entitlements.clear
-              plan_members.each   { |e| materialized_entitlements.add(e) }
-              grant_members.each  { |e| materialized_entitlements.add(e) }
-              revoke_members.each { |e| materialized_entitlements.remove_element(e) }
+              effective.each { |e| materialized_entitlements.add(e) }
             end
 
             materialized_entitlements.to_a
