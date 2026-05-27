@@ -56,7 +56,7 @@ RSpec.describe Onetime::Application::AuthStrategies::Helpers do
   # Stubs OT.conf so we don't need a real config file or app boot.
   def apply_trusted_proxy_config(trusted_proxy_config)
     instance = Onetime::Initializers::ConfigureTrustedProxy.new
-    logger   = instance_double('Logger', debug: nil, warn: nil)
+    logger   = double('logger', debug: nil, info: nil, warn: nil)
     allow(instance).to receive(:app_logger).and_return(logger)
     allow(OT).to receive(:conf).and_return(
       'site' => { 'network' => { 'trusted_proxy' => trusted_proxy_config } }

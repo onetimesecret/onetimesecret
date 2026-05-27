@@ -45,7 +45,21 @@ module Onetime
         # No-op if trusted proxy support is not enabled. This allows us to avoid
         # changing default Rack behavior that trusts X-Forwarded-For when
         # REMOTE_ADDR is private (according to RFC1918).
-        return unless config[:enabled]
+        #
+        # Log the disabled path explicitly: when ops debug "why does my IP look
+        # wrong behind Cloudflare?", the first thing to check is whether this
+        # initializer fired. A silent return leaves them guessing.
+        unless config && config[:enabled]
+          app_logger.info 'Trusted proxy disabled; Rack::Request#ip will use REMOTE_ADDR',
+            configured: !config.nil?
+          return
+        end
+
+        app_logger.info 'Trusted proxy enabled',
+          mode: config[:mode],
+          header: config[:header],
+          cidrs: config[:cidrs],
+          depth: config[:depth]
 
         case config[:mode]
         when 'depth'
@@ -81,7 +95,10 @@ module Onetime
           configure_custom_cidrs(config[:cidrs])
         end
 
-        app_logger.debug "[init] Trusted proxy: mode=filter, header=#{config[:header]}, cidrs=#{config[:cidrs].size}"
+        app_logger.info 'Configured trusted proxy filter mode',
+          header: config[:header],
+          forwarded_priority: Rack::Request.forwarded_priority,
+          custom_cidrs: config[:cidrs].size
       end
 
       # Depth mode: Position-based counting
@@ -102,7 +119,9 @@ module Onetime
           end
         end
 
-        app_logger.debug "[init] Trusted proxy: mode=depth, depth=#{depth}, header=#{header}"
+        app_logger.info 'Configured trusted proxy depth mode',
+          header: header,
+          depth: depth
       end
 
       def header_priority_for(header_pref)
@@ -120,11 +139,17 @@ module Onetime
         parsed_ranges = cidrs.filter_map do |cidr|
           IPAddr.new(cidr)
         rescue IPAddr::InvalidAddressError => ex
-          app_logger.warn "[init] Invalid trusted_proxy_cidr '#{cidr}': #{ex.message}"
+          app_logger.warn 'Invalid trusted_proxy CIDR; skipping',
+            cidr: cidr,
+            error: ex.message
           nil
         end
 
-        return if parsed_ranges.empty?
+        if parsed_ranges.empty?
+          app_logger.warn 'No valid trusted_proxy CIDRs registered; default RFC1918 filter unchanged',
+            requested: cidrs
+          return
+        end
 
         # Extend Rack's default filter to also trust the configured CIDRs.
         #
@@ -140,6 +165,10 @@ module Onetime
         rescue IPAddr::InvalidAddressError
           false
         end
+
+        app_logger.info 'Extended Rack::Request.ip_filter with custom trusted_proxy CIDRs',
+          registered: parsed_ranges.size,
+          requested: cidrs.size
       end
     end
   end
