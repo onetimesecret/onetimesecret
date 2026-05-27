@@ -541,11 +541,12 @@ All products **must** include these metadata fields:
 | `region` | Geographic region | `us-east`, `eu-west`, `global` |
 | `capabilities` | Comma-separated features | `create_secrets,create_team,custom_domains` |
 
-**Optional metadata:**
+**Optional metadata** (canonical list lives in `Billing::Metadata::LIMIT_FIELDS`):
 - `limit_teams` - Maximum number of teams (-1 = unlimited)
 - `limit_members_per_team` - Maximum members per team (-1 = unlimited)
-- `limit_secrets_per_month` - Monthly secret creation limit
-- `limit_api_calls_per_day` - Daily API call limit
+- `limit_custom_domains` - Maximum custom domains (-1 = unlimited)
+- `limit_secret_lifetime` - Maximum secret lifetime in seconds
+- `limit_secrets_per_day` - Daily secret creation limit (-1 = unlimited)
 
 **Common capabilities:**
 - `create_secrets` - Create secrets

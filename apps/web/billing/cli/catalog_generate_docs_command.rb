@@ -232,17 +232,18 @@ module Onetime
         end
       end
 
+      # Per-resource note formatters keyed by Billing::Metadata::LIMIT_FIELDS value.
+      # When adding a new limit, add a formatter here only if it needs a contextual
+      # note; otherwise the default (empty string) is fine and renders nothing.
+      LIMIT_NOTE_FORMATTERS = {
+        'secret_lifetime' => ->(value) { value ? "#{value / 86_400} days" : '' },
+        'teams' => ->(value) { value == 0 ? 'No team access' : '' },
+        'members_per_team' => ->(value) { value == 1 ? 'Individual only' : '' },
+      }.freeze
+
       def limit_notes(resource, value)
-        case resource
-        when 'secret_lifetime'
-          value ? "#{value / 86_400} days" : ''
-        when 'teams'
-          value == 0 ? 'No team access' : ''
-        when 'members_per_team'
-          value == 1 ? 'Individual only' : ''
-        else
-          ''
-        end
+        formatter = LIMIT_NOTE_FORMATTERS[resource]
+        formatter ? formatter.call(value) : ''
       end
 
       def generate_stripe_metadata_section(catalog)

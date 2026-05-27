@@ -30,10 +30,13 @@ module Onetime
       option :entitlements, type: :string, desc: 'Entitlements (comma-separated)'
       option :display_order, type: :string, desc: 'Display order (lower = earlier)'
       option :show_on_plans_page, type: :boolean, desc: 'Show on plans page'
-      option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
-      option :limit_members_per_team, type: :string, desc: 'Limit members per team (-1 for unlimited)'
-      option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
-      option :limit_secret_lifetime, type: :string, desc: 'Limit secret lifetime (seconds)'
+      # Limit options - generated from Billing::Metadata::LIMIT_FIELDS so adding
+      # a new key to that registry automatically exposes the matching CLI flag.
+      Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
+        option field_name.to_sym,
+          type: :string,
+          desc: Billing::Metadata.limit_field_description(field_name)
+      end
       option :add_marketing_feature, type: :string, desc: 'Add marketing feature'
       option :remove_marketing_feature, type: :string, desc: 'Remove marketing feature (by ID)'
 
@@ -76,10 +79,10 @@ module Onetime
           updated_meta['entitlements']           = options[:entitlements] if options[:entitlements]
           updated_meta['display_order']          = options[:display_order] if options[:display_order]
           updated_meta['show_on_plans_page']     = options[:show_on_plans_page].to_s if options.key?(:show_on_plans_page)
-          updated_meta['limit_teams']            = options[:limit_teams] if options[:limit_teams]
-          updated_meta['limit_members_per_team'] = options[:limit_members_per_team] if options[:limit_members_per_team]
-          updated_meta['limit_custom_domains']   = options[:limit_custom_domains] if options[:limit_custom_domains]
-          updated_meta['limit_secret_lifetime']  = options[:limit_secret_lifetime] if options[:limit_secret_lifetime]
+          Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
+            option_key = field_name.to_sym
+            updated_meta[field_name] = options[option_key] if options[option_key]
+          end
 
           updated_meta
         end

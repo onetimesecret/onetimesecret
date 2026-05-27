@@ -30,14 +30,13 @@ module Onetime
         type: :boolean,
         default: true,
         desc: 'Show on plans page (default: true)'
-      # Limit options - dynamically generated from Billing::Metadata::LIMIT_FIELDS
-      # Available: limit_teams, limit_members_per_team, limit_custom_domains,
-      #            limit_secret_lifetime, limit_secrets_per_day
-      option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
-      option :limit_members_per_team, type: :string, desc: 'Limit members per team (-1 for unlimited)'
-      option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
-      option :limit_secret_lifetime, type: :string, desc: 'Limit secret lifetime (seconds)'
-      option :limit_secrets_per_day, type: :string, desc: 'Limit secrets per day (-1 for unlimited)'
+      # Limit options - generated from Billing::Metadata::LIMIT_FIELDS so adding
+      # a new key to that registry automatically exposes the matching CLI flag.
+      Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
+        option field_name.to_sym,
+          type: :string,
+          desc: Billing::Metadata.limit_field_description(field_name)
+      end
       option :force,
         type: :boolean,
         default: false,

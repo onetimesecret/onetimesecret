@@ -45,6 +45,14 @@ module Billing
       'limit_secrets_per_day' => 'secrets_per_day',
     }.freeze
 
+    # Human-readable description for a LIMIT_FIELDS key. Shared by CLI option
+    # declarations, interactive prompts, and docs generators so a new entry in
+    # LIMIT_FIELDS surfaces consistently everywhere without per-site editing.
+    def self.limit_field_description(field_name)
+      unit = field_name.end_with?('lifetime') ? 'seconds' : '-1 for unlimited'
+      "Limit #{field_name.delete_prefix('limit_').tr('_', ' ')} (#{unit})"
+    end
+
     # Legacy constants for backward compatibility
     FIELD_LIMIT_TEAMS            = 'limit_teams'
     FIELD_LIMIT_MEMBERS_PER_TEAM = 'limit_members_per_team'

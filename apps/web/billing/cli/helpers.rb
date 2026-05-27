@@ -243,11 +243,10 @@ module Onetime
         show_on_plans_value                                   = show_on_plans.empty? || Onetime::Utils.yes?(show_on_plans)
         metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = show_on_plans_value.to_s
 
-        print 'Limit teams (-1 for unlimited): '
-        metadata[Billing::Metadata::FIELD_LIMIT_TEAMS] = $stdin.gets.chomp
-
-        print 'Limit members per team (-1 for unlimited): '
-        metadata[Billing::Metadata::FIELD_LIMIT_MEMBERS_PER_TEAM] = $stdin.gets.chomp
+        Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
+          print "#{Billing::Metadata.limit_field_description(field_name)}: "
+          metadata[field_name] = $stdin.gets.chomp
+        end
 
         metadata[Billing::Metadata::FIELD_CREATED] = Time.now.utc.iso8601
 
