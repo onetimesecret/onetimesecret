@@ -45,10 +45,11 @@ module Billing
         end
 
         json_response(data)
-      rescue OT::Problem
-        # Propagate to centralized OttoHooks handler (ADR-013). Listed
-        # explicitly so the StandardError clause below doesn't catch it
-        # and downgrade typed business-rule errors to 500.
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403). Listed
+        # before StandardError so the catch-all below doesn't downgrade
+        # typed access-control errors to 500 (Onetime::Forbidden inherits
+        # from RuntimeError, not OT::Problem, so it's a StandardError).
         raise
       rescue StandardError => ex
         billing_logger.error 'Failed to load billing overview',
@@ -754,8 +755,8 @@ module Billing
           }
 
         json_response({ success: true })
-      rescue OT::Problem
-        # Propagate to centralized OttoHooks handler (ADR-013).
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403).
         raise
       rescue StandardError => ex
         billing_logger.error 'Failed to dismiss federation notification',
