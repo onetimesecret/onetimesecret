@@ -38,7 +38,7 @@ module DomainsAPI
               'Authentication required',
               error_key: 'api.errors.authentication_required',
               field: :user_id,
-              error_type: :unauthorized,
+              error_type: :authentication_required,
             )
           end
 

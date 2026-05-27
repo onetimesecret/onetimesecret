@@ -34,7 +34,7 @@ module DomainsAPI
               'Authentication required',
               error_key: 'api.errors.authentication_required',
               field: :user_id,
-              error_type: :unauthorized,
+              error_type: :authentication_required,
             )
           end
 
@@ -53,13 +53,13 @@ module DomainsAPI
 
           # Load incoming config
           @incoming_config = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(@custom_domain.identifier)
-          if @incoming_config.nil?
-            raise_not_found(
-              "Incoming configuration not found for domain: #{@domain_id}",
-              error_key: 'api.domains.errors.incoming_config_not_found',
-              args: { extid: @domain_id },
-            )
-          end
+          return unless @incoming_config.nil?
+
+          raise_not_found(
+            "Incoming configuration not found for domain: #{@domain_id}",
+            error_key: 'api.domains.errors.incoming_config_not_found',
+            args: { extid: @domain_id },
+          )
         end
 
         def process

@@ -70,9 +70,10 @@ response = @mock_request.get('/api/v2/status')
 #=> [200, '{"success":true,"status":"nominal","locale":"en"}']
 
 ## v2 API does not have an authcheck endpoint
+# ADR-013 router fallback shape: { error, error_type }
 response = @mock_request.get('/api/v2/authcheck')
 [response.status, response.body]
-#=> [404, '{"error":"Not Found"}']
+#=> [404, '{"error":"Not Found","error_type":"NotFound"}']
 
 ## Can access the API share endpoint
 # NOTE: Disabled pending Otto v2 migration for v1 API (#2128)
@@ -108,11 +109,12 @@ content = Familia::JsonSerializer.parse(response.body)
 
 ## Behaviour when requesting a known non-existent endpoint
 # NOTE: Basic Auth required to bypass CSRF middleware for POST requests
+# ADR-013 router fallback shape: { error, error_type }
 response = @mock_request.post('/api/v2/humphrey/bogus', @api_auth)
 content = Familia::JsonSerializer.parse(response.body)
 has_msg = content.slice('error').eql?({'error' => 'Not Found'})
 [response.status, has_msg, content.keys.sort]
-#=> [404, true, ['error']]
+#=> [404, true, ['error', 'error_type']]
 
 # API v2 Routes
 

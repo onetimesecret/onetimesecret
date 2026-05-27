@@ -45,7 +45,7 @@ module DomainsAPI
               'Authentication required',
               error_key: 'api.errors.authentication_required',
               field: :user_id,
-              error_type: :unauthorized,
+              error_type: :authentication_required,
             )
           end
 
@@ -76,27 +76,27 @@ module DomainsAPI
 
           # Validate recipient emails with Truemail (write path — admin config)
           @recipients.each do |r|
-            unless valid_email?(r[:email])
-              raise_form_error(
-                "Invalid email: #{r[:email]}",
-                error_key: 'api.domains.errors.recipients_invalid_email',
-                args: { email: r[:email] },
-                field: :recipients,
-                error_type: :invalid,
-              )
-            end
-          end
+            next if valid_email?(r[:email])
 
-          # Check for duplicate emails
-          emails = @recipients.map { |r| r[:email] }
-          if emails.uniq.size != emails.size
             raise_form_error(
-              'Duplicate recipient emails not allowed',
-              error_key: 'api.domains.errors.recipients_duplicate',
+              "Invalid email: #{r[:email]}",
+              error_key: 'api.domains.errors.recipients_invalid_email',
+              args: { email: r[:email] },
               field: :recipients,
               error_type: :invalid,
             )
           end
+
+          # Check for duplicate emails
+          emails = @recipients.map { |r| r[:email] }
+          return unless emails.uniq.size != emails.size
+
+          raise_form_error(
+            'Duplicate recipient emails not allowed',
+            error_key: 'api.domains.errors.recipients_duplicate',
+            field: :recipients,
+            error_type: :invalid,
+          )
         end
 
         def process

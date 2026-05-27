@@ -43,7 +43,7 @@ module DomainsAPI
 
         def raise_concerns
           # Require authenticated user
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+          raise_form_error('Authentication required', field: :user_id, error_type: :authentication_required) if cust.anonymous?
 
           # Validate domain_id parameter
           raise_form_error('Domain ID required', field: :domain_id, error_type: :missing) if @domain_id.to_s.empty?
@@ -71,7 +71,7 @@ module DomainsAPI
           was_enabled = @existing_config&.enabled?
 
           if @existing_config
-            changes = compute_signup_changes(@existing_config, params)
+            changes = compute_signup_changes(@existing_config, normalized_change_params)
             update_existing_config
             log_signup_audit_event(
               event: :domain_signup_config_updated,
@@ -116,6 +116,22 @@ module DomainsAPI
         end
 
         private
+
+        # Build the change-detection payload from parsed/normalized values, not
+        # raw params. compute_signup_changes compares against the parsed Array
+        # in @existing_config.allowed_signup_domains; if we passed the raw
+        # comma-separated string from params, the comparison would mismatch and
+        # falsely flag a change in the audit log. We also gate on the same
+        # "provided" semantics as the writer (update_existing_config) so a
+        # blank validation_strategy that falls back to the existing value is
+        # not reported as a change.
+        def normalized_change_params
+          payload                           = {}
+          payload['validation_strategy']    = @effective_strategy unless @validation_strategy.to_s.empty?
+          payload['allowed_signup_domains'] = @allowed_signup_domains if @allowed_signup_domains_provided
+          payload['enabled']                = @enabled if @enabled_provided
+          payload
+        end
 
         # PATCH semantics: strategy preserves existing if not provided.
         # Strategy is still required for new configs.

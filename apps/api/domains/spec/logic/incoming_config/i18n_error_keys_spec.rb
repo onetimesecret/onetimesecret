@@ -136,7 +136,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
           expect(error.error_key).to eq('api.errors.authentication_required')
           expect(error.field).to eq(:user_id)
-          expect(error.error_type).to eq(:unauthorized)
+          expect(error.error_type).to eq(:authentication_required)
         end
       end
 
