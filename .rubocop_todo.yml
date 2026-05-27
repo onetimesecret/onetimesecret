@@ -19,12 +19,6 @@ Lint/HashCompareByIdentity:
     - 'apps/web/core/middleware/error_handling.rb'
 
 # Offense count: 1
-# Configuration parameters: AllowedMethods, AllowedPatterns.
-Lint/NestedMethodDefinition:
-  Exclude:
-    - 'lib/onetime/cli/migrate_redis_data_command.rb'
-
-# Offense count: 1
 Lint/NonLocalExitFromIterator:
   Exclude:
     - 'lib/middleware/session_debugger.rb'
@@ -55,7 +49,6 @@ Metrics/PerceivedComplexity:
     - 'apps/web/billing/models/plan.rb'
     - 'apps/web/core/views/helpers/initialize_view_vars.rb'
     - 'lib/onetime/cli/customers/sync_auth_accounts_command.rb'
-    - 'lib/onetime/cli/migrate_redis_data_command.rb'
     - 'lib/onetime/config.rb'
     - 'lib/onetime/initializers/print_log_banner.rb'
     - 'lib/onetime/utils.rb'

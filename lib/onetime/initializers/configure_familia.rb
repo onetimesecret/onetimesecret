@@ -9,13 +9,9 @@ module Onetime
   module Initializers
     # ConfigureFamilia initializer
     #
-    # Configures Familia's URI early in the boot process. This must run before
-    # detect_legacy_data_and_warn because that method uses Familia.with_isolated_dbclient
-    # which needs Familia.uri to be set to the correct value from the configuration.
-    #
-    # Without this, Familia.uri defaults to redis://127.0.0.1:6379 which causes
-    # connection failures in Docker environments where Redis/Valkey is on a
-    # different host.
+    # Configures Familia's URI early in the boot process. Without this,
+    # Familia.uri defaults to redis://127.0.0.1:6379 which causes connection
+    # failures in Docker environments where Redis/Valkey is on a different host.
     #
     # This initializer configures external library state and doesn't set runtime
     # state that needs to be tracked.

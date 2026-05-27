@@ -18,7 +18,7 @@ module Onetime
     # - Onetime::Runtime.infrastructure.database_pool
     #
     class SetupConnectionPool < Onetime::Boot::Initializer
-      @depends_on = [:legacy_check]
+      @depends_on = [:familia_config]
       @provides   = [:database]
 
       def execute(_context)

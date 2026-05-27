@@ -42,7 +42,6 @@ RSpec.describe "Onetime global state after boot", type: :integration do
 
     # NOTE: The boot process now uses InitializerRegistry with initializer classes.
     # These methods no longer exist as direct module methods on Onetime:
-    # - detect_legacy_data_and_warn (now in DetectLegacyDataAndWarn initializer)
     # - connect_databases (now in ConfigureFamilia initializer)
     # - print_log_banner (now in PrintLogBanner initializer)
     # Initializers run automatically via InitializerRegistry during boot!
