@@ -55,9 +55,10 @@ module Billing
         }
 
         json_response(data)
+      rescue OT::Problem
+        # Propagate to centralized OttoHooks handler (ADR-013).
+        raise
       rescue StandardError => ex
-        raise if ex.is_a?(OT::Problem)
-
         billing_logger.error 'Failed to load entitlements',
           {
             exception: ex,
@@ -124,9 +125,10 @@ module Billing
         end
 
         json_response(result)
+      rescue OT::Problem
+        # Propagate to centralized OttoHooks handler (ADR-013).
+        raise
       rescue StandardError => ex
-        raise if ex.is_a?(OT::Problem)
-
         billing_logger.error 'Failed entitlement check',
           {
             exception: ex,

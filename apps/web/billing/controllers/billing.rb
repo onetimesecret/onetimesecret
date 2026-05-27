@@ -45,9 +45,12 @@ module Billing
         end
 
         json_response(data)
+      rescue OT::Problem
+        # Propagate to centralized OttoHooks handler (ADR-013). Listed
+        # explicitly so the StandardError clause below doesn't catch it
+        # and downgrade typed business-rule errors to 500.
+        raise
       rescue StandardError => ex
-        raise if ex.is_a?(OT::Problem)
-
         billing_logger.error 'Failed to load billing overview',
           {
             exception: ex,
@@ -751,9 +754,10 @@ module Billing
           }
 
         json_response({ success: true })
+      rescue OT::Problem
+        # Propagate to centralized OttoHooks handler (ADR-013).
+        raise
       rescue StandardError => ex
-        raise if ex.is_a?(OT::Problem)
-
         billing_logger.error 'Failed to dismiss federation notification',
           {
             exception: ex,
