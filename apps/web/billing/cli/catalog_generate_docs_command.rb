@@ -13,16 +13,20 @@ module Onetime
     #
     # When this runs
     # --------------
-    # Manually:        bin/ots billing catalog generate-docs
-    # Via pnpm:        pnpm run docs:billing:generate
-    # Auto on dev:     chained from `predev` so the doc refreshes once per
-    #                  `pnpm dev` invocation. Not chained into `prebuild`
-    #                  because the frontend-build CI job is Node-only and
-    #                  the doc is committed source, not a build artifact.
+    # Manually:           bin/ots billing catalog generate-docs
+    # Via pnpm (strict):  pnpm run docs:billing:generate
+    # Via pnpm (lenient): pnpm run docs:billing:generate:tolerant
+    # Auto on dev:        chained from `predev` (via the tolerant variant)
+    #                     so the doc refreshes once per `pnpm dev`. Not
+    #                     chained into `prebuild` because the frontend-build
+    #                     CI job is Node-only and the doc is committed
+    #                     source, not a build artifact.
     #
-    # The pnpm script (scripts/billing-docs-generate.sh) skips silently
+    # The wrapper script (scripts/billing-docs-generate.sh) skips silently
     # when bundler isn't available, so frontend-only devs can still run
-    # `pnpm dev` without Ruby installed.
+    # `pnpm dev` without Ruby. When bundler IS present but generation
+    # errors, the tolerant variant emits a loud multi-line warning to
+    # stderr but exits 0; the strict variant propagates the failure.
     #
     # If `etc/billing.yaml` is absent (the common case for fresh checkouts
     # without a configured Stripe catalog), the command exits cleanly with
@@ -37,16 +41,27 @@ module Onetime
         desc: 'Output file path (default: apps/web/billing/docs/plan-definitions.md)'
 
       def call(output: nil, **)
-        boot_application!
+        # Intentionally NOT calling boot_application!.
+        #
+        # This command is a pure YAML → markdown transform: it reads
+        # etc/billing.yaml, runs ERB, and writes Markdown. It does not
+        # touch Familia, Redis, the model layer, or auth config. Booting
+        # the full app would couple this generator to a fully-provisioned
+        # environment (Redis up, auth.yaml present, etc.) for no benefit,
+        # which is what broke when we first wired it into `predev`.
+        #
+        # Keeping it boot-free means: CI can regenerate without Redis,
+        # the predev hook can be strict instead of best-effort, and any
+        # contributor with Ruby + a billing.yaml can refresh the doc.
 
         catalog_path = Billing::Config.config_path
         output_path  = output || File.join('apps', 'web', 'billing', 'docs', 'plan-definitions.md')
 
-        unless File.exist?(catalog_path)
+        if catalog_path.nil? || !File.exist?(catalog_path.to_s)
           # Informational, not an error: fresh checkouts and standalone
-          # deployments without billing configured skip cleanly. Predev /
-          # prebuild hooks depend on this graceful no-op.
-          puts "[billing catalog generate-docs] skipped: #{catalog_path} not found"
+          # deployments without billing configured skip cleanly. The
+          # `predev` hook depends on this graceful no-op.
+          puts "[billing catalog generate-docs] skipped: billing.yaml not configured"
           return
         end
 
