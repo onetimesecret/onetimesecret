@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'rack/request'
+
 #
 # Shared helper methods for authentication strategies.
 #
@@ -40,7 +42,7 @@ module Onetime
         # @return [Hash] Metadata hash
         def build_metadata(env, additional = {})
           {
-            ip: env['REMOTE_ADDR'],
+            ip: Rack::Request.new(env).ip,
             user_agent: env['HTTP_USER_AGENT'],
             domain_strategy: env['onetime.domain_strategy'],
             display_domain: env['onetime.display_domain'],
