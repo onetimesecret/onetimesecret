@@ -11,7 +11,7 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
   let(:logger) { double('logger', debug: nil, info: nil, warn: nil) }
 
   before do
-    allow(instance).to receive(:app_logger).and_return(logger)
+    allow(instance).to receive(:boot_logger).and_return(logger)
     # Capture originals before each test
     @saved_forwarded_priority = Rack::Request.forwarded_priority
     @saved_ip_filter = Rack::Request.ip_filter
@@ -699,7 +699,7 @@ RSpec.describe Onetime::Initializers::ConfigureTrustedProxy do
     let(:logger) { double('logger', debug: nil, info: nil, warn: nil) }
 
     before do
-      allow(instance).to receive(:app_logger).and_return(logger)
+      allow(instance).to receive(:boot_logger).and_return(logger)
       @saved_forwarded_priority = Rack::Request.forwarded_priority
       @saved_ip_filter = Rack::Request.ip_filter
       @saved_ip_method = Rack::Request.instance_method(:ip)
