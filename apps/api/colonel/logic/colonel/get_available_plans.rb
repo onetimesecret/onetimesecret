@@ -79,34 +79,27 @@ module ColonelAPI
         def load_plans_from_stripe_cache
           plans = ::Billing::Plan.list_plans
 
-          # Group by tier, preferring monthly plans over yearly
-          plans_by_tier = {}
+          # Key by plan_id (the family identifier). Each Plan holds all interval
+          # variants (month/year) in its prices hashkey, so there are no per-
+          # interval duplicates to collapse.
+          plans_by_id = {}
 
           plans.each do |plan|
-            existing = plans_by_tier[plan.tier]
-
-            # Keep existing if it's monthly (preferred), otherwise replace
-            next if existing && existing[:interval] == 'month'
-
-            plans_by_tier[plan.tier] = {
-              interval: plan.interval, # Track for deduplication
-              data: {
-                planid: plan.plan_id,
-                name: plan.name,
-                tier: plan.tier,
-                tenancy: plan.tenancy,
-                region: plan.region,
-                display_order: plan.display_order.to_i,
-                show_on_plans_page: plan.show_on_plans_page.to_s == 'true',
-                description: plan.respond_to?(:description) ? plan.description : nil,
-                entitlements: plan.entitlements.to_a,
-                limits: plan.limits.hgetall || {},
-              },
+            plans_by_id[plan.plan_id] = {
+              planid: plan.plan_id,
+              name: plan.name,
+              tier: plan.tier,
+              tenancy: plan.tenancy,
+              region: plan.region,
+              display_order: plan.display_order.to_i,
+              show_on_plans_page: plan.show_on_plans_page.to_s == 'true',
+              description: plan.respond_to?(:description) ? plan.description : nil,
+              entitlements: plan.entitlements.to_a,
+              limits: plan.limits.hgetall || {},
             }
           end
 
-          # Extract just the data hashes (without the interval tracking key)
-          plans_by_tier.values.map { |entry| entry[:data] }
+          plans_by_id.values
         rescue StandardError => ex
           OT.le '[GetAvailablePlans] Error loading plans from cache',
             {

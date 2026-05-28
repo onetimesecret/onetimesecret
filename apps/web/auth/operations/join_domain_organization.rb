@@ -46,7 +46,7 @@ module Auth
         # Load the custom domain by objid. domain_id IS the objid here, so use
         # the by-identifier loader (as CustomDomain.from_display_domain does).
         # CustomDomain.load requires (display_domain, org_id) and would raise
-        # ArgumentError — swallowed by the rescue below, silently skipping the join.
+        # ArgumentError, logged as an error when not found.
         domain = begin
           Onetime::CustomDomain.find_by_identifier(domain_id)
         rescue Onetime::RecordNotFound
