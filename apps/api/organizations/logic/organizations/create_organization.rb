@@ -11,6 +11,8 @@ module OrganizationAPI::Logic
     #   organization quotas when billing is enabled. Uses a distributed
     #   lock to prevent race conditions during creation.
     class CreateOrganization < OrganizationAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       SCHEMAS = { response: 'organization' }.freeze
 
       attr_reader :organization, :display_name, :description, :contact_email
@@ -56,7 +58,7 @@ module OrganizationAPI::Logic
       def process
         # Mask display_name in debug logs - safe even for 1-2 char names (Ruby returns available chars)
         masked_name = display_name.length > 3 ? "#{display_name[0, 3]}..." : "[#{display_name.length}chars]"
-        OT.ld "[CreateOrganization] Creating organization '#{masked_name}' for user #{cust.extid}"
+        logger.debug "[CreateOrganization] Creating organization", masked_name: masked_name, user_id: cust.extid
 
         # Acquire distributed lock for organization creation to prevent quota race conditions
         lock_key   = "customer:#{cust.objid}:org_creation_lock"
@@ -97,7 +99,7 @@ module OrganizationAPI::Logic
             begin
               lock.release(lock_token)
             rescue StandardError => ex
-              OT.lw "[CreateOrganization] Lock release failed: #{ex.message}"
+              logger.warn "[CreateOrganization] Lock release failed", exception: ex
             end
           end
         end

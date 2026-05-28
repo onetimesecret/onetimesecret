@@ -59,6 +59,8 @@ module AccountAPI::Logic
     # - Returns only public entitlement metadata, no sensitive data
     #
     class GetEntitlements < AccountAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       SCHEMAS = { response: 'account' }.freeze
 
       def raise_concerns
@@ -155,11 +157,7 @@ module AccountAPI::Logic
         # Extract just the data hashes (without the interval tracking key)
         plans_by_tier.values.map { |entry| entry[:data] }
       rescue StandardError => ex
-        OT.le '[GetEntitlements] Error loading plans from cache',
-          {
-            exception: ex.class.name,
-            message: ex.message,
-          }
+        billing_logger.error '[GetEntitlements] Error loading plans from cache', exception: ex
         []
       end
 
