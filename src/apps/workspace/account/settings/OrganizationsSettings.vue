@@ -23,7 +23,9 @@
   const organizationStore = useOrganizationStore();
   const bootstrapStore = useBootstrapStore();
 
-  const isLoading = ref(false);
+  // Best practice: Initialize loading states to `true` to prevent uninitialized
+  // content or empty states from briefly flashing on mount.
+  const isLoading = ref(true);
   const showCreateModal = ref(false);
 
   /**

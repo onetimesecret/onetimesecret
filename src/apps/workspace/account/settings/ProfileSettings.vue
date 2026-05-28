@@ -42,7 +42,9 @@
   });
 
   const isLoading = ref(false);
-  const isLoadingEntitlements = ref(false);
+  // Best practice: Initialize loading states to `true` to prevent uninitialized
+  // content or empty states from briefly flashing on mount.
+  const isLoadingEntitlements = ref(true);
 
   const defaultOrg = computed(
     () =>

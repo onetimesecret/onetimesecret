@@ -25,7 +25,6 @@ import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
 import { SsoService } from '@/services/sso.service';
@@ -135,7 +134,9 @@ const {
   refreshRecords: refreshDomains,
 } = useDomainsManager();
 
-const isLoading = ref(false);
+// Best practice: Initialize loading states to `true` to prevent uninitialized
+// content, empty states, or gated upgrade notices from briefly flashing on mount.
+const isLoading = ref(true);
 const isSaving = ref(false);
 const isLoadingBilling = ref(false);
 // Billing email editing has been moved to BillingOverview.vue
