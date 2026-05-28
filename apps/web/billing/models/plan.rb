@@ -34,7 +34,7 @@ module Billing
   #     "region": "EU",
   #     "entitlements": "api_access,custom_domains,manage_teams",
   #     "limit_teams": "1",
-  #     "limit_members_per_team": "-1"
+  #     "limit_total_members_per_org": "-1"
   #   }
   #
   # ## Plan ID Format
@@ -55,7 +55,7 @@ module Billing
   #
   # Limits use flattened keys to support future expansion:
   #   - "teams.max" => "1" (allows adding "teams.min", "teams.default" later)
-  #   - "members_per_team.max" => "unlimited" (converted to Float::INFINITY)
+  #   - "total_members_per_org.max" => "unlimited" (converted to Float::INFINITY)
   #
   # The stripe_data_snapshot enables recovery without re-syncing from Stripe API
   # if parsing logic changes or bugs are fixed.
@@ -111,12 +111,12 @@ module Billing
 
     # Get limits as hash with infinity conversion
     #
-    # Flattened keys format: "teams.max" => "5", "members_per_team.max" => "unlimited"
+    # Flattened keys format: "teams.max" => "5", "total_members_per_org.max" => "unlimited"
     # This format supports future expansion (e.g., "teams.min", "teams.default")
     #
     # @return [Hash] Limits with integers and Float::INFINITY for unlimited resources
     # @example
-    #   plan.limits_hash  # => {"teams.max" => 1, "members_per_team.max" => Float::INFINITY}
+    #   plan.limits_hash  # => {"teams.max" => 1, "total_members_per_org.max" => Float::INFINITY}
     def limits_hash
       @limits_hash ||= begin
         # HashKey.hgetall returns Hash

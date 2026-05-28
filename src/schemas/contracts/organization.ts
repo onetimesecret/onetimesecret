@@ -98,7 +98,7 @@ import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
  */
 export const organizationLimitsSchema = z.object({
   teams: z.number().optional(),
-  members_per_team: z.number().optional(),
+  total_members_per_org: z.number().optional(),
   custom_domains: z.number().optional(),
 });
 

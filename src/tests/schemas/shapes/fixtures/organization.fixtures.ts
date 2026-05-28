@@ -129,7 +129,7 @@ export type OrganizationWire = OrganizationCanonical & {
   member_count?: number | null;
   current_user_role?: 'owner' | 'admin' | 'member' | null;
   entitlements?: string[] | null;
-  limits?: { teams?: number; members_per_team?: number; custom_domains?: number } | null;
+  limits?: { teams?: number; total_members_per_org?: number; custom_domains?: number } | null;
   domain_count?: number | null;
 };
 
@@ -164,7 +164,7 @@ export function createWireOrganization(
       entitlements: ['create_secrets', 'view_receipt'],
       limits: {
         teams: 1,
-        members_per_team: 5,
+        total_members_per_org: 5,
         custom_domains: 0,
       },
       domain_count: 0,
@@ -185,7 +185,7 @@ export function createWireOrganization(
     entitlements: ['create_secrets', 'view_receipt'],
     limits: {
       teams: 1,
-      members_per_team: 5,
+      total_members_per_org: 5,
       custom_domains: 0,
     },
     domain_count: 0,
@@ -216,7 +216,7 @@ export function createWirePaidOrganization(
     ],
     limits: {
       teams: 10,
-      members_per_team: 50,
+      total_members_per_org: 50,
       custom_domains: 5,
     },
     domain_count: 2,
@@ -240,7 +240,7 @@ export function createWireFreeOrganization(
       planid: 'free_v1',
     })),
     entitlements: [],
-    limits: { teams: 0, members_per_team: 0, custom_domains: 0 },
+    limits: { teams: 0, total_members_per_org: 0, custom_domains: 0 },
     ...overrides,
   };
 }
@@ -261,7 +261,7 @@ export function createWireSingleTeamOrganization(
     member_count: 5,
     current_user_role: 'owner',
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
+    limits: { teams: 1, total_members_per_org: 10, custom_domains: 3 },
     ...overrides,
   };
 }
@@ -289,7 +289,7 @@ export function createWireMultiTeamOrganization(
       'manage_members',
       'audit_logs',
     ],
-    limits: { teams: 5, members_per_team: 25, custom_domains: 10 },
+    limits: { teams: 5, total_members_per_org: 25, custom_domains: 10 },
     ...overrides,
   };
 }
@@ -312,7 +312,7 @@ export function createWireLegacyIdentityOrganization(
     member_count: 3,
     current_user_role: 'owner',
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
+    limits: { teams: 1, total_members_per_org: 10, custom_domains: 3 },
     ...overrides,
   };
 }

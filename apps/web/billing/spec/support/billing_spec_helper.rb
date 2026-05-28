@@ -194,7 +194,7 @@ module BillingSpecHelper
     identity_plus_limits_hash = {
       'teams.max' => 0,
       'organizations.max' => 10,
-      'members_per_team.max' => 10,
+      'total_members_per_org.max' => 10,
       'custom_domains.max' => Float::INFINITY,
       'secret_lifetime.max' => 2_592_000,
     }

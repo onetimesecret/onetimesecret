@@ -61,7 +61,7 @@ module Onetime
           # Informational, not an error: fresh checkouts and standalone
           # deployments without billing configured skip cleanly. The
           # `predev` hook depends on this graceful no-op.
-          puts "[billing catalog generate-docs] skipped: billing.yaml not configured"
+          puts '[billing catalog generate-docs] skipped: billing.yaml not configured'
           return
         end
 
@@ -278,7 +278,7 @@ module Onetime
       LIMIT_NOTE_FORMATTERS = {
         'secret_lifetime' => ->(value) { value && value.to_i > 0 ? "#{value.to_i / 86_400} days" : '' },
         'teams' => ->(value) { value&.to_i == 0 ? 'No team access' : '' },
-        'members_per_team' => ->(value) { value&.to_i == 1 ? 'Individual only' : '' },
+        'total_members_per_org' => ->(value) { value&.to_i == 1 ? 'Individual only' : '' },
       }.freeze
       private_constant :LIMIT_NOTE_FORMATTERS
 

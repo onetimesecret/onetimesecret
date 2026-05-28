@@ -219,7 +219,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
           "0\n",                # Display order
           "yes\n",              # Show on plans page
           "-1\n",               # Limit teams
-          "-1\n",               # Limit members per team
+          "-1\n",               # Limit members per org
           "y\n",                # Confirmation
         ]
         allow($stdin).to receive(:gets).and_return(*inputs)

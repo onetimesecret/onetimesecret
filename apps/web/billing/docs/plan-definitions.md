@@ -90,7 +90,7 @@ Default tier for all users without subscription
 | Resource | Limit | Notes |
 |----------|-------|-------|
 | organizations | 1 |  |
-| members_per_team | 1 | Individual only |
+| total_members_per_org | 1 | Individual only |
 | custom_domains | 1 |  |
 | secret_lifetime | 1209600 | 14 days |
 | secrets_per_day | TBD |  |
@@ -125,7 +125,7 @@ Original plan, grandfathered for existing customers
 | Resource | Limit | Notes |
 |----------|-------|-------|
 | organizations | 1 |  |
-| members_per_team | 5 |  |
+| total_members_per_org | 5 |  |
 | custom_domains | ∞ (unlimited) |  |
 | secret_lifetime | 2592000 | 30 days |
 | secrets_per_day | ∞ (unlimited) |  |
@@ -157,7 +157,7 @@ For individuals needing custom domains and extended retention
 | Resource | Limit | Notes |
 |----------|-------|-------|
 | organizations | 1 |  |
-| members_per_team | 1 | Individual only |
+| total_members_per_org | 1 | Individual only |
 | custom_domains | ∞ (unlimited) |  |
 | secret_lifetime | 1209600 | 14 days |
 | secrets_per_day | ∞ (unlimited) |  |
@@ -201,7 +201,7 @@ For teams needing collaboration features
 | Resource | Limit | Notes |
 |----------|-------|-------|
 | organizations | 10 |  |
-| members_per_team | 5 |  |
+| total_members_per_org | 5 |  |
 | custom_domains | ∞ (unlimited) |  |
 | secret_lifetime | 2592000 | 30 days |
 | secrets_per_day | ∞ (unlimited) |  |
@@ -237,7 +237,7 @@ Each Stripe product must include specific metadata fields to be recognized by th
   "show_on_plans_page": "Visibility on plans page (true/false, default: true)",
   "entitlements": "Comma-separated entitlement list",
   "created": "ISO 8601 creation timestamp",
-  "limit_members_per_team": "Max members per team (-1 for unlimited)",
+  "limit_total_members_per_org": "Max members per org (-1 for unlimited)",
   "limit_custom_domains": "Max custom domains (-1 for unlimited)",
   "limit_secret_lifetime": "Max secret lifetime in seconds (-1 for unlimited)",
   "limit_secrets_per_day": "Daily secret creation limit (-1 for unlimited)"

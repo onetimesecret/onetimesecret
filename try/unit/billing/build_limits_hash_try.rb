@@ -70,9 +70,9 @@ result = @ctrl.send(:build_limits_hash, @org)
 #=> [5, 2592000]
 
 ## Materialized org: 'unlimited' string values become nil
-@org.limits_plan['members_per_team.max'] = 'unlimited'
+@org.limits_plan['total_members_per_org.max'] = 'unlimited'
 result = @ctrl.send(:build_limits_hash, @org)
-result['members_per_team.max']
+result['total_members_per_org.max']
 #=> nil
 
 ## Materialized org: numeric string values become integers
@@ -114,12 +114,12 @@ BillingTestHelpers.with_billing_enabled(plans: [{
   interval: 'month',
   region: 'us',
   entitlements: ['api_access'],
-  limits: { 'teams.max' => '3', 'members_per_team.max' => 'unlimited' }
+  limits: { 'teams.max' => '3', 'total_members_per_org.max' => 'unlimited' }
 }]) do
   @org2.planid = 'fallback_test_plan'
   @org2.save
   result = @ctrl.send(:build_limits_hash, @org2)
-  [result['teams.max'], result['members_per_team.max']]
+  [result['teams.max'], result['total_members_per_org.max']]
 end
 #=> [3, nil]
 

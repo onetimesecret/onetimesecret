@@ -28,7 +28,7 @@ const validBillingConfig = {
       entitlements: ['base_feature'],
       limits: {
         organizations: 1,
-        members_per_team: 1,
+        total_members_per_org: 1,
         custom_domains: 0,
         secret_lifetime: 604800,
       },
@@ -83,7 +83,7 @@ describe('PlanDefinitionShape — required non-empty strings', () => {
       PlanDefinitionShape.parse({
         name: '',
         entitlements: ['x'],
-        limits: { organizations: 1, members_per_team: 1, custom_domains: 0, secret_lifetime: 1 },
+        limits: { organizations: 1, total_members_per_org: 1, custom_domains: 0, secret_lifetime: 1 },
         prices: [{ interval: 'month', amount: 0 }],
       })
     ).toThrow();
@@ -95,7 +95,7 @@ describe('PlanDefinitionShape — required non-empty strings', () => {
         name: 'X',
         display_order: -5,
         entitlements: ['x'],
-        limits: { organizations: 1, members_per_team: 1, custom_domains: 0, secret_lifetime: 1 },
+        limits: { organizations: 1, total_members_per_org: 1, custom_domains: 0, secret_lifetime: 1 },
         prices: [{ interval: 'month', amount: 0 }],
       })
     ).toThrow();

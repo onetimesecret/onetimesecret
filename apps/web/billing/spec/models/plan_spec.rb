@@ -71,7 +71,7 @@ RSpec.describe Billing::Plan, type: :billing do
       )
       plan.save
       plan.limits['teams.max'] = '5'
-      plan.limits['members_per_team.max'] = 'unlimited'
+      plan.limits['total_members_per_org.max'] = 'unlimited'
       plan.limits['secrets_per_day.max'] = '100'
       plan
     end
@@ -86,7 +86,7 @@ RSpec.describe Billing::Plan, type: :billing do
     end
 
     it 'converts "unlimited" to Float::INFINITY' do
-      expect(plan.limits_hash['members_per_team.max']).to eq(Float::INFINITY)
+      expect(plan.limits_hash['total_members_per_org.max']).to eq(Float::INFINITY)
     end
 
     it 'memoizes the hash' do
@@ -292,7 +292,7 @@ RSpec.describe Billing::Plan, type: :billing do
       plan.entitlements.add('manage_teams')
       plan.entitlements.add('sso')
       plan.limits['teams.max'] = '10'
-      plan.limits['members_per_team.max'] = 'unlimited'
+      plan.limits['total_members_per_org.max'] = 'unlimited'
       plan
     end
 
@@ -321,7 +321,7 @@ RSpec.describe Billing::Plan, type: :billing do
 
     it 'provides limits for plan comparison' do
       expect(plan.limits_hash['teams.max']).to eq(10)
-      expect(plan.limits_hash['members_per_team.max']).to eq(Float::INFINITY)
+      expect(plan.limits_hash['total_members_per_org.max']).to eq(Float::INFINITY)
     end
 
     it 'provides display_order for sorting' do

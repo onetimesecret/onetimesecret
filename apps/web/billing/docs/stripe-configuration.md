@@ -39,16 +39,16 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
   "plan_id": "identity_plus_v1",
   "entitlements": "create_secrets,create_team,custom_domains",
   "limit_teams": "1",
-  "limit_members_per_team": "-1",
-  "limit_owners_per_team": "1",
-  "limit_admins_per_team": "-1",
-  "limit_regular_members_per_team": "-1"
+  "limit_total_members_per_org": "-1",
+  "limit_role_owners_per_org": "1",
+  "limit_role_admins_per_org": "-1",
+  "limit_role_members_per_org": "-1"
 }
 ```
 
-**Member limit semantics:** `limit_members_per_team` is the aggregate ceiling
-across all roles. The three role-specific keys (`limit_owners_per_team`,
-`limit_admins_per_team`, `limit_regular_members_per_team`) apply sub-caps per
+**Member limit semantics:** `limit_total_members_per_org` is the aggregate ceiling
+across all roles. The three role-specific keys (`limit_role_owners_per_org`,
+`limit_role_admins_per_org`, `limit_role_members_per_org`) apply sub-caps per
 role. Both the role-specific bucket and the aggregate are enforced on
 invitation; the stricter of the two wins.
 

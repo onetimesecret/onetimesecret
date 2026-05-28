@@ -25,7 +25,7 @@ module Billing
       #     "entitlements": ["api_access", "custom_domains", "manage_teams"],
       #     "limits": {
       #       "teams": 1,
-      #       "members_per_team": null,
+      #       "total_members_per_org": null,
       #       "secret_lifetime": 2592000
       #     },
       #     "is_legacy": false

@@ -187,10 +187,10 @@ plans:
 
     limits:
       organizations: 1
-      members_per_team: 1         # aggregate cap across all roles
-      owners_per_team: 1          # always 1 — explicit for clarity
-      admins_per_team: 0
-      regular_members_per_team: 0
+      total_members_per_org: 1         # aggregate cap across all roles
+      role_owners_per_org: 1          # always 1 — explicit for clarity
+      role_admins_per_org: 0
+      role_members_per_org: 0
       custom_domains: 1
       secret_lifetime: 1209600 # 14 days in seconds
       secrets_per_day: null    # TBD - not yet enforced
@@ -233,10 +233,10 @@ plans:
 
     limits:
       organizations: 1
-      members_per_team: 1         # aggregate cap across all roles
-      owners_per_team: 1          # always 1 — explicit for clarity
-      admins_per_team: 0
-      regular_members_per_team: 0
+      total_members_per_org: 1         # aggregate cap across all roles
+      role_owners_per_org: 1          # always 1 — explicit for clarity
+      role_admins_per_org: 0
+      role_members_per_org: 0
       custom_domains: -1       # unlimited
       secret_lifetime: 2592000 # 30 days in seconds
       secrets_per_day: -1      # unlimited
@@ -290,10 +290,10 @@ plans:
   #
   #   limits:
   #     organizations: 1
-  #     members_per_team: 5            # aggregate cap across all roles
-  #     owners_per_team: 1             # always 1 — explicit for clarity
-  #     admins_per_team: 2
-  #     regular_members_per_team: -1   # unlimited regular members (capped by members_per_team)
+  #     total_members_per_org: 5            # aggregate cap across all roles
+  #     role_owners_per_org: 1             # always 1 — explicit for clarity
+  #     role_admins_per_org: 2
+  #     role_members_per_org: -1   # unlimited regular members (capped by total_members_per_org)
   #     custom_domains: -1       # unlimited
   #     secret_lifetime: 7776000 # 90 days in seconds
   #     secrets_per_day: -1      # unlimited
@@ -327,10 +327,10 @@ stripe_metadata_schema:
     - entitlements: "Comma-separated entitlement list"
     - created: "ISO 8601 creation timestamp"
     - limit_teams: "Max teams (-1 for unlimited)"
-    - limit_members_per_team: "Aggregate member cap across all roles (-1 for unlimited)"
-    - limit_owners_per_team: "Max owners per organization (typically 1)"
-    - limit_admins_per_team: "Max admin members (-1 for unlimited)"
-    - limit_regular_members_per_team: "Max regular members (-1 for unlimited)"
+    - limit_total_members_per_org: "Aggregate member cap across all roles (-1 for unlimited)"
+    - limit_role_owners_per_org: "Max owners per organization (typically 1)"
+    - limit_role_admins_per_org: "Max admin members (-1 for unlimited)"
+    - limit_role_members_per_org: "Max regular members (-1 for unlimited)"
     - limit_custom_domains: "Max custom domains (-1 for unlimited)"
     - limit_secret_lifetime: "Max secret lifetime in seconds (-1 for unlimited)"
     - limit_secrets_per_day: "Daily secret creation limit (-1 for unlimited)"

@@ -43,7 +43,7 @@ module Onetime::Organization::Features
                 normalize = ->(val) { val == Float::INFINITY ? -1 : val.to_i }
                 {
                   teams: normalize.call(org.limit_for(:teams)),
-                  members_per_team: normalize.call(org.limit_for(:members_per_team)),
+                  total_members_per_org: normalize.call(org.limit_for(:total_members_per_org)),
                   custom_domains: normalize.call(org.limit_for(:custom_domains)),
                 }
         }
