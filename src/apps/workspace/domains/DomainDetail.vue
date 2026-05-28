@@ -74,6 +74,9 @@ const canAdmin = computed(() => {
   return role === 'owner' || role === 'admin';
 });
 
+// Removing a domain is owner-only — admins manage configuration but not lifecycle.
+const isOwner = computed(() => organization.value?.current_user_role === 'owner');
+
 const domainsStore = useDomainsStore();
 
 const handleHomepageToggle = async () => {
@@ -296,8 +299,8 @@ aria-hidden="true" />
         </template>
       </div>
 
-      <!-- Careful Consideration Zone -->
-      <template v-if="canAdmin">
+      <!-- Careful Consideration Zone (owner-only — domain removal is lifecycle, not config) -->
+      <template v-if="isOwner">
         <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
         <div>
         <h2 class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">

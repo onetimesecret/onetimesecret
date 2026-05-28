@@ -255,6 +255,18 @@
     "text": "Failed to delete organization",
     "content_hash": "a8e5bb28"
   },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Deleting this organization"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "This is your default organization and can't be removed from the dashboard. To delete it, please reach out through the"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "feedback form"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
   "web.organizations.members.title": {
     "text": "Members",
     "content_hash": "1044a4c0"
