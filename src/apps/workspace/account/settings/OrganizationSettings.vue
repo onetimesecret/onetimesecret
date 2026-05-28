@@ -15,6 +15,7 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
@@ -179,6 +180,11 @@ const {
 // SSO visibility: feature flag AND entitlement must both pass (dual-control)
 const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
+// Role-based gate: only owners and admins can add new domains (mirrors
+// route guard `requireDomainAdminRole` and backend check). Hides the UI
+// affordance so members don't see a dead-end link.
+const { canCreateDomain } = useOrgPermissions(organization);
+
 // SSO status per domain — populated on-demand when SSO tab is shown
 interface DomainSsoStatus {
   configured: boolean;
@@ -318,7 +324,7 @@ const loadBilling = async () => {
           status: overview.subscription.status as any,
           teams_limit: overview.plan.limits.teams || 0,
           teams_used: 0, // Teams removed from usage data for 0.24; will be re-added
-          members_per_team_limit: overview.plan.limits.members_per_team || 0,
+          total_members_per_org_limit: overview.plan.limits.total_members_per_org || 0,
           billing_interval: overview.plan.interval as any,
           current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
           current_period_end: new Date(overview.subscription.period_end * 1000),
@@ -473,14 +479,14 @@ const canManageMembers = computed(() => {
 });
 
 // Mirror backend check (create_invitation.rb:130): member_count + pending invitations
-// vs members_per_team limit. Limit of -1 means unlimited; null/undefined means
+// vs total_members_per_org limit. Limit of -1 means unlimited; null/undefined means
 // unknown (e.g. self-hosted) — treat as no limit.
 const pendingInvitationCount = computed(() =>
   invitations.value.filter((inv) => inv.status === 'pending').length
 );
 
 const memberLimitReached = computed(() => {
-  const limit = organization.value?.limits?.members_per_team;
+  const limit = organization.value?.limits?.total_members_per_org;
   if (limit === null || limit === undefined || limit < 0) return false;
   return membersStore.memberCount + pendingInvitationCount.value >= limit;
 });
@@ -488,7 +494,7 @@ const memberLimitReached = computed(() => {
 // Finite quota cap (positive int) or null when unlimited/unknown. Drives the
 // "X of Y" count format in the title slot.
 const memberQuotaLimit = computed(() => {
-  const limit = organization.value?.limits?.members_per_team;
+  const limit = organization.value?.limits?.total_members_per_org;
   if (limit === null || limit === undefined || limit < 0) return null;
   return limit;
 });
@@ -771,7 +777,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
       </div>
 
       <!-- Content -->
-      <div v-else>
+      <div v-else class="space-y-6">
         <!-- General Tab -->
         <section
           v-if="activeTab === 'general'"
@@ -873,6 +879,36 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             </form>
           </div>
         </section>
+
+        <!--
+          Default-org delete notice (General tab only).
+          Default organizations are not removable from the dashboard; users
+          must request deletion through the public feedback form so the team
+          can confirm intent and reassign any owned resources.
+        -->
+        <div
+          v-if="activeTab === 'general' && organization?.is_default"
+          data-testid="org-default-delete-notice"
+          class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          <div class="flex items-start gap-3">
+            <OIcon
+              collection="heroicons"
+              name="information-circle"
+              class="mt-0.5 size-5 flex-shrink-0 text-gray-400 dark:text-gray-500"
+              aria-hidden="true" />
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                {{ t('web.organizations.default_org_delete_notice_title') }}
+              </h3>
+              <p class="mt-1">
+                {{ t('web.organizations.default_org_delete_notice_before') }}
+                <router-link
+                  to="/feedback"
+                  class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">{{ t('web.organizations.default_org_delete_notice_link') }}</router-link>{{ t('web.organizations.default_org_delete_notice_after') }}
+              </p>
+            </div>
+          </div>
+        </div>
 
         <!-- Members Tab -->
         <section
@@ -1131,6 +1167,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </p>
               </div>
               <router-link
+                v-if="canCreateDomain"
                 :to="`/org/${orgId}/domains/add`"
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
@@ -1160,10 +1197,10 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               :orgid="orgId"
               compact />
 
-            <!-- Empty State -->
+            <!-- Empty State — only owners/admins see the add action -->
             <EmptyState
               v-else
-              :showAction="true"
+              :showAction="canCreateDomain"
               :action-route="`/org/${orgId}/domains/add`"
               :action-text="t('web.domains.add_domain')">
               <template #title>
