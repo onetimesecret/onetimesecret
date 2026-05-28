@@ -142,6 +142,45 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(second[:reason]).to eq('already_member')
       expect(second[:organization]&.objid).to eq(tenant_organization.objid)
     end
+
+    # The invited-then-SSO sub-case: a pending org-scoped invitation is accepted
+    # *through* the SSO join path. ensure_membership takes its accept! branch,
+    # which carries the invitation's own (nil) domain_scope_id — the SSO-supplied
+    # domain_scope_id is ignored. The member therefore stays org-scoped: broader
+    # access than domain-scoped, not a leak. This test pins that as intended
+    # behavior and asserts the invite is consumed (not duplicated) and that
+    # provisioning_source: 'sso' threads through accept!/activate!.
+    it 'accepts a pending org-scoped invitation via SSO and stays org-scoped' do
+      invitation = Onetime::OrganizationMembership.create_invitation!(
+        organization: tenant_organization,
+        email: sso_customer.email,
+        role: 'member',
+        inviter: tenant_org_owner,
+      )
+      expect(invitation.pending?).to be(true)
+      expect(tenant_organization.pending_invitation_count).to eq(1)
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: sso_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true), "Expected invited user to be joined, got: #{result.inspect}"
+      expect(result[:reason]).to eq('added_via_sso')
+      expect(tenant_organization.member?(sso_customer)).to be(true)
+
+      # Invite consumed, not duplicated.
+      expect(tenant_organization.pending_invitation_count).to eq(0)
+
+      membership = result[:membership]
+      expect(membership).not_to be_nil
+      # SSO lifecycle attribution survives the accept! path.
+      expect(membership.provisioning_source).to eq('sso')
+      # Scope invariant: invite's nil scope wins over the SSO domain_scope_id.
+      expect(membership.org_scoped?).to be(true),
+        "Expected membership to stay org-scoped, got domain_scope_id=#{membership.domain_scope_id.inspect}"
+      expect(membership.domain_scope_id.to_s).to be_empty
+    end
   end
 
   # ==========================================================================
