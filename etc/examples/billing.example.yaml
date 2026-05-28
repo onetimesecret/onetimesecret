@@ -213,16 +213,16 @@ plans:
     description: "For individuals needing custom domains and extended retention"
 
     entitlements:
-      - create_secrets
-      - view_receipt
       - api_access
-      - custom_domains
-      - custom_privacy_defaults
+      - create_secrets
       - custom_branding
+      - custom_domains
+      - custom_mail_sender
+      - custom_privacy_defaults
+      - extended_default_expiration
       - homepage_secrets
       - incoming_secrets
-      - custom_mail_sender
-      - extended_default_expiration
+      - view_receipt
 
     features:
       - web.billing.features.custom_domains
@@ -232,14 +232,14 @@ plans:
       - web.billing.features.api_access
 
     limits:
+      custom_domains: -1       # unlimited
       organizations: 1
-      total_members_per_org: 1         # aggregate cap across all roles
-      role_owners_per_org: 1          # always 1 — explicit for clarity
       role_admins_per_org: 0
       role_members_per_org: 0
-      custom_domains: -1       # unlimited
+      role_owners_per_org: 1          # always 1 — explicit for clarity
       secret_lifetime: 2592000 # 30 days in seconds
       secrets_per_day: -1      # unlimited
+      total_members_per_org: 1         # aggregate cap across all roles
 
     # Changes to prices requires a full catalog push && catalog pull. If a price is
     # updated/deleted/archived through the Stripe dashboard, the pull command must
