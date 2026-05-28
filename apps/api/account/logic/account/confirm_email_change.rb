@@ -88,7 +88,7 @@ module AccountAPI::Logic
             fallback: :async_thread,
           )
         rescue StandardError => ex
-          OT.le "[confirm-email-change] Failed to send email-changed notification: #{ex.message}"
+          auth_logger.error "[confirm-email-change] Failed to send email-changed notification", exception: ex
         end
 
         OT.info "[confirm-email-change] Email change confirmed cid/#{@owner.objid} new/#{OT::Utils.obscure_email(new_email)}"
@@ -108,8 +108,7 @@ module AccountAPI::Logic
           customer.update_in_organization_email_index(org, old_email)
         end
       rescue StandardError => ex
-        OT.le "[confirm-email-change] Org index update failed cid/#{customer.objid}: #{ex.message}"
-        OT.le ex.backtrace.first(5).join("\n")
+        auth_logger.error "[confirm-email-change] Org index update failed", customer_id: customer.objid, exception: ex
       end
 
       def find_auth_account(customer)
@@ -128,7 +127,7 @@ module AccountAPI::Logic
 
         OT.info "[confirm-email-change] Auth database updated cid/#{customer.objid}"
       rescue StandardError => ex
-        OT.le "[confirm-email-change] Auth database update failed: #{ex.message}"
+        auth_logger.error "[confirm-email-change] Auth database update failed", exception: ex
         raise_form_error 'Email change could not be completed', error_type: 'system_error'
       end
 
@@ -154,7 +153,7 @@ module AccountAPI::Logic
         # Also clear the current request's session if present
         sess.clear if sess
       rescue StandardError => ex
-        OT.le "[confirm-email-change] Session invalidation error: #{ex.message}"
+        auth_logger.error "[confirm-email-change] Session invalidation error", exception: ex
       end
 
       # Scan Redis for all session keys belonging to the given customer
@@ -186,7 +185,7 @@ module AccountAPI::Logic
 
         OT.info "[confirm-email-change] Deleted #{deleted} Redis session(s) for cid/#{customer.objid}"
       rescue StandardError => ex
-        OT.le "[confirm-email-change] Redis session cleanup error: #{ex.message}"
+        auth_logger.error "[confirm-email-change] Redis session cleanup error", exception: ex
       end
 
       # Resolve the session secret using the same fallback chain as

@@ -12,6 +12,7 @@ module V1
     class Base
       using Familia::Refinements::TimeLiterals
 
+      include Onetime::LoggerMethods
       include V1::Logic::UriHelpers
       include Onetime::Security::InputSanitizers
 
@@ -29,7 +30,7 @@ module V1
         process_settings
 
         if cust.is_a?(String)
-          OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
+          logger.info "Friendly reminder to pass in a Customer instance instead of a custid", logic_class: self.class
           @cust = Onetime::Customer.load_by_extid_or_email(cust)
         end
 
@@ -46,14 +47,13 @@ module V1
       end
 
       def valid_email?(email_field)
-        OT.ld "[valid_email?] Email field: #{email_field}"
+        logger.debug "[valid_email?] Email field", email_field: email_field
 
         begin
           validator = Truemail.validate(email_field)
 
         rescue StandardError => e
-          OT.le "Email validation error: #{e.message}"
-          OT.le e.backtrace
+          logger.error "Email validation error", exception: e
           false
         else
           valid = validator.result.valid?
@@ -74,7 +74,7 @@ module V1
       end
 
       def form_fields
-        OT.ld "No form_fields method for #{self.class} via:", caller[0..2].join("\n")
+        logger.debug "No form_fields method", logic_class: self.class
         {}
       end
 

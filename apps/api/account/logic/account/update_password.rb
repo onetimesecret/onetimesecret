@@ -7,6 +7,7 @@ require 'onetime/logic/sso_only_gating'
 module AccountAPI::Logic
   module Account
     class UpdatePassword < UpdateAccountField
+      include Onetime::LoggerMethods
       include Onetime::Logic::SsoOnlyGating
 
       def raise_concerns
@@ -15,7 +16,7 @@ module AccountAPI::Logic
       end
 
       def process_params
-        OT.ld "[UpdatePassword#process_params] param keys: #{params.keys.sort}"
+        auth_logger.debug "[UpdatePassword#process_params] param keys", param_keys: params.keys.sort
         @password        = self.class.normalize_password(params['password']) # was currentp
         @newpassword     = self.class.normalize_password(params['newpassword']) # was newp
         @passwordconfirm = self.class.normalize_password(params['password-confirm']) # was newp2
@@ -71,10 +72,10 @@ module AccountAPI::Logic
       def verify_password_full_mode(password)
         Auth::Config.valid_login_and_password?(login: cust.email, password: password)
       rescue Rodauth::InternalRequestError => ex
-        OT.le "[update-password] Rodauth verification failed: #{ex.message}"
+        auth_logger.error "[update-password] Rodauth verification failed", exception: ex
         false
       rescue StandardError => ex
-        OT.le "[update-password] Password verification error: #{ex.message}"
+        auth_logger.error "[update-password] Password verification error", exception: ex
         false
       end
 
@@ -88,7 +89,7 @@ module AccountAPI::Logic
           new_password: @newpassword,
         )
       rescue Rodauth::InternalRequestError => ex
-        OT.le "[update-password] Rodauth change_password failed: #{ex.message}"
+        auth_logger.error "[update-password] Rodauth change_password failed", exception: ex
         raise_form_error 'Password change failed', error_type: 'system_error'
       end
     end
