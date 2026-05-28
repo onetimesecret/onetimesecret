@@ -43,8 +43,16 @@ module Auth
         return skip_result('No customer provided') unless customer
         return skip_result('No domain_id provided') if domain_id.to_s.empty?
 
-        # Load the custom domain
-        domain = Onetime::CustomDomain.load(domain_id)
+        # Load the custom domain by objid. domain_id IS the objid here, so use
+        # the by-identifier loader (as CustomDomain.from_display_domain does).
+        # CustomDomain.load requires (display_domain, org_id) and would raise
+        # ArgumentError — swallowed by the rescue below, silently skipping the join.
+        domain = begin
+          Onetime::CustomDomain.find_by_identifier(domain_id)
+        rescue Onetime::RecordNotFound
+          OT.le "[JoinDomainOrganization] Domain not found (RecordNotFound): #{domain_id}"
+          nil
+        end
         return skip_result("Domain not found: #{domain_id}") unless domain
 
         # Get the domain's primary organization
@@ -65,7 +73,8 @@ module Auth
         # otherwise creates membership directly. provisioning_source: 'sso'
         # attributes lifecycle to the JIT path regardless of prior invite state.
         membership = Onetime::OrganizationMembership.ensure_membership(
-          organization, customer,
+          organization,
+          customer,
           role: 'member',
           domain_scope_id: domain.objid,
           provisioning_source: 'sso',
