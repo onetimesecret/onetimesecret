@@ -126,6 +126,7 @@ namespace :spec do
         end
 
         patterns = [
+          *Dir.glob("apps/*/*/spec/integration/#{mode}"),
           "spec/integration/#{mode}",
           'spec/integration/all',
         ].join(' ')
