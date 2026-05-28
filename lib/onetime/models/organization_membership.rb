@@ -78,24 +78,24 @@ module Onetime
     ].freeze
 
     ADMIN_ENTITLEMENTS = Set[
-      'manage_teams',
       'manage_members',
-      'audit_logs',
-      'workspace_branding',
-      'ip_access_rules',
       'custom_domains',
-    ].freeze
-
-    OWNER_ENTITLEMENTS = Set[
       'homepage_secrets',
       'incoming_secrets',
       'custom_branding',
       'custom_privacy_defaults',
+    ].freeze
+
+    OWNER_ENTITLEMENTS = Set[
+      'audit_logs',
+      'ip_access_rules',
+      'workspace_branding',
       'custom_mail_sender',
       'flexible_from_domain',
       'custom_signup_validation',
       'manage_sso',
       'manage_orgs',
+      'manage_org',
       'manage_billing',
     ].freeze
 
