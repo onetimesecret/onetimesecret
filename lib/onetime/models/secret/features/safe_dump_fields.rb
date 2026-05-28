@@ -36,12 +36,12 @@ module Onetime::Secret::Features
       base.safe_dump_field :key, ->(obj) { obj.identifier }
       base.safe_dump_field :shortid, ->(obj) { obj.shortid }
       base.safe_dump_field :state
-      base.safe_dump_field :secret_ttl, ->(m) { m.lifespan }
-      base.safe_dump_field :lifespan
+      base.safe_dump_field :secret_ttl, ->(m) { m.lifespan&.to_i }
+      base.safe_dump_field :lifespan, ->(m) { m.lifespan&.to_i }
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }
       base.safe_dump_field :verification, ->(m) { m.verification? }
-      base.safe_dump_field :created
-      base.safe_dump_field :updated
+      base.safe_dump_field :created, ->(m) { m.created.to_i }
+      base.safe_dump_field :updated, ->(m) { m.updated.to_i }
 
       # State boolean fields - canonical names
       base.safe_dump_field :is_previewed, ->(m) { m.state?(:previewed) }
