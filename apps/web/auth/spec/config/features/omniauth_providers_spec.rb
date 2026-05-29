@@ -14,6 +14,18 @@
 require 'rspec'
 require 'climate_control'
 
+# Define the Auth::Config namespace so the feature module can load without a full
+# app boot. Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
+# `module Config` or `class Config`: if this file is ever loaded in a process
+# that also boots the real app, the application registry reopens
+# `class Config < Rodauth::Auth`. A plain module/class fixes the constant to the
+# wrong type, so the reopen raises a TypeError ("Config is not a class") and boot
+# is marked permanently not-ready for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Features, Module.new) unless Auth::Config.const_defined?(:Features, false)
+
 RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
   # Stub namespaces and logger before loading the module
   before(:all) do
@@ -24,11 +36,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       end
     end
 
-    # Stub the Auth::Config::Features namespace so the module can be defined
-    unless defined?(Auth::Config::Features)
-      module ::Auth; module Config; module Features; end; end; end
-    end
-
+    # Auth::Config::Features namespace is established by the top-level shim above.
     require File.expand_path('../../../config/features/omniauth.rb', __dir__)
   end
 
