@@ -59,7 +59,7 @@ module Billing
 
             unless checkout_email.eql?(cust.email)
               # Security: Don't link checkout to a different account than checkout_email
-              billing_logger.error "[FromStripePaymentLink] Email mismatch: checkout email differs from authenticated user", customer: cust.obscure_email
+              billing_logger.error '[FromStripePaymentLink] Email mismatch: checkout email differs from authenticated user', customer: cust.obscure_email
               raise_form_error 'Please log out first to complete checkout with a different email address'
             end
 
@@ -146,7 +146,7 @@ module Billing
           org.update_from_stripe_subscription(stripe_subscription)
         rescue Stripe::StripeError, Familia::Problem => ex
           # Log but don't fail the checkout flow - billing can be reconciled later
-          billing_logger.error "[FromStripePaymentLink] Error updating organization billing", exception: ex
+          billing_logger.error '[FromStripePaymentLink] Error updating organization billing', exception: ex
         end
 
         # Ensure customer has a default workspace, creating one if needed.
@@ -197,7 +197,7 @@ module Billing
             },
           )
         rescue StandardError => ex
-          billing_logger.error "[FromStripePaymentLink] Error sending verification email", exception: ex
+          billing_logger.error '[FromStripePaymentLink] Error sending verification email', exception: ex
         end
 
         # Preserve existing stripe_customer_id during checkout association
@@ -285,7 +285,7 @@ module Billing
           # The customer_extid was embedded in subscription metadata when checkout was created
           customer = Onetime::Customer.find_by_extid(customer_extid)
           unless customer
-            billing_logger.error "[ProcessCheckoutSession] Customer not found", customer_extid: customer_extid
+            billing_logger.error '[ProcessCheckoutSession] Customer not found', extid: customer_extid
             raise_form_error 'Customer not found'
           end
 
@@ -364,7 +364,7 @@ module Billing
           # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org context)
           # See: apps/web/auth/operations/create_default_workspace.rb
           billing_logger.warn '[ProcessCheckoutSession] Creating default org during checkout (unexpected)',
-            customer_extid: customer.extid
+            extid: customer.extid
           Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,

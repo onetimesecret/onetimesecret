@@ -40,10 +40,22 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
   subject(:logic) { described_class.new(strategy_result, params) }
 
+  # Source now uses the category-aware `logger` (Onetime::LoggerMethods) instead
+  # of the OT.ld/OT.lw shims, and passes masked_name/extid as structured kwargs
+  # rather than interpolating them into the message string.
+  let(:app_logger_double) do
+    instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil)
+  end
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
+    # Stub at the get_logger level (not allow(logic).to receive(:logger)) so we
+    # don't force eager instantiation of the memoized `subject(:logic)` in the
+    # before hook, which would freeze display_name before per-example params edits.
+    allow(Onetime).to receive(:get_logger).and_call_original
+    allow(Onetime).to receive(:get_logger).with('App').and_return(app_logger_double)
   end
 
   describe '#process_params' do
@@ -309,7 +321,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'masks short organization name in debug logs' do
-        expect(OT).to receive(:ld).with(/\[2chars\]/)
+        expect(app_logger_double).to receive(:debug)
+          .with(/Creating organization/, hash_including(masked_name: '[2chars]'))
         logic.process
       end
     end
@@ -317,7 +330,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
     context 'with normal display_name (>3 chars)' do
       it 'masks organization name showing only first 3 chars' do
         # Default params has display_name: 'Organization' which masks to 'Org...'
-        expect(OT).to receive(:ld).with(/Creating organization 'Org\.\.\.'/)
+        expect(app_logger_double).to receive(:debug)
+          .with(/Creating organization/, hash_including(masked_name: 'Org...'))
         logic.process
       end
     end
@@ -434,11 +448,10 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         allow(lock).to receive(:acquire).with(ttl: 30).and_return(lock_token)
         allow(lock).to receive(:release).with(lock_token)
           .and_raise(Redis::ConnectionError, 'Connection lost')
-        allow(OT).to receive(:lw)
       end
 
       it 'logs warning but does not raise' do
-        expect(OT).to receive(:lw).with(/Lock release failed/)
+        expect(app_logger_double).to receive(:warn).with(/Lock release failed/, any_args)
         result = logic.process
         expect(result).to have_key(:record)
       end

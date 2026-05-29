@@ -74,7 +74,7 @@ module V1
       end
 
       def form_fields
-        logger.debug "No form_fields method", logic_class: self.class
+        logger.debug "No form_fields method", logic_class: self.class, caller: caller[0..2]
         {}
       end
 

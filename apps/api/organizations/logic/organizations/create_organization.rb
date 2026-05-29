@@ -29,25 +29,39 @@ module OrganizationAPI::Logic
 
         # Validate display_name (basic validation before quota check)
         if display_name.empty?
-          raise_form_error(error_key: 'api.organizations.errors.display_name_required',
-                           field: 'display_name', error_type: :missing)
+          raise_form_error(
+            error_key: 'api.organizations.errors.display_name_required',
+            field: 'display_name',
+            error_type: :missing,
+          )
         end
 
         if display_name.length > 100
-          raise_form_error(error_key: 'api.organizations.errors.display_name_too_long',
-                           args: { max: 100 }, field: 'display_name', error_type: :invalid)
+          raise_form_error(
+            error_key: 'api.organizations.errors.display_name_too_long',
+            args: { max: 100 },
+            field: 'display_name',
+            error_type: :invalid,
+          )
         end
 
         # Validate contact_email (optional, but must be unique if provided)
         if !contact_email.empty? && Onetime::Organization.contact_email_exists?(contact_email)
-          raise_form_error(error_key: 'api.organizations.errors.contact_email_exists',
-                           field: 'contact_email', error_type: :exists)
+          raise_form_error(
+            error_key: 'api.organizations.errors.contact_email_exists',
+            field: 'contact_email',
+            error_type: :exists,
+          )
         end
 
         # Description is optional but limit length if provided
         if !description.empty? && description.length > 500
-          raise_form_error(error_key: 'api.organizations.errors.description_too_long',
-                           args: { max: 500 }, field: 'description', error_type: :invalid)
+          raise_form_error(
+            error_key: 'api.organizations.errors.description_too_long',
+            args: { max: 500 },
+            field: 'description',
+            error_type: :invalid,
+          )
         end
 
         # Check organization quota AFTER basic validation
@@ -58,7 +72,7 @@ module OrganizationAPI::Logic
       def process
         # Mask display_name in debug logs - safe even for 1-2 char names (Ruby returns available chars)
         masked_name = display_name.length > 3 ? "#{display_name[0, 3]}..." : "[#{display_name.length}chars]"
-        logger.debug "[CreateOrganization] Creating organization", masked_name: masked_name, user_id: cust.extid
+        logger.debug '[CreateOrganization] Creating organization', masked_name: masked_name, extid: cust.extid
 
         # Acquire distributed lock for organization creation to prevent quota race conditions
         lock_key   = "customer:#{cust.objid}:org_creation_lock"
@@ -99,7 +113,7 @@ module OrganizationAPI::Logic
             begin
               lock.release(lock_token)
             rescue StandardError => ex
-              logger.warn "[CreateOrganization] Lock release failed", exception: ex
+              logger.warn '[CreateOrganization] Lock release failed', exception: ex
             end
           end
         end
