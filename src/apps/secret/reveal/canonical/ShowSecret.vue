@@ -65,18 +65,12 @@
     :branded="false"
     :site-host="siteHost"
     class="container mx-auto mt-24 px-4">
-    <!-- Loading slot -->
-    <template #loading="{}">
-      <div class="flex justify-center">
-        <div
-          class="size-32 animate-spin rounded-full
-            border-4 border-brand-500 border-t-transparent"
-          role="status"
-          aria-live="polite">
-          <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
-        </div>
-      </div>
-    </template>
+    <!--
+      No #loading slot: BaseShowSecret renders its own <SecretSkeleton> for the
+      secret fetch (see BaseShowSecret template). A #loading slot here never
+      rendered (the base has no <slot name="loading">), so the old spinner was
+      dead markup.
+    -->
 
     <!-- Error slot -->
     <template #error="{ error }">
