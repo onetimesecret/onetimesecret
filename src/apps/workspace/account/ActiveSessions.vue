@@ -7,6 +7,7 @@
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
   import { useActiveSessions } from '@/shared/composables/useActiveSessions';
   import { computed, onMounted, ref } from 'vue';
 
@@ -73,16 +74,7 @@
       </div>
 
       <!-- Loading state -->
-      <div
-        v-if="isLoading"
-        class="flex items-center justify-center py-12">
-        <OIcon
-          collection="heroicons"
-          name="arrow-path"
-          class="mr-2 size-6 animate-spin text-gray-400"
-          aria-hidden="true" />
-        <span class="text-gray-600 dark:text-gray-400">{{ t('web.LABELS.loading') }}</span>
-      </div>
+      <ListSkeleton v-if="isLoading" />
 
       <!-- Error state -->
       <div

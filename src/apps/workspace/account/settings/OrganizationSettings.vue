@@ -8,6 +8,9 @@ import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
+import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useEntitlementError } from '@/shared/composables/useEntitlementError';
@@ -737,18 +740,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <SettingsSkeleton v-if="isLoading" />
 
       <!-- Error State: Organization not found or failed to load -->
       <div v-else-if="orgNotFound || (error && !organization)" class="flex items-center justify-center py-12">
@@ -1072,13 +1064,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </p>
             </div>
 
-            <div v-else class="flex items-center justify-center py-8">
-              <OIcon
-                collection="heroicons"
-                name="arrow-path"
-                class="size-6 animate-spin text-gray-400"
-                aria-hidden="true" />
-            </div>
+            <ListSkeleton v-else />
 
             <div v-if="invitations.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -1158,13 +1144,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 
           <div class="p-6">
             <!-- Loading State -->
-            <div v-if="isLoadingDomains" class="flex items-center justify-center py-8">
-              <OIcon
-                collection="heroicons"
-                name="arrow-path"
-                class="size-6 animate-spin text-gray-400"
-                aria-hidden="true" />
-            </div>
+            <TableSkeleton v-if="isLoadingDomains" />
 
             <!-- Error State -->
             <BasicFormAlerts
@@ -1234,13 +1214,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </div>
 
               <div class="p-6">
-                <div v-if="isLoadingBilling" class="flex items-center justify-center py-8">
-                  <OIcon
-                    collection="heroicons"
-                    name="arrow-path"
-                    class="size-6 animate-spin text-gray-400"
-                    aria-hidden="true" />
-                </div>
+                <SettingsSkeleton
+                  v-if="isLoadingBilling"
+                  :heading="false" />
 
                 <div v-else-if="subscription" class="space-y-4">
                   <!-- Plan Info -->
@@ -1478,14 +1454,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 
             <div class="p-6">
               <!-- Loading state -->
-              <div v-if="isLoadingDomains" class="flex items-center justify-center py-8">
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-path"
-                  class="size-6 animate-spin text-gray-400"
-                  aria-hidden="true" />
-                <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
-              </div>
+              <ListSkeleton v-if="isLoadingDomains" />
 
               <!-- Empty state -->
               <div v-else-if="domainCount === 0" class="py-8 text-center">
