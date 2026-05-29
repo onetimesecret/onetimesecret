@@ -277,7 +277,11 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
     end
 
     after do
-      Onetime::Customer.find_by_email(e2e_user_email)&.destroy! rescue nil
+      begin
+        Onetime::Customer.find_by_email(e2e_user_email)&.destroy!
+      rescue => e
+        OT.le "[domain_sso_join_organization_spec] Error in after: #{e.message}"
+      end
       cleanup_oauth_test_fixtures
     end
 
