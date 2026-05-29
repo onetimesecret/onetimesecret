@@ -106,7 +106,18 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   # Operation-level: JoinDomainOrganization correctness
   # ==========================================================================
 
-  describe 'JoinDomainOrganization operation' do
+  # :shared_db_state opts these examples out of the per-each Valkey flush.
+  # The fixtures above are built in per-example `let!` hooks, not before(:all),
+  # so the tag name is a slight misnomer here — but the guard is exactly what we
+  # need: the integration flush hooks live in three helpers (this app's
+  # spec_helper, the core integration_spec_helper, and the top-level
+  # spec_helper). Their before(:each) ordering relative to this group's `let!`
+  # is incidental to load order; under some orderings the core
+  # integration_spec_helper flush runs AFTER `let!` and wipes the freshly-saved
+  # CustomDomain before the example body reads it ("Domain not found"). Skipping
+  # the flush makes the group order-proof: each example uses a unique
+  # `test_run_id`, builds its own fixtures, and tears them down in `after`.
+  describe 'JoinDomainOrganization operation', :shared_db_state do
     it 'adds the customer to the tenant organization as a member' do
       result = Auth::Operations::JoinDomainOrganization.new(
         customer: sso_customer,
