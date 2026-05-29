@@ -33,14 +33,18 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   include Rack::Test::Methods
 
   before(:all) do
-    require 'onetime' unless defined?(Onetime)
-    Onetime.boot! :test unless Onetime.ready?
-    require_relative '../../../operations/create_customer'
-    require_relative '../../../operations/create_default_workspace'
-
-    # Load the billing hooks module (for extract_pending_plan_intent)
-    module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
-    require_relative '../../../config/hooks/billing'
+    # Boot the full app and application registry via the shared helper so the
+    # REAL Auth::Config (a Rodauth::Auth subclass) loads — along with
+    # Auth::Config::Hooks::Billing and Auth::Operations (config.rb requires
+    # operations.rb, which requires create_customer/create_default_workspace).
+    #
+    # Do NOT fabricate `module Auth::Config::Hooks` here. Opening Config with the
+    # `module` keyword makes Auth::Config a plain Module and poisons the constant
+    # for every spec sharing this process: the registry's
+    # `class Config < Rodauth::Auth` then raises "TypeError: Config is not a
+    # class" and boot is marked permanently not-ready. That regression broke the
+    # issue #3221 invite-signup integration spec whenever the two ran together.
+    boot_onetime_app
 
     # Load billing dependencies for plan validation
     begin
