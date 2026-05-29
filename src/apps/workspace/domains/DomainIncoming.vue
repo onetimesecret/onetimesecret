@@ -16,6 +16,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
@@ -161,18 +162,7 @@ watch(() => props.extid, async () => {
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State -->
-      <div v-if="domainLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <SettingsSkeleton v-if="domainLoading" />
 
       <!-- Error State -->
       <div v-else-if="domainError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
@@ -229,14 +219,7 @@ watch(() => props.extid, async () => {
 
         <div class="p-6 space-y-6">
           <!-- Incoming config loading -->
-          <div v-if="incomingLoading && !isInitialized" class="flex items-center justify-center py-12">
-            <OIcon
-              collection="heroicons"
-              name="arrow-path"
-              class="size-8 animate-spin text-gray-400"
-              aria-hidden="true" />
-            <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
-          </div>
+          <SettingsSkeleton v-if="incomingLoading && !isInitialized" />
 
           <template v-else>
             <DomainIncomingConfigForm

@@ -16,6 +16,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useSsoConfig } from '@/shared/composables/useSsoConfig';
@@ -151,18 +152,7 @@ watch(canManageSso, async (entitled) => {
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State (domain or SSO config) -->
-      <div v-if="domainLoading || ssoLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <SettingsSkeleton v-if="domainLoading || ssoLoading" />
 
       <!-- Error State -->
       <div v-else-if="domainError || ssoError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">

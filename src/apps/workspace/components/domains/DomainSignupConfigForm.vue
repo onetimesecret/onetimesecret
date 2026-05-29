@@ -11,6 +11,7 @@
 import { useI18n } from 'vue-i18n';
 import { computed, ref, watch } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import {
   SIGNUP_STRATEGY_METADATA,
   type CustomDomainSignupConfig,
@@ -173,14 +174,9 @@ watch(newDomain, () => {
 <template>
   <div class="space-y-6">
     <!-- Loading State -->
-    <div v-if="isLoading" class="flex items-center justify-center py-12">
-      <OIcon
-        collection="heroicons"
-        name="arrow-path"
-        class="size-8 animate-spin text-gray-400"
-        aria-hidden="true" />
-      <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
-    </div>
+    <SettingsSkeleton
+      v-if="isLoading"
+      :heading="false" />
 
     <!-- Form -->
     <form v-else
