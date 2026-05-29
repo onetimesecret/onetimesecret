@@ -4,6 +4,7 @@
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
@@ -79,18 +80,7 @@ onMounted(async () => {
       <BasicFormAlerts v-if="error" :error="error" />
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <TableSkeleton v-if="isLoading" />
 
       <!-- Invoice Table -->
       <div v-else-if="invoices.length > 0" class="overflow-hidden rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">

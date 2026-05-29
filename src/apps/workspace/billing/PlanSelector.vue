@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import CardGridSkeleton from '@/shared/components/closet/CardGridSkeleton.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -600,18 +601,7 @@ aria-live="polite">
       <BasicFormAlerts v-if="definitionsError" :error="definitionsError" />
 
       <!-- Loading State -->
-      <div v-if="isLoadingContent" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <CardGridSkeleton v-if="isLoadingContent" />
 
       <!-- Free Tier Section (standalone banner mode) -->
       <div

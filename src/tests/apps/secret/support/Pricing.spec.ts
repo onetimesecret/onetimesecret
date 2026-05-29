@@ -485,10 +485,10 @@ describe('Pricing.vue', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
       await wrapper.vm.$nextTick();
 
-      // At this point, loadPlans should be in progress (promise pending)
-      // The loading div contains an OIcon with animate-spin class - but OIcon is mocked
-      // so we check for the loading container and text instead
-      const loadingContainer = wrapper.find('[class*="flex items-center justify-center py-12"]');
+      // At this point, loadPlans should be in progress (promise pending).
+      // The loading state now renders <CardGridSkeleton>, a role="status"
+      // region with an sr-only loading label (no visible spinner/text).
+      const loadingContainer = wrapper.find('[role="status"][aria-busy="true"]');
       expect(loadingContainer.exists()).toBe(true);
       expect(wrapper.text()).toContain('Loading...');
 
@@ -501,8 +501,8 @@ describe('Pricing.vue', () => {
       mockListPlans.mockResolvedValueOnce({ plans: defaultPlans });
       await mountComponent();
 
-      // After loading completes, spinner should be gone
-      expect(wrapper.find('.animate-spin').exists()).toBe(false);
+      // After loading completes, the loading skeleton should be gone
+      expect(wrapper.find('[role="status"][aria-busy="true"]').exists()).toBe(false);
     });
 
     it('shows empty state when no plans available', async () => {

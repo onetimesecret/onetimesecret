@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { RouterLink, useRoute } from 'vue-router';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import CardGridSkeleton from '@/shared/components/closet/CardGridSkeleton.vue';
   import PlanCard from '@/shared/components/billing/PlanCard.vue';
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import { classifyError } from '@/schemas/errors';
@@ -227,20 +227,9 @@
         :error="error" />
 
       <!-- Loading State -->
-      <div
+      <CardGridSkeleton
         v-if="isLoadingPlans"
-        class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+        class="py-12" />
 
       <!-- Free Tier Section (standalone banner mode) -->
       <div
