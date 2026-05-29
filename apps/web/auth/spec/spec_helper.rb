@@ -512,13 +512,26 @@ RSpec.configure do |config|
     end
   end
 
-  # Clean database before each integration test
-  config.before(:each, type: :integration) do
+  # Clean database before each integration test.
+  #
+  # Respect the same opt-outs as the top-level spec/spec_helper.rb flush:
+  # specs that build fixtures in before(:all) and read them across examples
+  # set shared_db_state: true; billing specs manage their own state. Without
+  # this guard, requiring this helper in a shared rspec process (apps + core
+  # integration specs run together since 7b9cd9202) flushes those specs'
+  # before(:all) data out from under them.
+  config.before(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
+
     flush_test_database if respond_to?(:flush_test_database)
   end
 
-  # Clean database after each integration test
-  config.after(:each, type: :integration) do
+  # Clean database after each integration test (same opt-outs as above).
+  config.after(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
+
     flush_test_database if respond_to?(:flush_test_database)
   end
 end
