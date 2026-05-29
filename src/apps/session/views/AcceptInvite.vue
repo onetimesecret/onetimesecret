@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
   import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
@@ -259,17 +260,36 @@
     <div
       v-if="inviteState === 'loading'"
       data-testid="invite-loading"
-      class="flex items-center justify-center py-12">
-      <div class="text-center">
-        <OIcon
-          collection="heroicons"
-          name="arrow-path"
-          class="mx-auto size-8 animate-spin text-gray-400"
-          aria-hidden="true" />
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.invitations.loading_invitation') }}
-        </p>
+      role="status"
+      aria-busy="true"
+      class="animate-pulse space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-sm motion-reduce:animate-none dark:border-gray-700 dark:bg-gray-800">
+      <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
+      <!-- Heading block -->
+      <Skeleton
+        width="w-2/3"
+        height="h-8"
+        :pulse="false" />
+      <!-- Invite-context lines -->
+      <div class="space-y-3">
+        <Skeleton
+          width="w-1/2"
+          height="h-4"
+          :pulse="false" />
+        <Skeleton
+          width="w-3/4"
+          height="h-4"
+          :pulse="false" />
+        <Skeleton
+          width="w-2/5"
+          height="h-4"
+          :pulse="false" />
       </div>
+      <!-- Action button block -->
+      <Skeleton
+        width="w-full"
+        height="h-10"
+        rounded="rounded-md"
+        :pulse="false" />
     </div>
 
     <!-- Invalid/Expired State -->
