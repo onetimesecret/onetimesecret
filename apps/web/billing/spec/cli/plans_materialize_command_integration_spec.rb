@@ -90,7 +90,7 @@ RSpec.describe 'Billing Plans Materialize CLI (integration)', :integration do
 
       # Owner-only entitlement granted by the plan must not leak down. This
       # proves the template is a ceiling, not a floor.
-      expect(admin_ents).not_to include('custom_branding')
+      expect(admin_ents).not_to include('custom_mail_sender')
     end
 
     it 'does not touch membership entitlements when --include-memberships is omitted' do

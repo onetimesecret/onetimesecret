@@ -71,7 +71,10 @@ module BillingSpecHelper
   # Mock region configuration for plan lookups
   # Tests need a valid region (e.g., 'EU') to match cached Stripe plans
   def mock_region!(region = 'EU')
-    # Override the detect_region method on all billing controllers
+    # Override the detect_region method on all billing controllers (if loaded)
+    # CLI-only specs don't load controllers, so skip gracefully
+    return unless defined?(Billing::Controllers::Base)
+
     allow_any_instance_of(Billing::Controllers::Base).to receive(:region).and_return(region)
   end
 
