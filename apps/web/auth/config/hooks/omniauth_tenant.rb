@@ -172,6 +172,7 @@ module Auth::Config::Hooks
             actual_host: request.host,
             actual_domain_id: current_domain&.identifier,
             ip: request.ip,
+            session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
           )
 
           # Return 403 directly rather than throw_error_status, which throws
