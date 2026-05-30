@@ -562,49 +562,36 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', type: :integration, sqlite_data
     end
   end
 
-  # ─── PKCE method=plain — gate location finding ──────────────────────────
-  describe 'PKCE method=plain at /token (gem-behavior finding)' do
-    it 'accepts a seeded plain-method grant at /token (verifier == challenge)' do
-      # FINDING: rodauth-oauth gates `code_challenge_method == "plain"` only
-      # at /authorize via validate_pkce_challenge_params
-      # (oauth_pkce.rb:60-64), which compares against
-      # oauth_pkce_challenge_method (default "S256"). At /token, the check
-      # is check_valid_grant_challenge? (oauth_pkce.rb:72-85), which
-      # explicitly accepts "plain" by comparing challenge==verifier.
+  # ─── PKCE method=plain — DB-layer guard (#3232) ─────────────────────────
+  describe 'PKCE method=plain' do
+    it 'cannot seed a plain-method grant: the oauth_grants_pkce_s256_only ' \
+       'CHECK constraint rejects the insert' do
+      # rodauth-oauth 1.6.4 gates `code_challenge_method == "plain"` only at
+      # /authorize via validate_pkce_challenge_params (oauth_pkce.rb:60-64).
+      # At /token the check is check_valid_grant_challenge? (oauth_pkce.rb:
+      # 72-85), which still accepts "plain" by comparing challenge==verifier.
+      # So a row inserted directly into oauth_grants with
+      # code_challenge_method='plain' — by an admin tool, migration helper,
+      # or future SSO bridge that bypasses the gem's /authorize handler —
+      # would be redeemable at /token.
       #
-      # Implication: a row inserted directly into oauth_grants with
-      # code_challenge_method='plain' bypasses the /authorize-time gate and
-      # /token will happily issue tokens. Any flow that creates oauth_grants
-      # rows by means other than the gem's own /authorize handler (e.g. an
-      # admin tool, a migration helper, a future hybrid SSO bridge) must
-      # treat 'plain' as untrusted explicitly. The protocol invariant is
-      # preserved end-to-end because /authorize is the only way external
-      # SPs reach the row; this assertion documents the *internal* gap.
-      #
-      # If we ever ship admin tooling that writes oauth_grants, we should
-      # either add a server-side rejection in create_token_from_authorization_code
-      # (oauth_pkce.rb:46-58) or constrain inserts at the DB layer.
+      # Migration 010 (issue #3232) closes that gap at the data layer: a
+      # CHECK constraint permits only S256 or NULL. This spec proves the
+      # constraint is the source of truth — the plain grant can never exist,
+      # so /token never sees one. If the constraint is ever dropped, this
+      # fails loudly rather than the gap reopening silently.
       account = create_verified_account
       plain_verifier = SecureRandom.urlsafe_base64(48).tr('=', '')
-      grant   = seed_authorization_code(
-        account_id: account[:id],
-        challenge:  plain_verifier, # plain: challenge IS the verifier
-        method:     'plain',
+
+      expect {
+        seed_authorization_code(
+          account_id: account[:id],
+          challenge:  plain_verifier, # plain: challenge IS the verifier
+          method:     'plain',
+        )
+      }.to raise_error(
+        Sequel::CheckConstraintViolation, /oauth_grants_pkce_s256_only/,
       )
-
-      header 'Host', 'localhost:3000'
-      header 'Authorization', basic_auth_header
-      header 'Accept', 'application/json'
-      post '/auth/token', {
-        grant_type:    'authorization_code',
-        code:          grant[:code],
-        redirect_uri:  redirect_uri,
-        code_verifier: plain_verifier,
-      }
-
-      expect(last_response.status).to eq(200),
-        "Expected /token to accept seeded plain-method grant (gem bug surface). " \
-        "Got #{last_response.status}: #{last_response.body}"
     end
   end
 end
