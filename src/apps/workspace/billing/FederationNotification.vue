@@ -90,8 +90,12 @@ const handleDismiss = async () => {
           v-else
           collection="heroicons"
           name="arrow-path"
-          class="size-5 animate-spin"
+          class="size-5 animate-spin motion-reduce:animate-none"
           aria-hidden="true" />
+        <span
+          v-if="isDismissing"
+          class="sr-only"
+          >{{ t('web.COMMON.loading') }}</span>
       </button>
     </div>
   </div>

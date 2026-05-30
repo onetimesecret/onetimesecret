@@ -476,7 +476,7 @@ function handleToggleEnabled(): void {
           v-if="isSaving"
           collection="heroicons"
           name="arrow-path"
-          class="size-4 animate-spin"
+          class="size-4 animate-spin motion-reduce:animate-none"
           aria-hidden="true" />
         <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
         <span v-else>{{ t('web.domains.incoming.save_changes') }}</span>

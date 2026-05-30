@@ -310,7 +310,7 @@ function handleClose() {
                     v-if="isMigrating"
                     collection="heroicons"
                     name="arrow-path"
-                    class="mr-2 size-4 animate-spin"
+                    class="mr-2 size-4 animate-spin motion-reduce:animate-none"
                     aria-hidden="true" />
                   {{ isMigrating
                     ? t('web.COMMON.processing')

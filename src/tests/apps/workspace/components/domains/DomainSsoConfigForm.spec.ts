@@ -656,9 +656,9 @@ describe('DomainSsoConfigForm', () => {
         isLoading: true,
       });
 
-      // Should show loading state
-      const loadingIcon = wrapper.find('[data-icon-name="arrow-path"]');
-      expect(loadingIcon.exists()).toBe(true);
+      // Should show loading skeleton (SettingsSkeleton) with its busy status region
+      const skeleton = wrapper.find('[role="status"]');
+      expect(skeleton.exists()).toBe(true);
     });
 
     it('shows form when isLoading is false', async () => {

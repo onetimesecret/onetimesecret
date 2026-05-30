@@ -253,7 +253,7 @@
           @click="triggerVerification">
           <svg
             v-if="verificationInProgress"
-            class="-ml-1 mr-2 h-4 w-4 animate-spin"
+            class="-ml-1 mr-2 h-4 w-4 animate-spin motion-reduce:animate-none"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"

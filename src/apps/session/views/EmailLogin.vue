@@ -35,7 +35,7 @@ onMounted(async () => {
         v-if="isLoading"
         class="text-center">
         <svg
-          class="mx-auto size-16 animate-spin text-brand-600 dark:text-brand-400"
+          class="mx-auto size-16 animate-spin motion-reduce:animate-none text-brand-600 dark:text-brand-400"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

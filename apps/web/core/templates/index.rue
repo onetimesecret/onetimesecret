@@ -76,7 +76,7 @@
            the other, or neither:
              data-show-orb="true|false"   tri-color spinning orb
              data-show-text="true|false"  "Loading..." text with blinking dots -->
-      <div class="app-fallback" data-show-orb="true" data-show-text="true">
+      <div class="app-fallback" data-show-orb="true" data-show-text="false">
         <div class="app-fallback-inner">
           <div class="loader-orb" aria-hidden="true"></div>
           <div class="loader-text" role="status">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>

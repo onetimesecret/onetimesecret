@@ -96,8 +96,8 @@
         v-else
         class="mt-4 flex flex-col gap-1">
         <!-- Loading placeholder -->
-        <div class="h-8 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-        <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-8 w-64 animate-pulse motion-reduce:animate-none rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-4 w-24 animate-pulse motion-reduce:animate-none rounded bg-gray-200 dark:bg-gray-700"></div>
       </div>
     </div>
   </div>
