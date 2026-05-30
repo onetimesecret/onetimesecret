@@ -464,7 +464,33 @@ module ProductionConfigHelper
 
     Familia.dbclient.flushdb
   rescue StandardError => e
-    warn "Failed to flush test database: #{e.message}" if ENV['DEBUG']
+    OT.le "[flush_test_database] Failed to flush test database: #{e.message}"
+  end
+
+  # Clean up SQL auth data between integration examples.
+  #
+  # The Valkey side is flushed every example, but Auth::Database.connection is
+  # memoized for the whole process, so accounts accumulate and desync from the
+  # flushed Redis customers (manifests as account_id climbing, then a JIT
+  # re-create colliding on the unique email index in SyncSession).
+  #
+  # DELETE rows rather than reconnect: the in-memory SQLite schema lives in the
+  # single shared connection, so disconnecting would drop the tables. Reset the
+  # autoincrement counter so account_id restarts at 1 (deterministic IDs).
+  def clear_auth_database
+    db = Auth::Database.connection
+    tables = db.tables - %i[schema_info schema_migrations]
+    case db.database_type
+    when :postgres
+      db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+    when :sqlite
+      db.run('PRAGMA foreign_keys = OFF')
+      tables.each { |t| db[t].delete }
+      db[:sqlite_sequence].delete if db.table_exists?(:sqlite_sequence)
+      db.run('PRAGMA foreign_keys = ON')
+    end
+  rescue StandardError => e
+    OT.le "[clear_auth_database] Failed to clear auth database: #{e.message}"
   end
 
   # Get the auth database connection for assertions
@@ -533,5 +559,6 @@ RSpec.configure do |config|
     next if example.metadata[:billing]
 
     flush_test_database if respond_to?(:flush_test_database)
+    clear_auth_database if respond_to?(:clear_auth_database)
   end
 end

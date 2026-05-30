@@ -173,6 +173,18 @@ module AuthModeHelpers
       'oidc'
     end
 
+    # All configured SSO providers for the platform.
+    # Returns array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
+    # Returns empty array in tests unless sso_enabled.
+    def sso_providers
+      return [] unless sso_enabled?
+
+      [{
+        'route_name' => omniauth_route_name,
+        'display_name' => sso_display_name || 'SSO',
+      }]
+    end
+
     def database_url
       @mode == 'full' ? 'sqlite::memory:' : nil
     end
