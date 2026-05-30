@@ -40,14 +40,6 @@ parse_amqp_addr() {
   AMQP_PORT="${AMQP_PORT:-5672}"
 }
 
-# Role detection relies on pgrep (procps). If it's missing the script would
-# otherwise exit 1 with an empty Output field in `docker inspect`, which is
-# exactly the silent-failure mode reported in issue #3270.
-if ! command -v pgrep > /dev/null 2>&1; then
-  echo "healthcheck: pgrep not found; install procps in the image" >&2
-  exit 1
-fi
-
 # Web server: puma listens on $PORT (default 3000)
 # Try /health/advanced first (verifies Redis + RabbitMQ + auth DB),
 # fall back to /health (lightweight status-only check).
