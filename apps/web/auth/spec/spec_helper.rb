@@ -561,4 +561,18 @@ RSpec.configure do |config|
     flush_test_database if respond_to?(:flush_test_database)
     clear_auth_database if respond_to?(:clear_auth_database)
   end
+
+  # Restore the OmniAuth request-method global after every example.
+  #
+  # OmniAuth.config is process-global mutable state. Many specs set
+  # allowed_request_methods = %i[get post] (to exercise GET callbacks) but
+  # never reset it, so :get leaks into subsequent strategy inits and triggers
+  # the CVE-2015-9284 GET-request CSRF warning mid-suite. Unguarded (no
+  # shared_db_state/billing opt-out) so it always runs.
+  config.after(:each) do
+    next unless defined?(OmniAuth)
+
+    OmniAuth.config.allowed_request_methods = [:post]
+    OmniAuth.config.silence_get_warning = false
+  end
 end
