@@ -1064,7 +1064,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </p>
             </div>
 
-            <ListSkeleton v-else />
+            <TableSkeleton v-else />
 
             <div v-if="invitations.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -1454,7 +1454,10 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 
             <div class="p-6">
               <!-- Loading state -->
-              <ListSkeleton v-if="isLoadingDomains" />
+              <ListSkeleton
+                v-if="isLoadingDomains"
+                icon
+                icon-size="w-5" />
 
               <!-- Empty state -->
               <div v-else-if="domainCount === 0" class="py-8 text-center">

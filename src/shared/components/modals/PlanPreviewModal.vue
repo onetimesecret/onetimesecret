@@ -1,7 +1,7 @@
 <!-- src/shared/components/modals/PlanPreviewModal.vue -->
 
 <script setup lang="ts">
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -266,7 +266,7 @@ const handleClose = () => {
                 <div
                   v-if="isLoadingPlans"
                   class="mt-5">
-                  <SettingsSkeleton :heading="false" />
+                  <ListSkeleton />
                 </div>
 
                 <!-- Plans Error State -->

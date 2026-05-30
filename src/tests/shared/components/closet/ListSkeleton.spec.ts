@@ -47,6 +47,32 @@ describe('ListSkeleton', () => {
     expect(blocks(wrapper)).toHaveLength(15);
   });
 
+  it('omits the leading icon block by default (text-led rows)', () => {
+    const wrapper = mount(ListSkeleton);
+    // No icon → no rounded-full or square leading block; default rows are
+    // 3 blocks each (primary + secondary line + trailing action).
+    expect(blocks(wrapper)).toHaveLength(9);
+  });
+
+  it('adds a leading icon block per row when icon is set (4 blocks/row)', () => {
+    const wrapper = mount(ListSkeleton, { props: { count: 3, icon: true } });
+    expect(blocks(wrapper)).toHaveLength(12);
+  });
+
+  it('sizes and shapes the leading icon block (avatar variant)', () => {
+    const wrapper = mount(ListSkeleton, {
+      props: { count: 1, icon: true, iconSize: 'w-10', iconRounded: 'rounded-full' },
+    });
+    const iconBlock = blocks(wrapper).find(
+      (b) => b.classes().includes('rounded-full')
+    );
+    expect(iconBlock).toBeTruthy();
+    // iconSize sizes both axes (w-10 → h-10) so the primitive's w-full/h-4
+    // defaults do not leak onto the square block.
+    expect(iconBlock!.classes()).toContain('w-10');
+    expect(iconBlock!.classes()).toContain('h-10');
+  });
+
   it('sizes the growing text column via flex-1 on the row, not a block', () => {
     const wrapper = mount(ListSkeleton);
     // flex-1 must live on a row wrapper (the flex item), never on an

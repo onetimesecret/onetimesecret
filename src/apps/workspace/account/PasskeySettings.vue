@@ -103,7 +103,10 @@
       </div>
 
       <!-- Loading state -->
-      <ListSkeleton v-if="isLoadingPasskeys" />
+      <ListSkeleton
+        v-if="isLoadingPasskeys"
+        icon
+        icon-size="w-5" />
 
       <!-- Browser not supported -->
       <div

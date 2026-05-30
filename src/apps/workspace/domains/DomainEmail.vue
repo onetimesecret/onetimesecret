@@ -234,7 +234,9 @@ watch(hasEntitlement, async (entitled) => {
 
           <div class="p-6 space-y-8">
             <!-- Email config loading -->
-            <SettingsSkeleton v-if="emailLoading && !isInitialized" />
+            <SettingsSkeleton
+              v-if="emailLoading && !isInitialized"
+              :heading="false" />
 
             <template v-else>
 

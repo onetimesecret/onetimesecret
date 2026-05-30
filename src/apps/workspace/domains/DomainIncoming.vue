@@ -219,7 +219,9 @@ watch(() => props.extid, async () => {
 
         <div class="p-6 space-y-6">
           <!-- Incoming config loading -->
-          <SettingsSkeleton v-if="incomingLoading && !isInitialized" />
+          <SettingsSkeleton
+            v-if="incomingLoading && !isInitialized"
+            :heading="false" />
 
           <template v-else>
             <DomainIncomingConfigForm
