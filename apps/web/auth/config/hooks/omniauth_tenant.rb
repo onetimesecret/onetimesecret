@@ -69,7 +69,8 @@ module Auth::Config::Hooks
         # 2. Redirect callback to domain B
         # 3. Setup hook fires on domain B, overwrites session with domain B's ID
         # 4. Callback validation sees domain B → no mismatch detected
-        is_callback_phase = request.path.end_with?('/callback')
+        strategy          = request.env['omniauth.strategy']
+        is_callback_phase = strategy&.on_callback_path?
 
         Auth::Logging.log_auth_event(
           :omniauth_tenant_resolution_start,
@@ -235,7 +236,7 @@ module Auth::Config::Hooks
     # Platform-level requests (on the canonical domain) should not be subject
     # to tenant fallback policy - they are not tenant requests at all.
     #
-    # @param host [String] Request hostname
+    # @param host [String] Request hostname (from request.host, excludes port)
     # @return [Boolean] true if host matches canonical domain
     def self.canonical_domain?(host)
       return false if host.to_s.empty?
@@ -243,8 +244,9 @@ module Auth::Config::Hooks
       canonical = Onetime::Middleware::DomainStrategy.canonical_domain
       return false if canonical.nil?
 
-      # Normalize comparison (case-insensitive)
-      host.to_s.downcase == canonical.to_s.downcase
+      # Normalize comparison: strip port from canonical (request.host excludes port)
+      canonical_host = canonical.to_s.split(':').first
+      host.to_s.downcase == canonical_host.to_s.downcase
     end
 
     # Handle requests where no tenant SSO config is available.
