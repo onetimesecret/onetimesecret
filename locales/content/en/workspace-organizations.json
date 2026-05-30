@@ -576,7 +576,7 @@
     "content_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization.",
+    "text": "Member invites require a paid plan. Upgrade to add collaborators to your organization.",
     "content_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -941,7 +941,7 @@
   },
   "api.organizations.invitations.errors.member_limit_reached": {
     "text": "Member limit reached. Upgrade your plan to invite more members.",
-    "context": "Returned when org members_per_team quota is hit",
+    "context": "Returned when org members_per_org quota is hit",
     "content_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
