@@ -53,7 +53,7 @@ module Auth
       # Use `next` not `return` because we're in an instance_exec context.
       #
       if Auth::Config.configured
-        OT.ld '[Auth::Config] Skipping duplicate configuration (already configured)'
+        OT.lw '[Auth::Config] Skipping duplicate configuration (already configured)'
         next
       end
 

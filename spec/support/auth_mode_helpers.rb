@@ -33,8 +33,11 @@ module AuthModeHelpers
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
-      @sso_enabled = options.fetch(:sso_enabled, false)  # SSO disabled by default in tests
-      @orgs_sso_enabled = options.fetch(:orgs_sso_enabled, false)  # Domain-level SSO disabled by default
+      # SSO flags default OFF in tests, but honor env so the per-mode rake
+      # batches (which run integration/full/ with provider env set) can exercise
+      # the real omniauth route registration. Unset env preserves the old false.
+      @sso_enabled = options.fetch(:sso_enabled) { ENV['AUTH_SSO_ENABLED'] == 'true' }
+      @orgs_sso_enabled = options.fetch(:orgs_sso_enabled) { ENV['ORGS_SSO_ENABLED'] == 'true' }
       @restrict_to = options.fetch(:restrict_to, nil)  # nil = show all enabled methods
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
