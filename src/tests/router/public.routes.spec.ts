@@ -3,8 +3,9 @@
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RouteRecordRaw } from 'vue-router';
+import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 // Mock stores used by useDomainContext
@@ -19,6 +20,10 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
     currentOrganization: null,
   }),
+}));
+
+vi.mock('@/shared/stores/authStore', () => ({
+  useAuthStore: vi.fn(() => ({ isAuthenticated: false })),
 }));
 
 // Set up Pinia before importing routes (routes use bootstrapStore at module level)
@@ -41,7 +46,7 @@ const pinia = createTestingPinia({
 setActivePinia(pinia);
 
 // Import routes after Pinia is set up
-import publicRoutes from '@/router/public.routes';
+import publicRoutes, { redirectAuthenticatedToPlans } from '@/router/public.routes';
 
 describe('Public Routes', () => {
   describe('Homepage Route', () => {
@@ -73,4 +78,87 @@ describe('Public Routes', () => {
   // NOTE: Feedback route has been removed and is no longer available
 
   // NOTE: Translations route has been removed and is no longer available
+
+  describe('redirectAuthenticatedToPlans', () => {
+    const makeRoute = (
+      overrides: Partial<RouteLocationNormalized> = {}
+    ): RouteLocationNormalized => ({
+      meta: {},
+      path: '/pricing',
+      name: 'Pricing',
+      params: {},
+      query: {},
+      hash: '',
+      fullPath: '/pricing',
+      matched: [],
+      redirectedFrom: undefined,
+      ...overrides,
+    });
+
+    const authenticate = (isAuthenticated: boolean) => {
+      vi.mocked(useAuthStore).mockReturnValue({
+        isAuthenticated,
+      } as ReturnType<typeof useAuthStore>);
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('lets unauthenticated visitors through (returns true)', () => {
+      authenticate(false);
+      expect(redirectAuthenticatedToPlans(makeRoute())).toBe(true);
+    });
+
+    it('redirects authenticated visitors to the plan selector', () => {
+      authenticate(true);
+      expect(redirectAuthenticatedToPlans(makeRoute())).toEqual({
+        path: '/billing/plans',
+        query: {},
+      });
+    });
+
+    it('carries a deep-linked product param through the redirect', () => {
+      authenticate(true);
+      expect(
+        redirectAuthenticatedToPlans(makeRoute({ params: { product: 'pro' } }))
+      ).toEqual({ path: '/billing/plans', query: { product: 'pro' } });
+    });
+
+    it('maps year-alias intervals (annual/year/yearly) to "yearly"', () => {
+      authenticate(true);
+      for (const alias of ['annual', 'year', 'yearly', 'ANNUAL']) {
+        expect(
+          redirectAuthenticatedToPlans(makeRoute({ params: { interval: alias } }))
+        ).toEqual({ path: '/billing/plans', query: { interval: 'yearly' } });
+      }
+    });
+
+    it('maps any non-year interval to "monthly"', () => {
+      authenticate(true);
+      expect(
+        redirectAuthenticatedToPlans(makeRoute({ params: { interval: 'month' } }))
+      ).toEqual({ path: '/billing/plans', query: { interval: 'monthly' } });
+    });
+
+    it('does not throw on array query params and collapses to the first value', () => {
+      authenticate(true);
+      // ?interval=annual&interval=monthly arrives as an array; the old code
+      // called interval.toLowerCase() on the array and crashed navigation.
+      const run = () =>
+        redirectAuthenticatedToPlans(
+          makeRoute({
+            query: {
+              product: ['pro', 'team'],
+              interval: ['annual', 'monthly'],
+            },
+          })
+        );
+      expect(run).not.toThrow();
+      expect(run()).toEqual({
+        path: '/billing/plans',
+        query: { product: 'pro', interval: 'yearly' },
+      });
+    });
+  });
 });

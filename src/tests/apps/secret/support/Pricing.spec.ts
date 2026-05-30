@@ -486,7 +486,7 @@ describe('Pricing.vue', () => {
       await wrapper.vm.$nextTick();
 
       // At this point, loadPlans should be in progress (promise pending).
-      // The loading state now renders <CardGridSkeleton>, a role="status"
+      // The loading state now renders <PlanCardSkeleton>, a role="status"
       // region with an sr-only loading label (no visible spinner/text).
       const loadingContainer = wrapper.find('[role="status"][aria-busy="true"]');
       expect(loadingContainer.exists()).toBe(true);

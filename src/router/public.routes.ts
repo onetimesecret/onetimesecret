@@ -112,13 +112,18 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string): L
  * product/interval as the query params PlanSelector already parses. The
  * /billing/plans redirect resolves the current org into /billing/:extid/plans.
  */
-function redirectAuthenticatedToPlans(to: RouteLocationNormalized) {
+export function redirectAuthenticatedToPlans(to: RouteLocationNormalized) {
   const authStore = useAuthStore();
   if (!authStore.isAuthenticated) return true;
 
   const query: Record<string, string> = {};
-  const product = (to.params.product ?? to.query.product) as string | undefined;
-  const interval = (to.params.interval ?? to.query.interval) as string | undefined;
+  // Route params are scalar, but query params can arrive as arrays
+  // (?interval=a&interval=b). Collapse to the first value so the
+  // string ops below never see an array and throw mid-navigation.
+  const rawProduct = to.params.product ?? to.query.product;
+  const product = Array.isArray(rawProduct) ? rawProduct[0] : rawProduct;
+  const rawInterval = to.params.interval ?? to.query.interval;
+  const interval = Array.isArray(rawInterval) ? rawInterval[0] : rawInterval;
   if (product) query.product = product;
   if (interval) {
     const yearAliases = ['year', 'yearly', 'annual'];

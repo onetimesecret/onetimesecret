@@ -52,7 +52,7 @@
   });
 
   /** Derive the height utility from iconSize (w-N → h-N) for a square block. */
-  const iconHeight = computed(() => props.iconSize.replace(/^w-/, 'h-'));
+  const iconHeight = computed(() => props.iconSize.replace(/\bw-/g, 'h-'));
 
   const { t } = useI18n();
 </script>

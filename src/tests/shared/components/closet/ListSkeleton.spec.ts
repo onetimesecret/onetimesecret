@@ -73,6 +73,20 @@ describe('ListSkeleton', () => {
     expect(iconBlock!.classes()).toContain('h-10');
   });
 
+  it('derives the icon height for every responsive width class', () => {
+    // A responsive iconSize like "w-5 md:w-8" must map every width class to a
+    // height class (h-5 md:h-8). Replacing only the leading "w-" would leave
+    // the height axis as "h-5 md:w-8" — missing md:h-8 — so the block would
+    // lose its square aspect ratio at the md breakpoint.
+    const wrapper = mount(ListSkeleton, {
+      props: { count: 1, icon: true, iconSize: 'w-5 md:w-8' },
+    });
+    const iconBlock = blocks(wrapper).find((b) => b.classes().includes('w-5'));
+    expect(iconBlock).toBeTruthy();
+    expect(iconBlock!.classes()).toContain('h-5');
+    expect(iconBlock!.classes()).toContain('md:h-8');
+  });
+
   it('sizes the growing text column via flex-1 on the row, not a block', () => {
     const wrapper = mount(ListSkeleton);
     // flex-1 must live on a row wrapper (the flex item), never on an
