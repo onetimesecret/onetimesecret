@@ -480,7 +480,7 @@ module ProductionConfigHelper
   def clear_auth_database
     db = Auth::Database.connection
     # Preserve schema bookkeeping and seed-once reference tables (PRESERVED_TABLES).
-    tables = db.tables - PRESERVED_TABLES
+    tables = db.tables - AuthTestConstants::PRESERVED_TABLES
     case db.database_type
     when :postgres
       db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
