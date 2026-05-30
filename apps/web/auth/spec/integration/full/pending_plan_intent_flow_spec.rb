@@ -644,7 +644,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     # the always-on intent lifecycle (capture/clear) is covered by the
     # account.rb hooks and the non-HTTP examples above.
     before do
-      unless Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+      unless Onetime.billing_config.enabled?
         skip 'billing disabled: after_login billing_redirect hook not registered'
       end
     end

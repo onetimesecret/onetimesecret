@@ -142,7 +142,7 @@ module Auth
       end
 
       # Billing: plan selection carry-through for checkout flow
-      if Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+      if Onetime.billing_config.enabled?
         Hooks::Billing.configure(self)
       end
 
