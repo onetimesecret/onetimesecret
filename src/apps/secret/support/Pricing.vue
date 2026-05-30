@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { RouterLink, useRoute } from 'vue-router';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-  import CardGridSkeleton from '@/shared/components/closet/CardGridSkeleton.vue';
+  import PlanCardSkeleton from '@/shared/components/billing/PlanCardSkeleton.vue';
   import PlanCard from '@/shared/components/billing/PlanCard.vue';
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import { classifyError } from '@/schemas/errors';
@@ -227,7 +227,7 @@
         :error="error" />
 
       <!-- Loading State -->
-      <CardGridSkeleton
+      <PlanCardSkeleton
         v-if="isLoadingPlans"
         class="py-12" />
 
@@ -270,7 +270,7 @@
           :is-recommended="isPlanRecommended(plan)"
           :is-highlighted="isPlanHighlighted(plan)"
           :button-label="getCtaLabel(plan)"
-          class="w-full max-w-sm sm:w-80">
+          class="w-full max-w-sm">
           <template #action="{ plan: currentPlan }">
             <RouterLink
               v-if="signupEnabled"
