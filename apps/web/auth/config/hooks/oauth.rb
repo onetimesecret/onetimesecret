@@ -112,7 +112,7 @@ module Auth::Config::Hooks
           # Spec: NumericDate (seconds since epoch). Use the account's
           # updated_at column written by migration 001_initial.rb (line 38).
           ts = account[:updated_at]
-          ts.respond_to?(:to_i) ? ts.to_i : nil
+          ts&.respond_to?(:to_i) ? ts.to_i : nil
           # Unsupported claims: case returns nil and the proxy filters nils.
         end
       end

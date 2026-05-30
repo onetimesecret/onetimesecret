@@ -303,7 +303,7 @@ module Auth::Config::Features
       private_pem = ENV.fetch('OAUTH_JWT_RSA_PRIVATE_KEY') do
         raise 'OAUTH_JWT_RSA_PRIVATE_KEY must be set when AUTH_OAUTH_ENABLED=true. ' \
               'Generate with: bin/generate_oauth_keys (or `openssl genrsa 2048`).'
-      end
+      end.gsub('\n', "\n")
       private_key = OpenSSL::PKey::RSA.new(private_pem)
       auth.oauth_jwt_keys('RS256' => private_key)
       auth.oauth_jwt_public_keys('RS256' => private_key.public_key)

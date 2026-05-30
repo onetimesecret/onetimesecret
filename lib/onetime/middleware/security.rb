@@ -159,10 +159,11 @@ Onetime::Middleware::Security.middleware_components = {
         # would let a malicious page silently issue authorization codes to
         # an attacker-controlled client. Pure-API SP clients call /authorize
         # via redirect, not POST, so CSRF is irrelevant for them.
-        return true if req.path == '/auth/token'
-        return true if req.path == '/auth/userinfo'
-        return true if req.path == '/auth/revoke'
-        return true if req.path == '/auth/jwks'
+        path = req.path.chomp('/')
+        return true if path == '/auth/token'
+        return true if path == '/auth/userinfo'
+        return true if path == '/auth/revoke'
+        return true if path == '/auth/jwks'
         return true if req.path.start_with?('/auth/.well-known/')
 
         false
