@@ -53,7 +53,7 @@ RSpec.describe 'GenerateAPIToken session-only auth', type: :integration do
   # -------------------------------------------------------------------
   describe 'route restriction' do
     it 'POST /apitoken route uses auth=sessionauth only' do
-      routes_file = File.expand_path('../../../../api/account/routes.txt', __dir__)
+      routes_file = File.join(Onetime::HOME, 'apps/api/account/routes.txt')
       apitoken_line = File.readlines(routes_file).find { |l| l.include?('/apitoken') }
       expect(apitoken_line).to include('auth=sessionauth')
       expect(apitoken_line).not_to include('basicauth')

@@ -25,7 +25,7 @@ RSpec.describe 'Session-only restricted routes', type: :integration do
   include_context 'strategy test'
 
   let(:routes_file) do
-    File.expand_path('../../../../api/account/routes.txt', __dir__)
+    File.join(Onetime::HOME, 'apps/api/account/routes.txt')
   end
 
   # -------------------------------------------------------------------
