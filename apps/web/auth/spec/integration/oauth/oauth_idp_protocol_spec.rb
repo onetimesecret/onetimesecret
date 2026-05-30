@@ -1,4 +1,4 @@
-# apps/web/auth/spec/integration/oauth_idp_protocol_spec.rb
+# apps/web/auth/spec/integration/oauth/oauth_idp_protocol_spec.rb
 #
 # frozen_string_literal: true
 
@@ -43,15 +43,16 @@
 #
 # RUN:
 #   source .env.test && pnpm run test:rspec \
-#     apps/web/auth/spec/integration/oauth_idp_protocol_spec.rb
+#     apps/web/auth/spec/integration/oauth/oauth_idp_protocol_spec.rb
 #
-# Note: lives at integration/ (not integration/full/) on purpose. Path-based
-# metadata in spec/spec_helper.rb installs a MockAuthConfig for files under
-# /integration/full/ — that mock doesn't expose `oauth_enabled?` and would
-# turn the IdP feature off at boot.
+# Note: lives at integration/oauth/ (not integration/full/) on purpose. Path-based
+# metadata in spec/spec_helper.rb installs a MockAuthConfig for files matching
+# /integration/full/ — that mock doesn't expose `oauth_enabled?` and would turn
+# the IdP feature off at boot. integration/oauth/ dodges that regex while still
+# running under full mode via the dedicated `spec:integration:oauth` rake task.
 # =============================================================================
 
-# Pre-boot setup must run before require_relative '../spec_helper' so the env
+# Pre-boot setup must run before require_relative '../../spec_helper' so the env
 # vars are visible to the auth_config the first time Onetime.boot! runs in
 # this RSpec process. The boot is one-shot (memoized) — once it happens
 # without AUTH_OAUTH_ENABLED, the IdP feature is off for the rest of the
@@ -68,7 +69,7 @@ ENV['OAUTH_SP_DEV_CLIENT_SECRET'] ||= "spec-sp-secret-#{SecureRandom.hex(12)}"
 ENV['AUTHENTICATION_MODE'] ||= 'full'
 ENV['RACK_ENV']            ||= 'test'
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 require 'base64'
 require 'cgi'

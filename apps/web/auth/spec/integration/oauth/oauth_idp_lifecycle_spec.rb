@@ -1,4 +1,4 @@
-# apps/web/auth/spec/integration/oauth_idp_lifecycle_spec.rb
+# apps/web/auth/spec/integration/oauth/oauth_idp_lifecycle_spec.rb
 #
 # frozen_string_literal: true
 
@@ -39,12 +39,13 @@
 # - OAUTH_SP_DEV_CLIENT_SECRET (generated below if absent)
 #
 # RUN:
-#   bundle exec rspec apps/web/auth/spec/integration/oauth_idp_lifecycle_spec.rb
+#   bundle exec rspec apps/web/auth/spec/integration/oauth/oauth_idp_lifecycle_spec.rb
 #
-# This spec lives at integration/ (not integration/full/) for the same reason
-# the two existing oauth_idp_* specs do — the path-keyed MockAuthConfig under
-# integration/full/ doesn't expose oauth_enabled? and would disable the IdP
-# feature at boot.
+# This spec lives at integration/oauth/ (not integration/full/) for the same reason
+# the sibling oauth_idp_* specs do — the path-keyed MockAuthConfig matching
+# /integration/full/ doesn't expose oauth_enabled? and would disable the IdP
+# feature at boot. integration/oauth/ dodges that regex; the dedicated
+# spec:integration:oauth rake task runs it under full mode.
 # =============================================================================
 
 require 'openssl'
@@ -60,7 +61,7 @@ ENV['OAUTH_SP_DEV_CLIENT_SECRET'] ||= "spec-sp-secret-#{SecureRandom.hex(12)}"
 ENV['AUTHENTICATION_MODE'] ||= 'full'
 ENV['RACK_ENV']            ||= 'test'
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 require 'base64'
 require 'cgi'
