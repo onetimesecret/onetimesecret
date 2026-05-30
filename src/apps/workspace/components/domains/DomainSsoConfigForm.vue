@@ -458,7 +458,7 @@ aria-hidden="true">*</span>
               collection="heroicons"
               name="arrow-path"
               size="4"
-              class="animate-spin"
+              class="animate-spin motion-reduce:animate-none"
               aria-hidden="true" />
             <OIcon
               v-else
@@ -803,7 +803,7 @@ aria-hidden="true">*</span>
             v-if="isSaving"
             collection="heroicons"
             name="arrow-path"
-            class="size-4 animate-spin"
+            class="size-4 animate-spin motion-reduce:animate-none"
             aria-hidden="true" />
           <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
           <span v-else>{{ isEditing ? t('web.COMMON.save_changes') : t('web.organizations.sso.save_config') }}</span>

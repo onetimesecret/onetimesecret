@@ -323,7 +323,7 @@ onMounted(async () => {
                 <div
                   v-for="i in 4"
                   :key="i"
-                  class="flex animate-pulse items-center gap-2">
+                  class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
                   <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
                   <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
                 </div>
@@ -421,8 +421,12 @@ onMounted(async () => {
                       v-else
                       collection="heroicons"
                       name="arrow-path"
-                      class="size-4 animate-spin"
+                      class="size-4 animate-spin motion-reduce:animate-none"
                       aria-hidden="true" />
+                    <span
+                      v-if="isSavingBillingEmail"
+                      class="sr-only"
+                      >{{ t('web.COMMON.loading') }}</span>
                   </button>
                   <button
                     type="button"

@@ -349,7 +349,7 @@ data-testid="passkey-panel">
                 data-testid="webauthn-submit">
                 <span v-if="isLoading" class="flex items-center">
                   <svg
-                    class="-ml-1 mr-3 size-5 animate-spin text-white"
+                    class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -438,7 +438,7 @@ data-testid="passkey-panel">
               data-testid="magic-link-submit">
               <span v-if="isLoading" class="flex items-center">
                 <svg
-                  class="-ml-1 mr-3 size-5 animate-spin text-white"
+                  class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

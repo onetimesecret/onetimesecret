@@ -262,7 +262,7 @@ const providerDisplayName = computed(() => {
             v-if="isTesting"
             collection="heroicons"
             name="arrow-path"
-            class="size-4 animate-spin"
+            class="size-4 animate-spin motion-reduce:animate-none"
             aria-hidden="true" />
           <OIcon
             v-else
@@ -467,7 +467,7 @@ const providerDisplayName = computed(() => {
           v-if="isSaving"
           collection="heroicons"
           name="arrow-path"
-          class="size-4 animate-spin"
+          class="size-4 animate-spin motion-reduce:animate-none"
           aria-hidden="true" />
         <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
         <span v-else>{{ t('web.domains.email.save_changes') }}</span>

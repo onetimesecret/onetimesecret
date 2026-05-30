@@ -1301,7 +1301,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       <div
                         v-for="i in 4"
                         :key="i"
-                        class="flex animate-pulse items-center gap-2">
+                        class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
                         <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
                         <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
                       </div>

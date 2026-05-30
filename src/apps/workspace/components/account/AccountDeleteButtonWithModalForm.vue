@@ -141,7 +141,7 @@ const closeDeleteModal = () => {
               v-if="isDeleting"
               collection="heroicons"
               name="arrow-path"
-              class="-ml-1 mr-3 size-5 animate-spin"
+              class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none"
               aria-hidden="true" />
             <!-- no-symbol: Reserved exclusively for destructive/irreversible actions -->
             <OIcon

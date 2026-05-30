@@ -450,7 +450,7 @@ aria-live="polite">
                     v-if="isChangingPlan"
                     collection="heroicons"
                     name="arrow-path"
-                    class="mr-2 size-4 animate-spin"
+                    class="mr-2 size-4 animate-spin motion-reduce:animate-none"
                     aria-hidden="true" />
                   {{ isChangingPlan ? t('web.COMMON.processing') : confirmButtonLabel }}
                 </button>

@@ -410,7 +410,7 @@
                   v-if="isLoading"
                   collection="heroicons"
                   name="arrow-path-solid"
-                  class="size-4 animate-spin"
+                  class="size-4 animate-spin motion-reduce:animate-none"
                   aria-hidden="true" />
                 {{
                   isLoading

@@ -258,7 +258,7 @@ watch(
                       v-if="loading"
                       collection="heroicons"
                       name="arrow-path"
-                      class="-ml-1 mr-2 size-4 animate-spin"
+                      class="-ml-1 mr-2 size-4 animate-spin motion-reduce:animate-none"
                       aria-hidden="true" />
                     {{ buttonText }}
                   </button>
