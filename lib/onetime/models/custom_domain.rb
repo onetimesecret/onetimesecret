@@ -1052,18 +1052,6 @@ module Onetime
         instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      # Implement a load method for CustomDomain to make sure the
-      # correct derived ID is used as the key.
-      def load(display_domain, org_id)
-        custom_domain = parse(display_domain, org_id).tap do |obj|
-          OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.org_id}"
-          raise Onetime::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
-        end
-
-        # Continue with the built-in `load` from Familia.
-        super(custom_domain.identifier)
-      end
-
       # Load a custom domain by display domain only. Used during requests
       # after determining the domain strategy is :custom.
       #
