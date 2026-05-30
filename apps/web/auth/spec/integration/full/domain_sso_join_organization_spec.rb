@@ -83,7 +83,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       org_id: tenant_organization.org_id,
     )
     domain.save
-    Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+    Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain
   end
 
@@ -96,7 +96,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
   after do
     sso_customer&.destroy! rescue nil
-    Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+    Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     tenant_custom_domain&.destroy! rescue nil
     tenant_organization&.destroy! rescue nil
     tenant_org_owner&.destroy! rescue nil

@@ -41,7 +41,7 @@ def build_logic_for(domain)
   strategy_result = MockStrategyResult.new(
     session: sess,
     user: nil,
-    authenticated: false,
+    auth_method: 'anonymous',
     metadata: metadata
   )
   logic = Core::Logic::Page::GetFavicon.new(strategy_result, {}, 'en')

@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Validates that the custom_domain:display_domains hash index is consistent
+# Validates that the custom_domain:display_domain_index hash index is consistent
 # with the actual domain objects in Redis.
 #
-# The display_domains hash is the primary lookup for incoming requests
+# The display_domain_index hash is the primary lookup for incoming requests
 # (FQDN -> domain objid). Stale entries cause wrong domain resolution.
 #
 # Three categories of inconsistency:
@@ -13,7 +13,7 @@
 #   MISMATCH - Index entry exists but the domain's display_domain field
 #              does not match the FQDN key in the index
 #   MISSING  - A domain object exists with a display_domain but has no
-#              corresponding entry in the display_domains index
+#              corresponding entry in the display_domain_index index
 #
 # Usage:
 #   bundle exec ruby scripts/validate_display_domain_index.rb [OPTIONS]
@@ -30,7 +30,7 @@ require 'json'
 class DisplayDomainIndexValidator
   attr_reader :stats
 
-  DISPLAY_DOMAINS_KEY = 'custom_domain:display_domains'
+  DISPLAY_DOMAINS_KEY = 'custom_domain:display_domain_index'
 
   def initialize(redis_url:, redis_db: nil, max_examples: 20, json_output: false)
     @redis_url = redis_url
@@ -59,8 +59,8 @@ class DisplayDomainIndexValidator
     uri.path = "/#{@redis_db}" if @redis_db
     redis = Redis.new(url: uri.to_s)
 
-    # Phase 1: Walk the display_domains index and verify each entry
-    scan_display_domains_index(redis)
+    # Phase 1: Walk the display_domain_index index and verify each entry
+    scan_display_domain_index_index(redis)
 
     # Phase 2: Walk all domain objects and check for missing index entries
     scan_domain_objects(redis)
@@ -84,11 +84,11 @@ class DisplayDomainIndexValidator
 
   private
 
-  # Phase 1: HGETALL custom_domain:display_domains.
+  # Phase 1: HGETALL custom_domain:display_domain_index.
   # For each (fqdn, objid), check:
   #   - The domain object exists
   #   - Its display_domain field matches the fqdn key
-  def scan_display_domains_index(redis)
+  def scan_display_domain_index_index(redis)
     cursor = '0'
     loop do
       cursor, entries = redis.hscan(DISPLAY_DOMAINS_KEY, cursor, count: 100)
@@ -124,7 +124,7 @@ class DisplayDomainIndexValidator
 
   # Phase 2: Walk every custom_domain:*:object hash.
   # For each domain with a display_domain, check it has a corresponding
-  # entry in the display_domains index.
+  # entry in the display_domain_index index.
   def scan_domain_objects(redis)
     cursor = '0'
     loop do
@@ -168,9 +168,9 @@ class DisplayDomainIndexValidator
     match = domain_key.match(/^custom_domain:([^:]+):object$/)
     return nil unless match
 
-    # Filter out class-level keys like "display_domains", "owners", "instances"
+    # Filter out class-level keys like "display_domain_index", "owners", "instances"
     objid = match[1]
-    return nil if %w[display_domains owners instances display_domain_index].include?(objid)
+    return nil if %w[display_domain_index owners instances display_domain_index].include?(objid)
 
     objid
   end
@@ -294,7 +294,7 @@ def parse_args(args)
       puts <<~HELP
         Usage: bundle exec ruby scripts/validate_display_domain_index.rb [OPTIONS]
 
-        Validates the custom_domain:display_domains hash index against
+        Validates the custom_domain:display_domain_index hash index against
         actual domain objects in Redis.
 
         Categories:

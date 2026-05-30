@@ -162,15 +162,10 @@ module Onetime
       super
     end
 
-    # Update the display_domain field while maintaining both index systems.
+    # Update the display_domain field while maintaining the FQDN index.
     #
-    # When display_domain changes, two indexes must be updated:
-    #   1. display_domains (manual class_hashkey) - FQDN -> domain identifier
-    #   2. display_domain_index (auto unique_index) - FQDN -> identifier
-    #
-    # A plain save() only adds the NEW value to display_domain_index via
-    # auto_update_class_indexes, and never touches display_domains. This
-    # method properly cleans up old entries in both indexes.
+    # Familia's unique_index :display_domain auto-updates on save(), but a
+    # rename needs explicit old-entry removal before the field value changes.
     #
     # @param new_domain [String] The new display domain FQDN
     # @return [void]
@@ -182,13 +177,13 @@ module Onetime
       return if new_domain == old_domain
 
       # Verify the new domain is not already taken in either index
-      existing = self.class.display_domains.get(new_domain)
+      existing = self.class.display_domain_index.get(new_domain)
       if existing && existing != identifier
         raise Onetime::Problem, 'Domain already registered'
       end
 
       # Remove old entries from both indexes while field still has old value
-      self.class.display_domains.remove(old_domain)
+      self.class.display_domain_index.remove(old_domain)
       remove_from_class_display_domain_index
 
       # Update field and re-parse derived domain parts (base_domain, trd,
@@ -207,7 +202,7 @@ module Onetime
 
       begin
         save
-        self.class.display_domains.put(new_domain, identifier)
+        self.class.display_domain_index.put(new_domain, identifier)
       rescue StandardError => ex
         # Rollback: restore field, derived parts, and re-add old entries
         self.display_domain = old_domain
@@ -217,7 +212,7 @@ module Onetime
         @trd                = old_ps.trd.to_s
         @tld                = old_ps.tld.to_s
         @sld                = old_ps.sld.to_s
-        self.class.display_domains.put(old_domain, identifier)
+        self.class.display_domain_index.put(old_domain, identifier)
         # Best-effort save to restore old auto-index entry
         begin
           save
@@ -379,8 +374,7 @@ module Onetime
     # - The main database key for the custom domain (`self.dbkey`)
     # - database keys of all related objects specified in `self.class.data_types`
     # - Familia v2 participations in organization.domains collections
-    # - Manual class indexes: instances, display_domains, owners
-    # - Auto unique_index: display_domain_index
+    # - Class indexes: instances, display_domain_index, owners (via Familia)
     #
     # @return [void]
     def destroy!
@@ -607,7 +601,7 @@ module Onetime
       # @return [CustomDomain, nil] The domain if found, nil otherwise
       def load_by_display_domain(domain_name)
         normalized = domain_name.to_s.downcase
-        domainid   = display_domains.get(normalized)
+        domainid   = display_domain_index.get(normalized)
         return nil if domainid.nil?
 
         # Use Familia's find_by_identifier method
@@ -623,7 +617,7 @@ module Onetime
 
       # Resolve an FQDN to its CustomDomain identifier.
       #
-      # Looks up the display_domains hash for the given FQDN. Returns nil
+      # Looks up the display_domain_index hash for the given FQDN. Returns nil
       # when the domain is blank, unregistered, or on any error — callers
       # treat nil as "no custom domain".
       #
@@ -632,7 +626,7 @@ module Onetime
       def resolve_domain_id(fqdn)
         return nil if fqdn.nil? || fqdn.to_s.empty?
 
-        domain_id = display_domains.get(fqdn)
+        domain_id = display_domain_index.get(fqdn)
         OT.ld "[CustomDomain] Resolved #{fqdn} to domain_id=#{domain_id}" if domain_id
         domain_id
       rescue StandardError => ex
@@ -706,8 +700,8 @@ module Onetime
         end
 
         # No existing domain - create new one with atomic uniqueness check
-        # Use HSETNX on display_domains as the atomic gate for uniqueness
-        was_set = display_domains.hsetnx(normalized_domain, obj.identifier)
+        # Use HSETNX on display_domain_index as the atomic gate for uniqueness
+        was_set = display_domain_index.hsetnx(normalized_domain, obj.identifier)
 
         if was_set == 0
           # Another process created this domain between our check and creation attempt
@@ -719,7 +713,7 @@ module Onetime
 
         end
 
-        # We own the display_domains entry - now create the full record
+        # We own the display_domain_index entry - now create the full record
         begin
           obj.generate_txt_validation_record
           obj.save
@@ -749,7 +743,7 @@ module Onetime
           # exception is always re-raised at the end.
           rollback_steps = [
             # Pre-save claim (the hsetnx)
-            -> { display_domains.remove(normalized_domain) },
+            -> { display_domain_index.remove(normalized_domain) },
             # Familia auto-index added by obj.save
             -> { obj.remove_from_class_display_domain_index },
             # Manual class-index writes inside the begin block
@@ -1005,7 +999,7 @@ module Onetime
         end
 
         instances.add fobj.to_s # created time, identifier
-        display_domains.put fobj.display_domain, fobj.identifier
+        display_domain_index.put fobj.display_domain, fobj.identifier
         owners.put fobj.to_s, fobj.org_id # domainid => organization id
       end
 
@@ -1031,8 +1025,8 @@ module Onetime
       # @param display_domain [String] The display domain to load
       # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
       def from_display_domain(display_domain)
-        # Get the domain ID from the display_domains hash
-        domain_id = display_domains.get(display_domain)
+        # Get the domain ID from the display_domain_index hash
+        domain_id = display_domain_index.get(display_domain)
         return nil unless domain_id
 
         # Load the record using the domain ID
@@ -1063,16 +1057,6 @@ module Onetime
         org.domains.to_a
       rescue Familia::RecordNotFound
         []
-      end
-
-      # Backward-compatible alias for the retired `display_domains` class_hashkey.
-      # The Familia-managed `display_domain_index` (auto-populated on save,
-      # auto-purged on destroy!) is now the single FQDN -> domainid index. They
-      # share the same HashKey shape, so existing callers — CLI, domains doctor,
-      # specs, and the internal lookups below — keep working unchanged while
-      # destroy! cleanup is handled by Familia instead of manual remove calls.
-      def display_domains
-        display_domain_index
       end
     end
 

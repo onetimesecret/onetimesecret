@@ -97,7 +97,7 @@ module Onetime
         )
         return if sorted_domains.empty?
 
-        display_domains_table(sorted_domains, show_vhost: vhost)
+        display_domain_index_table(sorted_domains, show_vhost: vhost)
       end
 
       private
@@ -159,7 +159,7 @@ module Onetime
         descending ? sorted.reverse : sorted
       end
 
-      def display_domains_table(domains, show_vhost: false)
+      def display_domain_index_table(domains, show_vhost: false)
         puts
         if show_vhost
           puts format('%-40s %-25s %-12s %-8s  %s', 'Domain', 'Organization', 'Status', 'Verified', 'Vhost')

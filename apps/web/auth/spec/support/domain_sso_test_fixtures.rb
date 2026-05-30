@@ -343,7 +343,7 @@ RSpec.shared_context 'domain sso fixtures' do
       org_id: test_sso_organization.org_id
     )
     domain.save
-    Onetime::CustomDomain.display_domains.put(domain_sso_display_domain, domain.domainid)
+    Onetime::CustomDomain.display_domain_index.put(domain_sso_display_domain, domain.domainid)
     domain
   end
 
@@ -364,7 +364,7 @@ RSpec.shared_context 'domain sso fixtures' do
   after do
     # Cleanup in reverse order of creation
     Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_domain_with_sso.objid) rescue nil
-    Onetime::CustomDomain.display_domains.remove(domain_sso_display_domain) rescue nil
+    Onetime::CustomDomain.display_domain_index.remove(domain_sso_display_domain) rescue nil
     test_domain_with_sso&.destroy!
     test_sso_organization&.destroy!
   end

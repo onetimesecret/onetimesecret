@@ -137,12 +137,12 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
           org_id: test_organization.org_id
         )
         domain.save
-        Onetime::CustomDomain.display_domains.put(attacker_domain, domain.domainid)
+        Onetime::CustomDomain.display_domain_index.put(attacker_domain, domain.domainid)
         domain
       end
 
       after do
-        Onetime::CustomDomain.display_domains.remove(attacker_domain) rescue nil
+        Onetime::CustomDomain.display_domain_index.remove(attacker_domain) rescue nil
         attacker_custom_domain&.destroy! rescue nil
       end
 

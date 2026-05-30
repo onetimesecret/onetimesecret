@@ -455,13 +455,13 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
         org_id: tenant_organization.org_id,
       )
       domain.save
-      Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+      Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
       domain
     end
 
     after do
       Onetime::CustomDomain::SignupConfig.delete_for_domain!(tenant_custom_domain.identifier) rescue nil
-      Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+      Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
       tenant_custom_domain&.destroy! rescue nil
       tenant_organization&.destroy! rescue nil
       tenant_org_owner&.destroy! rescue nil
@@ -695,14 +695,14 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
         org_id: tenant_organization.org_id,
       )
       domain.save
-      Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+      Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
       domain
     end
 
     after do
       # Clean up SignupConfig if created
       Onetime::CustomDomain::SignupConfig.delete_for_domain!(tenant_custom_domain.identifier) rescue nil
-      Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+      Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
       tenant_custom_domain&.destroy! rescue nil
       tenant_organization&.destroy! rescue nil
       tenant_org_owner&.destroy! rescue nil
@@ -950,13 +950,13 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
         org_id: tenant_organization.org_id,
       )
       domain.save
-      Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+      Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
       domain
     end
 
     after do
       Onetime::CustomDomain::SignupConfig.delete_for_domain!(tenant_custom_domain.identifier) rescue nil
-      Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+      Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
       tenant_custom_domain&.destroy! rescue nil
       tenant_organization&.destroy! rescue nil
       tenant_org_owner&.destroy! rescue nil
@@ -1085,13 +1085,13 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
         org_id: tenant_organization.org_id,
       )
       domain.save
-      Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+      Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
       domain
     end
 
     after do
       Onetime::CustomDomain::SignupConfig.delete_for_domain!(tenant_custom_domain.identifier) rescue nil
-      Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+      Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
       tenant_custom_domain&.destroy! rescue nil
       tenant_organization&.destroy! rescue nil
       tenant_org_owner&.destroy! rescue nil
