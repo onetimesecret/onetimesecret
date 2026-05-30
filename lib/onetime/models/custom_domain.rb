@@ -434,13 +434,10 @@ module Onetime
         remove_from_organization_domains(o)
       end
 
-      # Remove from all class indexes (instances sorted set,
-      # display_domains hash, owners hash, display_domain_index unique_index)
-      self.class.rem(self)
-
-      # Call Familia's built-in destroy which handles:
+      # Familia 2.9.1's destroy! handles:
       # - Main object key deletion
       # - Related fields cleanup (brand, logo, icon hashkeys)
+      # - Class-level indexes (display_domains, owners, display_domain_index, instances)
       # - Transaction management
       super
     end
@@ -1012,13 +1009,6 @@ module Onetime
         instances.add fobj.to_s # created time, identifier
         display_domains.put fobj.display_domain, fobj.identifier
         owners.put fobj.to_s, fobj.org_id # domainid => organization id
-      end
-
-      def rem(fobj)
-        instances.remove fobj.to_s
-        display_domains.remove fobj.display_domain
-        owners.remove fobj.to_s
-        fobj.remove_from_all_indexes
       end
 
       def all
