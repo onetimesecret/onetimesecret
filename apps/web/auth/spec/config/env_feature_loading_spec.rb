@@ -30,14 +30,18 @@
 
 require_relative '../spec_helper'
 require 'climate_control'
+require 'rodauth'
 
-# Define namespace before loading the MFA module
-module Auth
-  module Config
-    module Features
-    end
-  end
-end
+# Define namespace before loading the MFA module.
+# Auth::Config may already exist as a Class (Rodauth::Auth subclass) if an
+# earlier spec booted the full app. Using const_set with Class.new preserves
+# superclass compatibility; plain `module Auth::Config` would raise
+# "TypeError: Config is not a module" in that ordering.
+# See: auth_config_namespace_shim memory record.
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Features, Module.new) unless Auth::Config.const_defined?(:Features, false)
+
 require_relative '../../config/features/mfa'
 
 RSpec.describe 'ENV-conditional feature loading' do

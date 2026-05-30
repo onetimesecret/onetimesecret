@@ -30,11 +30,17 @@
 
 require 'rspec'
 require 'json'
+require 'rodauth'
 
-# Define the namespace hierarchy before loading the module
+# Define the namespace hierarchy before loading the module.
+# Auth::Config may already exist as a Class (Rodauth::Auth subclass) if an
+# earlier spec booted the full app. Using const_set with Class.new preserves
+# superclass compatibility; plain `module Auth::Config; end` would raise
+# "TypeError: Config is not a module" in that ordering.
+# See: auth_config_namespace_shim memory record.
 module Auth; end
-module Auth::Config; end
-module Auth::Config::Hooks; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Load the actual production module
 require_relative '../../../config/hooks/billing'

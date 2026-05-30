@@ -23,7 +23,12 @@
 # The OmniAuth OIDC strategy fetches the discovery document during provider
 # registration, so WebMock must be configured before the app boots.
 #
-#
+# AUTHENTICATION_MODE must be 'full' before requiring ../application (line 115).
+# Without it, Auth::Database.connection returns nil and Rodauth's post_configure
+# crashes calling db.database_type on nil. This must be outside the OIDC_ISSUER
+# conditional so it's always set regardless of whether OIDC env vars are preset.
+ENV['AUTHENTICATION_MODE'] ||= 'full'
+
 MOCK_OIDC_ISSUER = 'https://mock-idp.example.com'
 
 unless ENV['OIDC_ISSUER'].to_s.strip.length.positive?
@@ -32,7 +37,6 @@ unless ENV['OIDC_ISSUER'].to_s.strip.length.positive?
   ENV['OIDC_CLIENT_SECRET'] = 'test-client-secret'
   ENV['OIDC_REDIRECT_URI'] = 'http://localhost:3000/auth/sso/oidc/callback'
   ENV['AUTH_SSO_ENABLED'] = 'true'
-  ENV['AUTHENTICATION_MODE'] ||= 'full'
 
   # Set up WebMock BEFORE loading any app code
   require 'webmock'
