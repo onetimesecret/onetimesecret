@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 # frozen_string_literal: true
 
 # Org entitlement/limit materialization — pull-vs-materialize discrimination
