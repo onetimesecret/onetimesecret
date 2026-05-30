@@ -60,7 +60,12 @@ RENAMES=(
 EXTS='\.(rb|ts|tsx|vue|yaml|yml|md|js)$'
 
 # Build the file list with ripgrep so .gitignore is respected.
-mapfile -t CANDIDATES < <(
+# Use a while-read loop rather than `mapfile`/`readarray` (Bash 4+) so the
+# script runs under macOS's default Bash 3.2.
+CANDIDATES=()
+while IFS= read -r line; do
+  CANDIDATES+=("$line")
+done < <(
   rg --files \
      --hidden \
      --glob '!node_modules' \
@@ -108,9 +113,10 @@ for f in "${TOUCHED[@]}"; do
     for r in "${RENAMES[@]}"; do
       FROM="${r%%|*}"
       TO="${r##*|}"
-      # macOS BSD sed: -i requires an extension arg ('' for in-place).
+      # Use perl for in-place edits: identical syntax on macOS (BSD) and Linux
+      # (GNU), unlike `sed -i` whose backup-extension handling differs.
       # Use | as delimiter since none of the strings contain it.
-      sed -i '' "s|${FROM}|${TO}|g" "$f"
+      perl -pi -e "s|\Q${FROM}\E|${TO}|g" "$f"
     done
     echo "REWROTE: $f"
   else
