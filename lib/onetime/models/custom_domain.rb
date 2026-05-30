@@ -74,14 +74,6 @@ module Onetime
     feature :with_migration_fields
     feature :custom_domain_migration_fields
 
-    # NOTE: The dbkey used by older models for values is simply
-    # "onetime:customdomain". We'll want to rename those at some point.
-    #
-    # "values" was Familia v1 convention. In Familia, the same functionality
-    # is provided automatically by ModelName.instances.
-    #   class_sorted_set :values
-
-    class_hashkey :display_domains
     class_hashkey :owners
 
     identifier_field :domainid
@@ -107,6 +99,7 @@ module Onetime
     hashkey :brand
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
+
     # Legacy JSON blob. Read-only; consumed by the migrate_incoming_secrets_to_config
     # chore that copies entries into the IncomingConfig Familia model. The field
     # declaration is intentionally retained so the chore can read the legacy
@@ -434,10 +427,15 @@ module Onetime
         remove_from_organization_domains(o)
       end
 
+      # The `owners` HashKey is a plain class_hashkey (domain.to_s -> org_id),
+      # not a Familia-managed index, so destroy! does not auto-purge it. Remove
+      # the entry manually to keep it in sync with the `instances` registry.
+      self.class.owners.remove(to_s)
+
       # Familia 2.9.1's destroy! handles:
       # - Main object key deletion
       # - Related fields cleanup (brand, logo, icon hashkeys)
-      # - Class-level indexes (display_domains, owners, display_domain_index, instances)
+      # - Auto-managed class indexes (display_domain_index, instances registry)
       # - Transaction management
       super
     end
@@ -1065,6 +1063,16 @@ module Onetime
         org.domains.to_a
       rescue Familia::RecordNotFound
         []
+      end
+
+      # Backward-compatible alias for the retired `display_domains` class_hashkey.
+      # The Familia-managed `display_domain_index` (auto-populated on save,
+      # auto-purged on destroy!) is now the single FQDN -> domainid index. They
+      # share the same HashKey shape, so existing callers — CLI, domains doctor,
+      # specs, and the internal lookups below — keep working unchanged while
+      # destroy! cleanup is handled by Familia instead of manual remove calls.
+      def display_domains
+        display_domain_index
       end
     end
 
