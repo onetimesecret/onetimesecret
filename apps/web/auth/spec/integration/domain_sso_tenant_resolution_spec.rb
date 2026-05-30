@@ -224,7 +224,6 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       it 'handles missing organization gracefully' do
         # Domain exists but org was deleted
         # Stub custom_domain to return nil (simulates orphaned domain)
-        # since CustomDomain.load now requires (display_domain, org_id)
         config = build_domain_sso_config(:oidc)
         config.define_singleton_method(:custom_domain) { nil }
         expect(config.organization).to be_nil
