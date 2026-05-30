@@ -341,23 +341,6 @@ module Onetime
       receipts.member?(dummy_receipt)
     end
 
-    # Destroy the custom domain record
-    #
-    # Removes the domain identifier from the CustomDomain values
-    # and then calls the superclass destroy method
-    #
-    # @deprecated Use {#destroy!} instead. This method does not properly clean up
-    #   organization participations. destroy! should be used for complete cleanup.
-    # @param args [Array] Additional arguments to pass to the superclass destroy method
-    # @return [Object] The result of the superclass destroy method
-    def delete!(*args)
-      unless @_destroying
-        OT.le '[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup'
-      end
-      Onetime::CustomDomain.rem self
-      super
-    end
-
     # Parses the vhost JSON string into a Ruby hash
     #
     # @return [Hash] The parsed vhost configuration, or empty hash if parsing fails
@@ -459,13 +442,7 @@ module Onetime
       # - Main object key deletion
       # - Related fields cleanup (brand, logo, icon hashkeys)
       # - Transaction management
-      #
-      # Familia's destroy! calls delete! internally. Set flag so our
-      # delete! override skips the deprecation warning.
-      @_destroying = true
       super
-    ensure
-      @_destroying = false
     end
 
     # Checks if the domain is an apex domain.
