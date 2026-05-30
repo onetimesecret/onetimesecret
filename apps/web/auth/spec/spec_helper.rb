@@ -479,7 +479,8 @@ module ProductionConfigHelper
   # autoincrement counter so account_id restarts at 1 (deterministic IDs).
   def clear_auth_database
     db = Auth::Database.connection
-    tables = db.tables - %i[schema_info schema_migrations]
+    # Preserve schema bookkeeping and seed-once reference tables (PRESERVED_TABLES).
+    tables = db.tables - PRESERVED_TABLES
     case db.database_type
     when :postgres
       db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
