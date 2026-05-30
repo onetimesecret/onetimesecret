@@ -65,8 +65,8 @@ module Onetime
     # in the materialized entitlements, not role string checks.
     #
     # Categories mirror billing.example.yaml entitlement definitions:
-    # - owner: org-level management, billing, SSO
-    # - admin: team/member management, workspace branding, audit
+    # - owner: org-level management, billing, SSO, IP rules, workspace branding
+    # - admin: member management, custom domains, audit, secret display/branding
     # - member: core usage entitlements
     #
     MEMBER_ENTITLEMENTS = Set[
@@ -78,6 +78,7 @@ module Onetime
     ].freeze
 
     ADMIN_ENTITLEMENTS = Set[
+      'audit_logs',
       'manage_members',
       'custom_domains',
       'homepage_secrets',
@@ -87,7 +88,6 @@ module Onetime
     ].freeze
 
     OWNER_ENTITLEMENTS = Set[
-      'audit_logs',
       'ip_access_rules',
       'workspace_branding',
       'custom_mail_sender',
