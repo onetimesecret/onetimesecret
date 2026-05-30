@@ -257,10 +257,12 @@ module Auth::Config::Hooks
       # clicking a link in an email). It updates the verification status of
       # the associated Onetime::Customer record.
       #
-      # Note: This hook is disabled in the 'test' environment to simplify
-      # testing scenarios that do not require email verification flows.
+      # This hook is only registered when the verify_account feature is enabled.
+      # When disabled (e.g., in test environments via auth.yaml config), the
+      # Rodauth :verify_account feature isn't loaded, so the after_verify_account
+      # DSL method doesn't exist.
       #
-      unless Onetime.env?('testing')
+      if Onetime.auth_config.verify_account_enabled?
         auth.after_verify_account do
           Auth::Logging.log_auth_event(
             :account_verified,
