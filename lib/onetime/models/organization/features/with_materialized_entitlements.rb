@@ -33,6 +33,29 @@ module Onetime
           Digest::SHA256.hexdigest(content)[0, 12]
         end
 
+        # Compute content hash for a full materialized snapshot (entitlements + limits).
+        # The org materializes both, so staleness detection must cover both — otherwise
+        # plan edits that only touch limits look "fresh."
+        #
+        # When limits are empty/nil the result equals entitlements_content_hash, so
+        # orgs on limits-free plans stay fresh across this change.
+        #
+        # @param entitlements [Array<String>, Enumerable] Entitlement strings
+        # @param limits [Hash, nil] Flattened limits (e.g., {"teams.max" => "5"})
+        # @return [String] 12-char hex hash
+        def self.snapshot_content_hash(entitlements, limits = nil)
+          ent_part = entitlements.to_a.sort.join(',')
+          limits_h = limits ? limits.to_h : {}
+          return Digest::SHA256.hexdigest(ent_part)[0, 12] if limits_h.empty?
+
+          limits_part = limits_h
+            .map { |k, v| [k.to_s, v.to_s] }
+            .sort
+            .map { |k, v| "#{k}=#{v}" }
+            .join(',')
+          Digest::SHA256.hexdigest("#{ent_part}|#{limits_part}")[0, 12]
+        end
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
 
@@ -68,6 +91,10 @@ module Onetime
           def entitlements_content_hash(entitlements)
             WithMaterializedEntitlements.entitlements_content_hash(entitlements)
           end
+
+          def snapshot_content_hash(entitlements, limits = nil)
+            WithMaterializedEntitlements.snapshot_content_hash(entitlements, limits)
+          end
         end
 
         module InstanceMethods
@@ -82,8 +109,12 @@ module Onetime
           # @param plan [Billing::Plan] Plan to materialize from
           # @return [Boolean] True if materialization succeeded
           def materialize_entitlements_from_plan(plan)
-            # Compute content hash and set scalar field first
-            content_hash                      = self.class.entitlements_content_hash(plan.entitlements.to_a)
+            # Hash covers entitlements + limits — both are part of the materialized
+            # snapshot, so a limits-only plan change must mark the org stale.
+            content_hash                      = self.class.snapshot_content_hash(
+              plan.entitlements.to_a,
+              plan.limits.hgetall,
+            )
             self.materialized_entitlements_at = "#{Familia.now.to_i}:#{content_hash}"
 
             # Save scalar, then execute collection operations
@@ -114,8 +145,8 @@ module Onetime
             entitlements = plan_data[:entitlements] || []
             limits       = plan_data[:limits] || {}
 
-            # Compute content hash and set scalar field first
-            content_hash                      = self.class.entitlements_content_hash(entitlements)
+            # Hash covers entitlements + limits (see materialize_entitlements_from_plan).
+            content_hash                      = self.class.snapshot_content_hash(entitlements, limits)
             self.materialized_entitlements_at = "#{Familia.now.to_i}:#{content_hash}"
 
             # Save scalar, then execute collection operations
@@ -231,12 +262,14 @@ module Onetime
             return true unless applied
 
             # Handle both Plan objects and config Hashes
-            entitlements = if plan.respond_to?(:entitlements)
-                             plan.entitlements.to_a
-                           else
-                             plan[:entitlements] || []
-                           end
-            current_hash = self.class.entitlements_content_hash(entitlements)
+            if plan.respond_to?(:entitlements)
+              entitlements = plan.entitlements.to_a
+              limits       = plan.limits.hgetall
+            else
+              entitlements = plan[:entitlements] || []
+              limits       = plan[:limits] || {}
+            end
+            current_hash = self.class.snapshot_content_hash(entitlements, limits)
             applied[:content_hash] != current_hash
           end
 
