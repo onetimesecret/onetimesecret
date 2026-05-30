@@ -13,8 +13,8 @@
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/session_bracket_access_spec.rb
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
+require_relative '../../../spec_helper'
+require_relative '../../../support/strategy_test_context'
 
 RSpec.describe 'Session bracket access safety for BasicAuth', type: :integration do
   include_context 'strategy test'

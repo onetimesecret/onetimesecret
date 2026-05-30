@@ -24,6 +24,11 @@
 #   ├── disabled/   # AUTHENTICATION_MODE=disabled only
 #   └── all/        # Runs in ALL modes (infrastructure validation)
 #
+#   apps/web/auth/spec/integration/
+#   └── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
+#       ├── basicauth/  # BasicAuth contract tests
+#       └── migrations/ # DB migration tests
+#
 # The "all/" specs run three times (once per mode). This is intentional: they
 # validate that infrastructure (Puma forking, RabbitMQ, routing) works correctly
 # regardless of which auth layer sits above it. If someone accidentally couples
@@ -129,9 +134,9 @@ namespace :spec do
           *Dir.glob("apps/*/*/spec/integration/#{mode}"),
           "spec/integration/#{mode}",
           'spec/integration/all',
-        ].join(' ')
+        ]
 
-        sh env, "bundle exec rspec #{patterns} #{tag_filter} #{rspec_format_options}"
+        sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
       end
     end
 

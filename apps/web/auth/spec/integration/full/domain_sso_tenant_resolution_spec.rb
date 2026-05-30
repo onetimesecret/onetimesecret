@@ -24,11 +24,11 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
-require_relative '../support/tenant_test_fixtures'
-require_relative '../support/domain_sso_test_fixtures'
-require_relative '../support/mock_omniauth_strategy'
-require_relative '../support/oauth_flow_helper'
+require_relative '../../spec_helper'
+require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/domain_sso_test_fixtures'
+require_relative '../../support/mock_omniauth_strategy'
+require_relative '../../support/oauth_flow_helper'
 require 'json'
 
 # Define the Auth::Config namespace (normally provided by auth app boot).
@@ -44,10 +44,10 @@ Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Require Auth::Logging (used by the hook)
-require_relative '../../lib/logging'
+require_relative '../../../lib/logging'
 
 # Require the tenant resolution hook
-require_relative '../../config/hooks/omniauth_tenant'
+require_relative '../../../config/hooks/omniauth_tenant'
 
 RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
   include TenantTestFixtures

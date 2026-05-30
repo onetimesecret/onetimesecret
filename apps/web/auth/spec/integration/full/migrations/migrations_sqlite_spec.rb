@@ -11,6 +11,9 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
   include MigrationTestHelpers
 
   let(:migrations_dir) { File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations') }
+  # Derive the latest schema version from the migration files so this spec does
+  # not need editing each time a migration lands (the gap that left it at 6).
+  let(:latest_version) { Dir.glob(File.join(migrations_dir, '[0-9]*_*.rb')).count }
   let(:test_db_file) { File.join(Dir.tmpdir, "test_auth_#{SecureRandom.hex(4)}.db") }
   let(:test_db) { Sequel.connect("sqlite://#{test_db_file}") }
 
@@ -34,9 +37,9 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
       Sequel.extension :migration
       Sequel::Migrator.run(test_db, migrations_dir, use_transactions: true)
 
-      # Verify schema version is at latest (6 migrations)
-      version = verify_schema_version(db: test_db, expected: 6)
-      expect(version).to eq(6)
+      # Verify schema version is at latest
+      version = verify_schema_version(db: test_db, expected: latest_version)
+      expect(version).to eq(latest_version)
 
       # Verify all core tables exist
       expect(verify_core_tables_exist(db: test_db)).to be true
@@ -107,8 +110,8 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
       # Run full migration
       Sequel::Migrator.run(test_db, migrations_dir)
 
-      # Should now be at version 6
-      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
+      # Should now be at the latest version
+      expect(verify_schema_version(db: test_db, expected: latest_version)).to eq(latest_version)
       expect(verify_core_tables_exist(db: test_db)).to be true
     end
 
@@ -118,7 +121,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
 
       Sequel::Migrator.run(test_db, migrations_dir)
 
-      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
+      expect(verify_schema_version(db: test_db, expected: latest_version)).to eq(latest_version)
     end
 
     it 'maintains data integrity when completing migrations' do
@@ -138,7 +141,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
       # Verify data survived
       account = test_db[:accounts].where(id: account_id).first
       expect(account[:email]).to eq('partial@example.com')
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(latest_version)
     end
   end
 
@@ -174,18 +177,18 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
     it 'increments version for each migration' do
       versions = []
 
-      (1..6).each do |target_version|
+      (1..latest_version).each do |target_version|
         Sequel::Migrator.run(test_db, migrations_dir, target: target_version)
         versions << get_schema_version(db: test_db)
       end
 
-      expect(versions).to eq([1, 2, 3, 4, 5, 6])
+      expect(versions).to eq((1..latest_version).to_a)
     end
 
     it 'allows rollback to previous version' do
       # Run all migrations
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(latest_version)
 
       # Rollback to version 3
       Sequel::Migrator.run(test_db, migrations_dir, target: 3)
@@ -193,7 +196,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
 
       # Run forward again
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(latest_version)
     end
   end
 
@@ -220,7 +223,7 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
     it 'applies database-specific features for SQLite' do
       # SQLite doesn't have functions/triggers/views like PostgreSQL
       # but we can verify the migration ran without error
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(latest_version)
 
       # Verify SQLite-specific constraints work
       expect do
@@ -268,17 +271,17 @@ RSpec.describe 'Auth::Migrator SQLite Integration' do
     it 'runs migrations idempotently' do
       # First run
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(latest_version)
 
       # Second run should be no-op
       Sequel::Migrator.run(test_db, migrations_dir)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(latest_version)
     end
 
     it 'uses transactions for migration safety' do
       # Verify migrations run in transaction context
       Sequel::Migrator.run(test_db, migrations_dir, use_transactions: true)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(latest_version)
     end
   end
 end

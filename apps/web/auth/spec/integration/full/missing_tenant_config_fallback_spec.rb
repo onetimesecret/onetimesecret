@@ -33,9 +33,9 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
-require_relative '../support/tenant_test_fixtures'
-require_relative '../support/domain_sso_test_fixtures'
+require_relative '../../spec_helper'
+require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/domain_sso_test_fixtures'
 require 'json'
 
 # Define the Auth::Config namespace (normally provided by auth app boot).
@@ -51,10 +51,10 @@ Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Require Auth::Logging (used by the hook)
-require_relative '../../lib/logging'
+require_relative '../../../lib/logging'
 
 # Require the tenant resolution hook
-require_relative '../../config/hooks/omniauth_tenant'
+require_relative '../../../config/hooks/omniauth_tenant'
 
 RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integration do
   include TenantTestFixtures
@@ -90,16 +90,22 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
 
   let(:helpers) { Auth::Config::Hooks::OmniAuthTenant }
 
-  # Mock Rodauth instance that captures throw_error_status calls
-  # instead of actually halting the request.
+  # Mock Rodauth instance that captures throw_error_status and redirect calls
+  # instead of actually halting the request. Real rodauth #redirect halts via
+  # `throw :halt`, so the mock mirrors that with the path as the thrown value.
   class MockRodauth
-    attr_reader :error_status, :error_field, :error_message
+    attr_reader :error_status, :error_field, :error_message, :redirect_path
 
     def throw_error_status(status, field, message)
       @error_status = status
       @error_field = field
       @error_message = message
       throw :error, { status: status, field: field, message: message }
+    end
+
+    def redirect(path)
+      @redirect_path = path
+      throw :halt, path
     end
 
     def error_thrown?
@@ -139,19 +145,18 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
         allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
       end
 
-      it 'raises 403 sso_not_configured' do
+      it 'redirects to signin with sso_not_configured error' do
         mock_rodauth = MockRodauth.new
 
-        result = catch(:error) do
+        result = catch(:halt) do
           helpers.handle_missing_tenant_config(host, mock_rodauth)
-          :no_error
+          :no_redirect
         end
 
-        expect(result).not_to eq(:no_error),
-          "Expected handle_missing_tenant_config to throw an error when fallback is denied"
-        expect(result[:status]).to eq(403)
-        expect(result[:field]).to eq('sso_not_configured')
-        expect(result[:message]).to eq('SSO not configured for this domain')
+        expect(result).not_to eq(:no_redirect),
+          "Expected handle_missing_tenant_config to redirect when fallback is denied"
+        expect(result).to eq('/signin?auth_error=sso_not_configured')
+        expect(mock_rodauth.redirect_path).to eq('/signin?auth_error=sso_not_configured')
       end
     end
 
@@ -162,15 +167,14 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
       it 'denies fallback by default (secure default from #2918)' do
         mock_rodauth = MockRodauth.new
 
-        result = catch(:error) do
+        result = catch(:halt) do
           helpers.handle_missing_tenant_config(host, mock_rodauth)
-          :no_error
+          :no_redirect
         end
 
-        expect(result).not_to eq(:no_error),
+        expect(result).not_to eq(:no_redirect),
           "Default config should deny fallback (allow_platform_fallback_for_tenants defaults to false)"
-        expect(result[:status]).to eq(403)
-        expect(result[:field]).to eq('sso_not_configured')
+        expect(result).to eq('/signin?auth_error=sso_not_configured')
       end
     end
   end
@@ -232,18 +236,17 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
         allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
       end
 
-      it 'raises 403 sso_not_configured' do
+      it 'redirects to signin with sso_not_configured error' do
         mock_rodauth = MockRodauth.new
 
-        result = catch(:error) do
+        result = catch(:halt) do
           helpers.handle_missing_tenant_config(tenant_domain, mock_rodauth)
-          :no_error
+          :no_redirect
         end
 
-        expect(result).not_to eq(:no_error),
-          "Disabled config with fallback denied should raise 403"
-        expect(result[:status]).to eq(403)
-        expect(result[:field]).to eq('sso_not_configured')
+        expect(result).not_to eq(:no_redirect),
+          "Disabled config with fallback denied should redirect to signin"
+        expect(result).to eq('/signin?auth_error=sso_not_configured')
       end
     end
   end
@@ -262,14 +265,14 @@ RSpec.describe 'handle_missing_tenant_config Fallback Policy', type: :integratio
         # returns false. Stub to simulate this explicitly.
         allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
 
-        result = catch(:error) do
+        result = catch(:halt) do
           helpers.handle_missing_tenant_config('orphan.example.com', mock_rodauth)
-          :no_error
+          :no_redirect
         end
 
-        expect(result).not_to eq(:no_error),
+        expect(result).not_to eq(:no_redirect),
           "Missing sso config section should deny fallback (secure default)"
-        expect(result[:status]).to eq(403)
+        expect(result).to eq('/signin?auth_error=sso_not_configured')
       end
     end
 

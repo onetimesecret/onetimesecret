@@ -351,9 +351,11 @@ module Onetime
     # @param args [Array] Additional arguments to pass to the superclass destroy method
     # @return [Object] The result of the superclass destroy method
     def delete!(*args)
-      OT.le '[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup'
+      unless @_destroying
+        OT.le '[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup'
+      end
       Onetime::CustomDomain.rem self
-      super # we may prefer to call self.clear here instead
+      super
     end
 
     # Parses the vhost JSON string into a Ruby hash
@@ -457,7 +459,13 @@ module Onetime
       # - Main object key deletion
       # - Related fields cleanup (brand, logo, icon hashkeys)
       # - Transaction management
+      #
+      # Familia's destroy! calls delete! internally. Set flag so our
+      # delete! override skips the deprecation warning.
+      @_destroying = true
       super
+    ensure
+      @_destroying = false
     end
 
     # Checks if the domain is an apex domain.

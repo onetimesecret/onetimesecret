@@ -14,8 +14,8 @@
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/generate_api_token_basic_auth_spec.rb
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
+require_relative '../../../spec_helper'
+require_relative '../../../support/strategy_test_context'
 
 RSpec.describe 'GenerateAPIToken session-only auth', type: :integration do
   include_context 'strategy test'

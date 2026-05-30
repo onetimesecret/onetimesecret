@@ -302,7 +302,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
         post '/auth/sso/oidc'
 
         if last_response.status == 404
-          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
+          skip "OmniAuth route not registered (OIDC discovery not available at boot for #{e2e_domain_host})"
         end
         expect(last_response.status).to eq(302),
           "Initiation should redirect, got: #{last_response.status}"

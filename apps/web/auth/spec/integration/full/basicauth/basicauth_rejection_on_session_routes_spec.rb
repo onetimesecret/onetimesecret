@@ -17,8 +17,8 @@
 # Run:
 #   source .env.test && bundle exec rspec apps/web/auth/spec/integration/basicauth_rejection_on_session_routes_spec.rb --format documentation
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
+require_relative '../../../spec_helper'
+require_relative '../../../support/strategy_test_context'
 require 'json'
 
 RSpec.describe 'BasicAuth rejection on session-only routes', type: :integration do
