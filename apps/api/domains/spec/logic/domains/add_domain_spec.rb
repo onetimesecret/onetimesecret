@@ -58,11 +58,19 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
   let(:params) { { 'domain' => 'example.com' } }
   let(:logic) { described_class.new(strategy_result, params) }
 
+  # Source now uses the category-aware `logger` (Onetime::LoggerMethods) instead
+  # of the OT.le/OT.ld shims. Stub the instance logger so .debug/.error calls
+  # during #process don't hit the real SemanticLogger and can be asserted on.
+  let(:app_logger_double) do
+    instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil)
+  end
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
     allow(OT).to receive(:le)
+    allow(logic).to receive(:logger).and_return(app_logger_double)
     allow(OT).to receive(:now).and_return(Time.now.to_i)
     allow(OT).to receive(:conf).and_return({
       'site' => {},
@@ -242,7 +250,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       allow(strategy).to receive(:request_certificate)
         .and_raise(HTTParty::ResponseError, 'API error')
 
-      expect(OT).to receive(:le).with(/request_certificate error/)
+      expect(app_logger_double).to receive(:error).with(/request_certificate error/, any_args)
       expect { logic.send(:process) }.not_to raise_error
     end
 
@@ -250,7 +258,7 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       allow(strategy).to receive(:request_certificate)
         .and_raise(StandardError, 'Unexpected error')
 
-      expect(OT).to receive(:le).with(/Unexpected error/)
+      expect(app_logger_double).to receive(:error).with(/Unexpected error/, any_args)
       expect { logic.send(:process) }.not_to raise_error
     end
 

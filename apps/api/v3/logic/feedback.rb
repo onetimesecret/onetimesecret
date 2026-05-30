@@ -16,6 +16,7 @@ module V3
     # which tracks per-IP submissions in Redis and locks abusers out for
     # an hour after exceeding the threshold.
     class ReceiveFeedback < V3::Logic::Base
+      include Onetime::LoggerMethods
       include Onetime::Security::FeedbackRateLimiter
 
       SCHEMAS = { response: 'feedback' }.freeze
@@ -43,7 +44,7 @@ module V3
 
       def process
         @greenlighted = true
-        OT.ld [:receive_feedback, msg].inspect
+        logger.debug "receive_feedback", msg: msg
 
         begin
           # Resolve the recipient. An explicit emailer.feedback_to override
@@ -52,15 +53,15 @@ module V3
           # Colonels are managed via CLI: bin/ots customers role promote email --role colonel
           recipient_email = feedback_recipient_email
           if recipient_email
-            OT.ld "[receive_feedback] Sending feedback to: #{recipient_email}"
+            logger.debug "[receive_feedback] Sending feedback to", recipient_email: recipient_email
             send_feedback recipient_email, cust, msg
           else
-            OT.ld '[receive_feedback] No feedback recipient configured and no colonels found, skipping email notification'
+            logger.debug "[receive_feedback] No feedback recipient configured, skipping email notification"
           end
         rescue StandardError => ex
           # We liberally rescue all StandardError exceptions here because we don't
           # want to fail the user's feedback submission if we can't send an email.
-          OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
+          logger.error "Error sending feedback email", exception: ex
         end
 
         # Stored Redis copy keeps the metadata appended on a single line so the
@@ -111,7 +112,7 @@ module V3
       end
 
       def send_feedback(recipient_email, sender, message)
-        OT.ld "[send_feedback] Delivering feedback email (#{message.size} chars)"
+        logger.debug "[send_feedback] Delivering feedback email", msg_size: message.size
 
         # Logic classes don't receive req.env, so display_domain may be nil.
         # Fall back to site host from config for feedback emails.
@@ -151,7 +152,7 @@ module V3
             fallback: :none,
           )
         rescue StandardError => ex
-          OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
+          logger.error "Error sending feedback email", exception: ex
           # No need to notify the user of this error. The message is still
           # saved in Redis and available via the colonel interface.
         end
