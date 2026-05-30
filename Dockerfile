@@ -176,12 +176,15 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
 
 # Install system packages + S6 dependencies
+# procps provides pgrep, used by bin/healthcheck.sh for role detection
+# (web vs. worker/scheduler) — see docker/entrypoints/healthcheck.sh
 RUN set -eux && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
         curl \
+        procps \
         xz-utils \
         ca-certificates && \
     apt-get clean && \
@@ -299,12 +302,15 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
 
+# procps provides pgrep, used by bin/healthcheck.sh for role detection
+# (web vs. worker/scheduler) — see docker/entrypoints/healthcheck.sh
 RUN set -eux && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
         curl \
+        procps \
         ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*

@@ -60,4 +60,5 @@ if pgrep -f 'bin/ots' > /dev/null 2>&1; then
 fi
 
 # No recognized process found
+echo "healthcheck: no puma or bin/ots process found" >&2
 exit 1
