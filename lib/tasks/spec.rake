@@ -180,7 +180,9 @@ namespace :try do
     patterns  = %w[try/unit try/system try/security try/features try/jobs]
     patterns += Dir.glob('apps/**/try')
     paths     = patterns.uniq.select { |p| Dir.exist?(p) }.join(' ')
-    sh "bundle exec tryouts --agent #{paths}" unless paths.empty?
+    # Add --verbose --debug in CI for detailed failure output
+    flags     = ENV['CI'] ? '--verbose --debug' : ''
+    sh "bundle exec tryouts --agent #{flags} #{paths}".squeeze(' ') unless paths.empty?
   end
 
   desc 'Run feature tryouts'
