@@ -135,8 +135,17 @@ module Auth
           create_customer
         rescue Familia::RecordExistsError
           # Customer was just created (likely by OmniAuth callback) but index
-          # lookup missed it. Re-query to get the existing record.
-          Onetime::Customer.find_by_email(@account[:email])
+          # lookup missed it. Retry briefly since index should converge.
+          # NOTE: Polling because Redis has no "wait until hash field exists"
+          # primitive; index lag is sub-ms in practice, this is a safety net.
+          retried_customer = nil
+          3.times do
+            retried_customer = Onetime::Customer.find_by_email(@account[:email])
+            break if retried_customer
+
+            sleep 0.05
+          end
+          retried_customer || raise(OT::Problem, "Customer index sync failed for #{@account[:email]}")
         end
         link_customer_to_account(customer) unless customer_linked?(customer)
         customer
