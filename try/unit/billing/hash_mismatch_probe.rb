@@ -86,6 +86,23 @@ warnln 'DEBUG_DATABASE', ENV['DEBUG_DATABASE'].inspect
 warnln 'DEBUG_LOGGERS', ENV['DEBUG_LOGGERS'].inspect
 warnln 'Familia.uri', Familia.uri.to_s
 
+# Check source file for line number sanity
+mat_ents_file = File.expand_path('../../lib/onetime/models/organization/features/with_materialized_entitlements.rb', __dir__)
+if File.exist?(mat_ents_file)
+  lines = File.readlines(mat_ents_file)
+  warnln 'with_materialized_entitlements.rb total lines', lines.size
+  # Find the def lines
+  lines.each_with_index do |line, idx|
+    if line =~ /def materialize_entitlements_from_plan/
+      warnln 'materialize_from_plan def line', (idx + 1)
+    elsif line =~ /def materialize_entitlements_from_config/
+      warnln 'materialize_from_config def line', (idx + 1)
+    end
+  end
+else
+  warnln 'mat_ents_file', "NOT FOUND: #{mat_ents_file}"
+end
+
 # Enable Familia database logging to see raw Redis commands
 # This must be done before any Redis operations
 if ENV['DEBUG_DATABASE']
