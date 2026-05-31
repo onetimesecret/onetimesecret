@@ -82,12 +82,14 @@ Onetime::Organization.class_eval do
 end
 
 banner 'BOOT / CONFIG'
+warnln 'git SHA', `git rev-parse HEAD`.strip
+warnln 'git status (mat_ents file)', `git status --porcelain lib/onetime/models/organization/features/with_materialized_entitlements.rb`.strip.inspect
 warnln 'DEBUG_DATABASE', ENV['DEBUG_DATABASE'].inspect
 warnln 'DEBUG_LOGGERS', ENV['DEBUG_LOGGERS'].inspect
 warnln 'Familia.uri', Familia.uri.to_s
 
 # Check source file for line number sanity
-mat_ents_file = File.expand_path('../../lib/onetime/models/organization/features/with_materialized_entitlements.rb', __dir__)
+mat_ents_file = File.expand_path('../../../lib/onetime/models/organization/features/with_materialized_entitlements.rb', __dir__)
 if File.exist?(mat_ents_file)
   lines = File.readlines(mat_ents_file)
   warnln 'with_materialized_entitlements.rb total lines', lines.size
