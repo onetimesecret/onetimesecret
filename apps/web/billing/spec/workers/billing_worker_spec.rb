@@ -1,4 +1,4 @@
-# spec/integration/all/jobs/workers/billing_worker_spec.rb
+# apps/web/billing/spec/workers/billing_worker_spec.rb
 #
 # frozen_string_literal: true
 
@@ -6,10 +6,6 @@
 #
 # Tests the billing worker that consumes messages from the
 # billing.event.process queue and delegates to ProcessWebhookEvent operation.
-#
-# NOTE: This spec only runs when billing is enabled. The BillingWorker has
-# been moved to apps/web/billing/workers/billing_worker.rb as part of
-# decoupling billing from core (#2887).
 #
 # Test Categories:
 #
@@ -30,31 +26,21 @@
 # Setup Requirements:
 #   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2121/0'
 #   - Mocked ProcessWebhookEvent operation
-#   - Billing enabled in etc/billing.yaml
 #
-# Run with: pnpm run test:rspec spec/onetime/jobs/workers/billing_worker_spec.rb
+# Run with: bundle exec rspec apps/web/billing/spec/workers/billing_worker_spec.rb
 
-require 'spec_helper'
+require_relative '../support/billing_spec_helper'
 require 'support/amqp_stubs'
-require 'integration/integration_spec_helper'
 require 'sneakers'
-require 'stripe'
 require 'onetime/jobs/queues/config'
 
-RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: true do
-  # Load billing worker after billing:true tag restores billing config.
-  # The require must happen at run-time (before(:all)), not file-load time,
-  # because BILLING_ENABLED defaults to false in test config.
-  before(:all) do
-    require 'billing/workers/billing_worker'
-  end
+# Load billing worker (billing is enabled via billing_spec_helper)
+require_relative '../../workers/billing_worker'
 
-  # Use let to defer class resolution until after before(:all) check
-  let(:billing_worker_class) { Billing::Workers::BillingWorker }
-
+RSpec.describe Billing::Workers::BillingWorker, :billing do
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
-    Class.new(billing_worker_class) do
+    Class.new(described_class) do
       attr_accessor :delivery_info, :acked, :rejected
 
       def self.name
@@ -139,7 +125,6 @@ RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: t
     allow(worker).to receive(:sleep)
 
     # Mock the operation class to return our controlled instance
-    # (actual class is loaded at file level, we just mock its behavior)
     allow(Billing::Operations::ProcessWebhookEvent).to receive(:new).and_return(operation_instance)
     allow(operation_instance).to receive(:call).and_return(true)
   end
@@ -293,13 +278,13 @@ RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: t
 
   describe 'queue configuration' do
     it 'uses correct queue name' do
-      expect(billing_worker_class::QUEUE_NAME).to eq('billing.event.process')
+      expect(described_class::QUEUE_NAME).to eq('billing.event.process')
     end
 
     it 'uses queue config from QueueConfig' do
       # Workers use QueueDeclarator.sneakers_options_for which wraps config under :queue_options
       expected_config = Onetime::Jobs::QueueConfig::QUEUES['billing.event.process']
-      queue_options = billing_worker_class.queue_opts[:queue_options] || {}
+      queue_options = described_class.queue_opts[:queue_options] || {}
 
       expect(queue_options[:durable]).to eq(expected_config[:durable])
       expect(queue_options[:auto_delete]).to eq(expected_config[:auto_delete])
