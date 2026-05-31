@@ -86,7 +86,7 @@ RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: t
   end
 
   let(:worker) { test_worker_class.new }
-  let(:message_id) { 'test-billing-123' }
+  let(:message_id) { "test-billing-#{SecureRandom.hex(8)}" }
   let(:event_id) { 'evt_test_checkout_completed' }
 
   # Mock Sneakers delivery_info (envelope info)
@@ -132,9 +132,6 @@ RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: t
   let(:operation_instance) { instance_double('ProcessWebhookEventDouble') }
 
   before do
-    # Clear idempotency key since billing specs skip global DB flush
-    Familia.dbclient.del("job:processed:#{message_id}")
-
     # Store envelope
     worker.store_envelope(delivery_info, metadata)
 
