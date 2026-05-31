@@ -111,6 +111,9 @@ module Onetime
           EXTERNAL LIBRARY FLAGS
           ═══════════════════════
 
+          DEBUG_DATABASE=1          - Log every Valkey/Redis command via Familia's
+                                      DatabaseLogger middleware (blocked in production).
+                                      Distinct from the per-logger DEBUG_* flags above.
           FAMILIA_DEBUG=1           - Familia's built-in debug flag
           FAMILIA_SAMPLE_RATE=0.01  - Familia command sampling (0.0-1.0)
           OTTO_DEBUG=1              - Otto framework debug flag

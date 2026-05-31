@@ -10,6 +10,9 @@ module Onetime
     # Must be called BEFORE connect_databases to ensure the middleware is
     # registered before any connections are created.
     #
+    # Enabled by setting DEBUG_DATABASE=1 (the canonical env var). Always
+    # disabled in production regardless of the env var.
+    #
     # This initializer configures external library behavior and doesn't set
     # runtime state that needs to be tracked.
     #
