@@ -96,10 +96,13 @@ module BillingTestHelpers
     end
 
     # Populate Redis plan cache with test data
+    # Clears entitlements/limits first to avoid polluting from prior test runs.
     def populate_test_plans(plans)
       ensure_familia_configured!
       plans.each do |plan_data|
         plan                                                    = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
+        plan.entitlements.clear
+        plan.limits.clear
         (plan_data[:entitlements] || []).each { |e| plan.entitlements.add(e) }
         (plan_data[:limits] || {}).each { |k, v| plan.limits[k] = v.to_s }
         plan.save
