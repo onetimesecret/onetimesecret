@@ -399,6 +399,41 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
       # plan now has different entitlements
       expect(org.entitlements_stale?(plan)).to be true
     end
+
+    it 'returns true when only plan limits changed (entitlements identical)' do
+      # Regression for #3280: a plan edit that only touches limits used to look
+      # "fresh" because the stamp hashed entitlements only.
+      old_limits = { 'teams.max' => '1' }
+      old_hash   = feature_mod.snapshot_content_hash(plan_ents, old_limits)
+      org.materialized_entitlements_at = "1716000000:#{old_hash}"
+
+      new_plan = plan_with(entitlements: plan_ents, limits: { 'teams.max' => '5' })
+
+      expect(org.entitlements_stale?(new_plan)).to be true
+    end
+
+    it 'returns false when both entitlements and limits match plan' do
+      limits        = { 'teams.max' => '5', 'secret_lifetime.max' => 'unlimited' }
+      expected_hash = feature_mod.snapshot_content_hash(plan_ents, limits)
+      org.materialized_entitlements_at = "1716000000:#{expected_hash}"
+
+      stamped_plan = plan_with(entitlements: plan_ents, limits: limits)
+
+      expect(org.entitlements_stale?(stamped_plan)).to be false
+    end
+
+    it 'accepts a config-hash plan and compares against its limits' do
+      limits        = { 'organizations.max' => '5' }
+      expected_hash = feature_mod.snapshot_content_hash(plan_ents, limits)
+      org.materialized_entitlements_at = "1716000000:#{expected_hash}"
+
+      config_plan = { entitlements: plan_ents, limits: limits }
+
+      expect(org.entitlements_stale?(config_plan)).to be false
+
+      changed_config = { entitlements: plan_ents, limits: { 'organizations.max' => '10' } }
+      expect(org.entitlements_stale?(changed_config)).to be true
+    end
   end
 
   # ============================================================================
@@ -550,6 +585,48 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
 
       expect(h).to be_a(String)
       expect(h.length).to eq(12)
+    end
+  end
+
+  describe '.snapshot_content_hash' do
+    subject { feature_mod }
+
+    it 'equals entitlements_content_hash when limits are empty (back-compat)' do
+      ents = %w[api_access custom_domains]
+
+      expect(subject.snapshot_content_hash(ents, {})).to eq(subject.entitlements_content_hash(ents))
+      expect(subject.snapshot_content_hash(ents, nil)).to eq(subject.entitlements_content_hash(ents))
+    end
+
+    it 'differs when limit values differ' do
+      ents = %w[api_access]
+
+      h1 = subject.snapshot_content_hash(ents, { 'teams.max' => '1' })
+      h2 = subject.snapshot_content_hash(ents, { 'teams.max' => '5' })
+
+      expect(h1).not_to eq(h2)
+    end
+
+    it 'is stable regardless of limit key order' do
+      ents   = %w[api_access]
+      limits = { 'teams.max' => '5', 'secret_lifetime.max' => 'unlimited' }
+
+      h1 = subject.snapshot_content_hash(ents, limits)
+      h2 = subject.snapshot_content_hash(ents, limits.to_a.reverse.to_h)
+
+      expect(h1).to eq(h2)
+    end
+
+    it 'treats string and symbol limit keys as equivalent' do
+      ents = %w[api_access]
+
+      h1 = subject.snapshot_content_hash(ents, { 'teams.max' => '5' })
+      h2 = subject.snapshot_content_hash(ents, { teams_max: '5' })
+
+      # different keys -> different hashes, but stringification within a single
+      # call must be deterministic
+      expect(h2).to eq(subject.snapshot_content_hash(ents, { 'teams_max' => '5' }))
+      expect(h1).not_to eq(h2)
     end
   end
 end
