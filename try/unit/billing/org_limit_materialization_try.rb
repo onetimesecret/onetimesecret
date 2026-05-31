@@ -66,10 +66,31 @@ plan.save
 @org.limit_for('teams')
 #=> 5
 
+## DEBUG: check what we're comparing
+@debug_plan = ::Billing::Plan.load(PLAN_ID)
+@debug_plan_ents = @debug_plan.entitlements.to_a.sort
+@debug_plan_ents
+#=> ["create_secrets", "custom_domains"]
+
+## DEBUG: org's materialized content hash
+@debug_parsed = @org.send(:materialized_entitlements_at_parsed)
+@debug_org_hash = @debug_parsed ? @debug_parsed[:content_hash] : 'PARSED_NIL'
+@debug_org_hash.is_a?(String) && @debug_org_hash.length == 12
+#=> true
+
+## DEBUG: plan's computed content hash
+@debug_plan_hash = Onetime::Organization.entitlements_content_hash(@debug_plan_ents)
+@debug_plan_hash.is_a?(String) && @debug_plan_hash.length == 12
+#=> true
+
+## DEBUG: do hashes match?
+@debug_org_hash == @debug_plan_hash
+#=> true
+
 ## LATENT BUG: staleness check ignores limits — sees a limits-only change as "fresh"
 ## (No live path gates on this today; MaterializePlans always re-materializes and
 ##  the webhook path omits skip_if_fresh. Flagged as latent, not the symptom.)
-@org.entitlements_stale?(::Billing::Plan.load(PLAN_ID))
+@org.entitlements_stale?(@debug_plan)
 #=> false
 
 ## STEP 3: run the real materialize step (what `billing plans materialize` does)
