@@ -3,10 +3,16 @@
 # frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
+require_relative '../../../apps/web/billing/lib/test_support/billing_helpers'
 
 # Organization Billing Feature tests
 #
 # Tests billing field management on Organization model.
+
+# Arrange: Explicitly disable billing for standalone-mode tests.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+BillingTestHelpers.disable_billing!
 
 ## Ensure feature and billing metadata are loaded
 require 'lib/onetime/models/organization/features/with_organization_billing'

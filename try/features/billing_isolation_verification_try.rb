@@ -2,17 +2,21 @@
 
 # Billing Isolation Verification Tests
 #
-# Tests Issue #2228 fix: Verify that billing is disabled by default
-# in tests and that plan cache isolation works correctly.
+# Tests Issue #2228 fix: Verify that billing isolation works correctly.
 #
 # These tests verify:
-# 1. Billing is disabled by default (no config file loaded)
+# 1. BillingTestHelpers can disable billing (standalone mode)
 # 2. Entitlements fall back to standalone mode when billing disabled
 # 3. Plan cache doesn't persist between test runs
 # 4. BillingTestHelpers properly isolate test state
 
 require_relative '../support/test_helpers'
 require_relative '../../apps/web/billing/lib/test_support/billing_helpers'
+
+# Arrange: Explicitly disable billing for standalone-mode tests.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+BillingTestHelpers.disable_billing!
 
 ## Billing config file exists in test environment (billing.test.yaml)
 # ConfigResolver finds apps/web/billing/spec/billing.test.yaml
