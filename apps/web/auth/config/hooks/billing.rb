@@ -226,14 +226,25 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
-      # HOOK: Before Create Account - Capture Plan Selection
+      # NOTE: before_create_account and after_create_account hooks REMOVED
       # ========================================================================
       #
-      # Same as before_login_attempt but for signup flow.
+      # Rodauth hooks don't chain — each auth.before_X / auth.after_X call
+      # overwrites the previous definition. Since billing.rb loads after
+      # account.rb (see config.rb:146), any hooks defined here would silently
+      # replace account.rb's critical logic (email validation, Customer
+      # creation, invite handling).
       #
-      auth.before_create_account do
-        capture_plan_selection
-      end
+      # Instead, account.rb's hooks call billing methods conditionally:
+      # - before_create_account: calls capture_plan_selection if defined
+      # - after_create_account: calls add_billing_redirect_to_response if defined
+      #
+      # This ensures account.rb's core logic always runs, with billing
+      # enhancements layered on top when billing is enabled.
+      #
+      # See issue #3275 for the hook-collision bug this pattern prevents.
+      #
+      # ========================================================================
 
       # ========================================================================
       # HOOK: After Login - Add Billing Redirect to Response
@@ -244,18 +255,6 @@ module Auth::Config::Hooks
       # to checkout after completing the full auth flow.
       #
       auth.after_login do
-        add_billing_redirect_to_response if json_request?
-      end
-
-      # ========================================================================
-      # HOOK: After Account Creation - Add Billing Redirect to Response
-      # ========================================================================
-      #
-      # After successful signup, include billing redirect info in the JSON
-      # response. For new accounts, the redirect happens after any verification
-      # flow is complete.
-      #
-      auth.after_create_account do
         add_billing_redirect_to_response if json_request?
       end
 
