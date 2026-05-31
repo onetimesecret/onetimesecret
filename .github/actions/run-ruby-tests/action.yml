@@ -132,6 +132,27 @@ runs:
           exit 1
         fi
 
+    # Diagnostic probe for CI-only hash mismatch (issue being investigated).
+    # Runs BEFORE tryouts to capture environment state. Non-blocking (|| true).
+    - name: Run hash-mismatch diagnostic probe
+      if: steps.rake-tasks.outputs.tryouts-task != '' && inputs.test-type == 'unit'
+      shell: bash
+      env:
+        REDIS_URL: ${{ inputs.redis-url }}
+        RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
+        RACK_ENV: 'test'
+        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        DEBUG_DATABASE: 'true'
+        DEBUG_LOGGERS: 'Familia:trace'
+      run: |
+        echo "::group::Hash-mismatch diagnostic probe"
+        if [ -f "try/unit/billing/hash_mismatch_probe.rb" ]; then
+          bundle exec ruby try/unit/billing/hash_mismatch_probe.rb 2>&1 || true
+        else
+          echo "Probe file not found, skipping"
+        fi
+        echo "::endgroup::"
+
     - name: Run Tryouts via rake
       id: tryouts
       if: steps.rake-tasks.outputs.tryouts-task != ''

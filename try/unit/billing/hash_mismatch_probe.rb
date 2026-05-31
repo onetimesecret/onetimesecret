@@ -25,6 +25,11 @@
 # result, caller) across the whole create!→materialize sequence. The record whose
 # result == the bad stored hash names the exact writer.
 
+# Unlike a tryouts file (run via `bundle exec try`, whose runner puts lib/ on
+# the load path), this is run with `bundle exec ruby`, which does not. Mirror the
+# Rakefile and add lib/ before requiring test_helpers (which `require 'onetime'`).
+$LOAD_PATH.unshift(File.expand_path('../../../lib', __dir__))
+
 require_relative '../../support/test_helpers'
 require_relative '../../../apps/web/billing/lib/test_support/billing_helpers'
 require_relative '../../../apps/web/billing/operations/apply_subscription_to_org'
