@@ -42,9 +42,24 @@ end
 BillingTestHelpers.restore_billing!(enabled: true)
 seed_plan(5)
 @org, @owner = make_org
-@org.materialize_entitlements_from_plan(::Billing::Plan.load(PLAN_ID))
+@plan_at_materialize = ::Billing::Plan.load(PLAN_ID)
+@ents_at_materialize = @plan_at_materialize.entitlements.to_a.sort
+@org.materialize_entitlements_from_plan(@plan_at_materialize)
 @org.limit_for('teams')
 #=> 5
+
+## Verify plan entitlements at materialization time
+@ents_at_materialize
+#=> ["create_secrets", "custom_domains"]
+
+## Verify org's entitlements_plan immediately after materialization
+@org.entitlements_plan.to_a.sort
+#=> ["create_secrets", "custom_domains"]
+
+## Verify hash was computed correctly at materialization time
+@hash_at_materialize = Onetime::Organization.entitlements_content_hash(@ents_at_materialize)
+@org.send(:materialized_entitlements_at_parsed)[:content_hash] == @hash_at_materialize
+#=> true
 
 ## Org reports it is materialized
 @org.entitlements_materialized?
@@ -66,30 +81,33 @@ plan.save
 @org.limit_for('teams')
 #=> 5
 
-## DEBUG: check what we're comparing
+## DEBUG: plan entitlements values (sorted)
 @debug_plan = ::Billing::Plan.load(PLAN_ID)
-@debug_plan_ents = @debug_plan.entitlements.to_a.sort
-@debug_plan_ents
+@debug_plan.entitlements.to_a.sort
 #=> ["create_secrets", "custom_domains"]
 
-## DEBUG: org's materialized content hash
+## DEBUG: org entitlements values (sorted)
+@org.entitlements_plan.to_a.sort
+#=> ["create_secrets", "custom_domains"]
+
+## DEBUG: entitlements arrays match
+@debug_plan = ::Billing::Plan.load(PLAN_ID)
+@debug_plan.entitlements.to_a.sort == @org.entitlements_plan.to_a.sort
+#=> true
+
+## DEBUG: hashes match
+@debug_plan = ::Billing::Plan.load(PLAN_ID)
+@debug_plan_ents = @debug_plan.entitlements.to_a.sort
 @debug_parsed = @org.send(:materialized_entitlements_at_parsed)
 @debug_org_hash = @debug_parsed ? @debug_parsed[:content_hash] : 'PARSED_NIL'
-@debug_org_hash.is_a?(String) && @debug_org_hash.length == 12
-#=> true
-
-## DEBUG: plan's computed content hash
 @debug_plan_hash = Onetime::Organization.entitlements_content_hash(@debug_plan_ents)
-@debug_plan_hash.is_a?(String) && @debug_plan_hash.length == 12
-#=> true
-
-## DEBUG: do hashes match?
 @debug_org_hash == @debug_plan_hash
 #=> true
 
 ## LATENT BUG: staleness check ignores limits — sees a limits-only change as "fresh"
 ## (No live path gates on this today; MaterializePlans always re-materializes and
 ##  the webhook path omits skip_if_fresh. Flagged as latent, not the symptom.)
+@debug_plan = ::Billing::Plan.load(PLAN_ID)
 @org.entitlements_stale?(@debug_plan)
 #=> false
 
