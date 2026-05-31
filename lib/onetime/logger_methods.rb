@@ -233,10 +233,10 @@ module Onetime
       category_patterns = {
         /Authentication|Auth(?!or)/i => 'Auth',
         /Entitlement|Materialize|GrantProbono/i => 'Ents',
+        /Organization|Membership/i => 'Org',
         /Familia/i => 'Familia',
         /HTTP|Request|Response|Controller/i => 'HTTP',
         /Jobs|Worker|Publisher|Scheduler/i => 'Jobs',
-        /Organization|Membership/i => 'Org',
         /Otto/i => 'Otto',
         /Rhales/i => 'Rhales',
         /Secret|Metadata/i => 'Secret',
