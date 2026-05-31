@@ -2,6 +2,13 @@
 #
 # frozen_string_literal: true
 #
+# REMOVAL: This file can be deleted after PR #3275 merges and CI stays green
+# for a few runs. It was created to diagnose a CI-only hash mismatch that is
+# now resolved (root cause: test used entitlements_content_hash but code uses
+# snapshot_content_hash which includes limits). The probe itself has a stale
+# expected hash and reports false "MISMATCH" — it served its diagnostic purpose
+# but is no longer needed.
+#
 # STANDALONE diagnostic probe for the CI-only hash mismatch in
 # org_limit_materialization_try.rb (stored 0b0053014180 != expected 823cf91436e6
 # for ["create_secrets","custom_domains"]).
