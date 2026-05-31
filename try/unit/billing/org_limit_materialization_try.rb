@@ -44,20 +44,9 @@ seed_plan(5)
 @org, @owner = make_org
 @plan_at_materialize = ::Billing::Plan.load(PLAN_ID)
 @ents_at_materialize = @plan_at_materialize.entitlements.to_a.sort
-
-# Instrument to capture what entitlements are seen during hash computation
-$debug_ents_seen_at_hash = nil
-original_hash_method = Onetime::Organization.method(:entitlements_content_hash)
-Onetime::Organization.define_singleton_method(:entitlements_content_hash) do |ents|
-  $debug_ents_seen_at_hash = ents.dup
-  original_hash_method.call(ents)
-end
-
+@time_before_materialize = Familia.now.to_i
 @org.materialize_entitlements_from_plan(@plan_at_materialize)
-
-# Restore original method
-Onetime::Organization.define_singleton_method(:entitlements_content_hash, original_hash_method)
-
+@time_after_materialize = Familia.now.to_i
 @org.limit_for('teams')
 #=> 5
 
@@ -73,9 +62,15 @@ Onetime::Organization.define_singleton_method(:entitlements_content_hash, origin
 @plan_at_materialize.entitlements.to_a.sort
 #=> ["create_secrets", "custom_domains"]
 
-## DEBUG: what entitlements were passed to hash function during materialize?
-$debug_ents_seen_at_hash.sort
-#=> ["create_secrets", "custom_domains"]
+## DEBUG: check materialization timestamp is from our call (not stale)
+@parsed = @org.send(:materialized_entitlements_at_parsed)
+@mat_timestamp = @parsed[:timestamp]
+@mat_timestamp >= @time_before_materialize && @mat_timestamp <= @time_after_materialize
+#=> true
+
+## DEBUG: raw materialized_entitlements_at format valid
+@org.materialized_entitlements_at.to_s.match?(/^\d+:[a-f0-9]{12}$/)
+#=> true
 
 ## DEBUG: what hash does the stored hash correspond to?
 @stored_hash = @org.send(:materialized_entitlements_at_parsed)&.dig(:content_hash).to_s
