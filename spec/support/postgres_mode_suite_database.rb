@@ -304,7 +304,7 @@ module PostgresModeSuiteDatabase
       begin
         # Fetch all sequence names for tables with serial columns using Sequel's DSL
         table_names = AuthAccountFactory::RODAUTH_TABLES.map(&:to_s)
-        sequences_to_reset = db[:information_schema__columns]
+        sequences_to_reset = db[Sequel[:information_schema][:columns]]
           .select { Sequel.function(:pg_get_serial_sequence, :table_name, :column_name).as(:sequence_name) }
           .distinct
           .where(table_schema: 'public')
