@@ -13,6 +13,10 @@
 require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/plans_materialize_command'
+# Loaded so the spec passes in isolation: the with_test_plans context calls
+# mock_region!, which references Billing::Controllers::Base. Required after
+# billing_spec_helper (which runs OT.boot!) so base.rb's includes resolve.
+require_relative '../../controllers/base'
 
 RSpec.describe 'Billing Plans Materialize CLI (integration)', :integration do
   include_context 'with_test_plans'

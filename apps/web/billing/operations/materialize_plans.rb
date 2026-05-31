@@ -55,9 +55,12 @@ module Billing
     # entitlement set, so skipping them masked real consistency problems).
     #
     # Cascade semantics: when include_memberships is set and the org write
-    # succeeded, org.rematerialize_all_memberships! runs. If that method
-    # reports any membership failures, the org is counted as FAILED (with
-    # the partial counts captured in the error reason). This intentionally
+    # succeeded, the operation re-materializes each active membership inline
+    # (see #run_cascade). A membership counts as a failure if it raises OR if
+    # materialize_for_role! returns false (e.g. a role with no
+    # ROLE_ENTITLEMENTS template, which is a silent no-op rather than a raise).
+    # If the cascade has any membership failures the org is counted as FAILED
+    # (with the partial counts captured in the error reason). This intentionally
     # surfaces cascade problems rather than masking them as a "materialized"
     # success — operators decide whether to retry.
     #
