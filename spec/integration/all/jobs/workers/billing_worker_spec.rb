@@ -132,6 +132,9 @@ RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: t
   let(:operation_instance) { instance_double('ProcessWebhookEventDouble') }
 
   before do
+    # Clear idempotency key since billing specs skip global DB flush
+    Familia.dbclient.del("job:processed:#{message_id}")
+
     # Store envelope
     worker.store_envelope(delivery_info, metadata)
 
