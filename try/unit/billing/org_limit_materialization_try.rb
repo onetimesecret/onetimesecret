@@ -62,21 +62,52 @@ seed_plan(5)
 @plan_at_materialize.entitlements.to_a.sort
 #=> ["create_secrets", "custom_domains"]
 
-## DEBUG: check materialization timestamp is from our call (not stale)
+## DEBUG: materialization timestamp is from our call (not stale)
 @parsed = @org.send(:materialized_entitlements_at_parsed)
 @mat_timestamp = @parsed[:timestamp]
 @mat_timestamp >= @time_before_materialize && @mat_timestamp <= @time_after_materialize
 #=> true
 
-## DEBUG: raw materialized_entitlements_at format valid
-@org.materialized_entitlements_at.to_s.match?(/^\d+:[a-f0-9]{12}$/)
+## DEBUG: org objid exists and is non-empty
+@org.objid.to_s.length > 10
 #=> true
 
-## DEBUG: what hash does the stored hash correspond to?
+## DEBUG: org's Redis key contains identifier
+@org.dbkey.include?(@org.objid)
+#=> true
+
+## DEBUG: re-read org from Redis shows same hash
+@org_reloaded = Onetime::Organization.load(@org.objid)
+@org_reloaded.materialized_entitlements_at == @org.materialized_entitlements_at
+#=> true
+
+## DEBUG: stored hash value
 @stored_hash = @org.send(:materialized_entitlements_at_parsed)&.dig(:content_hash).to_s
+@stored_hash.length
+#=> 12
+
+## DEBUG: expected hash for known entitlements
 @expected_hash = Onetime::Organization.entitlements_content_hash(["create_secrets", "custom_domains"])
+@expected_hash
+#=> "823cf91436e6"
+
+## DEBUG: hashes match (CORE ASSERTION)
 [@stored_hash, @expected_hash]
 #=> [@expected_hash, @expected_hash]
+
+## DEBUG: plan.entitlements Redis key contains plan_id
+@plan_at_materialize.entitlements.dbkey.include?(PLAN_ID)
+#=> true
+
+## DEBUG: plan entitlements count from raw Redis
+@plan_at_materialize.entitlements.size
+#=> 2
+
+## DEBUG: check if org existed before this test (materialized_entitlements_at should be fresh)
+@fresh_org = Onetime::Organization.load(@org.objid)
+@fresh_parsed = @fresh_org.send(:materialized_entitlements_at_parsed)
+@fresh_parsed[:timestamp] >= @time_before_materialize
+#=> true
 
 ## Org reports it is materialized
 @org.entitlements_materialized?
