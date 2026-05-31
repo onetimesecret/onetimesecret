@@ -379,16 +379,6 @@ module Onetime
       handle_config_error(ex)
     end
 
-    def require_config!
-      return if @config
-
-      raise ConfigError,
-        config_error_message(
-          'Configuration file not found',
-          "File does not exist: #{@path}",
-        )
-    end
-
     def handle_config_error(exception)
       # @config = default_config
       raise ConfigError,

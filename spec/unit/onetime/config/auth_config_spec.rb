@@ -327,8 +327,12 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.simple_enabled?).to be false
     end
 
-    it 'raises ConfigError from require_config!' do
-      expect { config.send(:require_config!) }.to raise_error(Onetime::ConfigError)
+    it 'returns empty hash for full' do
+      expect(config.full).to eq({})
+    end
+
+    it 'returns empty hash for simple' do
+      expect(config.simple).to eq({})
     end
   end
 end
