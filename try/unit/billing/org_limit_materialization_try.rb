@@ -44,7 +44,20 @@ seed_plan(5)
 @org, @owner = make_org
 @plan_at_materialize = ::Billing::Plan.load(PLAN_ID)
 @ents_at_materialize = @plan_at_materialize.entitlements.to_a.sort
+
+# Instrument to capture what entitlements are seen during hash computation
+$debug_ents_seen_at_hash = nil
+original_hash_method = Onetime::Organization.method(:entitlements_content_hash)
+Onetime::Organization.define_singleton_method(:entitlements_content_hash) do |ents|
+  $debug_ents_seen_at_hash = ents.dup
+  original_hash_method.call(ents)
+end
+
 @org.materialize_entitlements_from_plan(@plan_at_materialize)
+
+# Restore original method
+Onetime::Organization.define_singleton_method(:entitlements_content_hash, original_hash_method)
+
 @org.limit_for('teams')
 #=> 5
 
@@ -58,6 +71,10 @@ seed_plan(5)
 
 ## DEBUG: plan entitlements after materialize (should match @ents_at_materialize)
 @plan_at_materialize.entitlements.to_a.sort
+#=> ["create_secrets", "custom_domains"]
+
+## DEBUG: what entitlements were passed to hash function during materialize?
+$debug_ents_seen_at_hash.sort
 #=> ["create_secrets", "custom_domains"]
 
 ## DEBUG: what hash does the stored hash correspond to?
