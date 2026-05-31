@@ -26,6 +26,11 @@ module Onetime
     #
     def self.safe_execute(operation, **context)
       yield
+    rescue RodauthError, Rodauth::InternalRequestError => ex
+      # Rodauth internal errors are expected to be handled by the caller's flow,
+      # but we still log them before re-raising to ensure visibility.
+      log_error(operation, ex, context.merge(rodauth_internal: true))
+      raise ex
     rescue StandardError => ex
       log_error(operation, ex, context)
       track_error(operation) if trackable?
