@@ -86,6 +86,13 @@ warnln 'DEBUG_DATABASE', ENV['DEBUG_DATABASE'].inspect
 warnln 'DEBUG_LOGGERS', ENV['DEBUG_LOGGERS'].inspect
 warnln 'Familia.uri', Familia.uri.to_s
 
+# Enable Familia database logging to see raw Redis commands
+# This must be done before any Redis operations
+if ENV['DEBUG_DATABASE']
+  Familia.enable_database_logging = true
+  warnln 'Familia.enable_database_logging', Familia.enable_database_logging.inspect
+end
+
 # ---------------------------------------------------------------------------
 # Reproduce the failing test's setup
 # ---------------------------------------------------------------------------
@@ -139,6 +146,11 @@ warnln 'hash method source', hash_method.source_location.inspect
 org.materialize_entitlements_from_plan(@plan_at_materialize)
 warnln 'hash_calls AFTER materialize', $hash_calls.size
 warnln 'setter_calls AFTER materialize', $setter_calls.size
+
+# Raw Redis read immediately after materialize
+raw_mat_at = Familia.dbclient.hget(org.rediskey, 'materialized_entitlements_at')
+warnln 'raw HGET materialized_entitlements_at (immediate)', raw_mat_at.inspect
+warnln 'org.rediskey', org.rediskey.inspect
 
 # ---------------------------------------------------------------------------
 # PROBE 0 — ALL setter calls (catches any write to the field)
