@@ -27,11 +27,6 @@ module Auth
 
     class << self
       attr_accessor :configured
-
-      # Reset configuration state (for testing only)
-      def reset_configuration!
-        @configured = false
-      end
     end
 
     require_relative 'lib/logging'

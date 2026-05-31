@@ -80,6 +80,7 @@ require 'rack/test'
 require_relative 'support/omniauth_test_helper'
 require_relative 'support/auth_test_constants'
 require_relative 'support/mock_omniauth_strategy'
+require_relative 'support/config_recreator'
 require_relative '../database'
 
 # =============================================================================
@@ -552,6 +553,17 @@ RSpec.configure do |config|
   # Integration test helpers (for tests requiring full app boot)
   config.include Rack::Test::Methods, type: :integration
   config.include ProductionConfigHelper, type: :integration
+
+  # Capture AUTH_* env vars before integration suite to prevent leakage
+  # between spec files that set different feature flags.
+  # See: apps/web/auth/docs/auth-config-one-shot.md (Pattern 2)
+  config.before(:all, type: :integration) do
+    @saved_auth_env = Auth::ConfigRecreator.capture_auth_env
+  end
+
+  config.after(:all, type: :integration) do
+    Auth::ConfigRecreator.restore_auth_env(@saved_auth_env) if @saved_auth_env
+  end
 
   # Skip integration tests if Valkey not available
   config.before(:each, type: :integration) do
