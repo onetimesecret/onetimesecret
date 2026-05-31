@@ -51,6 +51,9 @@ end
 # materialization, the explicit plan materialize, and any other writer.
 # ---------------------------------------------------------------------------
 $hash_calls = []
+$setter_calls = []
+
+# Instrument the hash function
 _original_hash = Onetime::Organization.method(:entitlements_content_hash)
 Onetime::Organization.define_singleton_method(:entitlements_content_hash) do |ents|
   result = _original_hash.call(ents)
@@ -63,6 +66,19 @@ Onetime::Organization.define_singleton_method(:entitlements_content_hash) do |en
     caller: caller(1..6),
   }
   result
+end
+
+# Instrument the setter for materialized_entitlements_at
+# This catches ANYTHING that writes to this field
+Onetime::Organization.class_eval do
+  alias_method :_orig_materialized_entitlements_at=, :materialized_entitlements_at=
+  define_method(:materialized_entitlements_at=) do |value|
+    $setter_calls << {
+      value: value,
+      caller: caller(1..8),
+    }
+    send(:_orig_materialized_entitlements_at=, value)
+  end
 end
 
 banner 'BOOT / CONFIG'
@@ -109,8 +125,29 @@ org.save
 banner 'EXPLICIT MATERIALIZE'
 warnln 'plan_at_materialize.entitlements.to_a.sort', @plan_at_materialize.entitlements.to_a.sort.inspect
 warnln 'hash_calls BEFORE materialize', $hash_calls.size
+warnln 'setter_calls BEFORE materialize', $setter_calls.size
+
+# Log method resolution
+mat_method = org.method(:materialize_entitlements_from_plan)
+warnln 'materialize method owner', mat_method.owner.to_s
+warnln 'materialize method source', mat_method.source_location.inspect
+
+hash_method = org.class.method(:entitlements_content_hash)
+warnln 'hash method owner', hash_method.owner.to_s
+warnln 'hash method source', hash_method.source_location.inspect
+
 org.materialize_entitlements_from_plan(@plan_at_materialize)
 warnln 'hash_calls AFTER materialize', $hash_calls.size
+warnln 'setter_calls AFTER materialize', $setter_calls.size
+
+# ---------------------------------------------------------------------------
+# PROBE 0 — ALL setter calls (catches any write to the field)
+# ---------------------------------------------------------------------------
+banner 'PROBE 0 — ALL materialized_entitlements_at= SETTER CALLS'
+$setter_calls.each_with_index do |c, i|
+  warn "[PROBE] setter call ##{i} value=#{c[:value].inspect}"
+  warn "[PROBE]   caller=#{c[:caller].inspect}"
+end
 
 # ---------------------------------------------------------------------------
 # PROBE 1: every hash computation, in order, with caller. The record whose
