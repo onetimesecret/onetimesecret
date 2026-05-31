@@ -69,10 +69,11 @@ module MigrationTestHelpers
   # Create a database with partial migration state (migrated to specific version)
   #
   # @param db [Sequel::Database] Database connection
-  # @param version [Integer] Target migration version (1-5)
+  # @param version [Integer] Target migration version (1-6, where 6 is the last
+  #   structural migration before data-only migrations like email normalization)
   # @return [Sequel::Database] Database with partial migrations
   def create_partial_migration_state(db:, version:)
-    raise ArgumentError, 'version must be between 1 and 5' unless (1..5).cover?(version)
+    raise ArgumentError, 'version must be between 1 and 6' unless (1..6).cover?(version)
 
     Sequel.extension :migration
     migrations_dir = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
@@ -157,15 +158,37 @@ module MigrationTestHelpers
 
   private
 
-  # Drop and recreate PostgreSQL public schema with proper grants
+  # Drop all tables in PostgreSQL public schema
+  #
+  # Uses DROP TABLE CASCADE instead of DROP SCHEMA because onetime_migrator
+  # doesn't own the public schema in CI (postgres does). Table owners can
+  # drop their own tables, but only schema owners can drop schemas.
+  #
+  # Drops ALL tables including schema_info so migrations re-run from scratch.
   def drop_and_recreate_postgres_schema(db)
-    db.run 'DROP SCHEMA IF EXISTS public CASCADE'
-    db.run 'CREATE SCHEMA public'
-    db.run 'GRANT ALL ON SCHEMA public TO postgres'
-    db.run 'GRANT ALL ON SCHEMA public TO public'
+    # Get all tables and drop them individually (including schema_info)
+    tables = db.tables
 
-    # Re-apply grants for CI test users if they exist
-    apply_ci_schema_grants(db)
+    tables.each do |table|
+      db.run "DROP TABLE IF EXISTS #{db.literal(Sequel.identifier(table))} CASCADE"
+    end
+
+    # Drop functions that migrations will recreate (exclude system/extension functions)
+    our_functions = %w[
+      rodauth_get_salt
+      rodauth_valid_password_hash
+      cleanup_expired_tokens
+      update_last_login_time
+      cleanup_expired_tokens_extended
+      update_accounts_updated_at
+      update_session_last_use
+      cleanup_old_audit_logs
+      get_account_security_summary
+    ]
+
+    our_functions.each do |func_name|
+      db.run "DROP FUNCTION IF EXISTS #{func_name} CASCADE"
+    end
   end
 
   # Apply schema grants for CI environment test users

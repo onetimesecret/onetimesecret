@@ -14,6 +14,9 @@ require 'support/helpers/migration_test_helpers'
 RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
   include MigrationTestHelpers
 
+  # Expected schema version after all migrations run (update when adding migrations)
+  EXPECTED_SCHEMA_VERSION = 7
+
   let(:migrations_dir) { File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations') }
   let(:test_db) { PostgresModeSuiteDatabase.database }
 
@@ -39,9 +42,9 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       Sequel.extension :migration
       Sequel::Migrator.run(migration_db, migrations_dir, use_transactions: true)
 
-      # Verify schema version is at latest (6 migrations)
-      version = verify_schema_version(db: test_db, expected: 6)
-      expect(version).to eq(6)
+      # Verify schema version is at latest
+      version = verify_schema_version(db: test_db, expected: EXPECTED_SCHEMA_VERSION)
+      expect(version).to eq(EXPECTED_SCHEMA_VERSION)
 
       # Verify all core tables exist
       expect(verify_core_tables_exist(db: test_db)).to be true
@@ -114,7 +117,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
       Sequel::Migrator.run(migration_db, migrations_dir)
 
-      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
+      expect(verify_schema_version(db: test_db, expected: EXPECTED_SCHEMA_VERSION)).to eq(EXPECTED_SCHEMA_VERSION)
       expect(verify_core_tables_exist(db: test_db)).to be true
     end
 
@@ -124,7 +127,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
       Sequel::Migrator.run(migration_db, migrations_dir)
 
-      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
+      expect(verify_schema_version(db: test_db, expected: EXPECTED_SCHEMA_VERSION)).to eq(EXPECTED_SCHEMA_VERSION)
     end
 
     it 'maintains data integrity when completing migrations' do
@@ -143,7 +146,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       # Verify data survived
       account = test_db[:accounts].where(id: account_id).first
       expect(account[:email]).to eq('partial@example.com')
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
     end
   end
 
@@ -228,12 +231,21 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
   describe 'dual URL handling' do
     context 'when AUTH_DATABASE_URL_MIGRATIONS is not set' do
+      around do |example|
+        # Temporarily unset migrations URL for this test
+        original = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+        ENV.delete('AUTH_DATABASE_URL_MIGRATIONS')
+        example.run
+      ensure
+        ENV['AUTH_DATABASE_URL_MIGRATIONS'] = original if original
+      end
+
       it 'uses the same connection for migrations' do
         # Default case - when migrations URL not set, use standard URL
         expect(ENV['AUTH_DATABASE_URL_MIGRATIONS']).to be_nil
 
         Sequel::Migrator.run(migration_db, migrations_dir)
-        expect(get_schema_version(db: test_db)).to eq(6)
+        expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
       end
     end
 
@@ -305,7 +317,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
           expect(restricted_db[:accounts].where(id: account_id).count).to eq(0)
 
           # Verify migrations completed successfully
-          expect(get_schema_version(db: test_db)).to eq(6)
+          expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
           expect(verify_core_tables_exist(db: test_db)).to be true
         ensure
           restricted_db.disconnect if restricted_db
@@ -385,17 +397,17 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
         use_advisory_lock: true,
       )
 
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
     end
 
     it 'runs migrations idempotently with locks' do
       # First run
       Sequel::Migrator.run(migration_db, migrations_dir, use_advisory_lock: true)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
 
       # Second run should be no-op
       Sequel::Migrator.run(migration_db, migrations_dir, use_advisory_lock: true)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
     end
   end
 

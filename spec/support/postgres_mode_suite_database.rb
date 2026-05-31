@@ -186,16 +186,43 @@ module PostgresModeSuiteDatabase
       # Continue - migrations may still succeed if database is actually clean
     end
 
-    # Perform the actual schema drop/recreate with the given connection
+    # Perform the actual schema cleanup with the given connection
+    #
+    # Uses DROP TABLE CASCADE instead of DROP SCHEMA because onetime_migrator
+    # doesn't own the public schema in CI (postgres does). Table owners can
+    # drop their own tables, but only schema owners can drop schemas.
+    #
+    # Drops ALL tables including schema_info so migrations re-run from scratch.
+    # Functions are also dropped since migrations recreate them.
     def clean_schema_with_connection(db)
-      # Drop and recreate public schema (removes all objects)
-      db.run 'DROP SCHEMA IF EXISTS public CASCADE'
-      db.run 'CREATE SCHEMA public'
-      db.run 'GRANT ALL ON SCHEMA public TO postgres'
-      db.run 'GRANT ALL ON SCHEMA public TO public'
+      # Get all tables in public schema
+      tables = db.tables
 
-      # Re-apply grants for test users after schema recreation
-      apply_schema_grants_with_connection(db)
+      # Drop ALL tables including schema_info — we want migrations to re-run
+      tables.each do |table|
+        db.run "DROP TABLE IF EXISTS #{db.literal(Sequel.identifier(table))} CASCADE"
+      end
+
+      # Drop functions that migrations will recreate (exclude system/extension functions)
+      # Only drop functions we created, not citext extension functions etc.
+      our_functions = %w[
+        rodauth_get_salt
+        rodauth_valid_password_hash
+        cleanup_expired_tokens
+        update_last_login_time
+        cleanup_expired_tokens_extended
+        update_accounts_updated_at
+        update_session_last_use
+        cleanup_old_audit_logs
+        get_account_security_summary
+      ]
+
+      our_functions.each do |func_name|
+        db.run "DROP FUNCTION IF EXISTS #{func_name} CASCADE"
+      end
+    rescue Sequel::DatabaseError => e
+      warn "[PostgresModeSuiteDatabase] Failed to drop objects: #{e.message}"
+      # Continue - some objects may not exist or we may lack permissions
     end
 
     # Apply schema-level grants using the given connection
