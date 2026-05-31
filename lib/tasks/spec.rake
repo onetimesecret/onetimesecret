@@ -142,7 +142,7 @@ namespace :spec do
 
     desc 'Run full mode with PostgreSQL'
     task 'full:postgres' do
-      env = {
+      env      = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => ENV.fetch(
@@ -150,7 +150,11 @@ namespace :spec do
           'postgresql://postgres@localhost:5432/onetime_auth_test',
         ),
       }
-      sh env, "bundle exec rspec spec/integration/full --tag postgres_database #{rspec_format_options}"
+      patterns = [
+        *Dir.glob('apps/*/*/spec/integration/full'),
+        'spec/integration/full',
+      ]
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_format_options}"
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
