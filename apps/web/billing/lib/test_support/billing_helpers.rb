@@ -11,10 +11,12 @@
 module BillingTestHelpers
   class << self
     # Disable billing globally for tests by resetting the singleton
-    # ConfigResolver will return nil when no billing config exists in spec/
+    # and forcing enabled=false regardless of config file.
     def disable_billing!
       ensure_familia_configured!
       reset_billing_singleton!
+      # Force disabled state - the config file may have enabled: true
+      Onetime::BillingConfig.instance.config['enabled'] = false
     end
 
     # Restore billing configuration for tests that need it
