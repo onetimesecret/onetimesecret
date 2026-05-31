@@ -80,7 +80,7 @@ runs:
       uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
       with:
         ruby-version: ${{ inputs.ruby-version }}
-        bundler-cache: true
+        bundler-cache: false  # DEBUG: disabled to rule out stale cache
 
     - name: Install dependencies
       shell: bash

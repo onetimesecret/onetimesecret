@@ -39,7 +39,7 @@ jobs:
         uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
         with:
           ruby-version: '3.4.9'
-          bundler-cache: true
+          bundler-cache: false  # DEBUG: disabled to rule out stale cache
 
       - name: Set up Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0

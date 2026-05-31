@@ -78,7 +78,7 @@ jobs:
         continue-on-error: true
         with:
           ruby-version: '4.0.2'
-          bundler-cache: true
+          bundler-cache: false  # DEBUG: disabled to rule out stale cache
 
       - name: Run Rubocop
         continue-on-error: true
