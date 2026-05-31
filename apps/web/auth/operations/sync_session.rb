@@ -125,10 +125,19 @@ module Auth
         Familia.dbclient.del(rate_limit_key)
       end
 
-      # Ensures a Customer record exists and is linked to the Rodauth account
+      # Ensures a Customer record exists and is linked to the Rodauth account.
+      # Handles race condition where OmniAuth callback just created the customer
+      # but the email index lookup misses it (Familia index timing).
       # @return [Onetime::Customer]
       def ensure_customer_exists
-        customer = find_existing_customer || create_customer
+        customer   = find_existing_customer
+        customer ||= begin
+          create_customer
+        rescue Familia::RecordExistsError
+          # Customer was just created (likely by OmniAuth callback) but index
+          # lookup missed it. Re-query to get the existing record.
+          Onetime::Customer.find_by_email(@account[:email])
+        end
         link_customer_to_account(customer) unless customer_linked?(customer)
         customer
       end
