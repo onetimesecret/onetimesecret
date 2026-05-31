@@ -12,6 +12,15 @@ module Onetime
   module ErrorHandler
     extend Onetime::LoggerMethods
 
+    # Rodauth may not be loaded in all contexts (e.g., CLI tools, unit tests).
+    # Resolve the error class once at load time; fall back to a never-raised
+    # placeholder so the rescue clause is syntactically valid but never matches.
+    RODAUTH_INTERNAL_ERROR = if defined?(::Rodauth::InternalRequestError)
+                               ::Rodauth::InternalRequestError
+                             else
+                               Class.new(Exception) # rubocop:disable Lint/InheritException
+                             end
+
     # Executes a block and logs any errors without re-raising.
     # Useful for side-effects that shouldn't break critical operations.
     #
@@ -26,7 +35,7 @@ module Onetime
     #
     def self.safe_execute(operation, **context)
       yield
-    rescue RodauthError, Rodauth::InternalRequestError => ex
+    rescue RODAUTH_INTERNAL_ERROR => ex
       # Rodauth internal errors are expected to be handled by the caller's flow,
       # but we still log them before re-raising to ensure visibility.
       log_error(operation, ex, context.merge(rodauth_internal: true))
