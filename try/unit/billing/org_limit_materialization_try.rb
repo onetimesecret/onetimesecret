@@ -56,9 +56,22 @@ seed_plan(5)
 @org.entitlements_plan.to_a.sort
 #=> ["create_secrets", "custom_domains"]
 
-## Verify hash was computed correctly at materialization time
+## DEBUG: raw materialized_entitlements_at value format (timestamp:hash)
+@org.materialized_entitlements_at.to_s.split(':').length
+#=> 2
+
+## DEBUG: stored hash is 12 hex chars
+@stored_hash = @org.send(:materialized_entitlements_at_parsed)&.dig(:content_hash).to_s
+@stored_hash.length == 12 && @stored_hash.match?(/^[a-f0-9]+$/)
+#=> true
+
+## DEBUG: computed hash from captured entitlements
 @hash_at_materialize = Onetime::Organization.entitlements_content_hash(@ents_at_materialize)
-@org.send(:materialized_entitlements_at_parsed)[:content_hash] == @hash_at_materialize
+@hash_at_materialize.length == 12 && @hash_at_materialize.match?(/^[a-f0-9]+$/)
+#=> true
+
+## Verify hash computed outside matches stored hash
+@hash_at_materialize == @stored_hash
 #=> true
 
 ## Org reports it is materialized
