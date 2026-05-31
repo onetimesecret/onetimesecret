@@ -369,3 +369,10 @@ BillingTestHelpers.disable_billing!
 # when billing tests populate the cache and subsequent tests inherit it.
 # See: https://github.com/onetimesecret/onetimesecret/issues/2228
 BillingTestHelpers.clear_plan_cache!
+
+# Print test harness banner showing billing and auth state
+# Mirrors the boot banner from lib/onetime/initializers/print_log_banner.rb
+# Uses $stdout.puts to bypass tryouts output capture (warn/stderr is suppressed)
+auth_mode = ENV.fetch('AUTHENTICATION_MODE', 'simple')
+billing_enabled = defined?(OT.billing_config) ? OT.billing_config.enabled? : false
+$stdout.puts "[Tryouts] auth:#{auth_mode} billing:#{billing_enabled}"
