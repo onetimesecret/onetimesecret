@@ -295,4 +295,40 @@ RSpec.describe Onetime::AuthConfig do
       expect(described_class::RESTRICT_TO_VALUES).to be_frozen
     end
   end
+
+  # ── Missing config file (graceful degradation) ─────────────────────
+
+  describe 'when config file is missing' do
+    before do
+      allow(Onetime::Utils::ConfigResolver).to receive(:resolve)
+        .with('auth').and_return('/nonexistent/auth.yaml')
+      described_class.instance_variable_set(:@singleton__instance__, nil)
+    end
+
+    subject(:config) { described_class.instance }
+
+    it 'does not raise on instantiation' do
+      expect { config }.not_to raise_error
+    end
+
+    it 'reports as not configured' do
+      expect(config.configured?).to be false
+    end
+
+    it 'returns nil for mode' do
+      expect(config.mode).to be_nil
+    end
+
+    it 'returns false for full_enabled?' do
+      expect(config.full_enabled?).to be false
+    end
+
+    it 'returns false for simple_enabled?' do
+      expect(config.simple_enabled?).to be false
+    end
+
+    it 'raises ConfigError from require_config!' do
+      expect { config.send(:require_config!) }.to raise_error(Onetime::ConfigError)
+    end
+  end
 end
