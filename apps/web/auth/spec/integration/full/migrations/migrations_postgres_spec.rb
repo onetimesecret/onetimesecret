@@ -253,30 +253,33 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
     context 'when AUTH_DATABASE_URL_MIGRATIONS is different (elevated)' do
       it 'allows separate credentials for migrations', :requires_superuser do
-        skip 'Requires CREATEROLE privilege (not available in CI)' if ENV['CI']
-        # Use elevated user to create a restricted test user
         # This demonstrates the production pattern: elevated user for migrations, restricted for runtime
-        # NOTE: Requires setup_db to have superuser or CREATEDB privileges
+        # In CI, onetime_migrator_test is pre-provisioned; locally it's created on demand
 
         # Clean database first (uses elevated connection if available)
         drop_all_tables(db: test_db)
 
-        # Ensure clean user state - drop and recreate
-        # Uses setup_db which has elevated privileges in CI
-        begin
-          setup_db.run("DROP USER IF EXISTS onetime_app_test")
-          setup_db.run("CREATE USER onetime_app_test WITH PASSWORD 'testpass'")
-        rescue Sequel::DatabaseError => e
-          raise "Failed to create test user: #{e.message}"
+        # Check if test user already exists (pre-provisioned in CI)
+        user_exists = setup_db.fetch(
+          "SELECT 1 FROM pg_user WHERE usename = 'onetime_migrator_test'"
+        ).any?
+
+        # Create user only if not pre-provisioned (local dev)
+        unless user_exists
+          begin
+            setup_db.run("CREATE USER onetime_migrator_test WITH PASSWORD 'testpass'")
+          rescue Sequel::DatabaseError => e
+            raise "Failed to create test user: #{e.message}"
+          end
         end
 
         # Explicitly revoke default CREATE privilege on public schema
         # (PostgreSQL grants CREATE to PUBLIC role by default)
         setup_db.run("REVOKE CREATE ON SCHEMA public FROM PUBLIC")
-        setup_db.run("REVOKE CREATE ON SCHEMA public FROM onetime_app_test")
+        setup_db.run("REVOKE CREATE ON SCHEMA public FROM onetime_migrator_test")
 
         # Create restricted connection (before granting any permissions)
-        restricted_url = 'postgresql://onetime_app_test:testpass@localhost:5432/onetime_auth_test'
+        restricted_url = 'postgresql://onetime_migrator_test:testpass@localhost:5432/onetime_auth_test'
         restricted_db = Sequel.connect(restricted_url)
 
         begin
@@ -294,10 +297,10 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
           Sequel::Migrator.run(migration_db, migrations_dir)
 
           # Grant CRUD permissions to restricted user on created tables
-          setup_db.run("GRANT USAGE ON SCHEMA public TO onetime_app_test")
+          setup_db.run("GRANT USAGE ON SCHEMA public TO onetime_migrator_test")
           tables = setup_db.tables
           tables.each do |table|
-            setup_db.run("GRANT SELECT, INSERT, UPDATE, DELETE ON #{table} TO onetime_app_test")
+            setup_db.run("GRANT SELECT, INSERT, UPDATE, DELETE ON #{table} TO onetime_migrator_test")
           end
 
           # Verify restricted user can perform CRUD but cannot create new tables
@@ -326,16 +329,17 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
           restricted_db.disconnect if restricted_db
           ENV['AUTH_DATABASE_URL_MIGRATIONS'] = original_migration_url
 
-          # Cleanup: revoke privileges, drop test user, restore default permissions
+          # Cleanup: revoke privileges, conditionally drop test user, restore default permissions
           begin
-            # Revoke all privileges before dropping user
-            setup_db.run("REVOKE ALL ON SCHEMA public FROM onetime_app_test")
+            # Revoke all privileges before potentially dropping user
+            setup_db.run("REVOKE ALL ON SCHEMA public FROM onetime_migrator_test")
             tables = setup_db.tables
             tables.each do |table|
-              setup_db.run("REVOKE ALL ON #{table} FROM onetime_app_test")
+              setup_db.run("REVOKE ALL ON #{table} FROM onetime_migrator_test")
             end
 
-            setup_db.run("DROP USER IF EXISTS onetime_app_test")
+            # Only drop user if we created it (not pre-provisioned in CI)
+            setup_db.run("DROP USER IF EXISTS onetime_migrator_test") unless user_exists
 
             # Restore default CREATE privilege for PUBLIC role
             setup_db.run("GRANT CREATE ON SCHEMA public TO PUBLIC")

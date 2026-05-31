@@ -266,6 +266,10 @@ module Auth::Config::Hooks
       # and add redirect info to the response. This ensures the billing
       # flow continues even after MFA interruption.
       #
+      # Guard: Only register when MFA feature is enabled (provides two_factor_base)
+      #
+      return unless Onetime.auth_config.mfa_enabled?
+
       auth.after_two_factor_authentication do
         add_billing_redirect_to_response if json_request?
       end

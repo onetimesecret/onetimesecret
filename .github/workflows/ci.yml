@@ -589,6 +589,17 @@ jobs:
             \$\$;
           "
 
+          # Create restricted test user for dual-URL migration tests
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator_test') THEN
+                CREATE USER onetime_migrator_test WITH PASSWORD 'testpass';
+              END IF;
+            END
+            \$\$;
+          "
+
           # Grant permissions with proper privilege separation
           psql -h localhost -U postgres -d onetime_auth_test -c "
             GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_user;
