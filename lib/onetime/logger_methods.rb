@@ -8,7 +8,8 @@ module Onetime
   # Category-aware logging support for Onetime classes and modules.
   #
   # Provides access to SemanticLogger instances scoped to strategic categories:
-  # Auth, Bunny, Familia, HTTP, Jobs, Otto, Rhales, Secret, Session, App (default).
+  # Auth, Bunny, Ents, Familia, HTTP, Jobs, Org, Otto, Rhales, Secret, Session,
+  # App (default).
   #
   # Usage in classes:
   #   class MyAuthController
@@ -134,6 +135,10 @@ module Onetime
       Onetime.get_logger('Bunny')
     end
 
+    def ents_logger
+      Onetime.get_logger('Ents')
+    end
+
     def auth_logger
       Onetime.get_logger('Auth')
     end
@@ -144,6 +149,10 @@ module Onetime
 
     def http_logger
       Onetime.get_logger('HTTP')
+    end
+
+    def org_logger
+      Onetime.get_logger('Org')
     end
 
     def otto_logger
@@ -223,9 +232,11 @@ module Onetime
       # Check for strategic category patterns in class name
       category_patterns = {
         /Authentication|Auth(?!or)/i => 'Auth',
+        /Entitlement|Materialize|GrantProbono/i => 'Ents',
         /Familia/i => 'Familia',
         /HTTP|Request|Response|Controller/i => 'HTTP',
         /Jobs|Worker|Publisher|Scheduler/i => 'Jobs',
+        /Organization|Membership/i => 'Org',
         /Otto/i => 'Otto',
         /Rhales/i => 'Rhales',
         /Secret|Metadata/i => 'Secret',

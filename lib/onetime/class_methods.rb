@@ -305,6 +305,8 @@ module Onetime
     def category_for_path(path)
       case path
       when %r{/auth/|/authenticate|/session}i then 'Auth'
+      when %r{entitlement|materialize|grant_probono}i then 'Ents'
+      when %r{/organization|organization_context|organization_loader}i then 'Org'
       when %r{/billing/|/stripe|/subscription}i then 'Billing'
       when %r{/secrets?/|/metadata}i then 'Secret'
       when %r{/controllers?/|/middleware/|/request}i then 'HTTP'
