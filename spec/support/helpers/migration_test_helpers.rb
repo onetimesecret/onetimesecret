@@ -36,6 +36,16 @@ module MigrationTestHelpers
     Sequel.connect(url)
   end
 
+  # Run migrations and apply CI grants for test user access
+  # Use this instead of raw Sequel::Migrator.run in tests that need test_db to read results
+  #
+  # @param migration_db [Sequel::Database] Elevated connection for running migrations
+  # @param migrations_dir [String] Path to migrations directory
+  def run_migrations_with_grants(migration_db:, migrations_dir:)
+    Sequel::Migrator.run(migration_db, migrations_dir)
+    apply_ci_schema_grants(migration_db)
+  end
+
   # Get the current schema version from the database
   #
   # @param db [Sequel::Database] Database connection
@@ -84,6 +94,9 @@ module MigrationTestHelpers
       target: version,
       use_transactions: true,
     )
+
+    # Apply grants so test user can read tables created by migration user
+    apply_ci_schema_grants(db)
 
     db
   end
@@ -192,6 +205,7 @@ module MigrationTestHelpers
   end
 
   # Apply schema grants for CI environment test users
+  # Call with elevated connection after migrations to ensure test user can read tables
   def apply_ci_schema_grants(db)
     # Check if onetime_migrator role exists (CI environment)
     migrator_exists = db.fetch(
@@ -204,8 +218,12 @@ module MigrationTestHelpers
     db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
     db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
 
-    # Re-apply default privileges so tables created by onetime_migrator
-    # are automatically accessible to onetime_user
+    # Grant on ALL existing tables (needed after migrations create tables)
+    db.run 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO onetime_user'
+    db.run 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO onetime_user'
+    db.run 'GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO onetime_user'
+
+    # Re-apply default privileges for future tables
     db.run <<~SQL
       ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
         GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
