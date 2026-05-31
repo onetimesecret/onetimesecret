@@ -3,15 +3,23 @@
 #
 # Regenerate apps/web/billing/docs/plan-definitions.md from etc/billing.yaml.
 #
+# Boot-free
+# ---------
+# Doc generation is a pure YAML → markdown transform, so this drives the
+# standalone scripts/generate_billing_docs.rb entrypoint: plain `ruby` +
+# stdlib, no bundler, no `require 'onetime'`, no Redis/auth.yaml/full boot.
+# That keeps it runnable on any Ruby (even ones outside the app Gemfile's
+# version constraint) and decoupled from a fully-provisioned environment.
+#
 # Strictness modes
 # ----------------
 # Default (tolerant): Always exits 0. Differentiates failure modes:
-#   - bundle not installed       → silent skip on stderr (frontend-only dev)
-#   - billing.yaml absent        → CLI prints "skipped" line, exit 0
-#   - bundle exec errors         → LOUD multi-line warning on stderr, exit 0
+#   - ruby not installed         → silent skip on stderr (frontend-only dev)
+#   - billing.yaml absent        → generator prints "skipped" line, exit 0
+#   - generation errors          → LOUD multi-line warning on stderr, exit 0
 #
 # --strict (or STRICT=1):  Propagates exit codes. Use when you want CI
-#   or a manual invocation to fail on real generation errors. Bundle not
+#   or a manual invocation to fail on real generation errors. Ruby not
 #   being installed is still treated as an "infrastructure missing"
 #   condition and exits 0 — it's not the generator's job to insist Ruby
 #   be present in a frontend-only environment.
@@ -31,12 +39,12 @@ if [ "${1:-}" = "--strict" ]; then
   STRICT=1
 fi
 
-if ! command -v bundle >/dev/null 2>&1; then
-  echo "[docs:billing:generate] skipped: bundle not installed" >&2
+if ! command -v ruby >/dev/null 2>&1; then
+  echo "[docs:billing:generate] skipped: ruby not installed" >&2
   exit 0
 fi
 
-if ! bundle exec bin/ots billing catalog generate-docs; then
+if ! ruby scripts/generate_billing_docs.rb; then
   if [ "$STRICT" = "1" ]; then
     cat >&2 <<'EOF'
 
