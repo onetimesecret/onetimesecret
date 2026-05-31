@@ -179,14 +179,15 @@ module MigrationTestHelpers
   #
   # Drops ALL tables including schema_info so migrations re-run from scratch.
   def drop_and_recreate_postgres_schema(db)
-    # Get all tables and drop them individually (including schema_info)
+    # Get all tables and drop them in a single statement (including schema_info)
     tables = db.tables
-
-    tables.each do |table|
-      db.run "DROP TABLE IF EXISTS #{db.literal(Sequel.identifier(table))} CASCADE"
+    if tables.any?
+      table_list = tables.map { |t| db.literal(Sequel.identifier(t)) }.join(', ')
+      db.run "DROP TABLE IF EXISTS #{table_list} CASCADE"
     end
 
     # Drop functions that migrations will recreate (exclude system/extension functions)
+    # Note: PostgreSQL requires separate DROP FUNCTION statements per function
     our_functions = %w[
       rodauth_get_salt
       rodauth_valid_password_hash

@@ -195,16 +195,18 @@ module PostgresModeSuiteDatabase
     # Drops ALL tables including schema_info so migrations re-run from scratch.
     # Functions are also dropped since migrations recreate them.
     def clean_schema_with_connection(db)
-      # Get all tables in public schema
+      # Get all tables in public schema and drop in a single statement
       tables = db.tables
 
       # Drop ALL tables including schema_info — we want migrations to re-run
-      tables.each do |table|
-        db.run "DROP TABLE IF EXISTS #{db.literal(Sequel.identifier(table))} CASCADE"
+      if tables.any?
+        table_list = tables.map { |t| db.literal(Sequel.identifier(t)) }.join(', ')
+        db.run "DROP TABLE IF EXISTS #{table_list} CASCADE"
       end
 
       # Drop functions that migrations will recreate (exclude system/extension functions)
       # Only drop functions we created, not citext extension functions etc.
+      # Note: PostgreSQL requires separate DROP FUNCTION statements per function
       our_functions = %w[
         rodauth_get_salt
         rodauth_valid_password_hash

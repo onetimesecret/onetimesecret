@@ -489,16 +489,21 @@ module ProductionConfigHelper
     case db.database_type
     when :postgres
       # Use elevated connection for TRUNCATE if available (CI privilege separation)
-      migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
-      if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
-        elevated_db = Sequel.connect(migration_url)
-        begin
-          elevated_db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
-        ensure
-          elevated_db.disconnect
-        end
+      # Prefer existing PostgresModeSuiteDatabase connection to avoid per-test connect overhead
+      if defined?(PostgresModeSuiteDatabase) && PostgresModeSuiteDatabase.migration_database
+        PostgresModeSuiteDatabase.migration_database.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
       else
-        db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+        migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+        if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
+          elevated_db = Sequel.connect(migration_url)
+          begin
+            elevated_db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+          ensure
+            elevated_db.disconnect
+          end
+        else
+          db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+        end
       end
     when :sqlite
       db.run('PRAGMA foreign_keys = OFF')
