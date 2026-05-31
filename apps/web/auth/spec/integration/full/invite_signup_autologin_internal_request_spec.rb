@@ -136,12 +136,17 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     expect(invitation.pending?).to be(true)
     invite_token = invitation.token
 
+    # Create Rodauth account record which is used for authentication.
     Auth::Config.create_account(
       login: invited_email,
       password: password,
       params: { 'invite_token' => invite_token },
     )
 
+    # Create the Onetime::Customer record which is used for everything else, inc org membership
+    Onetime::Customer.create!(email: invited_email, role: 'customer')
+
+    # Get the customer record to confirm it exists before we try to accept the invitation.
     invitee_customer = Onetime::Customer.find_by_email(invited_email)
     expect(invitee_customer).not_to be_nil
 
