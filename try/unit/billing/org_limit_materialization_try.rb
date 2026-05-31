@@ -86,10 +86,14 @@ seed_plan(5)
 @stored_hash.length
 #=> 12
 
-## DEBUG: expected hash for known entitlements
-@expected_hash = Onetime::Organization.entitlements_content_hash(["create_secrets", "custom_domains"])
+## DEBUG: expected hash for known entitlements + limits
+# snapshot_content_hash includes limits, not just entitlements
+@expected_hash = Onetime::Organization.snapshot_content_hash(
+  ["create_secrets", "custom_domains"],
+  { "teams.max" => "5" }
+)
 @expected_hash
-#=> "823cf91436e6"
+#=> "0b0053014180"
 
 ## DEBUG: hashes match (CORE ASSERTION)
 [@stored_hash, @expected_hash]
@@ -143,21 +147,20 @@ plan.save
 @debug_plan.entitlements.to_a.sort == @org.entitlements_plan.to_a.sort
 #=> true
 
-## DEBUG: hashes match
+## DEBUG: hashes differ after plan mutation (org still has old limits hash)
 @debug_plan = ::Billing::Plan.load(PLAN_ID)
 @debug_plan_ents = @debug_plan.entitlements.to_a.sort
+@debug_plan_limits = @debug_plan.limits.hgetall  # now teams.max=10
 @debug_parsed = @org.send(:materialized_entitlements_at_parsed)
-@debug_org_hash = @debug_parsed ? @debug_parsed[:content_hash] : 'PARSED_NIL'
-@debug_plan_hash = Onetime::Organization.entitlements_content_hash(@debug_plan_ents)
-@debug_org_hash == @debug_plan_hash
+@debug_org_hash = @debug_parsed ? @debug_parsed[:content_hash] : 'PARSED_NIL'  # still from teams.max=5
+@debug_plan_hash = Onetime::Organization.snapshot_content_hash(@debug_plan_ents, @debug_plan_limits)
+@debug_org_hash != @debug_plan_hash  # hashes should DIFFER after plan change
 #=> true
 
-## LATENT BUG: staleness check ignores limits — sees a limits-only change as "fresh"
-## (No live path gates on this today; MaterializePlans always re-materializes and
-##  the webhook path omits skip_if_fresh. Flagged as latent, not the symptom.)
+## Staleness check correctly detects limits change (hash includes limits now)
 @debug_plan = ::Billing::Plan.load(PLAN_ID)
 @org.entitlements_stale?(@debug_plan)
-#=> false
+#=> true
 
 ## STEP 3: run the real materialize step (what `billing plans materialize` does)
 result = Billing::Operations::ApplySubscriptionToOrg.materialize_entitlements_for_org(@org)
