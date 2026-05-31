@@ -41,15 +41,12 @@ require 'sneakers'
 require 'stripe'
 require 'onetime/jobs/queues/config'
 
-# Load billing worker from new location when billing is enabled
-if Onetime.billing_config.enabled?
-  require 'billing/workers/billing_worker'
-end
-
-RSpec.describe 'Billing::Workers::BillingWorker', type: :integration do
-  # Skip entire suite when billing is disabled
+RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: true do
+  # Load billing worker after billing:true tag restores billing config.
+  # The require must happen at run-time (before(:all)), not file-load time,
+  # because BILLING_ENABLED defaults to false in test config.
   before(:all) do
-    skip 'Billing is disabled - skipping BillingWorker tests' unless Onetime.billing_config.enabled?
+    require 'billing/workers/billing_worker'
   end
 
   # Use let to defer class resolution until after before(:all) check
