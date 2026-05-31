@@ -108,6 +108,11 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   # rodauth endpoint (mounted at /auth). The full Rack app enforces CSRF, so a
   # raw post without the shrimp token returns 403 Forbidden.
   def csrf_login(email, password = TEST_PASSWORD)
+    # Clear headers that leaked from previous POST (Content-Type triggers body
+    # parsing in Rack::Parser; when applied to a GET with no body, rack.input
+    # is nil and .read fails)
+    header 'Content-Type', nil
+    header 'Content-Length', nil
     header 'Accept', 'application/json'
     get '/auth'
     token = last_response.headers['X-CSRF-Token']
