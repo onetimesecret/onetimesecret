@@ -136,12 +136,24 @@ warnln 'setter_calls BEFORE materialize', $setter_calls.size
 
 # Log method resolution
 mat_method = org.method(:materialize_entitlements_from_plan)
-warnln 'materialize method owner', mat_method.owner.to_s
-warnln 'materialize method source', mat_method.source_location.inspect
+warnln 'materialize_from_plan method owner', mat_method.owner.to_s
+warnln 'materialize_from_plan method source', mat_method.source_location.inspect
+
+mat_config_method = org.method(:materialize_entitlements_from_config)
+warnln 'materialize_from_config method owner', mat_config_method.owner.to_s
+warnln 'materialize_from_config method source', mat_config_method.source_location.inspect
+
+standalone_method = org.method(:materialize_standalone_entitlements!)
+warnln 'standalone method owner', standalone_method.owner.to_s
+warnln 'standalone method source', standalone_method.source_location.inspect
 
 hash_method = org.class.method(:entitlements_content_hash)
 warnln 'hash method owner', hash_method.owner.to_s
 warnln 'hash method source', hash_method.source_location.inspect
+
+# Also log org's billing state
+warnln 'org.billing_enabled?', org.billing_enabled?.inspect
+warnln 'org.planid', org.planid.inspect
 
 org.materialize_entitlements_from_plan(@plan_at_materialize)
 warnln 'hash_calls AFTER materialize', $hash_calls.size
