@@ -187,7 +187,6 @@ module MigrationTestHelpers
     end
 
     # Drop functions that migrations will recreate (exclude system/extension functions)
-    # Note: PostgreSQL requires separate DROP FUNCTION statements per function
     our_functions = %w[
       rodauth_get_salt
       rodauth_valid_password_hash
@@ -200,9 +199,7 @@ module MigrationTestHelpers
       get_account_security_summary
     ]
 
-    our_functions.each do |func_name|
-      db.run "DROP FUNCTION IF EXISTS #{func_name} CASCADE"
-    end
+    db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE" if our_functions.any?
   end
 
   # Apply schema grants for CI environment test users

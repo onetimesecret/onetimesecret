@@ -206,7 +206,6 @@ module PostgresModeSuiteDatabase
 
       # Drop functions that migrations will recreate (exclude system/extension functions)
       # Only drop functions we created, not citext extension functions etc.
-      # Note: PostgreSQL requires separate DROP FUNCTION statements per function
       our_functions = %w[
         rodauth_get_salt
         rodauth_valid_password_hash
@@ -219,9 +218,7 @@ module PostgresModeSuiteDatabase
         get_account_security_summary
       ]
 
-      our_functions.each do |func_name|
-        db.run "DROP FUNCTION IF EXISTS #{func_name} CASCADE"
-      end
+      db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE" if our_functions.any?
     rescue Sequel::DatabaseError => e
       warn "[PostgresModeSuiteDatabase] Failed to drop objects: #{e.message}"
       # Continue - some objects may not exist or we may lack permissions
