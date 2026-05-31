@@ -46,11 +46,7 @@ if Onetime.billing_config.enabled?
   require 'billing/workers/billing_worker'
 end
 
-RSpec.describe 'Billing::Workers::BillingWorker', type: :integration do
-  # Skip entire suite when billing is disabled
-  before(:all) do
-    skip 'Billing is disabled - skipping BillingWorker tests' unless Onetime.billing_config.enabled?
-  end
+RSpec.describe 'Billing::Workers::BillingWorker', type: :integration, billing: true do
 
   # Use let to defer class resolution until after before(:all) check
   let(:billing_worker_class) { Billing::Workers::BillingWorker }

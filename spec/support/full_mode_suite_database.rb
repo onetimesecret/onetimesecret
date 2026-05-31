@@ -127,10 +127,6 @@ RSpec.configure do |config|
     metadata = example_or_group.respond_to?(:metadata) ? example_or_group.metadata : example_or_group.class.metadata
     return if metadata[:postgres_database]
 
-    # Disable billing before boot to prevent Stripe API calls during setup.
-    # This runs in before(:context), before the per-test disable_billing! hook.
-    ENV['BILLING_ENABLED'] = 'false'
-
     FullModeSuiteDatabase.setup!
   end
 
