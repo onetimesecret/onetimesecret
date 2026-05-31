@@ -177,9 +177,9 @@ warnln 'hash_calls AFTER materialize', $hash_calls.size
 warnln 'setter_calls AFTER materialize', $setter_calls.size
 
 # Raw Redis read immediately after materialize
-raw_mat_at = Familia.dbclient.hget(org.rediskey, 'materialized_entitlements_at')
+raw_mat_at = Familia.dbclient.hget(org.dbkey, 'materialized_entitlements_at')
 warnln 'raw HGET materialized_entitlements_at (immediate)', raw_mat_at.inspect
-warnln 'org.rediskey', org.rediskey.inspect
+warnln 'org.dbkey', org.dbkey.inspect
 
 # ---------------------------------------------------------------------------
 # PROBE 0 — ALL setter calls (catches any write to the field)
