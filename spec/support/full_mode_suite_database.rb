@@ -47,7 +47,7 @@ module FullModeSuiteDatabase
                         database_url.start_with?('postgresql://', 'postgres://')
 
       @database = if @using_postgres
-        Sequel.connect(database_url)
+        Sequel.connect(database_url).tap { |db| db.extension :date_arithmetic }
       elsif database_url && database_url.start_with?('sqlite')
         Sequel.connect(database_url)
       else

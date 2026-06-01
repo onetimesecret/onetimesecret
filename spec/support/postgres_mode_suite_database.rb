@@ -105,7 +105,7 @@ module PostgresModeSuiteDatabase
       database_url = ENV['AUTH_DATABASE_URL']
 
       # Create PostgreSQL database connection
-      @database = Sequel.connect(database_url)
+      @database = Sequel.connect(database_url).tap { |db| db.extension :date_arithmetic }
 
       # Verify we're connected to PostgreSQL
       unless @database.database_type == :postgres
