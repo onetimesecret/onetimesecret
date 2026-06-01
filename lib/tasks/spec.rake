@@ -170,10 +170,16 @@ namespace :spec do
       migration_url = ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS', nil)
       env['AUTH_DATABASE_URL_MIGRATIONS'] = migration_url if migration_url
 
+      # Root-level specs MUST load before app-level specs. The root spec_helper
+      # registers define_derived_metadata for :full_auth_mode (matched by file
+      # path). If app-level specs load first, their RSpec.describe creates
+      # metadata before the derivation rule exists, so :full_auth_mode is never
+      # set and FullModeSuiteDatabase.setup! never fires — leaving the PG
+      # database without tables (seed-dependent "accounts does not exist").
       patterns = [
-        *Dir.glob('apps/*/*/spec/integration/full'),
         'spec/integration/full',
         'spec/integration/all',
+        *Dir.glob('apps/*/*/spec/integration/full'),
       ]
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database --tag ~sqlite_database #{rspec_format_options}"
     end

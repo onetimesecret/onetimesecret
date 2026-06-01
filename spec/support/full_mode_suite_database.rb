@@ -264,6 +264,19 @@ RSpec.configure do |config|
   config.after(:each, :full_auth_mode, &full_mode_per_test_cleanup)
   config.after(:each, :sqlite_database, &full_mode_per_test_cleanup)
 
+  # Early PG setup: when AUTH_DATABASE_URL is PostgreSQL and mode is full,
+  # run FullModeSuiteDatabase.setup! at suite start so tables exist before
+  # any example — regardless of RSpec seed or context ordering. Without this,
+  # app-level specs whose metadata derives :full_auth_mode too late can hit
+  # the PG database before migrations run.
+  config.before(:suite) do
+    db_url = ENV.fetch('AUTH_DATABASE_URL', '')
+    auth_mode = ENV.fetch('AUTHENTICATION_MODE', 'simple')
+    if auth_mode == 'full' && db_url.start_with?('postgresql://', 'postgres://')
+      FullModeSuiteDatabase.setup!
+    end
+  end
+
   # Suite-level teardown: only runs once at the very end
   # Note: Simple/disabled mode tests explicitly clear the stub if needed
   config.after(:suite) do
