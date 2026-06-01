@@ -4,14 +4,23 @@
 
 module Auth::Config::Hooks
   module Login
-    def self.configure(auth)
+    def self.configure(auth) # rubocop:disable Metrics/PerceivedComplexity
       #
       # Hook: Before Login Attempt
       #
       # This hook is triggered before processing a login attempt. It generates
       # a correlation ID for tracking the entire authentication flow.
       #
+      # NOTE: Rodauth hooks don't chain — each call overwrites the previous
+      # definition. All before_login_attempt logic must live here, not split
+      # across hook files. billing.rb's capture_plan_selection was moved here
+      # after the hook-collision bug (#3275).
+      #
       auth.before_login_attempt do
+        # Billing: capture plan selection from query params before validation.
+        # Method defined by Billing.configure via auth_class_eval; no-op if billing disabled.
+        capture_plan_selection if respond_to?(:capture_plan_selection)
+
         email = param_or_nil('login') || param_or_nil('email')
 
         # Generate correlation ID for this authentication attempt
@@ -192,6 +201,14 @@ module Auth::Config::Hooks
           # frontend issues an explicit POST /api/invite/:token/accept after
           # login completes, giving a single acceptance code path regardless
           # of whether the user signed up fresh or already had an account.
+        end
+
+        # Billing redirect: add plan selection to JSON response (issue #3275).
+        # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
+        # so the method is only available when billing is enabled. Check respond_to?
+        # to avoid NoMethodError when billing is disabled (self-hosted).
+        if json_request? && respond_to?(:add_billing_redirect_to_response)
+          add_billing_redirect_to_response
         end
       end
 
