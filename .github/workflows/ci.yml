@@ -516,8 +516,8 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_full_sqlite_results.json'
 
-  ruby-integration-full-postgres:
-    name: T3 · Ruby Integration (Full Mode - PostgreSQL)
+  ruby-integration-full-postgres-billing-off:
+    name: 'T3 · Ruby Integration (Full + PG, billing: off)'
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-unit]
@@ -527,7 +527,7 @@ jobs:
     services:
       redis: *valkey-service
       rabbitmq: *rabbitmq-service
-      postgres:
+      postgres: &postgres-service
         image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
         env:
           POSTGRES_USER: postgres
@@ -566,7 +566,7 @@ jobs:
       - name: Setup PostgreSQL users
         env:
           PGPASSWORD: postgres
-        run: |
+        run: &setup-pg-users |
           # Create application user (limited privileges)
           psql -h localhost -U postgres -d onetime_auth_test -c "
             DO \$\$
@@ -627,7 +627,60 @@ jobs:
           auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
           rspec-tag: 'postgres_database'
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'rspec_full_postgres_results.json'
+          billing-enabled: 'false'
+          results-file: 'rspec_full_postgres_billing_off_results.json'
+
+  ruby-integration-full-postgres-billing-on:
+    name: 'T3 · Ruby Integration (Full + PG, billing: on)'
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-unit]
+    if: *if-ruby-integration
+    permissions: *perms-pr-comment
+
+    services:
+      redis: *valkey-service
+      rabbitmq: *rabbitmq-service
+      postgres: *postgres-service
+
+    steps:
+      - *checkout-step
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Generate locale files
+        run: pnpm run locales:sync
+
+      - name: Setup PostgreSQL users
+        env:
+          PGPASSWORD: postgres
+        run: *setup-pg-users
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: full
+          auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+          auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+          rspec-tag: 'postgres_database'
+          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          billing-enabled: 'true'
+          results-file: 'rspec_full_postgres_billing_on_results.json'
 
   ruby-integration-disabled:
     name: T3 · Ruby Integration (Disabled Mode)
@@ -684,7 +737,8 @@ jobs:
         changes,
         ruby-integration-simple,
         ruby-integration-full-sqlite,
-        ruby-integration-full-postgres,
+        ruby-integration-full-postgres-billing-off,
+        ruby-integration-full-postgres-billing-on,
         ruby-integration-disabled,
         typescript-unit,
       ]
@@ -693,7 +747,8 @@ jobs:
       (needs.changes.outputs.oci == 'true' || needs.changes.outputs.frontend == 'true') &&
       (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
       (needs.ruby-integration-full-sqlite.result == 'success' || needs.ruby-integration-full-sqlite.result == 'skipped') &&
-      (needs.ruby-integration-full-postgres.result == 'success' || needs.ruby-integration-full-postgres.result == 'skipped') &&
+      (needs.ruby-integration-full-postgres-billing-off.result == 'success' || needs.ruby-integration-full-postgres-billing-off.result == 'skipped') &&
+      (needs.ruby-integration-full-postgres-billing-on.result == 'success' || needs.ruby-integration-full-postgres-billing-on.result == 'skipped') &&
       (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
       (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
       !contains(needs.*.result, 'failure')
@@ -766,7 +821,8 @@ jobs:
       - ruby-unit
       - ruby-integration-simple
       - ruby-integration-full-sqlite
-      - ruby-integration-full-postgres
+      - ruby-integration-full-postgres-billing-off
+      - ruby-integration-full-postgres-billing-on
       - ruby-integration-disabled
       - typescript-unit
       - smoke-test
@@ -829,7 +885,8 @@ jobs:
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-full-sqlite
-      - ruby-integration-full-postgres
+      - ruby-integration-full-postgres-billing-off
+      - ruby-integration-full-postgres-billing-on
       - ruby-integration-disabled
       - smoke-test
       - check-oci-image
@@ -867,7 +924,8 @@ jobs:
           echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Full - SQLite) | ${{ needs.ruby-integration-full-sqlite.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruby Integration (Full - PostgreSQL) | ${{ needs.ruby-integration-full-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full + PG, billing: off) | ${{ needs.ruby-integration-full-postgres-billing-off.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full + PG, billing: on) | ${{ needs.ruby-integration-full-postgres-billing-on.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
 
