@@ -184,7 +184,7 @@ module BillingSpecHelper
     identity_plus_entitlements_list = %w[
       create_secrets view_receipt api_access custom_domains
       extended_default_expiration custom_branding homepage_secrets
-      incoming_secrets custom_mail_sender manage_orgs
+      incoming_secrets custom_mail_sender manage_org
     ]
     identity_plus_entitlements = double('identity_plus_entitlements_set')
     allow(identity_plus_entitlements).to receive(:to_a).and_return(identity_plus_entitlements_list)

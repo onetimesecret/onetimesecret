@@ -529,7 +529,7 @@
   },
   "web.settings.api.api_disabled_notice": {
     "text": "The API is disabled for this instance.",
-    "content_hash": "00000000"
+    "content_hash": "66d12d6b"
   },
   "web.settings.privacy.title": {
     "text": "Privacy Settings",

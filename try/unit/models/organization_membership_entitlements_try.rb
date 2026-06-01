@@ -59,7 +59,7 @@ m = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS['member']
 (a - m).empty?
 #=> false
 
-## Owner-only entitlements: manage_billing, manage_orgs
+## Owner-only entitlements: manage_billing, manage_org
 o = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS['owner']
 a = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS['admin']
 o.include?('manage_billing') && !a.include?('manage_billing')

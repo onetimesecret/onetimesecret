@@ -38,7 +38,7 @@ Loaded from `etc/billing.yaml`.
 
 ### Collaboration
 
-- **`manage_orgs`**: Can create and manage organizations
+- **`manage_org`**: Can manage organization settings, members, and domains
 - **`manage_teams`**: Can create and manage teams
 - **`manage_members`**: Can create and manage organization members
 
@@ -121,7 +121,7 @@ Original plan, grandfathered for existing customers
 - `homepage_secrets`
 - `incoming_secrets`
 - `manage_members`
-- `manage_orgs`
+- `manage_org`
 - `view_receipt`
 
 **Limits:**
@@ -159,7 +159,7 @@ For individuals needing custom domains and extended retention
 - `homepage_secrets`
 - `incoming_secrets`
 - `manage_members`
-- `manage_orgs`
+- `manage_org`
 - `view_receipt`
 
 **Limits:**
@@ -203,7 +203,7 @@ For teams needing collaboration features
 - `incoming_secrets`
 - `ip_access_rules`
 - `manage_members`
-- `manage_orgs`
+- `manage_org`
 - `manage_sso`
 - `manage_teams`
 - `view_receipt`
