@@ -243,7 +243,7 @@ module Onetime
       end
 
       def show_pull_progress(message)
-        print "\r  #{message}"
+        print "\r  #{message}\e[K"
         $stdout.flush
       end
 
