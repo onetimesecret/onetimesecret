@@ -581,6 +581,10 @@ emailer:
   # When set, feedback emails are delivered here instead of the first colonel
   # in the database. Useful for routing to a shared inbox or alias.
   feedback_to: <%= ENV['FEEDBACK_TO_EMAIL'] || nil %>
+  # Whether to include the logo image in HTML emails (default: false).
+  # Set to true only when recipients can reach the app's base URI to
+  # load the image; otherwise a broken image looks less trustworthy.
+  show_logo: <%= ENV['EMAILER_SHOW_LOGO'] == 'true' %>
 
 # Email Provider DNS Validation Settings
 # --------------------------------------
