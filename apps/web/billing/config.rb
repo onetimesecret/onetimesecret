@@ -50,10 +50,10 @@ module Billing
       yaml_content = erb_template.result
       YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false) || {}
     rescue Psych::SyntaxError => ex
-      OT.le "YAML syntax error in billing config: #{ex.message}"
+      warn "YAML syntax error in billing config: #{ex.message}"
       {}
     rescue StandardError => ex
-      OT.le "Failed to load billing config: #{ex.message}"
+      warn "Failed to load billing config: #{ex.message}"
       {}
     end
 
