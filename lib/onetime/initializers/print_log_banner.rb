@@ -51,7 +51,9 @@ module Onetime
       redis_info      = Familia.dbclient.info
 
       # Header banner
-      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.details}  #{'---' * 3}"
+      auth_mode      = defined?(OT.auth_config) ? OT.auth_config.mode : 'n/a'
+      billing_status = defined?(OT.billing_config) ? OT.billing_config.enabled? : 'n/a'
+      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.details}  auth:#{auth_mode} billing:#{billing_status}  #{'---' * 3}"
 
       # Create a buffer to collect all output
       output = []

@@ -477,6 +477,9 @@ module ProductionConfigHelper
   # DELETE rows rather than reconnect: the in-memory SQLite schema lives in the
   # single shared connection, so disconnecting would drop the tables. Reset the
   # autoincrement counter so account_id restarts at 1 (deterministic IDs).
+  #
+  # For PostgreSQL in CI, the application connection (onetime_user) lacks TRUNCATE
+  # privileges. Use AUTH_DATABASE_URL_MIGRATIONS (onetime_migrator) when available.
   def clear_auth_database
     db = Auth::Database.connection
     # Preserve schema bookkeeping and seed-once reference tables (PRESERVED_TABLES).
@@ -485,7 +488,23 @@ module ProductionConfigHelper
 
     case db.database_type
     when :postgres
-      db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+      # Use elevated connection for TRUNCATE if available (CI privilege separation)
+      # Prefer existing PostgresModeSuiteDatabase connection to avoid per-test connect overhead
+      if defined?(PostgresModeSuiteDatabase) && PostgresModeSuiteDatabase.migration_database
+        PostgresModeSuiteDatabase.migration_database.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+      else
+        migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+        if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
+          elevated_db = Sequel.connect(migration_url)
+          begin
+            elevated_db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+          ensure
+            elevated_db.disconnect
+          end
+        else
+          db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+        end
+      end
     when :sqlite
       db.run('PRAGMA foreign_keys = OFF')
       tables.each { |t| db[t].delete }

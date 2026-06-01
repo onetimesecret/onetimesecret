@@ -14,6 +14,9 @@ require 'support/helpers/migration_test_helpers'
 RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
   include MigrationTestHelpers
 
+  # Expected schema version after all migrations run (update when adding migrations)
+  EXPECTED_SCHEMA_VERSION = 7
+
   let(:migrations_dir) { File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations') }
   let(:test_db) { PostgresModeSuiteDatabase.database }
 
@@ -37,18 +40,18 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
       # Run migrations
       Sequel.extension :migration
-      Sequel::Migrator.run(migration_db, migrations_dir, use_transactions: true)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
 
-      # Verify schema version is at latest (6 migrations)
-      version = verify_schema_version(db: test_db, expected: 6)
-      expect(version).to eq(6)
+      # Verify schema version is at latest
+      version = verify_schema_version(db: test_db, expected: EXPECTED_SCHEMA_VERSION)
+      expect(version).to eq(EXPECTED_SCHEMA_VERSION)
 
       # Verify all core tables exist
       expect(verify_core_tables_exist(db: test_db)).to be true
     end
 
     it 'enables citext extension for case-insensitive email' do
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
 
       # Verify citext extension is enabled
       result = test_db.fetch(<<~SQL).first
@@ -61,7 +64,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
     end
 
     it 'creates PostgreSQL-specific constraints' do
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
 
       # Try to insert invalid email (should fail constraint)
       expect do
@@ -76,7 +79,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
   describe 'subsequent boots are idempotent' do
     before do
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
     end
 
     it 'does not modify schema when run again' do
@@ -112,9 +115,9 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       create_partial_migration_state(db: migration_db, version: 1)
       expect(get_schema_version(db: test_db)).to eq(1)
 
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
 
-      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
+      expect(verify_schema_version(db: test_db, expected: EXPECTED_SCHEMA_VERSION)).to eq(EXPECTED_SCHEMA_VERSION)
       expect(verify_core_tables_exist(db: test_db)).to be true
     end
 
@@ -122,9 +125,9 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       create_partial_migration_state(db: migration_db, version: 3)
       expect(get_schema_version(db: test_db)).to eq(3)
 
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
 
-      expect(verify_schema_version(db: test_db, expected: 6)).to eq(6)
+      expect(verify_schema_version(db: test_db, expected: EXPECTED_SCHEMA_VERSION)).to eq(EXPECTED_SCHEMA_VERSION)
     end
 
     it 'maintains data integrity when completing migrations' do
@@ -138,12 +141,12 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       )
 
       # Complete migrations
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
 
       # Verify data survived
       account = test_db[:accounts].where(id: account_id).first
       expect(account[:email]).to eq('partial@example.com')
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
     end
   end
 
@@ -161,19 +164,21 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
     it 'preserves existing schema on failed migration attempt' do
       Sequel::Migrator.run(migration_db, migrations_dir)
-      initial_version = get_schema_version(db: test_db)
+      # Use migration_db for reading too — in CI dual-user setup, test_db may not
+      # have SELECT on tables created by migration_db
+      initial_version = get_schema_version(db: migration_db)
 
       expect do
         Sequel::Migrator.run(migration_db, '/nonexistent/path')
       end.to raise_error(Sequel::Migrator::Error)
 
-      expect(get_schema_version(db: test_db)).to eq(initial_version)
+      expect(get_schema_version(db: migration_db)).to eq(initial_version)
     end
   end
 
   describe 'PostgreSQL-specific features' do
     before do
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
     end
 
     it 'creates database functions from migration 003' do
@@ -228,40 +233,53 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
   describe 'dual URL handling' do
     context 'when AUTH_DATABASE_URL_MIGRATIONS is not set' do
+      around do |example|
+        # Temporarily unset migrations URL for this test
+        original = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+        ENV.delete('AUTH_DATABASE_URL_MIGRATIONS')
+        example.run
+      ensure
+        ENV['AUTH_DATABASE_URL_MIGRATIONS'] = original if original
+      end
+
       it 'uses the same connection for migrations' do
         # Default case - when migrations URL not set, use standard URL
         expect(ENV['AUTH_DATABASE_URL_MIGRATIONS']).to be_nil
 
         Sequel::Migrator.run(migration_db, migrations_dir)
-        expect(get_schema_version(db: test_db)).to eq(6)
+        expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
       end
     end
 
     context 'when AUTH_DATABASE_URL_MIGRATIONS is different (elevated)' do
-      it 'allows separate credentials for migrations' do
-        # Use elevated user to create a restricted test user
+      it 'allows separate credentials for migrations', :requires_superuser do
         # This demonstrates the production pattern: elevated user for migrations, restricted for runtime
-        # NOTE: Requires setup_db to have superuser or CREATEDB privileges
+        # In CI, onetime_migrator_test is pre-provisioned; locally it's created on demand
 
         # Clean database first (uses elevated connection if available)
         drop_all_tables(db: test_db)
 
-        # Ensure clean user state - drop and recreate
-        # Uses setup_db which has elevated privileges in CI
-        begin
-          setup_db.run("DROP USER IF EXISTS onetime_app_test")
-          setup_db.run("CREATE USER onetime_app_test WITH PASSWORD 'testpass'")
-        rescue Sequel::DatabaseError => e
-          raise "Failed to create test user: #{e.message}"
+        # Check if test user already exists (pre-provisioned in CI)
+        user_exists = setup_db.fetch(
+          "SELECT 1 FROM pg_user WHERE usename = 'onetime_migrator_test'"
+        ).any?
+
+        # Create user only if not pre-provisioned (local dev)
+        unless user_exists
+          begin
+            setup_db.run("CREATE USER onetime_migrator_test WITH PASSWORD 'testpass'")
+          rescue Sequel::DatabaseError => e
+            raise "Failed to create test user: #{e.message}"
+          end
         end
 
         # Explicitly revoke default CREATE privilege on public schema
         # (PostgreSQL grants CREATE to PUBLIC role by default)
         setup_db.run("REVOKE CREATE ON SCHEMA public FROM PUBLIC")
-        setup_db.run("REVOKE CREATE ON SCHEMA public FROM onetime_app_test")
+        setup_db.run("REVOKE CREATE ON SCHEMA public FROM onetime_migrator_test")
 
         # Create restricted connection (before granting any permissions)
-        restricted_url = 'postgresql://onetime_app_test:testpass@localhost:5432/onetime_auth_test'
+        restricted_url = 'postgresql://onetime_migrator_test:testpass@localhost:5432/onetime_auth_test'
         restricted_db = Sequel.connect(restricted_url)
 
         begin
@@ -279,10 +297,10 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
           Sequel::Migrator.run(migration_db, migrations_dir)
 
           # Grant CRUD permissions to restricted user on created tables
-          setup_db.run("GRANT USAGE ON SCHEMA public TO onetime_app_test")
+          setup_db.run("GRANT USAGE ON SCHEMA public TO onetime_migrator_test")
           tables = setup_db.tables
           tables.each do |table|
-            setup_db.run("GRANT SELECT, INSERT, UPDATE, DELETE ON #{table} TO onetime_app_test")
+            setup_db.run("GRANT SELECT, INSERT, UPDATE, DELETE ON #{table} TO onetime_migrator_test")
           end
 
           # Verify restricted user can perform CRUD but cannot create new tables
@@ -305,22 +323,23 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
           expect(restricted_db[:accounts].where(id: account_id).count).to eq(0)
 
           # Verify migrations completed successfully
-          expect(get_schema_version(db: test_db)).to eq(6)
+          expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
           expect(verify_core_tables_exist(db: test_db)).to be true
         ensure
           restricted_db.disconnect if restricted_db
           ENV['AUTH_DATABASE_URL_MIGRATIONS'] = original_migration_url
 
-          # Cleanup: revoke privileges, drop test user, restore default permissions
+          # Cleanup: revoke privileges, conditionally drop test user, restore default permissions
           begin
-            # Revoke all privileges before dropping user
-            setup_db.run("REVOKE ALL ON SCHEMA public FROM onetime_app_test")
+            # Revoke all privileges before potentially dropping user
+            setup_db.run("REVOKE ALL ON SCHEMA public FROM onetime_migrator_test")
             tables = setup_db.tables
             tables.each do |table|
-              setup_db.run("REVOKE ALL ON #{table} FROM onetime_app_test")
+              setup_db.run("REVOKE ALL ON #{table} FROM onetime_migrator_test")
             end
 
-            setup_db.run("DROP USER IF EXISTS onetime_app_test")
+            # Only drop user if we created it (not pre-provisioned in CI)
+            setup_db.run("DROP USER IF EXISTS onetime_migrator_test") unless user_exists
 
             # Restore default CREATE privilege for PUBLIC role
             setup_db.run("GRANT CREATE ON SCHEMA public TO PUBLIC")
@@ -379,29 +398,33 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
   describe 'Sequel::Migrator with advisory locks' do
     it 'runs migrations with advisory lock enabled' do
       # PostgreSQL supports advisory locks for concurrent safety
+      # Note: test_db may have sufficient privileges if it's the same as migration_db
       Sequel::Migrator.run(
-        test_db,
+        migration_db,
         migrations_dir,
         use_advisory_lock: true,
       )
+      apply_ci_schema_grants(migration_db)
 
-      expect(get_schema_version(db: test_db)).to eq(6)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
     end
 
     it 'runs migrations idempotently with locks' do
       # First run
       Sequel::Migrator.run(migration_db, migrations_dir, use_advisory_lock: true)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      apply_ci_schema_grants(migration_db)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
 
       # Second run should be no-op
       Sequel::Migrator.run(migration_db, migrations_dir, use_advisory_lock: true)
-      expect(get_schema_version(db: test_db)).to eq(6)
+      apply_ci_schema_grants(migration_db)
+      expect(get_schema_version(db: test_db)).to eq(EXPECTED_SCHEMA_VERSION)
     end
   end
 
   describe 'all migrations applied correctly' do
     before do
-      Sequel::Migrator.run(migration_db, migrations_dir)
+      run_migrations_with_grants(migration_db: migration_db, migrations_dir: migrations_dir)
     end
 
     it 'creates all expected tables from migration 001' do

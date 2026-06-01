@@ -248,8 +248,17 @@ runs:
     - name: Generate job summary
       if: always()
       shell: bash
+      env:
+        AUTH_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ env.BILLING_ENABLED || 'false' }}
       run: |
-        echo "## Ruby Test Results (${{ inputs.auth-mode }} mode)" >> $GITHUB_STEP_SUMMARY
+        echo "## Ruby Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| auth | ${AUTH_MODE} |" >> $GITHUB_STEP_SUMMARY
+        echo "| billing | ${BILLING_ENABLED} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
 
         if [ -n "${{ steps.rake-tasks.outputs.tryouts-task }}" ]; then
           echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
