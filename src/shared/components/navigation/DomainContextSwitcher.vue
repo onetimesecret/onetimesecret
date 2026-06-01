@@ -25,7 +25,9 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { ENTITLEMENTS } from '@/types/organization';
 import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed, watch } from 'vue';
@@ -49,6 +51,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
+const bootstrapStore = useBootstrapStore();
 
 // Get current organization extid for org-qualified routes
 const currentOrgExtid = computed(() => organizationStore.currentOrganization?.extid);
@@ -144,11 +147,19 @@ const selectDomain = (domain: string): void => {
 
 /**
  * Whether the current user can manage domains (owner or admin of current org).
- * Reads reactively from organizationStore so it updates on org switch.
+ * Standalone (billing disabled): owner/admin role alone is sufficient.
+ * Billing enabled: owner/admin + manage_org entitlement required.
  */
-const canManageDomains = computed(() =>
-  isOwnerOrAdminOf({ organization: organizationStore.currentOrganization })
-);
+const canManageDomains = computed(() => {
+  const org = organizationStore.currentOrganization;
+  if (!isOwnerOrAdminOf({ organization: org })) return false;
+
+  if (!bootstrapStore.billing_enabled) return true;
+
+  const ents = org?.entitlements;
+  if (!ents) return true;
+  return ents.includes(ENTITLEMENTS.MANAGE_ORG);
+});
 
 /**
  * Should component be visible
