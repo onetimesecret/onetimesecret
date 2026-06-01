@@ -313,6 +313,31 @@ export function hasPassword(): boolean {
 }
 
 /**
+ * Pure predicate: current user is owner or admin in the given state.
+ *
+ * Reads `organization.current_user_role` directly from the bootstrap shape,
+ * matching the `*Of` pattern used by all other feature predicates. Do NOT
+ * route through useOrgPermissions here — that reads organizationStore
+ * (one reactive hop later) and would cause tab flash on load.
+ */
+export function isOwnerOrAdminOf(state: { organization?: { current_user_role?: string | null } | null }): boolean {
+  const role = state.organization?.current_user_role;
+  return role === 'owner' || role === 'admin';
+}
+
+/**
+ * Checks if the current authenticated user is an owner or admin in their org.
+ * Used to gate account settings sections that are managed by org owners,
+ * not individual members.
+ */
+export function isOwnerOrAdmin(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const org = getBootstrapValue('organization');
+  return isOwnerOrAdminOf({ organization: org });
+}
+
+/**
  * Gets all enabled authentication features
  */
 export function getAuthFeatures(): AuthFeatures {

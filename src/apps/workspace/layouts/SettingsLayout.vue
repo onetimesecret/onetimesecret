@@ -17,6 +17,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import {
   hasPasswordOf,
   isFullAuthModeOf,
+  isOwnerOrAdminOf,
   isSsoOnlyModeOf,
   isWebAuthnEnabledOf,
 } from '@/utils/features';
@@ -37,6 +38,7 @@ const tabItems = computed(() => {
     hasPassword: hasPasswordOf(bootstrapStore),
     isFullAuthMode: isFullAuthModeOf(bootstrapStore),
     isSsoOnlyMode: isSsoOnlyModeOf(bootstrapStore),
+    isOwnerOrAdmin: isOwnerOrAdminOf(bootstrapStore),
     isWebAuthnEnabled: isWebAuthnEnabledOf(bootstrapStore),
   };
   const sections = getSettingsNavigationSections(t, features);
