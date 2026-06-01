@@ -29,8 +29,12 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
     double('SemanticLogger').tap do |logger|
       allow(logger).to receive(:info) { |_msg, _payload = {}| nil }
       allow(logger).to receive(:warn) { |_msg, _payload = {}| nil }
+      allow(logger).to receive(:error) { |_msg, _payload = {}| nil }
     end
   end
+
+  # Default happy-path cascade result. Branch 3 reads `:failed`/`:total`.
+  let(:cascade_result) { { success: 15, failed: 0, total: 15 } }
 
   # Materialized set stub — chore only reads `.size`
   let(:materialized_set) { double('Set', size: 15) }
@@ -49,7 +53,7 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
       materialized_entitlements: materialized_set,
     )
     allow(obj).to receive(:materialize_standalone_entitlements!).and_return(true)
-    allow(obj).to receive(:rematerialize_all_memberships!)
+    allow(obj).to receive(:rematerialize_all_memberships!).and_return(cascade_result)
     obj
   end
 
@@ -143,7 +147,7 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
     end
 
     it 'calls rematerialize_all_memberships! to cascade to members' do
-      expect(org).to receive(:rematerialize_all_memberships!)
+      expect(org).to receive(:rematerialize_all_memberships!).and_return(cascade_result)
       chore.call(org)
     end
 
@@ -168,5 +172,57 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
       chore.call(org)
     end
 
+    it 'does not log at :error when the cascade has no failures' do
+      expect(mock_logger).not_to receive(:error)
+      chore.call(org)
+    end
+
+    context 'when the membership cascade has partial failures' do
+      let(:cascade_result) { { success: 1, failed: 2, total: 3 } }
+
+      it 'logs the partial failure at :error with org extid and counts' do
+        expect(mock_logger).to receive(:error).with(
+          'Membership re-materialization had failures',
+          hash_including(
+            chore: :materialize_standalone_entitlements,
+            org_extid: 'org_test123',
+            memberships_total: 3,
+            memberships_failed: 2,
+          ),
+        )
+        chore.call(org)
+      end
+
+      it 'still logs the materialization at :info and returns true' do
+        expect(mock_logger).to receive(:info).with(
+          'Materialized standalone entitlements',
+          hash_including(chore: :materialize_standalone_entitlements),
+        )
+        expect(chore.call(org)).to be true
+      end
+    end
+
+    context 'when the membership cascade raises' do
+      before do
+        allow(org).to receive(:rematerialize_all_memberships!)
+          .and_raise(StandardError.new('boom'))
+      end
+
+      it 'logs the raised error and does not propagate' do
+        expect(mock_logger).to receive(:error).with(
+          'Membership re-materialization raised',
+          hash_including(
+            chore: :materialize_standalone_entitlements,
+            org_extid: 'org_test123',
+            exception: kind_of(StandardError),
+          ),
+        )
+        expect { chore.call(org) }.not_to raise_error
+      end
+
+      it 'still completes the chore and returns true' do
+        expect(chore.call(org)).to be true
+      end
+    end
   end
 end

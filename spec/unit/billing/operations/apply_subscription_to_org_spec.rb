@@ -155,4 +155,34 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
       expect(result).to be false
     end
   end
+
+  describe 'membership cascade failure logging' do
+    before { allow(org).to receive(:save).and_return(true) }
+
+    context 'when the cascade reports failures' do
+      let(:rematerialize_result) { { success: 0, failed: 1, total: 1 } }
+
+      it 'escalates to OT.le with FREE_PLAN_ID and counts' do
+        expect(OT).to receive(:le).with(
+          '[ApplySubscriptionToOrg] membership re-materialization had failures (free tier)',
+          hash_including(
+            org_extid: 'on_test123',
+            planid: Billing::Metadata::FREE_PLAN_ID,
+            memberships_total: 1,
+            memberships_failed: 1,
+          ),
+        )
+
+        operation.apply_free_tier(org, owner: true)
+      end
+    end
+
+    context 'when the cascade reports no failures' do
+      it 'does NOT escalate to OT.le' do
+        expect(OT).not_to receive(:le)
+
+        operation.apply_free_tier(org, owner: true)
+      end
+    end
+  end
 end

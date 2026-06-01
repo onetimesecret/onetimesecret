@@ -63,7 +63,26 @@ Onetime::Organization.chore :materialize_standalone_entitlements do |org|
 
   # Cascade to memberships so they're consistent with the org's new entitlements.
   # Without this, memberships remain stale and the runtime fallback can't be removed.
-  org.rematerialize_all_memberships!
+  begin
+    cascade = org.rematerialize_all_memberships!
+
+    # Cross-path consistency with MaterializePlans#handle_cascade_partial: surface a
+    # partial cascade as :error so operators learn about drifted memberships.
+    # Observability only — do NOT abort the chore or fail the org: there is no
+    # results aggregator here, and the org itself was materialized successfully.
+    if cascade[:failed].to_i.positive?
+      logger.error 'Membership re-materialization had failures',
+        chore: :materialize_standalone_entitlements,
+        org_extid: org.extid,
+        memberships_total: cascade[:total],
+        memberships_failed: cascade[:failed]
+    end
+  rescue StandardError => ex
+    logger.error 'Membership re-materialization raised',
+      chore: :materialize_standalone_entitlements,
+      org_extid: org.extid,
+      exception: ex
+  end
 
   entitlement_count = org.materialized_entitlements.size
 
