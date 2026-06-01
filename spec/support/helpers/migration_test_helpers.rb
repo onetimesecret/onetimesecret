@@ -205,37 +205,32 @@ module MigrationTestHelpers
   # Apply schema grants for CI environment test users
   # Call with elevated connection after migrations to ensure test user can read tables
   def apply_ci_schema_grants(db)
-    # Check if onetime_migrator role exists (CI environment)
-    migrator_exists = db.fetch(
-      "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
-    ).any?
+    database_url = ENV['AUTH_DATABASE_URL']
+    migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+    return unless database_url && migration_url
+    return if migration_url.empty? || migration_url == database_url
 
-    return unless migrator_exists
+    test_user = URI.parse(database_url).user
+    migrator_user = URI.parse(migration_url).user
+    return unless test_user && migrator_user
 
-    # Re-apply schema grants
-    db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
-    db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
+    test_ident = db.literal(Sequel.identifier(test_user))
+    migrator_ident = db.literal(Sequel.identifier(migrator_user))
 
-    # Grant on ALL existing tables (needed after migrations create tables)
-    db.run 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO onetime_user'
-    db.run 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO onetime_user'
-    db.run 'GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO onetime_user'
+    db.run "GRANT ALL ON SCHEMA public TO #{migrator_ident}"
+    db.run "GRANT USAGE ON SCHEMA public TO #{test_ident}"
+    db.run "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO #{test_ident}"
+    db.run "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO #{test_ident}"
 
-    # Re-apply default privileges for future tables
     db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
+      ALTER DEFAULT PRIVILEGES FOR ROLE #{migrator_ident} IN SCHEMA public
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO #{test_ident}
     SQL
     db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
-    SQL
-    db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT EXECUTE ON FUNCTIONS TO onetime_user
+      ALTER DEFAULT PRIVILEGES FOR ROLE #{migrator_ident} IN SCHEMA public
+        GRANT USAGE, SELECT ON SEQUENCES TO #{test_ident}
     SQL
   rescue Sequel::DatabaseError
-    # Ignore if grants fail - may not have permission or roles don't exist
     nil
   end
 

@@ -8,23 +8,21 @@ require 'support/helpers/migration_test_helpers'
 # Test PostgreSQL migrations with real database
 # Requires AUTH_DATABASE_URL to be set to a PostgreSQL database
 #
+# WARNING: Each example drops all tables before running, which destroys
+# state set up by PostgresModeSuiteDatabase. Sibling :postgres_database
+# specs recover because setup! checks schema_intact? and re-migrates.
+#
 # In CI environment with dual-user setup:
 # - test_db (onetime_user): For verifying migrations (SELECT access)
 # - migration_db (onetime_migrator or test_db): For running migrations (CREATE/ALTER)
 RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
   include MigrationTestHelpers
 
-  # Expected schema version after all migrations run (update when adding migrations)
-  EXPECTED_SCHEMA_VERSION = 7
+  EXPECTED_SCHEMA_VERSION = PostgresModeSuiteDatabase::EXPECTED_SCHEMA_VERSION
 
   let(:migrations_dir) { File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations') }
   let(:test_db) { PostgresModeSuiteDatabase.database }
-
-  # Database connection for running migrations and data setup
-  # Uses elevated connection in CI, falls back to test_db for local development
   let(:migration_db) { PostgresModeSuiteDatabase.migration_database || test_db }
-
-  # Alias for clarity - use for test data INSERT/UPDATE/DELETE operations
   let(:setup_db) { migration_db }
 
   before do
