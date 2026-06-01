@@ -682,6 +682,15 @@
     "text": "e.g. https://login.example.com",
     "content_hash": "9a638e9c"
   },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "View discovery document"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Add this URL to your identity provider's allowed redirect URIs"
+  },
   "web.organizations.sso.allowed_domains": {
     "text": "Allowed Email Domains",
     "content_hash": "0295ad71"

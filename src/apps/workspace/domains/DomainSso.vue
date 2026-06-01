@@ -227,6 +227,7 @@ watch(canManageSso, async (entitled) => {
 
           <DomainSsoConfigForm
             :domain-ext-id="props.extid"
+            :domain-host="customDomainRecord?.display_domain ?? ''"
             v-model:form-state="formState"
             :sso-config="ssoConfig"
             :is-loading="ssoLoading"
