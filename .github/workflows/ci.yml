@@ -513,6 +513,20 @@ jobs:
             auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
             rspec-tag: 'postgres_database'
             results-file: 'rspec_full_postgres_billing_on_results.json'
+          - name: 'PG agnostic, billing: off'
+            db: postgres
+            billing-enabled: 'false'
+            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+            rspec-tag: 'agnostic_on_pg'
+            results-file: 'rspec_full_pg_agnostic_billing_off_results.json'
+          - name: 'PG agnostic, billing: on'
+            db: postgres
+            billing-enabled: 'true'
+            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+            rspec-tag: 'agnostic_on_pg'
+            results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
 
     services:
       redis: *valkey-service
@@ -614,6 +628,7 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           billing-enabled: ${{ matrix.billing-enabled }}
           results-file: ${{ matrix.results-file }}
+          db-engine: ${{ matrix.db }}
 
   ruby-integration-disabled:
     name: T3 · Ruby Integration (Disabled Mode)

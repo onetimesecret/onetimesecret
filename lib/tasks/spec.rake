@@ -140,7 +140,7 @@ namespace :spec do
       end
     end
 
-    desc 'Run full mode with PostgreSQL'
+    desc 'Run full mode with PostgreSQL (PG-only specs)'
     task 'full:postgres' do
       env      = {
         'RACK_ENV' => 'test',
@@ -155,6 +155,33 @@ namespace :spec do
         'spec/integration/full',
       ]
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_format_options}"
+    end
+
+    desc 'Run DB-agnostic full mode specs against PostgreSQL'
+    task 'full:agnostic_on_pg' do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => ENV.fetch(
+          'AUTH_DATABASE_URL',
+          'postgresql://postgres@localhost:5432/onetime_auth_test',
+        ),
+      }
+      migration_url = ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS', nil)
+      env['AUTH_DATABASE_URL_MIGRATIONS'] = migration_url if migration_url
+
+      # Root-level specs MUST load before app-level specs. The root spec_helper
+      # registers define_derived_metadata for :full_auth_mode (matched by file
+      # path). If app-level specs load first, their RSpec.describe creates
+      # metadata before the derivation rule exists, so :full_auth_mode is never
+      # set and FullModeSuiteDatabase.setup! never fires — leaving the PG
+      # database without tables (seed-dependent "accounts does not exist").
+      patterns = [
+        'spec/integration/full',
+        'spec/integration/all',
+        *Dir.glob('apps/*/*/spec/integration/full'),
+      ]
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database --tag ~sqlite_database #{rspec_format_options}"
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'

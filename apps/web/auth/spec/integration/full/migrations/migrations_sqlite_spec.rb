@@ -7,7 +7,7 @@ require 'support/helpers/migration_test_helpers'
 
 # Test SQLite migrations without full application boot
 # These tests directly use Sequel::Migrator and don't require Redis/Familia
-RSpec.describe 'Auth::Migrator SQLite Integration' do
+RSpec.describe 'Auth::Migrator SQLite Integration', :sqlite_database do
   include MigrationTestHelpers
 
   let(:migrations_dir) { File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations') }
