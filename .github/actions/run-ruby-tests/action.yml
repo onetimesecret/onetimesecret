@@ -93,6 +93,10 @@ inputs:
     description: 'Enable tmate debugging session'
     required: false
     default: 'false'
+  billing-enabled:
+    description: 'Enable billing features for this test run'
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -142,6 +146,7 @@ runs:
         RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
         DEBUG_DATABASE: 'true'
         DEBUG_LOGGERS: 'Familia:trace'
       run: |
@@ -162,6 +167,7 @@ runs:
         RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
         AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
       # Pipe through tee so the runner's live log still streams while we keep
@@ -182,6 +188,7 @@ runs:
         RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
         AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
         RSPEC_OUTPUT_FILE: tmp/${{ inputs.results-file }}
@@ -250,7 +257,7 @@ runs:
       shell: bash
       env:
         AUTH_MODE: ${{ inputs.auth-mode }}
-        BILLING_ENABLED: ${{ env.BILLING_ENABLED || 'false' }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
       run: |
         echo "## Ruby Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
