@@ -147,7 +147,7 @@ const createMockPlan = (overrides: Partial<BillingPlan> = {}): BillingPlan => ({
   region: 'US',
   display_order: 100,
   features: ['Feature 1', 'Feature 2'],
-  limits: { teams: 1, members_per_team: 10 },
+  limits: { teams: 1, total_members_per_org: 10 },
   entitlements: ['create_secrets', 'api_access', 'custom_domains'],
   ...overrides,
 });

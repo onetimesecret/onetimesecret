@@ -2,9 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Tests for CustomDomain.display_domains FQDN-to-domain_id resolution.
+# Tests for CustomDomain.display_domain_index FQDN-to-domain_id resolution.
 #
-# The display_domains class_hashkey maps an FQDN (e.g. "secrets.example.com")
+# The display_domain_index class_hashkey maps an FQDN (e.g. "secrets.example.com")
 # to a CustomDomain identifier. This lookup is used by:
 #   - CustomDomain.resolve_domain_id (class method)
 #   - CreateIncomingSecret#resolve_share_domain_id (v3 incoming)
@@ -15,14 +15,14 @@
 #   - Unknown FQDN returns nil
 #   - nil input returns nil (no crash)
 #   - Empty string input returns nil
-#   - Case-insensitive lookup (display_domains stores normalized lowercase)
+#   - Case-insensitive lookup (display_domain_index stores normalized lowercase)
 
 require_relative '../../support/test_models'
 
 OT.boot! :test
 
 Familia.dbclient.flushdb
-OT.info "Cleaned Redis for display_domains resolution test run"
+OT.info "Cleaned Redis for display_domain_index resolution test run"
 
 @ts = Familia.now.to_i
 @entropy = SecureRandom.hex(4)
@@ -31,22 +31,22 @@ OT.info "Cleaned Redis for display_domains resolution test run"
 @org = Onetime::Organization.create!("Resolve Test Org #{@ts}", @owner, "resolve_#{@ts}@test.com")
 @domain = Onetime::CustomDomain.create!(@fqdn, @org.objid)
 
-# --- display_domains.get with known FQDN ---
+# --- display_domain_index.get with known FQDN ---
 
-## display_domains.get returns the domain identifier for a registered FQDN
-Onetime::CustomDomain.display_domains.get(@fqdn)
+## display_domain_index.get returns the domain identifier for a registered FQDN
+Onetime::CustomDomain.display_domain_index.get(@fqdn)
 #=> @domain.identifier
 
-## display_domains.get returns nil for an unregistered FQDN
-Onetime::CustomDomain.display_domains.get('unknown.example.com')
+## display_domain_index.get returns nil for an unregistered FQDN
+Onetime::CustomDomain.display_domain_index.get('unknown.example.com')
 #=> nil
 
-## display_domains.get returns nil when given nil
-Onetime::CustomDomain.display_domains.get(nil)
+## display_domain_index.get returns nil when given nil
+Onetime::CustomDomain.display_domain_index.get(nil)
 #=> nil
 
-## display_domains.get returns nil when given empty string
-Onetime::CustomDomain.display_domains.get('')
+## display_domain_index.get returns nil when given empty string
+Onetime::CustomDomain.display_domain_index.get('')
 #=> nil
 
 # --- CustomDomain.resolve_domain_id class method ---

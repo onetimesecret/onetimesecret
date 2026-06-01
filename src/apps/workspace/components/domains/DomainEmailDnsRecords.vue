@@ -97,7 +97,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
           v-if="isValidating"
           collection="heroicons"
           name="arrow-path"
-          class="size-4 animate-spin"
+          class="size-4 animate-spin motion-reduce:animate-none"
           aria-hidden="true" />
         <OIcon
           v-else

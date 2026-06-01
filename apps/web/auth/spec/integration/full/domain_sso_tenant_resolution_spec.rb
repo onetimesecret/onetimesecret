@@ -24,26 +24,30 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
-require_relative '../support/tenant_test_fixtures'
-require_relative '../support/domain_sso_test_fixtures'
-require_relative '../support/mock_omniauth_strategy'
-require_relative '../support/oauth_flow_helper'
+require_relative '../../spec_helper'
+require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/domain_sso_test_fixtures'
+require_relative '../../support/mock_omniauth_strategy'
+require_relative '../../support/oauth_flow_helper'
 require 'json'
 
-# Define module structure for hooks (normally provided by auth app boot)
-module Auth
-  module Config
-    module Hooks
-    end
-  end
-end unless defined?(Auth::Config::Hooks)
+# Define the Auth::Config namespace (normally provided by auth app boot).
+# Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
+# `module Config` or `class Config`: this spec shares its RSpec process with
+# integration specs that boot the real app, which reopens
+# `class Config < Rodauth::Auth`. A plain module/class fixes the constant to the
+# wrong type, so the reopen raises a TypeError ("Config is not a class") and boot
+# is marked permanently not-ready for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Require Auth::Logging (used by the hook)
-require_relative '../../lib/logging'
+require_relative '../../../lib/logging'
 
 # Require the tenant resolution hook
-require_relative '../../config/hooks/omniauth_tenant'
+require_relative '../../../config/hooks/omniauth_tenant'
 
 RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
   include TenantTestFixtures
@@ -224,7 +228,6 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       it 'handles missing organization gracefully' do
         # Domain exists but org was deleted
         # Stub custom_domain to return nil (simulates orphaned domain)
-        # since CustomDomain.load now requires (display_domain, org_id)
         config = build_domain_sso_config(:oidc)
         config.define_singleton_method(:custom_domain) { nil }
         expect(config.organization).to be_nil

@@ -12,8 +12,8 @@
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/basic_auth_logic_base_spec.rb
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
+require_relative '../../../spec_helper'
+require_relative '../../../support/strategy_test_context'
 
 RSpec.describe Onetime::Logic::Base, 'with BasicAuth session contract', type: :integration do
   include_context 'strategy test'

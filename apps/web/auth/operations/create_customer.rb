@@ -46,14 +46,21 @@ module Auth
       # Finds existing customer or creates a new one
       # @return [Onetime::Customer]
       def find_or_create_customer
-        if Onetime::Customer.exists?(@account[:email])
-          customer = Onetime::Customer.find_by_email(@account[:email])
+        # Normalize once so the lookup matches create!'s normalized email index
+        # (Customer.create! normalizes before keying email_index). Without this a
+        # mixed-case email misses the find branch and re-enters create!, raising
+        # RecordExistsError. exists?(identifier) checks objid, never the email
+        # index, so we must use email_exists?/find_by_email here.
+        email = OT::Utils.normalize_email(@account[:email])
+
+        if Onetime::Customer.email_exists?(email)
+          customer = Onetime::Customer.find_by_email(email)
           auth_logger.info "[create-customer] Found existing customer: #{customer.custid}"
         else
           # New accounts default to 'customer' role. Colonel promotion
           # is handled exclusively via CLI: bin/ots customers role promote user@example.com
           customer = Onetime::Customer.create!(
-            email: @account[:email],
+            email: email,
             role: 'customer',
             verified: false, # needs to be updated in after_verify_account
             provisioning_origin: @provisioning_origin,

@@ -66,7 +66,7 @@ export const subscriptionContractSchema = z.object({
   status: subscriptionStatusSchema,
   teams_limit: z.number(),
   teams_used: z.number(),
-  members_per_team_limit: z.number(),
+  total_members_per_org_limit: z.number(),
   billing_interval: billingIntervalSchema,
   current_period_start: z.number(),
   current_period_end: z.number(),

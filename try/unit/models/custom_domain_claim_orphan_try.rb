@@ -75,11 +75,11 @@ Onetime::CustomDomain.owners.get(@claimed.to_s)
 #=> [true, true, true]
 
 # TC-DIV-005: Display domain dual-index consistency after orphan claim.
-# After claim_orphaned_domain, both display_domains (manual) and
+# After claim_orphaned_domain, both display_domain_index (manual) and
 # display_domain_index (auto) should still map correctly to this domain.
 
-## TC-DIV-005: display_domains (manual) maps to claimed domain after orphan claim
-Onetime::CustomDomain.display_domains.get(@domain_name) == @claimed.identifier
+## TC-DIV-005: display_domain_index (manual) maps to claimed domain after orphan claim
+Onetime::CustomDomain.display_domain_index.get(@domain_name) == @claimed.identifier
 #=> true
 
 ## TC-DIV-005: display_domain_index (auto) maps to claimed domain after orphan claim

@@ -297,7 +297,7 @@
                       v-if="isSaving"
                       collection="mdi"
                       name="loading"
-                      class="-ml-0.5 mr-2 size-4 animate-spin" />
+                      class="-ml-0.5 mr-2 size-4 animate-spin motion-reduce:animate-none" />
                     <OIcon
                       v-else
                       collection="mdi"

@@ -311,9 +311,9 @@ describe('DomainSso', () => {
       mockDomainLoading.value = true;
       wrapper = await mountComponent();
 
-      // Should show loading indicator
-      const loadingIcon = wrapper.find('[data-icon-name="arrow-path"]');
-      expect(loadingIcon.exists()).toBe(true);
+      // Should show loading skeleton (SettingsSkeleton) with its busy status region
+      const skeleton = wrapper.find('[role="status"]');
+      expect(skeleton.exists()).toBe(true);
       expect(wrapper.text()).toContain('Loading...');
     });
 
@@ -519,12 +519,13 @@ describe('DomainSso', () => {
       expect(srOnly.text()).toBe('Back');
     });
 
-    it('loading spinner has aria-hidden attribute', async () => {
+    it('loading skeleton exposes a busy status region', async () => {
       mockDomainLoading.value = true;
       wrapper = await mountComponent();
 
-      const spinnerIcon = wrapper.find('[data-icon-name="arrow-path"]');
-      expect(spinnerIcon.exists()).toBe(true);
+      const skeleton = wrapper.find('[role="status"]');
+      expect(skeleton.exists()).toBe(true);
+      expect(skeleton.attributes('aria-busy')).toBe('true');
     });
   });
 });

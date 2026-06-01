@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { RouterLink, useRoute } from 'vue-router';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import PlanCardSkeleton from '@/shared/components/billing/PlanCardSkeleton.vue';
   import PlanCard from '@/shared/components/billing/PlanCard.vue';
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import { classifyError } from '@/schemas/errors';
@@ -227,20 +227,9 @@
         :error="error" />
 
       <!-- Loading State -->
-      <div
+      <PlanCardSkeleton
         v-if="isLoadingPlans"
-        class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+        class="py-12" />
 
       <!-- Free Tier Section (standalone banner mode) -->
       <div
@@ -281,7 +270,7 @@
           :is-recommended="isPlanRecommended(plan)"
           :is-highlighted="isPlanHighlighted(plan)"
           :button-label="getCtaLabel(plan)"
-          class="w-full max-w-sm sm:w-80">
+          class="w-full max-w-sm">
           <template #action="{ plan: currentPlan }">
             <RouterLink
               v-if="signupEnabled"

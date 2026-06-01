@@ -59,7 +59,7 @@ Billing::Plan.clear_cache
 @identity_plan.entitlements.add('incoming_secrets')
 @identity_plan.entitlements.add('custom_mail_sender')
 @identity_plan.limits['teams.max']            = '1'
-@identity_plan.limits['members_per_team.max'] = 'unlimited'
+@identity_plan.limits['total_members_per_org.max'] = 'unlimited'
 @identity_plan.limits['custom_domains.max']   = 'unlimited'
 @identity_plan.limits['secret_lifetime.max']  = '2592000'
 @identity_plan.show_on_plans_page = true
@@ -76,7 +76,7 @@ Billing::Plan.clear_cache
 @multi_plan.entitlements.add('api_access')
 @multi_plan.entitlements.add('custom_privacy_defaults')
 @multi_plan.entitlements.add('extended_default_expiration')
-@multi_plan.entitlements.add('manage_orgs')
+@multi_plan.entitlements.add('manage_org')
 @multi_plan.entitlements.add('manage_teams')
 @multi_plan.entitlements.add('manage_members')
 @multi_plan.entitlements.add('custom_domains')
@@ -86,7 +86,7 @@ Billing::Plan.clear_cache
 @multi_plan.entitlements.add('custom_mail_sender')
 @multi_plan.entitlements.add('audit_logs')
 @multi_plan.limits['teams.max']            = 'unlimited'
-@multi_plan.limits['members_per_team.max'] = 'unlimited'
+@multi_plan.limits['total_members_per_org.max'] = 'unlimited'
 @multi_plan.limits['custom_domains.max']   = 'unlimited'
 @multi_plan.limits['api_rate_limit.max']   = '10000'
 @multi_plan.limits['secret_lifetime.max']  = '7776000'
@@ -106,7 +106,7 @@ Billing::Plan.clear_cache
 @legacy_plan.entitlements.add('manage_teams')
 @legacy_plan.entitlements.add('incoming_secrets')
 @legacy_plan.limits['teams.max']            = '1'
-@legacy_plan.limits['members_per_team.max'] = '10'
+@legacy_plan.limits['total_members_per_org.max'] = '10'
 @legacy_plan.limits['secret_lifetime.max']  = '1209600'
 @legacy_plan.show_on_plans_page = false
 @legacy_plan.save
@@ -192,8 +192,8 @@ Billing::Plan.clear_cache
 @identity_org.can?('audit_logs')
 #=> false
 
-## Test: Multi-Team can manage orgs
-@multi_org.can?('manage_orgs')
+## Test: Multi-Team can manage an organization
+@multi_org.can?('manage_org')
 #=> true
 
 ## Test: Multi-Team has custom branding
@@ -228,8 +228,8 @@ Billing::Plan.clear_cache
 @identity_org.limit_for('teams')
 #=> 1
 
-## Test: Identity Plus members_per_team is unlimited
-@identity_org.limit_for('members_per_team')
+## Test: Identity Plus total_members_per_org is unlimited
+@identity_org.limit_for('total_members_per_org')
 #=> Float::INFINITY
 
 ## Test: Multi-Team teams is unlimited
@@ -237,7 +237,7 @@ Billing::Plan.clear_cache
 #=> Float::INFINITY
 
 ## Test: Legacy plan has old member limit
-@legacy_org.limit_for('members_per_team')
+@legacy_org.limit_for('total_members_per_org')
 #=> 10
 
 ## Test: Unknown resource defaults to 0 (fail-closed for security)

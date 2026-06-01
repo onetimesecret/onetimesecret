@@ -26,6 +26,8 @@ module DomainsAPI::Logic
     # the session is updated.
     #
     class AddDomain < DomainsAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       SCHEMAS = { response: 'customDomain' }.freeze
 
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain, :target_organization
@@ -35,11 +37,11 @@ module DomainsAPI::Logic
         @domain_input = sanitize_plain_text(params['domain'])
         @org_id_param = sanitize_identifier(params['org_id'])
 
-        OT.ld "[AddDomain] Parsing #{domain_input}"
+        logger.debug '[AddDomain] Parsing domain', domain_input: domain_input
       end
 
       def raise_concerns
-        OT.ld "[AddDomain] Raising any concerns about #{@domain_input}"
+        logger.debug '[AddDomain] Raising any concerns about domain', domain_input: @domain_input
         # TODO: Consider returning all applicable errors (plural) at once
         raise_form_error 'Please enter a domain' if @domain_input.empty?
         raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
@@ -66,7 +68,7 @@ module DomainsAPI::Logic
         @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, target_organization.objid)
         @display_domain = @parsed_domain.display_domain
 
-        OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}"
+        logger.debug '[AddDomain] Domain parsed', display_domain: @display_domain, identifier: @parsed_domain.identifier
 
         # Check for existing domain to provide specific error messages
         existing = Onetime::CustomDomain.load_by_display_domain(@display_domain)
@@ -75,13 +77,13 @@ module DomainsAPI::Logic
 
         # Scenario 1: Domain already in customer's organization (same org_id)
         if existing.org_id.to_s == target_organization.objid.to_s
-          OT.ld "[AddDomain] Domain already in organization: #{@display_domain}"
+          logger.debug '[AddDomain] Domain already in organization', display_domain: @display_domain
           raise_form_error 'Domain already registered in your organization'
         end
 
         # Scenario 2: Domain in another organization (different org_id)
         unless existing.org_id.to_s.empty?
-          OT.le "[AddDomain] Domain belongs to another organization: #{@display_domain}"
+          logger.error '[AddDomain] Domain belongs to another organization', display_domain: @display_domain
           raise_form_error 'Domain is registered to another organization'
         end
 
@@ -92,7 +94,7 @@ module DomainsAPI::Logic
 
       def process
         @greenlighted  = true
-        OT.ld "[AddDomain] Processing #{@display_domain} for org #{target_organization.objid}"
+        logger.debug '[AddDomain] Processing domain', display_domain: @display_domain, org_id: target_organization.objid
 
         @custom_domain = Onetime::CustomDomain.create!(@display_domain, target_organization.objid)
 
@@ -105,10 +107,10 @@ module DomainsAPI::Logic
           # This delegates to the appropriate backend (Approximated, Caddy, passthrough, etc.)
           request_certificate
         rescue HTTParty::ResponseError => ex
-          OT.le format('[AddDomain.request_certificate error] %s %s %s', @cust.extid, @display_domain, ex)
+          logger.error '[AddDomain.request_certificate error]', extid: @cust.extid, display_domain: @display_domain, exception: ex
           # Continue processing despite certificate request error
         rescue StandardError => ex
-          OT.le "[AddDomain] Unexpected error: #{ex.message}"
+          logger.error '[AddDomain] Unexpected error', exception: ex
           # Continue processing despite error
         end
 

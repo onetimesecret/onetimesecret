@@ -15,15 +15,15 @@ module OrganizationAPI::Logic
     #
     class CreateInvitation < OrganizationAPI::Logic::Base
       # Maps an invitee's role to the role-specific plan limit resource.
-      # The aggregate `members_per_team` cap is enforced separately.
+      # The aggregate `total_members_per_org` cap is enforced separately.
       ROLE_LIMIT_RESOURCES = {
         # Unreachable through this flow today: role validation in raise_concerns
         # rejects `role == 'owner'` because the UI doesn't wire owner invites
         # yet. Kept here so the per-role check works the moment owner invites
         # are enabled — no enforcement gap when the gate is lifted.
-        'owner'  => 'owners_per_team',
-        'admin'  => 'admins_per_team',
-        'member' => 'regular_members_per_team',
+        'owner' => 'role_owners_per_org',
+        'admin' => 'role_admins_per_org',
+        'member' => 'role_members_per_org',
       }.freeze
 
       attr_reader :organization, :email, :role, :membership
@@ -129,8 +129,8 @@ module OrganizationAPI::Logic
       #
       # Two checks run in order; whichever fails first raises:
       # 1. Per-role bucket: count of the invited role's active + pending vs.
-      #    the role-specific limit (e.g. `admins_per_team`).
-      # 2. Aggregate cap: total active + pending vs. `members_per_team`.
+      #    the role-specific limit (e.g. `role_admins_per_org`).
+      # 2. Aggregate cap: total active + pending vs. `total_members_per_org`.
       def check_member_quota!
         # Quota enforcement: fail-open when no billing, fail-closed when enabled.
         # See WithEntitlements module for design rationale.
@@ -149,7 +149,7 @@ module OrganizationAPI::Logic
 
         # Aggregate cap check
         total_count = @organization.member_count + @organization.pending_invitation_count
-        raise_member_limit_error! if @organization.at_limit?('members_per_team', total_count)
+        raise_member_limit_error! if @organization.at_limit?('total_members_per_org', total_count)
       end
 
       def raise_member_limit_error!

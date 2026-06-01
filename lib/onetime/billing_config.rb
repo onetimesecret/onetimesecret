@@ -27,8 +27,12 @@ module Onetime
     end
 
     # Whether billing is enabled
-    # Returns false if file doesn't exist or enabled is not true
+    # Returns false if file doesn't exist or enabled is not true.
+    # ENV['BILLING_ENABLED'] overrides config when set ('true'/'false').
     def enabled?
+      env_val = ENV.fetch('BILLING_ENABLED', nil)
+      return env_val == 'true' unless env_val.nil?
+
       config['enabled'].to_s == 'true'
     end
 

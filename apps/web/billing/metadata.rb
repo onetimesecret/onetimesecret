@@ -38,16 +38,16 @@ module Billing
     # Limit fields (prefixed with 'limit_')
     # Maps metadata field name to YAML catalog key
     #
-    # `members_per_team` is the aggregate cap across all roles. The role-specific
-    # keys (`owners_per_team`, `admins_per_team`, `regular_members_per_team`)
+    # `total_members_per_org` is the aggregate cap across all roles. The role-specific
+    # keys (`role_owners_per_org`, `role_admins_per_org`, `role_members_per_org`)
     # apply sub-caps per role and are enforced alongside the aggregate cap on
     # invitation. See OrganizationAPI::Logic::Invitations::CreateInvitation.
     LIMIT_FIELDS = {
       'limit_teams' => 'teams',
-      'limit_members_per_team' => 'members_per_team',
-      'limit_owners_per_team' => 'owners_per_team',
-      'limit_admins_per_team' => 'admins_per_team',
-      'limit_regular_members_per_team' => 'regular_members_per_team',
+      'limit_total_members_per_org' => 'total_members_per_org',
+      'limit_role_owners_per_org' => 'role_owners_per_org',
+      'limit_role_admins_per_org' => 'role_admins_per_org',
+      'limit_role_members_per_org' => 'role_members_per_org',
       'limit_custom_domains' => 'custom_domains',
       'limit_secret_lifetime' => 'secret_lifetime',
       'limit_secrets_per_day' => 'secrets_per_day',
@@ -62,14 +62,14 @@ module Billing
     end
 
     # Legacy constants for backward compatibility
-    FIELD_LIMIT_TEAMS                    = 'limit_teams'
-    FIELD_LIMIT_MEMBERS_PER_TEAM         = 'limit_members_per_team'
-    FIELD_LIMIT_OWNERS_PER_TEAM          = 'limit_owners_per_team'
-    FIELD_LIMIT_ADMINS_PER_TEAM          = 'limit_admins_per_team'
-    FIELD_LIMIT_REGULAR_MEMBERS_PER_TEAM = 'limit_regular_members_per_team'
-    FIELD_LIMIT_CUSTOM_DOMAINS           = 'limit_custom_domains'
-    FIELD_LIMIT_SECRET_LIFETIME          = 'limit_secret_lifetime'
-    FIELD_LIMIT_SECRETS_PER_DAY          = 'limit_secrets_per_day'
+    FIELD_LIMIT_TEAMS                 = 'limit_teams'
+    FIELD_LIMIT_TOTAL_MEMBERS_PER_ORG = 'limit_total_members_per_org'
+    FIELD_LIMIT_ROLE_OWNERS_PER_ORG   = 'limit_role_owners_per_org'
+    FIELD_LIMIT_ROLE_ADMINS_PER_ORG   = 'limit_role_admins_per_org'
+    FIELD_LIMIT_ROLE_MEMBERS_PER_ORG  = 'limit_role_members_per_org'
+    FIELD_LIMIT_CUSTOM_DOMAINS        = 'limit_custom_domains'
+    FIELD_LIMIT_SECRET_LIFETIME       = 'limit_secret_lifetime'
+    FIELD_LIMIT_SECRETS_PER_DAY       = 'limit_secrets_per_day'
 
     # Non-limit metadata fields that should be synced to Stripe.
     # Maps metadata field name to yaml_key.

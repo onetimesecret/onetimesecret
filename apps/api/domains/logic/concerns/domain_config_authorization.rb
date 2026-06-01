@@ -135,7 +135,7 @@ module DomainsAPI
           @custom_domain = load_custom_domain(domain_id)
           @organization  = load_organization_for_domain(@custom_domain)
 
-          require_entitlement_in!(@organization, 'manage_orgs')
+          require_entitlement_in!(@organization, 'manage_org')
           verify_config_entitlement(@organization)
 
           OT.ld format('[%s] Authorization granted: domain=%s org=%s actor=%s', config_log_tag, @custom_domain.display_domain, @organization.extid, cust&.custid)

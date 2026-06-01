@@ -57,7 +57,8 @@ export const CATALOG_SCHEMA_VERSION = '1.0';
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/3135 Section 9
  */
-export const CANONICAL_PLAN_ID_PATTERN = /^(free|identity_plus|team_plus|legacy_plan)_v\d+$|^identity$/;
+export const CANONICAL_PLAN_ID_PATTERN =
+  /^(free|identity_plus|team_plus|legacy_plan)_v\d+$|^identity$/;
 
 /**
  * Canonical Plan ID Schema
@@ -163,7 +164,7 @@ export type LimitValue = z.infer<typeof LimitValueSchema>;
  */
 export const PlanLimitsSchema = z.looseObject({
   organizations: LimitValueSchema.describe('Maximum number of organizations'),
-  members_per_team: LimitValueSchema.describe('Maximum members per team'),
+  total_members_per_org: LimitValueSchema.describe('Maximum members per org'),
   custom_domains: LimitValueSchema.describe('Maximum custom domains'),
   secret_lifetime: LimitValueSchema.describe('Maximum secret lifetime in seconds'),
   secrets_per_day: LimitValueSchema.optional().describe('Daily secret creation limit'),
@@ -229,10 +230,7 @@ export const PlanDefinitionSchema = z.looseObject({
     .describe('ISO date until which plan is grandfathered (YYYY-MM-DD)'),
 
   entitlements: z.array(z.string()).describe('Array of entitlement IDs'),
-  features: z
-    .array(z.string())
-    .optional()
-    .describe('Array of i18n feature keys for UI display'),
+  features: z.array(z.string()).optional().describe('Array of i18n feature keys for UI display'),
   limits: PlanLimitsSchema,
   prices: z.array(PlanPriceSchema).describe('Available pricing options'),
 });
@@ -280,20 +278,14 @@ export const BillingConfigSchema = z.looseObject({
     .string()
     .regex(/^\d+\.\d+$/)
     .describe('Schema version identifier'),
-  app_identifier: z
-    .string()
-    .describe('Application identifier for Stripe metadata matching'),
+  app_identifier: z.string().describe('Application identifier for Stripe metadata matching'),
 
   match_fields: z
     .array(z.string())
     .optional()
     .describe('Fields used to build composite match key for Stripe product identification'),
   // Region resolves from an ERB-templated env var and may be empty (null).
-  region: z
-    .string()
-    .nullable()
-    .optional()
-    .describe('Region filter for this catalog instance'),
+  region: z.string().nullable().optional().describe('Region filter for this catalog instance'),
   currency: CurrencyCodeSchema.optional().describe(
     "Default currency for all products and prices. Defaults to 'cad' when not set."
   ),

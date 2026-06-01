@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Repair display_domain_index and display_domains mismatches
+# Repair display_domain_index and display_domain_index mismatches
 #
 # The v0.24.5 migration used non-deterministic UUIDv7 generation (random bytes).
 # If the enrichment step was run multiple times, or if transform.rb and
@@ -11,7 +11,7 @@
 # This script:
 # 1. Iterates all domains in custom_domain:instances
 # 2. Reads each domain's objid from its :object hash
-# 3. Checks both display_domain_index and display_domains for mismatches
+# 3. Checks both display_domain_index and display_domain_index for mismatches
 # 4. Updates the indexes to contain the correct objid from the record
 #
 # The record's objid is considered the source of truth because that's what
@@ -45,7 +45,7 @@ ARGV.each do |arg|
     puts <<~HELP
       Usage: ruby scripts/upgrades/v0.24.5/repair_display_domain_indexes.rb [OPTIONS]
 
-      Repairs display_domain_index and display_domains mismatches caused by
+      Repairs display_domain_index and display_domain_index mismatches caused by
       non-deterministic UUIDv7 generation during v0.24.5 migration.
 
       Options:
@@ -55,7 +55,7 @@ ARGV.each do |arg|
 
       Affected indexes:
         custom_domain:display_domain_index  (unique_index - Familia auto-uses this)
-        custom_domain:display_domains       (class_hashkey - manual lookups)
+        custom_domain:display_domain_index       (class_hashkey - manual lookups)
 
       Both indexes map display_domain (FQDN) -> objid (JSON-encoded).
     HELP
@@ -118,16 +118,16 @@ end
 
 INSTANCES_KEY = 'custom_domain:instances'
 DISPLAY_DOMAIN_INDEX_KEY = 'custom_domain:display_domain_index'
-DISPLAY_DOMAINS_KEY = 'custom_domain:display_domains'
+DISPLAY_DOMAINS_KEY = 'custom_domain:display_domain_index'
 
 stats = {
   total_domains: 0,
   checked: 0,
   no_display_domain: 0,
   display_domain_index_mismatches: 0,
-  display_domains_mismatches: 0,
+  display_domain_index_mismatches: 0,
   fixed_display_domain_index: 0,
-  fixed_display_domains: 0,
+  fixed_display_domain_index: 0,
   errors: []
 }
 
@@ -180,7 +180,7 @@ instance_ids.each do |instance_id|
   key_1_used, indexed_value_1 = hget_flexible(redis, DISPLAY_DOMAIN_INDEX_KEY, display_domain)
   index_1_mismatch = indexed_value_1 && !values_match?(indexed_value_1, record_objid)
 
-  # Check display_domains - try multiple key variants
+  # Check display_domain_index - try multiple key variants
   key_2_used, indexed_value_2 = hget_flexible(redis, DISPLAY_DOMAINS_KEY, display_domain)
   index_2_mismatch = indexed_value_2 && !values_match?(indexed_value_2, record_objid)
 
@@ -188,7 +188,7 @@ instance_ids.each do |instance_id|
     puts "Checking: #{redact_fqdn(display_domain)}"
     puts "  record objid:           #{record_objid}"
     puts "  display_domain_index:   #{indexed_value_1 || '(missing)'} (key: #{key_1_used || 'n/a'})"
-    puts "  display_domains:        #{indexed_value_2 || '(missing)'} (key: #{key_2_used || 'n/a'})"
+    puts "  display_domain_index:        #{indexed_value_2 || '(missing)'} (key: #{key_2_used || 'n/a'})"
   end
 
   if index_1_mismatch
@@ -205,15 +205,15 @@ instance_ids.each do |instance_id|
   end
 
   if index_2_mismatch
-    stats[:display_domains_mismatches] += 1
-    puts "  MISMATCH in display_domains: has #{indexed_value_2}, should be #{correct_value_json}"
+    stats[:display_domain_index_mismatches] += 1
+    puts "  MISMATCH in display_domain_index: has #{indexed_value_2}, should be #{correct_value_json}"
 
     unless dry_run
       # Update using the key that was found (preserves existing case convention)
       fix_key = key_2_used || display_domain
       redis.hset(DISPLAY_DOMAINS_KEY, fix_key, correct_value_json)
-      stats[:fixed_display_domains] += 1
-      puts "  FIXED display_domains (key: #{fix_key})"
+      stats[:fixed_display_domain_index] += 1
+      puts "  FIXED display_domain_index (key: #{fix_key})"
     end
   end
 
@@ -229,11 +229,11 @@ printf "Missing display_domain field:          %d\n", stats[:no_display_domain]
 printf "Errors (no object hash):               %d\n", stats[:errors].size
 puts ""
 printf "display_domain_index mismatches:       %d\n", stats[:display_domain_index_mismatches]
-printf "display_domains mismatches:            %d\n", stats[:display_domains_mismatches]
+printf "display_domain_index mismatches:            %d\n", stats[:display_domain_index_mismatches]
 puts ""
 
 if dry_run
-  total_mismatches = stats[:display_domain_index_mismatches] + stats[:display_domains_mismatches]
+  total_mismatches = stats[:display_domain_index_mismatches] + stats[:display_domain_index_mismatches]
   if total_mismatches > 0
     puts "DRY RUN: #{total_mismatches} mismatch(es) would be fixed."
     puts "Run with --execute to apply fixes."
@@ -242,9 +242,9 @@ if dry_run
   end
 else
   printf "Fixed display_domain_index:            %d\n", stats[:fixed_display_domain_index]
-  printf "Fixed display_domains:                 %d\n", stats[:fixed_display_domains]
+  printf "Fixed display_domain_index:                 %d\n", stats[:fixed_display_domain_index]
 
-  if stats[:fixed_display_domain_index] > 0 || stats[:fixed_display_domains] > 0
+  if stats[:fixed_display_domain_index] > 0 || stats[:fixed_display_domain_index] > 0
     puts ""
     puts "Repairs complete. Affected domains should now save without errors."
   end
@@ -260,4 +260,4 @@ end
 
 redis.close
 
-exit(stats[:display_domain_index_mismatches] + stats[:display_domains_mismatches] > 0 ? 1 : 0) if dry_run
+exit(stats[:display_domain_index_mismatches] + stats[:display_domain_index_mismatches] > 0 ? 1 : 0) if dry_run

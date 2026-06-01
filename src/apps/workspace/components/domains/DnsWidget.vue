@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import { useDnsWidget, type DnsRecord } from '@/shared/composables/useDnsWidget';
   import { computed, onMounted, watch } from 'vue';
 
@@ -137,11 +138,15 @@
     <!-- Loading state -->
     <div
       v-if="isLoading"
-      class="flex items-center justify-center py-8">
-      <div class="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" ></div>
-      <span class="ml-3 text-gray-600 dark:text-gray-400">
-        {{ t('web.COMMON.loading') }}
-      </span>
+      role="status"
+      aria-busy="true"
+      class="animate-pulse space-y-3 py-8 motion-reduce:animate-none">
+      <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
+      <Skeleton
+        :count="4"
+        height="h-12"
+        rounded="rounded-md"
+        :pulse="false" />
     </div>
 
     <!-- Error state -->

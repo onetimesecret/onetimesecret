@@ -18,14 +18,14 @@
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/integration/session_only_restricted_routes_spec.rb
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
+require_relative '../../../spec_helper'
+require_relative '../../../support/strategy_test_context'
 
 RSpec.describe 'Session-only restricted routes', type: :integration do
   include_context 'strategy test'
 
   let(:routes_file) do
-    File.expand_path('../../../../api/account/routes.txt', __dir__)
+    File.join(Onetime::HOME, 'apps/api/account/routes.txt')
   end
 
   # -------------------------------------------------------------------

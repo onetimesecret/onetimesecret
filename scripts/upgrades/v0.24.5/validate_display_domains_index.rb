@@ -1,16 +1,16 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# DOM-VAL-024: Every live domain has entry in display_domains index
+# DOM-VAL-024: Every live domain has entry in display_domain_index index
 #
 # Iterates custom_domain:instances sorted set, reads each domain's
 # display_domain field from its object hash, then verifies
-# HGET custom_domain:display_domains {display_domain} returns the
+# HGET custom_domain:display_domain_index {display_domain} returns the
 # correct domain identifier. Missing entries mean the domain can't
 # be found by name even though the object exists.
 #
 # Usage:
-#   ruby scripts/upgrades/v0.24.5/validate_display_domains_index.rb [--redis-url=URL]
+#   ruby scripts/upgrades/v0.24.5/validate_display_domain_index_index.rb [--redis-url=URL]
 
 require 'redis'
 require 'uri'
@@ -73,7 +73,7 @@ def hget_flexible(redis, hash_key, display_domain)
 end
 
 instances_key = 'custom_domain:instances'
-display_domains_key = 'custom_domain:display_domains'
+display_domain_index_key = 'custom_domain:display_domain_index'
 
 instance_ids = redis.zrange(instances_key, 0, -1)
 
@@ -94,9 +94,9 @@ instance_ids.each do |domainid|
     next
   end
 
-  # Check the display_domains index maps this name back to this domainid
+  # Check the display_domain_index index maps this name back to this domainid
   # Try multiple key variants (exact case, lowercase)
-  key_used, indexed_id = hget_flexible(redis, display_domains_key, display_domain)
+  key_used, indexed_id = hget_flexible(redis, display_domain_index_key, display_domain)
 
   if indexed_id.nil?
     missing_index << { domainid: domainid, display_domain: display_domain }
@@ -114,14 +114,14 @@ puts "=== DOM-VAL-024: Display Domains Index Completeness ==="
 puts ""
 printf "%-32s %d\n", "Domains in instances:", instance_ids.size
 printf "%-32s %d\n", "Missing display_domain field:", no_display_domain.size
-printf "%-32s %d\n", "Missing from display_domains:", missing_index.size
-printf "%-32s %d\n", "Mismatched in display_domains:", mismatched_index.size
+printf "%-32s %d\n", "Missing from display_domain_index:", missing_index.size
+printf "%-32s %d\n", "Mismatched in display_domain_index:", mismatched_index.size
 puts ""
 
 all_ok = no_display_domain.empty? && missing_index.empty? && mismatched_index.empty?
 
 if all_ok
-  puts "PASS: All live domains have correct entries in display_domains index."
+  puts "PASS: All live domains have correct entries in display_domain_index index."
 else
   puts "FAIL: Issues found."
 
@@ -133,7 +133,7 @@ else
 
   unless missing_index.empty?
     puts ""
-    puts "Domains missing from display_domains index (#{missing_index.size}):"
+    puts "Domains missing from display_domain_index index (#{missing_index.size}):"
     missing_index.each do |entry|
       printf "  %-40s display_domain=%s\n", entry[:domainid], redact_fqdn(entry[:display_domain])
     end
@@ -149,7 +149,7 @@ else
   end
 
   puts ""
-  puts "Action required: Repair display_domains index for affected entries."
+  puts "Action required: Repair display_domain_index index for affected entries."
 end
 
 redis.close

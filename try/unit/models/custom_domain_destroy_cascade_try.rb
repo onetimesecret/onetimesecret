@@ -186,7 +186,7 @@ Onetime::CustomDomain.find_by_identifier(@fail_domain_id)
 # mid-cascade failure would orphan siblings with no recovery path. Capture
 # the primary record's existence at sibling-cleanup time to prove the order.
 
-## Setup: ordering-path domain with HomepageConfig present (unique name avoids stale display_domains)
+## Setup: ordering-path domain with HomepageConfig present (unique name avoids stale display_domain_index)
 @order_owner = Onetime::Customer.create!(email: generate_unique_test_email("cascade_order"))
 @order_org = Onetime::Organization.create!("Cascade Order Org", @order_owner, generate_unique_test_email("cascade_order_contact"))
 @order_domain_name = "cascade-order-#{SecureRandom.hex(4)}.example.com"

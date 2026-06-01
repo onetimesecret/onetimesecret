@@ -114,8 +114,8 @@ Billing::Plan.instances.size
 @plan.limits_hash['custom_domains.max']
 #=> Float::INFINITY
 
-## Verify members_per_team limit
-@plan.limits_hash['members_per_team.max']
+## Verify total_members_per_org limit
+@plan.limits_hash['total_members_per_org.max']
 #=> 10
 
 ## Verify get_plan works with tier/interval/region

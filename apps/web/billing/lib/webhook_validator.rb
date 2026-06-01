@@ -154,7 +154,7 @@ module Billing
       event.livemode         = stripe_event.livemode.to_s
       event.created          = stripe_event.created.to_s
       event.request_id       = stripe_event.request&.id
-      event.data_object_id   = stripe_event.data.object.id
+      event.data_object_id   = stripe_event.data.object['id']
       event.pending_webhooks = stripe_event.pending_webhooks.to_s
       event.event_payload    = payload
       event.first_seen_at    = Time.now.to_i.to_s

@@ -221,8 +221,8 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
     # Reload auth config to pick up AUTHENTICATION_MODE env var
     Onetime.auth_config.reload!
 
-    # Boot application
-    Onetime.boot! :test
+    # Boot application (skip if already booted by FullModeSuiteDatabase.setup!)
+    Onetime.boot! :test unless Onetime.ready?
 
     # Prepare the application registry
     Onetime::Application::Registry.prepare_application_registry
@@ -499,16 +499,10 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
 
         # Verify session is working by making a follow-up request
         # Rack::Test automatically persists cookies across requests
-        get '/dashboard'
+        get '/auth/account'
 
-        # A working session should NOT return 401 Unauthorized
-        # It may return 302 (redirect to login if session not recognized) or 200/other
-        # The key is that the session was created successfully
-        expect(last_response.status).not_to eq(401)
-
-        # Alternatively, check if Set-Cookie was explicitly set
-        set_cookie = last_response.headers['Set-Cookie']
-        expect(set_cookie).to include('onetime.session') if set_cookie
+        # A working session should return 200 with account info
+        expect(last_response.status).to eq(200)
       end
 
       it 'session persists across requests' do
@@ -524,17 +518,16 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         header 'Accept', 'application/json'
 
         # First request after login
-        get '/dashboard'
+        get '/auth/account'
         first_status = last_response.status
 
         # Second request - session should still be valid
-        get '/dashboard'
+        get '/auth/account'
         second_status = last_response.status
 
-        # Both requests should behave consistently (not 401)
-        expect(first_status).not_to eq(401)
-        expect(second_status).to eq(first_status),
-          'Session should persist - both requests should return same status'
+        # Both requests should return 200
+        expect(first_status).to eq(200)
+        expect(second_status).to eq(200)
       end
 
       it 'logout destroys the session' do
@@ -548,8 +541,8 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         # Verify session works before logout
         header 'Content-Type', nil
         header 'Accept', 'application/json'
-        get '/dashboard'
-        expect(last_response.status).not_to eq(401)
+        get '/auth/account'
+        expect(last_response.status).to eq(200)
 
         # Logout using fresh token
         post_json_with_token '/auth/logout', {}
@@ -605,11 +598,10 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
 
         # Make another request to verify session state
         # Rack::Test automatically persists cookies across requests
-        get '/dashboard'
+        get '/auth/account'
 
-        # The session should be authenticated (regardless of whether dashboard exists)
-        # This is verified by not getting a 401
-        expect(last_response.status).not_to eq(401)
+        # The session should be authenticated
+        expect(last_response.status).to eq(200)
       end
     end
   end

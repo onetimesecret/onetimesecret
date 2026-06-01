@@ -84,7 +84,7 @@ module Incoming
 
         # Validate recipient hash exists and maps to valid email
         if @recipient_email.nil?
-          OT.lw "[IncomingSecret] Invalid recipient hash attempted: #{@recipient_hash}"
+          secret_logger.warn "[IncomingSecret] Invalid recipient hash attempted", recipient_hash: @recipient_hash
           raise_form_error 'Invalid recipient'
         end
 
@@ -93,7 +93,7 @@ module Incoming
         # (no DNS) since this runs on every incoming secret creation.
         # Flow: POST /api/incoming/secret -> resolve_recipient_and_config -> here
         unless Truemail.validate(recipient_email.to_s, with: :regex).result.valid?
-          OT.le "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
+          secret_logger.error "[IncomingSecret] Lookup returned invalid email for hash", recipient_hash: @recipient_hash
           raise_form_error 'Invalid recipient configuration'
         end
       end
@@ -234,7 +234,7 @@ module Incoming
 
         Onetime.secret_logger.info "[IncomingSecret] Notification enqueued for #{OT::Utils.obscure_email(recipient_email)} (receipt: #{receipt.shortid})"
       rescue StandardError => ex
-        Onetime.secret_logger.error "[IncomingSecret] Failed to enqueue notification: #{ex.message}"
+        secret_logger.error "[IncomingSecret] Failed to enqueue notification", exception: ex
         # Don't raise - email failure shouldn't prevent secret creation
       end
     end

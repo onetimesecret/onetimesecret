@@ -497,7 +497,7 @@ const handleSubmit = async () => {
               data-testid="invite-signin-magic-link-button">
               <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
                 <svg
-                  class="-ml-1 mr-3 size-5 animate-spin text-white"
+                  class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -778,7 +778,7 @@ const handleSubmit = async () => {
             data-testid="invite-signin-magic-link-button">
             <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
               <svg
-                class="-ml-1 mr-3 size-5 animate-spin text-white"
+                class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"

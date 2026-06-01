@@ -39,13 +39,17 @@ require_relative '../../support/mock_omniauth_strategy'
 require_relative '../../support/oauth_flow_helper'
 require 'json'
 
-# Define module structure for hooks (normally provided by auth app boot)
-module Auth
-  module Config
-    module Hooks
-    end
-  end
-end unless defined?(Auth::Config::Hooks)
+# Define the Auth::Config namespace so the hook file can load without a full
+# app boot. Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
+# `module Config`: this spec shares its RSpec process with integration specs
+# that boot the real app, and the application registry reopens
+# `class Config < Rodauth::Auth`. A module would fix the constant to the wrong
+# type, so the reopen raises "TypeError: Config is not a class" and boot is
+# marked permanently not-ready for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Require Auth::Logging (used by the hook)
 require_relative '../../../lib/logging'
@@ -133,12 +137,12 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
           org_id: test_organization.org_id
         )
         domain.save
-        Onetime::CustomDomain.display_domains.put(attacker_domain, domain.domainid)
+        Onetime::CustomDomain.display_domain_index.put(attacker_domain, domain.domainid)
         domain
       end
 
       after do
-        Onetime::CustomDomain.display_domains.remove(attacker_domain) rescue nil
+        Onetime::CustomDomain.display_domain_index.remove(attacker_domain) rescue nil
         attacker_custom_domain&.destroy! rescue nil
       end
 

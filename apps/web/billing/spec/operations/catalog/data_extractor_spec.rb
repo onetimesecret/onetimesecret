@@ -774,7 +774,7 @@ RSpec.describe Billing::Operations::Catalog::DataExtractor, :billing do
           'tier' => 'test',
           'region' => 'US',
           'limit_teams' => '5',
-          'limit_members_per_team' => '25',
+          'limit_total_members_per_org' => '25',
           'limit_secret_lifetime' => '604800',
           'limit_secrets_per_day' => '-1',
         })
@@ -784,7 +784,7 @@ RSpec.describe Billing::Operations::Catalog::DataExtractor, :billing do
         result = extract(:extract_limits, product)
         expect(result).to eq({
           teams: 5,
-          members_per_team: 25,
+          total_members_per_org: 25,
           secret_lifetime: 604_800,
           secrets_per_day: Float::INFINITY,
         })

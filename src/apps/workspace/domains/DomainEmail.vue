@@ -17,6 +17,7 @@ import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
 import DomainEmailDnsRecords from '@/apps/workspace/components/domains/DomainEmailDnsRecords.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useEmailConfig } from '@/shared/composables/useEmailConfig';
@@ -172,18 +173,7 @@ watch(hasEntitlement, async (entitled) => {
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State -->
-      <div v-if="domainLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <SettingsSkeleton v-if="domainLoading" />
 
       <!-- Error State -->
       <div v-else-if="domainError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
@@ -244,14 +234,9 @@ watch(hasEntitlement, async (entitled) => {
 
           <div class="p-6 space-y-8">
             <!-- Email config loading -->
-            <div v-if="emailLoading && !isInitialized" class="flex items-center justify-center py-12">
-              <OIcon
-                collection="heroicons"
-                name="arrow-path"
-                class="size-8 animate-spin text-gray-400"
-                aria-hidden="true" />
-              <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
-            </div>
+            <SettingsSkeleton
+              v-if="emailLoading && !isInitialized"
+              :heading="false" />
 
             <template v-else>
 

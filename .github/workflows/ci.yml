@@ -28,8 +28,18 @@ name: CI
 # - ACTIONS_STEP_DEBUG=true    Enable purple debug output for all steps
 # - ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
 # - Set in Settings → Secrets and variables → Actions → Variables
+#
+# Checkout Behavior by Event:
+# - pull_request: checks out refs/pull/<PR#>/merge, a synthetic merge commit
+#   of the PR branch into the base branch. Tests run against the merged result,
+#   so divergence from base can cause unexpected behavior if branches conflict.
+# - workflow_dispatch: checks out the branch/tag selected in the UI (github.ref).
+#   No merge commit — runs against the exact branch tip.
+# - push (not used here): checks out the pushed commit (github.sha), no merge.
 
 on:
+  # Runs on synthetic merge commit (PR branch merged into base). If your branch
+  # diverges from main, CI tests the merged result — not your branch in isolation.
   pull_request:
     branches:
       - main
@@ -37,6 +47,7 @@ on:
       - 'rel/*'
       - 'fix/*'
       - 'feature/*'
+  # Runs on exact branch tip selected in UI. No merge commit.
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -175,7 +186,10 @@ jobs:
       - uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
         with:
           ruby-version: '3.4.9'
-          bundler-cache: true
+          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
         run: |
@@ -570,6 +584,17 @@ jobs:
             BEGIN
               IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator') THEN
                 CREATE USER onetime_migrator WITH PASSWORD 'migratepass' CREATEDB;
+              END IF;
+            END
+            \$\$;
+          "
+
+          # Create restricted test user for dual-URL migration tests
+          psql -h localhost -U postgres -d onetime_auth_test -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator_test') THEN
+                CREATE USER onetime_migrator_test WITH PASSWORD 'testpass';
               END IF;
             END
             \$\$;

@@ -98,7 +98,7 @@ import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
  */
 export const organizationLimitsSchema = z.object({
   teams: z.number().optional(),
-  members_per_team: z.number().optional(),
+  total_members_per_org: z.number().optional(),
   custom_domains: z.number().optional(),
 });
 
@@ -136,7 +136,7 @@ export const KNOWN_ENTITLEMENTS = [
   'incoming_secrets',
   'ip_access_rules',
   'manage_members',
-  'manage_orgs',
+  'manage_org',
   'manage_sso',
   'manage_teams',
   'notifications',

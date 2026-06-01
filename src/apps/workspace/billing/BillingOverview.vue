@@ -4,6 +4,7 @@
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import FederationNotification from './FederationNotification.vue';
@@ -29,7 +30,9 @@ const paymentMethod = ref<PaymentMethod | null>(null);
 const nextBillingDate = ref<Date | null>(null);
 const planFeatures = ref<string[]>([]);
 const federationNotification = ref<FederationNotificationData | null>(null);
-const isLoading = ref(false);
+// Best practice: Initialize loading states to `true` to prevent uninitialized
+// content or empty states from briefly flashing on mount.
+const isLoading = ref(true);
 const error = ref('');
 const success = ref('');
 
@@ -234,18 +237,7 @@ onMounted(async () => {
       <BasicFormAlerts v-if="success" :success="success" />
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <SettingsSkeleton v-if="isLoading" />
 
       <!-- Empty State: No Organizations -->
       <div v-else-if="organizations.length === 0" class="rounded-lg border border-gray-200/60 bg-white/60 p-12 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
@@ -333,7 +325,7 @@ onMounted(async () => {
                 <div
                   v-for="i in 4"
                   :key="i"
-                  class="flex animate-pulse items-center gap-2">
+                  class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
                   <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
                   <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
                 </div>
@@ -431,8 +423,12 @@ onMounted(async () => {
                       v-else
                       collection="heroicons"
                       name="arrow-path"
-                      class="size-4 animate-spin"
+                      class="size-4 animate-spin motion-reduce:animate-none"
                       aria-hidden="true" />
+                    <span
+                      v-if="isSavingBillingEmail"
+                      class="sr-only"
+                      >{{ t('web.COMMON.loading') }}</span>
                   </button>
                   <button
                     type="button"

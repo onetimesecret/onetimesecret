@@ -116,7 +116,7 @@
   "web.login.errors.sso_not_configured": {
     "text": "Single sign-on is not configured for this domain. Please contact your administrator.",
     "context": "Shown on signin page when SSO is attempted on a domain that has no SSO configuration and platform fallback is disabled.",
-    "content_hash": "c4a82915"
+    "content_hash": "b39ef93e"
   },
   "web.login.errors.invalid_email": {
     "text": "The email address from your identity provider is invalid. Please contact your administrator.",
@@ -404,11 +404,11 @@
   },
   "web.help.use_magic_link_instead": {
     "text": "You can request a password reset link to create a new password.",
-    "content_hash": "8b3f7e12"
+    "content_hash": "3c3eabad"
   },
   "web.help.reset_password_link": {
     "text": "Reset password",
-    "content_hash": "7c8b3f21"
+    "content_hash": "e0edfeb3"
   },
   "web.help.account_locked": {
     "text": "Account temporarily locked?",

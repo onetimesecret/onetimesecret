@@ -393,7 +393,7 @@
   },
   "web.domains.remove_domain_description": {
     "text": "Permanently remove this domain and all its configuration.",
-    "content_hash": "d4e8f1a2"
+    "content_hash": "73946b9e"
   },
   "web.domains.domain_removed_successfully": {
     "text": "Domain removed successfully",
@@ -1053,35 +1053,35 @@
   },
   "web.domains.detail.manage": {
     "text": "Manage",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "5a234448"
   },
   "web.domains.detail.features": {
     "text": "Features",
-    "content_hash": "f1e2d3c4"
+    "content_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
     "text": "Homepage Secrets",
-    "content_hash": "h1o2m3e4"
+    "content_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
     "text": "Allow public access to create secrets on your domain homepage",
-    "content_hash": "h5o6m7e8"
+    "content_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
     "text": "Logo, colors, and custom branding",
-    "content_hash": "d4e5f6a7"
+    "content_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
     "text": "Single sign-on provider settings",
-    "content_hash": "e5f6a7b8"
+    "content_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
     "text": "Custom email sender configuration",
-    "content_hash": "f6a7b8c9"
+    "content_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
     "text": "Incoming secret recipient settings",
-    "content_hash": "a7b8c9d0"
+    "content_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
     "text": "Per-domain signup validation strategy",

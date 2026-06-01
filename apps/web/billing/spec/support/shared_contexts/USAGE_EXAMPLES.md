@@ -356,7 +356,7 @@ RSpec.describe 'Plan Lookup' do
     expect(plan[:entitlements]).to include('create_secrets', 'custom_domains')
 
     # Check limits
-    expect(plan[:limits]['members_per_team.max']).to eq('10')
+    expect(plan[:limits]['total_members_per_org.max']).to eq('10')
     expect(plan[:limits]['custom_domains.max']).to eq('unlimited')
   end
 

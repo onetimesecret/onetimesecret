@@ -44,7 +44,7 @@ def last_response; @test.last_response; end
 # Plan data used across all billing blocks.
 #
 # Per-role limits are set to 'unlimited' so the existing aggregate-cap
-# scenarios remain driven by `members_per_team.max`. A separate plan below
+# scenarios remain driven by `total_members_per_org.max`. A separate plan below
 # exercises the per-role bucket enforcement.
 @limited_plan = {
   plan_id: 'limited_members',
@@ -54,15 +54,15 @@ def last_response; @test.last_response; end
   region: 'us',
   entitlements: ['create_secrets', 'manage_members'],
   limits: {
-    'members_per_team.max' => '3',
-    'owners_per_team.max' => '1',
-    'admins_per_team.max' => 'unlimited',
-    'regular_members_per_team.max' => 'unlimited',
+    'total_members_per_org.max' => '3',
+    'role_owners_per_org.max' => '1',
+    'role_admins_per_org.max' => 'unlimited',
+    'role_members_per_org.max' => 'unlimited',
   }
 }
 
 # Plan with a strict regular-members cap and a generous aggregate cap.
-# Exercises the per-role bucket check independently of `members_per_team`.
+# Exercises the per-role bucket check independently of `total_members_per_org`.
 @role_capped_plan = {
   plan_id: 'role_capped_members',
   name: 'Role Capped Members Plan',
@@ -71,10 +71,10 @@ def last_response; @test.last_response; end
   region: 'us',
   entitlements: ['create_secrets', 'manage_members'],
   limits: {
-    'members_per_team.max' => 'unlimited',
-    'owners_per_team.max' => '1',
-    'admins_per_team.max' => 'unlimited',
-    'regular_members_per_team.max' => '1',
+    'total_members_per_org.max' => 'unlimited',
+    'role_owners_per_org.max' => '1',
+    'role_admins_per_org.max' => 'unlimited',
+    'role_members_per_org.max' => '1',
   }
 }
 
@@ -183,9 +183,9 @@ reloaded_org.pending_invitation_count
 @result3[:record_email]
 #=> "member4_#{@timestamp}@example.com"
 
-## Per-role cap: with regular_members_per_team=1 already met, a member invite is rejected
+## Per-role cap: with role_members_per_org=1 already met, a member invite is rejected
 # Org currently has 1 active regular member (@member1) and 1 pending member invite (@invite3)
-# under the role_capped_plan whose regular_members_per_team limit is 1.
+# under the role_capped_plan whose role_members_per_org limit is 1.
 @result4 = run_billing_test_invite(@org, @session, "member5_#{@timestamp}@example.com", @role_capped_plan)
 @result4[:status]
 #=> 422

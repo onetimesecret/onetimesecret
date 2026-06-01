@@ -197,7 +197,7 @@
   },
   "web.billing.overview.entitlements.flexible_from_domain": {
     "text": "Flexible Email Sender Domain",
-    "content_hash": "be10b493"
+    "content_hash": "607572c3"
   },
   "web.billing.overview.entitlements.custom_branding": {
     "text": "Custom Branding",
@@ -211,9 +211,9 @@
     "text": "Incoming Secrets",
     "content_hash": "883dbca9"
   },
-  "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Manage Organizations",
-    "content_hash": "be0fe4c3"
+  "web.billing.overview.entitlements.manage_org": {
+    "text": "Manage Organization",
+    "content_hash": "f03a4985"
   },
   "web.billing.overview.entitlements.manage_teams": {
     "text": "Manage Teams",
@@ -321,7 +321,7 @@
   },
   "web.billing.features.manage_sso": {
     "text": "SSO",
-    "content_hash": null
+    "content_hash": "5ba3ac9f"
   },
   "web.billing.plans.title": {
     "text": "Select a Plan",

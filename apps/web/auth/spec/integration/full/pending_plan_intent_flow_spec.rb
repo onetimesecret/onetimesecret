@@ -33,14 +33,18 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   include Rack::Test::Methods
 
   before(:all) do
-    require 'onetime' unless defined?(Onetime)
-    Onetime.boot! :test unless Onetime.ready?
-    require_relative '../../../operations/create_customer'
-    require_relative '../../../operations/create_default_workspace'
-
-    # Load the billing hooks module (for extract_pending_plan_intent)
-    module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
-    require_relative '../../../config/hooks/billing'
+    # Boot the full app and application registry via the shared helper so the
+    # REAL Auth::Config (a Rodauth::Auth subclass) loads — along with
+    # Auth::Config::Hooks::Billing and Auth::Operations (config.rb requires
+    # operations.rb, which requires create_customer/create_default_workspace).
+    #
+    # Do NOT fabricate `module Auth::Config::Hooks` here. Opening Config with the
+    # `module` keyword makes Auth::Config a plain Module and poisons the constant
+    # for every spec sharing this process: the registry's
+    # `class Config < Rodauth::Auth` then raises "TypeError: Config is not a
+    # class" and boot is marked permanently not-ready. That regression broke the
+    # issue #3221 invite-signup integration spec whenever the two ran together.
+    boot_onetime_app
 
     # Load billing dependencies for plan validation
     begin
@@ -98,6 +102,25 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     )
     created_account_ids << account_id
     { id: account_id, email: email, external_id: extid, extid: extid }
+  end
+
+  # Establish a session, fetch the CSRF token, then POST a JSON login to the
+  # rodauth endpoint (mounted at /auth). The full Rack app enforces CSRF, so a
+  # raw post without the shrimp token returns 403 Forbidden.
+  def csrf_login(email, password = TEST_PASSWORD)
+    # Clear headers that leaked from previous POST (Content-Type triggers body
+    # parsing in Rack::Parser; when applied to a GET with no body, rack.input
+    # is nil and .read fails)
+    header 'Content-Type', nil
+    header 'Content-Length', nil
+    header 'Accept', 'application/json'
+    get '/auth'
+    token = last_response.headers['X-CSRF-Token']
+
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    header 'X-CSRF-Token', token if token
+    post '/auth/login', JSON.generate(login: email, password: password, shrimp: token)
   end
 
   # ==========================================================================
@@ -391,14 +414,12 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   # ==========================================================================
 
   describe 'intent TTL behavior' do
-    it 'configures 24h TTL on pending_plan_intent field' do
-      # Verify the field is configured with expected TTL
-      # This is a documentation test - actual TTL is enforced by Redis
-      expect(Onetime::Customer).to respond_to(:string_fields)
-
-      # The field should be defined in the model
-      fields = Onetime::Customer.string_fields rescue {}
-      expect(fields).to be_a(Hash)
+    it 'defines the pending_plan_intent field on the model' do
+      # Documentation test: the actual 24h TTL is enforced by Redis. Here we only
+      # confirm the field is declared so the accessor exists. (Familia v2 has no
+      # `string_fields` introspection method; the field surfaces as an instance
+      # accessor.)
+      expect(Onetime::Customer.new).to respond_to(:pending_plan_intent)
     end
   end
 
@@ -621,6 +642,18 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   #      extract_pending_plan_intent module method
   #
   describe 'HTTP integration: login with pending_plan_intent fallback' do
+    # The login-fallback billing_redirect is produced by the after_login hook in
+    # config/hooks/billing.rb, which config.rb only registers when billing is
+    # enabled. The shared test boot runs with billing disabled, so the hook never
+    # fires here. Skip rather than assert behavior that can't exist in this boot;
+    # the always-on intent lifecycle (capture/clear) is covered by the
+    # account.rb hooks and the non-HTTP examples above.
+    before do
+      unless Onetime.billing_config.enabled?
+        skip 'billing disabled: after_login billing_redirect hook not registered'
+      end
+    end
+
     # Test password used for all HTTP login tests
     TEST_PASSWORD = 'TestPassword123!'
 
@@ -677,9 +710,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       customer.pending_plan_intent = intent
 
       # Make actual HTTP login request
-      header 'Content-Type', 'application/json'
-      header 'Accept', 'application/json'
-      post '/login', JSON.generate(login: email, password: TEST_PASSWORD)
+      csrf_login(email)
 
       # Verify successful login
       expect(last_response.status).to be_between(200, 302)
@@ -718,9 +749,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       customer.pending_plan_intent = { product: 'team_plus_v1', interval: 'yearly' }.to_json
 
       # First login
-      header 'Content-Type', 'application/json'
-      header 'Accept', 'application/json'
-      post '/login', JSON.generate(login: email, password: TEST_PASSWORD)
+      csrf_login(email)
 
       expect(last_response.status).to be_between(200, 302)
 
@@ -731,9 +760,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       # Second login should not have billing_redirect
       # (need to logout first or use different session)
       clear_cookies
-      header 'Content-Type', 'application/json'
-      header 'Accept', 'application/json'
-      post '/login', JSON.generate(login: email, password: TEST_PASSWORD)
+      csrf_login(email)
 
       if last_response.content_type&.include?('application/json')
         response_body = JSON.parse(last_response.body)

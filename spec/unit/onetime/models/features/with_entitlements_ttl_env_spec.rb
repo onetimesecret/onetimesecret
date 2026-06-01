@@ -199,14 +199,14 @@ RSpec.describe Onetime::Models::Features::WithEntitlements do
         limits = test_class.free_tier_limits
         expect(limits['organizations.max']).to eq(5)
         expect(limits['teams.max']).to eq(0)
-        expect(limits['members_per_team.max']).to eq(0)
+        expect(limits['total_members_per_org.max']).to eq(0)
       end
 
       it 'returns default role-specific member limits' do
         limits = test_class.free_tier_limits
-        expect(limits['owners_per_team.max']).to eq(1)
-        expect(limits['admins_per_team.max']).to eq(0)
-        expect(limits['regular_members_per_team.max']).to eq(0)
+        expect(limits['role_owners_per_org.max']).to eq(1)
+        expect(limits['role_admins_per_org.max']).to eq(0)
+        expect(limits['role_members_per_org.max']).to eq(0)
       end
     end
 

@@ -19,8 +19,14 @@
 # 5. Operator grant overrides role template
 
 require_relative '../../support/test_models'
+require_relative '../../../apps/web/billing/lib/test_support/billing_helpers'
 
 OT.boot! :test
+
+# Arrange: Explicitly disable billing for standalone-mode tests.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+BillingTestHelpers.disable_billing!
 
 # =============================================================================
 # ROLE_ENTITLEMENTS Constant Structure
@@ -53,7 +59,7 @@ m = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS['member']
 (a - m).empty?
 #=> false
 
-## Owner-only entitlements: manage_billing, manage_orgs
+## Owner-only entitlements: manage_billing, manage_org
 o = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS['owner']
 a = Onetime::OrganizationMembership::ROLE_ENTITLEMENTS['admin']
 o.include?('manage_billing') && !a.include?('manage_billing')

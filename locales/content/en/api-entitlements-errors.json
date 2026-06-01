@@ -2,77 +2,77 @@
   "api.entitlements.errors.context_unavailable": {
     "text": "Unable to verify entitlements (organization context unavailable)",
     "context": "Returned when EntitlementRequired is raised because auth_org context is missing for an authenticated entitlement check",
-    "content_hash": "c8c4df42"
+    "content_hash": "704dc629"
   },
   "api.entitlements.errors.api_access_required": {
     "text": "API access requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for api_access",
-    "content_hash": "771798ec"
+    "content_hash": "844d294b"
   },
   "api.entitlements.errors.custom_privacy_defaults_required": {
     "text": "Custom privacy defaults require a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for custom_privacy_defaults",
-    "content_hash": "987895a4"
+    "content_hash": "4e71274d"
   },
   "api.entitlements.errors.extended_default_expiration_required": {
     "text": "Extended default expiration requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for extended_default_expiration",
-    "content_hash": "8ff87d6f"
+    "content_hash": "efa702e7"
   },
   "api.entitlements.errors.custom_domains_required": {
     "text": "Custom domains require a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for custom_domains",
-    "content_hash": "257b7309"
+    "content_hash": "a23e2184"
   },
   "api.entitlements.errors.custom_branding_required": {
     "text": "Custom branding requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for custom_branding",
-    "content_hash": "9bb84da6"
+    "content_hash": "a4c40a3a"
   },
   "api.entitlements.errors.homepage_secrets_required": {
     "text": "Homepage secrets require a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for homepage_secrets",
-    "content_hash": "676d62c6"
+    "content_hash": "650eeca8"
   },
   "api.entitlements.errors.incoming_secrets_required": {
     "text": "Incoming secrets require a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for incoming_secrets",
-    "content_hash": "11932b5a"
+    "content_hash": "ce1d47ef"
   },
   "api.entitlements.errors.custom_mail_sender_required": {
     "text": "Custom mail sender requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for custom_mail_sender",
-    "content_hash": "4caf5ff1"
+    "content_hash": "e058da13"
   },
   "api.entitlements.errors.flexible_from_domain_required": {
     "text": "Flexible from-domain requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for flexible_from_domain",
-    "content_hash": "d4574df0"
+    "content_hash": "4931dc05"
   },
-  "api.entitlements.errors.manage_orgs_required": {
+  "api.entitlements.errors.manage_org_required": {
     "text": "Organization management requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for manage_orgs",
-    "content_hash": "5d4ef52d"
+    "context": "Returned when EntitlementRequired is raised for manage_org",
+    "content_hash": "66a2cd10"
   },
   "api.entitlements.errors.manage_teams_required": {
     "text": "Team management requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for manage_teams",
-    "content_hash": "55a95304"
+    "content_hash": "f7f4062f"
   },
   "api.entitlements.errors.manage_members_required": {
     "text": "Member management requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for manage_members",
-    "content_hash": "c50ebb28"
+    "content_hash": "f73b80db"
   },
   "api.entitlements.errors.manage_sso_required": {
     "text": "SSO management requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for manage_sso",
-    "content_hash": "b6e2567b"
+    "content_hash": "4e5da22d"
   },
   "api.entitlements.errors.audit_logs_required": {
     "text": "Audit logs require a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for audit_logs",
-    "content_hash": "aca9ec44"
+    "content_hash": "1ff748bc"
   },
   "api.entitlements.errors.custom_signup_validation_required": {
     "text": "Custom signup validation requires a plan upgrade",
@@ -81,26 +81,32 @@
   },
   "api.entitlements.errors.create_secrets_required": {
     "text": "Creating secrets requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for create_secrets"
+    "context": "Returned when EntitlementRequired is raised for create_secrets",
+    "content_hash": "01091fed"
   },
   "api.entitlements.errors.view_receipt_required": {
     "text": "Viewing receipts requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for view_receipt"
+    "context": "Returned when EntitlementRequired is raised for view_receipt",
+    "content_hash": "e6370d8c"
   },
   "api.entitlements.errors.notifications_required": {
     "text": "Notifications require a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for notifications"
+    "context": "Returned when EntitlementRequired is raised for notifications",
+    "content_hash": "82353ba6"
   },
   "api.entitlements.errors.workspace_branding_required": {
     "text": "Workspace branding requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for workspace_branding"
+    "context": "Returned when EntitlementRequired is raised for workspace_branding",
+    "content_hash": "79ac8099"
   },
   "api.entitlements.errors.ip_access_rules_required": {
     "text": "IP access rules require a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for ip_access_rules"
+    "context": "Returned when EntitlementRequired is raised for ip_access_rules",
+    "content_hash": "3e1d276e"
   },
   "api.entitlements.errors.manage_billing_required": {
     "text": "Billing management requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for manage_billing"
+    "context": "Returned when EntitlementRequired is raised for manage_billing",
+    "content_hash": "dec5d6aa"
   }
 }
