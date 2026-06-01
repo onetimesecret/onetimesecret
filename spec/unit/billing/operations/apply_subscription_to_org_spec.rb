@@ -28,7 +28,7 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
 
   # Mock rematerialize result for membership cascade
   let(:rematerialize_result) do
-    { success: 2, failed: 0, total: 2 }
+    { success: 2, failed: 0, total: 2, failed_ids: [] }
   end
 
   # Org double with writable attributes and materialization support
@@ -160,9 +160,9 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
     before { allow(org).to receive(:save).and_return(true) }
 
     context 'when the cascade reports failures' do
-      let(:rematerialize_result) { { success: 0, failed: 1, total: 1 } }
+      let(:rematerialize_result) { { success: 0, failed: 1, total: 1, failed_ids: ['mem_z'] } }
 
-      it 'escalates to OT.le with FREE_PLAN_ID and counts' do
+      it 'escalates to OT.le with FREE_PLAN_ID, counts, and failed ids' do
         expect(OT).to receive(:le).with(
           '[ApplySubscriptionToOrg] membership re-materialization had failures (free tier)',
           hash_including(
@@ -170,6 +170,7 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
             planid: Billing::Metadata::FREE_PLAN_ID,
             memberships_total: 1,
             memberships_failed: 1,
+            memberships_failed_ids: ['mem_z'],
           ),
         )
 

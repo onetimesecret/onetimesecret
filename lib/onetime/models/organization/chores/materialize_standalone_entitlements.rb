@@ -75,7 +75,8 @@ Onetime::Organization.chore :materialize_standalone_entitlements do |org|
         chore: :materialize_standalone_entitlements,
         org_extid: org.extid,
         memberships_total: cascade[:total],
-        memberships_failed: cascade[:failed]
+        memberships_failed: cascade[:failed],
+        memberships_failed_ids: cascade[:failed_ids]
     end
   rescue StandardError => ex
     logger.error 'Membership re-materialization raised',

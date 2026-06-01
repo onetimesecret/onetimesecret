@@ -34,7 +34,7 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
   end
 
   # Default happy-path cascade result. Branch 3 reads `:failed`/`:total`.
-  let(:cascade_result) { { success: 15, failed: 0, total: 15 } }
+  let(:cascade_result) { { success: 15, failed: 0, total: 15, failed_ids: [] } }
 
   # Materialized set stub — chore only reads `.size`
   let(:materialized_set) { double('Set', size: 15) }
@@ -178,9 +178,9 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
     end
 
     context 'when the membership cascade has partial failures' do
-      let(:cascade_result) { { success: 1, failed: 2, total: 3 } }
+      let(:cascade_result) { { success: 1, failed: 2, total: 3, failed_ids: %w[mem_p mem_q] } }
 
-      it 'logs the partial failure at :error with org extid and counts' do
+      it 'logs the partial failure at :error with org extid, counts, and failed ids' do
         expect(mock_logger).to receive(:error).with(
           'Membership re-materialization had failures',
           hash_including(
@@ -188,6 +188,7 @@ RSpec.describe 'Organization chore: materialize_standalone_entitlements' do
             org_extid: 'org_test123',
             memberships_total: 3,
             memberships_failed: 2,
+            memberships_failed_ids: %w[mem_p mem_q],
           ),
         )
         chore.call(org)

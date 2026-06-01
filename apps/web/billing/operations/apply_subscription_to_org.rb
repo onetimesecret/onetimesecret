@@ -136,7 +136,8 @@ module Billing
                 org_extid: org.extid,
                 planid: Billing::Metadata::FREE_PLAN_ID,
                 memberships_total: membership_result[:total],
-                memberships_failed: membership_result[:failed]
+                memberships_failed: membership_result[:failed],
+                memberships_failed_ids: membership_result[:failed_ids]
             end
           rescue StandardError => ex
             OT.le '[ApplySubscriptionToOrg] membership re-materialization failed (free tier)',
@@ -239,7 +240,8 @@ module Billing
               org_extid: org.extid,
               planid: planid,
               memberships_total: membership_result[:total],
-              memberships_failed: membership_result[:failed]
+              memberships_failed: membership_result[:failed],
+              memberships_failed_ids: membership_result[:failed_ids]
           end
         rescue StandardError => ex
           # Membership re-materialization is degradable — the fallback path in
