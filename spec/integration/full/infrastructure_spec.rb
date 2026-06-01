@@ -73,6 +73,29 @@ RSpec.describe 'Full Mode Test Infrastructure', type: :integration do
     end
   end
 
+  # Regression guard for #3256: the full-mode suite setup must leave Familia's
+  # encryption config populated. ConfigureFamilia derives the encryption keys
+  # and current_key_version during boot; if the suite-level boot is skipped
+  # (idempotent in test mode) without that initializer ever running, encrypted
+  # field writes such as Receipt.spawn_pair fail with "Key version cannot be
+  # nil". The suite setup forces a fresh boot to guarantee this state.
+  describe 'Familia encryption configuration' do
+    it 'configures a current_key_version' do
+      expect(Familia.config.current_key_version).not_to be_nil
+    end
+
+    it 'configures encryption_keys for the current version' do
+      version = Familia.config.current_key_version
+      expect(Familia.config.encryption_keys).to include(version)
+    end
+
+    it 'allows encrypted-field writes via Receipt.spawn_pair' do
+      expect {
+        Onetime::Receipt.spawn_pair('anon', 3600, 'regression-guard secret')
+      }.not_to raise_error
+    end
+  end
+
   describe 'AuthAccountFactory' do
     # test_db and AuthAccountFactory are provided by FullModeSuiteDatabase
 

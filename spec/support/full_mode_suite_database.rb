@@ -64,10 +64,22 @@ module FullModeSuiteDatabase
       db = @database
       Auth::Database.define_singleton_method(:connection) { db }
 
-      # Ensure application is booted (idempotent in test mode)
+      # Boot the application with a forced fresh boot.
+      #
+      # `force: true` resets boot state first so the full initializer chain
+      # re-runs here. A plain `Onetime.boot! :test` is idempotent in test mode
+      # and silently skips when boot state is already :started — which happens
+      # whenever an earlier spec (e.g. spec/integration/all boot/config specs)
+      # booted first. The skip is mostly harmless, except it bypasses the
+      # ConfigureFamilia initializer that sets Familia's encryption keys and
+      # current_key_version. Those are process-global; if a prior connect_to_db:
+      # false boot left boot :started without running ConfigureFamilia, the
+      # encryption config is never populated and any encrypted-field write
+      # (e.g. Receipt.spawn_pair) raises "Key version cannot be nil".
+      # Forcing a fresh boot guarantees ConfigureFamilia runs for the suite.
       require 'onetime'
       require 'onetime/config'
-      Onetime.boot! :test
+      Onetime.boot!(:test, force: true)
 
       # Reset and rebuild registry with our test database connection
       require 'onetime/auth_config'
