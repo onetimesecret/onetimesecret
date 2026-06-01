@@ -189,12 +189,10 @@ module Onetime
                                                 dry_run: dry_run,
                                                 include_memberships: include_memberships)
 
-        filter_args = plan ? { plan_filter: plan } : {}
-
         result = ::Billing::Operations::MaterializePlans.call(
+          plan_filter: plan,
           include_memberships: include_memberships,
           dry_run: dry_run,
-          **filter_args,
         ) { |event| renderer.render(event) }
 
         puts
