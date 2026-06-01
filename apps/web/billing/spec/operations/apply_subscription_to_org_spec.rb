@@ -31,7 +31,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       materialize_entitlements_from_plan: true,
       materialize_entitlements_from_config: true,
       materialized_entitlements: materialized_set,
-      rematerialize_all_memberships!: { success: 0, skipped: 0 },
+      rematerialize_all_memberships!: { success: 0, failed: 0, total: 0, failed_ids: [] },
       save: true,
     )
   end
@@ -265,6 +265,64 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
     end
   end
 
+  # Membership cascade escalation, exercised through the public .call API
+  # (owner plan-change path) rather than reaching into the private
+  # execute_materialize. build_subscription resolves to identity_plus_v1, which
+  # materialize_entitlements_for_org then re-materializes onto the members.
+  describe 'membership cascade via .call (plan-change path)' do
+    context 'when the cascade reports partial failures' do
+      it 'escalates to OT.le with planid, counts, and failed member ids' do
+        subscription = build_subscription
+        allow(org).to receive(:rematerialize_all_memberships!)
+          .and_return({ success: 1, failed: 2, total: 3, failed_ids: %w[mem_a mem_b] })
+        allow(OT).to receive(:info)
+
+        expect(OT).to receive(:le).with(
+          '[ApplySubscriptionToOrg] membership re-materialization had failures',
+          hash_including(
+            org_extid: 'on_test_org',
+            planid: 'identity_plus_v1',
+            memberships_total: 3,
+            memberships_failed: 2,
+            memberships_failed_ids: %w[mem_a mem_b],
+          ),
+        )
+
+        described_class.call(org, subscription, owner: true)
+      end
+    end
+
+    context 'when the cascade raises' do
+      it 'logs the error via OT.le, does not propagate, and still saves the org' do
+        subscription = build_subscription
+        allow(org).to receive(:rematerialize_all_memberships!)
+          .and_raise(StandardError.new('boom'))
+        allow(OT).to receive(:info)
+
+        expect(OT).to receive(:le).with(
+          '[ApplySubscriptionToOrg] membership re-materialization failed',
+          hash_including(org_extid: 'on_test_org', exception: kind_of(StandardError)),
+        )
+        expect(org).to receive(:save)
+
+        expect {
+          described_class.call(org, subscription, owner: true)
+        }.not_to raise_error
+      end
+    end
+
+    context 'when the cascade reports no failures' do
+      it 'does not escalate to OT.le' do
+        subscription = build_subscription
+        allow(OT).to receive(:info)
+
+        expect(OT).not_to receive(:le)
+
+        described_class.call(org, subscription, owner: true)
+      end
+    end
+  end
+
   describe 'planid_override' do
     it 'uses override instead of catalog resolution' do
       subscription = build_subscription(price_id: 'price_unknown')
@@ -491,7 +549,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         extid: 'on_cancel_org',
         materialize_entitlements_from_config: true,
         materialized_entitlements: materialized_set,
-        rematerialize_all_memberships!: { success: 0, skipped: 0 },
+        rematerialize_all_memberships!: { success: 0, failed: 0, total: 0, failed_ids: [] },
         save: true,
       )
     end
@@ -530,6 +588,43 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
             entitlements_count: 4,
           ),
         )
+      end
+
+      context 'when the membership cascade has partial failures' do
+        before do
+          allow(free_tier_org).to receive(:materialize_entitlements_from_config)
+          allow(free_tier_org).to receive(:rematerialize_all_memberships!)
+            .and_return({ success: 1, failed: 2, total: 3, failed_ids: %w[mem_x mem_y] })
+          allow(OT).to receive(:info)
+        end
+
+        it 'escalates to OT.le with org_extid, FREE_PLAN_ID, counts, and failed ids' do
+          expect(OT).to receive(:le).with(
+            '[ApplySubscriptionToOrg] membership re-materialization had failures (free tier)',
+            hash_including(
+              org_extid: 'on_cancel_org',
+              planid: Billing::Metadata::FREE_PLAN_ID,
+              memberships_total: 3,
+              memberships_failed: 2,
+              memberships_failed_ids: %w[mem_x mem_y],
+            ),
+          )
+
+          described_class.apply_free_tier(free_tier_org, owner: true)
+        end
+      end
+
+      context 'when the membership cascade has no failures' do
+        before do
+          allow(free_tier_org).to receive(:materialize_entitlements_from_config)
+          allow(OT).to receive(:info)
+        end
+
+        it 'does NOT escalate to OT.le' do
+          expect(OT).not_to receive(:le)
+
+          described_class.apply_free_tier(free_tier_org, owner: true)
+        end
       end
     end
 
@@ -603,7 +698,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         materialize_entitlements_from_plan: true,
         materialize_entitlements_from_config: true,
         materialized_entitlements: materialized_set,
-        rematerialize_all_memberships!: { success: 0, skipped: 0 },
+        rematerialize_all_memberships!: { success: 0, failed: 0, total: 0, failed_ids: [] },
       )
     end
 
@@ -865,7 +960,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         materialize_entitlements_from_plan: true,
         materialize_entitlements_from_config: true,
         materialized_entitlements: materialized_set,
-        rematerialize_all_memberships!: { success: 0, skipped: 0 },
+        rematerialize_all_memberships!: { success: 0, failed: 0, total: 0, failed_ids: [] },
       )
     end
 

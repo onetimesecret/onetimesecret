@@ -36,14 +36,43 @@ module MigrationTestHelpers
     Sequel.connect(url)
   end
 
-  # Run migrations and apply CI grants for test user access
-  # Use this instead of raw Sequel::Migrator.run in tests that need test_db to read results
+  # Build a PostgreSQL connection URL with a different user/password.
+  # Derives host, port, and database from the given base URL.
+  #
+  # @param user [String] PostgreSQL role name
+  # @param password [String] Password for the role
+  # @param base_url [String] URL to derive host/port/database from
+  # @return [String] Connection URL
+  def build_pg_url(user:, password: nil, base_url: ENV.fetch('AUTH_DATABASE_URL'))
+    uri = URI.parse(base_url)
+    uri.user = user
+    uri.password = password
+    uri.to_s
+  end
+
+  # Connect as PostgreSQL superuser, derived from existing database URL.
+  # Falls back to password 'postgres' (CI default) when PGPASSWORD is unset.
+  # Returns nil if the connection fails.
+  #
+  # @return [Sequel::Database, nil]
+  def connect_as_superuser
+    url = build_pg_url(user: 'postgres', password: ENV.fetch('PGPASSWORD', 'postgres'))
+    db = Sequel.connect(url)
+    db.run('SELECT 1')
+    db
+  rescue Sequel::DatabaseConnectionError, Sequel::DatabaseError
+    db&.disconnect
+    nil
+  end
+
+  # Run migrations using the elevated connection.
+  # Default privileges (set by initialize_auth_db.sql / CI setup) auto-grant
+  # the test user DML access to tables created by the migration user.
   #
   # @param migration_db [Sequel::Database] Elevated connection for running migrations
   # @param migrations_dir [String] Path to migrations directory
-  def run_migrations_with_grants(migration_db:, migrations_dir:)
+  def run_test_migrations(migration_db:, migrations_dir:)
     Sequel::Migrator.run(migration_db, migrations_dir)
-    apply_ci_schema_grants(migration_db)
   end
 
   # Get the current schema version from the database
@@ -94,9 +123,6 @@ module MigrationTestHelpers
       target: version,
       use_transactions: true,
     )
-
-    # Apply grants so test user can read tables created by migration user
-    apply_ci_schema_grants(db)
 
     db
   end
@@ -200,43 +226,6 @@ module MigrationTestHelpers
     ]
 
     db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE" if our_functions.any?
-  end
-
-  # Apply schema grants for CI environment test users
-  # Call with elevated connection after migrations to ensure test user can read tables
-  def apply_ci_schema_grants(db)
-    # Check if onetime_migrator role exists (CI environment)
-    migrator_exists = db.fetch(
-      "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
-    ).any?
-
-    return unless migrator_exists
-
-    # Re-apply schema grants
-    db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
-    db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
-
-    # Grant on ALL existing tables (needed after migrations create tables)
-    db.run 'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO onetime_user'
-    db.run 'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO onetime_user'
-    db.run 'GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO onetime_user'
-
-    # Re-apply default privileges for future tables
-    db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
-    SQL
-    db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
-    SQL
-    db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT EXECUTE ON FUNCTIONS TO onetime_user
-    SQL
-  rescue Sequel::DatabaseError
-    # Ignore if grants fail - may not have permission or roles don't exist
-    nil
   end
 
   # Simulate concurrent process boot by running migrations in parallel threads

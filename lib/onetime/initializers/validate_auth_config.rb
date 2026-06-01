@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../auth_config'
+
 module Onetime
   module Initializers
     # Validates that etc/auth.yaml is present and loaded.

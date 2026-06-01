@@ -50,6 +50,9 @@ require_relative 'factories/auth_account_factory'
 #   end
 #
 module PostgresModeSuiteDatabase
+  REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
+  EXPECTED_SCHEMA_VERSION = 7
+
   class << self
     attr_reader :database, :migration_database
 
@@ -78,14 +81,26 @@ module PostgresModeSuiteDatabase
     end
 
     def setup!
-      return if @setup_complete
-
       require 'sequel'
       require 'auth/database'
       Sequel.extension :migration
 
       # Check if PostgreSQL is available - return early if not (specs will be skipped)
       return unless postgres_available?
+
+      # Fast path: if setup ran and schema is intact, nothing to do
+      if @setup_complete && schema_intact?
+        return
+      end
+
+      # If setup ran before but schema was destroyed (e.g. migration spec
+      # dropped tables), clean slate and re-run migrations.
+      if @setup_complete && !schema_intact?
+        clean_database_for_setup
+        run_migrations
+        verify_schema!
+        return
+      end
 
       database_url = ENV['AUTH_DATABASE_URL']
 
@@ -102,6 +117,9 @@ module PostgresModeSuiteDatabase
 
       # Run migrations (may require elevated privileges)
       run_migrations
+
+      # Verify migrations actually created the expected schema
+      verify_schema!
 
       # Save original connection method for restoration
       @original_connection_method = Auth::Database.method(:connection)
@@ -168,6 +186,36 @@ module PostgresModeSuiteDatabase
       @setup_complete == true
     end
 
+    # Check whether the schema is intact (tables exist at correct version).
+    # Another spec (e.g. migrations_postgres_spec) may have dropped tables
+    # or left a partial migration state on the shared database.
+    def schema_intact?
+      return false unless @database
+      return false unless REQUIRED_TABLES.all? { |t| @database.table_exists?(t) }
+      return false unless @database.table_exists?(:schema_info)
+
+      @database[:schema_info].get(:version) == EXPECTED_SCHEMA_VERSION
+    rescue Sequel::DatabaseError
+      false
+    end
+
+    # Hard-fail if migrations didn't produce the expected schema.
+    def verify_schema!
+      missing = REQUIRED_TABLES.reject { |t| @database.table_exists?(t) }
+      unless missing.empty?
+        raise <<~MSG
+          [PostgresModeSuiteDatabase] Migration completed but required tables are missing: #{missing.join(', ')}
+          This indicates migrations failed silently or another spec dropped tables.
+        MSG
+      end
+
+      return if @database.table_exists?(:schema_info) &&
+                @database[:schema_info].get(:version) == EXPECTED_SCHEMA_VERSION
+
+      actual = @database.table_exists?(:schema_info) ? @database[:schema_info].get(:version) : 'none'
+      raise "[PostgresModeSuiteDatabase] Schema version mismatch: expected #{EXPECTED_SCHEMA_VERSION}, got #{actual}"
+    end
+
     # Clean database for initial setup
     #
     # Uses elevated connection if available to handle CI permission model where
@@ -193,9 +241,6 @@ module PostgresModeSuiteDatabase
         # Use regular connection (works when running as database owner)
         clean_schema_with_connection(@database)
       end
-    rescue Sequel::DatabaseError => e
-      warn "[PostgresModeSuiteDatabase] Failed to clean database: #{e.message}"
-      # Continue - migrations may still succeed if database is actually clean
     end
 
     # Perform the actual schema cleanup with the given connection
@@ -231,41 +276,6 @@ module PostgresModeSuiteDatabase
       ]
 
       db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE" if our_functions.any?
-    rescue Sequel::DatabaseError => e
-      warn "[PostgresModeSuiteDatabase] Failed to drop objects: #{e.message}"
-      # Continue - some objects may not exist or we may lack permissions
-    end
-
-    # Apply schema-level grants using the given connection
-    def apply_schema_grants_with_connection(db)
-      # Check if onetime_migrator role exists (CI environment)
-      migrator_exists = db.fetch(
-        "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
-      ).any?
-
-      return unless migrator_exists
-
-      # Re-apply schema grants
-      db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
-      db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
-
-      # Re-apply default privileges so tables created by onetime_migrator
-      # are automatically accessible to onetime_user
-      db.run <<~SQL
-        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-          GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
-      SQL
-      db.run <<~SQL
-        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-          GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
-      SQL
-      db.run <<~SQL
-        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-          GRANT EXECUTE ON FUNCTIONS TO onetime_user
-      SQL
-    rescue Sequel::DatabaseError => e
-      warn "[PostgresModeSuiteDatabase] Failed to apply schema grants: #{e.message}"
-      # Continue - may not have permission or roles don't exist
     end
 
 
@@ -281,7 +291,9 @@ module PostgresModeSuiteDatabase
       if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
         # Use separate elevated connection for migrations
         # Keep it open for test data setup (infrastructure tests need INSERT privileges)
-        @migration_database = Sequel.connect(migration_url)
+        unless @migration_database
+          @migration_database = Sequel.connect(migration_url)
+        end
         Sequel::Migrator.run(@migration_database, migrations_path)
       else
         # Run migrations with standard connection

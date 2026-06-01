@@ -17,6 +17,7 @@ full:
   # Database connection for Full mode
   # Uses in-memory SQLite for tests to avoid file persistence issues
   database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
 
   # Optional Rodauth features (matches auth.defaults.yaml format)
   # For tests, lockout/password_requirements/sessions enabled by default; others disabled

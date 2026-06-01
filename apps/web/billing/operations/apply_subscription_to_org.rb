@@ -125,6 +125,20 @@ module Billing
                 failed: membership_result[:failed],
                 total: membership_result[:total],
               }
+
+            # Cross-path consistency with MaterializePlans#handle_cascade_partial:
+            # surface a partial cascade as :error so operators learn about drifted
+            # memberships at detection time. Observability only — do NOT propagate
+            # failure: the webhook returns 200 and the downgrade already applied;
+            # a non-200 would make Stripe re-process an already-applied change.
+            if membership_result[:failed].to_i.positive?
+              OT.le '[ApplySubscriptionToOrg] membership re-materialization had failures (free tier)',
+                org_extid: org.extid,
+                planid: Billing::Metadata::FREE_PLAN_ID,
+                memberships_total: membership_result[:total],
+                memberships_failed: membership_result[:failed],
+                memberships_failed_ids: membership_result[:failed_ids]
+            end
           rescue StandardError => ex
             OT.le '[ApplySubscriptionToOrg] membership re-materialization failed (free tier)',
               exception: ex,
@@ -215,6 +229,20 @@ module Billing
               failed: membership_result[:failed],
               total: membership_result[:total],
             }
+
+          # Cross-path consistency with MaterializePlans#handle_cascade_partial:
+          # surface a partial cascade as :error so operators learn about drifted
+          # memberships at detection time. Observability only — do NOT propagate
+          # failure: the webhook returns 200 and the plan change already applied;
+          # a non-200 would make Stripe re-process an already-applied change.
+          if membership_result[:failed].to_i.positive?
+            OT.le '[ApplySubscriptionToOrg] membership re-materialization had failures',
+              org_extid: org.extid,
+              planid: planid,
+              memberships_total: membership_result[:total],
+              memberships_failed: membership_result[:failed],
+              memberships_failed_ids: membership_result[:failed_ids]
+          end
         rescue StandardError => ex
           # Membership re-materialization is degradable — the fallback path in
           # membership.entitlements computes on-the-fly. Log and continue.
