@@ -1086,5 +1086,11 @@
   "web.domains.detail.signup_description": {
     "text": "Per-domain signup validation strategy",
     "content_hash": "3c5a511f"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "This feature requires a plan upgrade."
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "This feature is not available on your current plan. Contact your organization owner."
   }
 }

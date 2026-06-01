@@ -18,7 +18,6 @@ import { useDomain } from '@/shared/composables/useDomain';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import {
   isOrgsSsoEnabled,
@@ -35,7 +34,7 @@ const router = useRouter();
 const props = defineProps<{ extid: string; orgid: string }>();
 
 const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
-const { deleteDomain } = useDomainsManager();
+const { deleteDomain, toggleHomepageConfig } = useDomainsManager();
 
 const handleBack = () => {
   router.push(`/org/${props.orgid}/domains`);
@@ -77,15 +76,18 @@ const canAdmin = computed(() => {
 // Removing a domain is owner-only — admins manage configuration but not lifecycle.
 const isOwner = computed(() => organization.value?.current_user_role === 'owner');
 
-const domainsStore = useDomainsStore();
-
 const handleHomepageToggle = async () => {
   const domain = customDomainRecord.value;
   if (!domain) return;
   const newValue = !(domain.homepage_config?.enabled ?? false);
-  await domainsStore.putHomepageConfig(domain.extid, newValue);
-  // Refresh domain data to reflect the change
-  await initializeDomain();
+  const result = await toggleHomepageConfig(
+    domain.extid,
+    newValue,
+    organization.value?.current_user_role,
+  );
+  if (result) {
+    await initializeDomain();
+  }
 };
 
 interface Section {
