@@ -25,12 +25,12 @@ module Auth
     # app is re-booted afterward.
     #
     def self.with_fresh_config(env_overrides: {})
-      original_class = Auth::Config
-      original_configured = Auth::Config.configured
+      original_class = defined?(Auth::Config) ? Auth::Config : nil
+      original_configured = original_class&.configured
 
       begin
-        # Remove the existing constant so we can define a new one
-        Auth.send(:remove_const, :Config)
+        # Remove the existing constant if it exists
+        Auth.send(:remove_const, :Config) if original_class
 
         # Apply env overrides
         saved_env = {}
@@ -47,12 +47,17 @@ module Auth
           attr_accessor :configured
         end
 
+        # Reload the configuration file to populate the class with new env overrides
+        load File.expand_path('../../config.rb', __dir__)
+
         yield Auth::Config
       ensure
         # Restore original class
         Auth.send(:remove_const, :Config) if defined?(Auth::Config)
-        Auth.const_set(:Config, original_class)
-        Auth::Config.instance_variable_set(:@configured, original_configured)
+        if original_class
+          Auth.const_set(:Config, original_class)
+          Auth::Config.instance_variable_set(:@configured, original_configured)
+        end
 
         # Restore env
         saved_env&.each do |key, value|
@@ -79,7 +84,7 @@ module Auth
     # @param saved [Hash] previously captured env vars from capture_auth_env
     def self.restore_auth_env(saved)
       ENV.reject! { |k, _| k.start_with?('AUTH_') }
-      saved.each { |k, v| ENV[k] = v }
+      saved&.each { |k, v| ENV[k] = v }
     end
   end
 end

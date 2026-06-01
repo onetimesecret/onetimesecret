@@ -97,7 +97,7 @@ If a test suite genuinely needs to reconfigure `Auth::Config` itself (not
 just a fresh anonymous class), the class must be entirely reconstructed:
 
 ```ruby
-Auth::ConfigRecreator.with_fresh_config(features: { mfa: true }) do
+Auth::ConfigRecreator.with_fresh_config(env_overrides: { 'AUTH_MFA_ENABLED' => 'true' }) do
   # Auth::Config is a brand-new class here
   # All memoized references (Auth::Router, etc.) are stale
 end
