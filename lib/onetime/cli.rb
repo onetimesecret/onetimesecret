@@ -4,10 +4,12 @@
 
 require 'dry/cli'
 require 'onetime'
-require 'onetime/models'
-require 'onetime/migration'
 
-require 'v2/logic'
+# Heavy requires (models, migration, v2/logic) are deferred to
+# Command#boot_application! so that DelayBootCommand subclasses
+# skip loading them entirely. This cuts CLI startup time for
+# lightweight commands (docs generation, version, help) from
+# ~30s to a few seconds on shared-CPU instances.
 
 module Onetime
   module CLI
@@ -16,7 +18,9 @@ module Onetime
     # Base command class that boots the application
     class Command < Dry::CLI::Command
       def boot_application!
-        # Make sure all the models are loaded before calling boot
+        require 'onetime/models'
+        require 'onetime/migration'
+        require 'v2/logic'
         OT.boot! :cli
       end
 

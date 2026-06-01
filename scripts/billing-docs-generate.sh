@@ -41,7 +41,12 @@ if ! command -v bundle >/dev/null 2>&1; then
   exit 0
 fi
 
-if ! bundle exec bin/ots billing catalog generate-docs; then
+# Use the standalone script — it bypasses bin/ots and the full app boot,
+# requiring only yaml/erb/fileutils. This avoids loading 28+ heavy gems
+# (familia, truemail, bcrypt, rack, etc.) that are irrelevant to a pure
+# YAML → Markdown transform, cutting startup from ~30s to <1s on shared
+# CPU instances.
+if ! bundle exec ruby scripts/billing-docs-generate.rb; then
   if [ "$STRICT" = "1" ]; then
     cat >&2 <<'EOF'
 
