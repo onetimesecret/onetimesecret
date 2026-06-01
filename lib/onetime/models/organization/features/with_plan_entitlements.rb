@@ -52,7 +52,7 @@ module Onetime
           custom_domains homepage_secrets incoming_secrets
           custom_branding custom_privacy_defaults
           custom_mail_sender flexible_from_domain
-          custom_signup_validation manage_sso manage_orgs manage_billing
+          custom_signup_validation manage_sso manage_org manage_billing
         ].freeze
 
         # Free tier entitlements as fallback when billing is enabled

@@ -2,9 +2,9 @@
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useEntitlementsStore } from '@/shared/stores/entitlementsStore';
-import { storeToRefs } from 'pinia';
 import type { Organization } from '@/types/organization';
 import { ENTITLEMENTS } from '@/types/organization';
+import { storeToRefs } from 'pinia';
 import { computed, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -24,15 +24,17 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
   [ENTITLEMENTS.CUSTOM_DOMAINS]: 'web.billing.overview.entitlements.custom_domains',
   [ENTITLEMENTS.IP_ACCESS_RULES]: 'web.billing.overview.entitlements.ip_access_rules',
   // Privacy & Defaults
-  [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'web.billing.overview.entitlements.custom_privacy_defaults',
-  [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'web.billing.overview.entitlements.extended_default_expiration',
+  [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]:
+    'web.billing.overview.entitlements.custom_privacy_defaults',
+  [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]:
+    'web.billing.overview.entitlements.extended_default_expiration',
   [ENTITLEMENTS.CUSTOM_MAIL_SENDER]: 'web.billing.overview.entitlements.custom_mail_sender',
   [ENTITLEMENTS.FLEXIBLE_FROM_DOMAIN]: 'web.billing.overview.entitlements.flexible_from_domain',
   // Branding
   [ENTITLEMENTS.CUSTOM_BRANDING]: 'web.billing.overview.entitlements.custom_branding',
   [ENTITLEMENTS.WORKSPACE_BRANDING]: 'web.billing.overview.entitlements.workspace_branding',
   // Organization Management
-  [ENTITLEMENTS.MANAGE_ORGS]: 'web.billing.overview.entitlements.manage_orgs',
+  [ENTITLEMENTS.MANAGE_ORG]: 'web.billing.overview.entitlements.manage_org',
   [ENTITLEMENTS.MANAGE_TEAMS]: 'web.billing.overview.entitlements.manage_teams',
   [ENTITLEMENTS.MANAGE_MEMBERS]: 'web.billing.overview.entitlements.manage_members',
   [ENTITLEMENTS.MANAGE_SSO]: 'web.billing.overview.entitlements.manage_sso',
@@ -89,7 +91,11 @@ export function useEntitlements(org: Ref<Organization | null>) {
     if (!org.value) {
       return false;
     }
-    return org.value.entitlements?.includes(entitlement as (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS]) ?? false;
+    return (
+      org.value.entitlements?.includes(
+        entitlement as (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS]
+      ) ?? false
+    );
   };
 
   /**

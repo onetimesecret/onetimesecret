@@ -110,9 +110,9 @@ entitlements:
     category: core
     description: Custom privacy defaults for secrets
 
-  manage_orgs:
+  manage_org:
     category: collaboration
-    description: Can create and manage organizations
+    description: Can manage organization settings, members, and domains
 
   manage_teams:
     category: collaboration

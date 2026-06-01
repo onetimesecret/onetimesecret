@@ -211,8 +211,8 @@
     "text": "Incoming Secrets",
     "content_hash": "883dbca9"
   },
-  "web.billing.overview.entitlements.manage_orgs": {
-    "text": "Manage Organizations",
+  "web.billing.overview.entitlements.manage_org": {
+    "text": "Manage Organization",
     "content_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_teams": {

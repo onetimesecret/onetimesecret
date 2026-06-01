@@ -49,9 +49,9 @@
     "context": "Returned when EntitlementRequired is raised for flexible_from_domain",
     "content_hash": "d4574df0"
   },
-  "api.entitlements.errors.manage_orgs_required": {
+  "api.entitlements.errors.manage_org_required": {
     "text": "Organization management requires a plan upgrade",
-    "context": "Returned when EntitlementRequired is raised for manage_orgs",
+    "context": "Returned when EntitlementRequired is raised for manage_org",
     "content_hash": "5d4ef52d"
   },
   "api.entitlements.errors.manage_teams_required": {

@@ -125,7 +125,7 @@ tests:
     notes: |
       org.can?() returns true for all features when billing is disabled.
       STANDALONE_ENTITLEMENTS includes: api_access, custom_domains,
-      custom_branding, manage_teams, manage_orgs, audit_logs, etc.
+      custom_branding, manage_teams, manage_org, audit_logs, etc.
 
   # ---------------------------------------------------------------------------
   # HIGH: Free Tier Limits
@@ -151,7 +151,7 @@ tests:
       - description: Message explains feature requires paid plan
         selector: "[data-testid='upgrade-prompt-message'], [data-testid='entitlement-upgrade-prompt']"
         assertion:
-          text_matches: "(upgrade|paid plan|subscription required)"
+          text_matches: '(upgrade|paid plan|subscription required)'
       - description: Clear path to upgrade with link to billing plans
         selector: "a[href*='/billing/plans'], a[href*='/billing'][data-testid='view-plans-link']"
         assertion: visible
@@ -224,17 +224,17 @@ tests:
     verify:
       - description: Redirect to login page occurs after session expiry
         url:
-          path_matches: "^/signin|^/login"
+          path_matches: '^/signin|^/login'
         timeout: 5000
       - description: Login page shows session expired message
         selector: "[role='alert'][data-testid='session-expired-message'], [data-testid='auth-message']"
         assertion:
           any_of:
             - visible
-            - text_matches: "(session expired|please sign in again|logged out)"
+            - text_matches: '(session expired|please sign in again|logged out)'
       - description: Return URL is preserved in query parameters
         url:
-          query_contains: "redirect|return_to|next"
+          query_contains: 'redirect|return_to|next'
       - description: After re-login user returns to billing flow
         action:
           submit_login:
@@ -281,11 +281,11 @@ tests:
           assert:
             any_of:
               - body.error:
-                  matches: "(entitlement|feature|not available|upgrade|subscription)"
+                  matches: '(entitlement|feature|not available|upgrade|subscription)'
               - body.message:
-                  matches: "(entitlement|feature|not available|upgrade|subscription)"
+                  matches: '(entitlement|feature|not available|upgrade|subscription)'
               - body.details.code:
-                  equals: "ENTITLEMENT_DENIED"
+                  equals: 'ENTITLEMENT_DENIED'
       - description: No domain created in system
         api: GET /api/v2/domains
         assert:

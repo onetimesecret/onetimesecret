@@ -72,7 +72,7 @@
    */
   const canCreateMultipleOrgs = computed(() =>
     // Users with org management entitlement can create multiple organizations
-    can(ENTITLEMENTS.MANAGE_ORGS)
+    can(ENTITLEMENTS.MANAGE_ORG)
   );
 
   onMounted(async () => {

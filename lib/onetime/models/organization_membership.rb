@@ -94,7 +94,6 @@ module Onetime
       'flexible_from_domain',
       'custom_signup_validation',
       'manage_sso',
-      'manage_orgs',
       'manage_org',
       'manage_billing',
     ].freeze

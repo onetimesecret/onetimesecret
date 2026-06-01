@@ -76,7 +76,7 @@ Billing::Plan.clear_cache
 @multi_plan.entitlements.add('api_access')
 @multi_plan.entitlements.add('custom_privacy_defaults')
 @multi_plan.entitlements.add('extended_default_expiration')
-@multi_plan.entitlements.add('manage_orgs')
+@multi_plan.entitlements.add('manage_org')
 @multi_plan.entitlements.add('manage_teams')
 @multi_plan.entitlements.add('manage_members')
 @multi_plan.entitlements.add('custom_domains')
@@ -192,8 +192,8 @@ Billing::Plan.clear_cache
 @identity_org.can?('audit_logs')
 #=> false
 
-## Test: Multi-Team can manage orgs
-@multi_org.can?('manage_orgs')
+## Test: Multi-Team can manage an organization
+@multi_org.can?('manage_org')
 #=> true
 
 ## Test: Multi-Team has custom branding
