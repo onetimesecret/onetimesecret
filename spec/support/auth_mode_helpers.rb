@@ -295,11 +295,16 @@ end
 
 RSpec.configure do |config|
   # Full auth mode - install mock BEFORE any setup runs
+  # Skip for :postgres_database specs — they manage their own DB lifecycle
   config.before(:context, :full_auth_mode) do
+    next if self.class.metadata[:postgres_database]
+
     AuthModeHelpers.install_mock('full', self.class.metadata)
   end
 
   config.after(:context, :full_auth_mode) do
+    next if self.class.metadata[:postgres_database]
+
     AuthModeHelpers.reset_database_connection!
     AuthModeHelpers.restore_original(self.class.metadata)
   end

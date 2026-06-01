@@ -16,6 +16,10 @@ module Auth
         # Skip in simple auth mode
         return true unless Onetime.auth_config.full_enabled?
 
+        # Test suites manage their own migrations via
+        # FullModeSuiteDatabase / PostgresModeSuiteDatabase.
+        return true if Onetime.env?(:testing)
+
         # Skip for job workers - they don't need database migrations
         # and connecting before Sneakers forks causes SQLite warnings.
         # Check if we're running a jobs command by looking at ARGV.
