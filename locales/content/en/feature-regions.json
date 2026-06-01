@@ -165,30 +165,30 @@
   },
   "web.regions.jurisdictions.eu.name": {
     "text": "European Union",
-    "content_hash": "9a18968a"
+    "content_hash": "7fe24f2b"
   },
   "web.regions.jurisdictions.us.name": {
     "text": "United States",
-    "content_hash": "f253efe3"
+    "content_hash": "49dca65f"
   },
   "web.regions.jurisdictions.ca.name": {
     "text": "Canada",
-    "content_hash": "445d337b"
+    "content_hash": "be55ef3f"
   },
   "web.regions.jurisdictions.uk.name": {
     "text": "United Kingdom",
-    "content_hash": "89f9c9f4"
+    "content_hash": "8d23a6e3"
   },
   "web.regions.jurisdictions.nz.name": {
     "text": "New Zealand",
-    "content_hash": "c51ed580"
+    "content_hash": "2898e16d"
   },
   "web.regions.jurisdictions.at.name": {
     "text": "Austria",
-    "content_hash": "98917390"
+    "content_hash": "c9cab023"
   },
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
-    "content_hash": "f8a3b2c1"
+    "content_hash": "7a757670"
   }
 }

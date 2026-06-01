@@ -256,16 +256,20 @@
     "content_hash": "a8e5bb28"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "Deleting this organization"
+    "text": "Deleting this organization",
+    "content_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "This is your default organization and can't be removed from the dashboard. To delete it, please reach out through the"
+    "text": "This is your default organization and can't be removed from the dashboard. To delete it, please reach out through the",
+    "content_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
-    "text": "feedback form"
+    "text": "feedback form",
+    "content_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "."
+    "text": ".",
+    "content_hash": "cdb4ee2a"
   },
   "web.organizations.members.title": {
     "text": "Members",
@@ -292,13 +296,16 @@
     "content_hash": "17373ca1"
   },
   "web.organizations.members.member_quota": {
-    "text": "{used} of {limit} members"
+    "text": "{used} of {limit} members",
+    "content_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count} pending)"
+    "text": "({count} pending)",
+    "content_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "Member limit reached."
+    "text": "Member limit reached.",
+    "content_hash": "26cdb6b8"
   },
   "web.organizations.members.name": {
     "text": "Name",
@@ -577,7 +584,7 @@
   },
   "web.organizations.invitations.upgrade_prompt": {
     "text": "Member invites require a paid plan. Upgrade to add collaborators to your organization.",
-    "content_hash": "cf10d623"
+    "content_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -834,15 +841,18 @@
   },
   "web.organizations.invitations.signup_continue": {
     "text": "Continue",
-    "context": "Submit button on the invite signup form. Submits the form and creates the account; the user then confirms the join on the next screen."
+    "context": "Submit button on the invite signup form. Submits the form and creates the account; the user then confirms the join on the next screen.",
+    "content_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
     "text": "Sign In",
-    "context": "Submit button on the invite signin form. Signs the user in; the user then confirms the join on the next screen."
+    "context": "Submit button on the invite signin form. Signs the user in; the user then confirms the join on the next screen.",
+    "content_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
     "text": "Almost done — confirm below to join the organization.",
-    "context": "Success message shown after the user completes signup or signin from an invite link. The Decline/Accept buttons appear immediately below."
+    "context": "Success message shown after the user completes signup or signin from an invite link. The Decline/Accept buttons appear immediately below.",
+    "content_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
     "text": "Go to Organizations",
