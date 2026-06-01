@@ -24,6 +24,10 @@ module Onetime
       load_config
     end
 
+    def configured?
+      @config.is_a?(Hash)
+    end
+
     # Main authentication mode: 'simple' or 'full'
     #
     # The environment variable is capture in the config file
@@ -36,11 +40,15 @@ module Onetime
 
     # Full mode configuration (Rodauth-based)
     def full
+      return {} unless auth_config
+
       auth_config['full'] || {}
     end
 
     # Simple mode configuration (Redis-only)
     def simple
+      return {} unless auth_config
+
       auth_config['simple'] || {}
     end
 
@@ -359,23 +367,16 @@ module Onetime
     end
 
     def load_config
-      validate_config_file_exists!
+      unless @path && File.exist?(@path)
+        @config = nil
+        return
+      end
 
       erb_template = ERB.new(File.read(@path))
       yaml_content = erb_template.result(binding)
       @config      = YAML.safe_load(yaml_content, symbolize_names: false)
     rescue StandardError => ex
       handle_config_error(ex)
-    end
-
-    def validate_config_file_exists!
-      return if File.exist?(@path)
-
-      raise ConfigError,
-        config_error_message(
-          'Configuration file not found',
-          "File does not exist: #{@path}",
-        )
     end
 
     def handle_config_error(exception)

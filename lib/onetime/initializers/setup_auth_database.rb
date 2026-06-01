@@ -15,7 +15,7 @@ module Onetime
     # establish its own connection when it first accesses the database.
     #
     class SetupAuthDatabase < Onetime::Boot::Initializer
-      @depends_on = [:logging]
+      @depends_on = [:logging, :auth_config_validated]
       @provides   = [:auth_database]
       @phase      = :fork_sensitive
 

@@ -50,6 +50,10 @@ module AuthModeHelpers
       @mode == 'simple'
     end
 
+    def configured?
+      true
+    end
+
     def disabled?
       @mode == 'disabled'
     end

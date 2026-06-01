@@ -4,7 +4,6 @@
 
 require 'fileutils'
 require 'yaml'
-require_relative 'helpers'
 require_relative '../config'
 
 module Onetime
@@ -31,8 +30,7 @@ module Onetime
     # If `etc/billing.yaml` is absent (the common case for fresh checkouts
     # without a configured Stripe catalog), the command exits cleanly with
     # an informational line — it is NOT an error.
-    class BillingCatalogGenerateDocsCommand < Command
-      include BillingHelpers
+    class BillingCatalogGenerateDocsCommand < DelayBootCommand
 
       desc 'Generate plan-definitions.md from billing.yaml'
 
@@ -41,18 +39,9 @@ module Onetime
         desc: 'Output file path (default: apps/web/billing/docs/plan-definitions.md)'
 
       def call(output: nil, **)
-        # Intentionally NOT calling boot_application!.
-        #
-        # This command is a pure YAML → markdown transform: it reads
-        # etc/billing.yaml, runs ERB, and writes Markdown. It does not
-        # touch Familia, Redis, the model layer, or auth config. Booting
-        # the full app would couple this generator to a fully-provisioned
-        # environment (Redis up, auth.yaml present, etc.) for no benefit,
-        # which is what broke when we first wired it into `predev`.
-        #
-        # Keeping it boot-free means: CI can regenerate without Redis,
-        # the predev hook can be strict instead of best-effort, and any
-        # contributor with Ruby + a billing.yaml can refresh the doc.
+        # Pure YAML → markdown transform: reads etc/billing.yaml, runs ERB,
+        # writes Markdown. No Familia, Redis, models, or auth config needed.
+        # Inherits from DelayBootCommand to avoid full app boot.
 
         catalog_path = Billing::Config.config_path
         output_path  = output || File.join('apps', 'web', 'billing', 'docs', 'plan-definitions.md')
@@ -81,10 +70,9 @@ module Onetime
         puts "✅ Documentation generated: #{output_path}"
         puts "   #{markdown.lines.count} lines, #{markdown.bytesize} bytes"
       rescue Psych::SyntaxError => ex
-        puts "❌ YAML syntax error: #{ex.message}"
+        raise "YAML syntax error in billing config: #{ex.message}"
       rescue StandardError => ex
-        puts "❌ Error generating docs: #{ex.message}"
-        puts ex.backtrace.first(5).join("\n") if OT.debug?
+        raise "Error generating billing docs: #{ex.message}"
       end
 
       private
