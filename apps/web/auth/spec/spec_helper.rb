@@ -464,7 +464,55 @@ module ProductionConfigHelper
 
     Familia.dbclient.flushdb
   rescue StandardError => e
-    warn "Failed to flush test database: #{e.message}" if ENV['DEBUG']
+    OT.le "[flush_test_database] Failed to flush test database: #{e.message}"
+  end
+
+  # Clean up SQL auth data between integration examples.
+  #
+  # The Valkey side is flushed every example, but Auth::Database.connection is
+  # memoized for the whole process, so accounts accumulate and desync from the
+  # flushed Redis customers (manifests as account_id climbing, then a JIT
+  # re-create colliding on the unique email index in SyncSession).
+  #
+  # DELETE rows rather than reconnect: the in-memory SQLite schema lives in the
+  # single shared connection, so disconnecting would drop the tables. Reset the
+  # autoincrement counter so account_id restarts at 1 (deterministic IDs).
+  #
+  # For PostgreSQL in CI, the application connection (onetime_user) lacks TRUNCATE
+  # privileges. Use AUTH_DATABASE_URL_MIGRATIONS (onetime_migrator) when available.
+  def clear_auth_database
+    db = Auth::Database.connection
+    # Preserve schema bookkeeping and seed-once reference tables (PRESERVED_TABLES).
+    tables = db.tables - AuthTestConstants::PRESERVED_TABLES
+    return if tables.empty?
+
+    case db.database_type
+    when :postgres
+      # Use elevated connection for TRUNCATE if available (CI privilege separation)
+      # Prefer existing PostgresModeSuiteDatabase connection to avoid per-test connect overhead
+      if defined?(PostgresModeSuiteDatabase) && PostgresModeSuiteDatabase.migration_database
+        PostgresModeSuiteDatabase.migration_database.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+      else
+        migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+        if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
+          elevated_db = Sequel.connect(migration_url)
+          begin
+            elevated_db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+          ensure
+            elevated_db.disconnect
+          end
+        else
+          db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+        end
+      end
+    when :sqlite
+      db.run('PRAGMA foreign_keys = OFF')
+      tables.each { |t| db[t].delete }
+      db[:sqlite_sequence].delete if db.table_exists?(:sqlite_sequence)
+      db.run('PRAGMA foreign_keys = ON')
+    end
+  rescue StandardError => e
+    OT.le "[clear_auth_database] Failed to clear auth database: #{e.message}"
   end
 
   # Get the auth database connection for assertions
@@ -512,13 +560,41 @@ RSpec.configure do |config|
     end
   end
 
-  # Clean database before each integration test
-  config.before(:each, type: :integration) do
+  # Clean database before each integration test.
+  #
+  # Respect the same opt-outs as the top-level spec/spec_helper.rb flush:
+  # specs that build fixtures in before(:all) and read them across examples
+  # set shared_db_state: true; billing specs manage their own state. Without
+  # this guard, requiring this helper in a shared rspec process (apps + core
+  # integration specs run together since 7b9cd9202) flushes those specs'
+  # before(:all) data out from under them.
+  config.before(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
+
     flush_test_database if respond_to?(:flush_test_database)
   end
 
-  # Clean database after each integration test
-  config.after(:each, type: :integration) do
+  # Clean database after each integration test (same opt-outs as above).
+  config.after(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
+
     flush_test_database if respond_to?(:flush_test_database)
+    clear_auth_database if respond_to?(:clear_auth_database)
+  end
+
+  # Restore the OmniAuth request-method global after every example.
+  #
+  # OmniAuth.config is process-global mutable state. Many specs set
+  # allowed_request_methods = %i[get post] (to exercise GET callbacks) but
+  # never reset it, so :get leaks into subsequent strategy inits and triggers
+  # the CVE-2015-9284 GET-request CSRF warning mid-suite. Unguarded (no
+  # shared_db_state/billing opt-out) so it always runs.
+  config.after(:each) do
+    next unless defined?(OmniAuth)
+
+    OmniAuth.config.allowed_request_methods = [:post]
+    OmniAuth.config.silence_get_warning = false
   end
 end

@@ -140,7 +140,7 @@ class OrphanDomainZsetLeakValidator
     return nil unless match
 
     objid = match[1]
-    return nil if %w[display_domains owners instances display_domain_index].include?(objid)
+    return nil if %w[display_domain_index owners instances display_domain_index].include?(objid)
 
     objid
   end

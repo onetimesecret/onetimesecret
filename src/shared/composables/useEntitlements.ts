@@ -95,7 +95,7 @@ export function useEntitlements(org: Ref<Organization | null>) {
   /**
    * Get the limit for a specific resource
    *
-   * @param resource - The resource to check (teams, members_per_team, custom_domains)
+   * @param resource - The resource to check (teams, total_members_per_org, custom_domains)
    * @returns The limit value, or 0 if not set
    */
   const limit = (resource: keyof NonNullable<Organization['limits']>): number => {

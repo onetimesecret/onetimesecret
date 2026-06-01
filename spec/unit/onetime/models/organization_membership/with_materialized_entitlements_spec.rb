@@ -79,9 +79,14 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
         expect(member).not_to include('manage_members')
       end
 
-      it 'admin-only includes audit_logs (not in member)' do
+      it 'admin includes custom_domains (not in member)' do
+        expect(admin).to include('custom_domains')
+        expect(member).not_to include('custom_domains')
+      end
+
+      it 'owner and admin include audit_logs' do
+        expect(owner).to include('audit_logs')
         expect(admin).to include('audit_logs')
-        expect(member).not_to include('audit_logs')
       end
 
       it 'member entitlements include create_secrets' do

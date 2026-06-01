@@ -255,6 +255,18 @@
     "text": "Failed to delete organization",
     "content_hash": "a8e5bb28"
   },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Deleting this organization"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "This is your default organization and can't be removed from the dashboard. To delete it, please reach out through the"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "feedback form"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": "."
+  },
   "web.organizations.members.title": {
     "text": "Members",
     "content_hash": "1044a4c0"
@@ -564,7 +576,7 @@
     "content_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization.",
+    "text": "Member invites require a paid plan. Upgrade to add collaborators to your organization.",
     "content_hash": "cf10d623"
   },
   "web.organizations.paid_badge": {
@@ -929,7 +941,7 @@
   },
   "api.organizations.invitations.errors.member_limit_reached": {
     "text": "Member limit reached. Upgrade your plan to invite more members.",
-    "context": "Returned when org members_per_team quota is hit",
+    "context": "Returned when org members_per_org quota is hit",
     "content_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {

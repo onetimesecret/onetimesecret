@@ -85,6 +85,8 @@ module OmniAuthTestHelper
   def reset_omniauth_config
     OmniAuth.config.test_mode = false
     OmniAuth.config.mock_auth.clear
+    OmniAuth.config.allowed_request_methods = [:post]
+    OmniAuth.config.silence_get_warning = false
   end
 
   # Mock a successful OIDC authentication hash

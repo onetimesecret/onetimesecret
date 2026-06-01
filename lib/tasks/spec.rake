@@ -24,6 +24,11 @@
 #   ├── disabled/   # AUTHENTICATION_MODE=disabled only
 #   └── all/        # Runs in ALL modes (infrastructure validation)
 #
+#   apps/web/auth/spec/integration/
+#   └── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
+#       ├── basicauth/  # BasicAuth contract tests
+#       └── migrations/ # DB migration tests
+#
 # The "all/" specs run three times (once per mode). This is intentional: they
 # validate that infrastructure (Puma forking, RabbitMQ, routing) works correctly
 # regardless of which auth layer sits above it. If someone accidentally couples
@@ -126,17 +131,18 @@ namespace :spec do
         end
 
         patterns = [
+          *Dir.glob("apps/*/*/spec/integration/#{mode}"),
           "spec/integration/#{mode}",
           'spec/integration/all',
-        ].join(' ')
+        ]
 
-        sh env, "bundle exec rspec #{patterns} #{tag_filter} #{rspec_format_options}"
+        sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
       end
     end
 
     desc 'Run full mode with PostgreSQL'
     task 'full:postgres' do
-      env = {
+      env      = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => ENV.fetch(
@@ -144,7 +150,11 @@ namespace :spec do
           'postgresql://postgres@localhost:5432/onetime_auth_test',
         ),
       }
-      sh env, "bundle exec rspec spec/integration/full --tag postgres_database #{rspec_format_options}"
+      patterns = [
+        *Dir.glob('apps/*/*/spec/integration/full'),
+        'spec/integration/full',
+      ]
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_format_options}"
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
@@ -170,7 +180,9 @@ namespace :try do
     patterns  = %w[try/unit try/system try/security try/features try/jobs]
     patterns += Dir.glob('apps/**/try')
     paths     = patterns.uniq.select { |p| Dir.exist?(p) }.join(' ')
-    sh "bundle exec tryouts --agent #{paths}" unless paths.empty?
+    # In CI: verbose output without agent mode; locally: agent mode for concise output
+    flags     = ENV['CI'] ? '--stack --verbose --debug --fails' : '--agent'
+    sh "bundle exec tryouts #{flags} #{paths}".squeeze(' ') unless paths.empty?
   end
 
   desc 'Run feature tryouts'

@@ -7,7 +7,7 @@ require 'spec_helper'
 # Unit tests for Receipt#deliver_by_email domain_id resolution.
 #
 # Verifies that deliver_by_email resolves share_domain to a domain_id
-# via CustomDomain.display_domains and passes it to Publisher.enqueue_email.
+# via CustomDomain.display_domain_index and passes it to Publisher.enqueue_email.
 #
 # Gap 4: Receipt delivery with domain context -- ensures the domain_id
 # keyword flows through to the Publisher so the email worker can look up
@@ -52,9 +52,9 @@ RSpec.describe Onetime::Receipt do
       let(:expected_domain_id) { 'customdomain:abc123' }
 
       before do
-        display_domains = double('display_domains')
-        allow(Onetime::CustomDomain).to receive(:display_domains).and_return(display_domains)
-        allow(display_domains).to receive(:get).with(share_domain).and_return(expected_domain_id)
+        display_domain_index = double('display_domain_index')
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_domain_index)
+        allow(display_domain_index).to receive(:get).with(share_domain).and_return(expected_domain_id)
         allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)
       end
 
@@ -114,13 +114,13 @@ RSpec.describe Onetime::Receipt do
       end
     end
 
-    context 'when share_domain is not registered in display_domains' do
+    context 'when share_domain is not registered in display_domain_index' do
       let(:share_domain) { 'unknown.example.com' }
 
       before do
-        display_domains = double('display_domains')
-        allow(Onetime::CustomDomain).to receive(:display_domains).and_return(display_domains)
-        allow(display_domains).to receive(:get).with(share_domain).and_return(nil)
+        display_domain_index = double('display_domain_index')
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_domain_index)
+        allow(display_domain_index).to receive(:get).with(share_domain).and_return(nil)
         allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)
       end
 
@@ -135,13 +135,13 @@ RSpec.describe Onetime::Receipt do
       end
     end
 
-    context 'when display_domains.get raises an error' do
+    context 'when display_domain_index.get raises an error' do
       let(:share_domain) { 'broken.example.com' }
 
       before do
-        display_domains = double('display_domains')
-        allow(Onetime::CustomDomain).to receive(:display_domains).and_return(display_domains)
-        allow(display_domains).to receive(:get).with(share_domain).and_raise(Redis::ConnectionError, 'Connection refused')
+        display_domain_index = double('display_domain_index')
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_domain_index)
+        allow(display_domain_index).to receive(:get).with(share_domain).and_raise(Redis::ConnectionError, 'Connection refused')
         allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)
       end
 

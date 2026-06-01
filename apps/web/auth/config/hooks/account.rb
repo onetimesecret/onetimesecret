@@ -12,7 +12,16 @@ module Auth::Config::Hooks
       # This hook is triggered before a new account is created. It performs
       # several validation checks on the provided email address.
       #
+      # NOTE: Rodauth hooks don't chain — each auth.before_create_account call
+      # overwrites the previous definition. All before_create_account logic must
+      # live here, not split across hook files. billing.rb's capture_plan_selection
+      # was moved here after the hook-collision bug (#3275).
+      #
       auth.before_create_account do
+        # Billing: capture plan selection from query params before validation.
+        # Method defined by Billing.configure via auth_class_eval; no-op if billing disabled.
+        capture_plan_selection if respond_to?(:capture_plan_selection)
+
         # Check if email already exists in either database
         # SECURITY: Two-database consistency check prevents orphaned accounts
         email = param(login_param)
@@ -248,6 +257,14 @@ module Auth::Config::Hooks
             )
           end
         end
+
+        # Billing redirect: add plan selection to JSON response (issue #3275).
+        # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
+        # so the method is only available when billing is enabled. Check respond_to?
+        # to avoid NoMethodError when billing is disabled (self-hosted).
+        if json_request? && respond_to?(:add_billing_redirect_to_response)
+          add_billing_redirect_to_response
+        end
       end
 
       #
@@ -257,10 +274,12 @@ module Auth::Config::Hooks
       # clicking a link in an email). It updates the verification status of
       # the associated Onetime::Customer record.
       #
-      # Note: This hook is disabled in the 'test' environment to simplify
-      # testing scenarios that do not require email verification flows.
+      # This hook is only registered when the verify_account feature is enabled.
+      # When disabled (e.g., in test environments via auth.yaml config), the
+      # Rodauth :verify_account feature isn't loaded, so the after_verify_account
+      # DSL method doesn't exist.
       #
-      unless Onetime.env?('testing')
+      if Onetime.auth_config.verify_account_enabled?
         auth.after_verify_account do
           Auth::Logging.log_auth_event(
             :account_verified,

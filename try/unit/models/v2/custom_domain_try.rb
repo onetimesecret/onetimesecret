@@ -7,7 +7,7 @@
 #   (D) custom_domain:{objid}:object has org_id field set
 #   (C) organization:{org_id}:domains sorted set contains the domain
 #   (E) custom_domain:owners hash maps domainid -> org_id
-# Also verifies custom_domain:instances and custom_domain:display_domains entries.
+# Also verifies custom_domain:instances and custom_domain:display_domain_index entries.
 
 require_relative '../../../support/test_models'
 
@@ -50,8 +50,8 @@ Onetime::CustomDomain.owners.get(@domain.domainid)
 Onetime::CustomDomain.instances.member?(@domain.domainid)
 #=> true
 
-## custom_domain:display_domains hash maps fqdn to domainid
-Onetime::CustomDomain.display_domains.get("val-test.example.com")
+## custom_domain:display_domain_index hash maps fqdn to domainid
+Onetime::CustomDomain.display_domain_index.get("val-test.example.com")
 #=> @domain.domainid
 
 ## Create second domain and verify all locations
@@ -97,7 +97,7 @@ Onetime::CustomDomain.instances.member?(@destroyed_id)
 #=> false
 
 ## Display domains hash no longer maps destroyed domain
-Onetime::CustomDomain.display_domains.get(@destroyed_display).nil?
+Onetime::CustomDomain.display_domain_index.get(@destroyed_display).nil?
 #=> true
 
 ## TC-CON-004: Re-create domain with same name after destroy succeeds
@@ -117,8 +117,8 @@ Onetime::CustomDomain.display_domains.get(@destroyed_display).nil?
 Onetime::CustomDomain.instances.member?(@domain3.domainid)
 #=> true
 
-## Re-created domain display_domains entry points to new domainid
-Onetime::CustomDomain.display_domains.get(@destroyed_display)
+## Re-created domain display_domain_index entry points to new domainid
+Onetime::CustomDomain.display_domain_index.get(@destroyed_display)
 #=> @domain3.domainid
 
 ## Re-created domain owners hash has correct org_id

@@ -4,7 +4,7 @@ import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
 
 /** Resolve the active org's extid at navigation time, falling back to dashboard */
@@ -13,29 +13,6 @@ function activeOrgPath(suffix: string) {
     const orgExtid = useOrganizationStore().currentOrganization?.extid;
     return orgExtid ? `/org/${orgExtid}/${suffix}` : '/dashboard';
   };
-}
-
-/**
- * Route guard: only org owners/admins may reach the "add custom domain" page (#3033).
- *
- * Resolves the target org by the route's :orgid (extid). When the role is
- * knowable and is 'member', redirect to the org's domains list. Unknown role
- * (org list not yet fetched, fresh page load) lets navigation proceed — the
- * page itself has a defensive v-if and the backend rejects with 403.
- */
-function requireDomainAdminRole(to: RouteLocationNormalized) {
-  const orgExtid = to.params.orgid as string | undefined;
-  if (!orgExtid) return true;
-
-  const store = useOrganizationStore();
-  const org =
-    store.getOrganizationByExtid(orgExtid) ??
-    (store.currentOrganization?.extid === orgExtid ? store.currentOrganization : null);
-
-  const role = org?.current_user_role ?? null;
-  if (role === 'owner' || role === 'admin' || role === null) return true;
-
-  return { path: `/org/${orgExtid}/domains` };
 }
 
 const routes: Array<RouteRecordRaw> = [
@@ -85,10 +62,10 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org/:orgid/domains/add',
     name: 'DomainAdd',
     component: () => import('@/apps/workspace/domains/DomainAdd.vue'),
-    beforeEnter: requireDomainAdminRole,
     meta: {
       title: 'web.TITLES.domain_add',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayFeedback: false,
@@ -106,6 +83,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_detail',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -127,6 +105,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_verify',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -148,6 +127,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_brand',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -169,6 +149,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_sso',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -190,6 +171,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_signup',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -211,6 +193,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_email',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -232,6 +215,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_incoming',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,

@@ -8,7 +8,7 @@
 #   1. org_id points to an existing organization (CRITICAL)
 #   2. display_domain field is not empty (HIGH)
 #   3. display_domain_index entries point to valid domains (HIGH)
-#   4. display_domains hash entries point to valid domains (MEDIUM)
+#   4. display_domain_index hash entries point to valid domains (MEDIUM)
 #   5. Domain with org_id is in org.domains sorted set (MEDIUM)
 #   6. org.domains sorted set entries have valid domain objects (MEDIUM)
 #   7. verification_state fields are coherent (WARNING)
@@ -130,7 +130,7 @@ module Onetime
             1. org_id points to existing organization (CRITICAL)
             2. display_domain field is not empty (HIGH)
             3. display_domain_index entries are valid (HIGH)
-            4. display_domains hash entries are valid (MEDIUM)
+            4. display_domain_index hash entries are valid (MEDIUM)
             5. Domain is in org.domains sorted set (MEDIUM)
             6. org.domains entries have valid domain objects (MEDIUM)
             7. verification_state is coherent (WARNING)
@@ -217,7 +217,7 @@ module Onetime
         issues = []
 
         check_display_domain_index_integrity(issues, report, repair: repair)
-        check_display_domains_hash_integrity(issues, report, repair: repair)
+        check_display_domain_index_hash_integrity(issues, report, repair: repair)
 
         if scope_org
           check_stale_org_domains(scope_org, report, repair: repair)
@@ -272,11 +272,11 @@ module Onetime
         }
       end
 
-      # CHECK: display_domains hash entries point to valid domains
-      def check_display_domains_hash_integrity(issues, report, repair:)
+      # CHECK: display_domain_index hash entries point to valid domains
+      def check_display_domain_index_hash_integrity(issues, report, repair:)
         stale_entries = []
 
-        Onetime::CustomDomain.display_domains.hgetall.each do |fqdn, identifier|
+        Onetime::CustomDomain.display_domain_index.hgetall.each do |fqdn, identifier|
           domain = Onetime::CustomDomain.load(identifier)
 
           if domain.nil?
@@ -289,9 +289,9 @@ module Onetime
         return if stale_entries.empty?
 
         issues << {
-          check: :display_domains_hash_stale,
+          check: :display_domain_index_hash_stale,
           severity: :medium,
-          message: "#{stale_entries.size} stale display_domains hash entries",
+          message: "#{stale_entries.size} stale display_domain_index hash entries",
           stale_entries: stale_entries.first(10),
           total_stale: stale_entries.size,
           repairable: true,
@@ -300,12 +300,12 @@ module Onetime
         return unless repair
 
         stale_entries.each do |entry|
-          Onetime::CustomDomain.display_domains.remove(entry[:fqdn])
-          OT.info "[domains doctor] Removed stale display_domains[#{entry[:fqdn]}]"
+          Onetime::CustomDomain.display_domain_index.remove(entry[:fqdn])
+          OT.info "[domains doctor] Removed stale display_domain_index[#{entry[:fqdn]}]"
         end
 
         report[:repaired] << {
-          action: :display_domains_hash_cleaned,
+          action: :display_domain_index_hash_cleaned,
           count: stale_entries.size,
         }
       end
@@ -641,8 +641,8 @@ module Onetime
             case r[:action]
             when :display_domain_index_cleaned
               puts "  Cleaned #{r[:count]} stale display_domain_index entries"
-            when :display_domains_hash_cleaned
-              puts "  Cleaned #{r[:count]} stale display_domains hash entries"
+            when :display_domain_index_hash_cleaned
+              puts "  Cleaned #{r[:count]} stale display_domain_index hash entries"
             when :stale_org_domains_removed
               puts "  #{r[:org]}: removed #{r[:count]} stale org.domains entries"
             when :added_to_org_domains

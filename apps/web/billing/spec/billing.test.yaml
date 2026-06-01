@@ -15,7 +15,7 @@
 
 schema_version: '1.0'
 app_identifier: 'onetimesecret'
-enabled: false
+enabled: <%= ENV.fetch('BILLING_ENABLED', 'false') %>
 stripe_key: 'sk_test_mock'
 webhook_signing_secret: 'whsec_test_mock'
 stripe_api_version: '2025-11-17.clover'
@@ -106,10 +106,10 @@ plans:
     limits:
       teams: 0
       organizations: 5
-      members_per_team: 1
-      owners_per_team: 1
-      admins_per_team: 0
-      regular_members_per_team: 0
+      total_members_per_org: 1
+      role_owners_per_org: 1
+      role_admins_per_org: 0
+      role_members_per_org: 0
       custom_domains: 0
       secret_lifetime: 604800 # 7 days
 
@@ -143,10 +143,10 @@ plans:
     limits:
       teams: 0
       organizations: 10
-      members_per_team: 10
-      owners_per_team: 1
-      admins_per_team: 2
-      regular_members_per_team: -1
+      total_members_per_org: 10
+      role_owners_per_org: 1
+      role_admins_per_org: 2
+      role_members_per_org: -1
       custom_domains: -1 # unlimited
       secret_lifetime: 2592000 # 30 days
 
@@ -180,10 +180,10 @@ plans:
     limits:
       teams: 1
       organizations: 1
-      members_per_team: 5
-      owners_per_team: 1
-      admins_per_team: 2
-      regular_members_per_team: -1
+      total_members_per_org: 5
+      role_owners_per_org: 1
+      role_admins_per_org: 2
+      role_members_per_org: -1
       custom_domains: 0
       secret_lifetime: 1209600 # 14 days
 

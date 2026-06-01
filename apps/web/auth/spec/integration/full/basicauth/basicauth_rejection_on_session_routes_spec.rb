@@ -17,11 +17,13 @@
 # Run:
 #   source .env.test && bundle exec rspec apps/web/auth/spec/integration/basicauth_rejection_on_session_routes_spec.rb --format documentation
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
+require_relative '../../../spec_helper'
+require_relative '../../../support/strategy_test_context'
 require 'json'
 
-RSpec.describe 'BasicAuth rejection on session-only routes', type: :integration do
+# shared_db_state: strategy_test_context creates customer in before(:each);
+# redundant flush hooks across spec helpers can run after and wipe fixtures.
+RSpec.describe 'BasicAuth rejection on session-only routes', type: :integration, shared_db_state: true do
   include_context 'strategy test'
 
   # -----------------------------------------------------------------------

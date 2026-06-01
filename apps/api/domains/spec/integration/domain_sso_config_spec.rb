@@ -113,7 +113,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       org_id: test_organization.org_id,
     )
     domain.save
-    Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+    Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain
   end
 
@@ -146,7 +146,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
   # Clean up after each test
   after do
     Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
-    Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+    Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy! rescue nil
     test_organization&.destroy! rescue nil
     test_owner&.destroy! rescue nil

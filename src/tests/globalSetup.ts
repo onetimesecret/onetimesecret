@@ -13,6 +13,11 @@ import { existsSync } from 'fs';
 import { resolve } from 'path';
 
 export function setup() {
+  // Print test harness banner showing key feature flags
+  // Mirrors Ruby harness banners for consistency across test frameworks
+  const billingEnabled = process.env.BILLING_ENABLED ?? 'false';
+  console.log(`[Vitest] billing:${billingEnabled}`);
+
   const generatedLocale = resolve(
     process.cwd(),
     'generated/locales/en.json'

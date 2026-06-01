@@ -80,6 +80,12 @@ RSpec.describe 'OmniAuth Failure Handling' do
     context 'when OmniAuth is configured', :omniauth_mock do
       # Uses mock OIDC discovery via OmniAuthTestHelper
 
+      before do
+        # Allow platform fallback so tenant hook doesn't short-circuit before
+        # the OmniAuth failure handler runs (test host is example.org, not canonical)
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      end
+
       it 'failure redirect path includes auth_error param' do
         # Verify the configuration produces the expected redirect path
         expected_path = '/signin?auth_error=sso_failed'

@@ -37,7 +37,7 @@ export function createMockPlan(overrides: Partial<Plan> = {}): Plan {
     region: 'US',
     display_order: 100,
     features: ['Feature 1', 'Feature 2'],
-    limits: { teams: 1, members_per_team: 10 },
+    limits: { teams: 1, total_members_per_org: 10 },
     entitlements: ['create_secrets', 'api_access', 'custom_domains'],
     ...overrides,
   };
@@ -56,7 +56,7 @@ export const mockPlans: Record<string, Plan> = {
     amount: 0,
     display_order: 0,
     features: ['Basic secret sharing'],
-    limits: { teams: 0, members_per_team: 0 },
+    limits: { teams: 0, total_members_per_org: 0 },
     entitlements: [],
   }),
   /**
@@ -74,7 +74,7 @@ export const mockPlans: Record<string, Plan> = {
     display_order: -1, // Not shown in plan selector (legacy)
     plan_code: 'identity',
     features: ['Custom domains', 'API access', 'Branding', 'Early Supporter perks'],
-    limits: { teams: 1, members_per_team: 10 },
+    limits: { teams: 1, total_members_per_org: 10 },
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
   single_team: createMockPlan({
@@ -88,7 +88,7 @@ export const mockPlans: Record<string, Plan> = {
     plan_code: 'identity_plus_v1',
     is_popular: true,
     features: ['Custom domains', 'API access', 'Branding'],
-    limits: { teams: 1, members_per_team: 10 },
+    limits: { teams: 1, total_members_per_org: 10 },
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
   multi_team: createMockPlan({
@@ -101,7 +101,7 @@ export const mockPlans: Record<string, Plan> = {
     display_order: 20,
     plan_code: 'team_plus_v1',
     features: ['All Identity Plus features', 'Multiple teams', 'SSO', 'Audit logs'],
-    limits: { teams: 5, members_per_team: 25 },
+    limits: { teams: 5, total_members_per_org: 25 },
     entitlements: [
       'api_access',
       'custom_domains',

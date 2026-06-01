@@ -53,7 +53,7 @@ module Auth
       # Use `next` not `return` because we're in an instance_exec context.
       #
       if Auth::Config.configured
-        OT.ld '[Auth::Config] Skipping duplicate configuration (already configured)'
+        OT.lw '[Auth::Config] Skipping duplicate configuration (already configured)'
         next
       end
 
@@ -142,7 +142,7 @@ module Auth
       end
 
       # Billing: plan selection carry-through for checkout flow
-      if Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+      if Onetime.billing_config.enabled?
         Hooks::Billing.configure(self)
       end
 

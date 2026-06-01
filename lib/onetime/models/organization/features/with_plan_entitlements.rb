@@ -114,10 +114,10 @@ module Onetime
             @free_tier_limits ||= {
               'organizations.max' => 5,
               'teams.max' => 0,
-              'members_per_team.max' => 0,
-              'owners_per_team.max' => 1,
-              'admins_per_team.max' => 0,
-              'regular_members_per_team.max' => 0,
+              'total_members_per_org.max' => 0,
+              'role_owners_per_org.max' => 1,
+              'role_admins_per_org.max' => 0,
+              'role_members_per_org.max' => 0,
               'secret_lifetime.max' => parse_ttl_env('PLAN_TTL_ANONYMOUS', WithEntitlements::DEFAULT_FREE_TTL),
             }.freeze
           end

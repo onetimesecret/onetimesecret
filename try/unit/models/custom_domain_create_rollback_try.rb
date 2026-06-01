@@ -5,7 +5,7 @@
 # Tests for CustomDomain.create! rollback via destroy!
 #
 # As of commit 14c527f, the rescue inside CustomDomain.create! was changed
-# from an enumerated cleanup (display_domains.remove, instances.remove,
+# from an enumerated cleanup (display_domain_index.remove, instances.remove,
 # owners.remove, ApiConfig.delete_for_domain!, HomepageConfig.delete_for_domain!,
 # remove_from_class_display_domain_index, ...) to a single obj.destroy! call,
 # wrapped in its own rescue so a secondary failure during rollback cannot mask
@@ -22,7 +22,7 @@
 # block of create! and asserts that no orphan state remains:
 #
 #   1. main domain hash (obj.dbkey) is gone
-#   2. display_domains[display_domain] is nil
+#   2. display_domain_index[display_domain] is nil
 #   3. display_domain_index (unique_index) is clear
 #   4. instances sorted set does not contain the objid
 #   5. owners hash does not contain the objid
@@ -54,7 +54,7 @@ OT.info 'Cleaned Redis for CustomDomain.create! rollback test run'
 
 # Shared owner + org for the bulk of the scenarios. Each scenario uses a
 # distinct display_domain so any leak (a missing rollback) surfaces as a
-# stale display_domains entry visible to later scenarios.
+# stale display_domain_index entry visible to later scenarios.
 @owner = Onetime::Customer.create!(email: "cd_rb_owner_#{@ts}_#{@entropy}@test.com")
 @org   = Onetime::Organization.create!(
   "CD Rollback Org #{@ts}_#{@entropy}",
@@ -74,10 +74,10 @@ OT.info 'Cleaned Redis for CustomDomain.create! rollback test run'
 #
 # Stub Onetime::Organization.load to raise when called with our target org_id.
 # At that point in create!, obj.generate_txt_validation_record and obj.save
-# have both succeeded — so the main domain hash is in Redis, display_domains
+# have both succeeded — so the main domain hash is in Redis, display_domain_index
 # has the hsetnx entry, but instances/owners/bootstrap have NOT yet run.
 # Org participation has NOT been added. The rollback's destroy! must clean
-# up the main hash AND the display_domains entry AND the
+# up the main hash AND the display_domain_index entry AND the
 # display_domain_index — that is the orphan path the bug fix addresses.
 
 ## Setup: Scenario 1 - capture state and stub Organization.load to raise
@@ -92,9 +92,9 @@ s1_capture     = @s1_captured
 org_class.define_singleton_method(:load) do |id, *rest|
   if id.to_s == target_org_id.to_s
     # Capture identifier/dbkey from the in-flight create! BEFORE we raise.
-    # By this point, hsetnx + save have run, so display_domains has the
+    # By this point, hsetnx + save have run, so display_domain_index has the
     # entry and the main hash exists.
-    captured_id          = Onetime::CustomDomain.display_domains.get(s1_target_fqdn)
+    captured_id          = Onetime::CustomDomain.display_domain_index.get(s1_target_fqdn)
     s1_capture[:id]      = captured_id
     s1_capture[:dbkey]   = "custom_domain:#{captured_id}:object"
     raise StandardError, "forced failure: Organization.load post-save"
@@ -129,8 +129,8 @@ end
 Onetime::CustomDomain.find_by_identifier(@s1_captured[:id]).nil?
 #=> true
 
-## S1: display_domains entry for the FQDN is cleared
-Onetime::CustomDomain.display_domains.get(@s1_fqdn)
+## S1: display_domain_index entry for the FQDN is cleared
+Onetime::CustomDomain.display_domain_index.get(@s1_fqdn)
 #=> nil
 
 ## S1: display_domain_index (auto unique_index) is cleared
@@ -192,7 +192,7 @@ hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
   domain_id = kwargs[:domain_id]
   # Only intercept calls for our scenario-2 target domain so we don't
   # disturb unrelated bootstrap calls elsewhere.
-  expected_id = Onetime::CustomDomain.display_domains.get(s2_target_fqdn)
+  expected_id = Onetime::CustomDomain.display_domain_index.get(s2_target_fqdn)
   if domain_id.to_s == expected_id.to_s && !expected_id.to_s.empty?
     s2_capture[:id]    = expected_id
     s2_capture[:dbkey] = "custom_domain:#{expected_id}:object"
@@ -225,8 +225,8 @@ end
 Onetime::CustomDomain.find_by_identifier(@s2_captured[:id]).nil?
 #=> true
 
-## S2: display_domains entry is cleared
-Onetime::CustomDomain.display_domains.get(@s2_fqdn)
+## S2: display_domain_index entry is cleared
+Onetime::CustomDomain.display_domain_index.get(@s2_fqdn)
 #=> nil
 
 ## S2: display_domain_index is cleared
@@ -277,7 +277,7 @@ s3_capture     = @s3_captured
 
 api_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
   domain_id = kwargs[:domain_id]
-  expected_id = Onetime::CustomDomain.display_domains.get(s3_target_fqdn)
+  expected_id = Onetime::CustomDomain.display_domain_index.get(s3_target_fqdn)
   if domain_id.to_s == expected_id.to_s && !expected_id.to_s.empty?
     s3_capture[:id]             = expected_id
     # Confirm that the HomepageConfig bootstrap step already wrote a record
@@ -320,9 +320,9 @@ Onetime::CustomDomain::ApiConfig.exists_for_domain?(@s3_captured[:id])
 Onetime::CustomDomain.find_by_identifier(@s3_captured[:id]).nil?
 #=> true
 
-## S3: display_domains, instances, owners, display_domain_index all cleared
+## S3: display_domain_index, instances, owners, display_domain_index all cleared
 [
-  Onetime::CustomDomain.display_domains.get(@s3_fqdn),
+  Onetime::CustomDomain.display_domain_index.get(@s3_fqdn),
   Onetime::CustomDomain.display_domain_index.get(@s3_fqdn),
   Onetime::CustomDomain.instances.score(@s3_captured[:id]),
   Onetime::CustomDomain.owners.get(@s3_captured[:id]),
@@ -337,9 +337,9 @@ Onetime::CustomDomain.load_by_display_domain(@s3_fqdn)
 # Scenario 4: failure BEFORE obj.save (during generate_txt_validation_record)
 # ----------------------------------------------------------------------------
 #
-# At this point hsetnx HAS written display_domains[fqdn]=identifier — but
+# At this point hsetnx HAS written display_domain_index[fqdn]=identifier — but
 # obj.save has NOT been called, so the main hash does not exist. destroy!
-# should still clean up cleanly: self.class.rem removes the display_domains
+# should still clean up cleanly: self.class.rem removes the display_domain_index
 # entry and the unique_index; the main DEL is a no-op on a missing key.
 
 ## Setup: Scenario 4 - stub parse to return obj whose generate_txt_validation_record raises
@@ -387,8 +387,8 @@ end
 Onetime::CustomDomain.find_by_identifier(@s4_captured[:id]).nil?
 #=> true
 
-## S4: display_domains entry was set by hsetnx then cleaned by rollback
-Onetime::CustomDomain.display_domains.get(@s4_fqdn)
+## S4: display_domain_index entry was set by hsetnx then cleaned by rollback
+Onetime::CustomDomain.display_domain_index.get(@s4_fqdn)
 #=> nil
 
 ## S4: instances and owners were never written
@@ -420,7 +420,7 @@ Onetime::CustomDomain.load_by_display_domain(@s4_fqdn)
 # break ONE specific rollback step (ApiConfig.delete_for_domain! — the
 # sibling-cleanup step that runs DURING rollback, picked because the
 # destroy_cascade tryout already demonstrates that stub-and-restore on
-# the class-singleton works here). The remaining steps — display_domains,
+# the class-singleton works here). The remaining steps — display_domain_index,
 # display_domain_index, instances, owners, HomepageConfig, main hash,
 # organization participation — must still execute. The original exception
 # must still escape create! unchanged.
@@ -439,7 +439,7 @@ s5_capture         = @s5_captured
 # AFTER instances.add and owners.put have run.
 hp_class.define_singleton_method(:find_or_create_for_domain) do |**kwargs|
   domain_id   = kwargs[:domain_id]
-  expected_id = Onetime::CustomDomain.display_domains.get(s5_target_fqdn)
+  expected_id = Onetime::CustomDomain.display_domain_index.get(s5_target_fqdn)
   if domain_id.to_s == expected_id.to_s && !expected_id.to_s.empty?
     s5_capture[:id] = expected_id
     raise StandardError, "ORIGINAL create! failure: HomepageConfig bootstrap"
@@ -493,8 +493,8 @@ end
 #=> false
 
 ## S5: even with ApiConfig.delete_for_domain! broken, other steps still ran.
-## display_domains was cleared (different step, independently rescued).
-Onetime::CustomDomain.display_domains.get(@s5_fqdn)
+## display_domain_index was cleared (different step, independently rescued).
+Onetime::CustomDomain.display_domain_index.get(@s5_fqdn)
 #=> nil
 
 ## S5: main domain hash was deleted (Familia DEL step ran independently)
@@ -534,7 +534,7 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@s5_captured[:id])
 
 ## Setup: Scenario 6 - confirm the s1 display_domain has no residue
 [
-  Onetime::CustomDomain.display_domains.get(@s1_fqdn),
+  Onetime::CustomDomain.display_domain_index.get(@s1_fqdn),
   Onetime::CustomDomain.load_by_display_domain(@s1_fqdn),
 ]
 #=> [nil, nil]
@@ -554,7 +554,7 @@ Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@s5_captured[:id])
 
 ## S6: all the expected indexes are populated for the retry
 [
-  Onetime::CustomDomain.display_domains.get(@s1_fqdn) == @s6_domain.identifier,
+  Onetime::CustomDomain.display_domain_index.get(@s1_fqdn) == @s6_domain.identifier,
   Onetime::CustomDomain.display_domain_index.get(@s1_fqdn) == @s6_domain.identifier,
   !Onetime::CustomDomain.instances.score(@s6_domain.identifier).nil?,
   Onetime::CustomDomain.owners.get(@s6_domain.identifier) == @org_id,

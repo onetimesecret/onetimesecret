@@ -31,10 +31,17 @@
 require 'rspec'
 require 'json'
 
-# Define the namespace hierarchy before loading the module
+# Define the Auth::Config namespace so the production module loads in isolation,
+# without a full app boot. Auth::Config MUST be a Rodauth::Auth subclass here,
+# never a plain `module Config`: if this file is ever loaded in a process that
+# also boots the real app, the application registry reopens
+# `class Config < Rodauth::Auth`. A module fixes the constant to the wrong type,
+# so the reopen raises "TypeError: Config is not a class" and boot is marked
+# permanently not-ready for every later spec in the process.
+require 'rodauth'
 module Auth; end
-module Auth::Config; end
-module Auth::Config::Hooks; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Load the actual production module
 require_relative '../../../config/hooks/billing'

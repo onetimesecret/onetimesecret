@@ -83,7 +83,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       org_id: tenant_organization.org_id,
     )
     domain.save
-    Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+    Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain
   end
 
@@ -96,7 +96,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
   after do
     sso_customer&.destroy! rescue nil
-    Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+    Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     tenant_custom_domain&.destroy! rescue nil
     tenant_organization&.destroy! rescue nil
     tenant_org_owner&.destroy! rescue nil
@@ -106,7 +106,18 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   # Operation-level: JoinDomainOrganization correctness
   # ==========================================================================
 
-  describe 'JoinDomainOrganization operation' do
+  # :shared_db_state opts these examples out of the per-each Valkey flush.
+  # The fixtures above are built in per-example `let!` hooks, not before(:all),
+  # so the tag name is a slight misnomer here — but the guard is exactly what we
+  # need: the integration flush hooks live in three helpers (this app's
+  # spec_helper, the core integration_spec_helper, and the top-level
+  # spec_helper). Their before(:each) ordering relative to this group's `let!`
+  # is incidental to load order; under some orderings the core
+  # integration_spec_helper flush runs AFTER `let!` and wipes the freshly-saved
+  # CustomDomain before the example body reads it ("Domain not found"). Skipping
+  # the flush makes the group order-proof: each example uses a unique
+  # `test_run_id`, builds its own fixtures, and tears them down in `after`.
+  describe 'JoinDomainOrganization operation', :shared_db_state do
     it 'adds the customer to the tenant organization as a member' do
       result = Auth::Operations::JoinDomainOrganization.new(
         customer: sso_customer,
@@ -141,6 +152,45 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(second[:joined]).to be(false)
       expect(second[:reason]).to eq('already_member')
       expect(second[:organization]&.objid).to eq(tenant_organization.objid)
+    end
+
+    # The invited-then-SSO sub-case: a pending org-scoped invitation is accepted
+    # *through* the SSO join path. ensure_membership takes its accept! branch,
+    # which carries the invitation's own (nil) domain_scope_id — the SSO-supplied
+    # domain_scope_id is ignored. The member therefore stays org-scoped: broader
+    # access than domain-scoped, not a leak. This test pins that as intended
+    # behavior and asserts the invite is consumed (not duplicated) and that
+    # provisioning_source: 'sso' threads through accept!/activate!.
+    it 'accepts a pending org-scoped invitation via SSO and stays org-scoped' do
+      invitation = Onetime::OrganizationMembership.create_invitation!(
+        organization: tenant_organization,
+        email: sso_customer.email,
+        role: 'member',
+        inviter: tenant_org_owner,
+      )
+      expect(invitation.pending?).to be(true)
+      expect(tenant_organization.pending_invitation_count).to eq(1)
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: sso_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true), "Expected invited user to be joined, got: #{result.inspect}"
+      expect(result[:reason]).to eq('added_via_sso')
+      expect(tenant_organization.member?(sso_customer)).to be(true)
+
+      # Invite consumed, not duplicated.
+      expect(tenant_organization.pending_invitation_count).to eq(0)
+
+      membership = result[:membership]
+      expect(membership).not_to be_nil
+      # SSO lifecycle attribution survives the accept! path.
+      expect(membership.provisioning_source).to eq('sso')
+      # Scope invariant: invite's nil scope wins over the SSO domain_scope_id.
+      expect(membership.org_scoped?).to be(true),
+        "Expected membership to stay org-scoped, got domain_scope_id=#{membership.domain_scope_id.inspect}"
+      expect(membership.domain_scope_id.to_s).to be_empty
     end
   end
 
@@ -227,7 +277,11 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
     end
 
     after do
-      Onetime::Customer.find_by_email(e2e_user_email)&.destroy! rescue nil
+      begin
+        Onetime::Customer.find_by_email(e2e_user_email)&.destroy!
+      rescue => e
+        OT.le "[domain_sso_join_organization_spec] Error in after: #{e.message}"
+      end
       cleanup_oauth_test_fixtures
     end
 
@@ -248,7 +302,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
         post '/auth/sso/oidc'
 
         if last_response.status == 404
-          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
+          skip "OmniAuth route not registered (OIDC discovery not available at boot for #{e2e_domain_host})"
         end
         expect(last_response.status).to eq(302),
           "Initiation should redirect, got: #{last_response.status}"

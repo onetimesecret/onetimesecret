@@ -30,7 +30,9 @@ const paymentMethod = ref<PaymentMethod | null>(null);
 const nextBillingDate = ref<Date | null>(null);
 const planFeatures = ref<string[]>([]);
 const federationNotification = ref<FederationNotificationData | null>(null);
-const isLoading = ref(false);
+// Best practice: Initialize loading states to `true` to prevent uninitialized
+// content or empty states from briefly flashing on mount.
+const isLoading = ref(true);
 const error = ref('');
 const success = ref('');
 

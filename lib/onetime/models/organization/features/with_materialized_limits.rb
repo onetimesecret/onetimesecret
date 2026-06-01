@@ -63,7 +63,7 @@ module Onetime
           #
           # @example
           #   org.limit_for('teams')            # => 1
-          #   org.limit_for(:members_per_team)  # => Float::INFINITY
+          #   org.limit_for(:total_members_per_org)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
             # Fail-open: self-hosted/standalone gets unlimited

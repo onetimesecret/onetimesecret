@@ -31,13 +31,17 @@
 require_relative '../spec_helper'
 require 'climate_control'
 
-# Define namespace before loading the MFA module
-module Auth
-  module Config
-    module Features
-    end
-  end
-end
+# Define the Auth::Config namespace before loading the MFA module. Auth::Config
+# MUST be a Rodauth::Auth subclass here, never a plain `module Config` or
+# `class Config`: if this file is ever loaded in a process that also boots the
+# real app, the application registry reopens `class Config < Rodauth::Auth`. A
+# plain module/class fixes the constant to the wrong type, so the reopen raises a
+# TypeError ("Config is not a class") and boot is marked permanently not-ready
+# for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Features, Module.new) unless Auth::Config.const_defined?(:Features, false)
 require_relative '../../config/features/mfa'
 
 RSpec.describe 'ENV-conditional feature loading' do

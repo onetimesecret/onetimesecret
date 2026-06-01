@@ -25,7 +25,7 @@ end
 @owner = Onetime::Customer.create!(email: generate_unique_test_email("loader_owner"))
 @org = Onetime::Organization.create!("Loader Test Org", @owner, generate_unique_test_email("loader_contact"))
 
-# Create a custom domain and register it in the display_domains index
+# Create a custom domain and register it in the display_domain_index index
 @domain = Onetime::CustomDomain.create!("loader-test.example.com", @org.objid)
 
 # Create a domain-scoped member who can only access a *different* domain

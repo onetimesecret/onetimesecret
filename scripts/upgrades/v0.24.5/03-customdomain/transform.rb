@@ -75,8 +75,8 @@ class CustomDomainTransformer
   }.freeze
 
   # V1 index keys that should be skipped (not domain-specific records)
-  # These are 2-part keys like custom_domain:owners, custom_domain:display_domains
-  V1_INDEX_KEYS = %w[owners display_domains instances values].freeze
+  # These are 2-part keys like custom_domain:owners, custom_domain:display_domain_index
+  V1_INDEX_KEYS = %w[owners display_domain_index instances values].freeze
 
   # Field type mappings for brand hash (from src/schemas/models/custom-domain/brand.ts)
   BRAND_FIELD_TYPES = {
@@ -242,7 +242,7 @@ class CustomDomainTransformer
       next unless key_parts.first == 'customdomain' && key_parts.size >= 2
 
       # Skip V1 index keys (2-part keys where second part is an index name)
-      # e.g., custom_domain:owners, custom_domain:display_domains, custom_domain:values
+      # e.g., custom_domain:owners, custom_domain:display_domain_index, custom_domain:values
       if key_parts.size == 2 && V1_INDEX_KEYS.include?(key_parts[1])
         # Store instance indexes for later processing if needed
         groups['__instance_index__'] << record if key_parts[1] == 'values'

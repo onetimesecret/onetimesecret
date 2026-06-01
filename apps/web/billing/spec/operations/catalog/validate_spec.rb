@@ -111,6 +111,7 @@ RSpec.describe Billing::Operations::Catalog::Validate, :billing do
     context 'missing catalog file' do
       before do
         allow(Billing::Config).to receive(:config_path).and_return('/nonexistent/billing.yaml')
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with('/nonexistent/billing.yaml').and_return(false)
       end
 
@@ -128,6 +129,7 @@ RSpec.describe Billing::Operations::Catalog::Validate, :billing do
     context 'missing schema file' do
       before do
         allow(Billing::Config).to receive(:config_path).and_return(config_path)
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(config_path).and_return(true)
         allow(File).to receive(:exist?).with(schema_path).and_return(false)
       end
@@ -160,6 +162,7 @@ RSpec.describe Billing::Operations::Catalog::Validate, :billing do
 
       before do
         allow(Billing::Config).to receive(:config_path).and_return(config_path)
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(config_path).and_return(true)
         allow(File).to receive(:exist?).with(schema_path).and_return(true)
         allow(File).to receive(:read).and_call_original

@@ -135,27 +135,20 @@ module AccountAPI::Logic
 
         plans = ::Billing::Plan.list_plans.compact
 
-        # Group by tier, preferring monthly plans over yearly
-        plans_by_tier = {}
+        # Key by plan_id (the family identifier). Each Plan holds all interval
+        # variants (month/year) in its prices hashkey, so there are no per-
+        # interval duplicates to collapse; entitlements are family-level.
+        plans_by_id = {}
 
         plans.each do |plan|
-          existing = plans_by_tier[plan.tier]
-
-          # Keep existing if it's monthly (preferred), otherwise replace
-          next if existing && existing[:interval] == 'month'
-
-          plans_by_tier[plan.tier] = {
-            interval: plan.interval, # Track for deduplication
-            data: {
-              plan_id: plan.plan_id,
-              name: plan.name,
-              entitlements: plan.entitlements.to_a,
-            },
+          plans_by_id[plan.plan_id] = {
+            plan_id: plan.plan_id,
+            name: plan.name,
+            entitlements: plan.entitlements.to_a,
           }
         end
 
-        # Extract just the data hashes (without the interval tracking key)
-        plans_by_tier.values.map { |entry| entry[:data] }
+        plans_by_id.values
       rescue StandardError => ex
         billing_logger.error '[GetEntitlements] Error loading plans from cache', exception: ex
         []
