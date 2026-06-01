@@ -160,7 +160,7 @@ module FullModeSuiteDatabase
       db = @migration_database || @database
       AuthAccountFactory::RODAUTH_TABLES.each do |table|
         next unless db.table_exists?(table)
-        db[table].truncate(cascade: true)
+        db[table].truncate(cascade: true, restart: true)
       rescue Sequel::DatabaseError => e
         warn "Failed to truncate #{table}: #{e.message}"
       end
@@ -188,10 +188,23 @@ module FullModeSuiteDatabase
 
     def drop_all_tables(db)
       tables = db.tables
-      return unless tables.any?
+      if tables.any?
+        table_list = tables.map { |t| db.literal(Sequel.identifier(t)) }.join(', ')
+        db.run "DROP TABLE IF EXISTS #{table_list} CASCADE"
+      end
 
-      table_list = tables.map { |t| db.literal(Sequel.identifier(t)) }.join(', ')
-      db.run "DROP TABLE IF EXISTS #{table_list} CASCADE"
+      our_functions = %w[
+        rodauth_get_salt
+        rodauth_valid_password_hash
+        cleanup_expired_tokens
+        update_last_login_time
+        cleanup_expired_tokens_extended
+        update_accounts_updated_at
+        update_session_last_use
+        cleanup_old_audit_logs
+        get_account_security_summary
+      ]
+      db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE"
     end
 
     def run_postgres_migrations
