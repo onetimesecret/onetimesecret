@@ -245,6 +245,37 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         expect(result.memberships_failed).to eq(1)
         expect(result.errors.first[:reason]).to include('1/1 membership failures')
       end
+
+      # Defensive: the seam is documented for non-test callers, so a malformed
+      # loader must not crash the cascade — a nil return and nil entries are
+      # tolerated rather than raising NoMethodError mid-batch.
+      it 'treats a loader returning nil as an empty cascade' do
+        result = described_class.call(
+          include_memberships: true,
+          iterator: iterator,
+          membership_loader: ->(_org) { nil },
+        )
+
+        expect(result.succeeded).to eq(1)
+        expect(result.orgs_cascaded).to eq(1)
+        expect(result.memberships_succeeded).to eq(0)
+        expect(result.memberships_failed).to eq(0)
+      end
+
+      it 'skips nil entries in the loader result without crashing the cascade' do
+        good = build_membership(objid: 'mem_good', role: 'member', entitlements_count: 4)
+
+        result = described_class.call(
+          include_memberships: true,
+          iterator: iterator,
+          membership_loader: ->(_org) { [nil, good, nil] },
+        )
+
+        expect(good).to have_received(:materialize_for_role!).with(org)
+        expect(result.succeeded).to eq(1)
+        expect(result.memberships_succeeded).to eq(1)
+        expect(result.memberships_failed).to eq(0)
+      end
     end
 
     context 'skip conditions' do

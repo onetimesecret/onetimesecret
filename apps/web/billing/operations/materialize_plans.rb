@@ -237,7 +237,12 @@ module Billing
       # memberships through a stable seam instead of stubbing active_for_org's
       # internal batch primitive.
       def run_cascade(org)
-        memberships = @membership_loader.call(org)
+        # `|| []` guards a custom loader that returns nil; `.compact` drops nil
+        # entries so neither the iteration nor the total count chokes on them.
+        # The default loader (active_for_org) already returns a compacted array,
+        # but the seam is documented for non-test callers, so the cascade must
+        # not crash on a malformed loader.
+        memberships = (@membership_loader.call(org) || []).compact
         details     = []
         succeeded   = 0
         failed      = 0
