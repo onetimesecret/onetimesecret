@@ -36,8 +36,8 @@ export AUTH_SSO_ENABLED=true
 export OIDC_ISSUER=http://localhost:8080           # Zitadel/Keycloak base URL
 export OIDC_CLIENT_ID=<from-idp>
 export OIDC_CLIENT_SECRET=<from-idp>
-export OIDC_REDIRECT_URI=http://localhost:3000/auth/sso/oidc/callback
 ```
+The callback URL is auto-constructed from the request host at runtime (e.g., `https://{host}/auth/sso/oidc/callback`). Register this URL with the IdP. The correct value is displayed on the domain SSO config screen.
 
 For Zitadel, issuer is typically `http://localhost:8080`.
 For Keycloak, issuer is `http://localhost:8080/realms/<realm-name>`.
@@ -84,7 +84,7 @@ bundle exec rspec apps/web/auth/spec/
 # Common issues:
 # - "csrf_detected" → OAuth state parameter mismatch (session expired or manipulated)
 # - "Discovery failed" → OIDC_ISSUER URL incorrect or unreachable
-# - "Callback mismatch" → OIDC_REDIRECT_URI doesn't match IdP config
+# - "Callback mismatch" → callback URL doesn't match IdP's allowed redirect URIs
 # - "Errors.App.NotFound" → Client ID doesn't match IdP configuration
 ```
 

@@ -442,11 +442,11 @@ module Onetime
 
       private
 
-      # Build OIDC options (uses domain_id as strategy name)
+      # Build OIDC options (uses display_name as strategy name)
       def build_oidc_options
         {
           strategy: :openid_connect,
-          name: domain_id,
+          name: display_name,
           scope: [:openid, :email, :profile],
           response_type: :code,
           issuer: issuer,

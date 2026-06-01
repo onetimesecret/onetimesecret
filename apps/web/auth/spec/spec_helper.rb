@@ -30,7 +30,6 @@ unless ENV['OIDC_ISSUER'].to_s.strip.length.positive?
   ENV['OIDC_ISSUER'] = MOCK_OIDC_ISSUER
   ENV['OIDC_CLIENT_ID'] = 'test-client-id'
   ENV['OIDC_CLIENT_SECRET'] = 'test-client-secret'
-  ENV['OIDC_REDIRECT_URI'] = 'http://localhost:3000/auth/sso/oidc/callback'
   ENV['AUTH_SSO_ENABLED'] = 'true'
   ENV['AUTHENTICATION_MODE'] ||= 'full'
 
