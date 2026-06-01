@@ -73,9 +73,8 @@ module Auth::Config::Features
 
       OT.li "[OmniAuth] Configuring OIDC provider '#{provider_name}' with issuer: #{issuer}, client_id: #{client_id[0..8]}..."
 
-      # Build client options — redirect_uri is omitted so the strategy
-      # auto-constructs from the request host, which is correct for
-      # multi-tenant flows (each domain gets its own callback URL).
+      # redirect_uri is omitted here — the omniauth_setup hook injects it
+      # at runtime from the request host (see omniauth_tenant.rb).
       client_opts          = { identifier: client_id }
       # Only include secret if provided (PKCE flows may not have one)
       client_opts[:secret] = client_secret unless client_secret.empty?
