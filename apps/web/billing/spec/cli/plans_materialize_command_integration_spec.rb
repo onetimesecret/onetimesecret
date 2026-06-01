@@ -13,6 +13,10 @@
 require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/plans_materialize_command'
+# Loaded so the spec passes in isolation: the with_test_plans context calls
+# mock_region!, which references Billing::Controllers::Base. Required after
+# billing_spec_helper (which runs OT.boot!) so base.rb's includes resolve.
+require_relative '../../controllers/base'
 
 RSpec.describe 'Billing Plans Materialize CLI (integration)', :integration do
   include_context 'with_test_plans'
@@ -30,13 +34,16 @@ RSpec.describe 'Billing Plans Materialize CLI (integration)', :integration do
     $stdout = old_stdout
   end
 
-  # Real Customer + Organization on identity_plus_v1. No materialization yet —
-  # that's what the command is supposed to do.
-  def create_org(display_name:, email_seed:)
+  # Real Customer + Organization. Billing is enabled in these specs, so
+  # Organization.create! does NOT materialize the org (standalone
+  # materialization is a no-op in billing mode) — that's what the command is
+  # supposed to do. The owner membership IS materialized at create time, so a
+  # freshly created org already has one active (owner) membership.
+  def create_org(display_name:, email_seed:, planid: 'identity_plus_v1')
     email    = "plans-materialize-#{email_seed}@example.com"
     customer = Onetime::Customer.create!(email: email)
     org      = Onetime::Organization.create!(display_name, customer, email)
-    org.planid = 'identity_plus_v1'
+    org.planid = planid
     org.save
     [org, customer]
   end
@@ -144,6 +151,164 @@ RSpec.describe 'Billing Plans Materialize CLI (integration)', :integration do
       # FAILED count is the operator-visible signal.
       expect(org.entitlements_materialized?).to be true
       expect(ok_mem.entitlements_materialized?).to be true
+    end
+  end
+
+  describe '--all dry-run (no writes)' do
+    it 'previews without writing org or membership entitlements to Redis' do
+      org, _ = create_org(display_name: 'Dry Run Co', email_seed: 'dry')
+      member = add_member(org: org, role: 'admin', email_seed: 'dry-admin')
+
+      expect(org.entitlements_materialized?).to be false
+      expect(member.entitlements_materialized?).to be false
+
+      # No --run flag → dry run. --include-memberships set to prove the cascade
+      # is also skipped in preview mode.
+      output = run_command(all: true, include_memberships: true)
+
+      expect(output).to include('DRY RUN MODE')
+      expect(output).to match(/Would materialize:.*identity_plus_v1/)
+
+      org.refresh!
+      member.refresh!
+      expect(org.entitlements_materialized?).to be false
+      expect(member.entitlements_materialized?).to be false
+    end
+  end
+
+  describe '--plan filter' do
+    it 'materializes only orgs on the named plan and leaves off-plan orgs untouched in Redis' do
+      on_plan, _  = create_org(display_name: 'On Plan Co', email_seed: 'on-plan',
+                               planid: 'identity_plus_v1')
+      off_plan, _ = create_org(display_name: 'Off Plan Co', email_seed: 'off-plan',
+                               planid: 'free_v1')
+
+      output = run_command(plan: 'identity_plus_v1', run: true)
+
+      expect(output).to match(/Succeeded:\s+1/)
+      expect(output).to match(/Skipped \(plan filter\):\s+1/)
+
+      on_plan.refresh!
+      off_plan.refresh!
+      expect(on_plan.entitlements_materialized?).to be true
+      expect(off_plan.entitlements_materialized?).to be false
+    end
+  end
+
+  describe 'org with no plan' do
+    it 'skips an org whose planid is empty and does not write its entitlements' do
+      org, _ = create_org(display_name: 'No Plan Co', email_seed: 'no-plan-org', planid: '')
+
+      output = run_command(all: true, run: true)
+
+      expect(output).to match(/Skipped \(no plan\):\s+1/)
+      expect(output).to match(/Succeeded:\s+0/)
+
+      org.refresh!
+      expect(org.entitlements_materialized?).to be false
+    end
+  end
+
+  describe 'org on a plan missing from the catalog' do
+    it "reports 'not found' for the bad org while other orgs in the batch still complete" do
+      good, _ = create_org(display_name: 'Good Co', email_seed: 'good',
+                           planid: 'identity_plus_v1')
+      bad,  _ = create_org(display_name: 'Bad Co', email_seed: 'bad',
+                           planid: 'nonexistent_plan_v1')
+
+      output = run_command(all: true, run: true)
+
+      expect(output).to match(/Succeeded:\s+1/)
+      expect(output).to match(/Failed:\s+1/)
+      expect(output).to include("Plan 'nonexistent_plan_v1' not found")
+
+      good.refresh!
+      bad.refresh!
+      expect(good.entitlements_materialized?).to be true
+      expect(bad.entitlements_materialized?).to be false
+    end
+  end
+
+  describe 'cascade with zero active memberships' do
+    it 'cascades successfully (orgs_cascaded=1, memberships_succeeded=0)' do
+      org, _ = create_org(display_name: 'Empty Co', email_seed: 'empty',
+                          planid: 'identity_plus_v1')
+      # Drop the auto-created owner membership from the active set so the org
+      # has no active members to cascade to.
+      org.members.clear
+      expect(Onetime::OrganizationMembership.active_for_org(org)).to be_empty
+
+      output = run_command(all: true, include_memberships: true, run: true)
+
+      expect(output).to match(/Succeeded:\s+1/)
+      expect(output).to match(/Orgs cascaded:\s+1/)
+      expect(output).to match(/Memberships materialized:\s+0/)
+      # memberships_failed is 0, so the CLI omits that line entirely.
+      expect(output).not_to match(/Memberships failed:/)
+
+      org.refresh!
+      expect(org.entitlements_materialized?).to be true
+    end
+  end
+
+  describe 'cascade with mixed pending and active memberships' do
+    it 'materializes active memberships and leaves pending invitations untouched' do
+      org, owner_cust = create_org(display_name: 'Mixed Co', email_seed: 'mixed',
+                                   planid: 'identity_plus_v1')
+      active_member   = add_member(org: org, role: 'admin', email_seed: 'mixed-active')
+      pending         = Onetime::OrganizationMembership.create_invitation!(
+        organization: org,
+        email:        'plans-materialize-mixed-pending@example.com',
+        inviter:      owner_cust,
+        role:         'member',
+      )
+
+      expect(active_member.entitlements_materialized?).to be false
+      expect(pending.entitlements_materialized?).to be false
+
+      output = run_command(all: true, include_memberships: true, run: true)
+
+      expect(output).to match(/Succeeded:\s+1/)
+      expect(output).to match(/Orgs cascaded:\s+1/)
+
+      active_member.refresh!
+      pending.refresh!
+      # The active membership got materialized by the cascade...
+      expect(active_member.entitlements_materialized?).to be true
+      # ...but the pending invitation is not in org.members, so active_for_org
+      # never sees it and it stays unmaterialized.
+      expect(pending.entitlements_materialized?).to be false
+    end
+  end
+
+  describe 'cascade with a role that has no entitlement template' do
+    # Real materialize_for_role! failure — no stub. A membership whose role is
+    # absent from ROLE_ENTITLEMENTS (e.g. a role removed from the catalog)
+    # makes materialize_for_role! return false (it does not raise). The
+    # operation treats that no-op as a cascade failure so the unmaterialized
+    # membership isn't masked as a clean success.
+    it 'counts the org as FAILED and leaves the bad-role membership unmaterialized' do
+      org, _     = create_org(display_name: 'Bad Role Co', email_seed: 'bad-role',
+                              planid: 'identity_plus_v1')
+      bad_member = add_member(org: org, role: 'guest', email_seed: 'guest')
+
+      expect(Onetime::OrganizationMembership::ROLE_ENTITLEMENTS).not_to have_key('guest')
+
+      # --verbose surfaces the per-membership failure reason on the cascade line.
+      output = run_command(all: true, include_memberships: true, run: true, verbose: true)
+
+      expect(output).to match(/Failed:\s+1/)
+      expect(output).to match(/Memberships failed:\s+1/)
+      expect(output).to include('membership failures')
+      expect(output).to include('role=guest')
+      expect(output).to include("returned false for role 'guest'")
+
+      org.refresh!
+      bad_member.refresh!
+      # The org-level write happens before the cascade, so the org is written.
+      expect(org.entitlements_materialized?).to be true
+      # The bad-role membership was never materialized (genuine no-op).
+      expect(bad_member.entitlements_materialized?).to be false
     end
   end
 end

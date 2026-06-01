@@ -55,9 +55,12 @@ module Billing
     # entitlement set, so skipping them masked real consistency problems).
     #
     # Cascade semantics: when include_memberships is set and the org write
-    # succeeded, org.rematerialize_all_memberships! runs. If that method
-    # reports any membership failures, the org is counted as FAILED (with
-    # the partial counts captured in the error reason). This intentionally
+    # succeeded, the operation re-materializes each active membership inline
+    # (see #run_cascade). A membership counts as a failure if it raises OR if
+    # materialize_for_role! returns false (e.g. a role with no
+    # ROLE_ENTITLEMENTS template, which is a silent no-op rather than a raise).
+    # If the cascade has any membership failures the org is counted as FAILED
+    # (with the partial counts captured in the error reason). This intentionally
     # surfaces cascade problems rather than masking them as a "materialized"
     # success — operators decide whether to retry.
     #
@@ -78,27 +81,36 @@ module Billing
       # @param dry_run [Boolean] Preview without writing
       # @param batch_size [Integer] each_record batch size
       # @param iterator [#each_record, nil] Override iteration source (testing)
+      # @param membership_loader [#call, nil] Override the per-org membership
+      #   lookup (testing). Receives the org, returns the memberships to cascade
+      #   to. Defaults to OrganizationMembership.active_for_org. Symmetric to
+      #   +iterator:+ so cascade specs can inject memberships without stubbing
+      #   active_for_org's internal batch primitive (see #run_cascade).
       # @yieldparam event [MaterializePlansEvent] Per-org outcome
       # @return [MaterializePlansResult]
       def self.call(plan_filter: nil, include_memberships: false, dry_run: false,
-                    batch_size: DEFAULT_BATCH_SIZE, iterator: nil, &progress_block)
+                    batch_size: DEFAULT_BATCH_SIZE, iterator: nil,
+                    membership_loader: nil, &progress_block)
         new(
           plan_filter: plan_filter,
           include_memberships: include_memberships,
           dry_run: dry_run,
           batch_size: batch_size,
           iterator: iterator,
+          membership_loader: membership_loader,
           progress_block: progress_block,
         ).call
       end
 
       def initialize(plan_filter:, include_memberships:, dry_run:,
-                     batch_size:, iterator:, progress_block:)
+                     batch_size:, iterator:, membership_loader:, progress_block:)
         @plan_filter         = plan_filter
         @include_memberships = include_memberships
         @dry_run             = dry_run
         @batch_size          = batch_size
         @iterator            = iterator || Onetime::Organization.instances
+        @membership_loader   = membership_loader ||
+                               ->(org) { Onetime::OrganizationMembership.active_for_org(org) }
         @progress_block      = progress_block
         @counts              = Hash.new(0)
         @errors              = []
@@ -219,17 +231,42 @@ module Billing
       # per-membership detail (objid, role, planid, entitlements_count) for
       # the --verbose renderer and for richer audit logs. The webhook path
       # continues to use the org's aggregate method.
+      #
+      # The membership list comes from @membership_loader (defaults to
+      # OrganizationMembership.active_for_org) so cascade specs can inject
+      # memberships through a stable seam instead of stubbing active_for_org's
+      # internal batch primitive.
       def run_cascade(org)
-        memberships = Onetime::OrganizationMembership.active_for_org(org)
+        # `|| []` guards a custom loader that returns nil; `.compact` drops nil
+        # entries so neither the iteration nor the total count chokes on them.
+        # The default loader (active_for_org) already returns a compacted array,
+        # but the seam is documented for non-test callers, so the cascade must
+        # not crash on a malformed loader.
+        memberships = (@membership_loader.call(org) || []).compact
         details     = []
         succeeded   = 0
         failed      = 0
 
         memberships.each do |membership|
           begin
-            membership.materialize_for_role!(org)
-            succeeded += 1
-            details   << build_membership_detail(membership, org, :ok)
+            if membership.materialize_for_role!(org)
+              succeeded += 1
+              details   << build_membership_detail(membership, org, :ok)
+            else
+              # materialize_for_role! returns false (without raising) when the
+              # role has no ROLE_ENTITLEMENTS template — e.g. a role removed
+              # from the catalog. The membership is left unmaterialized, so
+              # count it as a failure rather than letting a silent no-op
+              # masquerade as success (cascade invariant: never mask partial
+              # success).
+              failed += 1
+              reason  = "materialize_for_role! returned false for role '#{membership.role}'"
+              details << build_membership_detail(membership, org, :failed, error: reason)
+              logger.error 'Membership re-materialization returned false',
+                org_extid: org.extid,
+                membership_objid: membership.objid,
+                role: membership.role
+            end
           rescue StandardError => ex
             failed  += 1
             details << build_membership_detail(membership, org, :failed, error: ex.message)
