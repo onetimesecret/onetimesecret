@@ -98,6 +98,7 @@ module BillingTestHelpers
     # Populate Redis plan cache with test data
     # Clears entitlements/limits first to avoid polluting from prior test runs.
     def populate_test_plans(plans)
+      ensure_billing_loaded!
       ensure_familia_configured!
       plans.each do |plan_data|
         plan                                                    = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
