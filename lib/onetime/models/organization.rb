@@ -296,14 +296,14 @@ module Onetime
       end
 
       result = {
-        success:    total - failed.size,
-        failed:     failed.size,
-        total:      total,
+        success: total - failed.size,
+        failed: failed.size,
+        total: total,
         failed_ids: failed.map(&:objid),
       }
 
       OT.info "[rematerialize_all_memberships!] org=#{extid} " \
-        "success=#{result[:success]} failed=#{result[:failed]} total=#{result[:total]}"
+              "success=#{result[:success]} failed=#{result[:failed]} total=#{result[:total]}"
       result
     end
 
