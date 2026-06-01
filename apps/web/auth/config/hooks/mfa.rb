@@ -15,7 +15,7 @@ module Auth::Config::Hooks
   # before_otp_setup_route: before handling an OTP authentication setup route.
   #
   module MFA
-    def self.configure(auth)
+    def self.configure(auth) # rubocop:disable Metrics/PerceivedComplexity
       # ========================================================================
       # HOOK: Before OTP Setup Route
       # ========================================================================
@@ -161,6 +161,14 @@ module Auth::Config::Hooks
 
         # Clean up correlation ID after successful completion
         session.delete(:auth_correlation_id)
+
+        # Billing redirect: add plan selection to JSON response (issue #3275).
+        # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
+        # so the method is only available when billing is enabled. Check respond_to?
+        # to avoid NoMethodError when billing is disabled (self-hosted).
+        if json_request? && respond_to?(:add_billing_redirect_to_response)
+          add_billing_redirect_to_response
+        end
       end
 
       # ========================================================================
