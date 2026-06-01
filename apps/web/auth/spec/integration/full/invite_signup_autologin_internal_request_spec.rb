@@ -222,13 +222,24 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     expect(untouched.pending?).to be(true)
   ensure
     # Cleanup any orphaned records created if the validation didn't block signup.
-    # Disable FK checks to allow deletion in any order without constraint errors.
     if defined?(other_email)
       Onetime::Customer.find_by_email(other_email)&.destroy!
       db = Auth::Database.connection
-      db.run('PRAGMA foreign_keys = OFF')
-      db[:accounts].where(email: other_email).delete
-      db.run('PRAGMA foreign_keys = ON')
+      if db.database_type == :sqlite
+        db.run('PRAGMA foreign_keys = OFF')
+        db[:accounts].where(email: other_email).delete
+        db.run('PRAGMA foreign_keys = ON')
+      else
+        account_row = db[:accounts].where(email: other_email).first
+        if account_row
+          AuthAccountFactory::RODAUTH_TABLES.each do |table|
+            next if table == :accounts
+            next unless db.table_exists?(table)
+            db[table].where(account_id: account_row[:id]).delete rescue nil
+          end
+          db[:accounts].where(email: other_email).delete
+        end
+      end
     end
   end
 end
