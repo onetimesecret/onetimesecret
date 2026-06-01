@@ -70,12 +70,9 @@ module Onetime
         puts "✅ Documentation generated: #{output_path}"
         puts "   #{markdown.lines.count} lines, #{markdown.bytesize} bytes"
       rescue Psych::SyntaxError => ex
-        warn "❌ YAML syntax error: #{ex.message}"
-        exit 1
+        raise "YAML syntax error in billing config: #{ex.message}"
       rescue StandardError => ex
-        warn "❌ Error generating docs: #{ex.message}"
-        warn ex.backtrace.first(5).join("\n") if OT.debug?
-        exit 1
+        raise "Error generating billing docs: #{ex.message}"
       end
 
       private

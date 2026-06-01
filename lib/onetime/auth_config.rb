@@ -25,7 +25,7 @@ module Onetime
     end
 
     def configured?
-      !@config.nil?
+      @config.is_a?(Hash)
     end
 
     # Main authentication mode: 'simple' or 'full'

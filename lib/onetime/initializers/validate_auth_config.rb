@@ -4,22 +4,20 @@
 
 module Onetime
   module Initializers
-    # Validates that etc/auth.yaml is present and loaded for process modes
-    # that require authentication (backend, worker, scheduler).
+    # Validates that etc/auth.yaml is present and loaded.
     #
-    # CLI commands skip this check — read-only tooling like
-    # `billing catalog generate-docs` should not require a fully-provisioned
-    # environment. AuthConfig itself tolerates a missing file (sets config
-    # to nil), so this initializer is the enforcement point for modes that
-    # genuinely need auth.
+    # AuthConfig itself tolerates a missing file (sets config to nil) so
+    # that require-time plugin discovery doesn't crash. This initializer
+    # is the boot-time enforcement point: any process that calls
+    # OT.boot! (web server, worker, scheduler, or CLI commands that
+    # inherit from Command) will fail fast with a clear message.
+    #
+    # Commands that inherit from DelayBootCommand never call OT.boot!,
+    # so this initializer never runs for them — no skip logic needed.
     #
     class ValidateAuthConfig < Onetime::Boot::Initializer
       @depends_on = [:logging]
       @provides   = [:auth_config_validated]
-
-      def should_skip?
-        OT.execution_mode == :cli
-      end
 
       def execute(_context)
         return if Onetime.auth_config.configured?
