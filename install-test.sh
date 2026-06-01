@@ -24,6 +24,7 @@ fi
 missing_required=()
 command -v direnv &>/dev/null || missing_required+=("direnv  (Directory environments):  https://direnv.net/docs/installation.html")
 command -v pnpm   &>/dev/null || missing_required+=("pnpm    (Node package manager):  https://pnpm.io/installation")
+command -v "${VALKEY_CLI:-valkey-cli}" &>/dev/null || missing_required+=("valkey-cli (Valkey CLI client):  https://valkey.io/download/")
 if (( ${#missing_required[@]} > 0 )); then
     echo "Error: Required tools missing:"
     for tool in "${missing_required[@]}"; do
@@ -93,9 +94,17 @@ if $valkey_cli -p 2121 ping &>/dev/null; then
     echo "OK:   Test Valkey already running on port 2121"
 else
     pnpm run test:database:start
-    sleep 0.5
 
-    if $valkey_cli -p 2121 ping &>/dev/null; then
+    started=false
+    for _i in 1 2 3 4 5 6 7 8 9 10; do
+        if $valkey_cli -p 2121 ping &>/dev/null; then
+            started=true
+            break
+        fi
+        sleep 0.5
+    done
+
+    if $started; then
         echo "OK:   Test Valkey started on port 2121"
     else
         echo "Error: Test Valkey did not start on port 2121"
@@ -123,7 +132,7 @@ test_uri=$(direnv exec . ruby -e '
   raw  = OT::Config.load
   conf = OT::Config.after_load(raw)
   puts conf.dig("redis", "uri")
-' 2>/dev/null || true)
+' || true)
 
 if [[ "$test_uri" == *":2121"* ]]; then
     echo "OK:   Config resolves to test database ($test_uri)"
