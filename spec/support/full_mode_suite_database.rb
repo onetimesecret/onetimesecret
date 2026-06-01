@@ -57,6 +57,11 @@ module FullModeSuiteDatabase
       if @using_postgres
         clean_postgres_for_setup
         run_postgres_migrations
+        tables_on_user = @database.tables rescue []
+        tables_on_migrator = @migration_database&.tables rescue []
+        warn "[FullModeSuiteDatabase] PG migration complete."
+        warn "[FullModeSuiteDatabase]   user conn tables (#{@database.opts[:user]}): #{tables_on_user.sort.inspect}"
+        warn "[FullModeSuiteDatabase]   migrator conn tables: #{tables_on_migrator.sort.inspect}"
       else
         migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
         Sequel::Migrator.run(@database, migrations_path)
@@ -273,7 +278,12 @@ RSpec.configure do |config|
     db_url = ENV.fetch('AUTH_DATABASE_URL', '')
     auth_mode = ENV.fetch('AUTHENTICATION_MODE', 'simple')
     if auth_mode == 'full' && db_url.start_with?('postgresql://', 'postgres://')
+      warn "[FullModeSuiteDatabase] before(:suite) triggering early PG setup (url=#{db_url[0..30]}...)"
       FullModeSuiteDatabase.setup!
+      warn "[FullModeSuiteDatabase] before(:suite) complete. setup_complete?=#{FullModeSuiteDatabase.setup_complete?}"
+      warn "[FullModeSuiteDatabase] database.tables=#{FullModeSuiteDatabase.database&.tables&.sort&.inspect}"
+    else
+      warn "[FullModeSuiteDatabase] before(:suite) skipped (auth_mode=#{auth_mode}, db_url_prefix=#{db_url[0..15]})"
     end
   end
 
