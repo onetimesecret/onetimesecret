@@ -61,6 +61,7 @@ module MigrationTestHelpers
     db.run('SELECT 1')
     db
   rescue Sequel::DatabaseConnectionError, Sequel::DatabaseError
+    db&.disconnect
     nil
   end
 

@@ -94,8 +94,9 @@ module PostgresModeSuiteDatabase
       end
 
       # If setup ran before but schema was destroyed (e.g. migration spec
-      # dropped tables), re-run migrations without full re-bootstrap.
+      # dropped tables), clean slate and re-run migrations.
       if @setup_complete && !schema_intact?
+        clean_database_for_setup
         run_migrations
         verify_schema!
         return

@@ -254,19 +254,23 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
         superuser_db = connect_as_superuser
         skip 'PostgreSQL superuser connection not available' unless superuser_db
 
-        drop_all_tables(db: test_db)
-
-        user_exists = superuser_db.fetch(
-          "SELECT 1 FROM pg_user WHERE usename = 'onetime_migrator_test'"
-        ).any?
-
-        superuser_db.run("CREATE USER onetime_migrator_test WITH PASSWORD 'testpass'") unless user_exists
-        superuser_db.run("REVOKE CREATE ON SCHEMA public FROM onetime_migrator_test")
-
-        restricted_url = build_pg_url(user: 'onetime_migrator_test', password: 'testpass')
-        restricted_db = Sequel.connect(restricted_url)
+        user_exists = false
+        original_migration_url = nil
+        restricted_db = nil
 
         begin
+          drop_all_tables(db: test_db)
+
+          user_exists = superuser_db.fetch(
+            "SELECT 1 FROM pg_user WHERE usename = 'onetime_migrator_test'"
+          ).any?
+
+          superuser_db.run("CREATE USER onetime_migrator_test WITH PASSWORD 'testpass'") unless user_exists
+          superuser_db.run("REVOKE CREATE ON SCHEMA public FROM onetime_migrator_test")
+
+          restricted_url = build_pg_url(user: 'onetime_migrator_test', password: 'testpass')
+          restricted_db = Sequel.connect(restricted_url)
+
           expect do
             restricted_db.run("CREATE TABLE test_table (id INT)")
           end.to raise_error(Sequel::DatabaseError, /permission denied/)
@@ -311,7 +315,7 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
           rescue Sequel::DatabaseError => e
             warn "Failed to cleanup test user: #{e.message}"
           ensure
-            superuser_db&.disconnect
+            superuser_db.disconnect
           end
         end
       end
