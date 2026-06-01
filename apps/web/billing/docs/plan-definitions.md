@@ -37,7 +37,7 @@ Loaded from `etc/billing.yaml`.
 
 ### Collaboration
 
-- **`manage_org`**: Can create and manage organizations
+- **`manage_org`**: Can manage organization settings, members, and domains
 - **`manage_teams`**: Can create and manage teams
 - **`manage_members`**: Can create and manage organization members
 
