@@ -113,6 +113,8 @@ const requiresTenantId = computed(() => props.formState.provider_type === 'entra
 
 const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
 
+const requiresClientSecret = computed(() => props.formState.provider_type !== 'oidc');
+
 const showDomainFilter = computed(() => {
   const metadata = SSO_PROVIDER_METADATA[props.formState.provider_type];
   return metadata?.requiresDomainFilter ?? false;
@@ -126,8 +128,8 @@ const isFormValid = computed(() => {
   if (!props.formState.display_name.trim()) return false;
   if (!props.formState.client_id.trim()) return false;
 
-  // client_secret required for new configs
-  if (!isEditing.value && !props.formState.client_secret?.trim()) return false;
+  // client_secret required for new configs (except OIDC which supports public clients)
+  if (requiresClientSecret.value && !isEditing.value && !props.formState.client_secret?.trim()) return false;
 
   // Provider-specific requirements
   if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
@@ -352,7 +354,7 @@ class="space-y-6">
           for="domain-sso-client-secret"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.client_secret') }}
-          <span v-if="!isEditing"
+          <span v-if="requiresClientSecret && !isEditing"
 class="text-red-500"
 aria-hidden="true">*</span>
         </label>
@@ -368,7 +370,7 @@ aria-hidden="true">*</span>
             :value="formState.client_secret"
             @input="updateField('client_secret', ($event.target as HTMLInputElement).value)"
             :type="showClientSecret ? 'text' : 'password'"
-            :required="!isEditing"
+            :required="requiresClientSecret && !isEditing"
             autocomplete="new-password"
             :placeholder="clientSecretPlaceholder"
             :aria-describedby="isEditing ? 'domain-client-secret-hint' : undefined"

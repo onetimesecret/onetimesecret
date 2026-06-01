@@ -297,20 +297,20 @@ module Onetime
         end
 
         errors << 'client_id is required' if client_id_val.to_s.empty?
-        errors << 'client_secret is required' if client_secret_val.to_s.empty?
+        errors << 'client_secret is required' if client_secret_val.to_s.empty? && provider_type != 'oidc'
 
         # Provider-specific field requirements:
         #
-        #   | provider_type | tenant_id | issuer |
-        #   |---------------|-----------|--------|
-        #   | entra_id      | required  | -      |
-        #   | oidc          | -         | required |
-        #   | google        | -         | -      |
-        #   | github        | -         | -      |
+        #   | provider_type | tenant_id | issuer | client_secret |
+        #   |---------------|-----------|--------|---------------|
+        #   | entra_id      | required  | -      | required      |
+        #   | oidc          | -         | required | optional    |
+        #   | google        | -         | -      | required      |
+        #   | github        | -         | -      | required      |
         #
+        # OIDC supports public clients (PKCE flow) without a client secret.
         # Google and GitHub use well-known OAuth endpoints, so neither
-        # tenant_id nor issuer is needed. Universal fields (client_id,
-        # client_secret, display_name) are validated above.
+        # tenant_id nor issuer is needed.
         #
         case provider_type
         when 'oidc'
