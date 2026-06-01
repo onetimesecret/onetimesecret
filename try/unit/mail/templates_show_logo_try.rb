@@ -14,6 +14,20 @@ OT.boot! :test, false
 
 require 'onetime/mail'
 
+# Helper: mutate emailer.show_logo, yield, restore.
+def with_show_logo(value)
+  conf_before = OT.conf['emailer']&.dup || {}
+  OT.conf['emailer'] ||= {}
+  if value == :absent
+    OT.conf['emailer'].delete('show_logo')
+  else
+    OT.conf['emailer']['show_logo'] = value
+  end
+  result = yield
+  OT.conf['emailer'] = conf_before
+  result
+end
+
 @welcome_data = {
   email_address: 'test@example.com',
   verification_path: 'https://example.com/verify/abc123'
@@ -22,76 +36,57 @@ require 'onetime/mail'
 # TRYOUTS
 
 ## show_logo? returns false when config key is absent
-ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
-ctx.show_logo?
+with_show_logo(:absent) do
+  ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
+  ctx.show_logo?
+end
 #=> false
 
-## show_logo? returns false when emailer config has no show_logo key
-conf_before = OT.conf['emailer']&.dup || {}
-OT.conf['emailer'] ||= {}
-OT.conf['emailer'].delete('show_logo')
-ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
-result = ctx.show_logo?
-OT.conf['emailer'] = conf_before
-result
+## show_logo? returns false when show_logo is nil
+with_show_logo(nil) do
+  ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
+  ctx.show_logo?
+end
 #=> false
 
 ## show_logo? returns false when show_logo is explicitly false
-conf_before = OT.conf['emailer']&.dup || {}
-OT.conf['emailer'] ||= {}
-OT.conf['emailer']['show_logo'] = false
-ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
-result = ctx.show_logo?
-OT.conf['emailer'] = conf_before
-result
+with_show_logo(false) do
+  ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
+  ctx.show_logo?
+end
 #=> false
 
-## show_logo? returns true when show_logo is true
-conf_before = OT.conf['emailer']&.dup || {}
-OT.conf['emailer'] ||= {}
-OT.conf['emailer']['show_logo'] = true
-ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
-result = ctx.show_logo?
-OT.conf['emailer'] = conf_before
-result
+## show_logo? returns true when show_logo is exactly true
+with_show_logo(true) do
+  ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
+  ctx.show_logo?
+end
 #=> true
 
 ## show_logo? returns false for string "true" (must be boolean)
-conf_before = OT.conf['emailer']&.dup || {}
-OT.conf['emailer'] ||= {}
-OT.conf['emailer']['show_logo'] = 'true'
-ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
-result = ctx.show_logo?
-OT.conf['emailer'] = conf_before
-result
+with_show_logo('true') do
+  ctx = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
+  ctx.show_logo?
+end
 #=> false
 
 ## Welcome HTML omits <img when show_logo is false
-conf_before = OT.conf['emailer']&.dup || {}
-OT.conf['emailer'] ||= {}
-OT.conf['emailer']['show_logo'] = false
-template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
-html = template.render_html
-OT.conf['emailer'] = conf_before
-html.include?('<img')
+with_show_logo(false) do
+  template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
+  template.render_html.include?('<img')
+end
 #=> false
 
 ## Welcome HTML includes <img when show_logo is true
-conf_before = OT.conf['emailer']&.dup || {}
-OT.conf['emailer'] ||= {}
-OT.conf['emailer']['show_logo'] = true
-template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
-html = template.render_html
-OT.conf['emailer'] = conf_before
-html.include?('<img')
+with_show_logo(true) do
+  template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
+  template.render_html.include?('<img')
+end
 #=> true
 
 ## Welcome HTML includes logo SVG path when show_logo is true
-conf_before = OT.conf['emailer']&.dup || {}
-OT.conf['emailer'] ||= {}
-OT.conf['emailer']['show_logo'] = true
-template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
-html = template.render_html
-OT.conf['emailer'] = conf_before
-html.include?('onetime-logo-v3-xl.svg')
+with_show_logo(true) do
+  template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
+  template.render_html.include?('onetime-logo-v3-xl.svg')
+end
 #=> true
