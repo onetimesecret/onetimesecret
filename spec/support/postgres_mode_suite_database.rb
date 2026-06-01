@@ -294,25 +294,11 @@ module PostgresModeSuiteDatabase
           @migration_database = Sequel.connect(migration_url)
         end
         Sequel::Migrator.run(@migration_database, migrations_path)
-        grant_test_user_access(@migration_database)
       else
         # Run migrations with standard connection
         Sequel::Migrator.run(@database, migrations_path)
         @migration_database = nil
       end
-    end
-
-    # Grant the test user access to tables created by the migration user.
-    # After cleanup + migration, tables are owned by the migrator and the
-    # test user has no privileges until explicitly granted.
-    def grant_test_user_access(elevated_db)
-      test_user = URI.parse(ENV['AUTH_DATABASE_URL']).user
-      return unless test_user
-
-      user_ident = elevated_db.literal(Sequel.identifier(test_user))
-      elevated_db.run "GRANT USAGE ON SCHEMA public TO #{user_ident}"
-      elevated_db.run "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO #{user_ident}"
-      elevated_db.run "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO #{user_ident}"
     end
 
     # Clean all Rodauth tables using TRUNCATE CASCADE

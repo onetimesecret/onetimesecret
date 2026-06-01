@@ -219,13 +219,14 @@ jobs:
 
           # Grant necessary permissions
           psql -h localhost -U postgres -d onetime_auth_test -c "
-            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_user;
+            GRANT CONNECT ON DATABASE onetime_auth_test TO onetime_user;
             GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_migrator;
-            GRANT ALL ON SCHEMA public TO onetime_user;
+            GRANT USAGE ON SCHEMA public TO onetime_user;
             GRANT ALL ON SCHEMA public TO onetime_migrator;
+            REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
-            -- Set default privileges so tables created by onetime_migrator
-            -- are automatically accessible to onetime_user
+            -- Default privileges: tables created by onetime_migrator
+            -- are automatically accessible to onetime_user for DML only
             ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
               GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user;
             ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
