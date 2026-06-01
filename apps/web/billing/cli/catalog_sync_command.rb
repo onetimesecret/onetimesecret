@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative '../lib/materialize_progress_renderer'
 require_relative '../operations/catalog/push'
 require_relative '../operations/catalog/pull'
 require_relative '../operations/materialize_plans'
@@ -74,12 +75,18 @@ module Onetime
 
         return unless step_push(dry_run: dry_run, force: force, plan: plan, skip_prices: skip_prices)
         return unless step_pull(dry_run: dry_run)
-        step_materialize(dry_run: dry_run, plan: plan, include_memberships: include_memberships,
-                         verbose: verbose, quiet: quiet)
+        materialize_ok = step_materialize(dry_run: dry_run, plan: plan,
+                                          include_memberships: include_memberships,
+                                          verbose: verbose, quiet: quiet)
 
         puts
         puts '=' * 60
-        puts "Catalog sync #{dry_run ? 'preview' : ''} complete!"
+        if materialize_ok
+          puts "Catalog sync #{dry_run ? 'preview ' : ''}complete!"
+        else
+          puts "Catalog sync #{dry_run ? 'preview ' : ''}finished with materialization errors."
+          puts 'Review the errors above. Push and pull succeeded.'
+        end
       end
 
       private
@@ -185,9 +192,12 @@ module Onetime
         end
 
         verbosity = resolve_verbosity(verbose: verbose, quiet: quiet)
-        renderer  = MaterializeStepRenderer.new(total: total, verbosity: verbosity,
-                                                dry_run: dry_run,
-                                                include_memberships: include_memberships)
+        renderer  = Billing::MaterializeProgressRenderer.new(
+                      total: total,
+                      verbosity: verbosity,
+                      include_memberships: include_memberships,
+                      indent: 4,
+                    )
 
         result = ::Billing::Operations::MaterializePlans.call(
           plan_filter: plan,
@@ -212,7 +222,7 @@ module Onetime
           result.errors.each { |err| puts "    - #{err[:org_extid]}: #{err[:reason]}" }
         end
 
-        true
+        result.errors.empty?
       end
 
       def resolve_verbosity(verbose:, quiet:)
@@ -237,60 +247,6 @@ module Onetime
         $stdout.flush
       end
 
-      # Compact progress renderer for the materialize step.
-      class MaterializeStepRenderer
-        def initialize(total:, verbosity:, dry_run:, include_memberships:)
-          @total               = total
-          @verbosity           = verbosity
-          @dry_run             = dry_run
-          @include_memberships = include_memberships
-          @processed           = 0
-        end
-
-        def render(event)
-          @processed += 1
-          return if @verbosity == :quiet
-
-          puts "    [#{@processed}/#{@total}] #{describe(event)}"
-          render_membership_detail(event) if @verbosity == :verbose
-        end
-
-        private
-
-        def render_membership_detail(event)
-          details = event.cascade && event.cascade[:details]
-          return if details.nil? || details.empty?
-
-          details.each do |m|
-            status = m[:status] == :ok ? "#{m[:entitlements_count]} entitlements" : "FAILED — #{m[:error]}"
-            puts "        -> #{m[:objid]} (role=#{m[:role]}): #{status}"
-          end
-        end
-
-        def describe(event)
-          case event.event
-          when :materialized
-            cascade = event.cascade ? " + cascaded #{event.cascade[:success]}/#{event.cascade[:total]} memberships" : ''
-            "Materialized: #{event.org_extid} (#{event.planid}, #{event.entitlements_count} entitlements)#{cascade}"
-          when :would_materialize
-            cascade_hint = @include_memberships ? ' (+memberships cascade)' : ''
-            "Would materialize: #{event.org_extid} (#{event.planid}, #{event.entitlements_count} entitlements)#{cascade_hint}"
-          when :skipped_plan_filter
-            "Skipping (plan filter): #{event.org_extid}"
-          when :skipped_no_plan
-            "Skipping (no planid): #{event.org_extid}"
-          when :failed_plan_not_found
-            "Error: #{event.reason} (#{event.org_extid})"
-          when :failed_org_write
-            "Error: org write failed for #{event.org_extid}: #{event.reason}"
-          when :failed_cascade
-            cascade = event.cascade ? " (#{event.cascade[:success]}/#{event.cascade[:total]} succeeded)" : ''
-            "Error: cascade failed for #{event.org_extid}: #{event.reason}#{cascade}"
-          else
-            "[#{event.event}] #{event.org_extid}"
-          end
-        end
-      end
     end
   end
 end
