@@ -97,6 +97,10 @@ inputs:
     description: 'Enable billing features for this test run'
     required: false
     default: 'false'
+  db-engine:
+    description: 'Database engine label for job summary (e.g., sqlite, postgres)'
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -122,6 +126,8 @@ runs:
         elif [ "$TEST_TYPE" == "integration" ]; then
           if [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "postgres_database" ]; then
             echo "rspec-task=spec:integration:full:postgres" >> $GITHUB_OUTPUT
+          elif [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "agnostic_on_pg" ]; then
+            echo "rspec-task=spec:integration:full:agnostic_on_pg" >> $GITHUB_OUTPUT
           else
             echo "rspec-task=spec:integration:$AUTH_MODE" >> $GITHUB_OUTPUT
           fi
@@ -258,6 +264,7 @@ runs:
       env:
         AUTH_MODE: ${{ inputs.auth-mode }}
         BILLING_ENABLED: ${{ inputs.billing-enabled }}
+        DB_ENGINE: ${{ inputs.db-engine }}
       run: |
         echo "## Ruby Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -265,6 +272,9 @@ runs:
         echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
         echo "| auth | ${AUTH_MODE} |" >> $GITHUB_STEP_SUMMARY
         echo "| billing | ${BILLING_ENABLED} |" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${DB_ENGINE}" ]; then
+          echo "| db engine | ${DB_ENGINE} |" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "" >> $GITHUB_STEP_SUMMARY
 
         if [ -n "${{ steps.rake-tasks.outputs.tryouts-task }}" ]; then
