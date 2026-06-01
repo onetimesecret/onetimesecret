@@ -6,9 +6,11 @@
 #   App       - Default fallback for application-level logging
 #   Auth      - Authentication/authorization flows
 #   Bunny     - RabbitMQ AMQP client (connection, heartbeats)
+#   Ents      - Plan materialization, grants/revokes, plan→permission application
 #   Familia   - Redis operations via Familia ORM
 #   HTTP      - HTTP requests, responses, and middleware
 #   Jobs      - Job publishing (enqueue_email, fallback handling)
+#   Org       - Organization + membership lifecycle (create/destroy/activate/cascade)
 #   Otto      - Otto framework operations
 #   Rhales    - Rhales template rendering (future)
 #   Scheduler - Scheduled/recurring background jobs (rufus-scheduler)
@@ -51,14 +53,16 @@ formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>
 loggers:
   App: warn       # Default application logger
   Auth: info      # Authentication/authorization flows
-  Billing: warn   # Only used when billing.enabled=true
+  Billing: warn   # Stripe checkout, payment intents, subscription webhooks, invoices, plan catalog sync
   Boot: warn      # During initialization
   Bunny: warn     # RabbitMQ client (heartbeats at debug level)
   Chores: info    # Familia::Horreum models housekeeping chores
+  Ents: info      # Entitlement materialization, grants/revokes, plan→permission application
   Jobs: info      # Job publishing (Publisher.enqueue_email, fallbacks)
   CLI: info       # Command-line interface operations
   Familia: info   # Redis/Familia main database operations
   HTTP: info      # HTTP requests and middleware operations
+  Org: info       # Organization + membership lifecycle (create/destroy/activate/cascade)
   Otto: info      # Otto framework operations
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
   Scheduler: info # Scheduled/recurring background jobs

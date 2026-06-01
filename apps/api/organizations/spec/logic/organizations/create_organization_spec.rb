@@ -43,7 +43,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
   # Source now uses the category-aware `logger` (Onetime::LoggerMethods) instead
   # of the OT.ld/OT.lw shims, and passes masked_name/extid as structured kwargs
   # rather than interpolating them into the message string.
-  let(:app_logger_double) do
+  let(:org_logger_double) do
     instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil)
   end
 
@@ -55,7 +55,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
     # don't force eager instantiation of the memoized `subject(:logic)` in the
     # before hook, which would freeze display_name before per-example params edits.
     allow(Onetime).to receive(:get_logger).and_call_original
-    allow(Onetime).to receive(:get_logger).with('App').and_return(app_logger_double)
+    allow(Onetime).to receive(:get_logger).with('Org').and_return(org_logger_double)
   end
 
   describe '#process_params' do
@@ -321,7 +321,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'masks short organization name in debug logs' do
-        expect(app_logger_double).to receive(:debug)
+        expect(org_logger_double).to receive(:debug)
           .with(/Creating organization/, hash_including(masked_name: '[2chars]'))
         logic.process
       end
@@ -330,7 +330,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
     context 'with normal display_name (>3 chars)' do
       it 'masks organization name showing only first 3 chars' do
         # Default params has display_name: 'Organization' which masks to 'Org...'
-        expect(app_logger_double).to receive(:debug)
+        expect(org_logger_double).to receive(:debug)
           .with(/Creating organization/, hash_including(masked_name: 'Org...'))
         logic.process
       end
@@ -451,7 +451,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'logs warning but does not raise' do
-        expect(app_logger_double).to receive(:warn).with(/Lock release failed/, any_args)
+        expect(org_logger_double).to receive(:warn).with(/Lock release failed/, any_args)
         result = logic.process
         expect(result).to have_key(:record)
       end
