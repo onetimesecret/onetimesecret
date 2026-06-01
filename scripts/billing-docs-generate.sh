@@ -31,6 +31,11 @@ if [ "${1:-}" = "--strict" ]; then
   STRICT=1
 fi
 
+if [ "${BILLING_ENABLED:-false}" != "true" ]; then
+  echo "[docs:billing:generate] skipped: BILLING_ENABLED is not 'true'" >&2
+  exit 0
+fi
+
 if ! command -v bundle >/dev/null 2>&1; then
   echo "[docs:billing:generate] skipped: bundle not installed" >&2
   exit 0

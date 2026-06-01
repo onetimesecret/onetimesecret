@@ -97,9 +97,10 @@ scripts/api-validation/diffs
 
 # Environment files
 .env*
+.test-mode
 !.env.example
 !.env.reference
-!.env.sh
+
 
 # Playwright paths
 test-results/
