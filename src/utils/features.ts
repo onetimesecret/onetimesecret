@@ -313,6 +313,23 @@ export function hasPassword(): boolean {
 }
 
 /**
+ * Pure predicate: current user is owner in the given state.
+ */
+export function isOwnerOf(state: { organization?: { current_user_role?: string | null } | null }): boolean {
+  return state.organization?.current_user_role === 'owner';
+}
+
+/**
+ * Checks if the current authenticated user is an owner of their org.
+ */
+export function isOwner(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const org = getBootstrapValue('organization');
+  return isOwnerOf({ organization: org });
+}
+
+/**
  * Pure predicate: current user is owner or admin in the given state.
  *
  * Reads `organization.current_user_role` directly from the bootstrap shape,

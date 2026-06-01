@@ -31,6 +31,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import { isOwnerOrAdminOf } from '@/utils/features';
 
 /**
  * Props for controlling switcher behavior from parent
@@ -140,6 +141,14 @@ const selectDomain = (domain: string): void => {
     router.push(switchTarget);
   }
 };
+
+/**
+ * Whether the current user can manage domains (owner or admin of current org).
+ * Reads reactively from organizationStore so it updates on org switch.
+ */
+const canManageDomains = computed(() =>
+  isOwnerOrAdminOf({ organization: organizationStore.currentOrganization })
+);
 
 /**
  * Should component be visible
@@ -297,19 +306,19 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
             <!-- Right action area: checkmark (active domain) / gear icon (on hover) -->
             <span class="absolute inset-y-0 right-0 flex items-center pr-3">
               <!-- Checkmark: visible for active domain -->
-              <!-- For custom domains: hidden on row hover to show gear -->
-              <!-- For canonical domain: always visible (no settings page) -->
+              <!-- For custom domains: hidden on row hover to show gear (owners/admins only) -->
+              <!-- For canonical domain or members: always visible (no settings page) -->
               <OIcon
                 v-if="isCurrentContext(domain)"
                 collection="heroicons"
                 name="check-20-solid"
                 class="size-5 text-brand-600 dark:text-brand-400"
-                :class="{ 'group-hover/row:hidden': getExtidByDomain(domain) }"
+                :class="{ 'group-hover/row:hidden': canManageDomains && getExtidByDomain(domain) }"
                 aria-hidden="true" />
 
-              <!-- Gear icon: visible on row hover for custom domains only (not canonical) -->
+              <!-- Gear icon: visible on row hover for owners/admins on custom domains -->
               <button
-                v-if="getExtidByDomain(domain)"
+                v-if="canManageDomains && getExtidByDomain(domain)"
                 type="button"
                 class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
                 :aria-label="t('web.domains.domain_settings')"
@@ -324,13 +333,13 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           </button>
         </MenuItem>
 
-        <!-- Divider -->
+        <!-- Divider + Manage Domains Link (owners and admins only) -->
+        <template v-if="canManageDomains">
         <div
           class="my-1 border-t border-gray-200 dark:border-gray-700"
           role="separator"
           aria-hidden="true" ></div>
 
-        <!-- Manage Domains Link -->
         <MenuItem v-slot="{ active }" @click="navigateToManageDomains">
           <button
             type="button"
@@ -349,6 +358,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
             </span>
           </button>
         </MenuItem>
+        </template>
       </MenuItems>
     </transition>
   </Menu>

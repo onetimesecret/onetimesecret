@@ -19,6 +19,9 @@ import { useRoute } from 'vue-router';
 import type { ScopeSwitcherState } from '@/types/router';
 import { isOrganizationSwitcherEnabled } from '@/utils/features';
 import { useProductIdentity } from '@/shared/stores/identityStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { ENTITLEMENTS } from '@/types/organization';
 import { storeToRefs } from 'pinia';
 
 interface ScopeSwitcherVisibility {
@@ -34,15 +37,38 @@ const defaults: ScopeSwitcherVisibility = {
 export function useScopeSwitcherVisibility() {
   const route = useRoute();
   const { isCustom } = storeToRefs(useProductIdentity());
+  const organizationStore = useOrganizationStore();
+  const bootstrapStore = useBootstrapStore();
 
   const visibility = computed<ScopeSwitcherVisibility>(() => ({
     organization: route.meta.scopesAvailable?.organization ?? defaults.organization,
     domain: route.meta.scopesAvailable?.domain ?? defaults.domain,
   }));
 
+  /**
+   * Owner + manage_org entitlement gate for the org switcher.
+   * Standalone (billing disabled): owner role alone is sufficient.
+   * Billing enabled: owner + manage_org entitlement required.
+   * When entitlements haven't been fetched yet (null), allow owners through
+   * to avoid hiding the switcher during initial load.
+   */
+  const canManageOrgs = computed(() => {
+    const org = organizationStore.currentOrganization;
+    if (org?.current_user_role !== 'owner') return false;
+
+    if (!bootstrapStore.billing_enabled) return true;
+
+    const ents = org.entitlements;
+    if (!ents) return true; // not yet fetched — don't block owners
+    return ents.includes(ENTITLEMENTS.MANAGE_ORG);
+  });
+
   // Hide org switcher on custom domains (the domain IS the org scope)
   const showOrgSwitcher = computed(
-    () => !isCustom.value && visibility.value.organization !== 'hide' && isOrganizationSwitcherEnabled()
+    () => !isCustom.value
+      && visibility.value.organization !== 'hide'
+      && isOrganizationSwitcherEnabled()
+      && canManageOrgs.value
   );
   const lockOrgSwitcher = computed(() => visibility.value.organization === 'locked');
 
