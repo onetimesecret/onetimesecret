@@ -18,6 +18,7 @@ module Onetime
           synchronization with Stripe, and documentation generation.
 
           Available subcommands:
+            sync          - Full sync: push + pull + materialize (all three steps)
             push          - Push catalog to Stripe (create/update products)
             pull          - Pull from Stripe to Redis cache
             validate      - Validate catalog YAML structure and Stripe consistency
@@ -25,6 +26,8 @@ module Onetime
 
           Examples:
             bin/ots billing catalog                    # Show this help
+            bin/ots billing catalog sync --dry-run    # Preview full catalog sync
+            bin/ots billing catalog sync --force      # Full sync without prompts
             bin/ots billing catalog push --dry-run    # Preview changes to Stripe
             bin/ots billing catalog push              # Push catalog to Stripe
             bin/ots billing catalog pull              # Sync Stripe to Redis
