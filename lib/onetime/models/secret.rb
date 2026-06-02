@@ -87,7 +87,7 @@ module Onetime
       exists? && !ciphertext.to_s.empty?
     end
 
-    def decrypted_secret_value(passphrase_input: nil)
+    def decrypted_secret_value(**)
       return if ciphertext.to_s.empty?
 
       ciphertext.reveal { it }&.force_encoding('utf-8')
