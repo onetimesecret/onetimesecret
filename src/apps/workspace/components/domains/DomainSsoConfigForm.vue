@@ -15,7 +15,6 @@ import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
 import {
-  SSO_PROVIDER_METADATA,
   type CustomDomainSsoConfig,
   type SsoProviderType,
 } from '@/schemas/shapes/domains/sso-config';
@@ -131,10 +130,7 @@ const callbackUrl = computed(() => {
   return `https://${props.domainHost}/auth/sso/${route}/callback`;
 });
 
-const showDomainFilter = computed(() => {
-  const metadata = SSO_PROVIDER_METADATA[props.formState.provider_type];
-  return metadata?.requiresDomainFilter ?? false;
-});
+const showDomainFilter = computed(() => false);
 
 const currentProviderOption = computed(() =>
   providerOptions.find((o) => o.value === props.formState.provider_type)
