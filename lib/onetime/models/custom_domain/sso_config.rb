@@ -442,11 +442,10 @@ module Onetime
 
       private
 
-      # Build OIDC options (uses display_name as strategy name)
       def build_oidc_options
         {
           strategy: :openid_connect,
-          name: display_name,
+          name: custom_domain&.extid || domain_id,
           scope: [:openid, :email, :profile],
           response_type: :code,
           issuer: issuer,
@@ -459,11 +458,10 @@ module Onetime
         }
       end
 
-      # Build Entra ID options
       def build_entra_id_options
         {
           strategy: :entra_id,
-          name: domain_id,
+          name: custom_domain&.extid || domain_id,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           tenant_id: tenant_id,
@@ -471,11 +469,10 @@ module Onetime
         }
       end
 
-      # Build Google OAuth2 options
       def build_google_options
         {
           strategy: :google_oauth2,
-          name: domain_id,
+          name: custom_domain&.extid || domain_id,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           scope: 'openid,email,profile',
@@ -483,11 +480,10 @@ module Onetime
         }
       end
 
-      # Build GitHub OAuth options
       def build_github_options
         {
           strategy: :github,
-          name: domain_id,
+          name: custom_domain&.extid || domain_id,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           scope: 'user:email',

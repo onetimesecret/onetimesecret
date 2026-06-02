@@ -209,8 +209,8 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         expect(config.to_omniauth_options[:strategy]).to eq(:openid_connect)
       end
 
-      it 'uses domain_id as the strategy name' do
-        expect(config.to_omniauth_options[:name]).to eq(config.domain_id)
+      it 'uses domain extid as strategy name, falling back to domain_id' do
+        expect(config.to_omniauth_options[:name]).to eq(config.custom_domain&.extid || config.domain_id)
       end
 
       it 'includes issuer' do
