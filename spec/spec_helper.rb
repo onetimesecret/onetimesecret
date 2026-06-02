@@ -93,6 +93,7 @@ $LOAD_PATH.unshift(spec_root)
 # Load application - fail fast, fail clearly
 begin
   require 'onetime'
+  Onetime.send(:load_application_dependencies!)
   require 'onetime/alias'
 
   # Due to how Familia::Horreum defines model classes we need to create
