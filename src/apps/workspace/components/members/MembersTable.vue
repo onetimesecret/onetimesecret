@@ -5,11 +5,20 @@ import MemberRoleSelector from '@/apps/workspace/components/members/MemberRoleSe
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import { useMembersManager } from '@/shared/composables/useMembersManager';
+import { useDomainsStore } from '@/shared/stores';
 import type { OrganizationMember, OrganizationRole } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { useConfirmDialog } from '@vueuse/core';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+const domainsStore = useDomainsStore();
+
+const getDomainName = (domainScopeId: string | null | undefined): string | null => {
+  if (!domainScopeId) return null;
+  const domain = domainsStore.records?.find(d => d.domainid === domainScopeId);
+  return domain?.display_domain ?? null;
+};
 
 const { t } = useI18n();
 
@@ -152,6 +161,13 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
                   <div class="ml-4">
                     <div class="font-medium text-gray-900 dark:text-white">
                       {{ member.email }}
+                    </div>
+                    <div
+                      v-if="member.provisioning_source || getDomainName(member.domain_scope_id)"
+                      class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      <span v-if="member.provisioning_source">{{ member.provisioning_source }}</span>
+                      <span v-if="member.provisioning_source && getDomainName(member.domain_scope_id)"> · </span>
+                      <span v-if="getDomainName(member.domain_scope_id)">{{ getDomainName(member.domain_scope_id) }}</span>
                     </div>
                   </div>
                 </div>
