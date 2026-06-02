@@ -71,8 +71,7 @@ RSpec.describe Billing::Config, billing: true do
       end
 
       it 'logs Psych::SyntaxError message' do
-        expect(OT).to receive(:le).with(/YAML syntax error in billing config/)
-        described_class.safe_load_config
+        expect { described_class.safe_load_config }.to output(/YAML syntax error in billing config/).to_stderr
       end
     end
 
@@ -93,8 +92,7 @@ RSpec.describe Billing::Config, billing: true do
       end
 
       it 'logs StandardError message' do
-        expect(OT).to receive(:le).with(/Failed to load billing config/)
-        described_class.safe_load_config
+        expect { described_class.safe_load_config }.to output(/Failed to load billing config/).to_stderr
       end
     end
 

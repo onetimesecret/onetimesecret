@@ -148,8 +148,15 @@ module Onetime
       # Phase 1: Create registry instance (pure DI architecture)
       @boot_registry = Boot::InitializerRegistry.new
 
+      # Phase 1.5: Discover plugin initializers (deferred from require time)
+      # Plugin discovery accesses config singletons (BillingConfig, AuthConfig)
+      # which do file I/O; running here instead of at require time means CLI
+      # commands that never boot skip that overhead entirely.
+      Onetime::Initializers.discover_plugins!
+
       # Phase 2: Discovery + Loading - Find initializers via ObjectSpace, build dependency graph
-      # Initializer classes were already required (lib/onetime/initializers.rb).
+      # Core initializer classes were already required (lib/onetime/initializers.rb).
+      # Plugin initializer classes were just loaded by discover_plugins! above.
       @boot_registry.autodiscover
 
       # Phase 3: Execution - Run initializers in dependency order (conditional on connect_to_db)
