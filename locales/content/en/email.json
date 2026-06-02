@@ -29,6 +29,16 @@
     "renderer": "erb",
     "content_hash": "fecaf0a1"
   },
+  "email.secret_link.passphrase_label": {
+    "text": "Passphrase required:",
+    "renderer": "erb",
+    "content_hash": "1ab9a20f"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "renderer": "erb",
+    "content_hash": "1e49826b"
+  },
   "email.secret_link.sent_via": {
     "text": "Sent via",
     "renderer": "erb",
