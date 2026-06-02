@@ -34,6 +34,11 @@
     "renderer": "erb",
     "content_hash": "d01479b3"
   },
+  "email.secret_link.footer_note": {
+    "text": "You received this because %{sender_email} used %{product_name} to share a secret with you. If you weren't expecting it, you can safely ignore this email.",
+    "renderer": "erb",
+    "content_hash": "2d544dad"
+  },
   "email.welcome.subject": {
     "text": "Welcome to %{product_name} - Please verify your email",
     "renderer": "erb",
@@ -204,6 +209,11 @@
     "renderer": "erb",
     "content_hash": "d01479b3"
   },
+  "email.incoming_secret.footer_note": {
+    "text": "You received this because someone used %{product_name} to send you a secret. If you weren't expecting it, you can safely ignore this email.",
+    "renderer": "erb",
+    "content_hash": "91ee6e8d"
+  },
   "email.secret_revealed.subject": {
     "text": "Your secret was viewed",
     "renderer": "erb",
@@ -283,6 +293,11 @@
     "text": "After expiration, the secret will be permanently deleted.",
     "renderer": "erb",
     "content_hash": "bd0a9bee"
+  },
+  "email.expiration_warning.footer_note": {
+    "text": "You received this because a secret you created on %{product_name} is about to expire.",
+    "renderer": "erb",
+    "content_hash": "920779e4"
   },
   "email.feedback_email.subject": {
     "text": "Feedback on %{date} via %{display_domain} (%{strategy})",
@@ -873,5 +888,20 @@
     "text": "Onetime Secret",
     "renderer": "erb",
     "content_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "Secret link",
+    "renderer": "erb",
+    "content_hash": "18ddf44f"
+  },
+  "email.common.encrypted_assurance": {
+    "text": "Secrets are encrypted, and %{product_name} can't read their contents.",
+    "renderer": "erb",
+    "content_hash": "3f9b62eb"
+  },
+  "email.common.automated_notice": {
+    "text": "This is an automated message from %{product_name}.",
+    "renderer": "erb",
+    "content_hash": "8fbabfba"
   }
 }
