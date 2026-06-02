@@ -137,6 +137,7 @@ export const KNOWN_ENTITLEMENTS = [
   'ip_access_rules',
   'manage_members',
   'manage_org',
+  'manage_orgs',
   'manage_sso',
   'manage_teams',
   'notifications',

@@ -46,9 +46,9 @@ export function useScopeSwitcherVisibility() {
   }));
 
   /**
-   * Owner + manage_org entitlement gate for the org switcher.
+   * Owner + manage_orgs entitlement gate for the org switcher.
    * Standalone (billing disabled): owner role alone is sufficient.
-   * Billing enabled: owner + manage_org entitlement required.
+   * Billing enabled: owner + manage_orgs entitlement required.
    * When entitlements haven't been fetched yet (null), allow owners through
    * to avoid hiding the switcher during initial load.
    */
@@ -60,7 +60,7 @@ export function useScopeSwitcherVisibility() {
 
     const ents = org.entitlements;
     if (!ents) return true; // not yet fetched — don't block owners
-    return ents.includes(ENTITLEMENTS.MANAGE_ORG);
+    return ents.includes(ENTITLEMENTS.MANAGE_ORGS);
   });
 
   // Hide org switcher on custom domains (the domain IS the org scope)

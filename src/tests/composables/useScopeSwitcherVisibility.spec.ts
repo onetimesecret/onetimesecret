@@ -481,15 +481,15 @@ describe('useScopeSwitcherVisibility', () => {
       expect(showOrgSwitcher.value).toBe(false);
     });
 
-    it('showOrgSwitcher is true for owner with manage_org entitlement (billing enabled)', () => {
-      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: ['manage_org'] };
+    it('showOrgSwitcher is true for owner with manage_orgs entitlement (billing enabled)', () => {
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: ['manage_orgs'] };
       mockBillingEnabled.value = true;
 
       const { showOrgSwitcher } = useScopeSwitcherVisibility();
       expect(showOrgSwitcher.value).toBe(true);
     });
 
-    it('showOrgSwitcher is false for owner without manage_org entitlement (billing enabled)', () => {
+    it('showOrgSwitcher is false for owner without manage_orgs entitlement (billing enabled)', () => {
       mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: ['create_secrets'] };
       mockBillingEnabled.value = true;
 
