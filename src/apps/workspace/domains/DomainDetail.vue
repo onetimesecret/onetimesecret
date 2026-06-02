@@ -41,8 +41,8 @@ const handleBack = () => {
 };
 
 const handleRemoveDomain = async () => {
-  const confirmed = await reveal();
-  if (confirmed) {
+  const { isCanceled } = await reveal();
+  if (!isCanceled) {
     await deleteDomain(props.extid);
     router.push(`/org/${props.orgid}/domains`);
   }
@@ -106,17 +106,6 @@ interface Section {
 
 const sections = computed<Section[]>(() => [
   {
-    key: 'homepage',
-    route: null,
-    icon: { collection: 'heroicons', name: 'home' },
-    titleKey: 'web.domains.detail.homepage_title',
-    descriptionKey: 'web.domains.detail.homepage_description',
-    available: true,
-    locked: false,
-    toggleable: true,
-    enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
-  },
-  {
     key: 'brand',
     route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
     icon: { collection: 'heroicons', name: 'paint-brush' },
@@ -126,6 +115,17 @@ const sections = computed<Section[]>(() => [
     locked: !canBrand.value,
     toggleable: false,
     enabled: false,
+  },
+  {
+    key: 'homepage',
+    route: null,
+    icon: { collection: 'heroicons', name: 'home' },
+    titleKey: 'web.domains.detail.homepage_title',
+    descriptionKey: 'web.domains.detail.homepage_description',
+    available: true,
+    locked: false,
+    toggleable: true,
+    enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
   },
   {
     key: 'incoming',
@@ -166,7 +166,7 @@ const sections = computed<Section[]>(() => [
     icon: { collection: 'heroicons', name: 'user-plus' },
     titleKey: 'web.domains.signup.configure_signup',
     descriptionKey: 'web.domains.detail.signup_description',
-    available: true,
+    available: false,
     locked: !canCustomSignup.value,
     toggleable: false,
     enabled: false,

@@ -52,9 +52,9 @@ const handleRoleChange = async (member: OrganizationMember, newRole: Organizatio
 
 const handleRemoveClick = async (member: OrganizationMember) => {
   memberToRemove.value = member;
-  const confirmed = await reveal();
+  const { isCanceled } = await reveal();
 
-  if (confirmed) {
+  if (!isCanceled) {
     const success = await removeMember(props.orgExtid, member.extid);
     if (success) {
       emit('member-removed', member.extid);
