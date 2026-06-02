@@ -15,7 +15,6 @@ require 'truemail'
 
 require 'erb'
 
-require 'encryptor'
 require 'bcrypt'
 
 begin

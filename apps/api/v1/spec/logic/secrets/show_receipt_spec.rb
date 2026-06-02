@@ -2,16 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Tests for Bug #2: ShowReceipt calls `secret.decrypted_value` (line 96)
-# which crashes with NoMethodError on nil when the secret was created via
-# the v2 path (Receipt.spawn_pair) that stores encrypted content in the
-# `ciphertext` field, NOT the legacy `value` field.
-#
-# The correct method is `secret.decrypted_secret_value` which dispatches
-# between v2 ciphertext and legacy value transparently.
-#
-# The fix (decrypted_value → decrypted_secret_value) landed in
-# show_receipt.rb line 96. All tests below should now pass.
+# Tests for ShowReceipt logic class.
+# Verifies that process uses decrypted_secret_value to reveal
+# v2 secrets stored in the ciphertext field.
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
@@ -54,8 +47,6 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       expect(secret.ciphertext.to_s).not_to be_empty
       expect(secret.value.to_s).to be_empty
 
-      # This is the crash path: ShowReceipt#process calls
-      # secret.decrypted_value which hits nil.dup.force_encoding('utf-8')
       expect { subject.process }.not_to raise_error
     end
 
@@ -92,8 +83,7 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
         truncated?: false,
         # v2 path: ciphertext exists, value is nil
         ciphertext: 'encrypted_blob',
-        value: nil,
-        value_encryption: nil)
+        value: nil)
     end
 
     let(:receipt) do
@@ -130,30 +120,15 @@ RSpec.describe V1::Logic::Secrets::ShowReceipt do
       # decrypted_secret_value is the CORRECT method - returns plaintext
       allow(secret).to receive(:decrypted_secret_value).and_return('v2 secret content')
 
-      # decrypted_value is the BUGGY call path - crashes on nil value
-      allow(secret).to receive(:decrypted_value).and_raise(
-        NoMethodError.new("undefined method 'force_encoding' for nil")
-      )
     end
 
-    it 'calls decrypted_secret_value instead of decrypted_value' do
-      # The fix should call decrypted_secret_value. The current code calls
-      # decrypted_value which will raise NoMethodError from our stub.
+    it 'calls decrypted_secret_value' do
       expect(secret).to receive(:decrypted_secret_value).and_return('v2 secret content')
 
       subject.process
     end
 
-    it 'does not call the legacy decrypted_value method' do
-      expect(secret).not_to receive(:decrypted_value)
-
-      subject.process
-    end
-
     it 'does not raise when secret has ciphertext but no legacy value' do
-      # Post-fix verification: process completes without error because
-      # it now calls decrypted_secret_value (which handles v2 ciphertext)
-      # instead of the legacy decrypted_value (which crashes on nil).
       expect { subject.process }.not_to raise_error
     end
   end

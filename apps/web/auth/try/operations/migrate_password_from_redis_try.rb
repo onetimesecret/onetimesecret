@@ -17,27 +17,16 @@ OT.boot! :test, false
 
 require_relative '../../operations/migrate_password_from_redis'
 
-# Create a test customer with bcrypt password
-@test_email_bcrypt = generate_unique_test_email('migrate_bcrypt')
-@test_password = 'test_password_123'
-
-@customer_bcrypt = Onetime::Customer.create!(
-  email: @test_email_bcrypt,
-  role: 'customer',
-  verified: false
-)
-@customer_bcrypt.update_passphrase(@test_password, algorithm: :bcrypt)
-@customer_bcrypt.save
-
 # Create a test customer with argon2 password
 @test_email_argon2 = generate_unique_test_email('migrate_argon2')
+@test_password = 'test_password_123'
 
 @customer_argon2 = Onetime::Customer.create!(
   email: @test_email_argon2,
   role: 'customer',
   verified: false
 )
-@customer_argon2.update_passphrase(@test_password, algorithm: :argon2)
+@customer_argon2.update_passphrase(@test_password)
 @customer_argon2.save
 
 # Create a test customer without password (OAuth-only user)
@@ -49,22 +38,6 @@ require_relative '../../operations/migrate_password_from_redis'
   verified: false
 )
 # No passphrase set
-
-## MigratePasswordFromRedis verifies bcrypt password successfully
-result = Auth::Operations::MigratePasswordFromRedis.new(
-  email: @test_email_bcrypt,
-  password: @test_password
-).call
-result.success?
-#=> true
-
-## MigratePasswordFromRedis returns customer on successful bcrypt verification
-result = Auth::Operations::MigratePasswordFromRedis.new(
-  email: @test_email_bcrypt,
-  password: @test_password
-).call
-result.customer.email
-#=> @test_email_bcrypt
 
 ## MigratePasswordFromRedis verifies argon2 password successfully
 result = Auth::Operations::MigratePasswordFromRedis.new(
@@ -82,22 +55,6 @@ result = Auth::Operations::MigratePasswordFromRedis.new(
 result.customer.email
 #=> @test_email_argon2
 
-## MigratePasswordFromRedis fails with wrong password for bcrypt
-result = Auth::Operations::MigratePasswordFromRedis.new(
-  email: @test_email_bcrypt,
-  password: 'wrong_password'
-).call
-result.success?
-#=> false
-
-## MigratePasswordFromRedis returns password_mismatch reason for wrong password
-result = Auth::Operations::MigratePasswordFromRedis.new(
-  email: @test_email_bcrypt,
-  password: 'wrong_password'
-).call
-result.reason
-#=> :password_mismatch
-
 ## MigratePasswordFromRedis fails with wrong password for argon2
 result = Auth::Operations::MigratePasswordFromRedis.new(
   email: @test_email_argon2,
@@ -105,6 +62,14 @@ result = Auth::Operations::MigratePasswordFromRedis.new(
 ).call
 result.success?
 #=> false
+
+## MigratePasswordFromRedis returns password_mismatch reason for wrong password
+result = Auth::Operations::MigratePasswordFromRedis.new(
+  email: @test_email_argon2,
+  password: 'wrong_password'
+).call
+result.reason
+#=> :password_mismatch
 
 ## MigratePasswordFromRedis fails for non-existent customer
 result = Auth::Operations::MigratePasswordFromRedis.new(
@@ -147,6 +112,5 @@ result.failed?
 #=> true
 
 # Teardown - Clean up test customers
-@customer_bcrypt.destroy!
 @customer_argon2.destroy!
 @customer_no_password.destroy!

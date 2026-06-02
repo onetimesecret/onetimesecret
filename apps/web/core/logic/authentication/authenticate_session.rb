@@ -29,14 +29,10 @@ module Core::Logic
         @cust          = potential if passwd_matches
         @objid         = @cust.objid if @cust
 
-        # Transparent password hash migration: rehash bcrypt passwords to argon2
-        # on successful login while we have the plaintext password available.
         migrate_password_hash_if_needed(potential, @passwd) if passwd_matches
       end
 
-      # Migrate legacy bcrypt password hashes to argon2id on successful login.
-      # This provides a gradual, transparent migration path without forcing
-      # password resets or requiring user action.
+      # Rehash legacy bcrypt passwords to argon2id on successful login.
       #
       # @param customer [Onetime::Customer] The authenticated customer
       # @param password [String] The verified plaintext password
@@ -51,8 +47,6 @@ module Core::Logic
             action: 'password_hash_migration',
           }
       rescue StandardError => ex
-        # Log the error but don't fail the login - the bcrypt hash remains
-        # intact and will be migrated on the next successful login attempt.
         auth_logger.error 'Password hash migration failed',
           {
             user_id: customer.objid,

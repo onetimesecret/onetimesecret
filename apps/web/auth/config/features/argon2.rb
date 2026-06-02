@@ -6,9 +6,9 @@ module Auth::Config::Features
   # Argon2 password hashing configuration for Rodauth (full auth mode).
   #
   # Argon2id is a memory-hard password hashing algorithm that provides
-  # improved resistance against GPU-based and ASIC-based attacks compared
-  # to bcrypt. This is configured for full mode only - simple mode
-  # handles argon2 directly in the Customer model.
+  # resistance against GPU-based and ASIC-based attacks. This is
+  # configured for full mode only - simple mode handles argon2
+  # directly in the Customer model.
   #
   # Configuration:
   #   Set ARGON2_SECRET environment variable (read via auth config YAML).
@@ -17,7 +17,7 @@ module Auth::Config::Features
   #
   module Argon2
     def self.configure(auth)
-      # Use argon2id for password hashing (more secure than bcrypt)
+      # Use argon2id for password hashing
       auth.enable :argon2
 
       # Optional secret key for additional security.
@@ -35,8 +35,6 @@ module Auth::Config::Features
         auth.password_hash_cost({ t_cost: 2, m_cost: 16, p_cost: 1 })
       end
 
-      # Since full mode is new, we don't need bcrypt support.
-      # This saves memory by not loading the bcrypt library.
       auth.require_bcrypt? false
     end
   end

@@ -8,10 +8,7 @@ module V1::Logic
     using Familia::Refinements::TimeLiterals
 
     # V1 compat: uses load_owner (not load_customer) and
-    # decrypted_secret_value (not decrypted_value). The v0.24 model
-    # renamed load_customer -> load_owner, and the new decryption
-    # dispatcher (decrypted_secret_value) handles both v1 legacy
-    # `value` field and v2 `ciphertext` field transparently.
+    # decrypted_secret_value for decryption.
     class ShowSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
@@ -39,14 +36,6 @@ module V1::Logic
         owner = secret.load_owner
 
         if show_secret
-          # Call decrypted_secret_value directly instead of guarding with
-          # can_decrypt?. For passphrase-protected secrets, can_decrypt? checks
-          # passphrase_temp which isn't set until decrypted_secret_value runs —
-          # so can_decrypt? returns false and we fall through to secret.value
-          # (which is empty for v0.24 ciphertext-only secrets). Since we've
-          # already verified the passphrase is correct (line 35), we can safely
-          # call decrypted_secret_value which handles both ciphertext (v2) and
-          # legacy value paths.
           @secret_value = secret.decrypted_secret_value(passphrase_input: passphrase)
           @is_truncated = secret.truncated?
           @original_size = secret.respond_to?(:original_size) ? secret.original_size : nil
