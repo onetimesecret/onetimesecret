@@ -442,10 +442,17 @@ module Onetime
 
       private
 
+      def strategy_name
+        domain = custom_domain
+        raise Onetime::Problem, "Cannot resolve domain #{domain_id} for SSO strategy" unless domain
+
+        domain.extid
+      end
+
       def build_oidc_options
         {
           strategy: :openid_connect,
-          name: custom_domain&.extid || domain_id,
+          name: strategy_name,
           scope: [:openid, :email, :profile],
           response_type: :code,
           issuer: issuer,
@@ -461,7 +468,7 @@ module Onetime
       def build_entra_id_options
         {
           strategy: :entra_id,
-          name: custom_domain&.extid || domain_id,
+          name: strategy_name,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           tenant_id: tenant_id,
@@ -472,7 +479,7 @@ module Onetime
       def build_google_options
         {
           strategy: :google_oauth2,
-          name: custom_domain&.extid || domain_id,
+          name: strategy_name,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           scope: 'openid,email,profile',
@@ -483,7 +490,7 @@ module Onetime
       def build_github_options
         {
           strategy: :github,
-          name: custom_domain&.extid || domain_id,
+          name: strategy_name,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           scope: 'user:email',

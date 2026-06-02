@@ -198,6 +198,13 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   # ==========================================================================
 
   describe '#to_omniauth_options' do
+    let(:fake_domain) { instance_double(Onetime::CustomDomain, extid: 'cd_test_primary_12345') }
+
+    before do
+      allow_any_instance_of(Onetime::CustomDomain::SsoConfig)
+        .to receive(:custom_domain).and_return(fake_domain)
+    end
+
     describe 'for OIDC provider' do
       let(:config) { build_domain_sso_config(:oidc) }
 
@@ -209,8 +216,8 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         expect(config.to_omniauth_options[:strategy]).to eq(:openid_connect)
       end
 
-      it 'uses domain extid as strategy name, falling back to domain_id' do
-        expect(config.to_omniauth_options[:name]).to eq(config.custom_domain&.extid || config.domain_id)
+      it 'uses domain extid as the strategy name' do
+        expect(config.to_omniauth_options[:name]).to eq('cd_test_primary_12345')
       end
 
       it 'includes issuer' do
