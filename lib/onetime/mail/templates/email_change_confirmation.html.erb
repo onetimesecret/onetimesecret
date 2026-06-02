@@ -27,9 +27,11 @@
             <tr>
               <td class="container-padding" align="left" style="padding: 24px; background-color: #ffffff;">
                 <!-- Logo -->
+                <% if show_logo? %>
                 <img alt="Onetime Secret" src="<%= baseuri %>/img/onetime-logo-v3-xl.svg" <%# herb:disable erb-prefer-image-tag-helper %>
                    style="border: 0; display: block; margin: 0 0 32px 0; height: 48px; width: 48px; background-color: #dc4a22;"
                    width="48" height="48">
+                <% end %>
 
                 <!-- Title -->
                 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">

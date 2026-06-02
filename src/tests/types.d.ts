@@ -35,6 +35,7 @@ export interface MockDependencies {
     uploadLogo: Mock;
     fetchLogo: Mock;
     removeLogo: Mock;
+    putHomepageConfig: Mock;
     fetchList: Mock;
     refreshRecords: Mock;
     $reset: Mock;

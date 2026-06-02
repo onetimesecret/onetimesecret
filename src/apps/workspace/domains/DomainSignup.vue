@@ -142,7 +142,7 @@ watch(canCustomSignup, async (entitled) => {
             name="arrow-left"
             class="size-5"
             aria-hidden="true" />
-          <span class="sr-only">{{ t('web.COMMON.back') }}</span>
+          {{ t('web.COMMON.back') }}
         </button>
       </div>
     </div>

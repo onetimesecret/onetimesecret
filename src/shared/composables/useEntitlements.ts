@@ -35,6 +35,7 @@ const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
   [ENTITLEMENTS.WORKSPACE_BRANDING]: 'web.billing.overview.entitlements.workspace_branding',
   // Organization Management
   [ENTITLEMENTS.MANAGE_ORG]: 'web.billing.overview.entitlements.manage_org',
+  [ENTITLEMENTS.MANAGE_ORGS]: 'web.billing.overview.entitlements.manage_orgs',
   [ENTITLEMENTS.MANAGE_TEAMS]: 'web.billing.overview.entitlements.manage_teams',
   [ENTITLEMENTS.MANAGE_MEMBERS]: 'web.billing.overview.entitlements.manage_members',
   [ENTITLEMENTS.MANAGE_SSO]: 'web.billing.overview.entitlements.manage_sso',

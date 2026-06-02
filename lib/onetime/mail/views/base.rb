@@ -279,6 +279,10 @@ module Onetime
             end
           end
 
+          def show_logo?
+            conf_dig('emailer', 'show_logo') == true
+          end
+
           private
 
           def conf_dig(*keys)

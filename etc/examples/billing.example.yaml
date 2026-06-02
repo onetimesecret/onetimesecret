@@ -110,6 +110,10 @@ entitlements:
     category: core
     description: Custom privacy defaults for secrets
 
+  manage_orgs:
+    category: collaboration
+    description: Add and manage organizations on your account
+
   manage_org:
     category: collaboration
     description: Can manage organization settings, members, and domains
@@ -117,6 +121,10 @@ entitlements:
   manage_teams:
     category: collaboration
     description: Can create and manage teams
+
+  manage_billing:
+    category: billing
+    description: Can manage billing details and change plans
 
   manage_members:
     category: collaboration

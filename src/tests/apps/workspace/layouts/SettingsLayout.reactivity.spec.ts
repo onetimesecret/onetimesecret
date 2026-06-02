@@ -88,7 +88,7 @@ describe('SettingsLayout — reactive tab visibility', () => {
     mounted = null;
   });
 
-  it('hides Security/Region/Caution for an SSO-only user (no password) on first mount', async () => {
+  it('shows Security section in full-auth mode even without a password', async () => {
     mounted = await mountLayout({
       authentication: { mode: 'full' },
       features: { mfa: true, webauthn: true, sso: { enabled: true }, restrict_to: null } as never,
@@ -96,52 +96,35 @@ describe('SettingsLayout — reactive tab visibility', () => {
     });
     const tabs = visibleTabIds(mounted.wrapper);
 
-    // Profile and API tabs are always visible; the password-gated ones must not be.
     expect(tabs).toContain('/account/settings/profile');
     expect(tabs).toContain('/account/settings/api');
-    expect(tabs).not.toContain('/account/settings/security');
-    expect(tabs).not.toContain('/account/region');
-    expect(tabs).not.toContain('/account/settings/caution');
+    expect(tabs).toContain('/account/settings/security');
   });
 
-  it('reveals Security/Region/Caution after has_password flips without re-mounting', async () => {
-    // Reproduces the reported bug: tabs stay hidden until full page reload.
-    // After the snapshot+reactivity fix, a single store update should be enough.
+  it('hides Security section when auth mode is not full', async () => {
     mounted = await mountLayout({
-      authentication: { mode: 'full' },
+      authentication: { mode: 'simple' },
+      features: { mfa: true, webauthn: true, sso: { enabled: true }, restrict_to: null } as never,
+      has_password: false,
+    });
+    const tabs = visibleTabIds(mounted.wrapper);
+
+    expect(tabs).toContain('/account/settings/profile');
+    expect(tabs).not.toContain('/account/settings/security');
+  });
+
+  it('reacts to auth mode change without re-mounting', async () => {
+    mounted = await mountLayout({
+      authentication: { mode: 'simple' },
       features: { mfa: true, webauthn: true, sso: { enabled: true }, restrict_to: null } as never,
       has_password: false,
     });
 
     expect(visibleTabIds(mounted.wrapper)).not.toContain('/account/settings/security');
 
-    mounted.store.update({ has_password: true });
+    mounted.store.update({ authentication: { mode: 'full' } });
     await nextTick();
 
-    const tabs = visibleTabIds(mounted.wrapper);
-    expect(tabs).toContain('/account/settings/security');
-    expect(tabs).toContain('/account/region');
-    expect(tabs).toContain('/account/settings/caution');
-  });
-
-  it('keeps Security/Region/Caution hidden in SSO-only mode even when has_password is true', async () => {
-    // Regression guard for the intentional SSO-only hiding behaviour: if a
-    // platform forces `restrict_to=sso`, password-centric tabs must stay
-    // hidden no matter what `has_password` says.
-    mounted = await mountLayout({
-      authentication: { mode: 'full' },
-      features: {
-        mfa: true,
-        webauthn: true,
-        sso: { enabled: true },
-        restrict_to: 'sso',
-      } as never,
-      has_password: true,
-    });
-    const tabs = visibleTabIds(mounted.wrapper);
-
-    expect(tabs).not.toContain('/account/settings/security');
-    expect(tabs).not.toContain('/account/region');
-    expect(tabs).not.toContain('/account/settings/caution');
+    expect(visibleTabIds(mounted.wrapper)).toContain('/account/settings/security');
   });
 });

@@ -63,8 +63,6 @@ module Auth::Config::Features
       # NOTE: Client secret can be empty for PKCE-only flows, but ensure the IdP
       # actually supports PKCE-only.
       client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '') # Optional for PKCE-only flows
-      redirect_uri  = ENV.fetch('OIDC_REDIRECT_URI', nil)
-
       provider_name = ENV.fetch('OIDC_ROUTE_NAME', 'oidc').to_sym
 
       missing = missing_env_vars(%w[OIDC_ISSUER OIDC_CLIENT_ID])
@@ -75,11 +73,9 @@ module Auth::Config::Features
 
       OT.li "[OmniAuth] Configuring OIDC provider '#{provider_name}' with issuer: #{issuer}, client_id: #{client_id[0..8]}..."
 
-      # Build client options
-      client_opts          = {
-        identifier: client_id,
-        redirect_uri: redirect_uri,
-      }
+      # redirect_uri is omitted here — the omniauth_setup hook injects it
+      # at runtime from the request host (see omniauth_tenant.rb).
+      client_opts          = { identifier: client_id }
       # Only include secret if provided (PKCE flows may not have one)
       client_opts[:secret] = client_secret unless client_secret.empty?
 
@@ -106,7 +102,6 @@ module Auth::Config::Features
       tenant_id     = ENV.fetch('ENTRA_TENANT_ID', nil)
       client_id     = ENV.fetch('ENTRA_CLIENT_ID', nil)
       client_secret = ENV.fetch('ENTRA_CLIENT_SECRET', nil)
-      redirect_uri  = ENV.fetch('ENTRA_REDIRECT_URI', nil)
       provider_name = ENV.fetch('ENTRA_ROUTE_NAME', 'entra').to_sym
       # For log message only; the frontend display_name comes from AuthConfig.sso_providers
       display_name  = ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft')
@@ -121,21 +116,19 @@ module Auth::Config::Features
 
       require 'omniauth-entra-id'
 
-      auth.omniauth_provider(
-        :entra_id,
+      opts = {
         name: provider_name,
         client_id: client_id,
         client_secret: client_secret,
         tenant_id: tenant_id,
-        redirect_uri: redirect_uri,
         scope: 'openid profile email',
-      )
+      }
+      auth.omniauth_provider(:entra_id, **opts)
     end
 
     def self.configure_github_provider(auth)
       client_id     = ENV.fetch('GITHUB_CLIENT_ID', nil)
       client_secret = ENV.fetch('GITHUB_CLIENT_SECRET', nil)
-      redirect_uri  = ENV.fetch('GITHUB_REDIRECT_URI', nil)
       provider_name = ENV.fetch('GITHUB_ROUTE_NAME', 'github').to_sym
       display_name  = ENV.fetch('GITHUB_DISPLAY_NAME', 'GitHub')
 
@@ -149,20 +142,18 @@ module Auth::Config::Features
 
       require 'omniauth-github'
 
-      auth.omniauth_provider(
-        :github,
+      opts = {
         name: provider_name,
         client_id: client_id,
         client_secret: client_secret,
-        redirect_uri: redirect_uri,
         scope: 'user:email',
-      )
+      }
+      auth.omniauth_provider(:github, **opts)
     end
 
     def self.configure_google_provider(auth)
       client_id     = ENV.fetch('GOOGLE_CLIENT_ID', nil)
       client_secret = ENV.fetch('GOOGLE_CLIENT_SECRET', nil)
-      redirect_uri  = ENV.fetch('GOOGLE_REDIRECT_URI', nil)
       provider_name = ENV.fetch('GOOGLE_ROUTE_NAME', 'google').to_sym
       display_name  = ENV.fetch('GOOGLE_DISPLAY_NAME', 'Google')
 
@@ -176,15 +167,14 @@ module Auth::Config::Features
 
       require 'omniauth-google-oauth2'
 
-      auth.omniauth_provider(
-        :google_oauth2,
+      opts = {
         name: provider_name,
         client_id: client_id,
         client_secret: client_secret,
-        redirect_uri: redirect_uri,
         scope: 'openid,email,profile',
         prompt: 'select_account',
-      )
+      }
+      auth.omniauth_provider(:google_oauth2, **opts)
     end
   end
 end

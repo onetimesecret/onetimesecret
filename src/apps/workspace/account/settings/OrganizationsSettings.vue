@@ -71,8 +71,7 @@
    * Uses entitlement-based framework instead of hardcoded plan checks.
    */
   const canCreateMultipleOrgs = computed(() =>
-    // Users with org management entitlement can create multiple organizations
-    can(ENTITLEMENTS.MANAGE_ORG)
+    can(ENTITLEMENTS.MANAGE_ORGS)
   );
 
   onMounted(async () => {

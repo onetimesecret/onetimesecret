@@ -2,8 +2,10 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { useConfirmDialog } from '@vueuse/core';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
@@ -184,6 +186,19 @@ const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAG
 // route guard `requireDomainAdminRole` and backend check). Hides the UI
 // affordance so members don't see a dead-end link.
 const { canCreateDomain } = useOrgPermissions(organization);
+
+const isOwner = computed(() => organization.value?.current_user_role === 'owner');
+const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
+
+const { isRevealed: isDeleteRevealed, reveal: revealDelete, confirm: confirmDelete, cancel: cancelDelete } = useConfirmDialog();
+
+const handleDeleteOrganization = async () => {
+  const { isCanceled } = await revealDelete();
+  if (!isCanceled) {
+    await organizationStore.deleteOrganization(orgId.value);
+    router.push('/dashboard');
+  }
+};
 
 // SSO status per domain — populated on-demand when SSO tab is shown
 interface DomainSsoStatus {
@@ -838,7 +853,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </div>
 
               <!-- Billing Email - read-only display for paid plans, editable on Billing Overview -->
-              <div v-if="hasPaidPlan" data-testid="org-billing-email-field">
+              <div v-if="billingEnabled && hasPaidPlan" data-testid="org-billing-email-field">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {{ t('web.organizations.contact_email') }}
                 </label>
@@ -909,6 +924,47 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             </div>
           </div>
         </div>
+
+        <!-- Caution Zone — owner-only, non-default orgs (General tab) -->
+        <template v-if="activeTab === 'general' && isOwner && !organization?.is_default">
+          <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
+          <div>
+            <h2 class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
+              {{ t('web.COMMON.caution_zone') }}
+            </h2>
+            <div class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
+              <div class="flex items-center justify-between gap-4 px-5 py-4">
+                <div class="flex min-w-0 items-center gap-4">
+                  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                    <OIcon
+                      collection="heroicons"
+                      name="trash"
+                      class="size-5 text-red-600 dark:text-red-400"
+                      aria-hidden="true" />
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                      {{ t('web.organizations.delete_organization') }}
+                    </h3>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('web.organizations.delete_organization_warning') }}
+                    </p>
+                    <p v-if="hasDomains" class="mt-1 text-xs text-red-600 dark:text-red-400">
+                      {{ t('web.organizations.delete_organization_remove_domains_first') }}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  :disabled="hasDomains"
+                  class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white hover:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white dark:hover:border-red-600 dark:focus:ring-offset-gray-900"
+                  @click="handleDeleteOrganization">
+                  {{ t('web.COMMON.remove') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
 
         <!-- Members Tab -->
         <section
@@ -1580,5 +1636,13 @@ const handleTabKeydown = (e: KeyboardEvent) => {
         </section>
       </div>
     </div>
+
+    <ConfirmDialog
+      v-if="isDeleteRevealed"
+      :title="t('web.organizations.delete_organization_confirm_title')"
+      :message="t('web.organizations.delete_organization_confirm_message', { name: organization?.display_name })"
+      type="danger"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete" />
   </div>
 </template>

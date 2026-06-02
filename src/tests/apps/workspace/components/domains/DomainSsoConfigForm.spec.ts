@@ -337,12 +337,11 @@ describe('DomainSsoConfigForm', () => {
       expect(issuerInput.exists()).toBe(false);
     });
 
-    it('shows domain filter field for GitHub (requiresDomainFilter)', async () => {
+    it('does not show domain filter field (feature not yet enabled)', async () => {
       wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
 
-      // The domain allowlist field should be visible for GitHub
       const domainInput = wrapper.find('#domain-sso-domain-input');
-      expect(domainInput.exists()).toBe(true);
+      expect(domainInput.exists()).toBe(false);
     });
   });
 

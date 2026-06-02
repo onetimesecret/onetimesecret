@@ -11,9 +11,10 @@
 import { useI18n } from 'vue-i18n';
 import { computed, ref, watch } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import { useClipboard } from '@/shared/composables/useClipboard';
 import {
-  SSO_PROVIDER_METADATA,
   type CustomDomainSsoConfig,
   type SsoProviderType,
 } from '@/schemas/shapes/domains/sso-config';
@@ -26,6 +27,7 @@ import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
 const props = defineProps<{
   domainExtId: string;
+  domainHost: string;
   formState: SsoConfigFormState;
   ssoConfig: CustomDomainSsoConfig | null;
   isLoading: boolean;
@@ -113,10 +115,22 @@ const requiresTenantId = computed(() => props.formState.provider_type === 'entra
 
 const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
 
-const showDomainFilter = computed(() => {
-  const metadata = SSO_PROVIDER_METADATA[props.formState.provider_type];
-  return metadata?.requiresDomainFilter ?? false;
+const requiresClientSecret = computed(() => props.formState.provider_type !== 'oidc');
+
+const PROVIDER_ROUTE_NAMES: Record<SsoProviderType, string> = {
+  oidc: 'oidc',
+  entra_id: 'entra',
+  google: 'google',
+  github: 'github',
+};
+
+const callbackUrl = computed(() => {
+  if (!props.domainHost) return null;
+  const route = PROVIDER_ROUTE_NAMES[props.formState.provider_type];
+  return `https://${props.domainHost}/auth/sso/${route}/callback`;
 });
+
+const showDomainFilter = computed(() => false);
 
 const currentProviderOption = computed(() =>
   providerOptions.find((o) => o.value === props.formState.provider_type)
@@ -126,8 +140,8 @@ const isFormValid = computed(() => {
   if (!props.formState.display_name.trim()) return false;
   if (!props.formState.client_id.trim()) return false;
 
-  // client_secret required for new configs
-  if (!isEditing.value && !props.formState.client_secret?.trim()) return false;
+  // client_secret required for new configs (except OIDC which supports public clients)
+  if (requiresClientSecret.value && !isEditing.value && !props.formState.client_secret?.trim()) return false;
 
   // Provider-specific requirements
   if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
@@ -142,6 +156,20 @@ const clientSecretPlaceholder = computed(() => {
   }
   return t('web.organizations.sso.client_secret_placeholder');
 });
+
+const discoveryUrl = computed(() => {
+  const issuer = props.formState.issuer?.trim();
+  if (!issuer) return null;
+  try {
+    const u = new URL(issuer);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+    return `${issuer.replace(/\/+$/, '')}/.well-known/openid-configuration`;
+  } catch {
+    return null;
+  }
+});
+
+const { isCopied: isCallbackCopied, copyToClipboard } = useClipboard();
 
 const canTestConnection = computed(() => {
   if (!props.formState.client_id.trim()) return false;
@@ -352,7 +380,7 @@ class="space-y-6">
           for="domain-sso-client-secret"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.client_secret') }}
-          <span v-if="!isEditing"
+          <span v-if="requiresClientSecret && !isEditing"
 class="text-red-500"
 aria-hidden="true">*</span>
         </label>
@@ -368,7 +396,7 @@ aria-hidden="true">*</span>
             :value="formState.client_secret"
             @input="updateField('client_secret', ($event.target as HTMLInputElement).value)"
             :type="showClientSecret ? 'text' : 'password'"
-            :required="!isEditing"
+            :required="requiresClientSecret && !isEditing"
             autocomplete="new-password"
             :placeholder="clientSecretPlaceholder"
             :aria-describedby="isEditing ? 'domain-client-secret-hint' : undefined"
@@ -435,6 +463,14 @@ aria-hidden="true">*</span>
           :placeholder="t('web.organizations.sso.issuer_placeholder')"
           aria-describedby="domain-issuer-hint"
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+        <a
+          v-if="discoveryUrl"
+          :href="discoveryUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-1 inline-block text-xs text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300">
+          {{ t('web.organizations.sso.view_discovery_document') }}
+        </a>
       </div>
 
       <!-- Test Connection -->
@@ -558,6 +594,27 @@ aria-hidden="true">*</span>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Callback URL (all providers) -->
+      <div
+        v-if="callbackUrl"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.organizations.sso.callback_url') }}
+        </label>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.callback_url_hint') }}
+        </p>
+        <div class="mt-2 flex items-center gap-2">
+          <code
+            class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+            {{ callbackUrl }}
+          </code>
+          <CopyToClipboardButton
+            :is-copied="isCallbackCopied"
+            @click="copyToClipboard(callbackUrl ?? '')" />
         </div>
       </div>
 

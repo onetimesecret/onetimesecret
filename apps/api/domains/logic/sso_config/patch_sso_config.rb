@@ -182,8 +182,9 @@ module DomainsAPI
             end
           end
 
-          # client_secret is required for new configs, optional for updates (preserves existing)
-          if @existing_config.nil? && @client_secret.to_s.empty?
+          # client_secret is required for new non-OIDC configs, optional for updates (preserves existing).
+          # OIDC supports public clients (PKCE flow) without a client secret.
+          if @existing_config.nil? && @client_secret.to_s.empty? && @provider_type != 'oidc'
             raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
           end
         end

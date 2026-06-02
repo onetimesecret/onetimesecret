@@ -46,7 +46,6 @@ export AUTH_SSO_ENABLED=true
 export OIDC_ISSUER=https://auth.example.com
 export OIDC_CLIENT_ID=your-client-id
 export OIDC_CLIENT_SECRET=your-client-secret
-export OIDC_REDIRECT_URI=https://app.example.com/auth/sso/oidc/callback
 ```
 
 ### 3. Restart Application
@@ -70,7 +69,6 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `OIDC_ISSUER` | Yes | Issuer URL (must serve `/.well-known/openid-configuration`) |
 | `OIDC_CLIENT_ID` | Yes | OAuth client ID |
 | `OIDC_CLIENT_SECRET` | No | OAuth client secret (empty for PKCE-only flows) |
-| `OIDC_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/oidc/callback` |
 | `OIDC_ROUTE_NAME` | No | URL segment (default: `oidc`) |
 
 ### Microsoft Entra ID
@@ -80,7 +78,6 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `ENTRA_TENANT_ID` | Yes | Directory (tenant) ID from Azure portal |
 | `ENTRA_CLIENT_ID` | Yes | Application (client) ID |
 | `ENTRA_CLIENT_SECRET` | Yes | Client secret value (not the secret ID) |
-| `ENTRA_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/entra/callback` |
 | `ENTRA_ROUTE_NAME` | No | URL segment (default: `entra`) |
 | `ENTRA_DISPLAY_NAME` | No | Button label (default: `Microsoft`) |
 
@@ -90,7 +87,6 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 |----------|----------|-------------|
 | `GOOGLE_CLIENT_ID` | Yes | OAuth 2.0 client ID |
 | `GOOGLE_CLIENT_SECRET` | Yes | OAuth 2.0 client secret |
-| `GOOGLE_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/google/callback` |
 | `GOOGLE_ROUTE_NAME` | No | URL segment (default: `google`) |
 | `GOOGLE_DISPLAY_NAME` | No | Button label (default: `Google`) |
 
@@ -100,7 +96,6 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 |----------|----------|-------------|
 | `GITHUB_CLIENT_ID` | Yes | OAuth App client ID |
 | `GITHUB_CLIENT_SECRET` | Yes | OAuth App client secret |
-| `GITHUB_REDIRECT_URI` | Yes | Callback: `https://{host}/auth/sso/github/callback` |
 | `GITHUB_ROUTE_NAME` | No | URL segment (default: `github`) |
 | `GITHUB_DISPLAY_NAME` | No | Button label (default: `GitHub`) |
 
@@ -114,6 +109,8 @@ Each configured provider registers two routes:
 | GET | `/auth/sso/{provider}/callback` | Receives IdP response |
 
 Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, or custom).
+
+The callback URL (`https://{host}/auth/sso/{provider}/callback`) is auto-constructed from the request host at runtime. Register this URL with your IdP — no env var needed. For multi-tenant deployments with custom domains, each domain gets its own callback URL automatically.
 
 ## Authentication Flow
 
@@ -176,7 +173,6 @@ Use this for any IdP that exposes `/.well-known/openid-configuration`.
 OIDC_ISSUER=https://auth.zitadel.example.com
 OIDC_CLIENT_ID=123456789@your-project
 OIDC_CLIENT_SECRET=secret-from-zitadel
-OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 ```
 
 #### Keycloak
@@ -190,7 +186,6 @@ OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 OIDC_ISSUER=https://keycloak.example.com/realms/your-realm
 OIDC_CLIENT_ID=your-client
 OIDC_CLIENT_SECRET=secret-from-keycloak
-OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 ```
 
 #### Auth0
@@ -203,7 +198,6 @@ OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 OIDC_ISSUER=https://your-tenant.auth0.com
 OIDC_CLIENT_ID=your-client-id
 OIDC_CLIENT_SECRET=your-client-secret
-OIDC_REDIRECT_URI=https://your-app.com/auth/sso/oidc/callback
 ```
 
 ### Microsoft Entra ID
@@ -227,7 +221,6 @@ Get the values:
 ENTRA_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ENTRA_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ENTRA_CLIENT_SECRET=client-secret-value
-ENTRA_REDIRECT_URI=https://your-app.com/auth/sso/entra/callback
 ```
 
 Note: Entra client secrets expire. Set a calendar reminder for rotation.
@@ -246,7 +239,6 @@ Uses the `omniauth-google-oauth2` gem.
 ```bash
 GOOGLE_CLIENT_ID=xxxxxxxxxxxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxx
-GOOGLE_REDIRECT_URI=https://your-app.com/auth/sso/google/callback
 ```
 
 Requires: OAuth consent screen configured, `email` and `profile` scopes approved.
@@ -264,7 +256,6 @@ Uses the `omniauth-github` gem.
 ```bash
 GITHUB_CLIENT_ID=Iv1.xxxxxxxxxxxx
 GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-GITHUB_REDIRECT_URI=https://your-app.com/auth/sso/github/callback
 ```
 
 Note: For GitHub Organizations, use GitHub Apps instead of OAuth Apps for finer-grained permissions.

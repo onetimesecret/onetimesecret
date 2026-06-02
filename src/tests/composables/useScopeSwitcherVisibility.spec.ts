@@ -43,6 +43,25 @@ vi.mock('@/shared/stores/identityStore', () => ({
   }),
 }));
 
+// Mock organizationStore — composable reads currentOrganization for role + entitlements.
+// Wrap in reactive() so ref auto-unwraps when accessed as organizationStore.currentOrganization.
+type MockOrg = { current_user_role?: string | null; entitlements?: string[] | null } | null;
+const mockCurrentOrganization = ref<MockOrg>({
+  current_user_role: 'owner',
+  entitlements: null,
+});
+const mockOrgStore = reactive({ currentOrganization: mockCurrentOrganization });
+vi.mock('@/shared/stores/organizationStore', () => ({
+  useOrganizationStore: () => mockOrgStore,
+}));
+
+// Mock bootstrapStore — composable reads billing_enabled
+const mockBillingEnabled = ref(false);
+const mockBootstrapStore = reactive({ billing_enabled: mockBillingEnabled });
+vi.mock('@/shared/stores/bootstrapStore', () => ({
+  useBootstrapStore: () => mockBootstrapStore,
+}));
+
 // Single top-level import - no need for dynamic imports since mock is hoisted
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 
@@ -52,6 +71,10 @@ describe('useScopeSwitcherVisibility', () => {
     mockRoute.meta = {};
     // Default feature flag to enabled for existing tests
     mockIsOrganizationSwitcherEnabled.mockReturnValue(true);
+    // Default: owner with no entitlements loaded, billing disabled (standalone)
+    mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: null };
+    mockBillingEnabled.value = false;
+    mockIsCustomRef.value = false;
     vi.clearAllMocks();
   });
 
@@ -421,6 +444,77 @@ describe('useScopeSwitcherVisibility', () => {
 
       expect(showOrgSwitcher.value).toBe(false);
       expect(showDomainSwitcher.value).toBe(true);
+    });
+  });
+
+  describe('org switcher role + entitlement gating', () => {
+    beforeEach(() => {
+      mockRoute.meta = { scopesAvailable: { organization: 'show' } };
+    });
+
+    it('showOrgSwitcher is true for owner in standalone mode', () => {
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: null };
+      mockBillingEnabled.value = false;
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('showOrgSwitcher is false for admin role', () => {
+      mockCurrentOrganization.value = { current_user_role: 'admin', entitlements: null };
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('showOrgSwitcher is false for member role', () => {
+      mockCurrentOrganization.value = { current_user_role: 'member', entitlements: null };
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('showOrgSwitcher is false when currentOrganization is null', () => {
+      mockCurrentOrganization.value = null;
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('showOrgSwitcher is true for owner with manage_orgs entitlement (billing enabled)', () => {
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: ['manage_orgs'] };
+      mockBillingEnabled.value = true;
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('showOrgSwitcher is false for owner without manage_orgs entitlement (billing enabled)', () => {
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: ['create_secrets'] };
+      mockBillingEnabled.value = true;
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('showOrgSwitcher is true for owner when entitlements not yet fetched (billing enabled)', () => {
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: null };
+      mockBillingEnabled.value = true;
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('updates reactively when role changes', async () => {
+      mockCurrentOrganization.value = { current_user_role: 'owner', entitlements: null };
+
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(true);
+
+      mockCurrentOrganization.value = { current_user_role: 'member', entitlements: null };
+      await nextTick();
+
+      expect(showOrgSwitcher.value).toBe(false);
     });
   });
 });
