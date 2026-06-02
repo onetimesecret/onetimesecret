@@ -904,11 +904,6 @@
     "renderer": "erb",
     "content_hash": "18ddf44f"
   },
-  "email.common.encrypted_assurance": {
-    "text": "Secrets are encrypted, and %{product_name} can't read their contents.",
-    "renderer": "erb",
-    "content_hash": "3f9b62eb"
-  },
   "email.common.automated_notice": {
     "text": "This is an automated message from %{product_name}.",
     "renderer": "erb",
