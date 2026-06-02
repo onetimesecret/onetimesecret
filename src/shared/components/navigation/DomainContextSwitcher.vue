@@ -226,6 +226,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       <OIcon
         collection="heroicons"
         name="globe-alt"
+        aria-label=""
         class="size-4 text-gray-500 group-hover:text-brand-500 dark:text-gray-400 dark:group-hover:text-brand-400"
         aria-hidden="true" />
 
@@ -241,12 +242,14 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
         v-if="props.locked"
         collection="heroicons"
         name="lock-closed"
+        aria-label=""
         class="size-4 text-gray-400"
         aria-hidden="true" />
       <OIcon
         v-else
         collection="heroicons"
         :name="open ? 'chevron-up-solid' : 'chevron-down-solid'"
+        aria-label=""
         class="size-4 text-gray-400 transition-transform"
         aria-hidden="true" />
     </MenuButton>
