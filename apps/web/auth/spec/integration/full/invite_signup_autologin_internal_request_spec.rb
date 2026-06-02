@@ -235,7 +235,8 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
           AuthAccountFactory::RODAUTH_TABLES.each do |table|
             next if table == :accounts
             next unless db.table_exists?(table)
-            db[table].where(account_id: account_row[:id]).delete rescue nil
+            next unless db[table].columns.include?(:account_id)
+            db[table].where(account_id: account_row[:id]).delete
           end
           db[:accounts].where(email: other_email).delete
         end
