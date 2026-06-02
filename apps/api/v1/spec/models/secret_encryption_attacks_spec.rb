@@ -34,17 +34,6 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       expect(secret.passphrase?('wrong-passphrase')).to be false
     end
 
-    it 'falls back to BCrypt for legacy hashes' do
-      # Set up a BCrypt hash directly (simulating legacy data)
-      bcrypt_hash = BCrypt::Password.create(passphrase, cost: 12).to_s
-      secret.instance_variable_set(:@passphrase, bcrypt_hash)
-      secret.instance_variable_set(:@passphrase_encryption, '1')
-
-      # Verify actual BCrypt comparison works
-      expect(secret.passphrase?(passphrase)).to be true
-      expect(secret.passphrase?('wrong-passphrase')).to be false
-    end
-
     it 'takes similar time for correct and incorrect passphrases' do
       # This test ensures that comparing correct and incorrect passphrases
       # takes approximately the same time, which is a hallmark of constant-time
@@ -83,8 +72,6 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       skip 'Execution too fast to measure reliably' if avg_correct < 100 || avg_incorrect < 100
 
       # Timing difference should be minimal
-      # Allow up to 2x difference because BCrypt comparison exits early on
-      # hash algorithm mismatch, but actual password comparison is constant time
       expect(avg_incorrect / avg_correct).to be_between(0.5, 2.0)
     end
   end

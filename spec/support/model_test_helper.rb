@@ -45,15 +45,9 @@ module ModelTestHelper
 
     # Allow real encryption/decryption to work (it doesn't use Redis)
     # Don't use and_call_original for update_passphrase! as it calls passphrase!
-    allow(secret).to receive(:update_passphrase!).and_wrap_original do |original, val, algorithm: :argon2|
-      case algorithm
-      when :argon2
-        secret.instance_variable_set(:@passphrase, Argon2::Password.create(val, t_cost: 1, m_cost: 5, p_cost: 1))
-        secret.instance_variable_set(:@passphrase_encryption, "2")
-      when :bcrypt
-        secret.instance_variable_set(:@passphrase, BCrypt::Password.create(val, cost: 12).to_s)
-        secret.instance_variable_set(:@passphrase_encryption, "1")
-      end
+    allow(secret).to receive(:update_passphrase!).and_wrap_original do |original, val, **|
+      secret.instance_variable_set(:@passphrase, Argon2::Password.create(val, t_cost: 1, m_cost: 5, p_cost: 1))
+      secret.instance_variable_set(:@passphrase_encryption, "2")
       secret.instance_variable_set(:@passphrase_temp, val)
       true
     end
@@ -64,16 +58,11 @@ module ModelTestHelper
     allow(secret).to receive(:passphrase?).and_wrap_original do |original, guess|
       next false if secret.passphrase.to_s.empty?
       begin
-        ret = if secret.passphrase.to_s.start_with?('$argon2id$')
-          Argon2::Password.verify_password(guess, secret.passphrase)
-        else
-          BCrypt::Password.new(secret.passphrase) == guess
-        end
+        ret = Argon2::Password.verify_password(guess, secret.passphrase)
         secret.instance_variable_set(:@passphrase_temp, guess) if ret
         ret
-      rescue BCrypt::Errors::InvalidHash, Argon2::ArgonHashFail
-        # Fall back to simple comparison for invalid hash
-        (!guess.to_s.empty? && secret.passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+      rescue Argon2::ArgonHashFail
+        false
       end
     end
 
@@ -175,15 +164,9 @@ module ModelTestHelper
 
     # Allow real encryption/decryption to work (it doesn't use Redis)
     # Don't use and_call_original for update_passphrase! as it calls passphrase!
-    allow(secret).to receive(:update_passphrase!).and_wrap_original do |original, val, algorithm: :argon2|
-      case algorithm
-      when :argon2
-        secret.instance_variable_set(:@passphrase, Argon2::Password.create(val, t_cost: 1, m_cost: 5, p_cost: 1))
-        secret.instance_variable_set(:@passphrase_encryption, "2")
-      when :bcrypt
-        secret.instance_variable_set(:@passphrase, BCrypt::Password.create(val, cost: 12).to_s)
-        secret.instance_variable_set(:@passphrase_encryption, "1")
-      end
+    allow(secret).to receive(:update_passphrase!).and_wrap_original do |original, val, **|
+      secret.instance_variable_set(:@passphrase, Argon2::Password.create(val, t_cost: 1, m_cost: 5, p_cost: 1))
+      secret.instance_variable_set(:@passphrase_encryption, "2")
       secret.instance_variable_set(:@passphrase_temp, val)
       true
     end
@@ -194,16 +177,11 @@ module ModelTestHelper
     allow(secret).to receive(:passphrase?).and_wrap_original do |original, guess|
       next false if secret.passphrase.to_s.empty?
       begin
-        ret = if secret.passphrase.to_s.start_with?('$argon2id$')
-          Argon2::Password.verify_password(guess, secret.passphrase)
-        else
-          BCrypt::Password.new(secret.passphrase) == guess
-        end
+        ret = Argon2::Password.verify_password(guess, secret.passphrase)
         secret.instance_variable_set(:@passphrase_temp, guess) if ret
         ret
-      rescue BCrypt::Errors::InvalidHash, Argon2::ArgonHashFail
-        # Fall back to simple comparison for invalid hash
-        (!guess.to_s.empty? && secret.passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+      rescue Argon2::ArgonHashFail
+        false
       end
     end
 

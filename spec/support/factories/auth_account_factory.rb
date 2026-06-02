@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'bcrypt'
+require 'argon2'
 require 'securerandom'
 
 # Load shared auth test constants
@@ -64,8 +64,7 @@ module AuthAccountFactory
       external_id: SecureRandom.uuid
     )
 
-    # Create password hash using BCrypt (matches Rodauth's default)
-    password_hash = BCrypt::Password.create(password, cost: BCrypt::Engine::MIN_COST)
+    password_hash = ::Argon2::Password.create(password, t_cost: 1, m_cost: 5, p_cost: 1)
     db[:account_password_hashes].insert(
       id: account_id,
       password_hash: password_hash,
@@ -94,8 +93,7 @@ module AuthAccountFactory
       external_id: SecureRandom.uuid
     )
 
-    # Create password hash
-    password_hash = BCrypt::Password.create(password, cost: BCrypt::Engine::MIN_COST)
+    password_hash = ::Argon2::Password.create(password, t_cost: 1, m_cost: 5, p_cost: 1)
     db[:account_password_hashes].insert(
       id: account_id,
       password_hash: password_hash,
@@ -144,7 +142,7 @@ module AuthAccountFactory
     codes.each do |code|
       db[:account_recovery_codes].insert(
         id: account_id,
-        code: BCrypt::Password.create(code, cost: BCrypt::Engine::MIN_COST)
+        code: ::Argon2::Password.create(code, t_cost: 1, m_cost: 5, p_cost: 1)
       )
     end
 

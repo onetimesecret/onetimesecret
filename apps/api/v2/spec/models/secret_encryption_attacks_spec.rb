@@ -37,17 +37,6 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       expect(secret.passphrase?('wrong-passphrase')).to be false
     end
 
-    it 'falls back to BCrypt for legacy hashes' do
-      # Set up a BCrypt hash directly (simulating legacy data)
-      bcrypt_hash = BCrypt::Password.create(passphrase, cost: 12).to_s
-      secret.instance_variable_set(:@passphrase, bcrypt_hash)
-      secret.instance_variable_set(:@passphrase_encryption, '1')
-
-      # Verify actual BCrypt comparison works
-      expect(secret.passphrase?(passphrase)).to be true
-      expect(secret.passphrase?('wrong-passphrase')).to be false
-    end
-
     it 'takes similar time for correct and incorrect passphrases' do
       # This test ensures that comparing correct and incorrect passphrases
       # takes approximately the same time, which is a hallmark of constant-time
@@ -104,45 +93,28 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       'minimum length' => 'abc',
     }.freeze
 
-    shared_examples 'correct passphrase verification' do |algorithm_name, encryption_mode|
-      TEST_PASSPHRASES.each do |description, phrase|
-        context "with #{description} passphrase" do
-          let(:test_phrase) { phrase }
+    TEST_PASSPHRASES.each do |description, phrase|
+      context "with #{description} passphrase" do
+        let(:test_phrase) { phrase }
 
-          before do
-            case encryption_mode
-            when '2' # Argon2
-              secret.update_passphrase!(test_phrase)
-              secret.instance_variable_set(:@passphrase_temp, nil)
-            when '1' # BCrypt
-              bcrypt_hash = BCrypt::Password.create(test_phrase, cost: 4).to_s
-              secret.instance_variable_set(:@passphrase, bcrypt_hash)
-              secret.instance_variable_set(:@passphrase_encryption, '1')
-            end
-          end
+        before do
+          secret.update_passphrase!(test_phrase)
+          secret.instance_variable_set(:@passphrase_temp, nil)
+        end
 
-          it "returns true for correct passphrase (#{algorithm_name})" do
-            expect(secret.passphrase?(test_phrase)).to be true
-          end
+        it 'returns true for correct passphrase' do
+          expect(secret.passphrase?(test_phrase)).to be true
+        end
 
-          it "returns false for incorrect passphrase (#{algorithm_name})" do
-            expect(secret.passphrase?('definitely-wrong')).to be false
-          end
+        it 'returns false for incorrect passphrase' do
+          expect(secret.passphrase?('definitely-wrong')).to be false
+        end
 
-          it "is case-sensitive (#{algorithm_name})" do
-            skip 'No letters to test case sensitivity' unless test_phrase.match?(/[a-zA-Z]/)
-            expect(secret.passphrase?(test_phrase.swapcase)).to be false
-          end
+        it 'is case-sensitive' do
+          skip 'No letters to test case sensitivity' unless test_phrase.match?(/[a-zA-Z]/)
+          expect(secret.passphrase?(test_phrase.swapcase)).to be false
         end
       end
-    end
-
-    describe 'Argon2 (current default)' do
-      include_examples 'correct passphrase verification', 'Argon2', '2'
-    end
-
-    describe 'BCrypt (legacy fallback)' do
-      include_examples 'correct passphrase verification', 'BCrypt', '1'
     end
 
     describe 'edge cases' do

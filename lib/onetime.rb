@@ -15,9 +15,6 @@ require 'truemail'
 
 require 'erb'
 
-require 'encryptor'
-require 'bcrypt'
-
 begin
   require 'sendgrid-ruby'
 rescue LoadError

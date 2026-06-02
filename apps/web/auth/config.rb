@@ -63,7 +63,7 @@ module Auth
       # Core features: base, json, login, logout, table_guard, etc.
       Base.configure(self)
 
-      # Password hashing: argon2id (more secure than bcrypt)
+      # Password hashing: argon2id
       Features::Argon2.configure(self)
 
       # Audit logging for authentication events

@@ -4,13 +4,12 @@
 
 require_relative '../integration_spec_helper'
 require 'rack/test'
-require 'bcrypt'
 require 'argon2'
 
 # Integration test for zero-downtime password migration from Redis to Rodauth
 #
 # Tests the scenario where:
-# 1. A user exists in Redis (Customer) with a bcrypt passphrase
+# 1. A user exists in Redis (Customer) with a passphrase
 # 2. An account exists in Rodauth WITHOUT a password hash
 # 3. On login with the Redis password, the system:
 #    - Verifies against Redis Customer record
@@ -138,10 +137,9 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
     post path, JSON.generate(params.merge(shrimp: csrf_token))
   end
 
-  # Create a Customer in Redis with bcrypt passphrase
-  def create_redis_customer_with_bcrypt(email:, password:)
+  def create_redis_customer_with_passphrase(email:, password:)
     customer = Onetime::Customer.create!(email)
-    customer.update_passphrase(password, algorithm: :bcrypt)
+    customer.update_passphrase(password)
     customer.save
 
     @test_customer = customer
@@ -175,18 +173,16 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
   end
 
   describe 'when password_migration hook is enabled' do
-    context 'user exists in Redis with bcrypt, Rodauth account has no password' do
+    context 'user exists in Redis with passphrase, Rodauth account has no password' do
       it 'migrates password on successful login' do
-        # Step 1: Create Customer in Redis with bcrypt passphrase
-        customer = create_redis_customer_with_bcrypt(
+        customer = create_redis_customer_with_passphrase(
           email: test_email,
           password: test_password
         )
 
-        # Verify Redis Customer has bcrypt passphrase
         expect(customer.has_passphrase?).to be true
         expect(customer.passphrase?(test_password)).to be true
-        expect(customer.passphrase_encryption).to eq('1') # bcrypt
+        expect(customer.passphrase_encryption).to eq('2')
 
         # Step 2: Create Rodauth account WITHOUT password hash
         account_id = create_rodauth_account_without_password(
@@ -217,7 +213,7 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
 
       it 'allows subsequent login via Rodauth directly' do
         # Setup: Create Redis Customer and Rodauth account, perform migration
-        customer = create_redis_customer_with_bcrypt(
+        customer = create_redis_customer_with_passphrase(
           email: test_email,
           password: test_password
         )
@@ -248,7 +244,7 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
     context 'Redis password verification fails' do
       it 'rejects login with wrong password' do
         # Create Customer in Redis
-        customer = create_redis_customer_with_bcrypt(
+        customer = create_redis_customer_with_passphrase(
           email: test_email,
           password: test_password
         )
@@ -276,7 +272,7 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
     context 'Rodauth account already has password hash' do
       it 'skips migration and uses Rodauth password' do
         # Create Redis Customer with one password
-        customer = create_redis_customer_with_bcrypt(
+        customer = create_redis_customer_with_passphrase(
           email: test_email,
           password: 'RedisPassword123!'
         )
@@ -372,7 +368,7 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
   describe 'migration preserves password verification' do
     it 'argon2 hash verifies correctly after migration from bcrypt' do
       # Create Customer with bcrypt
-      customer = create_redis_customer_with_bcrypt(
+      customer = create_redis_customer_with_passphrase(
         email: test_email,
         password: test_password
       )

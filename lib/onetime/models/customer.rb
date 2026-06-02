@@ -4,7 +4,6 @@
 
 require 'rack/utils'
 require 'argon2'
-require 'bcrypt'
 
 require_relative 'features'
 
