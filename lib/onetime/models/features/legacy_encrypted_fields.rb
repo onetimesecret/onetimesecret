@@ -89,6 +89,10 @@ module Onetime
             # Secure the value with cryptographic encryption
             self.value_encryption = 2 # Current encryption version
 
+            unless storable_value.respond_to?(:encrypt)
+              raise "Legacy encryptor gem is no longer available — use Familia encrypted_field instead"
+            end
+
             encryption_options = opts.merge(key: encryption_key)
             self.value         = storable_value.encrypt encryption_options
           end
@@ -106,10 +110,12 @@ module Onetime
                               ''
                             when 0
                               v_encrypted
-                            when 1
-                              v_encrypted.decrypt opts.merge(key: encryption_key_v1)
-                            when 2
-                              v_encrypted.decrypt opts.merge(key: encryption_key_v2)
+                            when 1, 2
+                              unless v_encrypted.respond_to?(:decrypt)
+                                raise "Legacy encryptor gem is no longer available — secret #{identifier} uses v#{encryption_mode} encryption"
+                              end
+                              key = encryption_mode == 1 ? encryption_key_v1 : encryption_key_v2
+                              v_encrypted.decrypt opts.merge(key: key)
                             else
                               raise "Unknown encryption mode: #{value_encryption}"
                             end
@@ -187,6 +193,11 @@ module Onetime
           # @return [Boolean] true if the passphrase matches
           def passphrase?(val)
             return false if passphrase.to_s.empty?
+
+            unless argon2_hash?(passphrase)
+              OT.le "[passphrase?] Non-argon2 hash detected (#{passphrase[0..5]}...) — bcrypt support was removed"
+              return false
+            end
 
             ::Argon2::Password.verify_password(val, passphrase)
           rescue ::Argon2::ArgonHashFail => ex
