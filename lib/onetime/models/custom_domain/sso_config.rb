@@ -444,7 +444,7 @@ module Onetime
 
       def strategy_name
         domain = custom_domain
-        raise Onetime::Problem, "Cannot resolve domain #{domain_id} for SSO strategy" unless domain
+        raise Onetime::RecordNotFound, "CustomDomain #{domain_id} not found" unless domain
 
         domain.extid
       end
