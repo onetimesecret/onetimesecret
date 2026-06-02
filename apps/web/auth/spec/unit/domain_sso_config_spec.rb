@@ -664,7 +664,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is missing' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:oidc)
+        config = build_domain_sso_config(:google)
         config.client_secret = nil
 
         errors = config.validation_errors
@@ -674,7 +674,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is empty string' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:oidc)
+        config = build_domain_sso_config(:google)
         config.client_secret = ''
 
         errors = config.validation_errors
