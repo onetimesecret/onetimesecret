@@ -223,11 +223,6 @@ module V2::Logic
       # Validates the share domain for secret creation.
       # Determines appropriate domain and validates access permissions.
       def validate_share_domain
-        # If we're on a custom domain creating a link, the only possible share
-        # domain  is the custom domain itself. This is bc we only allow logging
-        # in on the canonical domain (e.g. onetimesecret.com) AND we don't offer
-        # any way to change the share domain when creating a link from a custom
-        # domain.
         @share_domain = determine_share_domain
         validate_domain_access(@share_domain)
       end
@@ -356,13 +351,14 @@ module V2::Logic
       end
 
       # Determines which domain should be used for sharing.
-      # Uses display domain if on custom domain, otherwise uses specified share domain.
+      # Respects the user's explicit selection; falls back to the Host
+      # header domain when browsing on a custom domain with no override.
       #
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain
-        return display_domain if custom_domain?
+        return share_domain if share_domain
 
-        share_domain
+        display_domain if custom_domain?
       end
 
       # Validates domain exists and checks access permissions.

@@ -358,4 +358,270 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       end
     end
   end
+
+  # ============================================================================
+  # determine_share_domain — domain selection fix
+  #
+  # The bug: when browsing on a custom domain (Host header = custom domain) and
+  # selecting a DIFFERENT org domain from the Domain Context dropdown, the old
+  # code always returned display_domain (the Host header's domain), ignoring
+  # the user's explicit share_domain selection.
+  #
+  # Old code:
+  #   return display_domain if custom_domain?
+  #   share_domain
+  #
+  # Fixed code:
+  #   return share_domain if share_domain
+  #   display_domain if custom_domain?
+  # ============================================================================
+  describe '#determine_share_domain' do
+    # Build a subject with explicit control over share_domain, display_domain,
+    # and custom_domain? — the three inputs to determine_share_domain.
+    def build_domain_subject(share_domain:, display_domain:, custom_domain:)
+      action = V2ConfigTestAction.new(strategy_result, base_params)
+      action.instance_variable_set(:@share_domain, share_domain)
+      action.instance_variable_set(:@display_domain, display_domain)
+      allow(action).to receive(:custom_domain?).and_return(custom_domain)
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    context 'user on custom domain, explicit share_domain set to a different domain' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+        )
+      end
+
+      it 'returns the explicitly selected share_domain, not the Host header domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('secrets.acme.com')
+      end
+    end
+
+    context 'user on custom domain, no explicit share_domain (nil)' do
+      subject do
+        build_domain_subject(
+          share_domain: nil,
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+        )
+      end
+
+      it 'falls back to the display_domain from the Host header' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    context 'user on canonical domain, explicit share_domain set' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+        )
+      end
+
+      it 'returns the explicitly selected share_domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('secrets.acme.com')
+      end
+    end
+
+    context 'user on canonical domain, no share_domain' do
+      subject do
+        build_domain_subject(
+          share_domain: nil,
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+        )
+      end
+
+      it 'returns nil (no custom domain context, no explicit selection)' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'user on custom domain, share_domain matches display_domain' do
+      subject do
+        build_domain_subject(
+          share_domain: 'local-secrets.afb.pet',
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+        )
+      end
+
+      it 'returns share_domain (explicit selection takes precedence even when same)' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+  end
+
+  # ============================================================================
+  # validate_share_domain integration — verifies that determine_share_domain's
+  # return value flows through to validate_domain_access correctly.
+  # ============================================================================
+  describe '#validate_share_domain integration' do
+    # Domain double that passes all permission and verification checks.
+    def build_passing_domain_record(owner: true)
+      double('CustomDomain',
+        owner?: owner,
+        allow_public_homepage?: true,
+        verified: 'true')
+    end
+
+    def build_integration_subject(cust:, share_domain:, display_domain:, custom_domain:)
+      action = V2ConfigTestAction.new(strategy_result, base_params)
+      action.instance_variable_set(:@cust, cust)
+      action.instance_variable_set(:@share_domain, share_domain)
+      action.instance_variable_set(:@display_domain, display_domain)
+      allow(action).to receive(:custom_domain?).and_return(custom_domain)
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    let(:authenticated_member) do
+      double('Customer',
+        anonymous?: false,
+        custid: 'member1',
+        objid: 'obj_member1',
+        planid: 'identity',
+        email: 'member@acme.com',
+        organization_instances: [:existing_org])
+    end
+
+    let(:anonymous_visitor) do
+      double('Customer',
+        anonymous?: true,
+        custid: nil,
+        objid: nil,
+        planid: 'anonymous',
+        email: nil,
+        organization_instances: [])
+    end
+
+    context 'authenticated domain owner on custom domain, selects a different owned domain' do
+      let(:selected_domain) { 'secrets.acme.com' }
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:domain_record)   { build_passing_domain_record(owner: true) }
+
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: selected_domain,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(selected_domain).and_return(domain_record)
+      end
+
+      it 'uses the explicitly selected domain, not the Host header domain' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(selected_domain)
+      end
+
+      it 'looks up the selected domain record, not the Host header domain' do
+        subject.send(:validate_share_domain)
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(selected_domain)
+      end
+    end
+
+    context 'authenticated non-owner on custom domain, selects a domain they do not own' do
+      let(:selected_domain) { 'secrets.other.com' }
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:domain_record) do
+        double('CustomDomain',
+          owner?: false,
+          allow_public_homepage?: false,
+          verified: 'true')
+      end
+
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: selected_domain,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(selected_domain).and_return(domain_record)
+      end
+
+      it 'raises Forbidden for the explicitly selected domain' do
+        expect { subject.send(:validate_share_domain) }
+          .to raise_error(Onetime::Forbidden)
+      end
+    end
+
+    context 'authenticated domain owner on custom domain, no explicit selection' do
+      let(:host_domain)   { 'local-secrets.afb.pet' }
+      let(:domain_record) { build_passing_domain_record(owner: true) }
+
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: nil,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(host_domain).and_return(domain_record)
+      end
+
+      it 'falls back to the Host header domain' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+
+      it 'looks up the Host header domain record' do
+        subject.send(:validate_share_domain)
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(host_domain)
+      end
+    end
+
+    context 'anonymous user on custom domain, no explicit selection' do
+      let(:host_domain)   { 'local-secrets.afb.pet' }
+      let(:domain_record) do
+        double('CustomDomain',
+          owner?: false,
+          allow_public_homepage?: true,
+          verified: 'true')
+      end
+
+      subject do
+        build_integration_subject(
+          cust: anonymous_visitor,
+          share_domain: nil,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(host_domain).and_return(domain_record)
+      end
+
+      it 'falls back to the Host header domain and passes when public homepage is enabled' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+  end
 end
