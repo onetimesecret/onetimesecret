@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'familia'
 require_relative 'region_normalizer'
 require_relative 'models/plan'
 require_relative 'models/stripe_webhook_event'
