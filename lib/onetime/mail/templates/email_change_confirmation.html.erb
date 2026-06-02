@@ -6,7 +6,7 @@
 
 <!-- Body -->
 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
-  <p><%= t('email.email_change_confirmation.request_notice', product_name: product_name, new_email: new_email) %></p>
+  <p><%= h(t('email.email_change_confirmation.request_notice', product_name: product_name, new_email: new_email)) %></p>
 
   <div style="margin: 24px 0;">
     <a href="<%= confirmation_uri %>" style="display: inline-block; padding: 12px 24px; background-color: #dc4a22; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
