@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'utils/config_resolver'
+require 'familia/refinements/time_literals'
 
 module Onetime
   module Config

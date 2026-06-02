@@ -10,23 +10,7 @@ if ENV['BOOT_TICKER_TAPE']
 end
 
 require 'securerandom'
-
-require 'truemail'
-
 require 'erb'
-
-require 'encryptor'
-require 'bcrypt'
-
-begin
-  require 'sendgrid-ruby'
-rescue LoadError
-  warn 'SendGrid is not installed. Mailer not available.'
-end
-
-require 'rack'
-require 'otto'
-require 'familia'
 
 Warning[:deprecated] = %w[development dev test testing].include?(ENV['RACK_ENV'].to_s.downcase)
 
@@ -73,9 +57,6 @@ module Onetime
 
   # Load runtime state management
   require_relative 'onetime/runtime'
-
-  # Load application framework components
-  require_relative 'onetime/application'
 
   # Load backwards compatibility accessors
   # TODO: Remove this require and delete lib/onetime/deprecated_methods.rb
@@ -127,7 +108,4 @@ require_relative 'onetime/error_handler'
 require_relative 'onetime/version'
 require_relative 'onetime/config'
 require_relative 'onetime/billing_config'
-require_relative 'onetime/models'
-require_relative 'onetime/signup_validation'
-require_relative 'onetime/domain_validation/strategy'
 require_relative 'onetime/boot'

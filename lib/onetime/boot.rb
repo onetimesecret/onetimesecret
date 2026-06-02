@@ -107,6 +107,8 @@ module Onetime
     # reset_all_boot_state! raises in non-test modes).
     #
     def boot!(mode = nil, connect_to_db = true, force: false) # rubocop:disable Metrics/PerceivedComplexity
+      load_application_dependencies!
+
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
@@ -359,6 +361,23 @@ module Onetime
     # `bin/ots --safe-boot <cmd>` or `SAFE_BOOT=1 bin/ots <cmd>`.
     def safe_boot?
       mode?(:cli) && Onetime::Utils.yes?(ENV.fetch('SAFE_BOOT', nil))
+    end
+
+    def load_application_dependencies!
+      require 'truemail'
+      begin
+        require 'sendgrid-ruby'
+      rescue LoadError
+        warn 'SendGrid is not installed. Mailer not available.'
+      end
+      require 'rack'
+      require 'otto'
+      require 'familia'
+
+      require_relative 'application'
+      require_relative 'models'
+      require_relative 'signup_validation'
+      require_relative 'domain_validation/strategy'
     end
 
     # Replaces the global configuration instance. This method is private to

@@ -4,10 +4,6 @@
 
 require 'dry/cli'
 require 'onetime'
-require 'onetime/models'
-require 'onetime/migration'
-
-require 'v2/logic'
 
 module Onetime
   module CLI
@@ -16,8 +12,9 @@ module Onetime
     # Base command class that boots the application
     class Command < Dry::CLI::Command
       def boot_application!
-        # Make sure all the models are loaded before calling boot
         OT.boot! :cli
+        require 'onetime/migration'
+        require 'v2/logic'
       end
 
       protected
