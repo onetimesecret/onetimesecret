@@ -299,6 +299,7 @@ module Onetime
       Runtime.reset!
       @conf                                 = nil
       @boot_registry                        = nil
+      @dependencies_loaded                  = nil
       Thread.current[:initializer_registry] = nil
       nil
     end
@@ -364,6 +365,10 @@ module Onetime
     end
 
     def load_application_dependencies!
+      return if @dependencies_loaded
+
+      @dependencies_loaded = true
+
       require 'truemail'
       begin
         require 'sendgrid-ruby'
