@@ -29,6 +29,31 @@ module Core::Logic
         @cust          = potential if passwd_matches
         @objid         = @cust.objid if @cust
 
+        migrate_password_hash_if_needed(potential, @passwd) if passwd_matches
+      end
+
+      # Rehash legacy bcrypt passwords to argon2id on successful login.
+      #
+      # @param customer [Onetime::Customer] The authenticated customer
+      # @param password [String] The verified plaintext password
+      def migrate_password_hash_if_needed(customer, password)
+        return if customer.argon2_hash?(customer.passphrase)
+
+        customer.update_passphrase!(password)
+        auth_logger.info 'Password hash migrated to argon2',
+          {
+            user_id: customer.objid,
+            email: customer.obscure_email,
+            action: 'password_hash_migration',
+          }
+      rescue StandardError => ex
+        auth_logger.error 'Password hash migration failed',
+          {
+            user_id: customer.objid,
+            email: customer.obscure_email,
+            error: ex.message,
+            action: 'password_hash_migration_failed',
+          }
       end
 
       def raise_concerns

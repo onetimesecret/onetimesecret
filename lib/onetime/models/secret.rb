@@ -21,7 +21,7 @@ module Onetime
     feature :encrypted_fields
     feature :transient_fields
     feature :secret_state_management
-    feature :legacy_encrypted_fields
+    feature :passphrase_hashing
     feature :deprecated_fields
     feature :housekeeping
 
@@ -84,20 +84,17 @@ module Onetime
     end
 
     def valid?
-      exists? && (!ciphertext.to_s.empty? || !value.to_s.empty?)
+      exists? && !ciphertext.to_s.empty?
     end
 
-    # Transparently decrypt the secret payload regardless of storage format.
-    # Checks `ciphertext` first: present means v2 (Familia encrypted_field
-    # with self-describing JSON envelope). Falls back to `value_encryption`
-    # for v1 (legacy OpenSSL via LegacyEncryptedFields#decrypted_value).
     def decrypted_secret_value(passphrase_input: nil)
-      if !ciphertext.to_s.empty?
-        ciphertext.reveal { it }&.force_encoding('utf-8')
-      elsif !value_encryption.to_s.empty?
-        @passphrase_temp = passphrase_input.to_s.empty? ? nil : passphrase_input
-        decrypted_value
-      end
+      return if ciphertext.to_s.empty?
+
+      ciphertext.reveal { it }&.force_encoding('utf-8')
+    end
+
+    def can_decrypt?
+      !ciphertext.to_s.empty? && passphrase.to_s.empty?
     end
 
     def truncated?

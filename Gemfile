@@ -89,6 +89,7 @@ gem 'uri-valkey', '~> 1.4.0'
 # ====================================
 
 gem 'argon2', '~> 2.3'
+gem 'bcrypt', '~> 3.1'
 gem 'passforge', '~> 1.1'
 gem 'rotp', '~> 6.2'
 gem 'rqrcode', '~> 3.1'

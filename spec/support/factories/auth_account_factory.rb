@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'argon2'
+require 'bcrypt'
 require 'securerandom'
 
 # Load shared auth test constants
@@ -64,7 +64,7 @@ module AuthAccountFactory
       external_id: SecureRandom.uuid
     )
 
-    password_hash = ::Argon2::Password.create(password, t_cost: 1, m_cost: 5, p_cost: 1)
+    password_hash = BCrypt::Password.create(password, cost: BCrypt::Engine::MIN_COST)
     db[:account_password_hashes].insert(
       id: account_id,
       password_hash: password_hash,
@@ -93,7 +93,7 @@ module AuthAccountFactory
       external_id: SecureRandom.uuid
     )
 
-    password_hash = ::Argon2::Password.create(password, t_cost: 1, m_cost: 5, p_cost: 1)
+    password_hash = BCrypt::Password.create(password, cost: BCrypt::Engine::MIN_COST)
     db[:account_password_hashes].insert(
       id: account_id,
       password_hash: password_hash,
@@ -142,7 +142,7 @@ module AuthAccountFactory
     codes.each do |code|
       db[:account_recovery_codes].insert(
         id: account_id,
-        code: ::Argon2::Password.create(code, t_cost: 1, m_cost: 5, p_cost: 1)
+        code: BCrypt::Password.create(code, cost: BCrypt::Engine::MIN_COST)
       )
     end
 

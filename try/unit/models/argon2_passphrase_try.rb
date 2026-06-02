@@ -2,14 +2,15 @@
 #
 # frozen_string_literal: true
 
-# These tryouts test the argon2 password hashing implementation
-# in the LegacyEncryptedFields feature module.
+# These tryouts test the passphrase hashing implementation
+# in the PassphraseHashing feature module.
 #
 # Tests cover:
-# 1. Creating argon2 password hashes
+# 1. Creating argon2 password hashes (default)
 # 2. Verifying argon2 hashes
-# 3. Hash algorithm detection
-# 4. Customer dummy using argon2
+# 3. Verifying bcrypt hashes (backwards compatibility)
+# 4. Hash algorithm detection
+# 5. Customer dummy using argon2
 
 require_relative '../../support/test_helpers'
 
@@ -43,6 +44,17 @@ OT.boot! :test, false
 
 ## Argon2 password verification rejects wrong password
 @argon2_customer.passphrase?('wrong-password')
+#=> false
+
+## BCrypt password verification still works (backwards compatibility)
+@bcrypt_customer = Onetime::Customer.new(email: generate_random_email)
+@bcrypt_customer.passphrase = BCrypt::Password.create('bcrypt-pass', cost: 4).to_s
+@bcrypt_customer.passphrase_encryption = '1'
+@bcrypt_customer.passphrase?('bcrypt-pass')
+#=> true
+
+## BCrypt password verification rejects wrong password
+@bcrypt_customer.passphrase?('wrong-password')
 #=> false
 
 ## Empty passphrase returns false (DoS prevention)

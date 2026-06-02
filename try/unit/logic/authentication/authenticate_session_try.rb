@@ -39,3 +39,29 @@ Auth = Core::Logic::Authentication
 ## Password verification works
 @auth_cust.passphrase?(@testpass)
 #=> true
+
+## BCrypt password can still be verified (backwards compatibility)
+@bcrypt_cust = Customer.create!(email: generate_unique_test_email("bcrypt_migration"))
+@bcrypt_cust.passphrase = BCrypt::Password.create('bcrypt-pass-123', cost: 4).to_s
+@bcrypt_cust.passphrase_encryption = '1'
+@bcrypt_cust.save
+@bcrypt_cust.passphrase?('bcrypt-pass-123')
+#=> true
+
+## BCrypt hash is not detected as argon2
+@bcrypt_cust.argon2_hash?(@bcrypt_cust.passphrase)
+#=> false
+
+## BCrypt password can be migrated to argon2
+@bcrypt_cust.update_passphrase('bcrypt-pass-123')
+@bcrypt_cust.save
+@bcrypt_cust.argon2_hash?(@bcrypt_cust.passphrase)
+#=> true
+
+## Migrated password still verifies
+@bcrypt_cust.passphrase?('bcrypt-pass-123')
+#=> true
+
+## Migrated password has encryption mode '2'
+@bcrypt_cust.passphrase_encryption
+#=> '2'

@@ -4,6 +4,7 @@
 
 require 'rack/utils'
 require 'argon2'
+require 'bcrypt'
 
 require_relative 'features'
 
@@ -87,7 +88,7 @@ module Onetime
     feature :housekeeping
 
     feature :deprecated_fields
-    feature :legacy_encrypted_fields
+    feature :passphrase_hashing
     feature :legacy_secrets_fields
 
     # Migration features - REMOVE after v1→v2 migration complete
