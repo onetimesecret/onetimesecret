@@ -212,7 +212,7 @@ module AccountAPI::Logic
 
       def domain_permissions_for(mem)
         {
-          can_view: true,
+          can_view: mem.can?('custom_domains'),
           can_edit: mem.can?('custom_domains'),
           can_delete: mem.can?('manage_org'),
           can_manage_settings: mem.can?('manage_org'),
@@ -289,7 +289,7 @@ module AccountAPI::Logic
       end
 
       def raise_forbidden_error(message)
-        raise OT::Unauthorized, message
+        raise OT::Forbidden, message
       end
 
       def raise_form_error(message)

@@ -286,9 +286,12 @@ export async function handleOrgRoleRequirement(
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;
 
 /**
- * List-page scope (`/orgs`): met when any org the user belongs to satisfies
- * `required`. The list is fetched first so a fresh deep link doesn't bounce a
- * real owner; a failed fetch fails closed.
+ * List-page scope (`/orgs`): met when any NON-DEFAULT org the user belongs to
+ * satisfies `required`. The list is fetched first so a fresh deep link doesn't
+ * bounce a real owner; a failed fetch fails closed.
+ *
+ * Default workspaces are excluded because every user owns one — checking them
+ * would let regular members access the orgs list page (see #3326).
  */
 async function anyOrgMeetsRole(
   store: OrganizationStore,
@@ -301,7 +304,9 @@ async function anyOrgMeetsRole(
       return false;
     }
   }
-  return store.organizations.some((o) => roleMeetsRequirement(o.current_user_role, required));
+  return store.organizations.some(
+    (o) => !o.is_default && roleMeetsRequirement(o.current_user_role, required)
+  );
 }
 
 /**

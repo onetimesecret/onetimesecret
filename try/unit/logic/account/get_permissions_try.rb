@@ -114,7 +114,7 @@ end
   @result4[:permissions][:can_edit],
   @result4[:permissions][:can_manage_settings],
 ]
-#=> ['member', true, false, false]
+#=> ['member', false, false, false]
 
 ## Non-member cannot access domain
 @outsider = Onetime::Customer.new(email: @unique_email.call)
@@ -126,7 +126,7 @@ end
 begin
   @logic5.raise_concerns
   'no_error'
-rescue OT::Unauthorized => e
+rescue OT::Forbidden => e
   e.message
 end
 #=> 'You are not a member of this organization'
