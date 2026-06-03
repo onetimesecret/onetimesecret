@@ -138,10 +138,10 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
     post path, JSON.generate(params.merge(shrimp: csrf_token))
   end
 
-  # Create a Customer in Redis with bcrypt passphrase
   def create_redis_customer_with_bcrypt(email:, password:)
     customer = Onetime::Customer.create!(email)
-    customer.update_passphrase(password, algorithm: :bcrypt)
+    customer.passphrase_encryption = '1'
+    customer.passphrase = BCrypt::Password.create(password, cost: 12).to_s
     customer.save
 
     @test_customer = customer
@@ -177,16 +177,14 @@ RSpec.describe 'Password Migration from Redis to Rodauth', type: :integration do
   describe 'when password_migration hook is enabled' do
     context 'user exists in Redis with bcrypt, Rodauth account has no password' do
       it 'migrates password on successful login' do
-        # Step 1: Create Customer in Redis with bcrypt passphrase
         customer = create_redis_customer_with_bcrypt(
           email: test_email,
           password: test_password
         )
 
-        # Verify Redis Customer has bcrypt passphrase
         expect(customer.has_passphrase?).to be true
         expect(customer.passphrase?(test_password)).to be true
-        expect(customer.passphrase_encryption).to eq('1') # bcrypt
+        expect(customer.passphrase_encryption).to eq('1')
 
         # Step 2: Create Rodauth account WITHOUT password hash
         account_id = create_rodauth_account_without_password(

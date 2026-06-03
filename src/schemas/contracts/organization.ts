@@ -137,6 +137,7 @@ export const KNOWN_ENTITLEMENTS = [
   'ip_access_rules',
   'manage_members',
   'manage_org',
+  'manage_orgs',
   'manage_sso',
   'manage_teams',
   'notifications',
@@ -244,6 +245,8 @@ export const organizationMemberContractSchema = z.object({
   joined_at: z.number(),
   is_owner: z.boolean(),
   is_current_user: z.boolean(),
+  provisioning_source: z.string().nullish(),
+  domain_scope_id: z.string().nullish(),
 });
 
 export type OrganizationMemberContract = z.infer<typeof organizationMemberContractSchema>;

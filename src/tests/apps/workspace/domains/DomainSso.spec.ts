@@ -510,13 +510,13 @@ describe('DomainSso', () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('Accessibility', () => {
-    it('has accessible back button with sr-only text', async () => {
+    it('has accessible back button with visible label', async () => {
       mockDomain.value = { display_domain: 'example.com' };
       wrapper = await mountComponent();
 
-      const srOnly = wrapper.find('.sr-only');
-      expect(srOnly.exists()).toBe(true);
-      expect(srOnly.text()).toBe('Back');
+      const backButton = wrapper.find('button');
+      expect(backButton.exists()).toBe(true);
+      expect(backButton.text()).toContain('Back');
     });
 
     it('loading skeleton exposes a busy status region', async () => {

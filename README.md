@@ -74,7 +74,7 @@ Requires Ruby 3.4+, Redis/Valkey, and Node.js 25+ (for building the frontend).
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git && cd onetimesecret
 ./install.sh init            # Generates .env, secrets, and puma config
-source .env.sh               # Export env vars into the shell
+set -a; source .env; set +a  # Export env vars into the shell
 bundle exec puma -C etc/puma.rb
 ```
 

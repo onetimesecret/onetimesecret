@@ -20,6 +20,11 @@ require_relative '../../../../apps/web/billing/operations/apply_subscription_to_
 
 RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', billing: true do
   let(:operation) { Billing::Operations::ApplySubscriptionToOrg }
+  let(:ents_logger) { instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil) }
+
+  before do
+    allow(Onetime).to receive(:ents_logger).and_return(ents_logger)
+  end
 
   # Mock materialized_entitlements set for size call in logging
   let(:materialized_entitlements_mock) do
@@ -162,9 +167,9 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
     context 'when the cascade reports failures' do
       let(:rematerialize_result) { { success: 0, failed: 1, total: 1, failed_ids: ['mem_z'] } }
 
-      it 'escalates to OT.le with FREE_PLAN_ID, counts, and failed ids' do
-        expect(OT).to receive(:le).with(
-          '[ApplySubscriptionToOrg] membership re-materialization had failures (free tier)',
+      it 'escalates to ents_logger.error with FREE_PLAN_ID, counts, and failed ids' do
+        expect(ents_logger).to receive(:error).with(
+          'Membership re-materialization had failures (free tier)',
           hash_including(
             org_extid: 'on_test123',
             planid: Billing::Metadata::FREE_PLAN_ID,
@@ -179,8 +184,8 @@ RSpec.describe 'Billing::Operations::ApplySubscriptionToOrg.apply_free_tier', bi
     end
 
     context 'when the cascade reports no failures' do
-      it 'does NOT escalate to OT.le' do
-        expect(OT).not_to receive(:le)
+      it 'does NOT escalate to ents_logger.error' do
+        expect(ents_logger).not_to receive(:error)
 
         operation.apply_free_tier(org, owner: true)
       end

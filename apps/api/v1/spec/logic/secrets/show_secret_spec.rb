@@ -2,16 +2,9 @@
 #
 # frozen_string_literal: true
 
-# Tests for Bug #3: ShowSecret calls `secret.decrypted_value` (line 40)
-# which crashes with NoMethodError on nil when the secret was created via
-# the v2 path (Receipt.spawn_pair) that stores encrypted content in the
-# `ciphertext` field, NOT the legacy `value` field.
-#
-# The correct method is `secret.decrypted_secret_value` which dispatches
-# between v2 ciphertext and legacy value transparently.
-#
-# The fix (decrypted_value -> decrypted_secret_value) landed in
-# show_secret.rb line 40. All tests below should now pass.
+# Tests for ShowSecret logic class.
+# Verifies that process uses decrypted_secret_value to reveal
+# v2 secrets stored in the ciphertext field.
 
 require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
@@ -186,8 +179,7 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         truncated?: false,
         original_size: 18,
         ciphertext: 'encrypted_blob',
-        value: nil,
-        value_encryption: nil)
+        value: nil)
     end
 
     let(:params) do
@@ -209,23 +201,11 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
       allow(v2_secret).to receive(:owner?).with(customer).and_return(false)
       allow(owner).to receive(:anonymous?).and_return(false)
 
-      # decrypted_secret_value is the CORRECT method - returns plaintext
       allow(v2_secret).to receive(:decrypted_secret_value).and_return('v2 secret content')
-
-      # decrypted_value is the BUGGY call path - crashes on nil value
-      allow(v2_secret).to receive(:decrypted_value).and_raise(
-        NoMethodError.new("undefined method 'force_encoding' for nil")
-      )
     end
 
-    it 'calls decrypted_secret_value instead of decrypted_value' do
+    it 'calls decrypted_secret_value' do
       expect(v2_secret).to receive(:decrypted_secret_value).and_return('v2 secret content')
-
-      subject.process
-    end
-
-    it 'does not call the legacy decrypted_value method' do
-      expect(v2_secret).not_to receive(:decrypted_value)
 
       subject.process
     end

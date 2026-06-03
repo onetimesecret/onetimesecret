@@ -25,12 +25,15 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { ENTITLEMENTS } from '@/types/organization';
 import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import { isOwnerOrAdminOf } from '@/utils/features';
 
 /**
  * Props for controlling switcher behavior from parent
@@ -48,6 +51,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
+const bootstrapStore = useBootstrapStore();
 
 // Get current organization extid for org-qualified routes
 const currentOrgExtid = computed(() => organizationStore.currentOrganization?.extid);
@@ -142,6 +146,22 @@ const selectDomain = (domain: string): void => {
 };
 
 /**
+ * Whether the current user can manage domains (owner or admin of current org).
+ * Standalone (billing disabled): owner/admin role alone is sufficient.
+ * Billing enabled: owner/admin + manage_org entitlement required.
+ */
+const canManageDomains = computed(() => {
+  const org = organizationStore.currentOrganization;
+  if (!isOwnerOrAdminOf({ organization: org })) return false;
+
+  if (!bootstrapStore.billing_enabled) return true;
+
+  const ents = org?.entitlements;
+  if (!ents) return true;
+  return ents.includes(ENTITLEMENTS.MANAGE_ORG);
+});
+
+/**
  * Should component be visible
  */
 const shouldShow = computed(() => isContextActive.value);
@@ -206,6 +226,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       <OIcon
         collection="heroicons"
         name="globe-alt"
+        aria-label=""
         class="size-4 text-gray-500 group-hover:text-brand-500 dark:text-gray-400 dark:group-hover:text-brand-400"
         aria-hidden="true" />
 
@@ -221,12 +242,14 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
         v-if="props.locked"
         collection="heroicons"
         name="lock-closed"
+        aria-label=""
         class="size-4 text-gray-400"
         aria-hidden="true" />
       <OIcon
         v-else
         collection="heroicons"
         :name="open ? 'chevron-up-solid' : 'chevron-down-solid'"
+        aria-label=""
         class="size-4 text-gray-400 transition-transform"
         aria-hidden="true" />
     </MenuButton>
@@ -297,19 +320,19 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
             <!-- Right action area: checkmark (active domain) / gear icon (on hover) -->
             <span class="absolute inset-y-0 right-0 flex items-center pr-3">
               <!-- Checkmark: visible for active domain -->
-              <!-- For custom domains: hidden on row hover to show gear -->
-              <!-- For canonical domain: always visible (no settings page) -->
+              <!-- For custom domains: hidden on row hover to show gear (owners/admins only) -->
+              <!-- For canonical domain or members: always visible (no settings page) -->
               <OIcon
                 v-if="isCurrentContext(domain)"
                 collection="heroicons"
                 name="check-20-solid"
                 class="size-5 text-brand-600 dark:text-brand-400"
-                :class="{ 'group-hover/row:hidden': getExtidByDomain(domain) }"
+                :class="{ 'group-hover/row:hidden': canManageDomains && getExtidByDomain(domain) }"
                 aria-hidden="true" />
 
-              <!-- Gear icon: visible on row hover for custom domains only (not canonical) -->
+              <!-- Gear icon: visible on row hover for owners/admins on custom domains -->
               <button
-                v-if="getExtidByDomain(domain)"
+                v-if="canManageDomains && getExtidByDomain(domain)"
                 type="button"
                 class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
                 :aria-label="t('web.domains.domain_settings')"
@@ -324,13 +347,13 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           </button>
         </MenuItem>
 
-        <!-- Divider -->
+        <!-- Divider + Manage Domains Link (owners and admins only) -->
+        <template v-if="canManageDomains">
         <div
           class="my-1 border-t border-gray-200 dark:border-gray-700"
           role="separator"
           aria-hidden="true" ></div>
 
-        <!-- Manage Domains Link -->
         <MenuItem v-slot="{ active }" @click="navigateToManageDomains">
           <button
             type="button"
@@ -349,6 +372,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
             </span>
           </button>
         </MenuItem>
+        </template>
       </MenuItems>
     </transition>
   </Menu>

@@ -136,7 +136,7 @@ watch(canManageSso, async (entitled) => {
             name="arrow-left"
             class="size-5"
             aria-hidden="true" />
-          <span class="sr-only">{{ t('web.COMMON.back') }}</span>
+          {{ t('web.COMMON.back') }}
         </button>
       </div>
     </div>
@@ -146,7 +146,8 @@ watch(canManageSso, async (entitled) => {
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
-        :orgid="props.orgid" />
+        :orgid="props.orgid"
+        external-path="/signin" />
     </div>
 
     <!-- Content -->
@@ -227,6 +228,7 @@ watch(canManageSso, async (entitled) => {
 
           <DomainSsoConfigForm
             :domain-ext-id="props.extid"
+            :domain-host="customDomainRecord?.display_domain ?? ''"
             v-model:form-state="formState"
             :sso-config="ssoConfig"
             :is-loading="ssoLoading"

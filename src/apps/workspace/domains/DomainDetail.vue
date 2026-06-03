@@ -18,7 +18,6 @@ import { useDomain } from '@/shared/composables/useDomain';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import {
   isOrgsSsoEnabled,
@@ -35,15 +34,15 @@ const router = useRouter();
 const props = defineProps<{ extid: string; orgid: string }>();
 
 const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
-const { deleteDomain } = useDomainsManager();
+const { deleteDomain, toggleHomepageConfig } = useDomainsManager();
 
 const handleBack = () => {
   router.push(`/org/${props.orgid}/domains`);
 };
 
 const handleRemoveDomain = async () => {
-  const confirmed = await reveal();
-  if (confirmed) {
+  const { isCanceled } = await reveal();
+  if (!isCanceled) {
     await deleteDomain(props.extid);
     router.push(`/org/${props.orgid}/domains`);
   }
@@ -77,15 +76,18 @@ const canAdmin = computed(() => {
 // Removing a domain is owner-only — admins manage configuration but not lifecycle.
 const isOwner = computed(() => organization.value?.current_user_role === 'owner');
 
-const domainsStore = useDomainsStore();
-
 const handleHomepageToggle = async () => {
   const domain = customDomainRecord.value;
   if (!domain) return;
   const newValue = !(domain.homepage_config?.enabled ?? false);
-  await domainsStore.putHomepageConfig(domain.extid, newValue);
-  // Refresh domain data to reflect the change
-  await initializeDomain();
+  const result = await toggleHomepageConfig(
+    domain.extid,
+    newValue,
+    organization.value?.current_user_role,
+  );
+  if (result) {
+    await initializeDomain();
+  }
 };
 
 interface Section {
@@ -104,17 +106,6 @@ interface Section {
 
 const sections = computed<Section[]>(() => [
   {
-    key: 'homepage',
-    route: null,
-    icon: { collection: 'heroicons', name: 'home' },
-    titleKey: 'web.domains.detail.homepage_title',
-    descriptionKey: 'web.domains.detail.homepage_description',
-    available: true,
-    locked: false,
-    toggleable: true,
-    enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
-  },
-  {
     key: 'brand',
     route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
     icon: { collection: 'heroicons', name: 'paint-brush' },
@@ -124,6 +115,17 @@ const sections = computed<Section[]>(() => [
     locked: !canBrand.value,
     toggleable: false,
     enabled: false,
+  },
+  {
+    key: 'homepage',
+    route: null,
+    icon: { collection: 'heroicons', name: 'home' },
+    titleKey: 'web.domains.detail.homepage_title',
+    descriptionKey: 'web.domains.detail.homepage_description',
+    available: true,
+    locked: false,
+    toggleable: true,
+    enabled: customDomainRecord.value?.homepage_config?.enabled ?? false,
   },
   {
     key: 'incoming',
@@ -164,7 +166,7 @@ const sections = computed<Section[]>(() => [
     icon: { collection: 'heroicons', name: 'user-plus' },
     titleKey: 'web.domains.signup.configure_signup',
     descriptionKey: 'web.domains.detail.signup_description',
-    available: true,
+    available: false,
     locked: !canCustomSignup.value,
     toggleable: false,
     enabled: false,

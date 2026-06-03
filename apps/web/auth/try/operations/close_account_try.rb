@@ -23,6 +23,12 @@ require_relative '../../operations/close_account'
 
 @db = Auth::Database.connection
 
+if @db
+  Sequel.extension :migration
+  migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
+  Sequel::Migrator.run(@db, migrations_path)
+end
+
 # Skip this test file gracefully if auth database is not available.
 # This happens when running tests without a PostgreSQL database configured.
 # NOTE: Do not use `exit` or `raise` here — tryouts runs files in the same

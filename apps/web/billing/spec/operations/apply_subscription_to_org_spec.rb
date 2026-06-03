@@ -17,6 +17,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
   # materialized_entitlements set double — used in logging assertions
   let(:materialized_set) { double('materialized_entitlements', size: 4) }
+  let(:ents_logger) { instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil) }
+
+  before do
+    allow(Onetime).to receive(:ents_logger).and_return(ents_logger)
+  end
 
   let(:org) do
     double('Organization',
@@ -271,14 +276,13 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
   # materialize_entitlements_for_org then re-materializes onto the members.
   describe 'membership cascade via .call (plan-change path)' do
     context 'when the cascade reports partial failures' do
-      it 'escalates to OT.le with planid, counts, and failed member ids' do
+      it 'escalates to ents_logger.error with planid, counts, and failed member ids' do
         subscription = build_subscription
         allow(org).to receive(:rematerialize_all_memberships!)
           .and_return({ success: 1, failed: 2, total: 3, failed_ids: %w[mem_a mem_b] })
-        allow(OT).to receive(:info)
 
-        expect(OT).to receive(:le).with(
-          '[ApplySubscriptionToOrg] membership re-materialization had failures',
+        expect(ents_logger).to receive(:error).with(
+          'Membership re-materialization had failures',
           hash_including(
             org_extid: 'on_test_org',
             planid: 'identity_plus_v1',
@@ -293,14 +297,13 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
     end
 
     context 'when the cascade raises' do
-      it 'logs the error via OT.le, does not propagate, and still saves the org' do
+      it 'logs the error via ents_logger.error, does not propagate, and still saves the org' do
         subscription = build_subscription
         allow(org).to receive(:rematerialize_all_memberships!)
           .and_raise(StandardError.new('boom'))
-        allow(OT).to receive(:info)
 
-        expect(OT).to receive(:le).with(
-          '[ApplySubscriptionToOrg] membership re-materialization failed',
+        expect(ents_logger).to receive(:error).with(
+          'Membership re-materialization failed',
           hash_including(org_extid: 'on_test_org', exception: kind_of(StandardError)),
         )
         expect(org).to receive(:save)
@@ -312,11 +315,10 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
     end
 
     context 'when the cascade reports no failures' do
-      it 'does not escalate to OT.le' do
+      it 'does not escalate to ents_logger.error' do
         subscription = build_subscription
-        allow(OT).to receive(:info)
 
-        expect(OT).not_to receive(:le)
+        expect(ents_logger).not_to receive(:error)
 
         described_class.call(org, subscription, owner: true)
       end
@@ -424,12 +426,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       it 'logs entitlements_count from materialized set' do
         subscription = build_subscription
         allow(org).to receive(:materialize_entitlements_from_plan)
-        allow(OT).to receive(:info)
 
         described_class.call(org, subscription, owner: true)
 
-        expect(OT).to have_received(:info).with(
-          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+        expect(ents_logger).to have_received(:info).with(
+          'Materialized entitlements for org',
           hash_including(
             org_extid: 'on_test_org',
             planid: 'identity_plus_v1',
@@ -468,12 +469,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
       it 'logs entitlements_count from materialized set' do
         subscription = build_subscription
-        allow(OT).to receive(:info)
 
         described_class.call(org, subscription, owner: true)
 
-        expect(OT).to have_received(:info).with(
-          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+        expect(ents_logger).to have_received(:info).with(
+          'Materialized entitlements for org',
           hash_including(entitlements_count: 4, source: 'config'),
         )
       end
@@ -576,12 +576,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
       it 'logs the materialization event' do
         allow(free_tier_org).to receive(:materialize_entitlements_from_config)
-        allow(OT).to receive(:info)
 
         described_class.apply_free_tier(free_tier_org, owner: true)
 
-        expect(OT).to have_received(:info).with(
-          '[ApplySubscriptionToOrg] Materialized free tier entitlements',
+        expect(ents_logger).to have_received(:info).with(
+          'Materialized free tier entitlements',
           hash_including(
             org_extid: 'on_cancel_org',
             planid: Billing::Metadata::FREE_PLAN_ID,
@@ -595,12 +594,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
           allow(free_tier_org).to receive(:materialize_entitlements_from_config)
           allow(free_tier_org).to receive(:rematerialize_all_memberships!)
             .and_return({ success: 1, failed: 2, total: 3, failed_ids: %w[mem_x mem_y] })
-          allow(OT).to receive(:info)
         end
 
-        it 'escalates to OT.le with org_extid, FREE_PLAN_ID, counts, and failed ids' do
-          expect(OT).to receive(:le).with(
-            '[ApplySubscriptionToOrg] membership re-materialization had failures (free tier)',
+        it 'escalates to ents_logger.error with org_extid, FREE_PLAN_ID, counts, and failed ids' do
+          expect(ents_logger).to receive(:error).with(
+            'Membership re-materialization had failures (free tier)',
             hash_including(
               org_extid: 'on_cancel_org',
               planid: Billing::Metadata::FREE_PLAN_ID,
@@ -617,11 +615,10 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       context 'when the membership cascade has no failures' do
         before do
           allow(free_tier_org).to receive(:materialize_entitlements_from_config)
-          allow(OT).to receive(:info)
         end
 
-        it 'does NOT escalate to OT.le' do
-          expect(OT).not_to receive(:le)
+        it 'does NOT escalate to ents_logger.error' do
+          expect(ents_logger).not_to receive(:error)
 
           described_class.apply_free_tier(free_tier_org, owner: true)
         end
@@ -642,8 +639,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       end
 
       it 'logs a warning with org_extid and planid' do
-        expect(OT).to receive(:lw).with(
-          '[ApplySubscriptionToOrg] Free plan not in config, cannot materialize',
+        expect(ents_logger).to receive(:warn).with(
+          'Free plan not in config, cannot materialize',
           hash_including(
             org_extid: 'on_cancel_org',
             planid: Billing::Metadata::FREE_PLAN_ID,
@@ -809,12 +806,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
       it 'logs source as a string (not symbol)' do
         allow(fresh_org).to receive(:materialize_entitlements_from_plan)
-        allow(OT).to receive(:info)
 
         described_class.send(:execute_materialize, fresh_org, plan, :cache)
 
-        expect(OT).to have_received(:info).with(
-          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+        expect(ents_logger).to have_received(:info).with(
+          'Materialized entitlements for org',
           hash_including(source: 'cache'),
         )
       end
@@ -822,12 +818,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       it 'logs source "config" as a string when source is :config' do
         config_data = { entitlements: [], limits: {} }
         allow(fresh_org).to receive(:materialize_entitlements_from_config)
-        allow(OT).to receive(:info)
 
         described_class.send(:execute_materialize, fresh_org, config_data, :config)
 
-        expect(OT).to have_received(:info).with(
-          '[ApplySubscriptionToOrg] Materialized entitlements for org',
+        expect(ents_logger).to have_received(:info).with(
+          'Materialized entitlements for org',
           hash_including(source: 'config'),
         )
       end
@@ -850,8 +845,6 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
     describe '.plan_not_found_result' do
       context 'when raise_on_miss is false' do
-        before { allow(OT).to receive(:lw) }
-
         subject(:result) { described_class.send(:plan_not_found_result, fresh_org, 'identity_plus_v1', false) }
 
         it { expect(result.status).to eq(:plan_not_found) }
@@ -861,8 +854,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         it { expect(result.reason).to eq("Plan 'identity_plus_v1' not in cache or config") }
 
         it 'logs a warning with org_extid and planid' do
-          expect(OT).to receive(:lw).with(
-            '[ApplySubscriptionToOrg] Plan not found, cannot materialize',
+          expect(ents_logger).to receive(:warn).with(
+            'Plan not found, cannot materialize',
             hash_including(org_extid: 'on_helper_org', planid: 'identity_plus_v1'),
           )
 
@@ -877,8 +870,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
           }.to raise_error(Billing::PlanCacheMissError)
         end
 
-        it 'does not call OT.lw before raising' do
-          expect(OT).not_to receive(:lw)
+        it 'does not call ents_logger.warn before raising' do
+          expect(ents_logger).not_to receive(:warn)
 
           expect {
             described_class.send(:plan_not_found_result, fresh_org, 'identity_plus_v1', true)
@@ -1049,8 +1042,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       end
 
       it 'logs a warning (does not raise)' do
-        expect(OT).to receive(:lw).with(
-          '[ApplySubscriptionToOrg] Plan not found, cannot materialize',
+        expect(ents_logger).to receive(:warn).with(
+          'Plan not found, cannot materialize',
           hash_including(org_extid: 'on_test_org', planid: 'identity_plus_v1'),
         )
 
@@ -1072,7 +1065,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
         end
 
         it 'does NOT log a warning before raising' do
-          expect(OT).not_to receive(:lw)
+          expect(ents_logger).not_to receive(:warn)
 
           expect {
             described_class.materialize_entitlements_for_org(org, raise_on_miss: true)
@@ -1201,12 +1194,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
         it 'logs the materialization event with string source' do
           allow(org).to receive(:materialize_entitlements_from_plan)
-          allow(OT).to receive(:info)
 
           described_class.materialize_entitlements_for_org(org)
 
-          expect(OT).to have_received(:info).with(
-            '[ApplySubscriptionToOrg] Materialized entitlements for org',
+          expect(ents_logger).to have_received(:info).with(
+            'Materialized entitlements for org',
             hash_including(
               org_extid: 'on_test_org',
               planid: 'identity_plus_v1',
@@ -1238,12 +1230,11 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
 
         it 'logs with source "config"' do
           allow(org).to receive(:materialize_entitlements_from_config)
-          allow(OT).to receive(:info)
 
           described_class.materialize_entitlements_for_org(org)
 
-          expect(OT).to have_received(:info).with(
-            '[ApplySubscriptionToOrg] Materialized entitlements for org',
+          expect(ents_logger).to have_received(:info).with(
+            'Materialized entitlements for org',
             hash_including(source: 'config'),
           )
         end

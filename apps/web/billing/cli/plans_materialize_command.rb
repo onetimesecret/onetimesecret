@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative '../lib/materialize_progress_renderer'
 require_relative '../operations/materialize_plans'
 
 module Onetime
@@ -94,10 +95,11 @@ module Onetime
                           include_memberships: include_memberships)
 
         verbosity = resolve_verbosity(verbose: verbose, quiet: quiet)
-        renderer  = ProgressRenderer.new(total: total,
-                                         verbosity: verbosity,
-                                         dry_run: dry_run,
-                                         include_memberships: include_memberships)
+        renderer  = Billing::MaterializeProgressRenderer.new(
+                      total: total,
+                      verbosity: verbosity,
+                      include_memberships: include_memberships,
+                    )
 
         result = ::Billing::Operations::MaterializePlans.call(
           plan_filter: plan,
@@ -243,77 +245,6 @@ module Onetime
         true
       end
 
-      # Renders streaming progress events to stdout.
-      #
-      # Three modes:
-      #   :default — one line per org (the audit-log baseline)
-      #   :verbose — :default plus one line per membership under each cascade
-      #   :quiet   — no per-org output (banner and final summary only)
-      #
-      # Decoupled from the operation so other callers (jobs, future UIs)
-      # can plug in their own renderers.
-      class ProgressRenderer
-        def initialize(total:, verbosity:, dry_run:, include_memberships:)
-          @total               = total
-          @verbosity           = verbosity
-          @dry_run             = dry_run
-          @include_memberships = include_memberships
-          @processed           = 0
-        end
-
-        def render(event)
-          @processed += 1
-          return if @verbosity == :quiet
-
-          puts "  [#{@processed}/#{@total}] #{describe(event)}"
-          render_membership_detail(event) if @verbosity == :verbose
-        end
-
-        private
-
-        def render_membership_detail(event)
-          details = event.cascade && event.cascade[:details]
-          return if details.nil? || details.empty?
-
-          details.each do |m|
-            puts "      ↳ #{format_membership(m)}"
-          end
-        end
-
-        def format_membership(detail)
-          role = detail[:role]
-          if detail[:status] == :ok
-            "#{detail[:objid]} (role=#{role}, plan=#{detail[:planid]}): " \
-              "#{detail[:entitlements_count]} entitlements"
-          else
-            "#{detail[:objid]} (role=#{role}): FAILED — #{detail[:error]}"
-          end
-        end
-
-        def describe(event)
-          case event.event
-          when :materialized
-            cascade = event.cascade ? " + cascaded #{event.cascade[:success]}/#{event.cascade[:total]} memberships" : ''
-            "Materialized: #{event.org_extid} (#{event.planid}, #{event.entitlements_count} entitlements)#{cascade}"
-          when :would_materialize
-            cascade_hint = @include_memberships ? ' (+memberships cascade)' : ''
-            "Would materialize: #{event.org_extid} (#{event.planid}, #{event.entitlements_count} entitlements)#{cascade_hint}"
-          when :skipped_plan_filter
-            "Skipping (plan filter): #{event.org_extid}"
-          when :skipped_no_plan
-            "Skipping (no planid): #{event.org_extid}"
-          when :failed_plan_not_found
-            "Error: #{event.reason} (#{event.org_extid})"
-          when :failed_org_write
-            "Error: org write failed for #{event.org_extid}: #{event.reason}"
-          when :failed_cascade
-            cascade = event.cascade ? " (#{event.cascade[:success]}/#{event.cascade[:total]} succeeded)" : ''
-            "Error: cascade failed for #{event.org_extid}: #{event.reason}#{cascade}"
-          else
-            "[#{event.event}] #{event.org_extid}"
-          end
-        end
-      end
     end
   end
 end

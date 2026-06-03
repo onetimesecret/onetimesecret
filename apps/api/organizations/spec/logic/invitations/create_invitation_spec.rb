@@ -100,7 +100,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         .with('ext-org-123').and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
@@ -234,7 +234,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       before do
-        allow(Onetime::OrganizationMembership).to receive(:find_by_org_email)
+        allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email)
           .and_return(pending_invite)
       end
 
@@ -295,7 +295,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:create_invitation!)
         .and_return(new_membership)
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
@@ -400,7 +400,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:pending_invitation_count_by_role).and_return(0)
       allow(organization).to receive(:at_limit?).and_return(false)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)

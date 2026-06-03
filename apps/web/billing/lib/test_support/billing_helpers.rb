@@ -14,9 +14,8 @@ module BillingTestHelpers
     # and forcing enabled=false regardless of config file.
     def disable_billing!
       ensure_familia_configured!
+      ENV['BILLING_ENABLED'] = 'false'
       reset_billing_singleton!
-      # Force disabled state - the config file may have enabled: true
-      Onetime::BillingConfig.instance.config['enabled'] = false
     end
 
     # Restore billing configuration for tests that need it
@@ -30,10 +29,8 @@ module BillingTestHelpers
       ensure_familia_configured!
       ensure_billing_loaded! if enabled
       clear_plan_cache!
+      ENV['BILLING_ENABLED'] = enabled.to_s
       reset_billing_singleton!
-
-      # Override config file setting with the enabled parameter value
-      Onetime::BillingConfig.instance.config['enabled'] = enabled
     end
 
     # Load billing module if not already defined

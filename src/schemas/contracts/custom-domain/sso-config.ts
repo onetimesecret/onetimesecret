@@ -263,8 +263,8 @@ export const putSsoConfigPayloadSchema = z.object({
   /** OAuth client ID. */
   client_id: z.string().min(1, 'Client ID is required'),
 
-  /** OAuth client secret. Required for PUT (full replacement). */
-  client_secret: z.string().min(1, 'Client secret is required'),
+  /** OAuth client secret. Required for non-OIDC providers (OIDC supports public clients). */
+  client_secret: z.string().optional(),
 
   /** Azure AD tenant ID (required for entra_id only). See customDomainSsoConfigCanonical for provider-specific requirements. */
   tenant_id: z.string().optional(),

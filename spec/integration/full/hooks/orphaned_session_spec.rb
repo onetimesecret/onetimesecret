@@ -186,6 +186,36 @@ RSpec.describe 'Orphaned Session Handling', :shared_db_state, type: :integration
     end
   end
 
+  describe 'POST /auth/logout audit_logging override with deleted account' do
+    it 'skips audit INSERT without triggering FK rescue path' do
+      # The audit_logging override (AuditLogging#add_audit_log) should detect the
+      # orphaned account and return early — preventing the FK violation that would
+      # otherwise fire and be caught by around_rodauth's rescue handler.
+      #
+      # Discriminating signal: without the override, the FK violation triggers
+      # :orphaned_session_detected logging in error_handling.rb. With the override,
+      # no exception occurs, so that log event never fires.
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      account = create_and_login_account(email: test_email, password: valid_password)
+      delete_account_from_db(account[:id])
+
+      json_post '/auth/logout', {}, use_stored_token: true
+
+      expect([200, 302]).to include(last_response.status),
+        "Expected graceful logout but got #{last_response.status}: #{last_response.body[0..500]}"
+
+      # The override should prevent the FK violation entirely, so the
+      # around_rodauth orphaned-session rescue path should NOT be entered.
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:orphaned_session_detected, any_args)
+
+      # Instead, the override logs a warning at the point it skips the INSERT.
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:audit_log_skipped_orphaned_account, hash_including(level: :warn, action: :logout))
+    end
+  end
+
   describe 'GET /auth/account with deleted account' do
     it 'returns 401 when account no longer exists' do
       account = create_and_login_account(email: test_email, password: valid_password)

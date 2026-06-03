@@ -3,8 +3,10 @@
 <%= t('email.expiration_warning.view_before_gone') %>
 <%= secret_uri %>
 
-<%= t('email.expiration_warning.after_expiration_short') %>
+<%= t('email.expiration_warning.reminder_label') %> <%= t('email.expiration_warning.after_expiration') %>
+
+<%= t('email.expiration_warning.footer_note', product_name: product_name) %>
 
 --
-<%= t('email.common.onetime_secret') %>
+<%= product_name %>
 <%= baseuri %>

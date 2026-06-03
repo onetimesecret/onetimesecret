@@ -147,7 +147,7 @@ describe('DomainHeader', () => {
 
     it('shows external link when hasUnsavedChanges is false and domain is active', () => {
       const domain = createMockDomain();
-      const wrapper = mountComponent({ domain, hasUnsavedChanges: false });
+      const wrapper = mountComponent({ domain, hasUnsavedChanges: false, externalPath: '/incoming' } as any);
       const link = wrapper.find('a[target="_blank"]');
       expect(link.isVisible()).toBe(true);
     });

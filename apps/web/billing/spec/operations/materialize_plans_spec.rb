@@ -50,8 +50,8 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
     allow(Onetime::OrganizationMembership).to receive(:active_for_org).with(org).and_return(memberships)
 
     # Route the operation's logger to a controllable fake so tests can
-    # assert on log calls without depending on the live billing category.
-    allow(Onetime).to receive(:billing_logger).and_return(fake_logger)
+    # assert on log calls without depending on the live ents category.
+    allow(Onetime).to receive(:ents_logger).and_return(fake_logger)
   end
 
   describe '.call' do

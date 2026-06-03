@@ -225,7 +225,7 @@ last_response.status >= 400
 #=> true
 
 ## Setup for resend tests - find invitation by org+email and verify token lookup works
-@invitation_to_resend = Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invite_email1)
+@invitation_to_resend = Onetime::OrganizationMembership.find_pending_by_email(@org, @invite_email1)
 @token_to_resend = @invitation_to_resend.token
 @original_invited_at = @invitation_to_resend.invited_at
 # Verify the invitation was found and has a token
@@ -305,7 +305,7 @@ last_response.status >= 400
 #=> true
 
 ## Setup for revoke test - find second invitation
-@invitation_to_revoke = Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invite_email2)
+@invitation_to_revoke = Onetime::OrganizationMembership.find_pending_by_email(@org, @invite_email2)
 @token_to_revoke = @invitation_to_revoke.token
 [@invitation_to_revoke.nil?, @token_to_revoke.nil?]
 #=> [false, false]

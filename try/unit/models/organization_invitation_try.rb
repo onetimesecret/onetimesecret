@@ -87,8 +87,8 @@ OT.info "Cleaned Redis for fresh test run"
 @found.objid == @invitation.objid
 #=> true
 
-## Find invitation by org + email
-@found_by_email = Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invitee.email)
+## Find pending invitation by org + email
+@found_by_email = Onetime::OrganizationMembership.find_pending_by_email(@org, @invitee.email)
 @found_by_email.nil? || @found_by_email.objid == @invitation.objid
 #=> true
 

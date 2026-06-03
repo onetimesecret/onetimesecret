@@ -72,6 +72,19 @@ module Auth::Config::Hooks
         strategy          = request.env['omniauth.strategy']
         is_callback_phase = strategy&.on_callback_path?
 
+        # OIDC strategies require an explicit redirect_uri in both the
+        # authorize request and token exchange. Unlike OAuth2-based strategies,
+        # omniauth_openid_connect reads client_options.redirect_uri verbatim
+        # (no auto-construction from the request host). We set it here so the
+        # value derives from the current request host — correct for both
+        # install-level (canonical domain) and domain-level (custom domain).
+        # Must be identical across both phases (authorize + callback).
+        if strategy&.options&.dig(:discovery) == true
+          redirect_uri                                     = strategy.full_host + strategy.callback_path
+          strategy.options[:client_options]              ||= {}
+          strategy.options[:client_options][:redirect_uri] = redirect_uri
+        end
+
         Auth::Logging.log_auth_event(
           :omniauth_tenant_resolution_start,
           level: :debug,

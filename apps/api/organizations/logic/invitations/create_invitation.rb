@@ -66,10 +66,10 @@ module OrganizationAPI::Logic
         end
 
         # Check for existing pending invitation
-        existing_invite = Onetime::OrganizationMembership.find_by_org_email(
-          @organization.objid, @email
+        existing_invite = Onetime::OrganizationMembership.find_pending_by_email(
+          @organization, @email
         )
-        if existing_invite&.pending?
+        if existing_invite
           raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: 'email', error_type: :exists)
         end
 

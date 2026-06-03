@@ -10,7 +10,7 @@
 #   Uncomment worker and scheduler lines.
 #
 # Before starting:
-#   source .env.sh
+#   set -a; source .env; set +a
 #
 # Examples:
 #   foreman start -f Procfile.production

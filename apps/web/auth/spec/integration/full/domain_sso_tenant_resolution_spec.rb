@@ -100,20 +100,17 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
         expect(domain_sso_config.enabled?).to be true
       end
 
-      it 'uses domain_id as strategy name' do
+      it 'uses domain extid as strategy name' do
         # Use a stubbed instance for to_omniauth_options because Familia's AAD
         # computation differs between unsaved (encryption) and persisted (decryption)
         # records when aad_fields are specified. The loaded record would fail to
         # decrypt since exists? changes the AAD path.
-        #
-        # Use a unique domain_id that does NOT exist in Valkey (the tenant fixtures
-        # create a real record with test_custom_domain.identifier, causing exists?
-        # to return true during encryption in new(), but the persistence stub sets
-        # exists? to false for decryption -- AAD mismatch).
         unique_domain_id = "dom_strategy_name_test_#{SecureRandom.hex(4)}"
+        fake_domain = instance_double(Onetime::CustomDomain, extid: 'cd_strategy_test')
         config = build_domain_sso_config(:entra_id, domain_id: unique_domain_id)
+        allow(config).to receive(:custom_domain).and_return(fake_domain)
         options = config.to_omniauth_options
-        expect(options[:name]).to eq(unique_domain_id)
+        expect(options[:name]).to eq('cd_strategy_test')
       end
     end
 
@@ -186,16 +183,21 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
 
   describe 'credential injection' do
     describe 'domain SSO credentials' do
+      let(:fake_domain) { instance_double(Onetime::CustomDomain, extid: 'cd_test_entra_12345') }
       let(:config) { build_domain_sso_config(:entra_id) }
+
+      before do
+        allow(config).to receive(:custom_domain).and_return(fake_domain)
+      end
 
       it 'generates options with domain-specific tenant_id' do
         options = config.to_omniauth_options
         expect(options[:tenant_id]).to eq('contoso-tenant-uuid-1234')
       end
 
-      it 'generates options with domain_id as name' do
+      it 'generates options with domain extid as name' do
         options = config.to_omniauth_options
-        expect(options[:name]).to eq(config.domain_id)
+        expect(options[:name]).to eq('cd_test_entra_12345')
       end
     end
   end

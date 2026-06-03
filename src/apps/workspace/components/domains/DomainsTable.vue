@@ -59,8 +59,8 @@ const { t } = useI18n();
   }>();
 
   const handleDelete = async (domain: string) => {
-    const confirmed = await reveal();
-    if (confirmed) {
+    const { isCanceled } = await reveal();
+    if (!isCanceled) {
       await deleteDomain(domain);
     }
   };

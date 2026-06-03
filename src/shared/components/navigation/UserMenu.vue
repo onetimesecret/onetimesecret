@@ -101,6 +101,10 @@ const orgExtid = computed(() => currentOrganization.value?.extid || null);
 // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
 const isCustomDomainMember = computed(() => isCustom.value && !!userRole.value && userRole.value === 'member');
 
+const isElevatedRole = computed(() =>
+  userRole.value === 'owner' || userRole.value === 'admin'
+);
+
 // Domain context display in menu header (canonical site only)
 const { currentContext, isContextActive } = useDomainContext();
 const showDomainContext = computed(() =>
@@ -393,6 +397,20 @@ onUnmounted(() => {
                 class="size-4"
                 aria-hidden="true" />
             </button>
+          </div>
+          <!-- Role badge for owners/admins -->
+          <div
+            v-if="isElevatedRole && !awaitingMfa"
+            class="mt-1">
+            <span
+              :class="[
+                'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
+                userRole === 'owner'
+                  ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
+                  : 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
+              ]">
+              {{ t(`web.organizations.members.roles.${userRole}`) }}
+            </span>
           </div>
           <!-- Domain context -->
           <div

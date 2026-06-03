@@ -43,7 +43,7 @@ module Onetime
       private
 
       def show_progress(message)
-        print "\r#{message}"
+        print "\r#{message}\e[K"
         $stdout.flush
       end
     end

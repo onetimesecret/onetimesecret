@@ -15,7 +15,7 @@ module Billing
     # @!attribute cascade [Hash, nil] { success:, failed:, total: } when cascade ran
     # @!attribute reason [String, nil] Human-readable reason for skip/fail
     MaterializePlansEvent = Data.define(
-      :event, :org_extid, :planid, :entitlements_count, :cascade, :reason,
+      :event, :org_extid, :planid, :entitlements_count, :cascade, :reason
     )
 
     # Aggregate result of MaterializePlans.call.
@@ -34,9 +34,14 @@ module Billing
     # @!attribute orgs_cascaded [Integer] Orgs where cascade was attempted
     # @!attribute errors [Array<Hash>] [{org_extid:, reason:}]
     MaterializePlansResult = Data.define(
-      :scanned, :succeeded, :failed,
-      :skipped_no_plan, :skipped_plan_filter,
-      :memberships_succeeded, :memberships_failed, :orgs_cascaded,
+      :scanned,
+      :succeeded,
+      :failed,
+      :skipped_no_plan,
+      :skipped_plan_filter,
+      :memberships_succeeded,
+      :memberships_failed,
+      :orgs_cascaded,
       :errors,
     )
 
@@ -120,7 +125,7 @@ module Billing
         log_start
         plans_cache = preload_plans
         @iterator.each_record(batch_size: @batch_size) { |org| process_org(org, plans_cache) }
-        result = build_result
+        result      = build_result
         log_end(result)
         result
       end
@@ -128,7 +133,7 @@ module Billing
       private
 
       def logger
-        Onetime.billing_logger
+        Onetime.ents_logger
       end
 
       # Preload all plans (~5) so no Redis reads happen inside the loop.
@@ -148,8 +153,12 @@ module Billing
         return if missing_plan?(org, plan)
 
         if @dry_run
-          emit(:would_materialize, org, planid: org.planid,
-                                        entitlements_count: plan.entitlements.size)
+          emit(
+            :would_materialize,
+            org,
+            planid: org.planid,
+            entitlements_count: plan.entitlements.size,
+          )
           @counts[:succeeded] += 1
           return
         end
@@ -178,19 +187,21 @@ module Billing
       def missing_plan?(org, plan)
         return false if plan
 
-        reason = "Plan '#{org.planid}' not found in catalog or config"
+        reason            = "Plan '#{org.planid}' not found in catalog or config"
         @counts[:failed] += 1
         @errors << { org_extid: org.extid, reason: reason }
         emit(:failed_plan_not_found, org, planid: org.planid, reason: reason)
         logger.warn 'Plan not found in catalog or config',
-          org_extid: org.extid, planid: org.planid
+          org_extid: org.extid,
+          planid: org.planid
         true
       end
 
       def materialize_and_cascade(org, plan)
         org.materialize_entitlements_from_plan(plan)
         logger.debug 'Materialized org entitlements',
-          org_extid: org.extid, planid: org.planid,
+          org_extid: org.extid,
+          planid: org.planid,
           entitlements_count: plan.entitlements.size
       rescue StandardError => ex
         record_org_write_failure(org, ex)
@@ -205,9 +216,13 @@ module Billing
         end
 
         @counts[:succeeded] += 1
-        emit(:materialized, org, planid: org.planid,
-                                 entitlements_count: plan.entitlements.size,
-                                 cascade: @cascade_payload)
+        emit(
+          :materialized,
+          org,
+          planid: org.planid,
+          entitlements_count: plan.entitlements.size,
+          cascade: @cascade_payload,
+        )
       ensure
         @cascade_payload = nil
       end
@@ -217,7 +232,9 @@ module Billing
         @errors << { org_extid: org.extid, reason: "Org write failed: #{ex.message}" }
         emit(:failed_org_write, org, planid: org.planid, reason: ex.message)
         logger.error 'Org write failed',
-          org_extid: org.extid, planid: org.planid, exception: ex
+          org_extid: org.extid,
+          planid: org.planid,
+          exception: ex
       end
 
       # Cascade to memberships. Returns :ok or :failed.
@@ -248,7 +265,6 @@ module Billing
         failed      = 0
 
         memberships.each do |membership|
-          begin
             if membership.materialize_for_role!(org)
               succeeded += 1
               details   << build_membership_detail(membership, org, :ok)
@@ -267,20 +283,19 @@ module Billing
                 membership_objid: membership.objid,
                 role: membership.role
             end
-          rescue StandardError => ex
+        rescue StandardError => ex
             failed  += 1
             details << build_membership_detail(membership, org, :failed, error: ex.message)
             logger.error 'Membership re-materialization failed',
               org_extid: org.extid,
               membership_objid: membership.objid,
               exception: ex
-          end
         end
 
         cascade_result = {
           success: succeeded,
-          failed:  failed,
-          total:   memberships.size,
+          failed: failed,
+          total: memberships.size,
           details: details,
         }
 
@@ -308,35 +323,42 @@ module Billing
       # renderer for --verbose output and by audit-log consumers.
       def build_membership_detail(membership, org, status, error: nil)
         {
-          objid:              membership.objid,
-          role:               membership.role,
-          planid:             org.planid,
+          objid: membership.objid,
+          role: membership.role,
+          planid: org.planid,
           entitlements_count: status == :ok ? membership.materialized_entitlements.size : nil,
-          status:             status,
-          error:              error,
+          status: status,
+          error: error,
         }
       end
 
       def handle_cascade_partial(org, cascade_result)
-        reason = "Cascade had #{cascade_result[:failed]}/#{cascade_result[:total]} membership failures"
+        reason            = "Cascade had #{cascade_result[:failed]}/#{cascade_result[:total]} membership failures"
         @counts[:failed] += 1
         @errors << { org_extid: org.extid, reason: reason }
-        emit(:failed_cascade, org, planid: org.planid,
-                                   cascade: cascade_result,
-                                   reason: reason)
+        emit(
+          :failed_cascade,
+          org,
+          planid: org.planid,
+          cascade: cascade_result,
+          reason: reason,
+        )
         logger.error 'Cascade had membership failures',
-          org_extid: org.extid, planid: org.planid,
+          org_extid: org.extid,
+          planid: org.planid,
           memberships_total: cascade_result[:total],
           memberships_failed: cascade_result[:failed]
       end
 
       def handle_cascade_exception(org, ex)
-        reason = "Cascade raised: #{ex.message}"
+        reason            = "Cascade raised: #{ex.message}"
         @counts[:failed] += 1
         @errors << { org_extid: org.extid, reason: reason }
         emit(:failed_cascade, org, planid: org.planid, reason: reason)
         logger.error 'Cascade raised',
-          org_extid: org.extid, planid: org.planid, exception: ex
+          org_extid: org.extid,
+          planid: org.planid,
+          exception: ex
       end
 
       def emit(event, org, planid: nil, entitlements_count: nil, cascade: nil, reason: nil)
