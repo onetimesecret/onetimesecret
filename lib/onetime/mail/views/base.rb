@@ -164,9 +164,7 @@ module Onetime
         # Site product name configuration helper
         # @return [String]
         def site_product_name
-          return 'Onetime Secret' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'product_name') || 'Onetime Secret'
+          OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') || 'One-Time Secret'
         end
 
         # Product name with fallback to site config
@@ -292,7 +290,7 @@ module Onetime
 
           # Get product name from site config
           def site_product_name
-            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
+            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') || t('email.common.onetime_secret')
           end
 
           # Get host from site config
