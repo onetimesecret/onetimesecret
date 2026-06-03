@@ -651,32 +651,15 @@ describe('SecurityOverview', () => {
   // SecurityOverview filters password-dependent cards via hasPasswordOf and
   // renders an SSO-managed empty state when every card is filtered out.
   describe('SSO-Only Account (no password)', () => {
-    // Mount with `has_password` seeded into the bootstrap store so the
-    // empty-state v-if (which reads the store ref) matches production, where
-    // the store value and hasPasswordOf() derive from the same source.
-    const mountSso = () =>
-      mount(SecurityOverview, {
-        global: {
-          plugins: [
-            i18n,
-            createTestingPinia({
-              createSpy: vi.fn,
-              initialState: { bootstrap: { has_password: false } },
-            }),
-          ],
-          stubs: {
-            RouterLink: {
-              template: '<a :href="to" class="router-link"><slot /></a>',
-              props: ['to'],
-            },
-          },
-        },
-      });
+    // hasPasswordOf is mocked to return mockHasPassword, so setting it false
+    // drives both the card filter (component line 150) and the empty-state
+    // v-if (line 265, `!hasPw`). No store seeding is needed — the component
+    // reads the predicate, not the store ref.
 
     it('hides password, MFA, and recovery codes cards', () => {
       mockHasPassword.value = false;
       mockWebAuthnEnabled.value = true;
-      wrapper = mountSso();
+      wrapper = mountComponent();
 
       expect(findCardByIcon('lock-closed-solid')).toBeUndefined();
       expect(findCardByIcon('key-solid')).toBeUndefined();
@@ -686,7 +669,7 @@ describe('SecurityOverview', () => {
     it('still shows the passkey card when WebAuthn is enabled', () => {
       mockHasPassword.value = false;
       mockWebAuthnEnabled.value = true;
-      wrapper = mountSso();
+      wrapper = mountComponent();
 
       expect(findCardByIcon('finger-print-solid')).toBeDefined();
       expect(wrapper.findAll('.grid > div').length).toBe(1);
@@ -695,7 +678,7 @@ describe('SecurityOverview', () => {
     it('renders the SSO-managed empty state when all cards are filtered out', () => {
       mockHasPassword.value = false;
       mockWebAuthnEnabled.value = false;
-      wrapper = mountSso();
+      wrapper = mountComponent();
 
       expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(true);
       expect(wrapper.text()).toContain('Security managed by SSO');
@@ -704,7 +687,7 @@ describe('SecurityOverview', () => {
     it('does not render the cards grid when all cards are filtered out', () => {
       mockHasPassword.value = false;
       mockWebAuthnEnabled.value = false;
-      wrapper = mountSso();
+      wrapper = mountComponent();
 
       expect(wrapper.find('.grid').exists()).toBe(false);
     });
