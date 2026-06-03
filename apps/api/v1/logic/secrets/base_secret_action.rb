@@ -283,7 +283,7 @@ module V1::Logic
         return if share_domain.nil?
         return if custom_domain? && share_domain.casecmp?(display_domain.to_s)
 
-        OT.li "[validate_anonymous_share_domain]: #{share_domain} cross-domain [#{cust&.custid}]"
+        OT.li "[validate_anonymous_share_domain]: #{share_domain} cross-domain from #{display_domain} [#{cust&.custid}]"
         raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
 
