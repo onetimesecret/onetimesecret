@@ -124,7 +124,7 @@ const shouldShow = computed(() =>
         <template v-else>{{ orgInitial }}</template>
       </span>
       <span
-        class="hidden max-w-[120px] truncate lg:inline"
+        class="hidden max-w-[120px] truncate font-brand lg:inline"
         :title="orgDisplayName">
         {{ orgDisplayName }}
       </span>
