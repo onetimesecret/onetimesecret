@@ -178,9 +178,10 @@ declined.status
 @org.pending_invitation_count
 #=> 0
 
-# Teardown for basic decline! test
+## Teardown for basic decline! test
 @invite_decline_record = Onetime::OrganizationMembership.load(@invite_decline_id)
 @invite_decline_record&.destroy!
+#=:> Familia::MultiResult
 
 # --- Test decline! index cleanup behavior ---
 
@@ -193,7 +194,6 @@ declined.status
 )
 @invite_idx_id = @invite_idx.objid
 @invite_idx_token = @invite_idx.token
-@invite_idx_email_key = @invite_idx.org_email_key
 @invite_idx.pending?
 #=> true
 
@@ -201,8 +201,8 @@ declined.status
 Onetime::OrganizationMembership.find_by_token(@invite_idx_token).nil?
 #=> false
 
-## Verify org_email_lookup exists before decline
-Onetime::OrganizationMembership.org_email_lookup[@invite_idx_email_key].nil?
+## Verify find_pending_by_email discovers invitation before decline
+Onetime::OrganizationMembership.find_pending_by_email(@org, "decline_idx_#{@timestamp}@example.com").nil?
 #=> false
 
 ## decline! the invitation
@@ -214,8 +214,8 @@ Onetime::OrganizationMembership.org_email_lookup[@invite_idx_email_key].nil?
 Onetime::OrganizationMembership.find_by_token(@invite_idx_token)
 #=> nil
 
-## After decline!: org_email_lookup entry is removed
-Onetime::OrganizationMembership.org_email_lookup[@invite_idx_email_key]
+## After decline!: find_pending_by_email no longer discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, "decline_idx_#{@timestamp}@example.com")
 #=> nil
 
 ## After decline!: record still exists with status='declined'
@@ -227,8 +227,9 @@ Onetime::OrganizationMembership.org_email_lookup[@invite_idx_email_key]
 @declined_record.token.nil?
 #=> true
 
-# Teardown for index cleanup test
+## Teardown for index cleanup test
 @declined_record&.destroy!
+#=:> Familia::MultiResult
 
 # --- Test decline! allows re-invitation to same email ---
 
@@ -266,9 +267,10 @@ Onetime::OrganizationMembership.org_email_lookup[@invite_idx_email_key]
 @reinvite_second.token.nil?
 #=> false
 
-# Teardown for re-invitation test
+## Teardown for re-invitation test
 Onetime::OrganizationMembership.load(@reinvite_first_id)&.destroy!
 @reinvite_second&.destroy_with_index_cleanup!
+#=:> Familia::MultiResult
 
 # --- Test decline! edge cases ---
 
@@ -299,10 +301,11 @@ end
 @nil_token_check.status
 #=> 'declined'
 
-# Teardown for nil token edge case
+## Teardown for nil token edge case
 @nil_token_check&.destroy!
+#=:> Familia::MultiResult
 
-## Edge case: decline! with nil org_email_key does not crash
+## Edge case: decline! with nil invited_email does not crash
 @nil_email_invite = Onetime::OrganizationMembership.create_invitation!(
   organization: @org,
   email: "nil_email_key_#{@timestamp}@example.com",
@@ -311,20 +314,17 @@ end
 )
 @nil_email_invite_id = @nil_email_invite.objid
 @nil_email_invite_token = @nil_email_invite.token
-# Manually clear invited_email to make org_email_key return nil
-Onetime::OrganizationMembership.org_email_lookup.remove_field(@nil_email_invite.org_email_key)
+# Manually clear invited_email
 @nil_email_invite.invited_email = nil
 @nil_email_invite.save
-# Verify org_email_key is now nil
-@nil_email_invite.org_email_key.nil?
 #=> true
 
-## decline! with nil org_email_key does not crash
+## decline! with nil invited_email does not crash
 @nil_email_result = begin
   @nil_email_invite.decline!
   'success'
 rescue => e
-  "error: #{e.class}"
+  "error: #{e.class}: #{e.message}"
 end
 @nil_email_result
 #=> 'success'
