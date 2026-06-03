@@ -5,8 +5,10 @@
 # Tests for provider registration methods in Auth::Config::Features::OmniAuth.
 #
 # Each configure_X_provider method reads env vars, validates required ones,
-# and calls auth.omniauth_provider when valid (or logs and returns when not).
-# These tests verify that behavior without booting the full app.
+# and either:
+#   - registers with real credentials (env vars present)
+#   - registers with placeholders for tenant SSO (env vars absent, orgs_sso_enabled)
+#   - logs error and skips (env vars absent, orgs_sso not enabled)
 #
 # RUN:
 #   source .env.test && pnpm run test:rspec apps/web/auth/spec/config/features/omniauth_providers_spec.rb
@@ -36,16 +38,26 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       end
     end
 
+    unless defined?(Onetime)
+      module ::Onetime
+        def self.auth_config; end
+      end
+    end
+
     # Auth::Config::Features namespace is established by the top-level shim above.
     require File.expand_path('../../../config/features/omniauth.rb', __dir__)
   end
 
   let(:auth) { double('auth') }
   let(:log_messages) { [] }
+  let(:orgs_sso_enabled) { false }
 
   before do
     allow(OT).to receive(:le) { |msg| log_messages << [:error, msg] }
     allow(OT).to receive(:li) { |msg| log_messages << [:info, msg] }
+
+    auth_config_stub = double('auth_config', orgs_sso_enabled?: orgs_sso_enabled)
+    allow(Onetime).to receive(:auth_config).and_return(auth_config_stub)
   end
 
   # ================================================================
@@ -144,6 +156,28 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         expect(msg).to include('ENTRA_CLIENT_ID')
         expect(msg).to include('ENTRA_CLIENT_SECRET')
       end
+
+      context 'with orgs_sso_enabled' do
+        let(:orgs_sso_enabled) { true }
+
+        it 'registers placeholder route for tenant SSO' do
+          expect(auth).to receive(:omniauth_provider).with(
+            :entra_id,
+            hash_including(
+              name: :entra,
+              client_id: 'placeholder',
+              client_secret: 'placeholder',
+              tenant_id: 'placeholder',
+            )
+          )
+
+          ClimateControl.modify({}) do
+            Auth::Config::Features::OmniAuth.configure_entra_id_provider(auth)
+          end
+
+          expect(log_messages.last).to match([:info, /Registering Entra ID route.*tenant SSO/])
+        end
+      end
     end
   end
 
@@ -225,6 +259,27 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         expect(msg).to include('GITHUB_CLIENT_ID')
         expect(msg).to include('GITHUB_CLIENT_SECRET')
       end
+
+      context 'with orgs_sso_enabled' do
+        let(:orgs_sso_enabled) { true }
+
+        it 'registers placeholder route for tenant SSO' do
+          expect(auth).to receive(:omniauth_provider).with(
+            :github,
+            hash_including(
+              name: :github,
+              client_id: 'placeholder',
+              client_secret: 'placeholder',
+            )
+          )
+
+          ClimateControl.modify({}) do
+            Auth::Config::Features::OmniAuth.configure_github_provider(auth)
+          end
+
+          expect(log_messages.last).to match([:info, /Registering GitHub route.*tenant SSO/])
+        end
+      end
     end
   end
 
@@ -305,6 +360,71 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         msg = log_messages.last[1]
         expect(msg).to include('GOOGLE_CLIENT_ID')
         expect(msg).to include('GOOGLE_CLIENT_SECRET')
+      end
+
+      context 'with orgs_sso_enabled' do
+        let(:orgs_sso_enabled) { true }
+
+        it 'registers placeholder route for tenant SSO' do
+          expect(auth).to receive(:omniauth_provider).with(
+            :google_oauth2,
+            hash_including(
+              name: :google,
+              client_id: 'placeholder',
+              client_secret: 'placeholder',
+            )
+          )
+
+          ClimateControl.modify({}) do
+            Auth::Config::Features::OmniAuth.configure_google_provider(auth)
+          end
+
+          expect(log_messages.last).to match([:info, /Registering Google route.*tenant SSO/])
+        end
+      end
+    end
+  end
+
+  # ================================================================
+  # OIDC Provider
+  # ================================================================
+
+  describe '.configure_oidc_provider' do
+    context 'when required env vars are missing' do
+      # Explicitly clear OIDC vars that may be set in the shell environment
+      let(:oidc_clear) { { OIDC_ISSUER: nil, OIDC_CLIENT_ID: nil, OIDC_CLIENT_SECRET: nil } }
+
+      context 'with orgs_sso_enabled' do
+        let(:orgs_sso_enabled) { true }
+
+        it 'registers placeholder route for tenant SSO' do
+          expect(auth).to receive(:omniauth_provider).with(
+            :openid_connect,
+            hash_including(
+              name: :oidc,
+              issuer: 'https://placeholder.invalid',
+              discovery: true,
+            )
+          )
+
+          ClimateControl.modify(oidc_clear) do
+            Auth::Config::Features::OmniAuth.configure_oidc_provider(auth)
+          end
+
+          expect(log_messages.last).to match([:info, /Registering OIDC route.*tenant SSO/])
+        end
+      end
+
+      context 'without orgs_sso_enabled' do
+        it 'skips registration and logs error' do
+          expect(auth).not_to receive(:omniauth_provider)
+
+          ClimateControl.modify(oidc_clear) do
+            Auth::Config::Features::OmniAuth.configure_oidc_provider(auth)
+          end
+
+          expect(log_messages.last).to match([:error, /Missing OIDC/])
+        end
       end
     end
   end

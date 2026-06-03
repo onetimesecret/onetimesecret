@@ -4,15 +4,21 @@
 
 #
 # SSO via external identity providers (OIDC, Entra ID, Google, GitHub).
-# Registers OmniAuth strategies at boot based on environment variables.
-# Each provider with valid credentials registers automatically.
+#
+# Registers OmniAuth strategies at boot. When platform env vars are present,
+# strategies use real credentials. When org-level SSO is enabled
+# (ORGS_SSO_ENABLED=true) but platform vars are absent, strategies register
+# with placeholder credentials — the OmniAuthTenant hook injects real
+# tenant-specific credentials at request time.
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: hooks/omniauth.rb (callback hooks — provider-agnostic)
 #
 
-# Load the existing OIDC strategy unconditionally (always available)
 require 'omniauth_openid_connect'
+require 'omniauth-entra-id'
+require 'omniauth-github'
+require 'omniauth-google-oauth2'
 
 module Auth::Config::Features
   module OmniAuth
@@ -40,7 +46,8 @@ module Auth::Config::Features
       #
       auth.omniauth_create_account? true
 
-      # Register providers — each is gated on its own env vars
+      # Register providers — platform creds when available, placeholder
+      # routes for tenant SSO when orgs_sso_enabled
       configure_oidc_provider(auth)
       configure_entra_id_provider(auth)
       configure_github_provider(auth)
@@ -56,18 +63,28 @@ module Auth::Config::Features
     end
 
     def self.configure_oidc_provider(auth)
-      # NOTE: No explicit state parameter (though rodauth-omniauth should handle this).
       issuer        = ENV.fetch('OIDC_ISSUER', nil)
       client_id     = ENV.fetch('OIDC_CLIENT_ID', nil)
-
-      # NOTE: Client secret can be empty for PKCE-only flows, but ensure the IdP
-      # actually supports PKCE-only.
-      client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '') # Optional for PKCE-only flows
+      client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '')
       provider_name = ENV.fetch('OIDC_ROUTE_NAME', 'oidc').to_sym
 
       missing = missing_env_vars(%w[OIDC_ISSUER OIDC_CLIENT_ID])
       if missing.any?
-        OT.le "[OmniAuth] Missing OIDC configuration: #{missing.join(', ')}"
+        if Onetime.auth_config.orgs_sso_enabled?
+          OT.li "[OmniAuth] Registering OIDC route '#{provider_name}' for tenant SSO (no platform credentials)"
+          auth.omniauth_provider(
+            :openid_connect,
+            name: provider_name,
+            scope: [:openid, :email, :profile],
+            response_type: :code,
+            issuer: 'https://placeholder.invalid',
+            client_options: { identifier: 'placeholder' },
+            discovery: true,
+            pkce: true,
+          )
+        else
+          OT.le "[OmniAuth] Missing OIDC configuration: #{missing.join(', ')}"
+        end
         return
       end
 
@@ -103,18 +120,27 @@ module Auth::Config::Features
       client_id     = ENV.fetch('ENTRA_CLIENT_ID', nil)
       client_secret = ENV.fetch('ENTRA_CLIENT_SECRET', nil)
       provider_name = ENV.fetch('ENTRA_ROUTE_NAME', 'entra').to_sym
-      # For log message only; the frontend display_name comes from AuthConfig.sso_providers
       display_name  = ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft')
 
       missing = missing_env_vars(%w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET])
       if missing.any?
-        OT.le "[OmniAuth] Missing Entra ID configuration: #{missing.join(', ')}"
+        if Onetime.auth_config.orgs_sso_enabled?
+          OT.li "[OmniAuth] Registering Entra ID route '#{provider_name}' for tenant SSO (no platform credentials)"
+          auth.omniauth_provider(
+            :entra_id,
+            name: provider_name,
+            client_id: 'placeholder',
+            client_secret: 'placeholder',
+            tenant_id: 'placeholder',
+            scope: 'openid profile email',
+          )
+        else
+          OT.le "[OmniAuth] Missing Entra ID configuration: #{missing.join(', ')}"
+        end
         return
       end
 
       OT.li "[OmniAuth] Configuring Entra ID provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
-
-      require 'omniauth-entra-id'
 
       opts = {
         name: provider_name,
@@ -134,13 +160,22 @@ module Auth::Config::Features
 
       missing = missing_env_vars(%w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET])
       if missing.any?
-        OT.le "[OmniAuth] Missing GitHub configuration: #{missing.join(', ')}"
+        if Onetime.auth_config.orgs_sso_enabled?
+          OT.li "[OmniAuth] Registering GitHub route '#{provider_name}' for tenant SSO (no platform credentials)"
+          auth.omniauth_provider(
+            :github,
+            name: provider_name,
+            client_id: 'placeholder',
+            client_secret: 'placeholder',
+            scope: 'user:email',
+          )
+        else
+          OT.le "[OmniAuth] Missing GitHub configuration: #{missing.join(', ')}"
+        end
         return
       end
 
       OT.li "[OmniAuth] Configuring GitHub provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
-
-      require 'omniauth-github'
 
       opts = {
         name: provider_name,
@@ -159,13 +194,23 @@ module Auth::Config::Features
 
       missing = missing_env_vars(%w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET])
       if missing.any?
-        OT.le "[OmniAuth] Missing Google configuration: #{missing.join(', ')}"
+        if Onetime.auth_config.orgs_sso_enabled?
+          OT.li "[OmniAuth] Registering Google route '#{provider_name}' for tenant SSO (no platform credentials)"
+          auth.omniauth_provider(
+            :google_oauth2,
+            name: provider_name,
+            client_id: 'placeholder',
+            client_secret: 'placeholder',
+            scope: 'openid,email,profile',
+            prompt: 'select_account',
+          )
+        else
+          OT.le "[OmniAuth] Missing Google configuration: #{missing.join(', ')}"
+        end
         return
       end
 
       OT.li "[OmniAuth] Configuring Google provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
-
-      require 'omniauth-google-oauth2'
 
       opts = {
         name: provider_name,
