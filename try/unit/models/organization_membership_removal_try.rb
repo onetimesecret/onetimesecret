@@ -13,19 +13,16 @@
 #      - membership.destroy_with_index_cleanup!
 #        Single authoritative method. Handles Familia sorted sets
 #        (org.members ZREM + customer.participations SREM), OTS
-#        app-level indexes (org_email_lookup, org_customer_lookup,
-#        token_lookup), and destroys the Redis hash.
+#        app-level indexes (token_lookup), and destroys the Redis hash.
 #
 #   2. Pending invitation revocation (revoke!):
-#      - Cleans OTS indexes (token_lookup, org_email_lookup, org_customer_lookup)
+#      - Cleans OTS indexes (token_lookup)
 #      - org.unstage_members_instance(staged)    -- staging set + model hash
 #
 # Both paths must leave zero stale references in:
 #   - org.members sorted set
 #   - org.pending_invitations staging set
 #   - token_lookup hash
-#   - org_email_lookup hash
-#   - org_customer_lookup hash
 #   - customer reverse index (organization_instances)
 
 require_relative '../../support/test_helpers'
@@ -49,7 +46,7 @@ OT.boot! :test
 @org.member_count
 #=> 2
 
-## Baseline: org_customer_lookup is populated for the member
+## Baseline: find_by_org_customer resolves for the member
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid).nil?
 #=> false
 
@@ -71,7 +68,7 @@ Onetime::OrganizationMembership.find_pending_by_email(@org, @member.email)
 @org.member_count
 #=> 1
 
-## After removal: org_customer_lookup is nil
+## After removal: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid)
 #=> nil
 
@@ -99,7 +96,7 @@ Onetime::OrganizationMembership.load(@membership.objid)
 @org.member?(@sc_member)
 #=> true
 
-## Single-call baseline: org_customer_lookup populated
+## Single-call baseline: find_by_org_customer resolves
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid).nil?
 #=> false
 
@@ -116,7 +113,7 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.obji
 @org.member_count
 #=> 1
 
-## Single-call: org_customer_lookup cleaned
+## Single-call: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid)
 #=> nil
 
@@ -209,7 +206,7 @@ Onetime::OrganizationMembership.load(@pending_objid)
 true
 #=> true
 
-## Full cleanup: org_customer_lookup is nil
+## Full cleanup: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @full_cleanup_customer.objid)
 #=> nil
 
@@ -299,7 +296,7 @@ Onetime::OrganizationMembership.find_pending_by_email(@org, @reinvite_customer.e
 @org.member?(@reinvite_customer)
 #=> true
 
-## Re-invite: org_customer_lookup is populated again
+## Re-invite: find_by_org_customer resolves again
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid).nil?
 #=> false
 

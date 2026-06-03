@@ -11,17 +11,15 @@
 #   STAGED (pending invitation):
 #     - token_lookup: populated (enables find_by_token for accept links)
 #     - find_pending_by_email: discoverable via staged set scan
-#     - org_customer_lookup: NOT populated (customer_objid is nil)
 #
 #   ACTIVE (accepted invitation):
 #     - token_lookup: removed (token cleared for security)
 #     - find_pending_by_email: no longer discoverable (status is active)
-#     - org_customer_lookup: populated (enables find_by_org_customer)
+#     - find_by_org_customer: discoverable via direct composite key load
 #
 #   REVOKED (via unstage):
 #     - token_lookup: removed
 #     - find_pending_by_email: no longer discoverable (model destroyed)
-#     - org_customer_lookup: removed
 #     - model destroyed
 #
 # This complements organization_membership_accept_participation_try.rb which
@@ -63,10 +61,6 @@ Onetime::OrganizationMembership.find_by_token(@staged_token).objid == @invitatio
 Onetime::OrganizationMembership.find_pending_by_email(@org, @invitee_email).nil?
 #=> false
 
-## Staged: org_customer_lookup is NOT populated (customer_objid is nil)
-@invitation.org_customer_key
-#=> nil
-
 # ============================================================================
 # Phase 2: Active (accepted invitation) index state
 # ============================================================================
@@ -85,7 +79,7 @@ Onetime::OrganizationMembership.find_by_token(@staged_token)
 Onetime::OrganizationMembership.find_pending_by_email(@org, @invitee_email)
 #=> nil
 
-## Active: org_customer_lookup is populated (find_by_org_customer works)
+## Active: find_by_org_customer works (direct composite key load)
 @active_via_customer = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @invitee.objid)
 @active_via_customer.nil?
 #=> false
