@@ -103,6 +103,8 @@ const savedIndex = savedMode ? tabs.value.findIndex(tab => tab.id === savedMode)
 const selectedTabIndex = ref(savedIndex >= 0 ? savedIndex : 0);
 if (savedIndex >= 0 && savedMode) {
   saveSigninModePreference(savedMode);
+} else if (savedMode) {
+  try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
 }
 
 // Prefill email from query param (e.g., from invitation flow)
