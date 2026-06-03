@@ -45,8 +45,13 @@ function loadSigninModePreference(): AuthMode | null {
     const stored = localStorage.getItem(SIGNIN_MODE_KEY);
     if (!stored) return null;
     const parsed = JSON.parse(stored);
-    if (isAuthMode(parsed.mode) && parsed.expiresAt && Date.now() < parsed.expiresAt) {
-      saveSigninModePreference(parsed.mode);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      isAuthMode(parsed.mode) &&
+      typeof parsed.expiresAt === 'number' &&
+      Date.now() < parsed.expiresAt
+    ) {
       return parsed.mode;
     }
     localStorage.removeItem(SIGNIN_MODE_KEY);
@@ -92,10 +97,13 @@ const tabs = computed<TabConfig[]>(() => {
   return result;
 });
 
-// Tab index management — restore saved preference if still valid
+// Tab index management — restore saved preference if the mode is still available
 const savedMode = loadSigninModePreference();
 const savedIndex = savedMode ? tabs.value.findIndex(tab => tab.id === savedMode) : -1;
 const selectedTabIndex = ref(savedIndex >= 0 ? savedIndex : 0);
+if (savedIndex >= 0 && savedMode) {
+  saveSigninModePreference(savedMode);
+}
 
 // Prefill email from query param (e.g., from invitation flow)
 // Single email ref shared across all auth tabs for consistent UX
