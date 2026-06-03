@@ -69,12 +69,17 @@ module Onetime
 
         private
 
+        def has_passphrase?
+          data[:has_passphrase] == true
+        end
+
         # Override to include computed values in template context
         def template_binding
           computed_data = data.merge(
             display_domain: display_domain,
             uri_path: uri_path,
             custid: custid,
+            has_passphrase: has_passphrase?,
             signature_link: signature_link,
             baseuri: baseuri,
           )

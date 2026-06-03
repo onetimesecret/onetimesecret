@@ -83,10 +83,16 @@ module Onetime
           render_template('txt')
         end
 
-        # Render the HTML template
+        # Render the HTML template, wrapped in the shared layout.
+        #
+        # The per-template file (e.g. secret_link.html.erb) provides only the
+        # body content; layout.html.erb supplies the shared shell, branded
+        # header, and footer so every email shares one design system.
+        #
         # @return [String, nil] nil if no HTML template exists
         def render_html
-          render_template('html')
+          content = render_template('html')
+          wrap_in_layout(content, 'html')
         rescue Errno::ENOENT
           # HTML template is optional
           nil
@@ -184,6 +190,30 @@ module Onetime
           # Create a binding with access to data and helpers
           erb = ERB.new(template_content, trim_mode: '-')
           erb.result(template_binding)
+        end
+
+        # Wrap rendered body content in the shared layout template.
+        #
+        # The layout only needs the generic helpers (product_name, baseuri,
+        # show_logo?, t), so it renders against the raw data hash plus the
+        # injected +content+ string. If no layout exists for the extension,
+        # the content is returned unwrapped.
+        #
+        # @param content [String] Rendered body content
+        # @param extension [String] Template extension (e.g. 'html')
+        # @return [String]
+        def wrap_in_layout(content, extension)
+          layout_file = File.join(TEMPLATE_PATH, "layout.#{extension}.erb")
+          return content unless File.exist?(layout_file)
+
+          layout_content = File.read(layout_file)
+          erb            = ERB.new(layout_content, trim_mode: '-')
+          erb.result(layout_binding(content))
+        end
+
+        # Binding for the layout: raw data plus the injected body content.
+        def layout_binding(content)
+          TemplateContext.new(data.merge(content: content), locale).get_binding
         end
 
         # Create a binding for ERB template rendering

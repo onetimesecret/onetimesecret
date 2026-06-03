@@ -104,6 +104,7 @@ module Onetime::Receipt::Features
             share_domain: secret.share_domain,
             recipient: email_address,
             sender_email: cust.email,
+            has_passphrase: secret.has_passphrase?,
             locale: locale || OT.default_locale,
           },
           domain_id: domain_id,

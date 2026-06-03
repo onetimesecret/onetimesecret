@@ -35,7 +35,8 @@ RSpec.describe Onetime::Receipt do
         identifier: 'secret-abc-456',
         share_domain: share_domain,
         objid: 'secret-abc-456',
-        shortid: 'secret-a')
+        shortid: 'secret-a',
+        has_passphrase?: false)
     end
 
     let(:locale) { 'en' }
@@ -68,6 +69,7 @@ RSpec.describe Onetime::Receipt do
             share_domain: share_domain,
             recipient: recipient_email,
             sender_email: 'sender@example.com',
+            has_passphrase: false,
             locale: 'en'
           ),
           domain_id: expected_domain_id
