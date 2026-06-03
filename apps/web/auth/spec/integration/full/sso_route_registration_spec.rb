@@ -25,13 +25,12 @@
 # covered at the unit level:
 #   apps/web/auth/spec/config/features/omniauth_providers_spec.rb
 #
-# NOTE: OIDC routes (/auth/sso/oidc) may take either the real-creds or
-# placeholder branch depending on whether .env.test provides both
-# OIDC_ISSUER and OIDC_CLIENT_ID. The spec_helper guard only checks
-# OIDC_ISSUER, so an empty CLIENT_ID from .env.test causes placeholder
-# registration. The discriminating routes — the ones that prove the
-# placeholder-registration fix works — are entra, github, and google
-# (no platform creds in the harness).
+# NOTE: OIDC routes (/auth/sso/oidc) register via spec_helper mock
+# credentials — spec_helper detects empty OIDC_ISSUER from .env.test
+# and injects MOCK_OIDC_ISSUER + test client creds, so OIDC takes the
+# real-creds branch regardless of ORGS_SSO_ENABLED. The discriminating
+# routes — the ones that prove the placeholder-registration fix works —
+# are entra, github, and google (no platform creds in the harness).
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -39,14 +38,9 @@
 # - AUTHENTICATION_MODE=full
 #
 # RUN:
-#   source .env.test && pnpm run test:rspec apps/web/auth/spec/integration/full/sso_route_registration_spec.rb
+#   ORGS_SSO_ENABLED=true pnpm run test:rspec apps/web/auth/spec/integration/full/sso_route_registration_spec.rb
 #
 # =============================================================================
-
-# Set ORGS_SSO_ENABLED at file scope (before any boot) so the config
-# ERB evaluates it when config.defaults.yaml is loaded. This mirrors
-# the pattern in spec_helper.rb lines 29-34 for OIDC env vars.
-ENV['ORGS_SSO_ENABLED'] = 'true'
 
 require_relative '../../spec_helper'
 require 'webmock/rspec'
@@ -109,19 +103,19 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
     '/auth/sso/entra'  => { tenant_only: true },
     '/auth/sso/github' => { tenant_only: true },
     '/auth/sso/google' => { tenant_only: true },
-    '/auth/sso/oidc'   => { tenant_only: false },
+    '/auth/sso/oidc'   => { tenant_only: false }, # registered via spec_helper mock creds
   }.freeze
 
   describe 'when ORGS_SSO_ENABLED=true with no platform SSO env vars' do
     sso_routes.each do |route, meta|
-      label = meta[:tenant_only] ? 'placeholder registration' : 'platform creds'
+      label = meta[:tenant_only] ? 'placeholder registration' : 'mock creds via spec_helper'
       it "POST #{route} is not 404 (#{label})" do
         header 'Host', canonical_host
         post route
 
         expect(last_response.status).not_to eq(404),
           "#{route} returned 404 (got #{last_response.status}). " \
-          "#{meta[:tenant_only] ? 'Placeholder registration from #3317 fix is broken.' : 'Route should be registered via platform credentials.'}"
+          "#{meta[:tenant_only] ? 'Placeholder registration from #3317 fix is broken.' : 'Route should be registered via spec_helper mock credentials.'}"
       end
     end
   end
