@@ -43,7 +43,7 @@ module MigrationTestHelpers
   # @param password [String] Password for the role
   # @param base_url [String] URL to derive host/port/database from
   # @return [String] Connection URL
-  def build_pg_url(user:, password: nil, base_url: ENV.fetch('AUTH_DATABASE_URL'))
+  def build_pg_url(user:, password: nil, base_url: ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS'))
     uri = URI.parse(base_url)
     uri.user = user
     uri.password = password

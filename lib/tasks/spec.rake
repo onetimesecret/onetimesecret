@@ -137,6 +137,7 @@ namespace :spec do
         tag_filter = ''
         if mode == 'full'
           env['AUTH_DATABASE_URL'] = 'sqlite::memory:'
+          env['ORGS_SSO_ENABLED']  = 'true'
           tag_filter               = '--tag ~postgres_database'
         end
 

@@ -16,10 +16,10 @@
 # - Valkey running on port 2121: pnpm run test:database:start
 # - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
 # - AUTHENTICATION_MODE=full
-# - OmniAuth configured (OIDC_ISSUER, OIDC_CLIENT_ID set)
+# - ORGS_SSO_ENABLED=true (for redirect/state tests; CSRF bypass tests run regardless)
 #
 # RUN:
-#   source .env.test && pnpm run test:rspec apps/web/auth/spec/integration/omniauth_csrf_spec.rb
+#   ORGS_SSO_ENABLED=true pnpm run test:rspec apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb
 #
 # =============================================================================
 
@@ -123,11 +123,6 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
     end
 
     context 'when OmniAuth is configured', :omniauth_mock do
-      # Tests verify CSRF bypass behavior and OAuth redirect behavior.
-      # Note: Full OAuth redirect with state parameter requires the OmniAuth
-      # strategy to be registered during boot, which needs OIDC discovery to
-      # be available at that time. Without a real IdP or pre-boot mock, the
-      # route won't be registered and requests will 404.
 
       it 'accepts POST without shrimp token (CSRF skipped for SSO routes)' do
         # OmniAuth routes bypass Rack::Protection CSRF
@@ -141,43 +136,46 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
       end
 
       it 'redirects to identity provider on valid request' do
+        unless Onetime.auth_config.orgs_sso_enabled? || Onetime.auth_config.sso_enabled?
+          skip 'SSO not enabled at boot — route not registered'
+        end
+
         header 'Host', canonical_host
         post sso_path
 
-        # Skip if OmniAuth route not registered (requires OIDC discovery at boot)
-        if last_response.status == 404
-          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
-        end
+        expect(last_response.status).not_to eq(404),
+          "#{sso_path} returned 404 — SSO is enabled but route not registered"
 
         location = last_response.headers['Location']
 
-        # OmniAuth should initiate OAuth flow with redirect
         expect(last_response.status).to eq(302)
-        # Should redirect to OIDC issuer (mock or real)
-        expected_issuer = ENV['OIDC_ISSUER'] || OmniAuthTestHelper::MOCK_ISSUER
+        expected_issuer = ENV['OIDC_ISSUER'] || PLACEHOLDER_OIDC_ISSUER
         expect(location).to include(expected_issuer)
       end
 
       it 'includes state parameter in authorization URL' do
+        unless Onetime.auth_config.orgs_sso_enabled? || Onetime.auth_config.sso_enabled?
+          skip 'SSO not enabled at boot — route not registered'
+        end
+
         header 'Host', canonical_host
         post sso_path
 
-        # Skip if OmniAuth route not registered (requires OIDC discovery at boot)
-        if last_response.status == 404
-          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
-        end
+        expect(last_response.status).not_to eq(404),
+          "#{sso_path} returned 404 — SSO is enabled but route not registered"
 
         location = last_response.headers['Location']
 
         expect(last_response.status).to eq(302)
-        # OAuth state parameter provides CSRF protection
         expect(location).to include('state=')
       end
     end
 
     context 'when OmniAuth is not configured' do
       before do
-        skip 'OmniAuth is configured' unless ENV['OIDC_ISSUER'].to_s.empty?
+        if Onetime.auth_config.orgs_sso_enabled? || Onetime.auth_config.sso_enabled?
+          skip 'SSO is enabled — routes are registered'
+        end
       end
 
       it 'returns 404 when OmniAuth routes are not registered' do

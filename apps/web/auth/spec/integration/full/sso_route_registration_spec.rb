@@ -25,12 +25,9 @@
 # covered at the unit level:
 #   apps/web/auth/spec/config/features/omniauth_providers_spec.rb
 #
-# NOTE: OIDC routes (/auth/sso/oidc) register via spec_helper mock
-# credentials — spec_helper detects empty OIDC_ISSUER from .env.test
-# and injects MOCK_OIDC_ISSUER + test client creds, so OIDC takes the
-# real-creds branch regardless of ORGS_SSO_ENABLED. The discriminating
-# routes — the ones that prove the placeholder-registration fix works —
-# are entra, github, and google (no platform creds in the harness).
+# All four providers (OIDC, Entra, GitHub, Google) register via
+# placeholder credentials when ORGS_SSO_ENABLED=true. No platform
+# env vars are injected by spec_helper.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -51,42 +48,32 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
   end
 
   # The OIDC strategy attempts discovery (fetches .well-known) during the
-  # request phase. webmock/rspec resets stubs after each example, so these
-  # must be registered per-example rather than in before(:all).
-  #
-  # We stub both the env-configured issuer AND the placeholder issuer.
-  # When .env.test sets OIDC_ISSUER but leaves OIDC_CLIENT_ID empty,
-  # configure_oidc_provider falls through to placeholder registration
-  # despite a non-empty issuer in the environment.
+  # request phase. webmock/rspec resets stubs after each example, so
+  # re-stub the placeholder issuer per-example.
   before do
-    issuer = ENV.fetch('OIDC_ISSUER', MOCK_OIDC_ISSUER)
-    placeholder = 'https://placeholder.invalid'
+    stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/openid-configuration")
+      .to_return(
+        status: 200,
+        body: {
+          issuer: PLACEHOLDER_OIDC_ISSUER,
+          authorization_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/authorize",
+          token_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/token",
+          userinfo_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/userinfo",
+          jwks_uri: "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json",
+          response_types_supported: %w[code],
+          subject_types_supported: %w[public],
+          id_token_signing_alg_values_supported: %w[RS256],
+          scopes_supported: %w[openid email profile],
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' },
+      )
 
-    [issuer, placeholder].uniq.each do |iss|
-      stub_request(:get, "#{iss}/.well-known/openid-configuration")
-        .to_return(
-          status: 200,
-          body: {
-            issuer: iss,
-            authorization_endpoint: "#{iss}/authorize",
-            token_endpoint: "#{iss}/token",
-            userinfo_endpoint: "#{iss}/userinfo",
-            jwks_uri: "#{iss}/.well-known/jwks.json",
-            response_types_supported: %w[code],
-            subject_types_supported: %w[public],
-            id_token_signing_alg_values_supported: %w[RS256],
-            scopes_supported: %w[openid email profile],
-          }.to_json,
-          headers: { 'Content-Type' => 'application/json' },
-        )
-
-      stub_request(:get, "#{iss}/.well-known/jwks.json")
-        .to_return(
-          status: 200,
-          body: { keys: [] }.to_json,
-          headers: { 'Content-Type' => 'application/json' },
-        )
-    end
+    stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json")
+      .to_return(
+        status: 200,
+        body: { keys: [] }.to_json,
+        headers: { 'Content-Type' => 'application/json' },
+      )
   end
 
   # Use canonical host so DomainStrategy doesn't redirect to
@@ -96,26 +83,26 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
   end
 
   # OmniAuth provider routes under /auth/sso (POST-only).
-  # tenant_only: true marks routes with no platform env vars in the
-  # harness — they only exist because of placeholder registration
-  # (the #3317 fix) and are the discriminating regression signal.
+  # All four register via placeholder credentials when ORGS_SSO_ENABLED=true.
   sso_routes = {
     '/auth/sso/entra'  => { tenant_only: true },
     '/auth/sso/github' => { tenant_only: true },
     '/auth/sso/google' => { tenant_only: true },
-    '/auth/sso/oidc'   => { tenant_only: false }, # registered via spec_helper mock creds
+    '/auth/sso/oidc'   => { tenant_only: true },
   }.freeze
 
   describe 'when ORGS_SSO_ENABLED=true with no platform SSO env vars' do
-    sso_routes.each do |route, meta|
-      label = meta[:tenant_only] ? 'placeholder registration' : 'mock creds via spec_helper'
-      it "POST #{route} is not 404 (#{label})" do
+    sso_routes.each do |route, _meta|
+      it "POST #{route} is not 404 (placeholder registration)" do
+        unless Onetime.auth_config.orgs_sso_enabled?
+          skip 'ORGS_SSO_ENABLED not set at boot — placeholder routes not registered (run via rake spec:integration:full:agnostic_on_pg)'
+        end
+
         header 'Host', canonical_host
         post route
 
         expect(last_response.status).not_to eq(404),
-          "#{route} returned 404 (got #{last_response.status}). " \
-          "#{meta[:tenant_only] ? 'Placeholder registration from #3317 fix is broken.' : 'Route should be registered via spec_helper mock credentials.'}"
+          "#{route} returned 404 — placeholder registration from #3317 fix is broken."
       end
     end
   end

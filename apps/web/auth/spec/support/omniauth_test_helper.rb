@@ -12,14 +12,11 @@ require 'omniauth'
 # Provides mock OIDC configuration for testing OmniAuth integration without
 # requiring a real identity provider.
 #
-# IMPORTANT: The env vars and WebMock stubs for OIDC discovery are set up
-# in spec_helper.rb BEFORE this file is loaded. This ensures they're available
-# before any code that might trigger Onetime config loading.
-#
-# The key insight: OmniAuth test_mode mocks the *callback* phase, but our
-# CSRF tests need the *request* phase (OAuth redirect). The request phase
-# requires the OmniAuth strategy to be registered during boot, which means
-# OIDC discovery must be stubbed before the app boots.
+# IMPORTANT: WebMock stubs for the placeholder OIDC issuer
+# (placeholder.invalid) are set in spec_helper.rb BEFORE this file is
+# loaded, so boot-time OIDC discovery succeeds. No OIDC env vars are
+# injected — all providers register via placeholder when
+# ORGS_SSO_ENABLED=true.
 #
 # For tests that can run with mock callbacks (callback phase testing),
 # use the :omniauth_mock tag and the helper methods below.
