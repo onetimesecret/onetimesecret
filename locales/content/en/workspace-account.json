@@ -136,7 +136,7 @@
     "content_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Keep this token secure! It provides full access to your account.",
+    "text": "Keep this token secure. It can be used to create and manage secrets via the API.",
     "content_hash": "8839aa4d"
   },
   "web.account.confirm_with_your_password": {
@@ -270,6 +270,12 @@
   "web.settings.security_settings_description": {
     "text": "Manage authentication and account security",
     "content_hash": "945109d1"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Security managed by SSO"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Your account is authenticated through your organization's single sign-on provider. Password, multi-factor authentication, and recovery codes are managed by your identity provider."
   },
   "web.settings.profile_settings_description": {
     "text": "Manage your account information",

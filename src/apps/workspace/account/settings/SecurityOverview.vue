@@ -5,19 +5,22 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
-  import { isMfaEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
+  import { hasPasswordOf, isMfaEnabledOf, isWebAuthnEnabledOf } from '@/utils/features';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { AccountInfo } from '@/types/auth';
   import { computed, onMounted, ref } from 'vue';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
+  const { has_password } = storeToRefs(bootstrapStore);
 
   // Feature toggles — derived from the reactive bootstrap store so they reflect
   // post-login state without re-mounting (e.g. after checkWindowStatus refresh).
   const showSessionsCard = ref(false);
   const mfaFeatureEnabled = computed(() => isMfaEnabledOf(bootstrapStore));
   const webAuthnEnabled = computed(() => isWebAuthnEnabledOf(bootstrapStore));
+  const hasPw = computed(() => hasPasswordOf(bootstrapStore));
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   interface SecurityCard {
@@ -139,10 +142,16 @@
     };
   }
 
+  const PASSWORD_DEPENDENT_CARDS = new Set(['password', 'mfa', 'recovery-codes']);
+
   const securityCards = computed<SecurityCard[]>(() => {
     if (!accountInfo.value) return [];
 
     let cards = buildCoreCards(accountInfo.value);
+
+    if (!hasPw.value) {
+      cards = cards.filter((c) => !PASSWORD_DEPENDENT_CARDS.has(c.id));
+    }
 
     // Hide MFA and recovery codes cards when MFA feature is disabled
     if (!mfaFeatureEnabled.value) {
@@ -253,8 +262,34 @@
         </div>
       </div>
 
+      <!-- SSO empty state — shown when all cards are filtered out -->
+      <div
+        v-if="!has_password && securityCards.length === 0"
+        class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+        <div class="flex items-start gap-4">
+          <div
+            class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+            <OIcon
+              collection="heroicons"
+              name="shield-check-solid"
+              class="size-6 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
+          </div>
+          <div>
+            <h3 class="text-base font-medium text-gray-900 dark:text-white">
+              {{ t('web.settings.security.sso_managed_title') }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.settings.security.sso_managed_description') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Security Settings Cards -->
-      <div class="grid gap-6 sm:grid-cols-2">
+      <div
+        v-if="securityCards.length > 0"
+        class="grid gap-6 sm:grid-cols-2">
         <div
           v-for="card in securityCards"
           :key="card.id"
