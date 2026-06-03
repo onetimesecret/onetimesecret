@@ -104,7 +104,7 @@ if [[ -n "$pg_superuser_url" ]] && command -v psql &>/dev/null; then
     else
         # Connect to 'postgres' maintenance DB to create the test DB
         pg_maintenance_url=$(echo "$pg_superuser_url" | sed -E "s|/[^/]*$|/postgres|")
-        createdb_output=$(psql "$pg_maintenance_url" -c "CREATE DATABASE $pg_db" 2>&1) || {
+        createdb_output=$(psql "$pg_maintenance_url" -c "CREATE DATABASE \"$pg_db\"" 2>&1) || {
             if echo "$createdb_output" | grep -q "already exists"; then
                 echo "OK:   Database '$pg_db' already exists"
             else

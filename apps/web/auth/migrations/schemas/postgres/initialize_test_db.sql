@@ -16,8 +16,17 @@
 --   onetime_user       DML only — runtime app, no schema mutation
 --   onetime_migrator_test  unprivileged — migration permission tests
 
+-- Abort if the database name does not contain "test" — prevents
+-- accidental execution against staging or production.
+DO $$
+BEGIN
+  IF current_database() NOT LIKE '%test%' THEN
+    RAISE EXCEPTION 'Refusing to run: database "%" does not contain "test"', current_database();
+  END IF;
+END
+$$;
+
 -- Reset schema so stale superuser-owned objects don't block the migrator.
--- Safe in test databases; never run this against production.
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
