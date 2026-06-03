@@ -168,7 +168,18 @@ module V2::Logic
       # that CustomDomain objects go through so if we don't get past this
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
+      #
+      # The explicit share_domain is the authenticated Domain Context selector;
+      # an anonymous request has no legitimate source for it. We refuse it at the
+      # boundary (issue #3311) so untrusted input never lands in the trusted
+      # @share_domain in the first place — a guest's share domain is derived
+      # solely from the Host header in determine_share_domain. Enforcing the
+      # invariant here, at ingestion, is what makes @share_domain trustworthy
+      # everywhere downstream; it does not depend on a later reassignment to
+      # scrub a smuggled value back out.
       def process_share_domain
+        return if anonymous_user?
+
         potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
 
@@ -352,17 +363,15 @@ module V2::Logic
 
       # Determines which domain should be used for sharing.
       #
-      # Anonymous users on a custom domain are always pinned to the Host-header
-      # domain. The explicit share_domain override exists for the authenticated
-      # Domain Context selector; a guest has no legitimate way to set it, so a
-      # share_domain present in an anonymous POST body is smuggled input and is
-      # ignored here (issue #3311). process_share_domain populates @share_domain
-      # straight from the payload with no auth gate and this method runs before
-      # raise_concerns, so this is the guard that keeps a guest from redirecting
-      # their secret onto another public custom domain.
-      #
-      # Authenticated users keep the explicit selection, falling back to the
-      # Host-header domain when browsing on a custom domain with no override.
+      # share_domain is the authenticated Domain Context selection. The primary
+      # guard against guest-supplied values lives upstream in
+      # process_share_domain, which refuses to populate @share_domain from an
+      # anonymous request (issue #3311). The anonymous_user? check here is a
+      # deliberate second layer: the domain-selection authority never honours a
+      # guest-supplied share_domain on a custom domain even if some future writer
+      # were to set one. Authenticated users keep their explicit selection,
+      # falling back to the Host-header domain on a custom domain with no
+      # override.
       #
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain
