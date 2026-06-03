@@ -177,6 +177,27 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
 
           expect(log_messages.last).to match([:info, /Registering Entra ID route.*tenant SSO/])
         end
+
+        context 'when only ENTRA_TENANT_ID is set' do
+          it 'registers with placeholder values, not the partial real credentials' do
+            expect(auth).to receive(:omniauth_provider).with(
+              :entra_id,
+              hash_including(
+                client_id: 'placeholder',
+                client_secret: 'placeholder',
+                tenant_id: 'placeholder',
+              )
+            )
+
+            ClimateControl.modify(
+              ENTRA_TENANT_ID: 'real-tenant-id',
+              ENTRA_CLIENT_ID: nil,
+              ENTRA_CLIENT_SECRET: nil,
+            ) do
+              Auth::Config::Features::OmniAuth.configure_entra_id_provider(auth)
+            end
+          end
+        end
       end
     end
   end
@@ -390,6 +411,81 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
   # ================================================================
 
   describe '.configure_oidc_provider' do
+    context 'when all required env vars are present' do
+      it 'registers the :openid_connect strategy' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :openid_connect,
+          hash_including(
+            name: :oidc,
+            issuer: 'https://idp.example.com',
+            client_options: hash_including(
+              identifier: 'oidc-client-id',
+              secret: 'oidc-client-secret',
+            ),
+            pkce: true,
+            discovery: true,
+          )
+        )
+
+        ClimateControl.modify(
+          OIDC_ISSUER: 'https://idp.example.com',
+          OIDC_CLIENT_ID: 'oidc-client-id',
+          OIDC_CLIENT_SECRET: 'oidc-client-secret',
+        ) do
+          Auth::Config::Features::OmniAuth.configure_oidc_provider(auth)
+        end
+      end
+
+      it 'omits secret from client_options when OIDC_CLIENT_SECRET is empty (PKCE-only)' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :openid_connect,
+          hash_including(
+            client_options: hash_including(identifier: 'oidc-client-id'),
+          )
+        ) do |_strategy, opts|
+          expect(opts[:client_options]).not_to have_key(:secret)
+        end
+
+        ClimateControl.modify(
+          OIDC_ISSUER: 'https://idp.example.com',
+          OIDC_CLIENT_ID: 'oidc-client-id',
+          OIDC_CLIENT_SECRET: '',
+        ) do
+          Auth::Config::Features::OmniAuth.configure_oidc_provider(auth)
+        end
+      end
+
+      it 'uses custom route name when OIDC_ROUTE_NAME is set' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :openid_connect,
+          hash_including(name: :custom_oidc)
+        )
+
+        ClimateControl.modify(
+          OIDC_ISSUER: 'https://idp.example.com',
+          OIDC_CLIENT_ID: 'oidc-client-id',
+          OIDC_CLIENT_SECRET: 'oidc-client-secret',
+          OIDC_ROUTE_NAME: 'custom_oidc',
+        ) do
+          Auth::Config::Features::OmniAuth.configure_oidc_provider(auth)
+        end
+      end
+
+      it 'logs info on successful configuration' do
+        allow(auth).to receive(:omniauth_provider)
+
+        ClimateControl.modify(
+          OIDC_ISSUER: 'https://idp.example.com',
+          OIDC_CLIENT_ID: 'oidc-client-id',
+          OIDC_CLIENT_SECRET: 'oidc-client-secret',
+        ) do
+          Auth::Config::Features::OmniAuth.configure_oidc_provider(auth)
+        end
+
+        expect(log_messages.last).to match([:info, /Configuring OIDC/])
+      end
+    end
+
     context 'when required env vars are missing' do
       # Explicitly clear OIDC vars that may be set in the shell environment
       let(:oidc_clear) { { OIDC_ISSUER: nil, OIDC_CLIENT_ID: nil, OIDC_CLIENT_SECRET: nil } }
