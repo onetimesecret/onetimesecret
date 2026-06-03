@@ -34,18 +34,24 @@ const emit = defineEmits<{
 
 const SIGNIN_MODE_KEY = 'onetimeSigninMode';
 const SIGNIN_MODE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const VALID_AUTH_MODES: readonly AuthMode[] = ['passkey', 'passwordless', 'password'];
+
+function isAuthMode(value: unknown): value is AuthMode {
+  return typeof value === 'string' && VALID_AUTH_MODES.includes(value as AuthMode);
+}
 
 function loadSigninModePreference(): AuthMode | null {
   try {
     const stored = localStorage.getItem(SIGNIN_MODE_KEY);
     if (!stored) return null;
     const parsed = JSON.parse(stored);
-    if (parsed.expiresAt && Date.now() < parsed.expiresAt) {
+    if (isAuthMode(parsed.mode) && parsed.expiresAt && Date.now() < parsed.expiresAt) {
+      saveSigninModePreference(parsed.mode);
       return parsed.mode;
     }
     localStorage.removeItem(SIGNIN_MODE_KEY);
   } catch {
-    localStorage.removeItem(SIGNIN_MODE_KEY);
+    try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
   }
   return null;
 }
