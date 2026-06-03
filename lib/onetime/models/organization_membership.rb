@@ -173,9 +173,7 @@ module Onetime
     # Indexes for fast lookups
     unique_index :token, :token_lookup
 
-    # Composite indexes for org-scoped lookups
-    # Note: These use string keys combining the two fields
-    unique_index :org_email_key, :org_email_lookup
+    # Composite index for org-scoped active membership lookup
     unique_index :org_customer_key, :org_customer_lookup
 
     def init
@@ -188,14 +186,6 @@ module Onetime
 
     # Composite index key methods
     # These generate deterministic keys for org-scoped lookups
-
-    # Key for finding pending invites by org + email
-    # Only set for pending invitations (customer_objid is nil)
-    def org_email_key
-      return nil unless organization_objid && invited_email
-
-      "#{organization_objid}:#{OT::Utils.normalize_email(invited_email)}"
-    end
 
     # Key for finding active memberships by org + customer
     # Only set for active memberships (customer_objid is set)
@@ -359,13 +349,9 @@ module Onetime
       org = organization
       raise Onetime::Problem, 'Organization not found' unless org
 
-      # Consume pending-state indexes. The token and org_email lookups are
-      # pending-only and must be cleared whether we activate inline or
-      # defer to admin approval.
-      old_token         = token
-      old_org_email_key = org_email_key
+      # Consume the one-shot token so the invite URL stops resolving.
+      old_token = token
       self.class.token_lookup.remove_field(old_token) if old_token
-      self.class.org_email_lookup.remove_field(old_org_email_key) if old_org_email_key
 
       begin
         if org.requires_admin_approval?
@@ -377,18 +363,14 @@ module Onetime
           self.customer_objid = customer.objid
           self.token          = nil
           save
-          # save re-populates org_email_lookup via auto_update_class_indexes;
-          # remove again so the staged model isn't discoverable as pending.
-          self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
         else
           # Auto-promote: no approval required, activate inline.
           activate!(customer, provisioning_source: provisioning_source)
         end
       rescue Familia::Problem, Redis::BaseError, Onetime::Problem
-        # Restore pending-state indexes so the invitation remains discoverable
+        # Restore token so the invitation remains discoverable
         # if activation fails (e.g. Redis/network error, validation error).
-        self.class.token_lookup[old_token]             = objid if old_token
-        self.class.org_email_lookup[old_org_email_key] = objid if old_org_email_key
+        self.class.token_lookup[old_token] = objid if old_token
         raise
       end
 
@@ -450,18 +432,6 @@ module Onetime
         },
       )
 
-      # Re-populate org_email_lookup on the NEW composite-keyed model.
-      # activate_members_instance saves the composite model (populates
-      # org_email_lookup) and then destroys the staged UUID model. As of
-      # Familia 2.5.0, Horreum#destroy! auto-cleans class-level unique_index
-      # entries — and because staged and activated models share the same
-      # org_email_key, the destroy wipes the entry the activated save just
-      # wrote. Restore it here so find_by_org_email continues to resolve
-      # the active membership.
-      if activated.org_email_key
-        self.class.org_email_lookup[activated.org_email_key] = activated.objid
-      end
-
       # Populate active-state OTS index on the NEW composite-keyed model
       if activated.org_customer_key
         self.class.org_customer_lookup[activated.org_customer_key] = activated.objid
@@ -497,7 +467,6 @@ module Onetime
     #
     # Cleans up indexes to prevent stale entries from accumulating:
     #   - token_lookup: removed (token is cleared anyway)
-    #   - org_email_lookup: removed (allows re-invitation to same email)
     #   - pending_invitations: removed from staging set (quota accuracy)
     #
     # The record itself is preserved with status='declined' for audit purposes.
@@ -513,9 +482,8 @@ module Onetime
       self.token  = nil
       save
 
-      # Clean up indexes AFTER save (save re-adds indexes via auto_update_class_indexes)
+      # Clean up token index AFTER save (save re-adds indexes via auto_update_class_indexes)
       self.class.token_lookup.remove_field(old_token) if old_token
-      self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
 
       # Remove from org's pending_invitations staging set (preserves the record)
       organization&.pending_invitations&.remove(objid)
@@ -524,7 +492,7 @@ module Onetime
     # Revoke a pending invitation (by org owner/admin)
     #
     # Uses Familia's unstage to remove from staging set and destroy the model,
-    # plus OTS-specific index cleanup for token_lookup and org_email_lookup.
+    # plus OTS-specific index cleanup for token_lookup.
     def revoke!
       raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
 
@@ -532,7 +500,6 @@ module Onetime
 
       # Clean up OTS-specific indexes before unstaging destroys the model
       self.class.token_lookup.remove_field(token) if token
-      self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
       self.class.org_customer_lookup.remove_field(org_customer_key) if org_customer_key
 
       if org
@@ -562,7 +529,6 @@ module Onetime
     # Cleans up:
     #   - org.members sorted set (ZREM customer from org's active members)
     #   - customer.participations reverse index (SREM org collection key)
-    #   - org_email_lookup (allows email to be re-invited)
     #   - org_customer_lookup
     #   - token_lookup
     #   - pending_invitations staging set (prevents stale quota counts)
@@ -585,12 +551,6 @@ module Onetime
       end
 
       # Remove OTS application-level indexes
-
-      # Remove org_email_lookup entry if exists
-      # Use remove_field since the index is a Familia::HashKey
-      if org_email_key
-        self.class.org_email_lookup.remove_field(org_email_key)
-      end
 
       # Remove org_customer_lookup entry if exists
       if org_customer_key
@@ -632,8 +592,8 @@ module Onetime
         email = OT::Utils.normalize_email(email)
 
         # Check for existing pending invitation
-        existing = find_by_org_email(organization.objid, email)
-        raise Onetime::Problem, 'Invitation already pending for this email' if existing&.pending?
+        existing = find_pending_by_email(organization, email)
+        raise Onetime::Problem, 'Invitation already pending for this email' if existing
 
         # Generate token before staging so it's included in index population
         token = SecureRandom.urlsafe_base64(32)
@@ -668,19 +628,22 @@ module Onetime
         load(objid)
       end
 
-      # Find an invitation by organization and email
+      # Find a pending invitation by organization and email.
       #
-      # @param org_objid [String] the organization's objid
+      # Scans the org's pending_invitations staged set (with ghost cleanup)
+      # instead of maintaining a separate class-level index. The set is
+      # org-scoped and small (low tens), so the O(n) scan is acceptable.
+      #
+      # @param org [Organization] the organization to search
       # @param email [String] the invited email address
-      # @return [OrganizationMembership, nil] the invitation or nil if not found
-      def find_by_org_email(org_objid, email)
-        return nil if org_objid.nil? || email.nil?
+      # @return [OrganizationMembership, nil] the pending invitation or nil
+      def find_pending_by_email(org, email)
+        return nil if org.nil? || email.nil?
 
-        key   = "#{org_objid}:#{OT::Utils.normalize_email(email)}"
-        objid = org_email_lookup[key]
-        return nil unless objid
-
-        load(objid)
+        normalized = OT::Utils.normalize_email(email)
+        org.list_pending_invitations.find do |m|
+          m.pending? && OT::Utils.normalize_email(m.invited_email) == normalized
+        end
       end
 
       # Find a membership by organization and customer
@@ -734,10 +697,9 @@ module Onetime
       # a new membership directly.
       #
       # Familia provides four primitives: stage, activate, unstage, add.
-      # This method composes activate + add with a domain-specific lookup
-      # (find_by_org_email) that Familia can't perform -- matching a staged
-      # model's invited_email against the participant's email is OTS
-      # domain knowledge.
+      # This method composes activate + add with a staged set scan
+      # (find_pending_by_email) -- matching a staged model's invited_email
+      # against the participant's email is OTS domain knowledge.
       #
       # Race safety: Between the member? check (ZSCORE) and mutation
       # (accept! or add_members_instance), another process may complete
@@ -763,7 +725,7 @@ module Onetime
       def ensure_membership(organization, customer, role: 'member', domain_scope_id: nil, provisioning_source: nil)
         return find_by_org_customer(organization.objid, customer.objid) if organization.member?(customer)
 
-        pending = find_by_org_email(organization.objid, customer.email)
+        pending = find_pending_by_email(organization, customer.email)
 
         if pending&.pending? && !pending.expired?
           begin

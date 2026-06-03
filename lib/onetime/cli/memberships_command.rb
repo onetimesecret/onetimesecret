@@ -36,9 +36,8 @@ module Onetime
         puts '  3. org.members entries have backing customer objects (MEDIUM)'
         puts '  4. org_customer_lookup entries are valid (MEDIUM)'
         puts '  5. token_lookup entries are pending memberships (MEDIUM)'
-        puts '  6. org_email_lookup entries are valid (MEDIUM)'
-        puts '  7. pending_invitations count matches actual (WARNING)'
-        puts '  8. domain_scope_id points to existing domain (WARNING)'
+        puts '  6. pending_invitations count matches actual (WARNING)'
+        puts '  7. domain_scope_id points to existing domain (WARNING)'
       end
     end
 

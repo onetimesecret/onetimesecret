@@ -10,9 +10,8 @@
 #   3. org.members sorted set entries have backing customer objects (MEDIUM)
 #   4. org_customer_lookup index entries point to valid memberships (MEDIUM)
 #   5. token_lookup entries are actually pending memberships (MEDIUM)
-#   6. org_email_lookup entries are valid (MEDIUM)
-#   7. pending_invitations count matches actual pending records (WARNING)
-#   8. domain_scope_id points to an existing domain (WARNING)
+#   6. pending_invitations count matches actual pending records (WARNING)
+#   7. domain_scope_id points to an existing domain (WARNING)
 #
 # Usage:
 #   bin/ots memberships doctor --all                    # Scan all memberships
@@ -98,9 +97,8 @@ module Onetime
             3. org.members entries have backing customers (MEDIUM)
             4. org_customer_lookup index entries are valid (MEDIUM)
             5. token_lookup entries are pending memberships (MEDIUM)
-            6. org_email_lookup entries are valid (MEDIUM)
-            7. pending_invitations count matches actual (WARNING)
-            8. domain_scope_id points to existing domain (WARNING)
+            6. pending_invitations count matches actual (WARNING)
+            7. domain_scope_id points to existing domain (WARNING)
         USAGE
       end
 
@@ -158,7 +156,6 @@ module Onetime
 
         check_org_customer_lookup_integrity(issues, report, repair: repair)
         check_token_lookup_integrity(issues, report, repair: repair)
-        check_org_email_lookup_integrity(issues, report, repair: repair)
 
         return if issues.empty?
 
@@ -243,44 +240,6 @@ module Onetime
         report[:repaired] << {
           action: :token_lookup_cleaned,
           count: phantom_tokens.size,
-        }
-      end
-
-      # CHECK: org_email_lookup entries are valid
-      def check_org_email_lookup_integrity(issues, report, repair:)
-        stale_entries = []
-
-        Onetime::OrganizationMembership.org_email_lookup.hgetall.each do |key, objid|
-          membership = Onetime::OrganizationMembership.load(objid)
-
-          if membership.nil?
-            stale_entries << { key: key, objid: objid, reason: 'membership not found' }
-          elsif membership.org_email_key != key
-            stale_entries << { key: key, objid: objid, reason: "key mismatch (expected #{membership.org_email_key})" }
-          end
-        end
-
-        return if stale_entries.empty?
-
-        issues << {
-          check: :org_email_lookup_phantom,
-          severity: :medium,
-          message: "#{stale_entries.size} stale org_email_lookup entries",
-          stale_entries: stale_entries.first(10),
-          total_stale: stale_entries.size,
-          repairable: true,
-        }
-
-        return unless repair
-
-        stale_entries.each do |entry|
-          Onetime::OrganizationMembership.org_email_lookup.remove_field(entry[:key])
-          OT.info "[memberships doctor] Removed stale org_email_lookup[#{entry[:key]}]"
-        end
-
-        report[:repaired] << {
-          action: :org_email_lookup_cleaned,
-          count: stale_entries.size,
         }
       end
 
@@ -539,8 +498,6 @@ module Onetime
               puts "  Cleaned #{r[:count]} stale org_customer_lookup entries"
             when :token_lookup_cleaned
               puts "  Cleaned #{r[:count]} phantom token_lookup entries"
-            when :org_email_lookup_cleaned
-              puts "  Cleaned #{r[:count]} stale org_email_lookup entries"
             else
               puts "  #{r[:action]}"
             end
