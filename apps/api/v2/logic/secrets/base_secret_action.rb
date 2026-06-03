@@ -351,11 +351,22 @@ module V2::Logic
       end
 
       # Determines which domain should be used for sharing.
-      # Respects the user's explicit selection; falls back to the Host
-      # header domain when browsing on a custom domain with no override.
+      #
+      # Anonymous users on a custom domain are always pinned to the Host-header
+      # domain. The explicit share_domain override exists for the authenticated
+      # Domain Context selector; a guest has no legitimate way to set it, so a
+      # share_domain present in an anonymous POST body is smuggled input and is
+      # ignored here (issue #3311). process_share_domain populates @share_domain
+      # straight from the payload with no auth gate and this method runs before
+      # raise_concerns, so this is the guard that keeps a guest from redirecting
+      # their secret onto another public custom domain.
+      #
+      # Authenticated users keep the explicit selection, falling back to the
+      # Host-header domain when browsing on a custom domain with no override.
       #
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain
+        return display_domain if custom_domain? && anonymous_user?
         return share_domain if share_domain
 
         display_domain if custom_domain?

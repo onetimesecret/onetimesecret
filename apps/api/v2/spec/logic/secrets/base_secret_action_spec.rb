@@ -377,11 +377,20 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # ============================================================================
   describe '#determine_share_domain' do
     # Build a subject with explicit control over share_domain, display_domain,
-    # and custom_domain? — the three inputs to determine_share_domain.
-    def build_domain_subject(share_domain:, display_domain:, custom_domain:)
+    # custom_domain?, and anonymity — the inputs to determine_share_domain.
+    #
+    # anonymous_user? resolves via cust (cust.nil? || cust.anonymous?). The
+    # default strategy_result.user is a non-anonymous customer; pass
+    # anonymous: true to swap in an anonymous customer and exercise the guest
+    # guard added for issue #3311.
+    def build_domain_subject(share_domain:, display_domain:, custom_domain:, anonymous: false)
       action = V2ConfigTestAction.new(strategy_result, base_params)
       action.instance_variable_set(:@share_domain, share_domain)
       action.instance_variable_set(:@display_domain, display_domain)
+      if anonymous
+        action.instance_variable_set(:@cust,
+          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil))
+      end
       allow(action).to receive(:custom_domain?).and_return(custom_domain)
       allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
       action
@@ -459,6 +468,75 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       it 'returns share_domain (explicit selection takes precedence even when same)' do
         result = subject.send(:determine_share_domain)
         expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    # --------------------------------------------------------------------------
+    # Guest (anonymous) guard — issue #3311
+    #
+    # determine_share_domain runs before any auth check, and process_share_domain
+    # populates @share_domain straight from the POST body with no auth gate. The
+    # explicit share_domain override is the authenticated Domain Context selector;
+    # a guest has no legitimate source for it. So a guest already browsing one
+    # custom domain could otherwise smuggle a *different* public custom domain in
+    # via the POST body and have their secret pinned there. Anonymous users on a
+    # custom domain must always resolve to the Host-header (display) domain,
+    # regardless of what the POST body claims.
+    #
+    # The fixtures above all use the default non-anonymous customer, so they
+    # double as the "authenticated user still selects via share_domain" no-
+    # regression checks. The contexts below pin the guest behaviour.
+    # --------------------------------------------------------------------------
+    context 'anonymous guest on custom domain, explicit share_domain in POST body' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'ignores the POST-body share_domain and returns the Host header domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    context 'anonymous guest on custom domain, no explicit share_domain' do
+      subject do
+        build_domain_subject(
+          share_domain: nil,
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'returns the Host header domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    context 'anonymous guest on canonical domain, explicit share_domain in POST body' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+          anonymous: true,
+        )
+      end
+
+      # The guard is scoped to custom_domain?: on the canonical domain
+      # determine_share_domain still surfaces the posted share_domain. The
+      # cross-domain rejection for guests happens downstream in
+      # validate_domain_permissions (the anonymous_cross_domain branch), which
+      # is covered separately above — not in this selection step.
+      it 'returns the posted share_domain (cross-domain rejection is enforced later)' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('secrets.acme.com')
       end
     end
   end
@@ -621,6 +699,51 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       it 'falls back to the Host header domain and passes when public homepage is enabled' do
         expect { subject.send(:validate_share_domain) }.not_to raise_error
         expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+
+    # End-to-end regression for issue #3311: a guest browsing one custom domain
+    # POSTs a share_domain pointing at a *different* public custom domain. Before
+    # the anonymous_user? guard, determine_share_domain handed that smuggled
+    # value straight to validate_domain_access, pinning the secret onto someone
+    # else's branded domain. The guard must keep the secret on the Host domain
+    # and never even look the smuggled domain up.
+    context 'anonymous guest on custom domain, smuggles a different custom domain via share_domain' do
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:smuggled_domain) { 'secrets.acme.com' }
+      let(:host_record) do
+        double('CustomDomain',
+          owner?: false,
+          allow_public_homepage?: true,
+          verified: 'true')
+      end
+
+      subject do
+        build_integration_subject(
+          cust: anonymous_visitor,
+          share_domain: smuggled_domain,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        # Default any lookup to nil so a smuggled-domain lookup would surface as
+        # an "Unknown domain" failure rather than silently passing.
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(host_domain).and_return(host_record)
+      end
+
+      it 'pins the secret to the Host header domain, ignoring the smuggled share_domain' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+
+      it 'never looks up the smuggled domain record' do
+        subject.send(:validate_share_domain)
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(host_domain)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain).with(smuggled_domain)
       end
     end
   end
