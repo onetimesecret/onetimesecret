@@ -9,10 +9,11 @@
 #   2. customer_objid points to an existing customer for active memberships (HIGH)
 #   3. org.members sorted set entries have backing customer objects (MEDIUM)
 #   4. org_customer_lookup index entries point to valid memberships (MEDIUM)
-#   5. token_lookup entries are actually pending memberships (MEDIUM)
-#   6. org_email_lookup entries are valid (MEDIUM)
-#   7. pending_invitations count matches actual pending records (WARNING)
-#   8. domain_scope_id points to an existing domain (WARNING)
+#   5. active memberships not indexed in org_customer_lookup (HIGH) -- pre-v0.25.6 gap
+#   6. token_lookup entries are actually pending memberships (MEDIUM)
+#   7. org_email_lookup entries are valid (MEDIUM)
+#   8. pending_invitations count matches actual pending records (WARNING)
+#   9. domain_scope_id points to an existing domain (WARNING)
 #
 # Usage:
 #   bin/ots memberships doctor --all                    # Scan all memberships
@@ -97,10 +98,11 @@ module Onetime
             2. customer_objid points to existing customer (HIGH)
             3. org.members entries have backing customers (MEDIUM)
             4. org_customer_lookup index entries are valid (MEDIUM)
-            5. token_lookup entries are pending memberships (MEDIUM)
-            6. org_email_lookup entries are valid (MEDIUM)
-            7. pending_invitations count matches actual (WARNING)
-            8. domain_scope_id points to existing domain (WARNING)
+            5. active memberships missing from org_customer_lookup (HIGH)
+            6. token_lookup entries are pending memberships (MEDIUM)
+            7. org_email_lookup entries are valid (MEDIUM)
+            8. pending_invitations count matches actual (WARNING)
+            9. domain_scope_id points to existing domain (WARNING)
         USAGE
       end
 
@@ -127,6 +129,9 @@ module Onetime
 
         # CHECK: stale org.members entries
         check_stale_org_members(organization, issues, report, repair: repair)
+
+        # CHECK: active memberships missing from org_customer_lookup (single-org path)
+        check_missing_org_customer_lookup(organization, issues, report, repair: repair)
 
         # CHECK: pending invitation count accuracy
         check_pending_count(organization, issues, report, repair: repair)
@@ -203,6 +208,80 @@ module Onetime
         report[:repaired] << {
           action: :org_customer_lookup_cleaned,
           count: stale_keys.size,
+        }
+      end
+
+      # CHECK: active memberships that exist in Redis but are missing from org_customer_lookup
+      #
+      # Pre-v0.25.6 memberships were created before the unique_index declaration and never
+      # went through activate!, so their index entries were never written. The index is the
+      # only read path for auth_membership and active_for_org — missing entries cause every
+      # authenticated action to fail with "membership context unavailable."
+      #
+      # Two cases reported separately:
+      #   :org_customer_lookup_unindexed — record exists, index entry absent (repairable)
+      #   :org_customer_lookup_absent_record — org.members lists the customer but no
+      #     membership record exists (requires manual backfill)
+      #
+      # When organization is nil, all orgs are scanned (--all path). When an org is given,
+      # only that org is checked (--org X path). Called from both check_index_integrity and
+      # check_org_memberships to support both invocation modes without double-counting.
+      def check_missing_org_customer_lookup(organization, issues, report, repair:)
+        unindexed = []
+        absent    = []
+
+        orgs = if organization
+          [organization]
+        else
+          Onetime::Organization.instances.filter_map { |objid| Onetime::Organization.load(objid) }
+        end
+
+        orgs.each do |org|
+          org.members.to_a.each do |customer_objid|
+            key = "#{org.objid}:#{customer_objid}"
+            next if Onetime::OrganizationMembership.org_customer_lookup[key]
+
+            composite_objid = "organization:#{org.objid}:customer:#{customer_objid}:org_membership"
+            membership      = Onetime::OrganizationMembership.load(composite_objid)
+
+            if membership&.active?
+              unindexed << { key: key, objid: membership.objid, org_extid: org.extid }
+            else
+              absent << { key: key, org_extid: org.extid, customer_objid: customer_objid }
+            end
+          end
+        end
+
+        if unindexed.any?
+          issues << {
+            check: :org_customer_lookup_unindexed,
+            severity: :high,
+            message: "#{unindexed.size} active membership(s) exist but are missing from " \
+                     'org_customer_lookup (pre-v0.25.6 data)',
+            sample: unindexed.first(10),
+            total_missing: unindexed.size,
+            repairable: true,
+          }
+
+          if repair
+            unindexed.each do |entry|
+              Onetime::OrganizationMembership.org_customer_lookup[entry[:key]] = entry[:objid]
+              OT.info "[memberships doctor] Wrote missing org_customer_lookup[#{entry[:key]}] = #{entry[:objid]}"
+            end
+            report[:repaired] << { action: :org_customer_lookup_backfilled, count: unindexed.size }
+          end
+        end
+
+        return if absent.empty?
+
+        issues << {
+          check: :org_customer_lookup_absent_record,
+          severity: :high,
+          message: "#{absent.size} org.members entry(s) have no backing membership record " \
+                   '(manual backfill required, not auto-repairable)',
+          sample: absent.first(10),
+          total_absent: absent.size,
+          repairable: false,
         }
       end
 
