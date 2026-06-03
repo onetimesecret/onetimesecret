@@ -255,3 +255,81 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
     end
   end
 end
+
+# ============================================================================
+# process_share_domain — ingestion guard (issue #3311)
+#
+# Parity with the V2 fix: an anonymous request must never populate @share_domain
+# from the POST body. V1 was not exploitable — determine_share_domain returns
+# display_domain on custom domains (ignoring share_domain), and the canonical
+# cross-domain case was rejected by validate_domain_permissions — but ingesting
+# guest input into the trusted instance variable is the wrong boundary. After
+# this guard an anonymous share_domain is simply ignored.
+# ============================================================================
+RSpec.describe 'V1 BaseSecretAction process_share_domain ingestion guard' do
+  using Familia::Refinements::TimeLiterals
+
+  # Minimal concrete subclass (process_secret is abstract in the base).
+  class V1ShareDomainTestAction < V1::Logic::Secrets::BaseSecretAction
+    def process_secret
+      @kind = :test
+      @secret_value = 'test_secret'
+    end
+  end
+
+  before(:all) { OT.boot!(:test) }
+
+  before do
+    allow(Truemail).to receive(:validate).and_return(
+      double('Validator', result: double('Result', valid?: true), as_json: '{}'),
+    )
+  end
+
+  # V1::Logic::Base takes (session, customer, params). V1 drives anonymity off
+  # the customer's anonymous? via the inline cust.nil? || cust.anonymous? idiom
+  # (it does not include AuthorizationPolicies / anonymous_user?).
+  def build_v1_ingest_subject(payload_share_domain:, anonymous:)
+    cust = double('Customer',
+      anonymous?: anonymous,
+      custid: anonymous ? nil : 'cust123',
+      objid: anonymous ? nil : 'obj123',
+      planid: 'anonymous')
+    sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
+    V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => payload_share_domain, 'recipient' => [] })
+  end
+
+  context 'anonymous request with a valid, non-default custom domain in the payload' do
+    subject { build_v1_ingest_subject(payload_share_domain: 'secrets.acme.com', anonymous: true) }
+
+    before do
+      # The domain would otherwise pass the validity/default checks; the guard
+      # must short-circuit before they are ever consulted.
+      allow(Onetime::CustomDomain).to receive(:valid?).and_return(true)
+      allow(Onetime::CustomDomain).to receive(:default_domain?).and_return(false)
+    end
+
+    it 'does not populate @share_domain from the guest payload' do
+      subject.send(:process_share_domain)
+      expect(subject.share_domain).to be_nil
+    end
+
+    it 'short-circuits before consulting CustomDomain.valid?' do
+      subject.send(:process_share_domain)
+      expect(Onetime::CustomDomain).not_to have_received(:valid?)
+    end
+  end
+
+  context 'authenticated request with a valid, non-default custom domain in the payload' do
+    subject { build_v1_ingest_subject(payload_share_domain: 'secrets.acme.com', anonymous: false) }
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:valid?).with('secrets.acme.com').and_return(true)
+      allow(Onetime::CustomDomain).to receive(:default_domain?).with('secrets.acme.com').and_return(false)
+    end
+
+    it 'still ingests the explicitly selected domain (no regression for the Domain Context selector)' do
+      subject.send(:process_share_domain)
+      expect(subject.share_domain).to eq('secrets.acme.com')
+    end
+  end
+end

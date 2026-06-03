@@ -210,7 +210,18 @@ module V1::Logic
       # that CustomDomain objects go through so if we don't get past this
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
+      #
+      # The explicit share_domain is the authenticated Domain Context selector;
+      # an anonymous request has no legitimate source for it. Refuse it at the
+      # boundary (issue #3311) so untrusted input never lands in @share_domain.
+      # A guest's share domain comes solely from the Host header via
+      # determine_share_domain, which already returns display_domain on custom
+      # domains. (V1 was not exploitable — determine_share_domain ignores
+      # share_domain on custom domains — but the boundary belongs here, in
+      # parity with V2.)
       def process_share_domain
+        return if cust.nil? || cust.anonymous?
+
         potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
 
