@@ -187,7 +187,7 @@ namespace :spec do
         'spec/integration/all',
         *Dir.glob('apps/*/*/spec/integration/full'),
       ]
-      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database --tag ~sqlite_database #{rspec_format_options}"
+      sh env, "bundle exec rspec #{patterns.join(' ')} --exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,**/{postgres,sqlite}*_spec.rb' #{rspec_format_options}"
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
