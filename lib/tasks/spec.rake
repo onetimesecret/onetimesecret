@@ -156,6 +156,7 @@ namespace :spec do
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+        'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
       }
       patterns = [
         *Dir.glob('apps/*/*/spec/integration/full'),
@@ -171,6 +172,7 @@ namespace :spec do
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
         'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        'ORGS_SSO_ENABLED' => 'true',
       }
 
       # Root-level specs MUST load before app-level specs. The root spec_helper

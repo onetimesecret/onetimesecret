@@ -571,7 +571,7 @@ jobs:
         if: matrix.db == 'postgres'
         env:
           PGPASSWORD: postgres
-        run: psql -h localhost -U postgres -d onetime_auth_test -f etc/pg_test_setup.sql -v ON_ERROR_STOP=1
+        run: psql -h localhost -U postgres -d onetime_auth_test -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests

@@ -116,7 +116,7 @@ if [[ -n "$pg_superuser_url" ]] && command -v psql &>/dev/null; then
     fi
 
     # Run the shared provisioning script (roles, grants, schema reset)
-    psql "$pg_superuser_url" -f etc/pg_test_setup.sql -v ON_ERROR_STOP=1
+    psql "$pg_superuser_url" -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
     echo "OK:   PostgreSQL roles and grants provisioned"
 else
     if [[ -n "$pg_superuser_url" ]]; then
@@ -124,6 +124,17 @@ else
     else
         echo "Skip: AUTH_DATABASE_URL_TEST_SUPERUSER not set — skipping PostgreSQL setup"
     fi
+fi
+
+# --- Generated locales ------------------------------------------------
+
+echo "---"
+echo "Generating merged locale files..."
+if command -v python3 &>/dev/null; then
+    python3 locales/scripts/build/compile.py --all --merged
+    echo "OK:   Locales generated in generated/locales/"
+else
+    echo "Skip: python3 not found — skipping locale generation"
 fi
 
 # --- Test Valkey on port 2121 ----------------------------------------

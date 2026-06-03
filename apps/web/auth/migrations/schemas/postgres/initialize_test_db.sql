@@ -1,9 +1,9 @@
--- etc/pg_test_setup.sql
+-- apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql
 --
 -- Provisions the test PostgreSQL database with least-privilege role
 -- separation. Run as superuser against an existing database:
 --
---   psql -U postgres -d onetime_auth_test -f etc/pg_test_setup.sql
+--   psql -U postgres -d onetime_auth_test -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql
 --
 -- Used by:
 --   - install-test.sh        (local development)
@@ -70,6 +70,7 @@ $$;
 
 GRANT USAGE ON SCHEMA public TO onetime_user;
 GRANT ALL ON SCHEMA public TO onetime_migrator;
+GRANT USAGE ON SCHEMA public TO onetime_migrator_test;
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
 ------------------------------------------------------------------------
