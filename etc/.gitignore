@@ -18,3 +18,4 @@
 !valkey.conf
 !schemas/
 !schemas/*.json
+!pg_test_setup.sql
