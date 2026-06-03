@@ -173,26 +173,12 @@ module Onetime
     # Indexes for fast lookups
     unique_index :token, :token_lookup
 
-    # Composite index for org-scoped active membership lookup
-    unique_index :org_customer_key, :org_customer_lookup
-
     def init
       @status       ||= 'active'
       @role         ||= 'member'
       @joined_at    ||= Familia.now.to_f if @status == 'active'
       @resend_count ||= 0
       nil
-    end
-
-    # Composite index key methods
-    # These generate deterministic keys for org-scoped lookups
-
-    # Key for finding active memberships by org + customer
-    # Only set for active memberships (customer_objid is set)
-    def org_customer_key
-      return nil unless organization_objid && customer_objid
-
-      "#{organization_objid}:#{customer_objid}"
     end
 
     # Check if this is an active membership
@@ -316,7 +302,7 @@ module Onetime
     #
     # Side-effect placement matrix:
     #   accept!   — token consumed, pending indexes cleared
-    #   activate! — joined_at set, customer added to members, org_customer_lookup populated
+    #   activate! — joined_at set, customer added to members, entitlements materialized
     #
     # @param customer [Onetime::Customer] The customer accepting the invite
     # @param provisioning_source [String, nil] Lifecycle attribution forwarded
@@ -379,11 +365,10 @@ module Onetime
 
     # Promote a staged or accepted membership to active.
     #
-    # Owns the staged → active transition via activate_members_instance and
-    # populates the active-state index (org_customer_lookup). Invoked inline
-    # from accept! for orgs that do not require admin approval, and (in a
-    # follow-up iteration) from an explicit /approve endpoint when approval
-    # is required.
+    # Owns the staged → active transition via activate_members_instance.
+    # Invoked inline from accept! for orgs that do not require admin approval,
+    # and (in a follow-up iteration) from an explicit /approve endpoint when
+    # approval is required.
     #
     # Uses Familia's staged relationship activation to atomically:
     # - Add customer to org.members (active sorted set)
@@ -431,11 +416,6 @@ module Onetime
           token: nil, # Clear token for security
         },
       )
-
-      # Populate active-state OTS index on the NEW composite-keyed model
-      if activated.org_customer_key
-        self.class.org_customer_lookup[activated.org_customer_key] = activated.objid
-      end
 
       # Materialize entitlements for the activated membership (ADR-012 Stage 3).
       # Computes org.entitlements ∩ ROLE_ENTITLEMENTS[role] and persists to Redis.
@@ -500,7 +480,6 @@ module Onetime
 
       # Clean up OTS-specific indexes before unstaging destroys the model
       self.class.token_lookup.remove_field(token) if token
-      self.class.org_customer_lookup.remove_field(org_customer_key) if org_customer_key
 
       if org
         # Use Familia staged relationship: removes from pending_invitations set
@@ -529,7 +508,6 @@ module Onetime
     # Cleans up:
     #   - org.members sorted set (ZREM customer from org's active members)
     #   - customer.participations reverse index (SREM org collection key)
-    #   - org_customer_lookup
     #   - token_lookup
     #   - pending_invitations staging set (prevents stale quota counts)
     #
@@ -551,11 +529,6 @@ module Onetime
       end
 
       # Remove OTS application-level indexes
-
-      # Remove org_customer_lookup entry if exists
-      if org_customer_key
-        self.class.org_customer_lookup.remove_field(org_customer_key)
-      end
 
       # Remove token_lookup entry if exists
       if token
@@ -646,7 +619,11 @@ module Onetime
         end
       end
 
-      # Find a membership by organization and customer
+      # Find a membership by organization and customer.
+      #
+      # Derives the composite objid directly — no secondary index needed.
+      # The active membership's objid matches Familia's build_key output:
+      #   "organization:{org_objid}:customer:{cust_objid}:org_membership"
       #
       # @param org_objid [String] the organization's objid
       # @param customer_objid [String] the customer's objid
@@ -654,10 +631,7 @@ module Onetime
       def find_by_org_customer(org_objid, customer_objid)
         return nil if org_objid.nil? || customer_objid.nil?
 
-        key   = "#{org_objid}:#{customer_objid}"
-        objid = org_customer_lookup[key]
-        return nil unless objid
-
+        objid = composite_objid(org_objid, customer_objid)
         load(objid)
       end
 
@@ -790,10 +764,10 @@ module Onetime
         org.list_pending_invitations.select(&:pending?)
       end
 
-      # Find active memberships for an organization
+      # Find active memberships for an organization.
       #
-      # Uses batch lookup via HMGET on the org_customer_lookup index,
-      # then bulk loads all memberships with load_multi.
+      # Derives composite objids directly from org.members, then bulk loads
+      # via load_multi (single pipelined HGETALL).
       #
       # @param org [Organization] the organization to query
       # @return [Array<OrganizationMembership>] active memberships
@@ -801,14 +775,15 @@ module Onetime
         customer_objids = org.members.to_a
         return [] if customer_objids.empty?
 
-        # Build composite keys for batch lookup: "org_objid:customer_objid"
-        composite_keys = customer_objids.map { |cust_objid| "#{org.objid}:#{cust_objid}" }
-
-        # Batch lookup via HMGET (single Redis call instead of N)
-        membership_objids = org_customer_lookup.values_at(*composite_keys).compact
-
-        # Bulk load all memberships (single MGET instead of N HGETALL)
+        membership_objids = customer_objids.map { |cust_objid| composite_objid(org.objid, cust_objid) }
         load_multi(membership_objids).compact.select(&:active?)
+      end
+
+      # Derive the deterministic objid for an active membership.
+      # Mirrors Familia::ThroughModelOperations.build_key:
+      #   "{target_prefix}:{target_objid}:{participant_prefix}:{participant_objid}:{through_prefix}"
+      def composite_objid(org_objid, customer_objid)
+        "organization:#{org_objid}:customer:#{customer_objid}:org_membership"
       end
     end
   end

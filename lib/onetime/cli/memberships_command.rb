@@ -19,7 +19,10 @@ module Onetime
       def call(**)
         boot_application!
 
-        active_count  = Onetime::OrganizationMembership.org_customer_lookup.size
+        active_count  = Onetime::Organization.instances.sum do |objid|
+          org = Onetime::Organization.load(objid)
+          org ? org.members.size : 0
+        end
         pending_count = Onetime::OrganizationMembership.token_lookup.size
 
         puts format('%d active memberships, %d pending invitations', active_count, pending_count)
@@ -34,10 +37,9 @@ module Onetime
         puts '  1. organization_objid points to existing org (CRITICAL)'
         puts '  2. customer_objid points to existing customer (HIGH)'
         puts '  3. org.members entries have backing customer objects (MEDIUM)'
-        puts '  4. org_customer_lookup entries are valid (MEDIUM)'
-        puts '  5. token_lookup entries are pending memberships (MEDIUM)'
-        puts '  6. pending_invitations count matches actual (WARNING)'
-        puts '  7. domain_scope_id points to existing domain (WARNING)'
+        puts '  4. token_lookup entries are pending memberships (MEDIUM)'
+        puts '  5. pending_invitations count matches actual (WARNING)'
+        puts '  6. domain_scope_id points to existing domain (WARNING)'
       end
     end
 
