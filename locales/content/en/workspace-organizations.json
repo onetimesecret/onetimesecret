@@ -819,6 +819,12 @@
     "text": "Not Configured",
     "content_hash": "bbea960e"
   },
+  "web.organizations.sso.no_domains": {
+    "text": "No verified domains"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Add and verify a domain before configuring SSO for it."
+  },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Different account signed in",
     "content_hash": "6516362a"

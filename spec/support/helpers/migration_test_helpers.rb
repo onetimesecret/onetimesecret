@@ -43,7 +43,7 @@ module MigrationTestHelpers
   # @param password [String] Password for the role
   # @param base_url [String] URL to derive host/port/database from
   # @return [String] Connection URL
-  def build_pg_url(user:, password: nil, base_url: ENV.fetch('AUTH_DATABASE_URL'))
+  def build_pg_url(user:, password: nil, base_url: ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS'))
     uri = URI.parse(base_url)
     uri.user = user
     uri.password = password
@@ -136,15 +136,15 @@ module MigrationTestHelpers
   # @param db [Sequel::Database] Database connection
   def drop_all_tables(db:)
     if db.database_type == :postgres
-      # For PostgreSQL: drop and recreate public schema (fastest, most thorough)
-      # Removes tables, views, functions, triggers, extensions - everything
-      #
-      # Use elevated connection if available to handle CI permission model
+      # For PostgreSQL: drop tables owned by the migrator role.
+      # Prefer superuser (can drop anything), fall back to migrator, then caller.
+      superuser_url = ENV['AUTH_DATABASE_URL_TEST_SUPERUSER']
       migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
-      use_elevated = migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
 
-      if use_elevated
-        elevated_db = Sequel.connect(migration_url)
+      elevated_url = [superuser_url, migration_url].find { |u| u && !u.to_s.empty? && u != ENV['AUTH_DATABASE_URL'] }
+
+      if elevated_url
+        elevated_db = Sequel.connect(elevated_url)
         begin
           drop_and_recreate_postgres_schema(elevated_db)
         ensure

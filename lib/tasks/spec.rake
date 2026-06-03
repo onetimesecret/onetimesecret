@@ -48,6 +48,15 @@ require 'rspec/core/rake_task'
 
 INTEGRATION_MODES = %w[simple full disabled].freeze
 
+PG_TEST_DATABASE_URL   = ENV.fetch(
+  'AUTH_DATABASE_URL_PG',
+  'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test',
+)
+PG_TEST_MIGRATIONS_URL = ENV.fetch(
+  'AUTH_DATABASE_URL_MIGRATIONS_PG',
+  'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test',
+)
+
 # Build RSpec format options based on environment
 # @return [String] RSpec format flags
 def rspec_format_options
@@ -122,11 +131,13 @@ namespace :spec do
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => mode,
         }
-        # Full mode uses SQLite, excluding PostgreSQL-specific tests
-        # Respect AUTH_DATABASE_URL if set (e.g., file-based SQLite from CI)
+        # Full mode uses SQLite by default, excluding PostgreSQL-specific
+        # tests. Hardcoded to prevent ambient AUTH_DATABASE_URL (from dev
+        # .env via direnv) from leaking in and wiping a non-test database.
         tag_filter = ''
         if mode == 'full'
-          env['AUTH_DATABASE_URL'] = ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:')
+          env['AUTH_DATABASE_URL'] = 'sqlite::memory:'
+          env['ORGS_SSO_ENABLED']  = 'true'
           tag_filter               = '--tag ~postgres_database'
         end
 
@@ -145,10 +156,8 @@ namespace :spec do
       env      = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
-        'AUTH_DATABASE_URL' => ENV.fetch(
-          'AUTH_DATABASE_URL',
-          'postgresql://postgres@localhost:5432/onetime_auth_test',
-        ),
+        'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+        'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
       }
       patterns = [
         *Dir.glob('apps/*/*/spec/integration/full'),
@@ -162,13 +171,10 @@ namespace :spec do
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
-        'AUTH_DATABASE_URL' => ENV.fetch(
-          'AUTH_DATABASE_URL',
-          'postgresql://postgres@localhost:5432/onetime_auth_test',
-        ),
+        'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+        'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        'ORGS_SSO_ENABLED' => 'true',
       }
-      migration_url = ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS', nil)
-      env['AUTH_DATABASE_URL_MIGRATIONS'] = migration_url if migration_url
 
       # Root-level specs MUST load before app-level specs. The root spec_helper
       # registers define_derived_metadata for :full_auth_mode (matched by file
@@ -181,7 +187,7 @@ namespace :spec do
         'spec/integration/all',
         *Dir.glob('apps/*/*/spec/integration/full'),
       ]
-      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database --tag ~sqlite_database #{rspec_format_options}"
+      sh env, "bundle exec rspec #{patterns.join(' ')} --exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,**/{postgres,sqlite}*_spec.rb' #{rspec_format_options}"
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'

@@ -83,6 +83,60 @@ if ! grep -q '^RACK_ENV=test' .env.test; then
     echo "  Tests rely on RACK_ENV=test to load spec/*.test.yaml configs"
 fi
 
+# --- PostgreSQL test database -----------------------------------------
+
+pg_superuser_url="${AUTH_DATABASE_URL_TEST_SUPERUSER:-}"
+if [[ -z "$pg_superuser_url" ]]; then
+    # Fall back to .env.test if direnv hasn't loaded yet
+    pg_superuser_url=$(grep '^AUTH_DATABASE_URL_TEST_SUPERUSER=' .env.test 2>/dev/null | cut -d= -f2- || true)
+fi
+
+if [[ -n "$pg_superuser_url" ]] && command -v psql &>/dev/null; then
+    echo "Provisioning PostgreSQL test database..."
+
+    # Extract connection parts from the superuser URL.
+    # Parse: postgresql://user[:pass]@host[:port]/dbname
+    pg_db=$(echo "$pg_superuser_url" | sed -E 's|.*://[^/]*/||')
+
+    # Create the database if it doesn't exist (createdb is idempotent-ish)
+    if psql "$pg_superuser_url" -c "SELECT 1" &>/dev/null; then
+        echo "OK:   Database '$pg_db' exists"
+    else
+        # Connect to 'postgres' maintenance DB to create the test DB
+        pg_maintenance_url=$(echo "$pg_superuser_url" | sed -E "s|/[^/]*$|/postgres|")
+        createdb_output=$(psql "$pg_maintenance_url" -c "CREATE DATABASE \"$pg_db\"" 2>&1) || {
+            if echo "$createdb_output" | grep -q "already exists"; then
+                echo "OK:   Database '$pg_db' already exists"
+            else
+                echo "Error: Failed to create database '$pg_db': $createdb_output"
+                exit 1
+            fi
+        }
+        echo "OK:   Created database '$pg_db'"
+    fi
+
+    # Run the shared provisioning script (roles, grants, schema reset)
+    psql "$pg_superuser_url" -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
+    echo "OK:   PostgreSQL roles and grants provisioned"
+else
+    if [[ -n "$pg_superuser_url" ]]; then
+        echo "Skip: psql not found — skipping PostgreSQL setup"
+    else
+        echo "Skip: AUTH_DATABASE_URL_TEST_SUPERUSER not set — skipping PostgreSQL setup"
+    fi
+fi
+
+# --- Generated locales ------------------------------------------------
+
+echo "---"
+echo "Generating merged locale files..."
+if command -v python3 &>/dev/null; then
+    python3 locales/scripts/build/compile.py --all --merged
+    echo "OK:   Locales generated in generated/locales/"
+else
+    echo "Skip: python3 not found — skipping locale generation"
+fi
+
 # --- Test Valkey on port 2121 ----------------------------------------
 
 valkey_cli="${VALKEY_CLI:-valkey-cli}"

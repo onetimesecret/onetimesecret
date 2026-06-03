@@ -14,59 +14,52 @@
 #   pnpm run test:rspec apps/web/auth/spec/config/features/mfa_spec.rb
 
 # =============================================================================
-# EARLY ENVIRONMENT AND WEBMOCK SETUP
+# EARLY WEBMOCK SETUP
 # =============================================================================
-# Set env vars AND WebMock stubs BEFORE any requires that might trigger config
-# loading. Onetime config uses ERB which evaluates at YAML load time, so these
-# must be set before any code path that loads the config.
+# WebMock stubs BEFORE any requires that might trigger config loading or
+# provider registration. The OmniAuth OIDC strategy fetches the discovery
+# document during provider registration (boot time), so the placeholder
+# issuer must be stubbed before the app boots.
 #
-# The OmniAuth OIDC strategy fetches the discovery document during provider
-# registration, so WebMock must be configured before the app boots.
+# No OIDC env vars are injected here — all four SSO providers (OIDC, Entra,
+# GitHub, Google) register via placeholder credentials when
+# ORGS_SSO_ENABLED=true. The OmniAuthTenant hook injects real credentials
+# at request time.
 #
-#
-MOCK_OIDC_ISSUER = 'https://mock-idp.example.com'
+ENV['AUTHENTICATION_MODE'] ||= 'full'
 
-unless ENV['OIDC_ISSUER'].to_s.strip.length.positive?
-  ENV['OIDC_ISSUER'] = MOCK_OIDC_ISSUER
-  ENV['OIDC_CLIENT_ID'] = 'test-client-id'
-  ENV['OIDC_CLIENT_SECRET'] = 'test-client-secret'
-  ENV['AUTH_SSO_ENABLED'] = 'true'
-  ENV['AUTHENTICATION_MODE'] ||= 'full'
+PLACEHOLDER_OIDC_ISSUER = 'https://placeholder.invalid'
 
-  # Set up WebMock BEFORE loading any app code
-  require 'webmock'
-  WebMock.enable!
-  WebMock.disable_net_connect!(allow_localhost: true)
+require 'webmock'
+WebMock.enable!
+WebMock.disable_net_connect!(allow_localhost: true)
 
-  # Mock OIDC discovery document
-  WebMock.stub_request(:get, "#{MOCK_OIDC_ISSUER}/.well-known/openid-configuration")
-    .to_return(
-      status: 200,
-      body: {
-        issuer: MOCK_OIDC_ISSUER,
-        authorization_endpoint: "#{MOCK_OIDC_ISSUER}/authorize",
-        token_endpoint: "#{MOCK_OIDC_ISSUER}/token",
-        userinfo_endpoint: "#{MOCK_OIDC_ISSUER}/userinfo",
-        jwks_uri: "#{MOCK_OIDC_ISSUER}/.well-known/jwks.json",
-        response_types_supported: %w[code],
-        subject_types_supported: %w[public],
-        id_token_signing_alg_values_supported: %w[RS256],
-        scopes_supported: %w[openid email profile],
-        token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
-        claims_supported: %w[sub email email_verified name],
-        code_challenge_methods_supported: %w[S256],
-      }.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-    )
+WebMock.stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/openid-configuration")
+  .to_return(
+    status: 200,
+    body: {
+      issuer: PLACEHOLDER_OIDC_ISSUER,
+      authorization_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/authorize",
+      token_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/token",
+      userinfo_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/userinfo",
+      jwks_uri: "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json",
+      response_types_supported: %w[code],
+      subject_types_supported: %w[public],
+      id_token_signing_alg_values_supported: %w[RS256],
+      scopes_supported: %w[openid email profile],
+      token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
+      claims_supported: %w[sub email email_verified name],
+      code_challenge_methods_supported: %w[S256],
+    }.to_json,
+    headers: { 'Content-Type' => 'application/json' }
+  )
 
-  # Mock JWKS endpoint
-  WebMock.stub_request(:get, "#{MOCK_OIDC_ISSUER}/.well-known/jwks.json")
-    .to_return(
-      status: 200,
-      body: { keys: [] }.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-    )
-end
+WebMock.stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json")
+  .to_return(
+    status: 200,
+    body: { keys: [] }.to_json,
+    headers: { 'Content-Type' => 'application/json' }
+  )
 
 require 'rspec'
 require 'sequel'
