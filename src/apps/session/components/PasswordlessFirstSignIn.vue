@@ -107,6 +107,9 @@ if (savedIndex >= 0 && savedPref) {
   if (savedPref.expiresAt - Date.now() < refreshThreshold) {
     saveSigninModePreference(savedPref.mode);
   }
+  if (savedIndex > 0) {
+    emit('mode-change', savedPref.mode);
+  }
 } else if (savedPref) {
   try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
 }
