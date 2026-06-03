@@ -91,51 +91,27 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
     Onetime::Middleware::DomainStrategy.canonical_domain || 'localhost:3000'
   end
 
-  # The four OmniAuth provider routes mounted under /auth/sso.
-  # POST-only — OmniAuth does not register GET request-phase routes.
-  SSO_ROUTES = %w[
-    /auth/sso/entra
-    /auth/sso/github
-    /auth/sso/google
-    /auth/sso/oidc
-  ].freeze
-
-  # Routes that prove the #3317 fix: these have no platform env vars
-  # in the test harness and are only registered when orgs_sso_enabled.
-  TENANT_ONLY_ROUTES = %w[
-    /auth/sso/entra
-    /auth/sso/github
-    /auth/sso/google
-  ].freeze
+  # OmniAuth provider routes under /auth/sso (POST-only).
+  # tenant_only: true marks routes with no platform env vars in the
+  # harness — they only exist because of placeholder registration
+  # (the #3317 fix) and are the discriminating regression signal.
+  sso_routes = {
+    '/auth/sso/entra'  => { tenant_only: true },
+    '/auth/sso/github' => { tenant_only: true },
+    '/auth/sso/google' => { tenant_only: true },
+    '/auth/sso/oidc'   => { tenant_only: false },
+  }.freeze
 
   describe 'when ORGS_SSO_ENABLED=true with no platform SSO env vars' do
-    SSO_ROUTES.each do |route|
-      it "POST #{route} is not 404 (route is registered)" do
-        header 'Host', canonical_host
-        post route
-
-        # Any status other than 404 means the route exists and OmniAuth
-        # attempted to process the request. Typical responses:
-        #   302/303 — redirect to IdP (or sso_not_configured fallback)
-        #   422     — OmniAuth validation failure
-        #   500     — placeholder credentials cause a provider error
-        expect(last_response.status).not_to eq(404),
-          "Expected #{route} to be registered (not 404), got #{last_response.status}. " \
-          "This is the exact regression from #3317: tenant SSO routes must exist " \
-          "even when platform env vars are absent."
-      end
-    end
-
-    # Discriminating subset: these routes have no real creds in the
-    # harness, so they only exist because of placeholder registration.
-    TENANT_ONLY_ROUTES.each do |route|
-      it "POST #{route} is registered via placeholder (no platform creds)" do
+    sso_routes.each do |route, meta|
+      label = meta[:tenant_only] ? 'placeholder registration' : 'platform creds'
+      it "POST #{route} is not 404 (#{label})" do
         header 'Host', canonical_host
         post route
 
         expect(last_response.status).not_to eq(404),
-          "#{route} returned 404 despite ORGS_SSO_ENABLED=true. " \
-          "The placeholder registration path in configure_*_provider is broken."
+          "#{route} returned 404 (got #{last_response.status}). " \
+          "#{meta[:tenant_only] ? 'Placeholder registration from #3317 fix is broken.' : 'Route should be registered via platform credentials.'}"
       end
     end
   end
