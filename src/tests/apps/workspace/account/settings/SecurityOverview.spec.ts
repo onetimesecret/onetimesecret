@@ -38,6 +38,7 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
 // Mock feature flags
 const mockMfaEnabled = ref(true);
 const mockWebAuthnEnabled = ref(true);
+const mockHasPassword = ref(true);
 vi.mock('@/utils/features', () => ({
   isMfaEnabled: () => mockMfaEnabled.value,
   isWebAuthnEnabled: () => mockWebAuthnEnabled.value,
@@ -47,6 +48,7 @@ vi.mock('@/utils/features', () => ({
   // exercising the same MFA/WebAuthn on/off matrix.
   isMfaEnabledOf: () => mockMfaEnabled.value,
   isWebAuthnEnabledOf: () => mockWebAuthnEnabled.value,
+  hasPasswordOf: () => mockHasPassword.value,
 }));
 
 // Mock useAccount composable
