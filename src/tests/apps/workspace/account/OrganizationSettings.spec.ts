@@ -55,6 +55,35 @@ vi.mock('@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue', () =
     props: ['error', 'resourceType'],
   },
 }));
+vi.mock('@/apps/workspace/components/domains/DomainsTable.vue', () => ({
+  default: {
+    name: 'DomainsTable',
+    template: '<div class="domains-table" />',
+  },
+}));
+
+// Domains + permissions composables.
+// The Domains-tab "Add Domain" CTA is gated on `canCreateDomain && domainCount > 0`.
+// We vary `mockDomainCount` to exercise the domainCount portion (the change on
+// this branch). `canCreateDomain` is held via its own ref so we test the
+// component's gate, not the permission logic itself — that lives in
+// useOrgPermissions, which is being reworked in feature/3326-permissions-api.
+const mockDomainCount = ref(0);
+const mockCanCreateDomain = ref(true);
+vi.mock('@/shared/composables/useDomainsManager', () => ({
+  useDomainsManager: () => ({
+    isLoading: ref(false),
+    records: ref([]),
+    recordCount: mockDomainCount,
+    error: ref(null),
+    refreshRecords: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+vi.mock('@/shared/composables/useOrgPermissions', () => ({
+  useOrgPermissions: () => ({
+    canCreateDomain: mockCanCreateDomain,
+  }),
+}));
 
 // Mock services
 vi.mock('@/services/billing.service', () => ({
@@ -254,6 +283,8 @@ describe('OrganizationSettings', () => {
     mockUpdateOrganization.mockResolvedValue(mockOrganization);
     mockFetchInvitations.mockResolvedValue([]);
     mockEntitlements.value = ['manage_members'];
+    mockDomainCount.value = 0;
+    mockCanCreateDomain.value = true;
   });
 
   afterEach(() => {
@@ -299,17 +330,15 @@ describe('OrganizationSettings', () => {
   /**
    * Helper to find the billing email section within the Settings tab
    */
-  const findBillingEmailSection = (w: VueWrapper) => {
+  const findBillingEmailSection = (w: VueWrapper) =>
     // The billing email field has data-testid="org-billing-email-field"
-    return w.find('[data-testid="org-billing-email-field"]');
-  };
+     w.find('[data-testid="org-billing-email-field"]')
+  ;
 
   /**
    * Helper to find the Edit link for billing email (navigates to billing overview)
    */
-  const findEditLink = (w: VueWrapper) => {
-    return w.find('[data-testid="org-billing-email-edit-link"]');
-  };
+  const findEditLink = (w: VueWrapper) => w.find('[data-testid="org-billing-email-edit-link"]');
 
   /**
    * Billing Email Display Tests
@@ -430,6 +459,43 @@ describe('OrganizationSettings', () => {
         expect(section.text()).toContain('Billing Email');
         expect(section.text()).toContain(nonDefaultOrg.contact_email);
       });
+    });
+  });
+
+  /**
+   * Domains tab — "Add Domain" CTA visibility (fix/sso-ui).
+   *
+   * The header CTA is gated on `canCreateDomain && domainCount > 0` so it does
+   * not duplicate the add button in the empty state. Domains is the default
+   * tab, so no tab switch is needed.
+   */
+  describe('Domains Tab — Add Domain CTA', () => {
+    // Header CTA only; the empty-state has its own add link, which is the
+    // duplication this gate (domainCount > 0) exists to avoid.
+    const addLink = '[data-testid="org-domains-add-cta"]';
+
+    it('hides the Add Domain CTA when there are no domains', async () => {
+      mockCanCreateDomain.value = true;
+      mockDomainCount.value = 0;
+      wrapper = await mountComponent();
+
+      expect(wrapper.find(addLink).exists()).toBe(false);
+    });
+
+    it('shows the Add Domain CTA when domains exist', async () => {
+      mockCanCreateDomain.value = true;
+      mockDomainCount.value = 2;
+      wrapper = await mountComponent();
+
+      expect(wrapper.find(addLink).exists()).toBe(true);
+    });
+
+    it('hides the Add Domain CTA when the user cannot create domains', async () => {
+      mockCanCreateDomain.value = false;
+      mockDomainCount.value = 2;
+      wrapper = await mountComponent();
+
+      expect(wrapper.find(addLink).exists()).toBe(false);
     });
   });
 });
