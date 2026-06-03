@@ -26,7 +26,8 @@ const props = withDefaults(defineProps<Props>(), {
   webauthnEnabled: false,
 });
 
-type AuthMode = 'passkey' | 'passwordless' | 'password';
+const VALID_AUTH_MODES = ['passkey', 'passwordless', 'password'] as const;
+type AuthMode = (typeof VALID_AUTH_MODES)[number];
 
 const emit = defineEmits<{
   (e: 'mode-change', mode: AuthMode): void;
@@ -35,10 +36,9 @@ const emit = defineEmits<{
 const SIGNIN_MODE_KEY = 'onetimeSigninMode';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const SIGNIN_MODE_TTL_MS = 30 * ONE_DAY_MS;
-const VALID_AUTH_MODES: readonly AuthMode[] = ['passkey', 'passwordless', 'password'];
 
 function isAuthMode(value: unknown): value is AuthMode {
-  return typeof value === 'string' && VALID_AUTH_MODES.includes(value as AuthMode);
+  return typeof value === 'string' && (VALID_AUTH_MODES as readonly string[]).includes(value);
 }
 
 function loadSigninModePreference(): { mode: AuthMode; expiresAt: number } | null {
