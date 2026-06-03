@@ -169,17 +169,10 @@ module V2::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       #
-      # The explicit share_domain is the authenticated Domain Context selector;
-      # an anonymous request has no legitimate source for it. We refuse it at the
-      # boundary (issue #3311) so untrusted input never lands in the trusted
-      # @share_domain in the first place — a guest's share domain is derived
-      # solely from the Host header in determine_share_domain. Enforcing the
-      # invariant here, at ingestion, is what makes @share_domain trustworthy
-      # everywhere downstream; it does not depend on a later reassignment to
-      # scrub a smuggled value back out.
+      # This records the *requested* domain only. Whether an anonymous request
+      # is allowed to use it is decided later in validate_anonymous_share_domain
+      # (display_domain is not reliably available this early across API versions).
       def process_share_domain
-        return if anonymous_user?
-
         potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
 
@@ -234,8 +227,47 @@ module V2::Logic
       # Validates the share domain for secret creation.
       # Determines appropriate domain and validates access permissions.
       def validate_share_domain
+        validate_anonymous_share_domain
         @share_domain = determine_share_domain
         validate_domain_access(@share_domain)
+      end
+
+      # Guest share-domain policy (issue #3311): a guest may create links only on
+      # the domain they are currently visiting.
+      #
+      #   Guest is on…    | POST body share_domain | Result
+      #   ----------------+------------------------+------------------------------
+      #   custom domain X | X (or omitted)         | allowed — link on X
+      #   custom domain X | a different domain Y    | rejected (Forbidden)
+      #   canonical       | any custom domain       | rejected (Forbidden)
+      #   canonical       | omitted / canonical     | allowed — link on canonical
+      #
+      # process_share_domain captured any requested domain in @share_domain. The
+      # only legitimate anonymous value is the custom domain named by the Host
+      # header (display_domain) — i.e. a guest using the /guest endpoints on a
+      # branded domain. Everything else is a cross-domain smuggle and is rejected
+      # here, before determine_share_domain resolves the domain and
+      # validate_domain_access uses it.
+      #
+      # Authenticated callers are unaffected: domain selection is governed by
+      # validate_domain_permissions (ownership / membership).
+      def validate_anonymous_share_domain
+        return unless anonymous_user?
+        return if share_domain.nil?
+        return if custom_domain? && share_domain.casecmp?(display_domain.to_s)
+
+        secret_logger.warn 'Anonymous cross-domain share_domain rejected',
+          {
+            domain: share_domain,
+            display_domain: display_domain,
+            action: 'validate_anonymous_share_domain',
+            result: :cross_domain,
+          }
+        raise Onetime::Forbidden.new(
+          "You do not have permission to use domain: #{share_domain}",
+          error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
+          args: { domain: share_domain },
+        )
       end
 
       # @sync src/schemas/contracts/config/public.ts — passphrase options
@@ -363,15 +395,13 @@ module V2::Logic
 
       # Determines which domain should be used for sharing.
       #
-      # share_domain is the authenticated Domain Context selection. The primary
-      # guard against guest-supplied values lives upstream in
-      # process_share_domain, which refuses to populate @share_domain from an
-      # anonymous request (issue #3311). The anonymous_user? check here is a
-      # deliberate second layer: the domain-selection authority never honours a
-      # guest-supplied share_domain on a custom domain even if some future writer
-      # were to set one. Authenticated users keep their explicit selection,
-      # falling back to the Host-header domain on a custom domain with no
-      # override.
+      # share_domain is the authenticated Domain Context selection. Guest requests
+      # are validated upstream by validate_anonymous_share_domain (issue #3311),
+      # which rejects any anonymous attempt to use a domain other than the Host
+      # header. The anonymous_user? check here is a defensive second layer: a
+      # guest on a custom domain is always resolved to that Host domain regardless
+      # of @share_domain. Authenticated users keep their explicit selection,
+      # falling back to the Host-header domain on a custom domain with no override.
       #
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain

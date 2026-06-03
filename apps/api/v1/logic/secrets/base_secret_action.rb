@@ -211,17 +211,11 @@ module V1::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       #
-      # The explicit share_domain is the authenticated Domain Context selector;
-      # an anonymous request has no legitimate source for it. Refuse it at the
-      # boundary (issue #3311) so untrusted input never lands in @share_domain.
-      # A guest's share domain comes solely from the Host header via
-      # determine_share_domain, which already returns display_domain on custom
-      # domains. (V1 was not exploitable — determine_share_domain ignores
-      # share_domain on custom domains — but the boundary belongs here, in
-      # parity with V2.)
+      # This records the *requested* domain only. Whether an anonymous request
+      # is allowed to use it is decided later in validate_anonymous_share_domain
+      # (display_domain is not set on V1 logic objects until the controller
+      # applies domain context, after construction).
       def process_share_domain
-        return if cust.nil? || cust.anonymous?
-
         potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
 
@@ -265,6 +259,7 @@ module V1::Logic
       # Validates the share domain for secret creation.
       # Determines appropriate domain and validates access permissions.
       def validate_share_domain
+        validate_anonymous_share_domain
         # If we're on a custom domain creating a link, the only possible share
         # domain  is the custom domain itself. This is bc we only allow logging
         # in on the canonical domain (e.g. onetimesecret.com) AND we don't offer
@@ -272,6 +267,24 @@ module V1::Logic
         # domain.
         @share_domain = determine_share_domain
         validate_domain_access(@share_domain)
+      end
+
+      # Guests may create links only on the domain they are currently visiting.
+      #
+      # process_share_domain captured any requested domain in @share_domain. For
+      # an anonymous request the only legitimate value is the custom domain named
+      # by the Host header (display_domain) — a guest creating links for that same
+      # branded domain. Any other custom domain is a cross-domain smuggle: a guest
+      # on the canonical domain naming a custom domain, or a guest on one custom
+      # domain naming a different one (issue #3311). Those are rejected here,
+      # before determine_share_domain pins the resolved domain to the Host header.
+      def validate_anonymous_share_domain
+        return unless cust.nil? || cust.anonymous?
+        return if share_domain.nil?
+        return if custom_domain? && share_domain.casecmp?(display_domain.to_s)
+
+        OT.li "[validate_anonymous_share_domain]: #{share_domain} cross-domain [#{cust&.custid}]"
+        raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
 
       # @sync src/schemas/contracts/config/public.ts — passphrase options
