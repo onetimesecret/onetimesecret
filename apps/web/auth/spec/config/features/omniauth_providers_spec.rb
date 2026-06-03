@@ -105,6 +105,8 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     end
 
     context 'when required env vars are missing' do
+      let(:entra_clear) { { ENTRA_TENANT_ID: nil, ENTRA_CLIENT_ID: nil, ENTRA_CLIENT_SECRET: nil } }
+
       it 'skips registration when ENTRA_TENANT_ID is missing' do
         expect(auth).not_to receive(:omniauth_provider)
 
@@ -147,7 +149,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       it 'logs all missing vars at once' do
         expect(auth).not_to receive(:omniauth_provider)
 
-        ClimateControl.modify({}) do
+        ClimateControl.modify(entra_clear) do
           Auth::Config::Features::OmniAuth.configure_entra_id_provider(auth)
         end
 
@@ -171,7 +173,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
             )
           )
 
-          ClimateControl.modify({}) do
+          ClimateControl.modify(entra_clear) do
             Auth::Config::Features::OmniAuth.configure_entra_id_provider(auth)
           end
 
@@ -245,6 +247,8 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     end
 
     context 'when required env vars are missing' do
+      let(:github_clear) { { GITHUB_CLIENT_ID: nil, GITHUB_CLIENT_SECRET: nil } }
+
       it 'skips registration when GITHUB_CLIENT_ID is missing' do
         expect(auth).not_to receive(:omniauth_provider)
 
@@ -272,7 +276,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       it 'skips registration when both are missing' do
         expect(auth).not_to receive(:omniauth_provider)
 
-        ClimateControl.modify({}) do
+        ClimateControl.modify(github_clear) do
           Auth::Config::Features::OmniAuth.configure_github_provider(auth)
         end
 
@@ -294,7 +298,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
             )
           )
 
-          ClimateControl.modify({}) do
+          ClimateControl.modify(github_clear) do
             Auth::Config::Features::OmniAuth.configure_github_provider(auth)
           end
 
@@ -347,6 +351,8 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     end
 
     context 'when required env vars are missing' do
+      let(:google_clear) { { GOOGLE_CLIENT_ID: nil, GOOGLE_CLIENT_SECRET: nil } }
+
       it 'skips registration when GOOGLE_CLIENT_ID is missing' do
         expect(auth).not_to receive(:omniauth_provider)
 
@@ -374,7 +380,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       it 'skips registration when both are missing' do
         expect(auth).not_to receive(:omniauth_provider)
 
-        ClimateControl.modify({}) do
+        ClimateControl.modify(google_clear) do
           Auth::Config::Features::OmniAuth.configure_google_provider(auth)
         end
 
@@ -396,7 +402,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
             )
           )
 
-          ClimateControl.modify({}) do
+          ClimateControl.modify(google_clear) do
             Auth::Config::Features::OmniAuth.configure_google_provider(auth)
           end
 
