@@ -220,8 +220,7 @@ module Onetime
           )
         end
 
-        # Fail-closed: membership must be active. A stale org_customer_lookup entry
-        # for a pending/accepted membership must not pass entitlement checks.
+        # Fail-closed: membership must be active.
         unless auth_membership.active?
           OT.le format(
             '[require_entitlement!] auth_membership not active for %s (cust=%s, org=%s, status=%s)',

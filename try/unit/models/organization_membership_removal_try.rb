@@ -13,19 +13,16 @@
 #      - membership.destroy_with_index_cleanup!
 #        Single authoritative method. Handles Familia sorted sets
 #        (org.members ZREM + customer.participations SREM), OTS
-#        app-level indexes (org_email_lookup, org_customer_lookup,
-#        token_lookup), and destroys the Redis hash.
+#        app-level indexes (token_lookup), and destroys the Redis hash.
 #
 #   2. Pending invitation revocation (revoke!):
-#      - Cleans OTS indexes (token_lookup, org_email_lookup, org_customer_lookup)
+#      - Cleans OTS indexes (token_lookup)
 #      - org.unstage_members_instance(staged)    -- staging set + model hash
 #
 # Both paths must leave zero stale references in:
 #   - org.members sorted set
 #   - org.pending_invitations staging set
 #   - token_lookup hash
-#   - org_email_lookup hash
-#   - org_customer_lookup hash
 #   - customer reverse index (organization_instances)
 
 require_relative '../../support/test_helpers'
@@ -49,13 +46,12 @@ OT.boot! :test
 @org.member_count
 #=> 2
 
-## Baseline: org_customer_lookup is populated for the member
+## Baseline: find_by_org_customer resolves for the member
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid).nil?
 #=> false
 
-## Baseline: org_email_lookup is NOT populated for direct-add members (no invited_email)
-# org_email_lookup only applies to memberships created via the invitation flow
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @member.email)
+## Baseline: find_pending_by_email returns nil for direct-add members (no pending invitation)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @member.email)
 #=> nil
 
 ## Baseline: reverse index populated (member sees the org)
@@ -72,12 +68,12 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @member.email)
 @org.member_count
 #=> 1
 
-## After removal: org_customer_lookup is nil
+## After removal: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid)
 #=> nil
 
-## After removal: org_email_lookup remains nil (was never set for direct-add)
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @member.email)
+## After removal: find_pending_by_email remains nil (was never pending)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @member.email)
 #=> nil
 
 ## After removal: membership model is destroyed
@@ -100,7 +96,7 @@ Onetime::OrganizationMembership.load(@membership.objid)
 @org.member?(@sc_member)
 #=> true
 
-## Single-call baseline: org_customer_lookup populated
+## Single-call baseline: find_by_org_customer resolves
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid).nil?
 #=> false
 
@@ -117,12 +113,12 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.obji
 @org.member_count
 #=> 1
 
-## Single-call: org_customer_lookup cleaned
+## Single-call: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid)
 #=> nil
 
-## Single-call: org_email_lookup clean (direct-add has no invited_email)
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @sc_member.email)
+## Single-call: find_pending_by_email clean (direct-add has no pending invitation)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @sc_member.email)
 #=> nil
 
 ## Single-call: membership model destroyed
@@ -158,8 +154,8 @@ Onetime::OrganizationMembership.load(@sc_objid)
 Onetime::OrganizationMembership.find_by_token(@pending_token).nil?
 #=> false
 
-## Pending: org_email_lookup is populated
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @pending_email).nil?
+## Pending: find_pending_by_email discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @pending_email).nil?
 #=> false
 
 ## Revoke the pending invitation
@@ -170,8 +166,8 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @pending_email).ni
 Onetime::OrganizationMembership.find_by_token(@pending_token)
 #=> nil
 
-## After revoke: org_email_lookup is nil
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @pending_email)
+## After revoke: find_pending_by_email no longer discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @pending_email)
 #=> nil
 
 ## After revoke: model is destroyed
@@ -210,12 +206,12 @@ Onetime::OrganizationMembership.load(@pending_objid)
 true
 #=> true
 
-## Full cleanup: org_customer_lookup is nil
+## Full cleanup: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @full_cleanup_customer.objid)
 #=> nil
 
-## Full cleanup: org_email_lookup is nil
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @full_cleanup_customer.email)
+## Full cleanup: find_pending_by_email is nil (no longer pending)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @full_cleanup_customer.email)
 #=> nil
 
 ## Full cleanup: token_lookup for the original invite token is still nil (cleared during accept)
@@ -287,8 +283,8 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @idempotent_cus
 Onetime::OrganizationMembership.find_by_token(@reinvitation.token).nil?
 #=> false
 
-## Re-invite: org_email_lookup points to the new invitation
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @reinvite_customer.email).objid == @reinvitation.objid
+## Re-invite: find_pending_by_email discovers the new invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @reinvite_customer.email).objid == @reinvitation.objid
 #=> true
 
 ## Re-invite: accepting the re-invitation works
@@ -300,7 +296,7 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @reinvite_customer
 @org.member?(@reinvite_customer)
 #=> true
 
-## Re-invite: org_customer_lookup is populated again
+## Re-invite: find_by_org_customer resolves again
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid).nil?
 #=> false
 
