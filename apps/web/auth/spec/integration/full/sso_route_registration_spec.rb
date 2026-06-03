@@ -25,12 +25,13 @@
 # covered at the unit level:
 #   apps/web/auth/spec/config/features/omniauth_providers_spec.rb
 #
-# NOTE: OIDC routes (/auth/sso/oidc) are always registered in the test
-# harness because spec_helper sets OIDC_ISSUER and OIDC_CLIENT_ID,
-# causing configure_oidc_provider to take the real-creds branch
-# regardless of orgs_sso_enabled. The discriminating routes — the ones
-# that prove the placeholder-registration fix works — are entra, github,
-# and google (no platform creds in the harness).
+# NOTE: OIDC routes (/auth/sso/oidc) may take either the real-creds or
+# placeholder branch depending on whether .env.test provides both
+# OIDC_ISSUER and OIDC_CLIENT_ID. The spec_helper guard only checks
+# OIDC_ISSUER, so an empty CLIENT_ID from .env.test causes placeholder
+# registration. The discriminating routes — the ones that prove the
+# placeholder-registration fix works — are entra, github, and google
+# (no platform creds in the harness).
 #
 # REQUIREMENTS:
 # - Valkey running on port 2121: pnpm run test:database:start
@@ -58,31 +59,40 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
   # The OIDC strategy attempts discovery (fetches .well-known) during the
   # request phase. webmock/rspec resets stubs after each example, so these
   # must be registered per-example rather than in before(:all).
+  #
+  # We stub both the env-configured issuer AND the placeholder issuer.
+  # When .env.test sets OIDC_ISSUER but leaves OIDC_CLIENT_ID empty,
+  # configure_oidc_provider falls through to placeholder registration
+  # despite a non-empty issuer in the environment.
   before do
     issuer = ENV.fetch('OIDC_ISSUER', MOCK_OIDC_ISSUER)
-    stub_request(:get, "#{issuer}/.well-known/openid-configuration")
-      .to_return(
-        status: 200,
-        body: {
-          issuer: issuer,
-          authorization_endpoint: "#{issuer}/authorize",
-          token_endpoint: "#{issuer}/token",
-          userinfo_endpoint: "#{issuer}/userinfo",
-          jwks_uri: "#{issuer}/.well-known/jwks.json",
-          response_types_supported: %w[code],
-          subject_types_supported: %w[public],
-          id_token_signing_alg_values_supported: %w[RS256],
-          scopes_supported: %w[openid email profile],
-        }.to_json,
-        headers: { 'Content-Type' => 'application/json' },
-      )
+    placeholder = 'https://placeholder.invalid'
 
-    stub_request(:get, "#{issuer}/.well-known/jwks.json")
-      .to_return(
-        status: 200,
-        body: { keys: [] }.to_json,
-        headers: { 'Content-Type' => 'application/json' },
-      )
+    [issuer, placeholder].uniq.each do |iss|
+      stub_request(:get, "#{iss}/.well-known/openid-configuration")
+        .to_return(
+          status: 200,
+          body: {
+            issuer: iss,
+            authorization_endpoint: "#{iss}/authorize",
+            token_endpoint: "#{iss}/token",
+            userinfo_endpoint: "#{iss}/userinfo",
+            jwks_uri: "#{iss}/.well-known/jwks.json",
+            response_types_supported: %w[code],
+            subject_types_supported: %w[public],
+            id_token_signing_alg_values_supported: %w[RS256],
+            scopes_supported: %w[openid email profile],
+          }.to_json,
+          headers: { 'Content-Type' => 'application/json' },
+        )
+
+      stub_request(:get, "#{iss}/.well-known/jwks.json")
+        .to_return(
+          status: 200,
+          body: { keys: [] }.to_json,
+          headers: { 'Content-Type' => 'application/json' },
+        )
+    end
   end
 
   # Use canonical host so DomainStrategy doesn't redirect to
