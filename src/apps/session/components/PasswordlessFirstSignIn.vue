@@ -33,14 +33,15 @@ const emit = defineEmits<{
 }>();
 
 const SIGNIN_MODE_KEY = 'onetimeSigninMode';
-const SIGNIN_MODE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const SIGNIN_MODE_TTL_MS = 30 * ONE_DAY_MS;
 const VALID_AUTH_MODES: readonly AuthMode[] = ['passkey', 'passwordless', 'password'];
 
 function isAuthMode(value: unknown): value is AuthMode {
   return typeof value === 'string' && VALID_AUTH_MODES.includes(value as AuthMode);
 }
 
-function loadSigninModePreference(): AuthMode | null {
+function loadSigninModePreference(): { mode: AuthMode; expiresAt: number } | null {
   try {
     const stored = localStorage.getItem(SIGNIN_MODE_KEY);
     if (!stored) return null;
@@ -52,7 +53,7 @@ function loadSigninModePreference(): AuthMode | null {
       typeof parsed.expiresAt === 'number' &&
       Date.now() < parsed.expiresAt
     ) {
-      return parsed.mode;
+      return { mode: parsed.mode, expiresAt: parsed.expiresAt };
     }
     localStorage.removeItem(SIGNIN_MODE_KEY);
   } catch {
@@ -98,12 +99,15 @@ const tabs = computed<TabConfig[]>(() => {
 });
 
 // Tab index management — restore saved preference if the mode is still available
-const savedMode = loadSigninModePreference();
-const savedIndex = savedMode ? tabs.value.findIndex(tab => tab.id === savedMode) : -1;
+const savedPref = loadSigninModePreference();
+const savedIndex = savedPref ? tabs.value.findIndex(tab => tab.id === savedPref.mode) : -1;
 const selectedTabIndex = ref(savedIndex >= 0 ? savedIndex : 0);
-if (savedIndex >= 0 && savedMode) {
-  saveSigninModePreference(savedMode);
-} else if (savedMode) {
+if (savedIndex >= 0 && savedPref) {
+  const refreshThreshold = SIGNIN_MODE_TTL_MS - ONE_DAY_MS;
+  if (savedPref.expiresAt - Date.now() < refreshThreshold) {
+    saveSigninModePreference(savedPref.mode);
+  }
+} else if (savedPref) {
   try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
 }
 
