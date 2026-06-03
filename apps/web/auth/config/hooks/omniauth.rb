@@ -214,24 +214,18 @@ module Auth::Config::Hooks
           ).call
         end
 
-        # Create default organization and team
+        # Organization assignment for new SSO accounts.
+        #
+        # MUTUALLY EXCLUSIVE paths — tenant SSO users join the tenant org,
+        # canonical SSO users get a default workspace. Never both.
+        #
+        # Consuming domain_id via session.delete ensures after_login sees nil
+        # and skips for new accounts — preventing a redundant idempotent call.
         if customer.is_a?(Onetime::Customer)
-          Onetime::ErrorHandler.safe_execute(
-            'create_default_workspace_omniauth',
-            extid: customer.extid,
-          ) do
-            Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
-          end
-
-          # Join domain's organization if SSO came from a custom domain.
-          # This hook OWNS the org-join for newly created SSO accounts (it has
-          # a direct reference to the freshly created customer, whereas after_login
-          # would have to look up via account[:external_id] which is updated in the
-          # database but not in Rodauth's in-memory account hash).
-          # Consuming the key via session.delete here ensures after_login sees nil
-          # and skips for new accounts — preventing a redundant idempotent call.
           domain_id = session.delete(:validated_omniauth_domain_id)
+
           if domain_id
+            # Tenant domain SSO → join the domain's organization only
             Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_omniauth',
               extid: customer.extid,
@@ -241,6 +235,14 @@ module Auth::Config::Hooks
                 customer: customer,
                 domain_id: domain_id,
               ).call
+            end
+          else
+            # Canonical domain SSO → create default workspace
+            Onetime::ErrorHandler.safe_execute(
+              'create_default_workspace_omniauth',
+              extid: customer.extid,
+            ) do
+              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
             end
           end
         end

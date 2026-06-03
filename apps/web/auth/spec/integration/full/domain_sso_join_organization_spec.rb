@@ -250,6 +250,112 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   end
 
   # ==========================================================================
+  # Regression: tenant SSO must NOT create a default workspace (issue #3326)
+  # ==========================================================================
+  #
+  # Before the fix, after_omniauth_create_account called CreateDefaultWorkspace
+  # BEFORE JoinDomainOrganization, resulting in tenant SSO users getting BOTH
+  # a default workspace AND membership in the tenant org. This violated the
+  # principle that tenant SSO users should only belong to the tenant org.
+  #
+  # The fix made the paths mutually exclusive:
+  #   - if domain_id present  → JoinDomainOrganization only (tenant SSO)
+  #   - if domain_id absent   → CreateDefaultWorkspace only (canonical SSO)
+  #
+  describe 'tenant SSO does not create default workspace (issue #3326)', :shared_db_state do
+    # Fresh customer with no organizations
+    let!(:fresh_sso_customer) do
+      customer = Onetime::Customer.new(email: "fresh-#{test_run_id}@tenant.example.com")
+      customer.save
+      customer
+    end
+
+    after do
+      # Clean up any orgs created during tests
+      fresh_sso_customer&.organization_instances&.each do |org|
+        org.destroy! rescue nil
+      end
+      fresh_sso_customer&.destroy! rescue nil
+    end
+
+    it 'tenant SSO user joins only the tenant org, no default workspace created' do
+      # Precondition: user has no organizations
+      expect(fresh_sso_customer.organization_instances.count).to eq(0),
+        'Fresh customer should have no organizations before SSO'
+
+      # Simulate tenant SSO path: domain_id is present
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: fresh_sso_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true)
+
+      # Reload participation data
+      orgs = fresh_sso_customer.organization_instances.to_a
+
+      # Critical assertion: user should have exactly ONE organization (the tenant org)
+      expect(orgs.count).to eq(1),
+        "Tenant SSO user should have exactly 1 org, got #{orgs.count}: #{orgs.map(&:display_name)}"
+
+      # And that org should be the tenant org, not a default workspace
+      expect(orgs.first.objid).to eq(tenant_organization.objid),
+        'The single org should be the tenant org, not a default workspace'
+      expect(orgs.first.is_default).to be_falsey,
+        'Tenant org should not be marked as default workspace'
+    end
+
+    it 'canonical SSO user gets default workspace, not tenant org membership' do
+      # Simulate canonical SSO path: no domain_id (SSO on main domain)
+      # CreateDefaultWorkspace should run
+
+      # Precondition: user has no organizations
+      expect(fresh_sso_customer.organization_instances.count).to eq(0)
+
+      # This is what happens when domain_id is nil in the hook
+      Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+
+      orgs = fresh_sso_customer.organization_instances.to_a
+
+      expect(orgs.count).to eq(1),
+        "Canonical SSO user should have exactly 1 org (default workspace)"
+      expect(orgs.first.is_default).to be(true),
+        'The org should be marked as default workspace'
+      expect(orgs.first.member?(fresh_sso_customer)).to be(true)
+
+      # And they should NOT be in the tenant org
+      expect(tenant_organization.member?(fresh_sso_customer)).to be(false),
+        'Canonical SSO user should not be added to tenant org'
+    end
+
+    it 'mutually exclusive: cannot get both default workspace and tenant org' do
+      # This test mirrors the bug scenario from #3326:
+      # If both operations ran, user would end up in 2 orgs
+
+      # Step 1: Join tenant org (tenant SSO path)
+      Auth::Operations::JoinDomainOrganization.new(
+        customer: fresh_sso_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      # Step 2: CreateDefaultWorkspace should now be a no-op
+      # because workspace_already_exists? returns true
+      result = Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+
+      expect(result).to be_nil,
+        'CreateDefaultWorkspace should return nil when user already has an org'
+
+      orgs = fresh_sso_customer.organization_instances.to_a
+      expect(orgs.count).to eq(1),
+        "User should still have only 1 org after both operations attempted"
+
+      # No default workspace should exist
+      expect(orgs.none?(&:is_default)).to be(true),
+        'No default workspace should have been created for tenant SSO user'
+    end
+  end
+
+  # ==========================================================================
   # End-to-end: real OAuth callback flow asserting tenant org membership
   # ==========================================================================
   #
