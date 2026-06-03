@@ -683,13 +683,16 @@
     "content_hash": "9a638e9c"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "View discovery document"
+    "text": "View discovery document",
+    "content_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "Callback URL"
+    "text": "Callback URL",
+    "content_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Add this URL to your identity provider's allowed redirect URIs"
+    "text": "Add this URL to your identity provider's allowed redirect URIs",
+    "content_hash": "65d55683"
   },
   "web.organizations.sso.allowed_domains": {
     "text": "Allowed Email Domains",
@@ -820,10 +823,12 @@
     "content_hash": "bbea960e"
   },
   "web.organizations.sso.no_domains": {
-    "text": "No verified domains"
+    "text": "No verified domains",
+    "content_hash": "8a7fbb76"
   },
   "web.organizations.sso.no_domains_description": {
-    "text": "Add and verify a domain before configuring SSO for it."
+    "text": "Add and verify a domain before configuring SSO for it.",
+    "content_hash": "e825d13a"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Different account signed in",

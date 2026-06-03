@@ -1556,6 +1556,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               <!-- Empty state -->
               <EmptyState
                 v-else-if="domainCount === 0"
+                :showAction="canCreateDomain"
                 :action-route="`/org/${orgId}/domains/add`"
                 :action-text="t('web.domains.add_domain')">
                 <template #title>

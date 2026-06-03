@@ -9,11 +9,9 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { AccountInfo } from '@/types/auth';
   import { computed, onMounted, ref } from 'vue';
-  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
-  const { has_password } = storeToRefs(bootstrapStore);
 
   // Feature toggles — derived from the reactive bootstrap store so they reflect
   // post-login state without re-mounting (e.g. after checkWindowStatus refresh).
@@ -264,7 +262,7 @@
 
       <!-- SSO empty state — shown when all cards are filtered out -->
       <div
-        v-if="!has_password && securityCards.length === 0"
+        v-if="!hasPw && securityCards.length === 0"
         class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="flex items-start gap-4">
           <div

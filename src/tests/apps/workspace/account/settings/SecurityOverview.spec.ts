@@ -117,6 +117,9 @@ const i18n = createI18n({
             improve_security: 'Improve your security',
             enable_mfa_recommendation: 'Enable two-factor authentication',
             generate_recovery_codes_recommendation: 'Generate recovery codes',
+            sso_managed_title: 'Security managed by SSO',
+            sso_managed_description:
+              "Your account is authenticated through your organization's single sign-on provider.",
           },
         },
       },
@@ -153,6 +156,7 @@ describe('SecurityOverview', () => {
     // Reset mocks
     mockMfaEnabled.value = true;
     mockWebAuthnEnabled.value = true;
+    mockHasPassword.value = true;
     mockAccountInfo.value = {
       email_verified: true,
       mfa_enabled: false,
@@ -640,6 +644,78 @@ describe('SecurityOverview', () => {
           expect(description.classes()).toContain('text-gray-600');
         }
       });
+    });
+  });
+
+  // Coverage for the SSO-only (no password) path added on fix/sso-ui:
+  // SecurityOverview filters password-dependent cards via hasPasswordOf and
+  // renders an SSO-managed empty state when every card is filtered out.
+  describe('SSO-Only Account (no password)', () => {
+    // Mount with `has_password` seeded into the bootstrap store so the
+    // empty-state v-if (which reads the store ref) matches production, where
+    // the store value and hasPasswordOf() derive from the same source.
+    const mountSso = () =>
+      mount(SecurityOverview, {
+        global: {
+          plugins: [
+            i18n,
+            createTestingPinia({
+              createSpy: vi.fn,
+              initialState: { bootstrap: { has_password: false } },
+            }),
+          ],
+          stubs: {
+            RouterLink: {
+              template: '<a :href="to" class="router-link"><slot /></a>',
+              props: ['to'],
+            },
+          },
+        },
+      });
+
+    it('hides password, MFA, and recovery codes cards', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = true;
+      wrapper = mountSso();
+
+      expect(findCardByIcon('lock-closed-solid')).toBeUndefined();
+      expect(findCardByIcon('key-solid')).toBeUndefined();
+      expect(findCardByIcon('document-text-solid')).toBeUndefined();
+    });
+
+    it('still shows the passkey card when WebAuthn is enabled', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = true;
+      wrapper = mountSso();
+
+      expect(findCardByIcon('finger-print-solid')).toBeDefined();
+      expect(wrapper.findAll('.grid > div').length).toBe(1);
+    });
+
+    it('renders the SSO-managed empty state when all cards are filtered out', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountSso();
+
+      expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain('Security managed by SSO');
+    });
+
+    it('does not render the cards grid when all cards are filtered out', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountSso();
+
+      expect(wrapper.find('.grid').exists()).toBe(false);
+    });
+
+    it('does not render the SSO empty state for a password account', () => {
+      mockHasPassword.value = true;
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(false);
+      expect(wrapper.find('.grid').exists()).toBe(true);
     });
   });
 });

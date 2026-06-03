@@ -533,7 +533,7 @@
   },
   "web.domains.signup.configure_signup": {
     "text": "Configure Signup",
-    "content_hash": "e8e28a2a"
+    "content_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
     "text": "Signup validation is not yet configured for this domain. Configure a strategy to control who can sign up via this domain.",
@@ -1088,9 +1088,11 @@
     "content_hash": "3c5a511f"
   },
   "web.domains.entitlement_required_owner": {
-    "text": "This feature requires a plan upgrade."
+    "text": "This feature requires a plan upgrade.",
+    "content_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "This feature is not available on your current plan. Contact your organization owner."
+    "text": "This feature is not available on your current plan. Contact your organization owner.",
+    "content_hash": "8f1688b2"
   }
 }
