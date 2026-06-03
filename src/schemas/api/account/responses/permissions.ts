@@ -49,6 +49,7 @@ export const organizationPermissionsSchema = z.object({
   membership: membershipDetailsSchema,
   permissions: resourcePermissionsSchema,
   domains: z.array(domainPermissionsSchema),
+  assignable_roles: z.array(z.string()),
 });
 
 export type OrganizationPermissions = z.infer<typeof organizationPermissionsSchema>;

@@ -83,8 +83,8 @@ module AccountAPI::Logic
     # ## Permission Logic
     #
     # Domain resources:
-    # - can_view: user is member of the domain's org (any role)
-    # - can_edit: user has 'custom_domains' entitlement (admin+)
+    # - can_view: user has 'custom_domains' entitlement
+    # - can_edit: user has 'custom_domains' entitlement
     # - can_delete: user has 'manage_org' entitlement (owner only)
     # - can_manage_settings: user has 'manage_org' entitlement (owner only)
     #
@@ -119,6 +119,7 @@ module AccountAPI::Logic
         return if bulk_mode
 
         # Single-resource mode validations
+        raise_form_error('resource_type is required when resource_id is provided') if resource_type.empty? && !resource_id.empty?
         raise_form_error('resource_id is required when resource_type is provided') if resource_id.empty?
 
         unless SUPPORTED_RESOURCE_TYPES.include?(resource_type)
@@ -183,6 +184,7 @@ module AccountAPI::Logic
           is_default: org.is_default || false,
           membership: serialize_membership_for(mem),
           permissions: organization_permissions_for(org, mem),
+          assignable_roles: compute_assignable_roles(org, mem),
           domains: domains.map { |d| serialize_domain_with_permissions(d, mem) },
         }
       end
@@ -230,6 +232,24 @@ module AccountAPI::Logic
           can_delete: is_owner && !org.is_default,
           can_manage_settings: mem.can?('manage_org'),
         }
+      end
+
+      # Compute which roles this member can assign to others.
+      # Base set always includes 'member'. Admin role assignable only if:
+      # 1. The plan allows it (limit != 0)
+      # 2. The member has owner or admin role
+      #
+      # Uses org.limit_for which handles the full fallback chain:
+      # materialized limits -> plan cache -> config fallback
+      def compute_assignable_roles(org, mem)
+        base        = ['member']
+        admin_limit = org.limit_for('role_admins_per_org')
+
+        # 0 = feature disabled, Float::INFINITY = unlimited, >0 = quota
+        return base if admin_limit == 0
+        return base unless %w[owner admin].include?(mem.role)
+
+        base + ['admin']
       end
 
       # Single-resource mode helpers
@@ -285,7 +305,7 @@ module AccountAPI::Logic
       end
 
       def raise_not_found_error(message)
-        raise OT::Problem, message
+        raise OT::RecordNotFound, message
       end
 
       def raise_forbidden_error(message)

@@ -154,3 +154,48 @@ rescue OT::Problem => e
   e.message
 end
 #=> 'Domain not found'
+
+## Assignable roles: Owner can assign admin (limit nil/unlimited)
+# Owner sees both 'member' and 'admin' when no limit is set
+@org_data = @result[:organizations].find { |o| o[:extid] == @org.extid }
+@org_data[:assignable_roles].sort
+#=> ['admin', 'member']
+
+## Assignable roles: Member cannot assign admin
+@member_result = AccountAPI::Logic::Account::GetPermissions.new(@member_auth, {}, 'en')
+@member_result.process_params
+@member_result.raise_concerns
+@member_bulk = @member_result.process
+@member_org_data = @member_bulk[:organizations].find { |o| o[:extid] == @org.extid }
+@member_org_data[:assignable_roles]
+#=> ['member']
+
+## Assignable roles: Admin can assign admin (limit nil/unlimited)
+@admin = Onetime::Customer.new(email: @unique_email.call)
+@admin.save
+@admin_membership = @org.add_members_instance(@admin, through_attrs: { role: 'admin', status: 'active' })
+@admin_membership.materialize_for_role!(@org)
+
+@admin_auth = create_auth_result(@admin)
+@admin_logic = AccountAPI::Logic::Account::GetPermissions.new(@admin_auth, {}, 'en')
+@admin_logic.process_params
+@admin_logic.raise_concerns
+@admin_bulk = @admin_logic.process
+@admin_org_data = @admin_bulk[:organizations].find { |o| o[:extid] == @org.extid }
+@admin_org_data[:assignable_roles].sort
+#=> ['admin', 'member']
+
+## Assignable roles: Always includes 'member' in all cases
+[@org_data[:assignable_roles].include?('member'),
+ @member_org_data[:assignable_roles].include?('member'),
+ @admin_org_data[:assignable_roles].include?('member')]
+#=> [true, true, true]
+
+## Assignable roles: Admin cannot assign admin when limit == 0
+# Test compute_assignable_roles logic directly with a stubbed limit
+@logic_instance = AccountAPI::Logic::Account::GetPermissions.new(@admin_auth, {}, 'en')
+# Create a mock org that returns 0 for limit_for
+@mock_org = Object.new
+@mock_org.define_singleton_method(:limit_for) { |_key| 0 }
+@logic_instance.send(:compute_assignable_roles, @mock_org, @admin_membership)
+#=> ['member']
