@@ -734,7 +734,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             data-testid="org-tab-sso"
             @click="setActiveTab('sso')"
             :class="[
-              'inline-flex items-center whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
               activeTab === 'sso'
                 ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
@@ -1223,8 +1223,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </p>
               </div>
               <router-link
-                v-if="canCreateDomain"
+                v-if="canCreateDomain && domainCount > 0"
                 :to="`/org/${orgId}/domains/add`"
+                data-testid="org-domains-add-cta"
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
@@ -1554,29 +1555,18 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 icon-size="w-5" />
 
               <!-- Empty state -->
-              <div v-else-if="domainCount === 0" class="py-8 text-center">
-                <OIcon
-                  collection="heroicons"
-                  name="globe-alt"
-                  class="mx-auto size-12 text-gray-400"
-                  aria-hidden="true" />
-                <h4 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+              <EmptyState
+                v-else-if="domainCount === 0"
+                :showAction="canCreateDomain"
+                :action-route="`/org/${orgId}/domains/add`"
+                :action-text="t('web.domains.add_domain')">
+                <template #title>
                   {{ t('web.organizations.sso.no_domains') }}
-                </h4>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                </template>
+                <template #description>
                   {{ t('web.organizations.sso.no_domains_description') }}
-                </p>
-                <router-link
-                  :to="`/org/${orgId}/domains/add`"
-                  class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
-                  <OIcon
-                    collection="heroicons"
-                    name="plus"
-                    class="size-4"
-                    aria-hidden="true" />
-                  {{ t('web.domains.add_domain') }}
-                </router-link>
-              </div>
+                </template>
+              </EmptyState>
 
               <!-- Domain list -->
               <div v-else class="space-y-3">

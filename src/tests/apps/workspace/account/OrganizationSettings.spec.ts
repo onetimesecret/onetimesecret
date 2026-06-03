@@ -55,6 +55,53 @@ vi.mock('@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue', () =
     props: ['error', 'resourceType'],
   },
 }));
+vi.mock('@/apps/workspace/components/domains/DomainsTable.vue', () => ({
+  default: {
+    name: 'DomainsTable',
+    template: '<div class="domains-table" />',
+  },
+}));
+vi.mock('@/shared/components/closet/ListSkeleton.vue', () => ({
+  default: {
+    name: 'ListSkeleton',
+    template: '<div class="list-skeleton" data-testid="list-skeleton" />',
+    props: ['icon', 'iconSize'],
+  },
+}));
+vi.mock('@/shared/components/ui/EmptyState.vue', () => ({
+  default: {
+    name: 'EmptyState',
+    template: `<div class="empty-state" data-testid="empty-state">
+      <slot name="title" />
+      <slot name="description" />
+      <a v-if="showAction !== false" :href="actionRoute" data-testid="empty-state-action">{{ actionText }}</a>
+    </div>`,
+    props: ['actionRoute', 'actionText', 'showAction', 'testid'],
+  },
+}));
+
+// Domains + permissions composables.
+// The Domains-tab "Add Domain" CTA is gated on `canCreateDomain && domainCount > 0`.
+// We vary `mockDomainCount` to exercise the domainCount portion (the change on
+// this branch). `canCreateDomain` is held via its own ref so we test the
+// component's gate, not the permission logic itself — that lives in
+// useOrgPermissions, which is being reworked in feature/3326-permissions-api.
+const mockDomainCount = ref(0);
+const mockCanCreateDomain = ref(true);
+vi.mock('@/shared/composables/useDomainsManager', () => ({
+  useDomainsManager: () => ({
+    isLoading: ref(false),
+    records: ref([]),
+    recordCount: mockDomainCount,
+    error: ref(null),
+    refreshRecords: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+vi.mock('@/shared/composables/useOrgPermissions', () => ({
+  useOrgPermissions: () => ({
+    canCreateDomain: mockCanCreateDomain,
+  }),
+}));
 
 // Mock services
 vi.mock('@/services/billing.service', () => ({
@@ -126,8 +173,15 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
     initDefinitions: vi.fn().mockResolvedValue(undefined),
     ENTITLEMENTS: {
       MANAGE_MEMBERS: 'manage_members',
+      MANAGE_SSO: 'manage_sso',
     },
   }),
+}));
+
+// Mock features (SSO feature flag)
+const mockOrgsSsoEnabled = ref(false);
+vi.mock('@/utils/features', () => ({
+  isOrgsSsoEnabled: () => mockOrgsSsoEnabled.value,
 }));
 
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
@@ -202,6 +256,15 @@ const i18n = createI18n({
               pending: 'Pending',
             },
           },
+          sso: {
+            domain_sso_title: 'Domain SSO',
+            domain_sso_description: 'Configure SSO for your domains',
+            no_domains: 'No domains configured',
+            no_domains_description: 'Add a domain to configure SSO',
+          },
+        },
+        domains: {
+          add_domain: 'Add Domain',
         },
         billing: {
           overview: {
@@ -254,6 +317,9 @@ describe('OrganizationSettings', () => {
     mockUpdateOrganization.mockResolvedValue(mockOrganization);
     mockFetchInvitations.mockResolvedValue([]);
     mockEntitlements.value = ['manage_members'];
+    mockDomainCount.value = 0;
+    mockCanCreateDomain.value = true;
+    mockOrgsSsoEnabled.value = false;
   });
 
   afterEach(() => {
@@ -297,19 +363,16 @@ describe('OrganizationSettings', () => {
   };
 
   /**
-   * Helper to find the billing email section within the Settings tab
+   * Helper to find the billing email section within the Settings tab.
+   * The billing email field has data-testid="org-billing-email-field".
    */
-  const findBillingEmailSection = (w: VueWrapper) => {
-    // The billing email field has data-testid="org-billing-email-field"
-    return w.find('[data-testid="org-billing-email-field"]');
-  };
+  const findBillingEmailSection = (w: VueWrapper) =>
+    w.find('[data-testid="org-billing-email-field"]');
 
   /**
    * Helper to find the Edit link for billing email (navigates to billing overview)
    */
-  const findEditLink = (w: VueWrapper) => {
-    return w.find('[data-testid="org-billing-email-edit-link"]');
-  };
+  const findEditLink = (w: VueWrapper) => w.find('[data-testid="org-billing-email-edit-link"]');
 
   /**
    * Billing Email Display Tests
@@ -430,6 +493,107 @@ describe('OrganizationSettings', () => {
         expect(section.text()).toContain('Billing Email');
         expect(section.text()).toContain(nonDefaultOrg.contact_email);
       });
+    });
+  });
+
+  /**
+   * Domains tab — "Add Domain" CTA visibility (fix/sso-ui).
+   *
+   * The header CTA is gated on `canCreateDomain && domainCount > 0` so it does
+   * not duplicate the add button in the empty state. Domains is the default
+   * tab, so no tab switch is needed.
+   */
+  describe('Domains Tab — Add Domain CTA', () => {
+    // Header CTA only; the empty-state has its own add link, which is the
+    // duplication this gate (domainCount > 0) exists to avoid.
+    const addLink = '[data-testid="org-domains-add-cta"]';
+
+    it('hides the Add Domain CTA when there are no domains', async () => {
+      mockCanCreateDomain.value = true;
+      mockDomainCount.value = 0;
+      wrapper = await mountComponent();
+
+      expect(wrapper.find(addLink).exists()).toBe(false);
+    });
+
+    it('shows the Add Domain CTA when domains exist', async () => {
+      mockCanCreateDomain.value = true;
+      mockDomainCount.value = 2;
+      wrapper = await mountComponent();
+
+      expect(wrapper.find(addLink).exists()).toBe(true);
+    });
+
+    it('hides the Add Domain CTA when the user cannot create domains', async () => {
+      mockCanCreateDomain.value = false;
+      mockDomainCount.value = 2;
+      wrapper = await mountComponent();
+
+      expect(wrapper.find(addLink).exists()).toBe(false);
+    });
+  });
+
+  /**
+   * SSO tab — EmptyState CTA visibility (fix/sso-ui).
+   *
+   * The SSO tab EmptyState shows an "Add Domain" action only when
+   * `canCreateDomain === true`. This prevents non-admins from seeing a CTA
+   * they cannot act on.
+   */
+  describe('SSO Tab — EmptyState CTA', () => {
+    // Helper to switch to SSO tab
+    const switchToSsoTab = async (w: VueWrapper) => {
+      const navTabs = w.find('nav[aria-label="Organization settings tabs"]');
+      const tabs = navTabs.findAll('button');
+      const ssoTab = tabs.find((tab) => tab.attributes('id') === 'org-tab-sso');
+      if (!ssoTab) {
+        throw new Error('SSO tab not found');
+      }
+      await ssoTab.trigger('click');
+      await flushPromises();
+      await nextTick();
+    };
+
+    // Enable SSO feature and entitlement for all tests in this block
+    const enableSso = () => {
+      mockOrgsSsoEnabled.value = true;
+      mockEntitlements.value = ['manage_members', 'manage_sso'];
+    };
+
+    it('shows EmptyState CTA when user can create domains', async () => {
+      enableSso();
+      mockCanCreateDomain.value = true;
+      mockDomainCount.value = 0;
+      wrapper = await mountComponent();
+      await switchToSsoTab(wrapper);
+
+      const emptyState = wrapper.find('[data-testid="empty-state"]');
+      expect(emptyState.exists()).toBe(true);
+      expect(emptyState.find('[data-testid="empty-state-action"]').exists()).toBe(true);
+    });
+
+    it('hides EmptyState CTA when user cannot create domains', async () => {
+      enableSso();
+      mockCanCreateDomain.value = false;
+      mockDomainCount.value = 0;
+      wrapper = await mountComponent();
+      await switchToSsoTab(wrapper);
+
+      const emptyState = wrapper.find('[data-testid="empty-state"]');
+      expect(emptyState.exists()).toBe(true);
+      expect(emptyState.find('[data-testid="empty-state-action"]').exists()).toBe(false);
+    });
+
+    it('does not show EmptyState when domains exist', async () => {
+      enableSso();
+      mockCanCreateDomain.value = true;
+      mockDomainCount.value = 2;
+      wrapper = await mountComponent();
+      await switchToSsoTab(wrapper);
+
+      // When domains exist, the domain list is shown instead of EmptyState
+      const emptyState = wrapper.find('[data-testid="org-section-sso"] [data-testid="empty-state"]');
+      expect(emptyState.exists()).toBe(false);
     });
   });
 });

@@ -1,3 +1,5 @@
+# apps/web/billing/docs/BILLING-ENTITLEMENT-TEST-PATTERNS.md
+---
 # Billing and Entitlement Test Patterns
 
 This guide documents best practices for writing tests that involve billing and entitlements, ensuring proper test isolation per Issue #2228.
