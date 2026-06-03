@@ -232,22 +232,25 @@ module V2::Logic
         validate_domain_access(@share_domain)
       end
 
-      # Guest share-domain policy (issue #3311): a guest may create links only on
-      # the domain they are currently visiting.
+      # Guest share-domain policy (issue #3311): a guest's link is always created
+      # on the domain they are currently visiting. The POST body can only reject
+      # the request (by naming a *different* custom domain); it can never redirect
+      # the link somewhere else.
       #
-      #   Guest is on…    | POST body share_domain | Result
-      #   ----------------+------------------------+------------------------------
-      #   custom domain X | X (or omitted)         | allowed — link on X
-      #   custom domain X | a different domain Y    | rejected (Forbidden)
-      #   canonical       | any custom domain       | rejected (Forbidden)
-      #   canonical       | omitted / canonical     | allowed — link on canonical
+      #   Guest is on…    | POST body share_domain         | Result
+      #   ----------------+--------------------------------+--------------------------
+      #   custom domain X | X, omitted, canonical, or junk | allowed — link on X
+      #   custom domain X | a different valid custom dom. Y | rejected (Forbidden)
+      #   canonical       | omitted, canonical, or junk    | allowed — link on canonical
+      #   canonical       | any valid custom domain         | rejected (Forbidden)
       #
-      # process_share_domain captured any requested domain in @share_domain. The
-      # only legitimate anonymous value is the custom domain named by the Host
-      # header (display_domain) — i.e. a guest using the /guest endpoints on a
-      # branded domain. Everything else is a cross-domain smuggle and is rejected
-      # here, before determine_share_domain resolves the domain and
-      # validate_domain_access uses it.
+      # Nuance: only a valid, non-default custom domain that differs from the one
+      # the guest is on counts as a smuggle. process_share_domain already filters
+      # empty, malformed, and canonical/default values to nil, so they arrive here
+      # as "no request" (share_domain.nil?) and are ignored rather than rejected —
+      # the link is created on whatever domain the guest is on. The only legitimate
+      # non-nil value is the Host-header custom domain (display_domain), i.e. a
+      # guest using the /guest endpoints on a branded domain.
       #
       # Authenticated callers are unaffected: domain selection is governed by
       # validate_domain_permissions (ownership / membership).

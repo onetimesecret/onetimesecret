@@ -1059,5 +1059,23 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect(subject.share_domain).to eq(host_domain)
       end
     end
+
+    # The policy-table nuance: a guest on a custom domain who names the
+    # *canonical* domain (or anything malformed) is not smuggling — those values
+    # are filtered to nil at ingestion, so the link is created on the custom
+    # domain they are on rather than rejected.
+    context 'POST body names the canonical domain while on a custom domain' do
+      subject { build_e2e_subject('onetimesecret.com') }
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:default_domain?)
+          .with('onetimesecret.com').and_return(true)
+      end
+
+      it 'ignores it and pins the secret to the Host (custom) domain' do
+        expect { subject.raise_concerns }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+    end
   end
 end
