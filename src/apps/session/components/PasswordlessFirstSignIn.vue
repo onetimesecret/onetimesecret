@@ -32,6 +32,35 @@ const emit = defineEmits<{
   (e: 'mode-change', mode: AuthMode): void;
 }>();
 
+const SIGNIN_MODE_KEY = 'onetimeSigninMode';
+const SIGNIN_MODE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function loadSigninModePreference(): AuthMode | null {
+  try {
+    const stored = localStorage.getItem(SIGNIN_MODE_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    if (parsed.expiresAt && Date.now() < parsed.expiresAt) {
+      return parsed.mode;
+    }
+    localStorage.removeItem(SIGNIN_MODE_KEY);
+  } catch {
+    localStorage.removeItem(SIGNIN_MODE_KEY);
+  }
+  return null;
+}
+
+function saveSigninModePreference(mode: AuthMode) {
+  try {
+    localStorage.setItem(SIGNIN_MODE_KEY, JSON.stringify({
+      mode,
+      expiresAt: Date.now() + SIGNIN_MODE_TTL_MS,
+    }));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 // Build dynamic tabs based on enabled features
 interface TabConfig {
   id: AuthMode;
@@ -57,8 +86,10 @@ const tabs = computed<TabConfig[]>(() => {
   return result;
 });
 
-// Tab index management
-const selectedTabIndex = ref(0);
+// Tab index management — restore saved preference if still valid
+const savedMode = loadSigninModePreference();
+const savedIndex = savedMode ? tabs.value.findIndex(tab => tab.id === savedMode) : -1;
+const selectedTabIndex = ref(savedIndex >= 0 ? savedIndex : 0);
 
 // Prefill email from query param (e.g., from invitation flow)
 // Single email ref shared across all auth tabs for consistent UX
@@ -109,6 +140,7 @@ const togglePasswordVisibility = () => {
 const handleTabChange = (index: number) => {
   selectedTabIndex.value = index;
   const mode = tabs.value[index]?.id ?? 'password';
+  saveSigninModePreference(mode);
 
   // Clear errors when switching tabs
   if (mode === 'passkey') {
@@ -144,9 +176,6 @@ const handleTryAgain = () => {
   clearMagicLinkState();
   email.value = '';
 };
-
-// Find tab index by mode ID (available for future use)
-const _getTabIndexByMode = (mode: AuthMode): number => tabs.value.findIndex(tab => tab.id === mode);
 
 // Check if a specific tab is the passkey tab
 const isPasskeyTab = (index: number): boolean => tabs.value[index]?.id === 'passkey';
