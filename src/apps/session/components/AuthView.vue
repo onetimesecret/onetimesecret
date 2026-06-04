@@ -7,7 +7,6 @@
     useJurisdictionStore,
     useJurisdictionDisplayNames,
   } from '@/shared/stores/jurisdictionStore';
-  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
   interface IconConfig {
@@ -47,7 +46,6 @@
 
   // Initialize jurisdiction store
   const jurisdictionStore = useJurisdictionStore();
-  const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
   const { currentJurisdictionWithDisplayName } = useJurisdictionDisplayNames();
 
   // Compute the current jurisdiction or default to unknown
@@ -66,18 +64,20 @@
     }
   );
 
-  // Compute the background icon based on jurisdiction status
+  // Compute the background icon based on jurisdiction status.
+  // Uses the resolved icon (jurisdiction.icon ?? identifier mapping ?? globe),
+  // not the raw config icon which is undefined when JURISDICTIONS omits it.
   const backgroundIcon = computed((): IconConfig => {
-    if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
-      return getCurrentJurisdiction.value.icon;
+    if (jurisdictionStore.enabled) {
+      return currentJurisdiction.value.icon;
     }
     return props.featureIcon;
   });
 
   // Compute the icon to show based on jurisdiction status
   const iconToShow = computed((): IconConfig => {
-    if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
-      return getCurrentJurisdiction.value.icon;
+    if (jurisdictionStore.enabled) {
+      return currentJurisdiction.value.icon;
     }
     return props.featureIcon;
   });

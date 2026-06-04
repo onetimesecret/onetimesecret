@@ -291,6 +291,15 @@
     "text": "Current plan",
     "content_hash": "37ca715f"
   },
+  "web.colonel.previewPlanMode": {
+    "text": "Preview plan mode"
+  },
+  "web.colonel.previewModeDescription": {
+    "text": "Preview the application as it appears to customers on a different plan. This affects your view only and does not change any organization's actual plan."
+  },
+  "web.colonel.previewModeActive": {
+    "text": "Preview active"
+  },
   "web.colonel.availablePlans": {
     "text": "Available plans",
     "content_hash": "20efa44d"

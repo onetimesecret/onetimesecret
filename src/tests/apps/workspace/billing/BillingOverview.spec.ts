@@ -84,6 +84,7 @@ vi.mock('@/types/billing', () => ({
     return names[id] || id;
   },
   isLegacyPlan: (planId: string) => planId === 'identity',
+  isFreePlan: (planId: string) => !planId || planId === 'free' || planId.startsWith('free_'),
 }));
 
 // Use shared fixture factory for overview response

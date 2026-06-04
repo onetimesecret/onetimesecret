@@ -15,6 +15,7 @@
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
+  import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, onMounted } from 'vue';
@@ -36,11 +37,16 @@
   const receiptListStore = useReceiptListStore();
   const domainsStore = useDomainsStore();
 
+  // Permission check for domain management (admins/owners only)
+  const { canManageDomain } = useOrgPermissions();
+
   // Load stores when authenticated (needed for workspace footer mobile nav)
   onMounted(() => {
     if (authenticated.value) {
       receiptListStore.refreshRecords(true);
-      if (domainsEnabled) {
+      // Only fetch domain list for users who can manage domains (admins/owners)
+      // Members get domain context from the permissions API via useDomainContext
+      if (domainsEnabled && canManageDomain.value) {
         domainsStore.refreshRecords({ force: true });
       }
     }
