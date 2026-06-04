@@ -227,9 +227,11 @@ module Onetime
         raise ArgumentError, "Config not readable: #{path}"
       end
 
+      loading_file = path
       base_config = if using_default_path
         defaults_file = Onetime::Utils::ConfigResolver.defaults_path('config')
         if defaults_file && defaults_file != path
+          loading_file = defaults_file
           load_yaml_with_erb(defaults_file)
         else
           {}
@@ -238,6 +240,7 @@ module Onetime
         {}
       end
 
+      loading_file = path
       env_config = load_yaml_with_erb(path)
 
       if base_config.empty?
@@ -246,11 +249,11 @@ module Onetime
         Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
     rescue StandardError => ex
-      OT.le "Error loading config: #{path}"
+      OT.le "Error loading config: #{loading_file}"
 
       if OT.debug?
         begin
-          template_lines = File.read(path).split("\n")
+          template_lines = File.read(loading_file).split("\n")
           template_lines.each_with_index do |line, index|
             OT.ld "Line #{index + 1}: #{line}"
           end
