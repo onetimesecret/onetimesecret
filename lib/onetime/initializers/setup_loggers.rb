@@ -121,7 +121,7 @@ module Onetime
         return base_config if env_config.empty?
         return env_config if base_config.empty?
 
-        Onetime::Utils::Enumerables.deep_merge(base_config, env_config)
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
 
       # Precedence: LOG_LEVEL env > ONETIME_DEBUG > config file > :info default

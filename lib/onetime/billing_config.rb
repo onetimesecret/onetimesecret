@@ -161,7 +161,7 @@ module Onetime
       @config = if base_config.empty?
         env_config
       else
-        Onetime::Utils::Enumerables.deep_merge(base_config, env_config)
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
     rescue StandardError => ex
       OT.le "[BillingConfig] Error loading billing config: #{ex.message}"

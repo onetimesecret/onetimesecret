@@ -385,7 +385,7 @@ module Onetime
       @config = if base_config.empty?
         env_config
       else
-        Onetime::Utils::Enumerables.deep_merge(base_config, env_config)
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
     rescue StandardError => ex
       handle_config_error(ex)

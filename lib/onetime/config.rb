@@ -204,7 +204,14 @@ module Onetime
     # only in the defaults file are visible in all environments without
     # manual duplication. See #3322.
     #
-    # @param path [String] (optional) path to the environment-specific YAML file
+    # The YAML layer merge uses preserve_nils: false so that explicit nil
+    # in the environment file means "I want nil" (not "keep the default").
+    # Nil-preservation is reserved for the in-code DEFAULTS merge in
+    # after_load, where nil means "not specified".
+    #
+    # @param path [String] (optional) path to the environment-specific YAML
+    #   file. When nil, layered defaults are applied automatically. When an
+    #   explicit path is given, only that file is loaded (no defaults layer).
     # @return [Hash] the parsed, merged YAML data
     #
     def load(path = nil)
@@ -235,7 +242,7 @@ module Onetime
       if base_config.empty?
         env_config
       else
-        deep_merge(base_config, env_config)
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
     rescue StandardError => ex
       OT.le "Error loading config: #{path}"

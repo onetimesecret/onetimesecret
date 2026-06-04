@@ -102,6 +102,8 @@ features:
       listen_address: <%= ENV['ACME_LISTEN_ADDRESS'] || '127.0.0.1' %>
       # Port for standalone mode (Caddy's ask directive points here)
       port: <%= ENV['ACME_PORT'] || '12020' %>
+  incoming:
+    recipients: []
   organizations:
     enabled: <%= ENV['ENABLE_ORGS'] == 'true' %>
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
@@ -124,6 +126,11 @@ jobs:
   rabbitmq_url: "<%= ENV['RABBITMQ_URL'] || '' %>"
   channel_pool_size: 1
   fallback_to_sync: true
+  dlq_consumer_enabled: false
+  maintenance:
+    housekeeping:
+      enabled: false
+      cron: ~
 
 emailer:
   mode: 'logger'
@@ -268,3 +275,8 @@ development:
   debug: false
   frontend_host: 'http://localhost:5173'
   allow_nil_global_secret: false
+  # Explicitly nil so dev_*_auth_enabled? falls through to ENV check at
+  # runtime, allowing tryout tests to toggle via env var. Defaults file
+  # evaluates ERB at boot which freezes the value.
+  devbasicauth: ~
+  devsessionauth: ~
