@@ -148,12 +148,42 @@ module Onetime
         return
       end
 
-      erb_template = ERB.new(File.read(@path))
-      yaml_content = erb_template.result
-      @config      = YAML.safe_load(yaml_content, symbolize_names: false) || {}
+      defaults_file = Onetime::Utils::ConfigResolver.defaults_path('billing')
+      base_config = if defaults_file && defaults_file != @path
+        load_yaml_from(defaults_file)
+      else
+        {}
+      end
+
+      env_config = load_yaml_from(@path)
+
+      @config = if base_config.empty?
+        env_config
+      else
+        deep_merge_hashes(base_config, env_config)
+      end
     rescue StandardError => ex
       OT.le "[BillingConfig] Error loading billing config: #{ex.message}"
       @config = {}
+    end
+
+    def load_yaml_from(path)
+      erb_template = ERB.new(File.read(path))
+      yaml_content = erb_template.result
+      YAML.safe_load(yaml_content, symbolize_names: false) || {}
+    end
+
+    def deep_merge_hashes(original, other)
+      merger = proc do |_key, v1, v2|
+        if v1.is_a?(Hash) && v2.is_a?(Hash)
+          v1.merge(v2, &merger)
+        elsif v2.nil?
+          v1
+        else
+          v2
+        end
+      end
+      original.merge(other, &merger)
     end
   end
 
