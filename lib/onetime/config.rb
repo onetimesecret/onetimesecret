@@ -218,6 +218,7 @@ module Onetime
     def load(path = nil)
       using_default_path = path.nil?
       path ||= self.path
+      loading_file = path
 
       if path.nil? || path.empty?
         raise ArgumentError, 'Config path not set (checked etc/config.yaml and SERVICE_PATHS)'
