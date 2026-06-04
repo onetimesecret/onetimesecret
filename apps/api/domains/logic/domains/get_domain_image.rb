@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'base64'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
@@ -12,11 +13,10 @@ module DomainsAPI::Logic
     #   base64-encoded data with content type metadata. Returns 404 if no
     #   image is stored.
     #
-    # Authorization model (read-only — no DomainConfigAuthorization):
-    #   1. Verify user belongs to an organization (require_organization!)
-    #   2. Load CustomDomain by extid
-    #   3. Verify user owns the domain (owner? check)
-    #   4. Verify user's membership has custom_branding entitlement
+    # Authorization model (read-only, via DomainConfigAuthorization helpers):
+    #   1. Load CustomDomain by extid
+    #   2. Load Organization via domain.org_id
+    #   3. Verify user's membership has custom_branding entitlement
     #
     # Unlike the write counterparts (UpdateDomainImage, RemoveDomainImage),
     # this endpoint does NOT require manage_org. Regular org members can
@@ -24,6 +24,8 @@ module DomainsAPI::Logic
     # overlay, keeping premium features visible per modern SaaS convention.
     #
     class GetDomainImage < DomainsAPI::Logic::Base
+      include DomainsAPI::Policies::DomainConfigAuthorization
+
       SCHEMAS = { response: 'imageProps' }.freeze
 
       attr_reader :display_domain, :image_field, :image, :custom_domain
@@ -41,21 +43,9 @@ module DomainsAPI::Logic
       def raise_concerns
         raise_form_error 'Please provide a domain ID' if @extid.empty?
 
-        # Get customer's organization for domain ownership
-        # Organization available via @organization
-        require_organization!
-
-        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
-        raise_form_error 'Domain not found' unless custom_domain
-
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
-          raise_form_error 'Domain not found'
-        end
-
-        domain_org = @custom_domain.primary_organization
-        raise_form_error 'Domain has no associated organization' unless domain_org
-        require_entitlement_in!(domain_org, 'custom_branding')
+        @custom_domain = load_custom_domain(@extid)
+        @organization = load_organization_for_domain(@custom_domain)
+        require_entitlement_in!(@organization, 'custom_branding')
 
         @display_domain = @custom_domain.display_domain
 
@@ -78,11 +68,22 @@ module DomainsAPI::Logic
         }
       end
 
+      protected
+
+      def config_entitlement
+        'custom_branding'
+      end
+
+      def config_entitlement_error
+        'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
+      end
+
+      private
+
       # e.g. custom_domain.logo
       def _image_field
         custom_domain.send(self.class.field)
       end
-      private :_image_field
     end
 
     class GetDomainLogo < GetDomainImage
