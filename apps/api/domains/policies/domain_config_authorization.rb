@@ -1,62 +1,61 @@
-# apps/api/domains/logic/concerns/domain_config_authorization.rb
+# apps/api/domains/policies/domain_config_authorization.rb
 #
 # frozen_string_literal: true
 
 require 'onetime/application/authorization_policies'
 
 module DomainsAPI
-  module Logic
-    module Concerns
-      # Shared authorization logic for domain config endpoints.
-      #
-      # Provides the common authorization flow used by domain config
-      # base classes (ApiConfig, HomepageConfig, SenderConfig, SsoConfig)
-      # and write-path brand/image endpoints (UpdateDomainBrand,
-      # UpdateDomainImage, RemoveDomainImage):
-      #
-      #   1. Check feature flag (if config_feature_flag is defined)
-      #   2. Load CustomDomain by domain_id (extid)
-      #   3. Load Organization via domain.org_id
-      #   4. Verify user has manage_org in the organization (colonel bypass)
-      #   5. Verify organization has the required entitlement
-      #
-      # Read-only brand/image endpoints (GetDomainBrand, GetDomainImage)
-      # intentionally skip this concern — they check custom_branding
-      # membership directly so regular org members can view the brand
-      # management page (rendered as a disabled overlay in the UI).
-      #
-      # Including classes must define:
-      #   - `config_entitlement` returning the entitlement name string
-      #   - `config_entitlement_error` returning the error message string
-      #
-      # Including classes may optionally define:
-      #   - `config_feature_flag` returning the feature flag path
-      #      (e.g. 'custom_mail_enabled') checked under
-      #      features.organizations in config. Returns nil by default
-      #      (no feature flag check).
-      #   - `config_feature_flag_error` returning the error message when
-      #      the feature flag is disabled.
-      #   - `config_log_tag` returning a string tag for structured log
-      #      messages (e.g. 'SenderConfig'). Defaults to the enclosing
-      #      module's short name.
-      #
-      # Example:
-      #
-      #   class Base < DomainsAPI::Logic::Base
-      #     include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
-      #
-      #     protected
-      #
-      #     def config_entitlement
-      #       'api_access'
-      #     end
-      #
-      #     def config_entitlement_error
-      #       'API configuration requires the api_access entitlement. Please upgrade your plan.'
-      #     end
-      #   end
-      #
-      module DomainConfigAuthorization
+  module Policies
+    # Shared authorization policy for domain config endpoints.
+    #
+    # Provides the common authorization flow used by domain config
+    # base classes (ApiConfig, HomepageConfig, SenderConfig, SsoConfig)
+    # and write-path brand/image endpoints (UpdateDomainBrand,
+    # UpdateDomainImage, RemoveDomainImage):
+    #
+    #   1. Check feature flag (if config_feature_flag is defined)
+    #   2. Load CustomDomain by domain_id (extid)
+    #   3. Load Organization via domain.org_id
+    #   4. Verify user has manage_org in the organization (colonel bypass)
+    #   5. Verify organization has the required entitlement
+    #
+    # Read-only brand/image endpoints (GetDomainBrand, GetDomainImage)
+    # intentionally skip this policy — they check custom_branding
+    # membership directly so regular org members can view the brand
+    # management page (rendered as a disabled overlay in the UI).
+    #
+    # Including classes must define:
+    #   - `config_entitlement` returning the entitlement name string
+    #   - `config_entitlement_error` returning the error message string
+    #
+    # Including classes may optionally define:
+    #   - `config_feature_flag` returning the feature flag path
+    #      (e.g. 'custom_mail_enabled') checked under
+    #      features.organizations in config. Returns nil by default
+    #      (no feature flag check).
+    #   - `config_feature_flag_error` returning the error message when
+    #      the feature flag is disabled.
+    #   - `config_log_tag` returning a string tag for structured log
+    #      messages (e.g. 'SenderConfig'). Defaults to the enclosing
+    #      module's short name.
+    #
+    # Example:
+    #
+    #   class Base < DomainsAPI::Logic::Base
+    #     include DomainsAPI::Policies::DomainConfigAuthorization
+    #
+    #     protected
+    #
+    #     def config_entitlement
+    #       'api_access'
+    #     end
+    #
+    #     def config_entitlement_error
+    #       'API configuration requires the api_access entitlement. Please upgrade your plan.'
+    #     end
+    #   end
+    #
+    module DomainConfigAuthorization
         def self.included(base)
           base.include Onetime::Application::AuthorizationPolicies
         end
@@ -176,7 +175,6 @@ module DomainsAPI
             { domain_id: domain_id, actor: cust&.custid }.to_json
           raise_form_error(config_feature_flag_error, error_type: :forbidden)
         end
-      end
     end
   end
 end

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/api_config'
-require_relative '../concerns/domain_config_authorization'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI
   module Logic
@@ -17,7 +17,7 @@ module DomainsAPI
       #   4. Verify organization has api_access entitlement
       #
       class Base < DomainsAPI::Logic::Base
-        include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+        include DomainsAPI::Policies::DomainConfigAuthorization
 
         attr_reader :custom_domain, :organization
 

@@ -5,7 +5,7 @@
 require 'onetime/domain_validation/strategy'
 require 'onetime/domain_validation/features'
 require_relative '../base'
-require_relative '../concerns/domain_config_authorization'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
@@ -25,7 +25,7 @@ module DomainsAPI::Logic
     # members can view the brand page (disabled overlay in the UI).
     #
     class UpdateDomainBrand < DomainsAPI::Logic::Base
-      include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+      include DomainsAPI::Policies::DomainConfigAuthorization
 
       SCHEMAS = { response: 'brandSettings' }.freeze
 

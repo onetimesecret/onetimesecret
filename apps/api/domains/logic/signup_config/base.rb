@@ -4,7 +4,7 @@
 
 require 'public_suffix'
 require 'onetime/models/custom_domain/signup_config'
-require_relative '../concerns/domain_config_authorization'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI
   module Logic
@@ -18,7 +18,7 @@ module DomainsAPI
       #   4. Verify organization has custom_signup_validation entitlement
       #
       class Base < DomainsAPI::Logic::Base
-        include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+        include DomainsAPI::Policies::DomainConfigAuthorization
 
         attr_reader :custom_domain, :organization
 

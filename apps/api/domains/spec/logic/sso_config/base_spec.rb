@@ -5,7 +5,7 @@
 # Unit tests for SsoConfig::Base authorization logic.
 #
 # Authorization errors are raised via the DomainConfigAuthorization
-# concern using raise_form_error (FormError with error_type: :forbidden)
+# policy using raise_form_error (FormError with error_type: :forbidden)
 # for feature flag and entitlement checks, and Onetime::Forbidden for
 # organization ownership checks (via verify_one_of_roles!).
 #
@@ -109,12 +109,12 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Base do
       .and_return(owner_membership)
   end
 
-  describe 'concern integration' do
-    it 'includes DomainConfigAuthorization concern' do
-      expect(described_class).to be < DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+  describe 'policy integration' do
+    it 'includes DomainConfigAuthorization policy' do
+      expect(described_class).to be < DomainsAPI::Policies::DomainConfigAuthorization
     end
 
-    it 'includes AuthorizationPolicies via the concern' do
+    it 'includes AuthorizationPolicies via the policy' do
       expect(described_class).to be < Onetime::Application::AuthorizationPolicies
     end
 
