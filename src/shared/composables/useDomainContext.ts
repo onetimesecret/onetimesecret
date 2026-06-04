@@ -15,7 +15,7 @@
 
 import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useDomainsStore } from '@/shared/stores/domainsStore';
+import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { AxiosInstance } from 'axios';
 import { computed, inject, ref, watch } from 'vue';
@@ -45,12 +45,24 @@ let watcherInitialized = false;
 // Bootstrap store reference - initialized on first composable use
 let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
 
+// Domain data extracted from permissions API (replaces domainsStore for dropdown context)
+const permissionsDomains = ref<Array<{ display_domain: string; extid: string }>>([]);
+let permissionsInstance: ReturnType<typeof useResourcePermissions> | null = null;
+
 /** Get bootstrap store instance (lazy singleton) */
 function getBootstrapStore(): ReturnType<typeof useBootstrapStore> {
   if (!bootstrapStoreInstance) {
     bootstrapStoreInstance = useBootstrapStore();
   }
   return bootstrapStoreInstance;
+}
+
+/** Get permissions composable instance (lazy singleton, must be called during setup) */
+function getPermissions(): ReturnType<typeof useResourcePermissions> {
+  if (!permissionsInstance) {
+    permissionsInstance = useResourcePermissions();
+  }
+  return permissionsInstance;
 }
 
 /** Get config values from bootstrap store (reads current values) */
@@ -137,23 +149,22 @@ async function persistDomainContext(
 }
 
 /**
- * Create domain fetcher for an organization store.
- * @see src/tests/composables/useDomainContext.spec.ts - Test fixtures (mock uses objid)
+ * Create domain fetcher using the permissions API.
+ * Extracts domains for the current organization from the bulk permissions response.
+ * @see src/tests/composables/useDomainContext.spec.ts
  */
-function createDomainFetcher(
+function createPermissionsFetcher(
   organizationStore: ReturnType<typeof useOrganizationStore>,
-  domainsStore: ReturnType<typeof useDomainsStore>
 ) {
   return async (): Promise<boolean> => {
     const { domainsEnabled } = getConfig();
     if (!domainsEnabled) return true;
-    const orgId = organizationStore.currentOrganization?.objid;
-    if (!orgId) {
+    const orgExtid = organizationStore.currentOrganization?.extid;
+    if (!orgExtid) {
       console.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
       return false;
     }
 
-    // Cancel any in-flight fetch before starting a new one
     if (currentFetchController) {
       currentFetchController.abort();
     }
@@ -162,17 +173,18 @@ function createDomainFetcher(
 
     isLoadingDomains.value = true;
     try {
-      await domainsStore.fetchList(orgId);
-      // Return true only if this fetch wasn't aborted
-      return !controller.signal.aborted;
+      const result = await permissionsInstance!.fetchAllPermissions();
+      if (controller.signal.aborted) return false;
+
+      const orgPerms = result?.organizations.find(o => o.extid === orgExtid);
+      permissionsDomains.value = orgPerms?.domains ?? [];
+      return true;
     } catch (error) {
-      // Ignore abort errors, log others
       if (error instanceof Error && error.name !== 'AbortError') {
-        console.warn('[useDomainContext] Failed to fetch domains:', error);
+        console.warn('[useDomainContext] Failed to fetch permissions:', error);
       }
       return false;
     } finally {
-      // Only clear loading state if this is still the current controller
       if (currentFetchController === controller) {
         isLoadingDomains.value = false;
         currentFetchController = null;
@@ -244,12 +256,12 @@ async function initializeDomainContext(
  */
 export function useDomainContext() {
   const $api = inject('api') as AxiosInstance | undefined;
-  const domainsStore = useDomainsStore();
   const organizationStore = useOrganizationStore();
+  getPermissions();
 
-  const availableDomains = computed<string[]>(() => buildAvailableDomains(domainsStore.domains || []));
+  const availableDomains = computed<string[]>(() => buildAvailableDomains(permissionsDomains.value));
 
-  const fetchDomainsForOrganization = createDomainFetcher(organizationStore, domainsStore);
+  const fetchDomainsForOrganization = createPermissionsFetcher(organizationStore);
 
   // Set up module-level watcher ONCE to prevent multiple watchers racing
   if (!watcherInitialized) {
@@ -282,7 +294,7 @@ export function useDomainContext() {
     const isCanonical = domain === canonicalDomain;
     return {
       domain,
-      extid: isCanonical ? undefined : findExtidByDomain(domainsStore.domains || [], domain),
+      extid: isCanonical ? undefined : findExtidByDomain(permissionsDomains.value, domain),
       displayName: getDomainDisplayName(domain),
       isCanonical,
     };
@@ -296,7 +308,7 @@ export function useDomainContext() {
 
   /** Reverse lookup: find display_domain for a given extid */
   const getDomainByExtid = (extid: string): string | undefined =>
-    findDomainByExtid(domainsStore.domains || [], extid);
+    findDomainByExtid(permissionsDomains.value, extid);
 
   /** Set domain context by extid (route param). Skips backend sync by default. */
   const setContextByExtid = async (extid: string, skipBackendSync = true): Promise<void> => {
@@ -318,7 +330,7 @@ export function useDomainContext() {
     resetContext: () => { currentDomain.value = getConfig().canonicalDomain || ''; sessionStorage.removeItem('domainContext'); },
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
-    getExtidByDomain: (domain: string) => findExtidByDomain(domainsStore.domains || [], domain),
+    getExtidByDomain: (domain: string) => findExtidByDomain(permissionsDomains.value, domain),
     getDomainByExtid,
     setContextByExtid,
     initialized: initPromise,
@@ -338,4 +350,6 @@ export function __resetDomainContextForTesting(): void {
   watcherInitialized = false;
   currentFetchController = null;
   bootstrapStoreInstance = null;
+  permissionsDomains.value = [];
+  permissionsInstance = null;
 }

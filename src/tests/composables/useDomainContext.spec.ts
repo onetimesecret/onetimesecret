@@ -5,20 +5,22 @@ import { nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import type { BulkPermissionsResponse } from '@/schemas/api/account/responses/permissions';
 
-// Create mock stores before vi.mock calls
-const mockDomainsStoreState = {
-  domains: [] as Array<{ display_domain: string; extid: string }>,
-  fetchList: vi.fn().mockResolvedValue(undefined),
-};
+// --- Mock state ---
+
+const emptyResponse: BulkPermissionsResponse = { organizations: [] };
+const mockFetchAllPermissions = vi.fn().mockResolvedValue(emptyResponse);
 
 const mockOrganizationStoreState = {
-  currentOrganization: null as { objid: string } | null,
+  currentOrganization: null as { objid: string; extid: string } | null,
 };
 
-// Mock stores
-vi.mock('@/shared/stores/domainsStore', () => ({
-  useDomainsStore: () => mockDomainsStoreState,
+// Mock useResourcePermissions - the composable now uses this instead of domainsStore
+vi.mock('@/shared/composables/useResourcePermissions', () => ({
+  useResourcePermissions: () => ({
+    fetchAllPermissions: mockFetchAllPermissions,
+  }),
 }));
 
 vi.mock('@/shared/stores/organizationStore', () => ({
@@ -26,13 +28,97 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 }));
 
 /**
- * Helper to set up domains store mock
+ * Build a BulkPermissionsResponse with domains for a given org extid.
  */
-function setMockDomains(domains: string[]) {
-  mockDomainsStoreState.domains = domains.map((d) => ({
-    display_domain: d,
-    extid: `cd_${d.replace(/\./g, '_')}`,
-  }));
+function buildPermissionsResponse(
+  orgExtid: string,
+  domains: string[],
+  opts?: { role?: string; entitlements?: string[] }
+): BulkPermissionsResponse {
+  return {
+    organizations: [
+      {
+        extid: orgExtid,
+        display_name: `Org ${orgExtid}`,
+        is_default: true,
+        membership: {
+          role: (opts?.role ?? 'owner') as 'owner' | 'admin' | 'member',
+          status: 'active',
+          provisioning_source: null,
+          invited_at: null,
+          joined_at: '2026-01-01',
+          entitlements: opts?.entitlements ?? ['custom_domains'],
+        },
+        permissions: {
+          can_view: true,
+          can_edit: true,
+          can_delete: false,
+          can_manage_settings: true,
+        },
+        domains: domains.map((d) => ({
+          display_domain: d,
+          extid: `cd_${d.replace(/\./g, '_')}`,
+          permissions: {
+            can_view: true,
+            can_edit: true,
+            can_delete: false,
+            can_manage_settings: false,
+          },
+        })),
+        assignable_roles: ['member', 'admin'],
+      },
+    ],
+  };
+}
+
+/**
+ * Build a multi-org BulkPermissionsResponse.
+ */
+function buildMultiOrgPermissionsResponse(
+  orgs: Array<{ extid: string; domains: string[] }>
+): BulkPermissionsResponse {
+  return {
+    organizations: orgs.map((org) => ({
+      extid: org.extid,
+      display_name: `Org ${org.extid}`,
+      is_default: false,
+      membership: {
+        role: 'owner' as const,
+        status: 'active',
+        provisioning_source: null,
+        invited_at: null,
+        joined_at: '2026-01-01',
+        entitlements: ['custom_domains'],
+      },
+      permissions: {
+        can_view: true,
+        can_edit: true,
+        can_delete: false,
+        can_manage_settings: true,
+      },
+      domains: org.domains.map((d) => ({
+        display_domain: d,
+        extid: `cd_${d.replace(/\./g, '_')}`,
+        permissions: {
+          can_view: true,
+          can_edit: true,
+          can_delete: false,
+          can_manage_settings: false,
+        },
+      })),
+      assignable_roles: ['member', 'admin'],
+    })),
+  };
+}
+
+/**
+ * Helper to configure the permissions mock for a given org.
+ * Replaces the old setMockDomains which was synchronous.
+ */
+function setMockDomains(orgExtid: string, domains: string[]) {
+  mockFetchAllPermissions.mockResolvedValue(
+    buildPermissionsResponse(orgExtid, domains)
+  );
 }
 
 describe('useDomainContext', () => {
@@ -78,12 +164,16 @@ describe('useDomainContext', () => {
     return { pinia, bootstrapStore };
   }
 
+  /** Wait for async initialization to complete */
+  async function waitForInit() {
+    await nextTick();
+    await new Promise((r) => setTimeout(r, 10));
+  }
+
   beforeEach(async () => {
-    // Reset all modules first to ensure fresh imports
     vi.resetModules();
     vi.clearAllMocks();
 
-    // Reset sessionStorage mock
     mockSessionStorage.clear();
     Object.defineProperty(window, 'sessionStorage', {
       value: mockSessionStorage,
@@ -91,18 +181,17 @@ describe('useDomainContext', () => {
       configurable: true,
     });
 
-    // Reset mock stores
-    mockDomainsStoreState.domains = [];
-    // Use mockReset() to clear both call history AND reset the implementation
-    // back to the default (mockResolvedValue). mockClear() only clears history.
-    mockDomainsStoreState.fetchList.mockReset();
-    mockDomainsStoreState.fetchList.mockResolvedValue(undefined);
-    // Set a default organization - required for domain context initialization
-    // when domains_enabled is true (domain context depends on org being set)
-    mockOrganizationStoreState.currentOrganization = { objid: 'org-test-123' };
+    // Reset mock with default implementation
+    mockFetchAllPermissions.mockReset();
+    mockFetchAllPermissions.mockResolvedValue({ organizations: [] } as BulkPermissionsResponse);
 
-    // Reset module-level singleton state in the composable
-    // This must happen AFTER vi.resetModules() so we reset the fresh module instance
+    // Set a default organization - required for domain context initialization.
+    // Both objid (for watcher) and extid (for fetcher) are required.
+    mockOrganizationStoreState.currentOrganization = {
+      objid: 'org-test-123',
+      extid: 'org-ext-test-123',
+    };
+
     const { __resetDomainContextForTesting } = await import(
       '@/shared/composables/useDomainContext'
     );
@@ -121,15 +210,13 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // No custom domains in store
-      setMockDomains([]);
+      // No custom domains in permissions response
+      setMockDomains('org-ext-test-123', []);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.domain).toBe('onetimesecret.com');
       expect(currentContext.value.displayName).toBe('onetimesecret.com');
@@ -145,15 +232,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Set custom domains in store
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.domain).toBe('acme.example.com');
       expect(currentContext.value.displayName).toBe('acme.example.com');
@@ -171,14 +255,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.domain).toBe('widgets.example.com');
       expect(currentContext.value.isCanonical).toBe(false);
@@ -193,14 +275,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Should fall back to first available domain
       expect(currentContext.value.domain).toBe('acme.example.com');
@@ -212,8 +292,6 @@ describe('useDomainContext', () => {
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
       });
-
-      setMockDomains(['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { isContextActive } = useDomainContext();
@@ -228,18 +306,88 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Empty domains
-      setMockDomains([]);
+      // Empty domains in permissions response
+      setMockDomains('org-ext-test-123', []);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, isContextActive } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.domain).toBe('onetimesecret.com');
       expect(isContextActive.value).toBe(true);
+    });
+  });
+
+  describe('permissions API data source', () => {
+    it('calls fetchAllPermissions, not domainsStore.fetchList', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      useDomainContext();
+
+      await waitForInit();
+
+      expect(mockFetchAllPermissions).toHaveBeenCalled();
+    });
+
+    it('extracts domains for the current org extid from the bulk response', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Response has two orgs; composable should extract domains for the current one
+      mockFetchAllPermissions.mockResolvedValue(
+        buildMultiOrgPermissionsResponse([
+          { extid: 'org-ext-test-123', domains: ['my-domain.example.com'] },
+          { extid: 'org-ext-other', domains: ['other-domain.example.com'] },
+        ])
+      );
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { availableDomains } = useDomainContext();
+
+      await waitForInit();
+
+      // Should only contain domains from the matching org + canonical
+      expect(availableDomains.value).toContain('my-domain.example.com');
+      expect(availableDomains.value).toContain('onetimesecret.com');
+      expect(availableDomains.value).not.toContain('other-domain.example.com');
+    });
+
+    it('member-role user without custom_domains entitlement still gets domains', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Member role, no entitlements -- permissions API still returns domain info
+      mockFetchAllPermissions.mockResolvedValue(
+        buildPermissionsResponse('org-ext-test-123', ['shared.example.com', 'team.example.com'], {
+          role: 'member',
+          entitlements: [],
+        })
+      );
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { availableDomains, currentContext, hasMultipleContexts } = useDomainContext();
+
+      await waitForInit();
+
+      // Domains should populate regardless of entitlements
+      expect(availableDomains.value).toContain('shared.example.com');
+      expect(availableDomains.value).toContain('team.example.com');
+      expect(hasMultipleContexts.value).toBe(true);
+      expect(currentContext.value.domain).toBe('shared.example.com');
     });
   });
 
@@ -251,10 +399,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { availableDomains } = useDomainContext();
+
+      await waitForInit();
 
       expect(availableDomains.value).toEqual([
         'acme.example.com',
@@ -270,10 +420,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['onetimesecret.com', 'acme.example.com']);
+      setMockDomains('org-ext-test-123', ['onetimesecret.com', 'acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { availableDomains } = useDomainContext();
+
+      await waitForInit();
 
       expect(availableDomains.value).toEqual(['onetimesecret.com', 'acme.example.com']);
     });
@@ -287,14 +439,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Start with custom domain
       expect(currentContext.value.isCanonical).toBe(false);
@@ -313,14 +463,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains([]);
+      setMockDomains('org-ext-test-123', []);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.displayName).toBe('onetimesecret.com');
     });
@@ -332,14 +480,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.displayName).toBe('acme.example.com');
     });
@@ -353,14 +499,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       setContext('widgets.example.com');
 
@@ -375,14 +519,12 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com'],
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { setContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       setContext('acme.example.com');
 
@@ -396,14 +538,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       const initialDomain = currentContext.value.domain;
 
@@ -420,14 +560,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       setContext('onetimesecret.com');
 
@@ -444,14 +582,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext, resetContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Start with custom domain
       setContext('acme.example.com');
@@ -471,14 +607,12 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com'],
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { setContext, resetContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       setContext('acme.example.com');
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
@@ -496,8 +630,6 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
-
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { isContextActive } = useDomainContext();
 
@@ -510,8 +642,6 @@ describe('useDomainContext', () => {
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
       });
-
-      setMockDomains([]);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { isContextActive } = useDomainContext();
@@ -526,9 +656,6 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Set domains to empty (simulating undefined)
-      mockDomainsStoreState.domains = [];
-
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { isContextActive } = useDomainContext();
 
@@ -542,7 +669,7 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { isContextActive } = useDomainContext();
@@ -559,10 +686,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains([]);
+      setMockDomains('org-ext-test-123', []);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { hasMultipleContexts } = useDomainContext();
+
+      await waitForInit();
 
       expect(hasMultipleContexts.value).toBe(false);
     });
@@ -574,10 +703,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { hasMultipleContexts } = useDomainContext();
+
+      await waitForInit();
 
       expect(hasMultipleContexts.value).toBe(true);
     });
@@ -589,10 +720,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { hasMultipleContexts } = useDomainContext();
+
+      await waitForInit();
 
       expect(hasMultipleContexts.value).toBe(true);
     });
@@ -606,14 +739,12 @@ describe('useDomainContext', () => {
         display_domain: '',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.domain).toBe('acme.example.com');
     });
@@ -624,8 +755,6 @@ describe('useDomainContext', () => {
         site_host: '',
         display_domain: '',
       });
-
-      setMockDomains([]);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, isContextActive } = useDomainContext();
@@ -644,18 +773,62 @@ describe('useDomainContext', () => {
       });
 
       // Start with domains for org 1
-      setMockDomains(['org1-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
+      mockOrganizationStoreState.currentOrganization = {
+        objid: 'org-1',
+        extid: 'org-ext-1',
+      };
+      setMockDomains('org-ext-1', ['org1-domain.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       expect(currentContext.value.domain).toBe('org1-domain.example.com');
-      expect(mockDomainsStoreState.fetchList).toHaveBeenCalled();
+      expect(mockFetchAllPermissions).toHaveBeenCalled();
+    });
+
+    it('re-extracts domains for new org on refreshDomains', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Start with org 1
+      mockOrganizationStoreState.currentOrganization = {
+        objid: 'org-1',
+        extid: 'org-ext-1',
+      };
+      setMockDomains('org-ext-1', ['org1-domain.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, availableDomains, refreshDomains } = useDomainContext();
+
+      await waitForInit();
+
+      expect(currentContext.value.domain).toBe('org1-domain.example.com');
+
+      // Switch to org 2: update both objid and extid, provide new response
+      mockFetchAllPermissions.mockResolvedValue(
+        buildMultiOrgPermissionsResponse([
+          { extid: 'org-ext-1', domains: ['org1-domain.example.com'] },
+          { extid: 'org-ext-2', domains: ['org2-domain.example.com', 'org2-other.example.com'] },
+        ])
+      );
+      mockOrganizationStoreState.currentOrganization = {
+        objid: 'org-2',
+        extid: 'org-ext-2',
+      };
+
+      // Simulate what the watcher does: call refreshDomains for the new org
+      const result = await refreshDomains();
+      expect(result).toBe(true);
+
+      // Domains should now reflect org 2 (extracted by extid match)
+      expect(availableDomains.value).toContain('org2-domain.example.com');
+      expect(availableDomains.value).toContain('org2-other.example.com');
+      expect(availableDomains.value).not.toContain('org1-domain.example.com');
     });
 
     it('resets to preferred domain when current selection is invalid for new org', async () => {
@@ -666,32 +839,93 @@ describe('useDomainContext', () => {
       });
 
       // Set up for org 1
-      setMockDomains(['org1-domain.example.com', 'shared-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
+      mockOrganizationStoreState.currentOrganization = {
+        objid: 'org-1',
+        extid: 'org-ext-1',
+      };
+      setMockDomains('org-ext-1', ['org1-domain.example.com', 'shared-domain.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Select org1-specific domain
       setContext('org1-domain.example.com');
       expect(currentContext.value.domain).toBe('org1-domain.example.com');
 
       // Simulate org switch - org2 has different domains
-      setMockDomains(['org2-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { objid: 'org-2' };
+      mockFetchAllPermissions.mockResolvedValue(
+        buildPermissionsResponse('org-ext-2', ['org2-domain.example.com'])
+      );
+      mockOrganizationStoreState.currentOrganization = {
+        objid: 'org-2',
+        extid: 'org-ext-2',
+      };
 
-      // Trigger the watcher manually since we're mocking
+      // Wait for watcher to fire
       await nextTick();
       await new Promise((r) => setTimeout(r, 50));
 
-      // Note: In the actual implementation, the watcher would detect the org change
-      // and reset the domain. This test verifies the domains are correctly set up
-      // for the org switch scenario.
-      expect(mockDomainsStoreState.fetchList).toHaveBeenCalled();
+      expect(mockFetchAllPermissions).toHaveBeenCalled();
+    });
+  });
+
+  describe('extid lookups with permissions data', () => {
+    it('getExtidByDomain resolves using permissions-sourced data', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { getExtidByDomain } = useDomainContext();
+
+      await waitForInit();
+
+      expect(getExtidByDomain('acme.example.com')).toBe('cd_acme_example_com');
+      expect(getExtidByDomain('widgets.example.com')).toBe('cd_widgets_example_com');
+      expect(getExtidByDomain('nonexistent.example.com')).toBeUndefined();
+    });
+
+    it('getDomainByExtid resolves using permissions-sourced data', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { getDomainByExtid } = useDomainContext();
+
+      await waitForInit();
+
+      expect(getDomainByExtid('cd_acme_example_com')).toBe('acme.example.com');
+      expect(getDomainByExtid('cd_widgets_example_com')).toBe('widgets.example.com');
+      expect(getDomainByExtid('cd_nonexistent')).toBeUndefined();
+    });
+
+    it('currentContext.extid is set for custom domain from permissions data', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
+
+      await waitForInit();
+
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(currentContext.value.extid).toBe('cd_acme_example_com');
     });
   });
 
@@ -703,18 +937,24 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Set up initial state with organization
-      setMockDomains(['initial-domain.example.com']);
-      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
+      mockOrganizationStoreState.currentOrganization = {
+        objid: 'org-1',
+        extid: 'org-ext-1',
+      };
+      setMockDomains('org-ext-1', ['initial-domain.example.com']);
 
-      // Track fetch calls
+      // Track fetch calls with deferred promises
       let fetchCallCount = 0;
-      const fetchPromises: Array<{ resolve: () => void; promise: Promise<void> }> = [];
+      type DeferredFetch = {
+        resolve: (v: BulkPermissionsResponse | null) => void;
+        promise: Promise<BulkPermissionsResponse | null>;
+      };
+      const fetchPromises: DeferredFetch[] = [];
 
-      mockDomainsStoreState.fetchList.mockImplementation(() => {
+      mockFetchAllPermissions.mockImplementation(() => {
         fetchCallCount++;
-        let resolveRef: () => void;
-        const promise = new Promise<void>((resolve) => {
+        let resolveRef: (v: BulkPermissionsResponse | null) => void;
+        const promise = new Promise<BulkPermissionsResponse | null>((resolve) => {
           resolveRef = resolve;
         });
         fetchPromises.push({ resolve: resolveRef!, promise });
@@ -742,13 +982,15 @@ describe('useDomainContext', () => {
 
       expect(fetchCallCount).toBe(2);
 
+      const response = buildPermissionsResponse('org-ext-1', ['initial-domain.example.com']);
+
       // Complete both fetches
-      fetchPromises[0]?.resolve();
-      fetchPromises[1]?.resolve();
+      fetchPromises[0]?.resolve(response);
+      fetchPromises[1]?.resolve(response);
 
       const [result1, result2] = await Promise.all([fetch1Promise, fetch2Promise]);
 
-      // First request should return false (superseded)
+      // First request should return false (superseded/aborted)
       // Second request should return true (current)
       expect(result1).toBe(false);
       expect(result2).toBe(true);
@@ -763,7 +1005,6 @@ describe('useDomainContext', () => {
 
       // No organization set
       mockOrganizationStoreState.currentOrganization = null;
-      setMockDomains([]);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { refreshDomains } = useDomainContext();
@@ -775,7 +1016,6 @@ describe('useDomainContext', () => {
 
       // Should return false when no org is set (guard clause)
       expect(result).toBe(false);
-      // fetchList should not have been called (no org)
     });
 
     it('handles fetch errors gracefully', async () => {
@@ -785,21 +1025,19 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      mockOrganizationStoreState.currentOrganization = { objid: 'org-1' };
-      setMockDomains(['test-domain.example.com']);
-
-      // Mock fetchList to throw error
-      mockDomainsStoreState.fetchList.mockRejectedValue(new Error('Network error'));
+      mockOrganizationStoreState.currentOrganization = {
+        objid: 'org-1',
+        extid: 'org-ext-1',
+      };
+      setMockDomains('org-ext-1', ['test-domain.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { refreshDomains, isLoadingDomains } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // Reset mock for our explicit call
-      mockDomainsStoreState.fetchList.mockClear();
-      mockDomainsStoreState.fetchList.mockRejectedValue(new Error('Network error'));
+      // Now make fetch fail
+      mockFetchAllPermissions.mockRejectedValue(new Error('Network error'));
 
       const result = await refreshDomains();
 
@@ -818,17 +1056,13 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Set custom domains - first non-canonical should be preferred
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // Should select first custom domain, not canonical
       expect(currentContext.value.domain).toBe('acme.example.com');
       expect(currentContext.value.isCanonical).toBe(false);
     });
@@ -840,20 +1074,15 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // No custom domains - only canonical available
-      setMockDomains([]);
+      setMockDomains('org-ext-test-123', []);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, availableDomains } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // Should fall back to canonical
       expect(currentContext.value.domain).toBe('onetimesecret.com');
       expect(currentContext.value.isCanonical).toBe(true);
-      // Available domains should include canonical even when no custom domains
       expect(availableDomains.value).toContain('onetimesecret.com');
     });
 
@@ -864,15 +1093,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Multiple custom domains - first should be selected
-      setMockDomains(['zebra.example.com', 'alpha.example.com', 'beta.example.com']);
+      setMockDomains('org-ext-test-123', ['zebra.example.com', 'alpha.example.com', 'beta.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Should select first in array order, not alphabetical
       expect(currentContext.value.domain).toBe('zebra.example.com');
@@ -885,17 +1111,13 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Only canonical domain in the list
-      setMockDomains(['onetimesecret.com']);
+      setMockDomains('org-ext-test-123', ['onetimesecret.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // No custom domains to prefer, should use canonical
       expect(currentContext.value.domain).toBe('onetimesecret.com');
       expect(currentContext.value.isCanonical).toBe(true);
     });
@@ -907,17 +1129,13 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      // Canonical appears first but should be skipped for a custom domain
-      setMockDomains(['onetimesecret.com', 'custom.example.com']);
+      setMockDomains('org-ext-test-123', ['onetimesecret.com', 'custom.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // Should skip canonical and prefer custom domain
       expect(currentContext.value.domain).toBe('custom.example.com');
       expect(currentContext.value.isCanonical).toBe(false);
     });
@@ -929,25 +1147,18 @@ describe('useDomainContext', () => {
         display_domain: '',
       });
 
-      setMockDomains([]);
+      setMockDomains('org-ext-test-123', []);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      // Wait for async initialization
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // With no domains at all, should be empty
       expect(currentContext.value.domain).toBe('');
     });
   });
 
   describe('setContext backend sync behavior', () => {
-    // These tests verify the fix for the 422 bug: selecting the canonical domain
-    // from the dropdown should NOT POST to /api/account/update-domain-context,
-    // since canonical is the default/neutral state.
-
     let mockApiPost: ReturnType<typeof vi.fn>;
     let mockApi: { post: ReturnType<typeof vi.fn> };
 
@@ -956,17 +1167,11 @@ describe('useDomainContext', () => {
       mockApi = { post: mockApiPost };
     });
 
-    /**
-     * Helper: import the composable with inject('api') returning our mock API.
-     * We re-mock 'vue' to intercept inject for the duration of these tests.
-     */
     async function importWithMockApi() {
-      // Override inject to return our mock API
       const vue = await import('vue');
       const originalInject = vue.inject;
       vi.spyOn(vue, 'inject').mockImplementation((key: any, ...args: any[]) => {
         if (key === 'api') return mockApi;
-        // Fall through to original for other inject keys
         return (originalInject as any)(key, ...args);
       });
 
@@ -982,13 +1187,12 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com', 'widgets.example.com'],
       });
 
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       await setContext('acme.example.com');
 
@@ -1006,24 +1210,17 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com'],
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       await setContext('acme.example.com');
 
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
     });
-
-    // -------------------------------------------------------------------
-    // The following tests document EXPECTED behavior after the bug fix.
-    // They verify that canonical domain selection skips the backend POST
-    // and clears session storage instead of persisting.
-    // -------------------------------------------------------------------
 
     it('selecting canonical domain should NOT trigger backend sync POST', async () => {
       setupBootstrapStore({
@@ -1032,13 +1229,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Clear any calls from initialization
       mockApiPost.mockClear();
@@ -1050,7 +1246,6 @@ describe('useDomainContext', () => {
     });
 
     it('selecting canonical domain should clear sessionStorage domainContext', async () => {
-      // Pre-populate sessionStorage as if a custom domain was previously selected
       mockSessionStorage.setItem('domainContext', 'acme.example.com');
 
       setupBootstrapStore({
@@ -1059,13 +1254,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       await setContext('onetimesecret.com');
 
@@ -1080,13 +1274,12 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext, currentContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       await setContext('onetimesecret.com');
 
@@ -1096,7 +1289,6 @@ describe('useDomainContext', () => {
     });
 
     it('selecting canonical domain does not throw even if server would return 422', async () => {
-      // Simulate the server rejecting canonical domain POSTs
       mockApiPost.mockRejectedValue({
         response: { status: 422, data: { message: 'Invalid domain' } },
       });
@@ -1107,16 +1299,13 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // Should not throw -- either the sync is skipped (after fix)
-      // or the error is caught by syncDomainContextToServer (existing behavior)
       await expect(setContext('onetimesecret.com')).resolves.toBeUndefined();
     });
 
@@ -1128,20 +1317,18 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com'],
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       mockApiPost.mockClear();
 
       await setContext('acme.example.com', true);
 
       expect(mockApiPost).not.toHaveBeenCalled();
-      // But sessionStorage should still be populated for custom domains
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
     });
   });
@@ -1175,15 +1362,14 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com'],
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Should not throw
       await expect(setContext('acme.example.com')).resolves.toBeUndefined();
@@ -1208,19 +1394,17 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com'],
       });
 
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext, currentContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       await setContext('acme.example.com');
 
-      // Local state should reflect the selection even if the server rejected it
       expect(currentContext.value.domain).toBe('acme.example.com');
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
 
@@ -1237,19 +1421,17 @@ describe('useDomainContext', () => {
         custom_domains: ['acme.example.com', 'widgets.example.com'],
       });
 
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const { useDomainContext } = await importWithMockApi();
       const { setContext, currentContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       await setContext('widgets.example.com');
 
-      // Domain should be set to the new value, not reverted
       expect(currentContext.value.domain).toBe('widgets.example.com');
 
       warnSpy.mockRestore();
@@ -1267,14 +1449,12 @@ describe('useDomainContext', () => {
       // Server references a domain that was removed (ghost domain)
       bootstrapStore.domain_context = 'deleted-domain.example.com';
 
-      // Only these domains are actually available
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
       // Should skip the ghost domain and fall back to preferred (first custom)
       expect(currentContext.value.domain).not.toBe('deleted-domain.example.com');
@@ -1282,7 +1462,6 @@ describe('useDomainContext', () => {
     });
 
     it('falls back when both serverDomainContext and sessionStorage reference removed domain', async () => {
-      // Both persistence layers point to a domain that no longer exists
       mockSessionStorage.setItem('domainContext', 'removed-domain.example.com');
 
       const { bootstrapStore } = setupBootstrapStore({
@@ -1292,16 +1471,13 @@ describe('useDomainContext', () => {
       });
       bootstrapStore.domain_context = 'removed-domain.example.com';
 
-      // The removed domain is not in the available list
-      setMockDomains(['surviving.example.com']);
+      setMockDomains('org-ext-test-123', ['surviving.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
 
-      await nextTick();
-      await new Promise((r) => setTimeout(r, 10));
+      await waitForInit();
 
-      // Should fall back to first available custom domain
       expect(currentContext.value.domain).toBe('surviving.example.com');
       expect(currentContext.value.domain).not.toBe('removed-domain.example.com');
     });
