@@ -566,6 +566,11 @@ emailer:
   # Production Settings (for reference)
   # ----------------------------------
   mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+  # Provider for custom mail sender domain provisioning (DNS/DKIM).
+  # When set, decouples domain provisioning from the sending transport.
+  # Valid values: ses, sendgrid, lettermint, smtp
+  # If unset, falls back to mode (EMAILER_MODE).
+  sender_provider: <%= ENV['CUSTOM_MAIL_PROVIDER'] || nil %>
   region: <%= ENV['EMAILER_REGION'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
   from_name: <%= ENV['FROM_NAME'] || 'Support' %>
@@ -599,8 +604,8 @@ email_providers:
   # AWS SES configuration
   ses:
     # AWS region for SES endpoints (affects MX record values)
-    # Override via EMAIL_PROVIDERS_SES_REGION env var
-    region: <%= ENV['EMAIL_PROVIDERS_SES_REGION'] || 'us-east-1' %>
+    # Override via CUSTOM_MAIL_SES_REGION env var
+    region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>
     # Number of DKIM selectors (SES uses 3 by default)
     dkim_selector_count: 3
     # SPF include domain
@@ -609,8 +614,8 @@ email_providers:
   # SendGrid configuration
   sendgrid:
     # Branding subdomain prefix (appears in CNAME records)
-    # Override via EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN env var
-    subdomain: <%= ENV['EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN'] || 'em' %>
+    # Override via CUSTOM_MAIL_SENDGRID_SUBDOMAIN env var
+    subdomain: <%= ENV['CUSTOM_MAIL_SENDGRID_SUBDOMAIN'] || 'em' %>
     # DKIM selector names
     dkim_selectors:
       - s1
@@ -639,11 +644,11 @@ email_providers:
     # Override via LETTERMINT_BASE_URL env var
     api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>
     # SPF CNAME subdomain prefix (e.g., 'lm-bounces' creates lm-bounces.yourdomain.com)
-    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX env var
-    spf_cname_prefix: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>
+    # Override via CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX env var
+    spf_cname_prefix: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>
     # SPF CNAME target domain (Lettermint maintains SPF at this target)
-    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET env var
-    spf_cname_target: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>
+    # Override via CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET env var
+    spf_cname_target: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>
 
 mail:
   truemail:
