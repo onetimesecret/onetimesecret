@@ -32,11 +32,14 @@ RSpec.describe Onetime::Utils::ConfigResolver do
       expect(stack).to eq([nil, nil])
     end
 
-    it 'returns [defaults_path, nil] when only defaults exists and no override' do
-      stack = described_class.resolve_stack('logging')
-      if stack[0]
-        expect(stack[0]).to end_with('logging.defaults.yaml')
-      end
+    it 'includes the defaults path when a defaults file exists' do
+      stack = described_class.resolve_stack('config')
+      expect(stack[0]).to end_with('config.defaults.yaml')
+    end
+
+    it 'returns nil for override when no override file exists' do
+      stack = described_class.resolve_stack('nonexistent')
+      expect(stack[1]).to be_nil
     end
   end
 end

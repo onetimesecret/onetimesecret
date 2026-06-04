@@ -8,6 +8,7 @@ require 'yaml'
 require 'erb'
 require 'singleton'
 require_relative 'utils/config_resolver'
+require_relative 'utils/enumerables'
 
 module Onetime
   class AuthConfig
@@ -384,7 +385,7 @@ module Onetime
       @config = if base_config.empty?
         env_config
       else
-        deep_merge_hashes(base_config, env_config)
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config)
       end
     rescue StandardError => ex
       handle_config_error(ex)
@@ -394,19 +395,6 @@ module Onetime
       erb_template = ERB.new(File.read(path))
       yaml_content = erb_template.result(binding)
       YAML.safe_load(yaml_content, symbolize_names: false) || {}
-    end
-
-    def deep_merge_hashes(original, other)
-      merger = proc do |_key, v1, v2|
-        if v1.is_a?(Hash) && v2.is_a?(Hash)
-          v1.merge(v2, &merger)
-        elsif v2.nil?
-          v1
-        else
-          v2
-        end
-      end
-      original.merge(other, &merger)
     end
 
     def handle_config_error(exception)

@@ -5,6 +5,7 @@
 require 'yaml'
 require 'semantic_logger'
 require_relative '../utils/config_resolver'
+require_relative '../utils/enumerables'
 
 module Onetime
   module Initializers
@@ -120,20 +121,7 @@ module Onetime
         return base_config if env_config.empty?
         return env_config if base_config.empty?
 
-        deep_merge_hashes(base_config, env_config)
-      end
-
-      def deep_merge_hashes(original, other)
-        merger = proc do |_key, v1, v2|
-          if v1.is_a?(Hash) && v2.is_a?(Hash)
-            v1.merge(v2, &merger)
-          elsif v2.nil?
-            v1
-          else
-            v2
-          end
-        end
-        original.merge(other, &merger)
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config)
       end
 
       # Precedence: LOG_LEVEL env > ONETIME_DEBUG > config file > :info default

@@ -5,6 +5,8 @@
 module Onetime
   module Utils
     module Enumerables
+      extend self
+
       # Maximum recursion depth for safety
       DEFAULT_MAX_DEPTH = 25
       DEFAULT_MAX_SIZE  = 2 * 1024 * 1024 # 2MB
