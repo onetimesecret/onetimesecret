@@ -21,8 +21,6 @@ module DomainsAPI::Logic
       end
 
       def raise_concerns
-        require_entitlement!('custom_branding')
-
         OT.ld "[#{self.class}] Raising concerns for extid: #{@extid}"
 
         raise_form_error 'Domain ID is required' if @extid.empty?
@@ -38,6 +36,10 @@ module DomainsAPI::Logic
         unless @custom_domain.owner?(@cust)
           raise_form_error 'Invalid Domain'
         end
+
+        domain_org = @custom_domain.primary_organization
+        raise_form_error 'Domain has no associated organization' unless domain_org
+        require_entitlement_in!(domain_org, 'custom_branding')
 
         @display_domain = @custom_domain.display_domain
 

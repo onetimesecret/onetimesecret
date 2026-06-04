@@ -27,8 +27,6 @@ module DomainsAPI::Logic
       end
 
       def raise_concerns
-        require_entitlement!('custom_branding')
-
         raise_form_error 'Please provide a domain ID' if @extid.empty?
 
         # Get customer's organization for domain ownership
@@ -42,6 +40,10 @@ module DomainsAPI::Logic
         unless @custom_domain.owner?(@cust)
           raise_form_error 'Domain not found'
         end
+
+        domain_org = @custom_domain.primary_organization
+        raise_form_error 'Domain has no associated organization' unless domain_org
+        require_entitlement_in!(domain_org, 'custom_branding')
 
         @display_domain = @custom_domain.display_domain
 
