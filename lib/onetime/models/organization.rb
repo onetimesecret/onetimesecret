@@ -280,7 +280,7 @@ module Onetime
 
     # @return [Boolean] true if this organization has been soft-archived
     def archived?
-      archived_at.to_s.length.positive?
+      !archived_at.to_s.empty?
     end
 
     def unarchive!
