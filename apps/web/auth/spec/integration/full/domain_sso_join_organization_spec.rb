@@ -586,7 +586,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
     it 'does not re-archive an already archived personal workspace' do
       # Archive first, then try to join
-      personal_workspace.archive!(reason: 'test_pre_archived')
+      personal_workspace.archive!('test_pre_archived')
       original_archived_at = personal_workspace.archived_at
 
       legacy_customer.default_org_id = personal_workspace.objid

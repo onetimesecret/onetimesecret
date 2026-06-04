@@ -136,7 +136,7 @@ module Auth
         customer.save
 
         # Soft-archive the personal workspace
-        personal_org.archive!(reason: "superseded_by_domain_org:#{domain_org.objid}")
+        personal_org.archive!("Superseded by domain org #{domain_org.objid} via SSO self-heal")
 
         OT.info "[JoinDomainOrganization] Adopted domain org #{domain_org.objid} as default for #{customer.custid}, archived personal workspace #{personal_org.objid}"
 
