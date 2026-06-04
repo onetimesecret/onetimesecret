@@ -334,6 +334,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
         expect(Onetime.default_locale).to eq('en')
         expect(Onetime.supported_locales).to match_array(['en', 'fr_CA', 'fr_FR'])
         expect(Onetime.locales.keys).to match_array(['en', 'fr_CA', 'fr_FR'])
+        # defaults layer may contribute additional locale keys beyond these four
         expect(Onetime.fallback_locale).to include(
           "fr-CA" => ['fr_CA', 'fr_FR', 'en'],
           "fr" => ['fr_FR', 'fr_CA', 'en'],
