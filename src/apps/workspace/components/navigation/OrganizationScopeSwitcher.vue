@@ -125,18 +125,14 @@ const selectOrganization = (org: Organization): void => {
   }
 
   if (switchTarget === 'same') {
-    // Stay on current route pattern, replace :extid with new org's extid
     if (!org.extid) {
       console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
       return;
     }
-    const matchedRoute = route.matched[route.matched.length - 1];
-    if (matchedRoute?.path) {
-      const newPath = matchedRoute.path.replace(':extid', org.extid);
-      router.push(newPath);
+    if (route.name) {
+      router.push({ name: route.name, params: { ...route.params, extid: org.extid } });
     }
   } else if (switchTarget.includes(':extid')) {
-    // Path with :extid placeholder - replace and navigate
     if (!org.extid) {
       console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.objid);
       return;
