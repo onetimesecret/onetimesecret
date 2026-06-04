@@ -22,9 +22,18 @@ module DomainsAPI::Logic
     #
     # @api Uploads and stores an image (logo or icon) for a custom domain.
     #   Accepts standard image formats (JPEG, PNG, GIF, SVG, WebP, BMP,
-    #   TIFF) up to 2 MB. Requires the custom_branding entitlement and
-    #   manage_org permission. Returns the stored image metadata including
+    #   TIFF) up to 2 MB. Returns the stored image metadata including
     #   dimensions and ratio.
+    #
+    # Authorization model (via DomainConfigAuthorization):
+    #   1. Load CustomDomain by extid
+    #   2. Load Organization via domain.org_id
+    #   3. Verify user has manage_org in the organization
+    #   4. Verify organization has custom_branding entitlement
+    #
+    # Read-only counterpart GetDomainImage skips manage_org so regular
+    # members can view the brand page (disabled overlay in the UI).
+    #
     class UpdateDomainImage < DomainsAPI::Logic::Base
       include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
 

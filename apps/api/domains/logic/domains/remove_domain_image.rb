@@ -8,6 +8,19 @@ require_relative '../concerns/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
+    # Remove Domain Image
+    #
+    # @api Removes a stored image (logo or icon) from a custom domain.
+    #
+    # Authorization model (via DomainConfigAuthorization):
+    #   1. Load CustomDomain by extid
+    #   2. Load Organization via domain.org_id
+    #   3. Verify user has manage_org in the organization
+    #   4. Verify organization has custom_branding entitlement
+    #
+    # Read-only counterpart GetDomainImage skips manage_org so regular
+    # members can view the brand page (disabled overlay in the UI).
+    #
     class RemoveDomainImage < DomainsAPI::Logic::Base
       include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
 

@@ -9,8 +9,20 @@ module DomainsAPI::Logic
     # Get Domain Image
     #
     # @api Retrieves a stored image (logo or icon) for a custom domain as
-    #   base64-encoded data with content type metadata. Requires the
-    #   custom_branding entitlement. Returns 404 if no image is stored.
+    #   base64-encoded data with content type metadata. Returns 404 if no
+    #   image is stored.
+    #
+    # Authorization model (read-only — no DomainConfigAuthorization):
+    #   1. Verify user belongs to an organization (require_organization!)
+    #   2. Load CustomDomain by extid
+    #   3. Verify user owns the domain (owner? check)
+    #   4. Verify user's membership has custom_branding entitlement
+    #
+    # Unlike the write counterparts (UpdateDomainImage, RemoveDomainImage),
+    # this endpoint does NOT require manage_org. Regular org members can
+    # read image data so the UI can render the brand page as a disabled
+    # overlay, keeping premium features visible per modern SaaS convention.
+    #
     class GetDomainImage < DomainsAPI::Logic::Base
       SCHEMAS = { response: 'imageProps' }.freeze
 

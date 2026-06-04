@@ -10,13 +10,20 @@ module DomainsAPI
       # Shared authorization logic for domain config endpoints.
       #
       # Provides the common authorization flow used by domain config
-      # base classes (ApiConfig, HomepageConfig, SenderConfig, SsoConfig):
+      # base classes (ApiConfig, HomepageConfig, SenderConfig, SsoConfig)
+      # and write-path brand/image endpoints (UpdateDomainBrand,
+      # UpdateDomainImage, RemoveDomainImage):
       #
       #   1. Check feature flag (if config_feature_flag is defined)
       #   2. Load CustomDomain by domain_id (extid)
       #   3. Load Organization via domain.org_id
-      #   4. Verify user is organization owner (colonel bypass)
+      #   4. Verify user has manage_org in the organization (colonel bypass)
       #   5. Verify organization has the required entitlement
+      #
+      # Read-only brand/image endpoints (GetDomainBrand, GetDomainImage)
+      # intentionally skip this concern — they check custom_branding
+      # membership directly so regular org members can view the brand
+      # management page (rendered as a disabled overlay in the UI).
       #
       # Including classes must define:
       #   - `config_entitlement` returning the entitlement name string

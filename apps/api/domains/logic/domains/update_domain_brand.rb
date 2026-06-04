@@ -13,8 +13,17 @@ module DomainsAPI::Logic
     #
     # @api Updates brand settings for a custom domain including name,
     #   tagline, primary color, font family, corner style, homepage URL,
-    #   and default TTL. Requires the custom_branding entitlement and
-    #   manage_org permission. Returns the updated brand settings.
+    #   and default TTL. Returns the updated brand settings.
+    #
+    # Authorization model (via DomainConfigAuthorization):
+    #   1. Load CustomDomain by extid
+    #   2. Load Organization via domain.org_id
+    #   3. Verify user has manage_org in the organization
+    #   4. Verify organization has custom_branding entitlement
+    #
+    # Read-only counterpart GetDomainBrand skips manage_org so regular
+    # members can view the brand page (disabled overlay in the UI).
+    #
     class UpdateDomainBrand < DomainsAPI::Logic::Base
       include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
 
