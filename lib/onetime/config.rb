@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'utils/config_resolver'
+require_relative 'utils/enumerables'
 
 module Onetime
   module Config
