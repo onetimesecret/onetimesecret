@@ -236,6 +236,23 @@ module Auth::Config::Hooks
                 domain_id: domain_id,
               ).call
             end
+
+            # IMPORTANT: Do NOT create a fallback workspace here.
+            #
+            # If JoinDomainOrganization failed, the user authenticated via
+            # tenant-domain SSO to join a *specific* organization. Creating
+            # an unrelated personal workspace would:
+            #   1. Leave them outside the org they intended to join
+            #   2. Give them a full account with no org affiliation
+            #   3. Bury the join failure — no one investigates
+            #
+            # The correct response is to fail visibly so the org admin
+            # and ops can diagnose why the join didn't stick.
+            if customer.organization_instances.to_a.empty?
+              OT.le '[omniauth] CRITICAL: Tenant SSO join produced no org membership ' \
+                    "for #{customer.external_identifier} (domain_id=#{domain_id}). Orphaned account — admin must investigate."
+              redirect '/signin?auth_error=org_join_failed'
+            end
           else
             # Canonical domain SSO → create default workspace
             Onetime::ErrorHandler.safe_execute(
