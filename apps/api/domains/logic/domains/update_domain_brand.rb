@@ -39,9 +39,9 @@ module DomainsAPI::Logic
 
         validate_domain
 
-        domain_org = @custom_domain.primary_organization
-        raise_form_error 'Domain has no associated organization' unless domain_org
-        require_entitlement_in!(domain_org, 'custom_branding')
+        @domain_org = @custom_domain.primary_organization
+        raise_form_error 'Domain has no associated organization' unless @domain_org
+        require_entitlement_in!(@domain_org, 'custom_branding')
 
         validate_brand_settings
 
@@ -174,8 +174,7 @@ module DomainsAPI::Logic
         privacy_keys = %w[default_ttl passphrase_required notify_enabled]
         return unless privacy_keys.any? { |k| @brand_settings.key?(k) }
 
-        domain_org = @custom_domain.primary_organization
-        require_entitlement_in!(domain_org, 'custom_privacy_defaults')
+        require_entitlement_in!(@domain_org, 'custom_privacy_defaults')
       end
 
       def validate_default_ttl
@@ -201,8 +200,7 @@ module DomainsAPI::Logic
         # Gate extended TTL values behind entitlement
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
         if ttl_value > free_ttl
-          domain_org = @custom_domain.primary_organization
-          require_entitlement_in!(domain_org, 'extended_default_expiration')
+          require_entitlement_in!(@domain_org, 'extended_default_expiration')
         end
 
         # Update the brand_settings hash with the coerced value
