@@ -60,7 +60,7 @@ importers:
         specifier: ^14.3.0
         version: 14.3.0(axios@1.16.0)(focus-trap@7.8.0)(qrcode@1.5.4)(vue@3.5.34(typescript@5.9.3))
       axios:
-        specifier: ^1.14.0
+        specifier: ^1.16.0
         version: 1.16.0
       brace-expansion:
         specifier: 1.1.13
@@ -7522,7 +7522,7 @@ snapshots:
       call-bound: 1.0.4
       define-properties: 1.2.1
       functions-have-names: 1.2.3
-      hasown: 2.0.2
+      hasown: 2.0.3
       is-callable: 1.2.7
 
   functions-have-names@1.2.3: {}
@@ -7700,7 +7700,7 @@ snapshots:
   internal-slot@1.1.0:
     dependencies:
       es-errors: 1.3.0
-      hasown: 2.0.2
+      hasown: 2.0.3
       side-channel: 1.1.0
 
   is-array-buffer@3.0.5:
@@ -7809,7 +7809,7 @@ snapshots:
       call-bound: 1.0.4
       gopd: 1.2.0
       has-tostringtag: 1.0.2
-      hasown: 2.0.2
+      hasown: 2.0.3
 
   is-set@2.0.3: {}
 
