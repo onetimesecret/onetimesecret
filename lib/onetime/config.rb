@@ -264,14 +264,11 @@ module Onetime
       raise OT::ConfigError.new(ex.message)
     end
 
-    private
-
     def load_yaml_with_erb(path)
       parsed_template = ERB.new(File.read(path))
       YAML.load(parsed_template.result) || {}
     end
-
-    public
+    private :load_yaml_with_erb
 
     # After loading the configuration, this method processes and validates the
     # configuration, setting defaults and ensuring required elements are present.
