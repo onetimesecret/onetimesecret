@@ -557,6 +557,13 @@ const handleMemberRemoved = () => {
 };
 
 onMounted(async () => {
+  // Point the store at this org immediately so the context bar doesn't
+  // flash the previously-selected org while the full fetch is in flight.
+  const cached = organizationStore.organizations.find((o) => o.extid === orgId.value);
+  if (cached) {
+    organizationStore.setCurrentOrganization(cached);
+  }
+
   // Initialize entitlement definitions for formatting
   await initDefinitions();
 

@@ -28,6 +28,7 @@ import { RouterLink } from 'vue-router';
 import axios from 'axios';
 const organizationStore = useOrganizationStore();
 const {
+  visibility,
   showOrgSwitcher,
   lockOrgSwitcher,
   showDomainSwitcher,
@@ -36,6 +37,7 @@ const {
 
 const showStaticOrgName = computed(() =>
   isLoaded.value &&
+  visibility.value.organization !== 'hide' &&
   !showOrgSwitcher.value &&
   isOrganizationSwitcherEnabled() &&
   organizationStore.hasOrganizations &&
