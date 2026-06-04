@@ -18,6 +18,7 @@ import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
+import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
@@ -27,7 +28,7 @@ import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
-import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
+import type { CreateInvitationPayload, Organization, OrganizationInvitation, OrganizationRole } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
 import { SsoService } from '@/services/sso.service';
@@ -186,6 +187,13 @@ const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAG
 // route guard `requireDomainAdminRole` and backend check). Hides the UI
 // affordance so members don't see a dead-end link.
 const { canCreateDomain } = useOrgPermissions(organization);
+
+const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
+
+const assignableRoles = computed<OrganizationRole[]>(() => {
+  const orgPerms = getOrgPermissions(orgId.value);
+  return (orgPerms?.assignable_roles ?? ['member']) as OrganizationRole[];
+});
 
 const isOwner = computed(() => organization.value?.current_user_role === 'owner');
 const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
@@ -535,6 +543,9 @@ const handleMemberRemoved = () => {
 onMounted(async () => {
   // Initialize entitlement definitions for formatting
   await initDefinitions();
+
+  // Fetch resource-scoped permissions (includes assignable_roles)
+  fetchAllPermissions();
 
   await loadOrganization();
 
@@ -1113,8 +1124,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       id="invite-role"
                       v-model="inviteFormData.role"
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-                      <option value="member">{{ t('web.organizations.invitations.roles.member') }}</option>
-                      <option value="admin">{{ t('web.organizations.invitations.roles.admin') }}</option>
+                      <option v-for="role in assignableRoles"
+:key="role"
+:value="role">
+                        {{ t(`web.organizations.invitations.roles.${role}`) }}
+                      </option>
                     </select>
                   </div>
                   <div class="flex gap-2">
@@ -1141,6 +1155,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 :members="membersStore.members"
                 :org-extid="orgId"
                 :is-loading="membersStore.loading"
+                :assignable-roles="assignableRoles"
                 compact
                 @member-updated="handleMemberUpdated"
                 @member-removed="handleMemberRemoved" />

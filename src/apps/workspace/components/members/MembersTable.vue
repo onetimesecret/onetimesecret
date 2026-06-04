@@ -28,6 +28,8 @@ const props = withDefaults(defineProps<{
   isLoading: boolean;
   /** Compact mode hides the header and reduces padding */
   compact?: boolean;
+  /** API-provided assignable roles; falls back to useMembersManager when absent */
+  assignableRoles?: OrganizationRole[];
 }>(), {
   compact: false,
 });
@@ -178,7 +180,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
                 <MemberRoleSelector
                   v-if="canChangeRole(member)"
                   :model-value="member.role"
-                  :available-roles="getAssignableRoles()"
+                  :available-roles="props.assignableRoles ?? getAssignableRoles()"
                   :disabled="isLoading"
                   @update:model-value="(role) => handleRoleChange(member, role)" />
                 <span
