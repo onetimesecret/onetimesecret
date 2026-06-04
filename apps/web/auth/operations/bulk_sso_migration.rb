@@ -11,6 +11,17 @@ module Auth
     # personal default workspaces. This operation bulk-migrates them into
     # the domain's organization.
     #
+    # Eligibility (all must be true):
+    #   - Email domain matches the custom domain's base domain
+    #   - Not already a member of the domain organization
+    #   - Provisioned via SSO (provisioning_origin: 'sso_jit' or nil for legacy)
+    #   - Owns a personal default workspace (structural fingerprint of
+    #     install-level SSO — CreateDefaultWorkspace ran instead of
+    #     JoinDomainOrganization)
+    #
+    # Self-signup users (canonical_signup, domain_signup) and invited users
+    # are never affected.
+    #
     # For each eligible user:
     #   1. Calls JoinDomainOrganization (reuses existing SSO join logic)
     #   2. Repoints customer.default_org_id to the domain org
@@ -40,10 +51,14 @@ module Auth
         raise Onetime::Problem, "Domain #{domain.display_domain} has no primary organization" unless @organization
       end
 
+      # Provisioning origins that indicate self-signup or invitation —
+      # these users are never eligible for bulk SSO migration.
+      EXCLUDED_ORIGINS = %w[canonical_signup domain_signup invite].freeze
+
       # Find all customers eligible for migration.
       #
-      # Eligible: email domain matches the custom domain's base domain,
-      # AND customer is NOT already a member of the domain organization.
+      # Eligible: email domain matches, not already a member, SSO-provisioned
+      # (or legacy nil origin), and owns a personal default workspace.
       #
       # @yield [scanned, total] Progress callback
       # @return [Array<Onetime::Customer>] eligible customers
@@ -64,6 +79,8 @@ module Auth
           next if customer.email.to_s.empty?
           next unless customer.email.downcase.end_with?(email_suffix)
           next if organization.member?(customer)
+          next if EXCLUDED_ORIGINS.include?(customer.provisioning_origin)
+          next unless find_personal_workspace(customer)
 
           candidates << customer
         end
@@ -119,7 +136,7 @@ module Auth
         customer.save
 
         if personal_org && personal_org.objid != organization.objid
-          personal_org.archive!
+          personal_org.archive!("Bulk SSO migration to #{domain.display_domain}")
           OT.info "[BulkSsoMigration] Archived personal workspace #{personal_org.extid} for #{customer.extid}"
         end
 
