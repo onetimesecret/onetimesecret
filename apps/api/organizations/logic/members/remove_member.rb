@@ -13,6 +13,12 @@ module OrganizationAPI::Logic
     #
     # DELETE /api/organizations/:extid/members/:member_extid
     #
+    # Lifecycle (mirrors GitLab Members::DestroyService, Discourse, etc.):
+    #   1. Delete the membership record (org.members + customer.participations)
+    #   2. Cascade derived state (materialized entitlements, role caches)
+    #   3. Log an audit event (who removed whom, when)
+    #   4. Do NOT modify the customer's account, login, or role
+    #
     # Authorization Rules:
     #   - Owner can remove admins and members (not themselves)
     #   - Admin can remove members only (not other admins or owner)
@@ -100,8 +106,10 @@ module OrganizationAPI::Logic
       def load_member(extid)
         member = Onetime::Customer.find_by_extid(extid)
         if member.nil?
-          raise_not_found(error_key: 'api.organizations.members.errors.member_not_found',
-                          args: { extid: extid })
+          raise_not_found(
+            error_key: 'api.organizations.members.errors.member_not_found',
+            args: { extid: extid },
+          )
         end
         member
       end
