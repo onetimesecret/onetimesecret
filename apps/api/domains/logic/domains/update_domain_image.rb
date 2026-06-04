@@ -7,6 +7,7 @@ require 'fastimage'
 
 require 'onetime/domain_validation/strategy'
 require_relative '../base'
+require_relative '../concerns/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
@@ -21,9 +22,12 @@ module DomainsAPI::Logic
     #
     # @api Uploads and stores an image (logo or icon) for a custom domain.
     #   Accepts standard image formats (JPEG, PNG, GIF, SVG, WebP, BMP,
-    #   TIFF) up to 2 MB. Requires the custom_branding entitlement.
-    #   Returns the stored image metadata including dimensions and ratio.
+    #   TIFF) up to 2 MB. Requires the custom_branding entitlement and
+    #   manage_org permission. Returns the stored image metadata including
+    #   dimensions and ratio.
     class UpdateDomainImage < DomainsAPI::Logic::Base
+      include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+
       SCHEMAS = { response: 'imageProps' }.freeze
 
       attr_reader :greenlighted,
@@ -43,75 +47,40 @@ module DomainsAPI::Logic
         attr_reader :field
       end
 
-      # Processes the parameters for the domain logo update.
-      # Extracts and sets instance variables for the domain extid and uploaded image file.
-      # Handles cases where the image parameter is either a hash (from a form upload) or a file object directly.
       def process_params
-        # Sanitize the extid to only allow alphanumeric, underscore, and hyphen characters
         @extid = sanitize_identifier(params['extid'])
 
-        # Debug: Log what we received
         OT.ld "[UpdateDomainImage] params keys: #{params.keys.inspect}"
         OT.ld "[UpdateDomainImage] params['image'] class: #{params['image'].class}"
         OT.ld "[UpdateDomainImage] params['image']: #{params['image'].inspect.slice(0, 200)}"
 
-        # Retrieve the image parameter from the request.
         # Rack 3's multipart parser returns symbol keys (:tempfile, :filename, :type)
         # Stringify them to maintain consistent string keys at API boundaries
         @image = params['image']
         @image = @image.transform_keys(&:to_s) if @image.is_a?(Hash)
 
-        # Check if the image parameter is a hash (typical for form uploads).
         if @image.is_a?(Hash) && @image['tempfile']
-          # Extract the tempfile, filename, and content type from the hash.
           @uploaded_file = @image['tempfile']
           @filename      = @image['filename']
           @content_type  = @image['type']
-
-        # Check if the image parameter is a file object directly
-        # (e.g. it's the Tempfile or StringIO).
         elsif @image.respond_to?(:read)
-          # Set the uploaded file to the image parameter directly.
           @uploaded_file = @image
-          # Extract the original filename if available.
           @filename      = @image.original_filename if @image.respond_to?(:original_filename)
-          # Extract the content type if available.
           @content_type  = @image.content_type if @image.respond_to?(:content_type)
         end
       end
 
-      # Validate the input parameters
-      # Sets error messages if any parameter is invalid
       def raise_concerns
         raise_form_error 'Domain ID is required' if @extid.empty?
 
-        # Get customer's organization for domain ownership
-        # Organization available via @organization
-        require_organization!
-
-        # Check if the domain exists and belongs to the current customer
-        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
-        raise_form_error 'Invalid Domain' unless @custom_domain
-
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
-          raise_form_error 'Invalid Domain'
-        end
-
-        domain_org = @custom_domain.primary_organization
-        raise_form_error 'Domain has no associated organization' unless domain_org
-        require_entitlement_in!(domain_org, 'custom_branding')
+        authorize_domain_brand!(@extid)
 
         @display_domain = @custom_domain.display_domain
 
-        # Validate the logo file
         raise_form_error 'Image file is required' unless @uploaded_file
 
         @bytes = @uploaded_file.size
         raise_form_error 'Image file is too large' if bytes > MAX_IMAGE_BYTES
-
-        # Raise an error if the file type is not one of the allowed image types
-        # Allowed types: JPEG, PNG, GIF, SVG, WEBP, BMP, TIFF
         raise_form_error 'Invalid file type' unless IMAGE_MIME_TYPES.include?(@content_type)
 
         @greenlighted = true
@@ -157,11 +126,26 @@ module DomainsAPI::Logic
         }
       end
 
+      protected
+
+      def config_entitlement
+        'custom_branding'
+      end
+
+      def config_entitlement_error
+        'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
+      end
+
+      def authorize_domain_brand!(domain_id)
+        authorize_domain_config!(domain_id)
+      end
+
+      private
+
       # e.g. custom_domain.logo
       def _image_field
         custom_domain.send(self.class.field)
       end
-      private :_image_field
     end
 
     class UpdateDomainLogo < UpdateDomainImage

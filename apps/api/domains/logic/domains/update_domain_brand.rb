@@ -5,6 +5,7 @@
 require 'onetime/domain_validation/strategy'
 require 'onetime/domain_validation/features'
 require_relative '../base'
+require_relative '../concerns/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
@@ -12,9 +13,11 @@ module DomainsAPI::Logic
     #
     # @api Updates brand settings for a custom domain including name,
     #   tagline, primary color, font family, corner style, homepage URL,
-    #   and default TTL. Requires the custom_branding entitlement.
-    #   Returns the updated brand settings.
+    #   and default TTL. Requires the custom_branding entitlement and
+    #   manage_org permission. Returns the updated brand settings.
     class UpdateDomainBrand < DomainsAPI::Logic::Base
+      include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+
       SCHEMAS = { response: 'brandSettings' }.freeze
 
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
@@ -32,19 +35,15 @@ module DomainsAPI::Logic
         @brand_settings = params['brand']&.transform_keys(&:to_s)&.slice(*valid_keys) || {}
       end
 
-      # Validate the input parameters
-      # Sets error messages if any parameter is invalid
       def raise_concerns
         OT.ld "[UpdateDomainBrand] Validating domain: #{@extid} with settings: #{@brand_settings.keys}"
 
-        validate_domain
+        raise_form_error 'Please provide a domain ID' if @extid.to_s.empty?
+        raise_form_error 'Invalid domain identifier format' unless valid_extid?(@extid)
 
-        @domain_org = @custom_domain.primary_organization
-        raise_form_error 'Domain has no associated organization' unless @domain_org
-        require_entitlement_in!(@domain_org, 'custom_branding')
+        authorize_domain_brand!(@extid)
 
         validate_brand_settings
-
         validate_brand_values
 
         # Disabled while we figure out whether we want this entitlement at all
@@ -71,7 +70,6 @@ module DomainsAPI::Logic
       # Update the brand settings for the custom domain
       # Familia v2 hashkeys auto-serialize via serialize_value, so pass raw values
       def update_brand_settings
-        # Update or remove brand settings - Familia handles JSON serialization automatically
         brand_settings.each do |key, value|
           if value.nil?
             OT.ld "[UpdateDomainBrand] Removing brand setting: #{key}"
@@ -96,35 +94,21 @@ module DomainsAPI::Logic
         false
       end
 
-      private
+      protected
 
-      def validate_domain
-        if @extid.nil? || @extid.empty?
-          OT.ld '[UpdateDomainBrand] Error: Missing domain ID'
-          raise_form_error 'Please provide a domain ID'
-        end
-
-        # Validate extid format (alphanumeric only, no dots/special chars)
-        # This catches cases where domain name is passed instead of extid
-        unless valid_extid?(@extid)
-          OT.ld "[UpdateDomainBrand] Error: Invalid extid format '#{@extid}'"
-          raise_form_error 'Invalid domain identifier format'
-        end
-
-        # Get customer's organization for domain ownership
-        # Organization available via @organization
-        require_organization!
-
-        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
-
-        raise_form_error 'Domain not found' unless @custom_domain&.exists?
-
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
-          OT.ld "[UpdateDomainBrand] Error: Domain #{@extid} not owned by organization #{organization.objid}"
-          raise_form_error 'Domain not found'
-        end
+      def config_entitlement
+        'custom_branding'
       end
+
+      def config_entitlement_error
+        'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
+      end
+
+      def authorize_domain_brand!(domain_id)
+        authorize_domain_config!(domain_id)
+      end
+
+      private
 
       def validate_brand_settings
         return if @brand_settings.is_a?(Hash)
@@ -174,14 +158,13 @@ module DomainsAPI::Logic
         privacy_keys = %w[default_ttl passphrase_required notify_enabled]
         return unless privacy_keys.any? { |k| @brand_settings.key?(k) }
 
-        require_entitlement_in!(@domain_org, 'custom_privacy_defaults')
+        require_entitlement_in!(@organization, 'custom_privacy_defaults')
       end
 
       def validate_default_ttl
         ttl = @brand_settings['default_ttl']
         return if ttl.nil?
 
-        # Coerce to integer if string with strict validation
         ttl_value = ttl
         if ttl.is_a?(String)
           begin
@@ -200,16 +183,12 @@ module DomainsAPI::Logic
         # Gate extended TTL values behind entitlement
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
         if ttl_value > free_ttl
-          require_entitlement_in!(@domain_org, 'extended_default_expiration')
+          require_entitlement_in!(@organization, 'extended_default_expiration')
         end
 
-        # Update the brand_settings hash with the coerced value
         @brand_settings['default_ttl'] = ttl_value
       end
 
-      # Validate extid format (lowercase alphanumeric only)
-      # extids are generated identifiers like "abc123def456"
-      # Domain names contain dots and are not valid extids
       def valid_extid?(extid)
         extid.match?(/\A[a-z0-9]+\z/)
       end

@@ -4,10 +4,13 @@
 
 require 'onetime/domain_validation/strategy'
 require_relative '../base'
+require_relative '../concerns/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
     class RemoveDomainImage < DomainsAPI::Logic::Base
+      include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       @field = nil
@@ -25,21 +28,7 @@ module DomainsAPI::Logic
 
         raise_form_error 'Domain ID is required' if @extid.empty?
 
-        # Get customer's organization for domain ownership
-        # Organization available via @organization
-        require_organization!
-
-        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
-        raise_form_error 'Invalid Domain' unless @custom_domain
-
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
-          raise_form_error 'Invalid Domain'
-        end
-
-        domain_org = @custom_domain.primary_organization
-        raise_form_error 'Domain has no associated organization' unless domain_org
-        require_entitlement_in!(domain_org, 'custom_branding')
+        authorize_domain_brand!(@extid)
 
         @display_domain = @custom_domain.display_domain
 
@@ -66,16 +55,30 @@ module DomainsAPI::Logic
         }
       end
 
+      protected
+
+      def config_entitlement
+        'custom_branding'
+      end
+
+      def config_entitlement_error
+        'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
+      end
+
+      def authorize_domain_brand!(domain_id)
+        authorize_domain_config!(domain_id)
+      end
+
+      private
+
       def image_exists?
         _image_field.key?('encoded')
       end
-      private :image_exists?
 
       # e.g. custom_domain.logo
       def _image_field
         custom_domain.send(self.class.field)
       end
-      private :_image_field
     end
 
     class RemoveDomainLogo < RemoveDomainImage
