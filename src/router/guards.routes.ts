@@ -290,8 +290,9 @@ type OrganizationStore = ReturnType<typeof useOrganizationStore>;
  * satisfies `required`. The list is fetched first so a fresh deep link doesn't
  * bounce a real owner; a failed fetch fails closed.
  *
- * Default workspaces are excluded because every user owns one — checking them
- * would let regular members access the orgs list page (see #3326).
+ * Default workspaces are excluded for non-owners because every user gets one —
+ * checking them would let regular members access the orgs list page (see #3326).
+ * Owners of default workspaces (self-signup users) are allowed through.
  */
 async function anyOrgMeetsRole(
   store: OrganizationStore,
@@ -305,7 +306,7 @@ async function anyOrgMeetsRole(
     }
   }
   return store.organizations.some(
-    (o) => !o.is_default && roleMeetsRequirement(o.current_user_role, required)
+    (o) => (!o.is_default || o.current_user_role === 'owner') && roleMeetsRequirement(o.current_user_role, required)
   );
 }
 

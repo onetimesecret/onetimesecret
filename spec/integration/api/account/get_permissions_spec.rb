@@ -525,13 +525,13 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
         expect { logic.raise_concerns }.to raise_error(OT::FormError, /resource_type must be one of/)
       end
 
-      it 'nonexistent domain raises Problem' do
+      it 'nonexistent domain raises RecordNotFound' do
         auth_result = create_auth_result(owner)
         params = { 'resource_type' => 'domain', 'resource_id' => 'nonexistent' }
         logic = AccountAPI::Logic::Account::GetPermissions.new(auth_result, params, 'en')
         logic.process_params
 
-        expect { logic.raise_concerns }.to raise_error(OT::Problem, 'Domain not found')
+        expect { logic.raise_concerns }.to raise_error(OT::RecordNotFound, 'Domain not found')
       end
 
       it 'non-member raises Forbidden for organization lookup' do
@@ -543,13 +543,13 @@ RSpec.describe 'GET /api/account/permissions', type: :integration do
         expect { logic.raise_concerns }.to raise_error(OT::Forbidden)
       end
 
-      it 'nonexistent organization raises Problem' do
+      it 'nonexistent organization raises RecordNotFound' do
         auth_result = create_auth_result(owner)
         params = { 'resource_type' => 'organization', 'resource_id' => 'nonexistent' }
         logic = AccountAPI::Logic::Account::GetPermissions.new(auth_result, params, 'en')
         logic.process_params
 
-        expect { logic.raise_concerns }.to raise_error(OT::Problem, 'Organization not found')
+        expect { logic.raise_concerns }.to raise_error(OT::RecordNotFound, 'Organization not found')
       end
     end
   end

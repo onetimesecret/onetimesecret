@@ -561,7 +561,7 @@ onMounted(async () => {
   await initDefinitions();
 
   // Fetch resource-scoped permissions (includes assignable_roles)
-  fetchAllPermissions();
+  await fetchAllPermissions();
 
   await loadOrganization();
 

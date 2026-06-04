@@ -55,8 +55,11 @@ const orgInitial = computed(() =>
 );
 
 const orgSettingsPath = computed(() => {
-  const extid = organizationStore.currentOrganization?.extid;
-  return extid ? `/org/${extid}` : null;
+  const org = organizationStore.currentOrganization;
+  if (!org?.extid) return null;
+  const role = org.current_user_role;
+  if (role !== 'owner' && role !== 'admin') return null;
+  return `/org/${org.extid}`;
 });
 
 const isLoaded = ref(false);

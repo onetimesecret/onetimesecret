@@ -328,6 +328,55 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
         'Canonical SSO user should not be added to tenant org'
     end
 
+    it 'fallback: creates default workspace when JoinDomainOrganization fails silently' do
+      # Mirrors the safety-net branch added to after_omniauth_create_account:
+      #   if customer.organization_instances.to_a.empty?
+      #     CreateDefaultWorkspace.new(customer: customer).call
+      #   end
+      #
+      # A bad domain_id causes JoinDomainOrganization to return {joined: false}
+      # without raising (RecordNotFound is caught internally). The hook wraps
+      # the call in safe_execute, so either way the customer ends up with zero
+      # orgs -- triggering the fallback.
+
+      # Precondition: user has no organizations
+      expect(fresh_sso_customer.organization_instances.count).to eq(0),
+        'Fresh customer should have no organizations before SSO'
+
+      # Simulate the hook's tenant-SSO branch with a domain_id that will fail lookup
+      bogus_domain_id = 'nonexistent_domain_id'
+
+      # Step 1: JoinDomainOrganization fails silently (mirrors safe_execute wrapper)
+      Onetime::ErrorHandler.safe_execute(
+        'join_domain_organization_omniauth',
+        extid: fresh_sso_customer.extid,
+        domain_id: bogus_domain_id,
+      ) do
+        Auth::Operations::JoinDomainOrganization.new(
+          customer: fresh_sso_customer,
+          domain_id: bogus_domain_id,
+        ).call
+      end
+
+      # Intermediate state: join failed, customer still has zero orgs
+      expect(fresh_sso_customer.organization_instances.to_a).to be_empty,
+        'After failed join, customer should still have zero organizations'
+
+      # Step 2: Fallback triggers because org count is zero
+      if fresh_sso_customer.organization_instances.to_a.empty?
+        Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+      end
+
+      # Customer should now have exactly 1 org (the fallback workspace)
+      orgs = fresh_sso_customer.organization_instances.to_a
+      expect(orgs.count).to eq(1),
+        "After fallback, customer should have exactly 1 org, got #{orgs.count}"
+      expect(orgs.first.is_default).to be(true),
+        'Fallback org should be a default workspace'
+      expect(orgs.first.member?(fresh_sso_customer)).to be(true),
+        'Customer should be a member of the fallback workspace'
+    end
+
     it 'mutually exclusive: cannot get both default workspace and tenant org' do
       # This test mirrors the bug scenario from #3326:
       # If both operations ran, user would end up in 2 orgs
