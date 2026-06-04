@@ -102,12 +102,19 @@ const getTtlPercentage = computed(() => {
 
 /**
  * Determine item state based on receipt state.
- * Priority: expired > burned > revealed > previewed > new
+ * Priority: burned > revealed > expired > previewed > new
+ *
+ * Burned and revealed must take precedence over expired/destroyed because
+ * the backend sets multiple flags simultaneously:
+ * - Burned secrets have is_burned=true AND is_destroyed=true AND secret_ttl=0
+ * - Revealed secrets have is_revealed=true AND is_destroyed=true AND secret_ttl=-1
+ *
+ * The UI should show the actual state (burned/revealed) not the side effect.
  */
 const itemState = computed((): 'new' | 'previewed' | 'revealed' | 'burned' | 'expired' => {
-  if (isExpired.value || isDestroyed.value) return 'expired';
   if (isBurned.value) return 'burned';
   if (isRevealed.value) return 'revealed';
+  if (isExpired.value || isDestroyed.value) return 'expired';
   if (isPreviewed.value) return 'previewed';
   return 'new';
 });
