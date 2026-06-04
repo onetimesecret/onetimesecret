@@ -37,6 +37,7 @@ Loaded from `etc/billing.yaml`.
 
 ### Collaboration
 
+- **`manage_orgs`**: Add and manage organizations on your account
 - **`manage_org`**: Can manage organization settings, members, and domains
 - **`manage_teams`**: Can create and manage teams
 - **`manage_members`**: Can create and manage organization members
@@ -55,6 +56,7 @@ Loaded from `etc/billing.yaml`.
 
 - **`api_access`**: Can use REST API endpoints
 - **`custom_domains`**: Can configure custom domains
+- **`manage_billing`**: Can manage billing details and change plans
 
 
 ## Plans Overview
@@ -82,13 +84,16 @@ Default tier for all users without subscription
 - `custom_domains`
 - `homepage_secrets`
 - `incoming_secrets`
+- `manage_orgs`
+- `manage_org`
 - `view_receipt`
 
 **Limits:**
 
 | Resource | Limit | Notes |
 |----------|-------|-------|
-| organizations | ∞ (unlimited) |  |
+| organizations | 10 |  |
+| total_members_per_org | 1 | Individual only |
 | members_per_org_max | 1 |  |
 | members_per_org | 1 |  |
 | role_members_per_org | 1 |  |
@@ -120,6 +125,8 @@ Original plan, grandfathered for existing customers
 - `homepage_secrets`
 - `incoming_secrets`
 - `manage_members`
+- `manage_billing`
+- `manage_orgs`
 - `manage_org`
 - `view_receipt`
 
@@ -129,8 +136,8 @@ Original plan, grandfathered for existing customers
 |----------|-------|-------|
 | custom_domains | ∞ (unlimited) |  |
 | organizations | 10 |  |
-| role_admins_per_org | 0 |  |
-| role_members_per_org | ∞ (unlimited) |  |
+| role_admins_per_org | 10 |  |
+| role_members_per_org | 50 |  |
 | role_owners_per_org | 1 |  |
 | secret_lifetime | 2592000 | 30 days |
 | secrets_per_day | ∞ (unlimited) |  |
@@ -158,6 +165,8 @@ For individuals needing custom domains and extended retention
 - `homepage_secrets`
 - `incoming_secrets`
 - `manage_members`
+- `manage_billing`
+- `manage_orgs`
 - `manage_org`
 - `view_receipt`
 
@@ -168,7 +177,7 @@ For individuals needing custom domains and extended retention
 | custom_domains | ∞ (unlimited) |  |
 | organizations | 10 |  |
 | role_admins_per_org | 0 |  |
-| role_members_per_org | ∞ (unlimited) |  |
+| role_members_per_org | 50 |  |
 | role_owners_per_org | 1 |  |
 | secret_lifetime | 2592000 | 30 days |
 | secrets_per_day | ∞ (unlimited) |  |
@@ -202,6 +211,7 @@ For teams needing collaboration features
 - `incoming_secrets`
 - `ip_access_rules`
 - `manage_members`
+- `manage_orgs`
 - `manage_org`
 - `manage_sso`
 - `manage_teams`
@@ -214,12 +224,12 @@ For teams needing collaboration features
 |----------|-------|-------|
 | custom_domains | ∞ (unlimited) |  |
 | organizations | 10 |  |
-| role_admins_per_org | ∞ (unlimited) |  |
-| role_members_per_org | ∞ (unlimited) |  |
-| role_owners_per_org | 1 |  |
+| role_admins_per_org | 50 |  |
+| role_members_per_org | 100 |  |
+| role_owners_per_org | 50 |  |
 | secret_lifetime | 2592000 | 30 days |
 | secrets_per_day | ∞ (unlimited) |  |
-| total_members_per_org | 1 | Individual only |
+| total_members_per_org | 100 |  |
 
 **Pricing:**
 - Monthly: $85.0 CAD

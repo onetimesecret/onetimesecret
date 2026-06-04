@@ -239,6 +239,9 @@
     "text": "This will permanently delete the organization. This action cannot be undone.",
     "content_hash": "ab2d2c05"
   },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Remove all custom domains before deleting this organization."
+  },
   "web.organizations.delete": {
     "text": "Delete",
     "content_hash": "e2d0a549"
@@ -285,6 +288,9 @@
   },
   "web.organizations.leave_organization_success": {
     "text": "You have left the organization."
+  },
+  "web.organizations.leave_error": {
+    "text": "Failed to leave organization"
   },
   "web.organizations.members.title": {
     "text": "Members",

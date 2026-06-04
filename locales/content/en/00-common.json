@@ -1479,6 +1479,10 @@
     "context": "Feedback when content copied to clipboard",
     "content_hash": "8d525e5f"
   },
+  "web.COMMON.copy": {
+    "text": "Copy",
+    "context": "Tooltip for copy buttons"
+  },
   "web.COMMON.copy_email": {
     "text": "Copy email address",
     "context": "Tooltip for copy email button in user menu",
