@@ -27,7 +27,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
-import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
+import { getPlanLabel, getSubscriptionStatusLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation, OrganizationRole } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
@@ -311,8 +311,7 @@ watch(formData, () => {
   }
 }, { deep: true });
 
-// Billing email is only shown for paid plans (organizations with a planid set)
-const hasPaidPlan = computed(() => !!organization.value?.planid);
+const hasPaidPlan = computed(() => !isFreePlan(organization.value?.planid));
 
 // Legacy plan detection for grandfathered Early Supporter customers
 const isLegacyCustomer = computed(() =>

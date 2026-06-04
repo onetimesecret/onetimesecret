@@ -13,7 +13,7 @@ import { classifyError } from '@/schemas/errors';
 import { BillingService, type FederationNotification as FederationNotificationData } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
-import { getPlanLabel, isLegacyPlan } from '@/types/billing';
+import { getPlanLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -62,9 +62,12 @@ const planName = computed(() => {
   return getPlanLabel(selectedOrg.value.planid);
 });
 
-const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');
+const planStatus = computed(() => {
+  const planid = selectedOrg.value?.planid;
+  if (!planid || isFreePlan(planid)) return 'free';
+  return 'active';
+});
 
-// Billing email is only editable for paid plans
 const hasPaidPlan = computed(() => planStatus.value === 'active');
 
 // Legacy plan detection for grandfathered customers
@@ -282,13 +285,9 @@ onMounted(async () => {
                   {{ planName }}
                 </p>
                 <span
-                  :class="[
-                    'mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                    planStatus === 'active'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
-                  ]">
-                  {{ planStatus === 'active' ? t('web.billing.subscription.active') : t('web.billing.plans.free_plan') }}
+                  v-if="hasPaidPlan"
+                  class="mt-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  {{ t('web.billing.subscription.active') }}
                 </span>
                 <!-- Next Billing Date -->
                 <p
