@@ -493,6 +493,12 @@ module Onetime
 
     # Destroy the membership with proper index cleanup
     #
+    # Member removal must cascade all derived state in a single operation:
+    #   1. Delete the membership join (org.members + customer.participations)
+    #   2. Cascade derived state (materialized entitlements, role caches)
+    #   3. The caller logs an audit event
+    #   4. The customer's account/login is never modified
+    #
     # DESIGN NOTE: This method exists because Familia's base destroy! only
     # deletes the object's Redis hash. It intentionally doesn't know about
     # application-level indexes (pending_invitations, unique lookups) because:
@@ -508,6 +514,8 @@ module Onetime
     # Cleans up:
     #   - org.members sorted set (ZREM customer from org's active members)
     #   - customer.participations reverse index (SREM org collection key)
+    #   - materialized_entitlements, entitlements_plan, entitlements_grants,
+    #     entitlements_revokes (Redis SETs from MembershipMaterializedEntitlements)
     #   - token_lookup
     #   - pending_invitations staging set (prevents stale quota counts)
     #
@@ -515,31 +523,26 @@ module Onetime
       org  = organization
       cust = customer
 
-      # Remove from Familia sorted sets (the same work remove_members_instance does).
-      # Guard on both org and cust existing — pending invitations have no customer.
-      if org && cust
-        # ZREM customer from org's members sorted set.
-        # Pass the Customer object, not a string — the sorted set was created
-        # without reference: true, so a raw string would be JSON-encoded and
-        # not match the identifier stored when the object was added.
-        org.members.remove(cust)
-
-        # SREM org's members collection key from customer's participations reverse index
-        cust.untrack_participation_in(org.members.dbkey) if cust.respond_to?(:untrack_participation_in)
-      end
+      # Clear materialized entitlement sub-keys (Redis SETs) before the
+      # through model is destroyed — destroy! only deletes the hash key.
+      materialized_entitlements.clear
+      entitlements_plan.clear
+      entitlements_grants.clear
+      entitlements_revokes.clear
 
       # Remove OTS application-level indexes
-
-      # Remove token_lookup entry if exists
-      if token
-        self.class.token_lookup.remove_field(token)
-      end
-
-      # Remove from org's pending_invitations staging set if still pending
-      # This prevents stale objids from affecting quota calculations
+      self.class.token_lookup.remove_field(token) if token
       organization&.pending_invitations&.remove(objid) if pending?
 
-      destroy!
+      # Delegate the three-structure invariant to Familia's remove_members_instance:
+      #   1. ZREM customer from org.members sorted set
+      #   2. SREM org collection key from customer.participations reverse index
+      #   3. Destroy the through model (this object's Redis hash)
+      if org && cust
+        org.remove_members_instance(cust)
+      else
+        destroy!
+      end
     end
 
     # Generate a secure invitation token

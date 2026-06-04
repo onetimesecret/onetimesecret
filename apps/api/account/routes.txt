@@ -20,3 +20,4 @@ POST   /confirm-email-change                AccountAPI::Logic::Account::ConfirmE
 POST   /resend-email-change-confirmation    AccountAPI::Logic::Account::ResendEmailChangeConfirmation response=json auth=sessionauth
 GET    /                                    AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
 GET    /entitlements                        AccountAPI::Logic::Account::GetEntitlements response=json auth=sessionauth,basicauth
+GET    /permissions                         AccountAPI::Logic::Account::GetPermissions response=json auth=sessionauth,basicauth

@@ -16,30 +16,74 @@ import { nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import type { BulkPermissionsResponse } from '@/schemas/api/account/responses/permissions';
 
-// Create mock stores before vi.mock calls
-const mockDomainsStoreState = {
-  domains: [] as Array<{ display_domain: string; extid: string }>,
-  fetchList: vi.fn().mockResolvedValue(undefined),
-};
+// --- Mock state ---
+
+const emptyResponse: BulkPermissionsResponse = { organizations: [] };
+const mockFetchAllPermissions = vi.fn().mockResolvedValue(emptyResponse);
 
 const mockOrganizationStoreState = {
-  currentOrganization: null as { objid: string } | null,
+  currentOrganization: null as { objid: string; extid: string } | null,
 };
 
-vi.mock('@/shared/stores/domainsStore', () => ({
-  useDomainsStore: () => mockDomainsStoreState,
+// Mock useResourcePermissions - the composable now uses this instead of domainsStore
+vi.mock('@/shared/composables/useResourcePermissions', () => ({
+  useResourcePermissions: () => ({
+    fetchAllPermissions: mockFetchAllPermissions,
+  }),
 }));
 
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => mockOrganizationStoreState,
 }));
 
-function setMockDomains(domains: string[]) {
-  mockDomainsStoreState.domains = domains.map((d) => ({
-    display_domain: d,
-    extid: `cd_${d.replace(/\./g, '_')}`,
-  }));
+/**
+ * Build a BulkPermissionsResponse with domains for a given org extid.
+ */
+function buildPermissionsResponse(
+  orgExtid: string,
+  domains: string[]
+): BulkPermissionsResponse {
+  return {
+    organizations: [
+      {
+        extid: orgExtid,
+        display_name: `Org ${orgExtid}`,
+        is_default: true,
+        membership: {
+          role: 'owner',
+          status: 'active',
+          provisioning_source: null,
+          invited_at: null,
+          joined_at: '2026-01-01',
+          entitlements: ['custom_domains'],
+        },
+        permissions: {
+          can_view: true,
+          can_edit: true,
+          can_delete: false,
+          can_manage_settings: true,
+        },
+        domains: domains.map((d) => ({
+          display_domain: d,
+          extid: `cd_${d.replace(/\./g, '_')}`,
+          permissions: {
+            can_view: true,
+            can_edit: true,
+            can_delete: false,
+            can_manage_settings: false,
+          },
+        })),
+        assignable_roles: ['member', 'admin'],
+      },
+    ],
+  };
+}
+
+/** Configure the permissions mock with domains for the test org. */
+function setMockDomains(orgExtid: string, domains: string[]) {
+  mockFetchAllPermissions.mockResolvedValue(buildPermissionsResponse(orgExtid, domains));
 }
 
 describe('useDomainContext route synchronization', () => {
@@ -90,10 +134,12 @@ describe('useDomainContext route synchronization', () => {
       configurable: true,
     });
 
-    mockDomainsStoreState.domains = [];
-    mockDomainsStoreState.fetchList.mockReset();
-    mockDomainsStoreState.fetchList.mockResolvedValue(undefined);
-    mockOrganizationStoreState.currentOrganization = { objid: 'org-test-123' };
+    mockFetchAllPermissions.mockReset();
+    mockFetchAllPermissions.mockResolvedValue({ organizations: [] } as BulkPermissionsResponse);
+    mockOrganizationStoreState.currentOrganization = {
+      objid: 'org-test-123',
+      extid: 'org-ext-test-123',
+    };
 
     const { __resetDomainContextForTesting } = await import(
       '@/shared/composables/useDomainContext'
@@ -104,7 +150,7 @@ describe('useDomainContext route synchronization', () => {
   describe('setContext rejects extid values (bug proof)', () => {
     it('ignores extid string because it is not a valid domain', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext, initialized } = useDomainContext();
@@ -123,7 +169,7 @@ describe('useDomainContext route synchronization', () => {
   describe('reverse lookup (extid -> domain)', () => {
     it('getExtidByDomain provides domain-to-extid lookup', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { getExtidByDomain, initialized } = useDomainContext();
@@ -136,7 +182,7 @@ describe('useDomainContext route synchronization', () => {
 
     it('composable API provides reverse lookup (extid -> domain)', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const api = useDomainContext();
@@ -150,7 +196,7 @@ describe('useDomainContext route synchronization', () => {
 
     it('getDomainByExtid returns domain for known extid', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { getDomainByExtid, initialized } = useDomainContext();
@@ -164,7 +210,7 @@ describe('useDomainContext route synchronization', () => {
 
     it('getDomainByExtid returns undefined for unknown extid', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { getDomainByExtid, initialized } = useDomainContext();
@@ -177,7 +223,7 @@ describe('useDomainContext route synchronization', () => {
 
     it('setContextByExtid updates domain context via extid', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContextByExtid, initialized } = useDomainContext();
@@ -193,7 +239,7 @@ describe('useDomainContext route synchronization', () => {
 
     it('setContextByExtid does nothing for unknown extid', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContextByExtid, initialized } = useDomainContext();
@@ -210,7 +256,7 @@ describe('useDomainContext route synchronization', () => {
   describe('no route awareness in composable', () => {
     it('domain stays at initial value regardless of external state changes', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, initialized } = useDomainContext();
@@ -226,7 +272,7 @@ describe('useDomainContext route synchronization', () => {
 
     it('only manual setContext call updates the domain', async () => {
       setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
-      setMockDomains(['acme.example.com', 'widgets.example.com']);
+      setMockDomains('org-ext-test-123', ['acme.example.com', 'widgets.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext, setContext, initialized } = useDomainContext();

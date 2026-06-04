@@ -143,6 +143,8 @@ const mockFetchInvitations = vi.fn();
 
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
+    organizations: [],
+    setCurrentOrganization: vi.fn(),
     fetchOrganization: mockFetchOrganization,
     updateOrganization: mockUpdateOrganization,
     fetchInvitations: mockFetchInvitations,

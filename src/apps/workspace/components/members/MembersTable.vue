@@ -28,6 +28,8 @@ const props = withDefaults(defineProps<{
   isLoading: boolean;
   /** Compact mode hides the header and reduces padding */
   compact?: boolean;
+  /** API-provided assignable roles; falls back to useMembersManager when absent */
+  assignableRoles?: OrganizationRole[];
 }>(), {
   compact: false,
 });
@@ -178,7 +180,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
                 <MemberRoleSelector
                   v-if="canChangeRole(member)"
                   :model-value="member.role"
-                  :available-roles="getAssignableRoles()"
+                  :available-roles="props.assignableRoles ?? getAssignableRoles()"
                   :disabled="isLoading"
                   @update:model-value="(role) => handleRoleChange(member, role)" />
                 <span
@@ -196,7 +198,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
               <!-- Actions -->
               <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                 <button
-                  v-if="canModifyMember(member)"
+                  v-if="canModifyMember(member) && !member.is_current_user"
                   type="button"
                   :disabled="isLoading"
                   class="text-red-600 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
