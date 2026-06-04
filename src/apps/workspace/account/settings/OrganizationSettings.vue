@@ -124,8 +124,13 @@ watch(
     const urlTab = newTab as string | undefined;
     if (urlTab && URL_TO_TAB[urlTab]) {
       const resolved = URL_TO_TAB[urlTab];
-      if (resolved === 'members' && !canManageMembers.value) return;
-      if (resolved === 'sso' && !canManageSso.value) return;
+      if (
+        (resolved === 'members' && !canManageMembers.value) ||
+        (resolved === 'sso' && !canManageSso.value)
+      ) {
+        setActiveTab('domains');
+        return;
+      }
       activeTab.value = resolved;
     } else if (!urlTab) {
       activeTab.value = props.initialTab;
