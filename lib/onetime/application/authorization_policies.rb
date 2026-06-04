@@ -175,7 +175,7 @@ module Onetime
       # Verify current user owns the organization
       #
       # DEPRECATED (ADR-012 Stage 3): Use require_entitlement! with an owner-level
-      # entitlement (e.g., 'manage_orgs', 'manage_sso') instead. Role predicates
+      # entitlement (e.g., 'manage_org', 'manage_sso') instead. Role predicates
       # like owner? remain for display logic; authorization should use entitlements.
       #
       # Colonels (site admins) have automatic superuser bypass.

@@ -1223,7 +1223,7 @@
   },
   "web.TITLES.domain_detail": {
     "text": "Domain Settings",
-    "content_hash": "b8c9d0e1"
+    "content_hash": "e24f338d"
   },
   "web.TITLES.account": {
     "text": "Account",
@@ -1447,7 +1447,7 @@
   "api.errors.sso_only_action_blocked": {
     "text": "This action is not available in SSO-only mode",
     "context": "Returned when an account management action (destroy, change password/email) is attempted while SSO-only mode is active (lib/onetime/logic/sso_only_gating.rb)",
-    "content_hash": "d1c1996c"
+    "content_hash": "9bc26394"
   },
   "web.COMMON.upgrade_description": {
     "text": "Upgrade to unlock more features",
@@ -1479,19 +1479,23 @@
     "context": "Feedback when content copied to clipboard",
     "content_hash": "8d525e5f"
   },
+  "web.COMMON.copy": {
+    "text": "Copy",
+    "context": "Tooltip for copy buttons"
+  },
   "web.COMMON.copy_email": {
     "text": "Copy email address",
     "context": "Tooltip for copy email button in user menu",
-    "content_hash": "a7d3e1b2"
+    "content_hash": "61b94846"
   },
   "web.COMMON.copy_id": {
     "text": "Copy account ID",
     "context": "Tooltip for copy ID button in user menu",
-    "content_hash": "b8e4f2c3"
+    "content_hash": "fd493ffd"
   },
   "web.COMMON.org_id_tooltip": {
     "text": "Your organization's unique identifier",
     "context": "Tooltip for organization ID in user menu footer",
-    "content_hash": "c9f5g3d4"
+    "content_hash": "c8c08d29"
   }
 }

@@ -6,27 +6,32 @@ import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 
-// Mock vue-i18n
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string, params?: Record<string, string>) => {
-      const translations: Record<string, string> = {
-        'web.organizations.members.title': 'Team Members',
-        'web.organizations.members.description': 'Manage your team members and their roles',
-        'web.organizations.members.member': 'Member',
-        'web.organizations.members.role': 'Role',
-        'web.organizations.members.joined': 'Joined',
-        'web.organizations.members.actions': 'Actions',
-        'web.organizations.members.remove_member_title': 'Remove Member',
-        'web.organizations.members.remove_member_confirm': `Are you sure you want to remove ${params?.name ?? 'this member'}?`,
-        'web.organizations.members.roles.owner': 'Owner',
-        'web.organizations.members.roles.admin': 'Admin',
-        'web.organizations.members.roles.member': 'Member',
-      };
-      return translations[key] ?? key;
-    },
-  }),
-}));
+// Mock vue-i18n — must include createI18n because transitive imports (e.g.
+// @/i18n via store setup) reference it from the same module.
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-i18n')>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      t: (key: string, params?: Record<string, string>) => {
+        const translations: Record<string, string> = {
+          'web.organizations.members.title': 'Team Members',
+          'web.organizations.members.description': 'Manage your team members and their roles',
+          'web.organizations.members.member': 'Member',
+          'web.organizations.members.role': 'Role',
+          'web.organizations.members.joined': 'Joined',
+          'web.organizations.members.actions': 'Actions',
+          'web.organizations.members.remove_member_title': 'Remove Member',
+          'web.organizations.members.remove_member_confirm': `Are you sure you want to remove ${params?.name ?? 'this member'}?`,
+          'web.organizations.members.roles.owner': 'Owner',
+          'web.organizations.members.roles.admin': 'Admin',
+          'web.organizations.members.roles.member': 'Member',
+        };
+        return translations[key] ?? key;
+      },
+    }),
+  };
+});
 
 // Mock child components
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -458,7 +463,7 @@ describe('MembersTable', () => {
   describe('Confirm dialog for member removal', () => {
     it('shows confirm dialog when remove button is clicked', async () => {
       mockCanModifyMember.mockReturnValue(true);
-      mockReveal.mockResolvedValue(false); // User cancels
+      mockReveal.mockResolvedValue({ isCanceled: true }); // User cancels
 
       mountComponent({
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
@@ -510,7 +515,7 @@ describe('MembersTable', () => {
     it('calls removeMember and emits member-removed when confirmed', async () => {
       mockCanModifyMember.mockReturnValue(true);
       mockRemoveMember.mockResolvedValue(true);
-      mockReveal.mockResolvedValue(true); // User confirms
+      mockReveal.mockResolvedValue({ isCanceled: false }); // User confirms
 
       mountComponent({
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
@@ -530,7 +535,7 @@ describe('MembersTable', () => {
 
     it('does not call removeMember when dialog is cancelled', async () => {
       mockCanModifyMember.mockReturnValue(true);
-      mockReveal.mockResolvedValue(false); // User cancels
+      mockReveal.mockResolvedValue({ isCanceled: true }); // User cancels
 
       mountComponent({
         members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
@@ -549,7 +554,7 @@ describe('MembersTable', () => {
     it('does not emit member-removed when removeMember fails', async () => {
       mockCanModifyMember.mockReturnValue(true);
       mockRemoveMember.mockResolvedValue(false); // Operation fails
-      mockReveal.mockResolvedValue(true);
+      mockReveal.mockResolvedValue({ isCanceled: false });
 
       mountComponent({
         members: [createMember({ extid: 'mem_admin', role: 'admin' })],

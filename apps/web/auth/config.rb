@@ -27,11 +27,6 @@ module Auth
 
     class << self
       attr_accessor :configured
-
-      # Reset configuration state (for testing only)
-      def reset_configuration!
-        @configured = false
-      end
     end
 
     require_relative 'lib/logging'
@@ -53,7 +48,7 @@ module Auth
       # Use `next` not `return` because we're in an instance_exec context.
       #
       if Auth::Config.configured
-        OT.ld '[Auth::Config] Skipping duplicate configuration (already configured)'
+        OT.lw '[Auth::Config] Skipping duplicate configuration (already configured)'
         next
       end
 
@@ -68,7 +63,7 @@ module Auth
       # Core features: base, json, login, logout, table_guard, etc.
       Base.configure(self)
 
-      # Password hashing: argon2id (more secure than bcrypt)
+      # Password hashing: argon2id
       Features::Argon2.configure(self)
 
       # Audit logging for authentication events
@@ -142,7 +137,7 @@ module Auth
       end
 
       # Billing: plan selection carry-through for checkout flow
-      if Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+      if Onetime.billing_config.enabled?
         Hooks::Billing.configure(self)
       end
 

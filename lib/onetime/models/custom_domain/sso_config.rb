@@ -297,20 +297,20 @@ module Onetime
         end
 
         errors << 'client_id is required' if client_id_val.to_s.empty?
-        errors << 'client_secret is required' if client_secret_val.to_s.empty?
+        errors << 'client_secret is required' if client_secret_val.to_s.empty? && provider_type != 'oidc'
 
         # Provider-specific field requirements:
         #
-        #   | provider_type | tenant_id | issuer |
-        #   |---------------|-----------|--------|
-        #   | entra_id      | required  | -      |
-        #   | oidc          | -         | required |
-        #   | google        | -         | -      |
-        #   | github        | -         | -      |
+        #   | provider_type | tenant_id | issuer | client_secret |
+        #   |---------------|-----------|--------|---------------|
+        #   | entra_id      | required  | -      | required      |
+        #   | oidc          | -         | required | optional    |
+        #   | google        | -         | -      | required      |
+        #   | github        | -         | -      | required      |
         #
+        # OIDC supports public clients (PKCE flow) without a client secret.
         # Google and GitHub use well-known OAuth endpoints, so neither
-        # tenant_id nor issuer is needed. Universal fields (client_id,
-        # client_secret, display_name) are validated above.
+        # tenant_id nor issuer is needed.
         #
         case provider_type
         when 'oidc'
@@ -442,11 +442,17 @@ module Onetime
 
       private
 
-      # Build OIDC options (uses domain_id as strategy name)
+      def strategy_name
+        domain = custom_domain
+        raise Onetime::RecordNotFound, "CustomDomain #{domain_id} not found" unless domain
+
+        domain.extid
+      end
+
       def build_oidc_options
         {
           strategy: :openid_connect,
-          name: domain_id,
+          name: strategy_name,
           scope: [:openid, :email, :profile],
           response_type: :code,
           issuer: issuer,
@@ -459,11 +465,10 @@ module Onetime
         }
       end
 
-      # Build Entra ID options
       def build_entra_id_options
         {
           strategy: :entra_id,
-          name: domain_id,
+          name: strategy_name,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           tenant_id: tenant_id,
@@ -471,11 +476,10 @@ module Onetime
         }
       end
 
-      # Build Google OAuth2 options
       def build_google_options
         {
           strategy: :google_oauth2,
-          name: domain_id,
+          name: strategy_name,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           scope: 'openid,email,profile',
@@ -483,11 +487,10 @@ module Onetime
         }
       end
 
-      # Build GitHub OAuth options
       def build_github_options
         {
           strategy: :github,
-          name: domain_id,
+          name: strategy_name,
           client_id: client_id&.reveal { it },
           client_secret: client_secret&.reveal { it },
           scope: 'user:email',

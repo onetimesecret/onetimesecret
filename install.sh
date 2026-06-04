@@ -231,13 +231,13 @@ cmd_init() {
   info "Next steps:"
   if [[ "$mode" == "full" ]]; then
     info "  1. Start Valkey/Redis and RabbitMQ"
-    info "  2. Source environment:  source .env.sh"
+    info "  2. Source environment:  set -a; source .env; set +a"
     info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
     info "  4. Start workers:      bundle exec bin/ots worker"
     info "  5. Start scheduler:    bundle exec bin/ots scheduler"
   else
     info "  1. Start Valkey/Redis"
-    info "  2. Source environment:  source .env.sh"
+    info "  2. Source environment:  set -a; source .env; set +a"
     info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
   fi
   echo ""

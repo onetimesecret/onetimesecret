@@ -337,12 +337,11 @@ describe('DomainSsoConfigForm', () => {
       expect(issuerInput.exists()).toBe(false);
     });
 
-    it('shows domain filter field for GitHub (requiresDomainFilter)', async () => {
+    it('does not show domain filter field (feature not yet enabled)', async () => {
       wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'github' } });
 
-      // The domain allowlist field should be visible for GitHub
       const domainInput = wrapper.find('#domain-sso-domain-input');
-      expect(domainInput.exists()).toBe(true);
+      expect(domainInput.exists()).toBe(false);
     });
   });
 
@@ -656,9 +655,9 @@ describe('DomainSsoConfigForm', () => {
         isLoading: true,
       });
 
-      // Should show loading state
-      const loadingIcon = wrapper.find('[data-icon-name="arrow-path"]');
-      expect(loadingIcon.exists()).toBe(true);
+      // Should show loading skeleton (SettingsSkeleton) with its busy status region
+      const skeleton = wrapper.find('[role="status"]');
+      expect(skeleton.exists()).toBe(true);
     });
 
     it('shows form when isLoading is false', async () => {

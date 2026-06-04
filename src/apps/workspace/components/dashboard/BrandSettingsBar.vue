@@ -132,7 +132,7 @@
                 v-if="isLoading"
                 collection="mdi"
                 name="loading"
-                class="-ml-1 mr-2 size-4 animate-spin" />
+                class="-ml-1 mr-2 size-4 animate-spin motion-reduce:animate-none" />
               <OIcon
                 v-else
                 collection="mdi"

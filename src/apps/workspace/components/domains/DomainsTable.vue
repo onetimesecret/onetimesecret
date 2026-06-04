@@ -22,7 +22,7 @@
   import { isOrgsSsoEnabled, isOrgsCustomMailEnabled, isOrgsIncomingSecretsEnabled } from '@/utils/features';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
-  import { computed } from 'vue';
+  import { computed, reactive } from 'vue';
 
 const { t } = useI18n();
 
@@ -59,17 +59,35 @@ const { t } = useI18n();
   }>();
 
   const handleDelete = async (domain: string) => {
-    const confirmed = await reveal();
-    if (confirmed) {
+    const { isCanceled } = await reveal();
+    if (!isCanceled) {
       await deleteDomain(domain);
     }
   };
 
-  const handleHomepageToggle = async (domain: CustomDomain) => {
-    const newValue = !(domain.homepage_config?.enabled ?? false);
-    await domainsStore.putHomepageConfig(domain.extid, newValue);
+  // Optimistic toggle state: tracks in-flight toggles by extid so each
+  // switch reflects its pending value immediately and ignores clicks
+  // while its API call is in flight.
+  const pendingToggles: Record<string, boolean> = reactive({});
 
-    emit('toggle-homepage', domain);
+  const isHomepageEnabled = (domain: CustomDomain): boolean => {
+    if (domain.extid in pendingToggles) return pendingToggles[domain.extid];
+    return domain.homepage_config?.enabled ?? false;
+  };
+
+  const isTogglePending = (extid: string): boolean => extid in pendingToggles;
+
+  const handleHomepageToggle = async (domain: CustomDomain) => {
+    if (isTogglePending(domain.extid)) return;
+
+    const newValue = !isHomepageEnabled(domain);
+    pendingToggles[domain.extid] = newValue;
+    try {
+      await domainsStore.putHomepageConfig(domain.extid, newValue);
+      emit('toggle-homepage', domain);
+    } finally {
+      delete pendingToggles[domain.extid];
+    }
   };
 </script>
 
@@ -135,7 +153,7 @@ const { t } = useI18n();
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="domain in domains"
-              :key="domain.domainid"
+              :key="domain.extid"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Domain & Status -->
               <td class="px-6 py-4">
@@ -149,8 +167,8 @@ const { t } = useI18n();
               <td class="px-6 py-4 text-center">
                 <div>
                   <ToggleWithIcon
-                    :enabled="domain.homepage_config?.enabled ?? false"
-                    :disabled="isLoading || !canAdmin"
+                    :enabled="isHomepageEnabled(domain)"
+                    :disabled="isLoading || !canAdmin || isTogglePending(domain.extid)"
                     @update:enabled="handleHomepageToggle(domain)" />
                 </div>
               </td>

@@ -123,7 +123,7 @@ module V3
           )
         rescue StandardError => ex
           # Log but don't fail the reveal - notification is non-critical
-          secret_logger.error "[RevealSecret] Failed to notify owner: #{ex.message}"
+          secret_logger.error "[RevealSecret] Failed to notify owner", exception: ex
         end
       end
 

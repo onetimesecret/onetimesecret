@@ -68,22 +68,15 @@ def set_membership_role(org_objid, customer_objid, role)
 end
 
 # Helper: Create membership record directly in Redis
-# Must also populate the org_customer_lookup index for find_by_org_customer to work
 def create_membership_record(org_objid, customer_objid, role)
-  # The objid for a composite-keyed through model
   objid = "organization:#{org_objid}:customer:#{customer_objid}:org_membership"
   key = membership_key(org_objid, customer_objid)
 
-  # Store field values as JSON (matches Familia's serialization)
   Familia.dbclient.hset(key, 'objid', Familia::JsonSerializer.dump(objid))
   Familia.dbclient.hset(key, 'organization_objid', Familia::JsonSerializer.dump(org_objid))
   Familia.dbclient.hset(key, 'customer_objid', Familia::JsonSerializer.dump(customer_objid))
   Familia.dbclient.hset(key, 'role', Familia::JsonSerializer.dump(role))
   Familia.dbclient.hset(key, 'status', Familia::JsonSerializer.dump('active'))
-
-  # Populate the org_customer_lookup index
-  lookup_key = "#{org_objid}:#{customer_objid}"
-  Onetime::OrganizationMembership.org_customer_lookup[lookup_key] = objid
 end
 
 # Helper: Delete a customer from Redis (simulate deleted customer)

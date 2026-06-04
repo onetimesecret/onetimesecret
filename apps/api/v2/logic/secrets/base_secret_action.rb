@@ -168,6 +168,10 @@ module V2::Logic
       # that CustomDomain objects go through so if we don't get past this
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
+      #
+      # This records the *requested* domain only. Whether an anonymous request
+      # is allowed to use it is decided later in validate_anonymous_share_domain
+      # (display_domain is not reliably available this early across API versions).
       def process_share_domain
         potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
@@ -223,13 +227,50 @@ module V2::Logic
       # Validates the share domain for secret creation.
       # Determines appropriate domain and validates access permissions.
       def validate_share_domain
-        # If we're on a custom domain creating a link, the only possible share
-        # domain  is the custom domain itself. This is bc we only allow logging
-        # in on the canonical domain (e.g. onetimesecret.com) AND we don't offer
-        # any way to change the share domain when creating a link from a custom
-        # domain.
+        validate_anonymous_share_domain
         @share_domain = determine_share_domain
         validate_domain_access(@share_domain)
+      end
+
+      # Guest share-domain policy (issue #3311): a guest's link is always created
+      # on the domain they are currently visiting. The POST body can only reject
+      # the request (by naming a *different* custom domain); it can never redirect
+      # the link somewhere else.
+      #
+      #   Guest is on…    | POST body share_domain         | Result
+      #   ----------------+--------------------------------+--------------------------
+      #   custom domain X | X, omitted, canonical, or junk | allowed — link on X
+      #   custom domain X | a different valid custom dom. Y | rejected (Forbidden)
+      #   canonical       | omitted, canonical, or junk    | allowed — link on canonical
+      #   canonical       | any valid custom domain         | rejected (Forbidden)
+      #
+      # Nuance: only a valid, non-default custom domain that differs from the one
+      # the guest is on counts as a smuggle. process_share_domain already filters
+      # empty, malformed, and canonical/default values to nil, so they arrive here
+      # as "no request" (share_domain.nil?) and are ignored rather than rejected —
+      # the link is created on whatever domain the guest is on. The only legitimate
+      # non-nil value is the Host-header custom domain (display_domain), i.e. a
+      # guest using the /guest endpoints on a branded domain.
+      #
+      # Authenticated callers are unaffected: domain selection is governed by
+      # validate_domain_permissions (ownership / membership).
+      def validate_anonymous_share_domain
+        return unless anonymous_user?
+        return if share_domain.nil?
+        return if custom_domain? && share_domain.casecmp?(display_domain.to_s)
+
+        secret_logger.warn 'Anonymous cross-domain share_domain rejected',
+          {
+            domain: share_domain,
+            display_domain: display_domain,
+            action: 'validate_anonymous_share_domain',
+            result: :cross_domain,
+          }
+        raise Onetime::Forbidden.new(
+          "You do not have permission to use domain: #{share_domain}",
+          error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
+          args: { domain: share_domain },
+        )
       end
 
       # @sync src/schemas/contracts/config/public.ts — passphrase options
@@ -356,13 +397,21 @@ module V2::Logic
       end
 
       # Determines which domain should be used for sharing.
-      # Uses display domain if on custom domain, otherwise uses specified share domain.
+      #
+      # share_domain is the authenticated Domain Context selection. Guest requests
+      # are validated upstream by validate_anonymous_share_domain (issue #3311),
+      # which rejects any anonymous attempt to use a domain other than the Host
+      # header. The anonymous_user? check here is a defensive second layer: a
+      # guest on a custom domain is always resolved to that Host domain regardless
+      # of @share_domain. Authenticated users keep their explicit selection,
+      # falling back to the Host-header domain on a custom domain with no override.
       #
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain
-        return display_domain if custom_domain?
+        return display_domain if custom_domain? && anonymous_user?
+        return share_domain if share_domain
 
-        share_domain
+        display_domain if custom_domain?
       end
 
       # Validates domain exists and checks access permissions.
@@ -372,7 +421,7 @@ module V2::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
-        # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
+        # e.g. dbkey -> customdomain:display_domain_index -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?

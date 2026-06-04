@@ -78,7 +78,11 @@ jobs:
         continue-on-error: true
         with:
           ruby-version: '4.0.2'
-          bundler-cache: true
+          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+
+      - name: Install dependencies
+        continue-on-error: true
+        run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
         continue-on-error: true
@@ -207,12 +211,17 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'ruby4_rspec_simple_results.json'
 
-  ruby-integration-full-sqlite:
-    name: Ruby 4 · Integration (Full Mode - SQLite)
+  ruby-integration-full:
+    name: 'Ruby 4 · Integration (Full, SQLite, billing: ${{ matrix.billing-enabled }})'
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
     if: always()
+
+    strategy:
+      fail-fast: false
+      matrix:
+        billing-enabled: ['false', 'true']
 
     services:
       redis: *valkey-service
@@ -251,7 +260,8 @@ jobs:
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'ruby4_rspec_full_sqlite_results.json'
+          billing-enabled: ${{ matrix.billing-enabled }}
+          results-file: 'ruby4_rspec_full_sqlite_billing_${{ matrix.billing-enabled }}_results.json'
 
   ruby-integration-disabled:
     name: Ruby 4 · Integration (Disabled Mode)

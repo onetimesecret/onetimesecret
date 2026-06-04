@@ -104,7 +104,7 @@ end
   org_id: @test_org.org_id
 )
 @test_custom_domain.save
-Onetime::CustomDomain.display_domains.put(@test_display_domain, @test_custom_domain.domainid)
+Onetime::CustomDomain.display_domain_index.put(@test_display_domain, @test_custom_domain.domainid)
 
 @test_sso_config = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @test_custom_domain.identifier,
@@ -123,7 +123,7 @@ Onetime::CustomDomain.display_domains.put(@test_display_domain, @test_custom_dom
   org_id: @test_org.org_id
 )
 @no_sso_custom_domain.save
-Onetime::CustomDomain.display_domains.put(@no_sso_display_domain, @no_sso_custom_domain.domainid)
+Onetime::CustomDomain.display_domain_index.put(@no_sso_display_domain, @no_sso_custom_domain.domainid)
 
 ## Request from custom domain WITH CustomDomain::SsoConfig returns tenant provider
 result = with_sso_platform_enabled do
@@ -242,8 +242,8 @@ result
 # Teardown: clean up Valkey fixtures, restore Familia and auth config
 restore_fallback_config
 Onetime::CustomDomain::SsoConfig.delete_for_domain!(@test_custom_domain.identifier) rescue nil
-Onetime::CustomDomain.display_domains.remove(@test_display_domain) rescue nil
-Onetime::CustomDomain.display_domains.remove(@no_sso_display_domain) rescue nil
+Onetime::CustomDomain.display_domain_index.remove(@test_display_domain) rescue nil
+Onetime::CustomDomain.display_domain_index.remove(@no_sso_display_domain) rescue nil
 @test_custom_domain&.destroy! rescue nil
 @no_sso_custom_domain&.destroy! rescue nil
 @test_org&.destroy! rescue nil

@@ -1,6 +1,7 @@
 <!-- src/shared/components/modals/PlanPreviewModal.vue -->
 
 <script setup lang="ts">
+import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -265,14 +266,7 @@ const handleClose = () => {
                 <div
                   v-if="isLoadingPlans"
                   class="mt-5">
-                  <div class="flex items-center justify-center py-8">
-                    <div class="text-center">
-                      <div class="inline-block size-8 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
-                      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        {{ t('web.COMMON.loading') }}
-                      </p>
-                    </div>
-                  </div>
+                  <ListSkeleton />
                 </div>
 
                 <!-- Plans Error State -->

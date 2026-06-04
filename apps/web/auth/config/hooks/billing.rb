@@ -188,7 +188,7 @@ module Auth::Config::Hooks
 
         # Checks if billing is enabled.
         def billing_enabled?
-          Onetime.conf.dig('billing', 'enabled').to_s == 'true'
+          Onetime.billing_config.enabled?
         end
 
         # Extracts product/interval from customer's pending_plan_intent in Redis.
@@ -214,62 +214,32 @@ module Auth::Config::Hooks
       # rubocop:enable Lint/NestedMethodDefinition
 
       # ========================================================================
-      # HOOK: Before Login Attempt - Capture Plan Selection
+      # NOTE: All Rodauth hooks REMOVED from this file
       # ========================================================================
       #
-      # Captures plan selection params early in the auth flow and stores
-      # them in the session. This ensures they survive the full auth process
-      # including MFA flows.
+      # Rodauth hooks don't chain — each auth.before_X / auth.after_X call
+      # overwrites the previous definition. Since billing.rb loads after
+      # login.rb, account.rb, and mfa.rb (see config.rb), any hooks defined
+      # here would silently replace their critical logic (session sync, email
+      # validation, Customer creation, MFA verification).
       #
-      auth.before_login_attempt do
-        capture_plan_selection
-      end
+      # Instead, login.rb, account.rb, and mfa.rb call billing methods
+      # conditionally:
+      # - before_login_attempt: calls capture_plan_selection if defined
+      # - after_login: calls add_billing_redirect_to_response if defined
+      # - before_create_account: calls capture_plan_selection if defined
+      # - after_create_account: calls add_billing_redirect_to_response if defined
+      # - after_two_factor_authentication: calls add_billing_redirect_to_response if defined
+      #
+      # This ensures core auth logic always runs, with billing enhancements
+      # layered on top when billing is enabled.
+      #
+      # See issue #3275 for the hook-collision bug this pattern prevents.
+      #
+      # ========================================================================
 
-      # ========================================================================
-      # HOOK: Before Create Account - Capture Plan Selection
-      # ========================================================================
-      #
-      # Same as before_login_attempt but for signup flow.
-      #
-      auth.before_create_account do
-        capture_plan_selection
-      end
-
-      # ========================================================================
-      # HOOK: After Login - Add Billing Redirect to Response
-      # ========================================================================
-      #
-      # After successful login (but before MFA if required), include billing
-      # redirect info in the JSON response. The frontend uses this to redirect
-      # to checkout after completing the full auth flow.
-      #
-      auth.after_login do
-        add_billing_redirect_to_response if json_request?
-      end
-
-      # ========================================================================
-      # HOOK: After Account Creation - Add Billing Redirect to Response
-      # ========================================================================
-      #
-      # After successful signup, include billing redirect info in the JSON
-      # response. For new accounts, the redirect happens after any verification
-      # flow is complete.
-      #
-      auth.after_create_account do
-        add_billing_redirect_to_response if json_request?
-      end
-
-      # ========================================================================
-      # HOOK: After Two-Factor Authentication - Add Billing Redirect
-      # ========================================================================
-      #
-      # After MFA verification completes, check for stored plan selection
-      # and add redirect info to the response. This ensures the billing
-      # flow continues even after MFA interruption.
-      #
-      auth.after_two_factor_authentication do
-        add_billing_redirect_to_response if json_request?
-      end
+      # after_two_factor_authentication also moved to mfa.rb (same pattern).
+      # See the NOTE block above for the full list of relocated hooks.
     end
   end
 end

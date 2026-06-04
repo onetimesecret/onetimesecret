@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import PlanCardSkeleton from '@/shared/components/billing/PlanCardSkeleton.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -600,22 +601,11 @@ aria-live="polite">
       <BasicFormAlerts v-if="definitionsError" :error="definitionsError" />
 
       <!-- Loading State -->
-      <div v-if="isLoadingContent" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <PlanCardSkeleton v-if="isLoadingContent" />
 
       <!-- Free Tier Section (standalone banner mode) -->
       <div
-        v-if="freePlanStandalone && freePlan && !isLoadingContent"
+        v-else-if="freePlanStandalone && freePlan"
         class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
@@ -635,7 +625,7 @@ aria-live="polite">
       </div>
 
       <!-- No Plans Message -->
-      <div v-else-if="!isLoadingContent && filteredPlans.length === 0" class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
+      <div v-else-if="filteredPlans.length === 0" class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <p class="text-gray-600 dark:text-gray-400">
           {{ t('web.billing.plans.no_plans_available', { interval: billingInterval === 'year' ? t('web.billing.plans.yearly').toLowerCase() : t('web.billing.plans.monthly').toLowerCase() }) }}
         </p>

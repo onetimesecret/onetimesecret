@@ -69,9 +69,9 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
         expect(admin).not_to include('manage_billing')
       end
 
-      it 'owner-only includes manage_orgs (not in admin)' do
-        expect(owner).to include('manage_orgs')
-        expect(admin).not_to include('manage_orgs')
+      it 'owner-only includes manage_org (not in admin)' do
+        expect(owner).to include('manage_org')
+        expect(admin).not_to include('manage_org')
       end
 
       it 'admin-only includes manage_members (not in member)' do
@@ -79,9 +79,14 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
         expect(member).not_to include('manage_members')
       end
 
-      it 'admin-only includes audit_logs (not in member)' do
+      it 'admin includes custom_domains (not in member)' do
+        expect(admin).to include('custom_domains')
+        expect(member).not_to include('custom_domains')
+      end
+
+      it 'owner and admin include audit_logs' do
+        expect(owner).to include('audit_logs')
         expect(admin).to include('audit_logs')
-        expect(member).not_to include('audit_logs')
       end
 
       it 'member entitlements include create_secrets' do
@@ -193,7 +198,7 @@ RSpec.describe 'MembershipMaterializedEntitlements', billing: true do
   describe '#materialize_for_role!' do
     before do
       # Simulate org with full plan entitlements
-      %w[create_secrets view_receipt api_access manage_members audit_logs manage_billing manage_orgs].each do |ent|
+      %w[create_secrets view_receipt api_access manage_members audit_logs manage_billing manage_org].each do |ent|
         membership.org_entitlements.add(ent)
       end
     end

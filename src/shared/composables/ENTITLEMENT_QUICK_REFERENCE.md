@@ -96,7 +96,7 @@ ENTITLEMENTS.AUDIT_LOGS          // Has access to audit logs
 
 ```typescript
 limit('teams')              // Max number of teams
-limit('members_per_team')   // Max members per team
+limit('total_members_per_org')   // Max members per org
 limit('custom_domains')     // Max custom domains
 ```
 

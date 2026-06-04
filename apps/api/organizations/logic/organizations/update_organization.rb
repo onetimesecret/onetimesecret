@@ -58,8 +58,8 @@ module OrganizationAPI::Logic
         # Load organization
         @organization = load_organization(@extid)
 
-        # Verify user has manage_orgs entitlement in this organization
-        require_entitlement_in!(@organization, 'manage_orgs')
+        # Verify user has manage_org entitlement in this organization
+        require_entitlement_in!(@organization, 'manage_org')
 
         # Validate display_name if provided
         if !display_name.empty? && (display_name.length > 100)

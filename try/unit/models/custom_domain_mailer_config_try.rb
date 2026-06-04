@@ -427,11 +427,7 @@ Onetime::CustomDomain::MailerConfig.delete_for_domain!('')
 #=> true
 
 # --- MailerConfig reverse navigation ---
-# BUG: MailerConfig#custom_domain calls CustomDomain.load(domain_id) but
-# CustomDomain.load requires 2 args (display_domain, org_id). This raises
-# ArgumentError at runtime. Should use find_by_identifier(domain_id) instead.
 
-## mailer_config.custom_domain raises ArgumentError (known bug: load expects 2 args)
 ## custom_domain returns the parent CustomDomain
 @config.custom_domain.class
 #=> Onetime::CustomDomain

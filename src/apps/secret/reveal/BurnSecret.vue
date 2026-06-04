@@ -24,7 +24,7 @@
     <!-- Loading State -->
     <div
       v-if="isLoading"
-      class="animate-pulse space-y-4"
+      class="animate-pulse motion-reduce:animate-none space-y-4"
       role="status"
       aria-live="polite"
       aria-busy="true">

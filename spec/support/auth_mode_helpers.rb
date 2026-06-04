@@ -33,8 +33,11 @@ module AuthModeHelpers
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
-      @sso_enabled = options.fetch(:sso_enabled, false)  # SSO disabled by default in tests
-      @orgs_sso_enabled = options.fetch(:orgs_sso_enabled, false)  # Domain-level SSO disabled by default
+      # SSO flags default OFF in tests, but honor env so the per-mode rake
+      # batches (which run integration/full/ with provider env set) can exercise
+      # the real omniauth route registration. Unset env preserves the old false.
+      @sso_enabled = options.fetch(:sso_enabled) { ENV['AUTH_SSO_ENABLED'] == 'true' }
+      @orgs_sso_enabled = options.fetch(:orgs_sso_enabled) { ENV['ORGS_SSO_ENABLED'] == 'true' }
       @restrict_to = options.fetch(:restrict_to, nil)  # nil = show all enabled methods
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
@@ -45,6 +48,10 @@ module AuthModeHelpers
 
     def simple_enabled?
       @mode == 'simple'
+    end
+
+    def configured?
+      true
     end
 
     def disabled?
@@ -170,6 +177,18 @@ module AuthModeHelpers
       'oidc'
     end
 
+    # All configured SSO providers for the platform.
+    # Returns array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
+    # Returns empty array in tests unless sso_enabled.
+    def sso_providers
+      return [] unless sso_enabled?
+
+      [{
+        'route_name' => omniauth_route_name,
+        'display_name' => sso_display_name || 'SSO',
+      }]
+    end
+
     def database_url
       @mode == 'full' ? 'sqlite::memory:' : nil
     end
@@ -276,11 +295,16 @@ end
 
 RSpec.configure do |config|
   # Full auth mode - install mock BEFORE any setup runs
+  # Skip for :postgres_database specs — they manage their own DB lifecycle
   config.before(:context, :full_auth_mode) do
+    next if self.class.metadata[:postgres_database]
+
     AuthModeHelpers.install_mock('full', self.class.metadata)
   end
 
   config.after(:context, :full_auth_mode) do
+    next if self.class.metadata[:postgres_database]
+
     AuthModeHelpers.reset_database_connection!
     AuthModeHelpers.restore_original(self.class.metadata)
   end

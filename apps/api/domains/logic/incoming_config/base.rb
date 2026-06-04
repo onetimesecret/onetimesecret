@@ -90,7 +90,7 @@ module DomainsAPI
           @custom_domain = load_custom_domain(domain_id)
           @organization  = load_organization_for_domain(@custom_domain)
 
-          require_entitlement_in!(@organization, 'manage_orgs')
+          require_entitlement_in!(@organization, 'manage_org')
           verify_incoming_secrets_entitlement(@organization)
         end
 

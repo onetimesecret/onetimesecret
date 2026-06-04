@@ -2,11 +2,12 @@
 
 import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { isSsoOnlyMode } from '@/utils/features';
-import { RouteLocationNormalized, Router } from 'vue-router';
+import { RouteLocationNormalized, RouteLocationRaw, Router } from 'vue-router';
 
 import { processQueryParams } from './queryParams.handler';
 
@@ -100,6 +101,10 @@ export async function setupRouterGuards(router: Router): Promise<void> {
 
     return true; // Always return true for non-auth routes
   });
+
+  // Org-role gate (meta.requiresOrgRole); after the auth guard so it only runs
+  // for signed-in users.
+  router.beforeEach(async (to) => (await handleOrgRoleRequirement(to)) ?? true);
 
   // Update page title after navigation completes
   router.afterEach((to: RouteLocationNormalized) => {
@@ -231,6 +236,103 @@ export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
     return { path: '/account' };
   }
   return { path: '/signin' };
+}
+
+/** True when `role` meets the `required` minimum (owner ⊃ admin). */
+function roleMeetsRequirement(
+  role: string | null | undefined,
+  required: 'owner' | 'admin'
+): boolean {
+  if (required === 'owner') return role === 'owner';
+  return role === 'owner' || role === 'admin';
+}
+
+/**
+ * Enforce per-route org-role requirements declared via `meta.requiresOrgRole`.
+ *
+ * Single-org routes carry the org in the path (:extid or :orgid); the role is
+ * resolved from that org — cached list, bootstrap-seeded current org, or a
+ * fetch when the role isn't yet known (deep link). The organizations list page
+ * (`/orgs`) has no single-org context, so it is satisfied when ANY org the user
+ * belongs to meets the required role; the list is fetched first so a fresh deep
+ * link doesn't bounce a real owner.
+ *
+ * Returns a redirect to '/dashboard' (outside every org route, so no redirect
+ * loop) when the requirement isn't met, or null to allow navigation. Fails
+ * closed: an unknown role and a rejected fetch both redirect, because the
+ * list endpoint enforces no role and provides no backend backstop.
+ */
+export async function handleOrgRoleRequirement(
+  to: RouteLocationNormalized
+): Promise<RouteLocationRaw | null> {
+  const required = to.meta.requiresOrgRole;
+  if (!required) return null;
+
+  const store = useOrganizationStore();
+  // Resolve the ORG id from the path. Domain routes are
+  // /org/:orgid/domains/:extid — there :extid is the DOMAIN id, so :orgid must
+  // win; settings routes carry the org as :extid only.
+  const orgExtid = (to.params.orgid ?? to.params.extid) as string | undefined;
+
+  // Single-org routes test the org named in the path; the list page (no org in
+  // the path) is met when any membership qualifies.
+  const meets = orgExtid
+    ? await singleOrgMeetsRole(store, orgExtid, required)
+    : await anyOrgMeetsRole(store, required);
+
+  return meets ? null : { path: '/dashboard' };
+}
+
+type OrganizationStore = ReturnType<typeof useOrganizationStore>;
+
+/**
+ * List-page scope (`/orgs`): met when any NON-DEFAULT org the user belongs to
+ * satisfies `required`. The list is fetched first so a fresh deep link doesn't
+ * bounce a real owner; a failed fetch fails closed.
+ *
+ * Default workspaces are excluded for non-owners because every user gets one —
+ * checking them would let regular members access the orgs list page (see #3326).
+ * Owners of default workspaces (self-signup users) are allowed through.
+ */
+async function anyOrgMeetsRole(
+  store: OrganizationStore,
+  required: 'owner' | 'admin'
+): Promise<boolean> {
+  if (!store.isListFetched) {
+    try {
+      await store.fetchOrganizations();
+    } catch {
+      return false;
+    }
+  }
+  return store.organizations.some(
+    (o) => (!o.is_default || o.current_user_role === 'owner') && roleMeetsRequirement(o.current_user_role, required)
+  );
+}
+
+/**
+ * Single-org scope: resolve the org named by `extid` (cached list, bootstrap
+ * current org, or a fetch when the role is unknown) and test its role. A
+ * rejected fetch — e.g. a non-member's backend 403 — fails closed.
+ */
+async function singleOrgMeetsRole(
+  store: OrganizationStore,
+  extid: string,
+  required: 'owner' | 'admin'
+): Promise<boolean> {
+  let org =
+    store.getOrganizationByExtid(extid) ??
+    (store.currentOrganization?.extid === extid ? store.currentOrganization : null);
+
+  if (!org?.current_user_role) {
+    try {
+      org = await store.fetchOrganization(extid);
+    } catch {
+      return false;
+    }
+  }
+
+  return roleMeetsRequirement(org?.current_user_role, required);
 }
 
 /**

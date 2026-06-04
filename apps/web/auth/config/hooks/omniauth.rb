@@ -214,24 +214,18 @@ module Auth::Config::Hooks
           ).call
         end
 
-        # Create default organization and team
+        # Organization assignment for new SSO accounts.
+        #
+        # MUTUALLY EXCLUSIVE paths — tenant SSO users join the tenant org,
+        # canonical SSO users get a default workspace. Never both.
+        #
+        # Consuming domain_id via session.delete ensures after_login sees nil
+        # and skips for new accounts — preventing a redundant idempotent call.
         if customer.is_a?(Onetime::Customer)
-          Onetime::ErrorHandler.safe_execute(
-            'create_default_workspace_omniauth',
-            extid: customer.extid,
-          ) do
-            Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
-          end
-
-          # Join domain's organization if SSO came from a custom domain.
-          # This hook OWNS the org-join for newly created SSO accounts (it has
-          # a direct reference to the freshly created customer, whereas after_login
-          # would have to look up via account[:external_id] which is updated in the
-          # database but not in Rodauth's in-memory account hash).
-          # Consuming the key via session.delete here ensures after_login sees nil
-          # and skips for new accounts — preventing a redundant idempotent call.
           domain_id = session.delete(:validated_omniauth_domain_id)
+
           if domain_id
+            # Tenant domain SSO → join the domain's organization only
             Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_omniauth',
               extid: customer.extid,
@@ -241,6 +235,31 @@ module Auth::Config::Hooks
                 customer: customer,
                 domain_id: domain_id,
               ).call
+            end
+
+            # IMPORTANT: Do NOT create a fallback workspace here.
+            #
+            # If JoinDomainOrganization failed, the user authenticated via
+            # tenant-domain SSO to join a *specific* organization. Creating
+            # an unrelated personal workspace would:
+            #   1. Leave them outside the org they intended to join
+            #   2. Give them a full account with no org affiliation
+            #   3. Bury the join failure — no one investigates
+            #
+            # The correct response is to fail visibly so the org admin
+            # and ops can diagnose why the join didn't stick.
+            if customer.organization_instances.to_a.empty?
+              OT.le '[omniauth] CRITICAL: Tenant SSO join produced no org membership ' \
+                    "for #{customer.external_identifier} (domain_id=#{domain_id}). Orphaned account — admin must investigate."
+              redirect '/signin?auth_error=org_join_failed'
+            end
+          else
+            # Canonical domain SSO → create default workspace
+            Onetime::ErrorHandler.safe_execute(
+              'create_default_workspace_omniauth',
+              extid: customer.extid,
+            ) do
+              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
             end
           end
         end

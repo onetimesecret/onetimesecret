@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # TC-CON-003: Tests that update_display_domain properly maintains both
-# display_domains (manual class_hashkey) and display_domain_index (auto
+# display_domain_index (manual class_hashkey) and display_domain_index (auto
 # unique_index) when the FQDN changes. Verifies no phantom entries remain.
 
 require_relative '../../support/test_models'
@@ -23,8 +23,8 @@ OT.info "Cleaned Redis for fresh test run"
 @domain.display_domain
 #=> @old_name
 
-## Old name is in the manual display_domains index
-Onetime::CustomDomain.display_domains.get(@old_name).nil?
+## Old name is in the manual display_domain_index index
+Onetime::CustomDomain.display_domain_index.get(@old_name).nil?
 #=> false
 
 ## Old name is findable via load_by_display_domain
@@ -37,12 +37,12 @@ Onetime::CustomDomain.load_by_display_domain(@old_name).nil?
 @domain.display_domain
 #=> @new_name
 
-## Old name is removed from manual display_domains index
-Onetime::CustomDomain.display_domains.get(@old_name).nil?
+## Old name is removed from manual display_domain_index index
+Onetime::CustomDomain.display_domain_index.get(@old_name).nil?
 #=> true
 
-## New name is in the manual display_domains index
-Onetime::CustomDomain.display_domains.get(@new_name)
+## New name is in the manual display_domain_index index
+Onetime::CustomDomain.display_domain_index.get(@new_name)
 #=> @domain.identifier
 
 ## New name is findable via load_by_display_domain

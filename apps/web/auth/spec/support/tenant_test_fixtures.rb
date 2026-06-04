@@ -46,7 +46,7 @@ RSpec.shared_context 'tenant fixtures' do
   let!(:test_custom_domain) do
     domain = Onetime::CustomDomain.new(display_domain: tenant_domain, org_id: test_organization.org_id)
     domain.save
-    Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+    Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain
   end
 
@@ -64,7 +64,7 @@ RSpec.shared_context 'tenant fixtures' do
 
   after do
     Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
-    Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+    Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy!
     test_organization&.destroy!
   end

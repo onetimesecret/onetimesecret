@@ -38,5 +38,18 @@ declare module 'vue-router' {
      * and unauthenticated users to '/signin'.
      */
     excludeSsoOnly?: boolean;
+
+    /**
+     * Minimum org membership role required to access this route.
+     *
+     * - 'admin': owner or admin (single-org settings/domain pages)
+     * - 'owner': owner only (the organizations list at /orgs)
+     *
+     * Enforced by handleOrgRoleRequirement in guards.routes.ts. On single-org
+     * routes the role is read from the org named by :extid/:orgid; on the list
+     * page (no org in the path) the requirement is met when any membership
+     * qualifies. Unmet requirements redirect to /dashboard.
+     */
+    requiresOrgRole?: 'owner' | 'admin';
   }
 }

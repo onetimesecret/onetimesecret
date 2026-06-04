@@ -544,7 +544,7 @@
                       @click="handleInvestigate(org.extid)">
                       <svg
                         v-if="investigatingOrgs.has(org.extid)"
-                        class="mr-1 size-3 animate-spin"
+                        class="mr-1 size-3 animate-spin motion-reduce:animate-none"
                         fill="none"
                         viewBox="0 0 24 24">
                         <circle

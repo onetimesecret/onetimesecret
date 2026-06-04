@@ -199,6 +199,30 @@ export function useDomainsManager() {
       notifications.show(t('web.domains.domain_removed_successfully'), 'success', 'top');
     });
 
+  const pendingOrgRole = ref<string | null>(null);
+
+  const { wrap: wrapEntitlementAware } = useAsyncHandler({
+    ...defaultAsyncHandlerOptions,
+    notify: false,
+    onError: (err: ApplicationError) => {
+      error.value = err;
+      if (err.details?.error_type === 'EntitlementRequired') {
+        const key = pendingOrgRole.value === 'owner'
+          ? 'web.domains.entitlement_required_owner'
+          : 'web.domains.entitlement_required_member';
+        notifications.show(t(key), 'error', 'top');
+      } else {
+        notifications.show(err.message, err.severity, 'top');
+        defaultAsyncHandlerOptions.onError?.(err);
+      }
+    },
+  });
+
+  const toggleHomepageConfig = async (extid: string, enabled: boolean, orgRole?: string | null) => {
+    pendingOrgRole.value = orgRole ?? null;
+    return wrapEntitlementAware(async () => await store.putHomepageConfig(extid, enabled));
+  };
+
   /**
    * Refresh domain records for the current organization context.
    * Uses org identifier from route params (:orgid or :extid) to ensure
@@ -223,6 +247,7 @@ export function useDomainsManager() {
     handleAddDomain,
     refreshRecords,
     deleteDomain,
+    toggleHomepageConfig,
     goBack,
   };
 }

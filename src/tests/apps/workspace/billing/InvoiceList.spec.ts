@@ -201,9 +201,9 @@ describe('InvoiceList', () => {
       wrapper = await mountComponent(false);
       await nextTick();
 
-      // Should show loading spinner
-      const spinner = wrapper.find('[data-name="arrow-path"]');
-      expect(spinner.exists()).toBe(true);
+      // Should show the loading skeleton (busy status region with sr-only label)
+      const skeleton = wrapper.find('[role="status"][aria-busy="true"]');
+      expect(skeleton.exists()).toBe(true);
       expect(wrapper.text()).toContain('Loading...');
 
       // Clean up

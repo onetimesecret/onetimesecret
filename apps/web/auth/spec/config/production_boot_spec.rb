@@ -32,17 +32,26 @@
 require_relative '../spec_helper'
 require 'climate_control'
 
+# Define the Auth::Config namespace so the feature/hook modules can load without
+# a full app boot. Auth::Config MUST be a Rodauth::Auth subclass here, never a
+# plain `module Config` or `class Config`: if this file is ever loaded in a
+# process that also boots the real app, the application registry reopens
+# `class Config < Rodauth::Auth`. A plain class triggers a "superclass mismatch
+# for class Config" TypeError (and a plain module triggers "Config is not a
+# class"), marking boot permanently not-ready for every later spec in the
+# process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+
 RSpec.describe 'Auth module structure smoke tests' do
   # These tests verify the module structure without booting the full app.
   # They load the feature modules in isolation to catch structural issues.
 
   describe 'Auth::Config::Features modules' do
     before(:all) do
-      # Define the Auth::Config namespace if not exists
-      # This allows loading feature modules without full config.rb
-      module Auth; class Config; end; end unless defined?(Auth::Config)
-
       # Load the features index which requires all feature modules
+      # (Auth::Config namespace is established by the top-level shim above)
       require_relative '../../config/features'
     end
 
@@ -177,9 +186,6 @@ RSpec.describe 'Auth module structure smoke tests' do
 
   describe 'Auth::Config::Hooks modules' do
     before(:all) do
-      # Define namespace if needed
-      module Auth; class Config; end; end unless defined?(Auth::Config)
-
       # Load hooks index
       require_relative '../../config/hooks'
     end
@@ -257,7 +263,6 @@ RSpec.describe 'Auth module structure smoke tests' do
 
   describe 'Auth::Config::Base module' do
     before(:all) do
-      module Auth; class Config; end; end unless defined?(Auth::Config)
       require_relative '../../config/base'
     end
 
@@ -272,7 +277,6 @@ RSpec.describe 'Auth module structure smoke tests' do
 
   describe 'Auth::Config::Email module' do
     before(:all) do
-      module Auth; class Config; end; end unless defined?(Auth::Config)
       require_relative '../../config/email'
     end
 

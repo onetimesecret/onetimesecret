@@ -1,7 +1,8 @@
 // src/tests/composables/useDomainsManager.spec.ts
 
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-import { ApplicationError } from '@/schemas/errors';
+import { ApplicationError, classifyError } from '@/schemas/errors';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { mockDomains, newDomainData } from '@/tests/fixtures/domains.fixture';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +10,12 @@ import { ref, computed, defineComponent } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import type { MockDependencies } from '../types.d';
+
+// Capture entitlement-aware onError callback from the second useAsyncHandler call.
+// Must be mock-prefixed for vitest hoisting to allow reference in vi.mock factory.
+const mockEntitlementCapture: {
+  onError: ((err: ApplicationError) => void) | null;
+} = { onError: null };
 
 // Mock Setup
 const mockDomainsArray = Object.values(mockDomains);
@@ -46,6 +53,7 @@ const mockDependencies: MockDependencies = {
     uploadLogo: vi.fn(),
     fetchLogo: vi.fn(),
     removeLogo: vi.fn(),
+    putHomepageConfig: vi.fn(),
     fetchList: vi.fn(),
     refreshRecords: vi.fn(),
     $reset: vi.fn(),
@@ -110,7 +118,14 @@ vi.mock('@/shared/composables/useConfirmDialog', () => ({
 }));
 
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => mockDependencies.errorHandler,
+  useAsyncHandler: (options?: any) => {
+    // When the composable creates the entitlement-aware handler (notify: false),
+    // capture its onError so tests can invoke it with classified errors.
+    if (options?.notify === false && options?.onError) {
+      mockEntitlementCapture.onError = options.onError;
+    }
+    return mockDependencies.errorHandler;
+  },
   createError: (message: string, type: string, severity: string) => ({
     message,
     type,
@@ -163,6 +178,8 @@ describe('useDomainsManager', () => {
     mockDomainContext.setContext.mockClear();
     // Reset route params to default
     currentRouteParams = { orgid: 'test-org-id' };
+    // Reset entitlement capture
+    mockEntitlementCapture.onError = null;
   });
 
   describe('domain addition', () => {
@@ -205,7 +222,9 @@ describe('useDomainsManager', () => {
         await handleAddDomain(newDomainData.domainid);
 
         // Verify setContext was called with domain_context from server and skipBackendSync=true
-        expect(mockDomainContext.setContext).toHaveBeenCalledWith(newDomainData.display_domain, true);
+        expect(mockDomainContext.setContext).toHaveBeenCalledWith(
+          newDomainData.display_domain, true,
+        );
         expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
       });
 
@@ -226,7 +245,8 @@ describe('useDomainsManager', () => {
 
       it('does not switch domain context when domain addition fails', async () => {
         // Store returns null (no record)
-        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({ record: null, details: {} });
+        mockDependencies.domainsStore.addDomain
+          .mockResolvedValueOnce({ record: null, details: {} });
         mockDependencies.errorHandler.createError.mockImplementation((message, type, severity) => ({
           message,
           type,
@@ -485,6 +505,130 @@ describe('useDomainsManager', () => {
           severity: 'error',
         });
       }
+    });
+  });
+
+  describe('toggleHomepageConfig', () => {
+    /**
+     * Helper: create an AxiosError whose response.data carries the given fields.
+     * classifyHttp reads error.response.data to build ApplicationError.details.
+     */
+    function makeAxiosError(
+      status: number,
+      data: Record<string, unknown>,
+      message = 'Request failed'
+    ): AxiosError {
+      const err = new AxiosError(message, 'ERR_BAD_REQUEST', undefined, undefined, {
+        status,
+        data,
+        headers: {},
+        statusText: 'Forbidden',
+        config: { headers: new AxiosHeaders() },
+      });
+      return err;
+    }
+
+    /**
+     * Override wrap so it mirrors real useAsyncHandler.wrap behavior:
+     * catch → classifyError → onError callback → return undefined.
+     * Must be called AFTER mountComposable (so the capture has fired).
+     */
+    function setupEntitlementWrap() {
+      mockDependencies.errorHandler.wrap.mockImplementation(async (fn: () => Promise<unknown>) => {
+        try {
+          return await fn();
+        } catch (err) {
+          const classified = classifyError(err);
+          mockEntitlementCapture.onError?.(classified);
+          return undefined;
+        }
+      });
+    }
+
+    it('returns the result when putHomepageConfig succeeds', async () => {
+      const apiResult = { homepage: true };
+      mockDependencies.domainsStore.putHomepageConfig.mockResolvedValueOnce(apiResult);
+
+      const { toggleHomepageConfig } = mountComposable(() => useDomainsManager());
+      const result = await toggleHomepageConfig('domain-ext-1', true, 'owner');
+
+      expect(mockDependencies.domainsStore.putHomepageConfig).toHaveBeenCalledWith('domain-ext-1', true);
+      expect(result).toEqual(apiResult);
+    });
+
+    it('shows owner notification for EntitlementRequired error when orgRole is owner', async () => {
+      const { toggleHomepageConfig, error } = mountComposable(() => useDomainsManager());
+      setupEntitlementWrap();
+
+      mockDependencies.domainsStore.putHomepageConfig.mockRejectedValueOnce(
+        makeAxiosError(403, { error: 'Upgrade required', error_type: 'EntitlementRequired' })
+      );
+
+      const result = await toggleHomepageConfig('domain-ext-1', true, 'owner');
+
+      expect(result).toBeUndefined();
+      expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
+        'web.domains.entitlement_required_owner',
+        'error',
+        'top'
+      );
+      expect(error.value).toMatchObject({ type: 'human', severity: 'error' });
+    });
+
+    it('shows member notification for EntitlementRequired error when orgRole is member', async () => {
+      const { toggleHomepageConfig } = mountComposable(() => useDomainsManager());
+      setupEntitlementWrap();
+
+      mockDependencies.domainsStore.putHomepageConfig.mockRejectedValueOnce(
+        makeAxiosError(403, { error: 'Upgrade required', error_type: 'EntitlementRequired' })
+      );
+
+      const result = await toggleHomepageConfig('domain-ext-1', false, 'member');
+
+      expect(result).toBeUndefined();
+      expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
+        'web.domains.entitlement_required_member',
+        'error',
+        'top'
+      );
+    });
+
+    it('defaults to member notification when orgRole is null', async () => {
+      const { toggleHomepageConfig } = mountComposable(() => useDomainsManager());
+      setupEntitlementWrap();
+
+      mockDependencies.domainsStore.putHomepageConfig.mockRejectedValueOnce(
+        makeAxiosError(403, { error: 'Upgrade required', error_type: 'EntitlementRequired' })
+      );
+
+      const result = await toggleHomepageConfig('domain-ext-1', true);
+
+      expect(result).toBeUndefined();
+      expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
+        'web.domains.entitlement_required_member',
+        'error',
+        'top'
+      );
+    });
+
+    it('shows error message and sets error.value for non-entitlement errors', async () => {
+      const { toggleHomepageConfig, error } = mountComposable(() => useDomainsManager());
+      setupEntitlementWrap();
+
+      mockDependencies.domainsStore.putHomepageConfig.mockRejectedValueOnce(
+        makeAxiosError(500, { error: 'Internal server error' }, 'Internal server error')
+      );
+
+      const result = await toggleHomepageConfig('domain-ext-1', true, 'owner');
+
+      expect(result).toBeUndefined();
+      // Non-entitlement: onError shows err.message via notifications and sets error.value
+      expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
+        'Internal server error',
+        'error',
+        'top'
+      );
+      expect(error.value).not.toBeNull();
     });
   });
 });

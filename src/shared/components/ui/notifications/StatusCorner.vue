@@ -92,7 +92,7 @@ const getStatusConfig = (type: string | null) =>
       icon: 'loading',
       bgClasses: 'bg-brandcompdim-50/95 dark:bg-brandcompdim-950/95',
       textClasses: 'text-brandcompdim-700 dark:text-brandcompdim-100',
-      iconClasses: 'text-brandcompdim-600 dark:text-brandcompdim-300 animate-spin',
+      iconClasses: 'text-brandcompdim-600 dark:text-brandcompdim-300 animate-spin motion-reduce:animate-none',
       ringClasses: 'ring-brandcompdim-200/50 dark:ring-brandcompdim-800/50',
     },
   })[type || 'info'];

@@ -5,11 +5,20 @@ import MemberRoleSelector from '@/apps/workspace/components/members/MemberRoleSe
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import { useMembersManager } from '@/shared/composables/useMembersManager';
+import { useDomainsStore } from '@/shared/stores';
 import type { OrganizationMember, OrganizationRole } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { useConfirmDialog } from '@vueuse/core';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+const domainsStore = useDomainsStore();
+
+const getDomainName = (domainScopeId: string | null | undefined): string | null => {
+  if (!domainScopeId) return null;
+  const domain = domainsStore.records?.find(d => d.domainid === domainScopeId);
+  return domain?.display_domain ?? null;
+};
 
 const { t } = useI18n();
 
@@ -19,6 +28,8 @@ const props = withDefaults(defineProps<{
   isLoading: boolean;
   /** Compact mode hides the header and reduces padding */
   compact?: boolean;
+  /** API-provided assignable roles; falls back to useMembersManager when absent */
+  assignableRoles?: OrganizationRole[];
 }>(), {
   compact: false,
 });
@@ -52,9 +63,9 @@ const handleRoleChange = async (member: OrganizationMember, newRole: Organizatio
 
 const handleRemoveClick = async (member: OrganizationMember) => {
   memberToRemove.value = member;
-  const confirmed = await reveal();
+  const { isCanceled } = await reveal();
 
-  if (confirmed) {
+  if (!isCanceled) {
     const success = await removeMember(props.orgExtid, member.extid);
     if (success) {
       emit('member-removed', member.extid);
@@ -153,6 +164,13 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
                     <div class="font-medium text-gray-900 dark:text-white">
                       {{ member.email }}
                     </div>
+                    <div
+                      v-if="member.provisioning_source || getDomainName(member.domain_scope_id)"
+                      class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      <span v-if="member.provisioning_source">{{ member.provisioning_source }}</span>
+                      <span v-if="member.provisioning_source && getDomainName(member.domain_scope_id)"> · </span>
+                      <span v-if="getDomainName(member.domain_scope_id)">{{ getDomainName(member.domain_scope_id) }}</span>
+                    </div>
                   </div>
                 </div>
               </td>
@@ -162,7 +180,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
                 <MemberRoleSelector
                   v-if="canChangeRole(member)"
                   :model-value="member.role"
-                  :available-roles="getAssignableRoles()"
+                  :available-roles="props.assignableRoles ?? getAssignableRoles()"
                   :disabled="isLoading"
                   @update:model-value="(role) => handleRoleChange(member, role)" />
                 <span
@@ -180,7 +198,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
               <!-- Actions -->
               <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                 <button
-                  v-if="canModifyMember(member)"
+                  v-if="canModifyMember(member) && !member.is_current_user"
                   type="button"
                   :disabled="isLoading"
                   class="text-red-600 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"

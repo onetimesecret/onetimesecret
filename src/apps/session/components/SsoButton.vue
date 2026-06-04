@@ -110,7 +110,7 @@ const handleSsoLogin = () => {
       data-testid="sso-button">
       <span v-if="isLoading" class="flex items-center gap-2">
         <svg
-          class="size-5 animate-spin text-gray-500 dark:text-gray-400"
+          class="size-5 animate-spin motion-reduce:animate-none text-gray-500 dark:text-gray-400"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

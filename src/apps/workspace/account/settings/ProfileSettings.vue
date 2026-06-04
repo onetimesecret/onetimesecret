@@ -17,6 +17,7 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { storeToRefs } from 'pinia';
   import { formatDisplayDate } from '@/utils/format';
+  import { isOwnerOrAdminOf } from '@/utils/features';
   import { computed, ref, onMounted, watch } from 'vue';
 
   const { t } = useI18n();
@@ -24,6 +25,8 @@
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled, has_password } = storeToRefs(bootstrapStore);
+  const canChangeEmail = computed(() => has_password.value && isOwnerOrAdminOf(bootstrapStore));
+  const isOwner = computed(() => bootstrapStore.organization?.current_user_role === 'owner');
 
   const organizationStore = useOrganizationStore();
   const { organizations } = storeToRefs(organizationStore);
@@ -42,7 +45,9 @@
   });
 
   const isLoading = ref(false);
-  const isLoadingEntitlements = ref(false);
+  // Best practice: Initialize loading states to `true` to prevent uninitialized
+  // content or empty states from briefly flashing on mount.
+  const isLoadingEntitlements = ref(true);
 
   const defaultOrg = computed(
     () =>
@@ -187,7 +192,7 @@
               </div>
             </div>
             <router-link
-              v-if="has_password"
+              v-if="canChangeEmail"
               to="/account/settings/profile/email"
               class="inline-flex items-center gap-2
                 text-sm font-medium text-brand-600
@@ -285,7 +290,9 @@
               <LanguageToggle />
             </div>
 
-            <div class="mt-4 space-y-4">
+            <div
+              v-if="isOwner"
+              class="mt-4 space-y-4">
               <!-- Translation Notice -->
               <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
                 <div class="prose prose-sm prose-blue max-w-none dark:prose-invert">
@@ -348,7 +355,7 @@
             <div
               v-for="i in 4"
               :key="i"
-              class="flex animate-pulse items-center gap-2">
+              class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
               <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
               <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
             </div>

@@ -97,8 +97,8 @@ resolver.require_domain_entitlement!('incoming_secrets')
 @orphan_domain.updated = OT.now.to_i
 @orphan_domain.save
 
-# Register in display_domains lookup
-Onetime::CustomDomain.display_domains.put(@orphan_domain_display, @orphan_domain.identifier)
+# Register in display_domain_index lookup
+Onetime::CustomDomain.display_domain_index.put(@orphan_domain_display, @orphan_domain.identifier)
 
 begin
   resolver = Onetime::Incoming::RecipientResolver.new(
@@ -111,7 +111,7 @@ rescue OT::Forbidden => e
   e.message
 ensure
   # Cleanup orphan domain
-  Onetime::CustomDomain.display_domains.remove(@orphan_domain_display)
+  Onetime::CustomDomain.display_domain_index.remove(@orphan_domain_display)
   @orphan_domain.destroy! rescue nil
 end
 #=> "Custom domain organization could not be resolved"

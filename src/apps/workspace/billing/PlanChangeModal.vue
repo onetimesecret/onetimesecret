@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import Skeleton from '@/shared/components/closet/Skeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { BillingService, type Plan as BillingPlan, type PlanChangePreviewResponse } from '@/services/billing.service';
@@ -265,12 +266,24 @@ aria-describedby="plan-change-description"
               </div>
 
               <!-- Loading State -->
-              <div v-if="isLoadingPreview" class="mt-6 flex items-center justify-center py-8">
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-path"
-                  class="size-8 animate-spin text-gray-400"
-                  aria-hidden="true" />
+              <div
+                v-if="isLoadingPreview"
+                role="status"
+                aria-busy="true"
+                class="mt-6 animate-pulse space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 motion-reduce:animate-none dark:border-gray-700 dark:bg-gray-900/50">
+                <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
+                <Skeleton
+                  width="w-1/2"
+                  height="h-4"
+                  :pulse="false" />
+                <Skeleton
+                  width="w-2/3"
+                  height="h-4"
+                  :pulse="false" />
+                <Skeleton
+                  width="w-1/3"
+                  height="h-4"
+                  :pulse="false" />
               </div>
 
               <!-- Error State -->
@@ -437,7 +450,7 @@ aria-live="polite">
                     v-if="isChangingPlan"
                     collection="heroicons"
                     name="arrow-path"
-                    class="mr-2 size-4 animate-spin"
+                    class="mr-2 size-4 animate-spin motion-reduce:animate-none"
                     aria-hidden="true" />
                   {{ isChangingPlan ? t('web.COMMON.processing') : confirmButtonLabel }}
                 </button>

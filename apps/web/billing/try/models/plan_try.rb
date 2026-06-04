@@ -33,7 +33,7 @@ Billing::Plan.clear_cache.class
 @plan.features.add('Feature 1')
 @plan.features.add('Feature 2')
 @plan.limits['teams.max'] = '1'
-@plan.limits['members_per_team.max'] = '10'
+@plan.limits['total_members_per_org.max'] = '10'
 # Add prices to hashkey (stored as JSON strings)
 @plan.prices['month'] = { stripe_price_id: 'price_monthly123', amount: '2900', currency: 'cad' }.to_json
 @plan.prices['year'] = { stripe_price_id: 'price_yearly123', amount: '29000', currency: 'cad' }.to_json
@@ -55,7 +55,7 @@ Billing::Plan.instances.size
 
 ## Get limits as hash (sorted for stable comparison)
 @retrieved.limits_hash.sort.to_h
-#=> {"members_per_team.max"=>10, "teams.max"=>1}
+#=> {"total_members_per_org.max"=>10, "teams.max"=>1}
 
 ## Get available intervals
 @retrieved.available_intervals.sort

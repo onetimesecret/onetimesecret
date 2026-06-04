@@ -108,34 +108,42 @@ module Billing
         config_plan = Billing::Plan.load_from_config(Billing::Metadata::FREE_PLAN_ID)
         if config_plan
           org.materialize_entitlements_from_config(config_plan)
-          OT.info '[ApplySubscriptionToOrg] Materialized free tier entitlements',
-            {
-              org_extid: org.extid,
-              planid: Billing::Metadata::FREE_PLAN_ID,
-              entitlements_count: org.materialized_entitlements.size,
-            }
+          Onetime.ents_logger.info 'Materialized free tier entitlements',
+            org_extid: org.extid,
+            planid: Billing::Metadata::FREE_PLAN_ID,
+            entitlements_count: org.materialized_entitlements.size
 
           # ADR-012 Stage 3: Re-materialize all memberships after downgrade to free tier.
           begin
             membership_result = org.rematerialize_all_memberships!
-            OT.info '[ApplySubscriptionToOrg] Re-materialized membership entitlements (free tier)',
-              {
+            Onetime.ents_logger.info 'Re-materialized membership entitlements (free tier)',
                 org_extid: org.extid,
                 success: membership_result[:success],
                 failed: membership_result[:failed],
-                total: membership_result[:total],
-              }
+                total: membership_result[:total]
+
+            # Cross-path consistency with MaterializePlans#handle_cascade_partial:
+            # surface a partial cascade as :error so operators learn about drifted
+            # memberships at detection time. Observability only — do NOT propagate
+            # failure: the webhook returns 200 and the downgrade already applied;
+            # a non-200 would make Stripe re-process an already-applied change.
+            if membership_result[:failed].to_i.positive?
+              Onetime.ents_logger.error 'Membership re-materialization had failures (free tier)',
+                org_extid: org.extid,
+                planid: Billing::Metadata::FREE_PLAN_ID,
+                memberships_total: membership_result[:total],
+                memberships_failed: membership_result[:failed],
+                memberships_failed_ids: membership_result[:failed_ids]
+            end
           rescue StandardError => ex
-            OT.le '[ApplySubscriptionToOrg] membership re-materialization failed (free tier)',
+            Onetime.ents_logger.error 'Membership re-materialization failed (free tier)',
               exception: ex,
               org_extid: org.extid
           end
         else
-          OT.lw '[ApplySubscriptionToOrg] Free plan not in config, cannot materialize',
-            {
+          Onetime.ents_logger.warn 'Free plan not in config, cannot materialize',
               org_extid: org.extid,
-              planid: Billing::Metadata::FREE_PLAN_ID,
-            }
+              planid: Billing::Metadata::FREE_PLAN_ID
         end
       end
 
@@ -194,31 +202,41 @@ module Billing
         end
 
         count = org.materialized_entitlements.size
-        OT.info '[ApplySubscriptionToOrg] Materialized entitlements for org',
-          {
+        Onetime.ents_logger.info 'Materialized entitlements for org',
             org_extid: org.extid,
             planid: planid,
             entitlements_count: count,
-            source: source.to_s,
-          }
+            source: source.to_s
 
         # ADR-012 Stage 3: Re-materialize all memberships after org plan change.
         # Each membership's effective entitlements are org.entitlements ∩ ROLE_ENTITLEMENTS[role].
         # This propagates the new plan's entitlements to all active members.
         begin
           membership_result = org.rematerialize_all_memberships!
-          OT.info '[ApplySubscriptionToOrg] Re-materialized membership entitlements',
-            {
+          Onetime.ents_logger.info 'Re-materialized membership entitlements',
               org_extid: org.extid,
               planid: planid,
               success: membership_result[:success],
               failed: membership_result[:failed],
-              total: membership_result[:total],
-            }
+              total: membership_result[:total]
+
+          # Cross-path consistency with MaterializePlans#handle_cascade_partial:
+          # surface a partial cascade as :error so operators learn about drifted
+          # memberships at detection time. Observability only — do NOT propagate
+          # failure: the webhook returns 200 and the plan change already applied;
+          # a non-200 would make Stripe re-process an already-applied change.
+          if membership_result[:failed].to_i.positive?
+            Onetime.ents_logger.error 'Membership re-materialization had failures',
+              org_extid: org.extid,
+              planid: planid,
+              memberships_total: membership_result[:total],
+              memberships_failed: membership_result[:failed],
+              memberships_failed_ids: membership_result[:failed_ids]
+          end
         rescue StandardError => ex
           # Membership re-materialization is degradable — the fallback path in
           # membership.entitlements computes on-the-fly. Log and continue.
-          OT.le '[ApplySubscriptionToOrg] membership re-materialization failed',
+          Onetime.ents_logger.error 'Membership re-materialization failed',
             exception: ex,
             org_extid: org.extid
         end
@@ -262,8 +280,8 @@ module Billing
       private_class_method :raise_plan_not_found
 
       def self.build_plan_not_found_result(org, planid)
-        OT.lw '[ApplySubscriptionToOrg] Plan not found, cannot materialize',
-          { org_extid: org.extid, planid: planid }
+        Onetime.ents_logger.warn 'Plan not found, cannot materialize',
+            org_extid: org.extid, planid: planid
 
         MaterializeResult.new(
           status: :plan_not_found,

@@ -11,22 +11,23 @@
 #
 #   1. Active member removal (RemoveMember API logic):
 #      - membership.destroy_with_index_cleanup!
-#        Single authoritative method. Handles Familia sorted sets
-#        (org.members ZREM + customer.participations SREM), OTS
-#        app-level indexes (org_email_lookup, org_customer_lookup,
-#        token_lookup), and destroys the Redis hash.
+#        Single authoritative method. Delegates to Familia's
+#        remove_members_instance for the three-structure invariant
+#        (org.members ZREM + customer.participations SREM + through
+#        model destroy), then cleans OTS app-level indexes (token_lookup,
+#        materialized entitlement sub-keys).
 #
 #   2. Pending invitation revocation (revoke!):
-#      - Cleans OTS indexes (token_lookup, org_email_lookup, org_customer_lookup)
+#      - Cleans OTS indexes (token_lookup)
 #      - org.unstage_members_instance(staged)    -- staging set + model hash
 #
 # Both paths must leave zero stale references in:
 #   - org.members sorted set
 #   - org.pending_invitations staging set
 #   - token_lookup hash
-#   - org_email_lookup hash
-#   - org_customer_lookup hash
 #   - customer reverse index (organization_instances)
+#   - materialized_entitlements, entitlements_plan, entitlements_grants,
+#     entitlements_revokes (Redis SETs from MembershipMaterializedEntitlements)
 
 require_relative '../../support/test_helpers'
 
@@ -49,21 +50,19 @@ OT.boot! :test
 @org.member_count
 #=> 2
 
-## Baseline: org_customer_lookup is populated for the member
+## Baseline: find_by_org_customer resolves for the member
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid).nil?
 #=> false
 
-## Baseline: org_email_lookup is NOT populated for direct-add members (no invited_email)
-# org_email_lookup only applies to memberships created via the invitation flow
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @member.email)
+## Baseline: find_pending_by_email returns nil for direct-add members (no pending invitation)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @member.email)
 #=> nil
 
 ## Baseline: reverse index populated (member sees the org)
 @member.organization_instances.any? { |o| o.objid == @org.objid }
 #=> true
 
-## Remove active member: remove from sorted set first, then destroy membership
-@org.remove_members_instance(@member)
+## Remove active member: single call handles all cleanup
 @membership.destroy_with_index_cleanup!
 @org.member?(@member)
 #=> false
@@ -72,12 +71,12 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @member.email)
 @org.member_count
 #=> 1
 
-## After removal: org_customer_lookup is nil
+## After removal: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @member.objid)
 #=> nil
 
-## After removal: org_email_lookup remains nil (was never set for direct-add)
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @member.email)
+## After removal: find_pending_by_email remains nil (was never pending)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @member.email)
 #=> nil
 
 ## After removal: membership model is destroyed
@@ -100,12 +99,20 @@ Onetime::OrganizationMembership.load(@membership.objid)
 @org.member?(@sc_member)
 #=> true
 
-## Single-call baseline: org_customer_lookup populated
+## Single-call baseline: find_by_org_customer resolves
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid).nil?
 #=> false
 
 ## Single-call baseline: reverse index populated
 @sc_member.organization_instances.any? { |o| o.objid == @org.objid }
+#=> true
+
+## Single-call baseline: materialized entitlements exist
+@sc_membership.materialized_entitlements.size > 0
+#=> true
+
+## Single-call baseline: entitlements_plan populated
+@sc_membership.entitlements_plan.size > 0
 #=> true
 
 ## Single-call removal: only call destroy_with_index_cleanup! (no remove_members_instance)
@@ -117,12 +124,12 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.obji
 @org.member_count
 #=> 1
 
-## Single-call: org_customer_lookup cleaned
+## Single-call: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.objid)
 #=> nil
 
-## Single-call: org_email_lookup clean (direct-add has no invited_email)
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @sc_member.email)
+## Single-call: find_pending_by_email clean (direct-add has no pending invitation)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @sc_member.email)
 #=> nil
 
 ## Single-call: membership model destroyed
@@ -132,6 +139,22 @@ Onetime::OrganizationMembership.load(@sc_objid)
 ## Single-call: reverse index cleaned (customer no longer sees org)
 @sc_member.organization_instances.any? { |o| o.objid == @org.objid }
 #=> false
+
+## Single-call: materialized_entitlements sub-key cleaned
+@sc_membership.materialized_entitlements.size
+#=> 0
+
+## Single-call: entitlements_plan sub-key cleaned
+@sc_membership.entitlements_plan.size
+#=> 0
+
+## Single-call: entitlements_grants sub-key cleaned
+@sc_membership.entitlements_grants.size
+#=> 0
+
+## Single-call: entitlements_revokes sub-key cleaned
+@sc_membership.entitlements_revokes.size
+#=> 0
 
 # ============================================================================
 # Pending invitation revocation via revoke!
@@ -158,8 +181,8 @@ Onetime::OrganizationMembership.load(@sc_objid)
 Onetime::OrganizationMembership.find_by_token(@pending_token).nil?
 #=> false
 
-## Pending: org_email_lookup is populated
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @pending_email).nil?
+## Pending: find_pending_by_email discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @pending_email).nil?
 #=> false
 
 ## Revoke the pending invitation
@@ -170,8 +193,8 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @pending_email).ni
 Onetime::OrganizationMembership.find_by_token(@pending_token)
 #=> nil
 
-## After revoke: org_email_lookup is nil
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @pending_email)
+## After revoke: find_pending_by_email no longer discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @pending_email)
 #=> nil
 
 ## After revoke: model is destroyed
@@ -204,18 +227,17 @@ Onetime::OrganizationMembership.load(@pending_objid)
 @full_cleanup_membership.active?
 #=> true
 
-## Full cleanup: remove the now-active member
-@org.remove_members_instance(@full_cleanup_customer)
+## Full cleanup: remove the now-active member (single call)
 @full_cleanup_membership.destroy_with_index_cleanup!
 true
 #=> true
 
-## Full cleanup: org_customer_lookup is nil
+## Full cleanup: find_by_org_customer returns nil
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @full_cleanup_customer.objid)
 #=> nil
 
-## Full cleanup: org_email_lookup is nil
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @full_cleanup_customer.email)
+## Full cleanup: find_pending_by_email is nil (no longer pending)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @full_cleanup_customer.email)
 #=> nil
 
 ## Full cleanup: token_lookup for the original invite token is still nil (cleared during accept)
@@ -242,7 +264,6 @@ Onetime::OrganizationMembership.load(@full_cleanup_membership.objid)
 @idempotent_customer = Onetime::Customer.create!(email: generate_unique_test_email("removal_idempotent"))
 @idempotent_ms = Onetime::OrganizationMembership.ensure_membership(@org, @idempotent_customer)
 @idempotent_objid = @idempotent_ms.objid
-@org.remove_members_instance(@idempotent_customer)
 @idempotent_ms.destroy_with_index_cleanup!
 @org.member?(@idempotent_customer)
 #=> false
@@ -268,7 +289,6 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @idempotent_cus
 ## Setup: create member, remove completely, then re-invite
 @reinvite_customer = Onetime::Customer.create!(email: generate_unique_test_email("removal_reinvite"))
 @reinvite_ms = Onetime::OrganizationMembership.ensure_membership(@org, @reinvite_customer)
-@org.remove_members_instance(@reinvite_customer)
 @reinvite_ms.destroy_with_index_cleanup!
 @org.member?(@reinvite_customer)
 #=> false
@@ -287,8 +307,8 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @idempotent_cus
 Onetime::OrganizationMembership.find_by_token(@reinvitation.token).nil?
 #=> false
 
-## Re-invite: org_email_lookup points to the new invitation
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @reinvite_customer.email).objid == @reinvitation.objid
+## Re-invite: find_pending_by_email discovers the new invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @reinvite_customer.email).objid == @reinvitation.objid
 #=> true
 
 ## Re-invite: accepting the re-invitation works
@@ -300,7 +320,7 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @reinvite_customer
 @org.member?(@reinvite_customer)
 #=> true
 
-## Re-invite: org_customer_lookup is populated again
+## Re-invite: find_by_org_customer resolves again
 Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid).nil?
 #=> false
 
@@ -325,13 +345,11 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_custo
 #=> 4
 
 ## Count: remove one member
-@org.remove_members_instance(@count_member_a)
 @count_ms_a.destroy_with_index_cleanup!
 @org.member_count
 #=> 3
 
 ## Count: remove another member
-@org.remove_members_instance(@count_member_b)
 @count_ms_b.destroy_with_index_cleanup!
 @org.member_count
 #=> 2
@@ -354,10 +372,7 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_custo
 @count_pending.destroy_with_index_cleanup! if @count_pending&.respond_to?(:destroy!)
 # Clean up reinvited member's active membership
 @reinvite_active = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid)
-if @reinvite_active
-  @org.remove_members_instance(@reinvite_customer)
-  @reinvite_active.destroy_with_index_cleanup!
-end
+@reinvite_active&.destroy_with_index_cleanup!
 [@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b].each do |obj|
   obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
 end

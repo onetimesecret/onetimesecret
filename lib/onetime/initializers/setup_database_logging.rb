@@ -10,6 +10,9 @@ module Onetime
     # Must be called BEFORE connect_databases to ensure the middleware is
     # registered before any connections are created.
     #
+    # Enabled by setting DEBUG_DATABASE=1 (the canonical env var). Always
+    # disabled in production regardless of the env var.
+    #
     # This initializer configures external library behavior and doesn't set
     # runtime state that needs to be tracked.
     #
@@ -23,10 +26,7 @@ module Onetime
           return Onetime.familia_logger.warn "[setup_database_logging] Blocked in #{OT.env}"
         end
 
-        # Check multiple environment variables for database debugging specifically
-        debug_enabled = %w[DATABASE_DEBUG DEBUG_DATABASE DEBUG_VALKEY DEBUG_REDIS].any? do |val|
-          Onetime::Utils.yes?(ENV.fetch(val, nil))
-        end
+        debug_enabled = Onetime::Utils.yes?(ENV.fetch('DEBUG_DATABASE', nil))
 
         # Enables Familia's database logging (automatically registers middleware)
         Familia.enable_database_logging = debug_enabled

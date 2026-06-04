@@ -136,12 +136,17 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     expect(invitation.pending?).to be(true)
     invite_token = invitation.token
 
+    # Create Rodauth account + Customer in one shot. The after_create_account hook
+    # (account.rb) creates the Customer record — no manual Customer.create! needed.
+    # Prior to the hook-collision fix (#3275), billing.rb's hook overwrote account.rb's,
+    # so Customer wasn't created and this test required manual creation.
     Auth::Config.create_account(
       login: invited_email,
       password: password,
       params: { 'invite_token' => invite_token },
     )
 
+    # Customer record now exists via the after_create_account hook chain.
     invitee_customer = Onetime::Customer.find_by_email(invited_email)
     expect(invitee_customer).not_to be_nil
 
@@ -195,6 +200,10 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     invite_token = invitation.token
     other_email  = "other_#{test_suffix}@onetimesecret.com"
 
+    # Email-mismatch validation happens in before_create_account (account.rb).
+    # The hook compares the signup email against invitation.invited_email and
+    # aborts via throw_rodauth_error if they don't match. This surfaces as
+    # InternalRequestError when using internal_request.
     expect {
       Auth::Config.create_account(
         login: other_email,
@@ -212,6 +221,25 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     expect(untouched).not_to be_nil
     expect(untouched.pending?).to be(true)
   ensure
-    Auth::Database.connection[:accounts].where(email: other_email).delete if defined?(other_email)
+    # Cleanup any orphaned records created if the validation didn't block signup.
+    if defined?(other_email)
+      Onetime::Customer.find_by_email(other_email)&.destroy!
+      db = Auth::Database.connection
+      if db.database_type == :sqlite
+        db.run('PRAGMA foreign_keys = OFF')
+        db[:accounts].where(email: other_email).delete
+        db.run('PRAGMA foreign_keys = ON')
+      else
+        account_row = db[:accounts].where(email: other_email).first
+        if account_row
+          AuthAccountFactory::RODAUTH_TABLES.each do |table|
+            next if table == :accounts
+            next unless db.table_exists?(table)
+            db[table].where(account_id: account_row[:id]).delete rescue nil
+          end
+          db[:accounts].where(email: other_email).delete
+        end
+      end
+    end
   end
 end

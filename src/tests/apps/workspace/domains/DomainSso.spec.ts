@@ -311,9 +311,9 @@ describe('DomainSso', () => {
       mockDomainLoading.value = true;
       wrapper = await mountComponent();
 
-      // Should show loading indicator
-      const loadingIcon = wrapper.find('[data-icon-name="arrow-path"]');
-      expect(loadingIcon.exists()).toBe(true);
+      // Should show loading skeleton (SettingsSkeleton) with its busy status region
+      const skeleton = wrapper.find('[role="status"]');
+      expect(skeleton.exists()).toBe(true);
       expect(wrapper.text()).toContain('Loading...');
     });
 
@@ -510,21 +510,22 @@ describe('DomainSso', () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('Accessibility', () => {
-    it('has accessible back button with sr-only text', async () => {
+    it('has accessible back button with visible label', async () => {
       mockDomain.value = { display_domain: 'example.com' };
       wrapper = await mountComponent();
 
-      const srOnly = wrapper.find('.sr-only');
-      expect(srOnly.exists()).toBe(true);
-      expect(srOnly.text()).toBe('Back');
+      const backButton = wrapper.find('button');
+      expect(backButton.exists()).toBe(true);
+      expect(backButton.text()).toContain('Back');
     });
 
-    it('loading spinner has aria-hidden attribute', async () => {
+    it('loading skeleton exposes a busy status region', async () => {
       mockDomainLoading.value = true;
       wrapper = await mountComponent();
 
-      const spinnerIcon = wrapper.find('[data-icon-name="arrow-path"]');
-      expect(spinnerIcon.exists()).toBe(true);
+      const skeleton = wrapper.find('[role="status"]');
+      expect(skeleton.exists()).toBe(true);
+      expect(skeleton.attributes('aria-busy')).toBe('true');
     });
   });
 });

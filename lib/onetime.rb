@@ -15,7 +15,6 @@ require 'truemail'
 
 require 'erb'
 
-require 'encryptor'
 require 'bcrypt'
 
 begin
@@ -126,7 +125,6 @@ require_relative 'onetime/errors'
 require_relative 'onetime/error_handler'
 require_relative 'onetime/version'
 require_relative 'onetime/config'
-require_relative 'onetime/auth_config'
 require_relative 'onetime/billing_config'
 require_relative 'onetime/models'
 require_relative 'onetime/signup_validation'

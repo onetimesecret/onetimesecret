@@ -33,13 +33,13 @@ end
 @domain_clean = Onetime::CustomDomain.create!("clean-#{@ts}.example.com", @org.objid)
 @snap_instances_before = Onetime::CustomDomain.instances.members.dup
 @snap_ddi_before       = Onetime::CustomDomain.display_domain_index.get("clean-#{@ts}.example.com")
-@snap_dd_before        = Onetime::CustomDomain.display_domains.get("clean-#{@ts}.example.com")
+@snap_dd_before        = Onetime::CustomDomain.display_domain_index.get("clean-#{@ts}.example.com")
 @snap_owners_before    = Onetime::CustomDomain.owners.get(@domain_clean.identifier)
 _result, _out = capture_run(execute: true)
 [
   Onetime::CustomDomain.instances.members == @snap_instances_before,
   Onetime::CustomDomain.display_domain_index.get("clean-#{@ts}.example.com") == @snap_ddi_before,
-  Onetime::CustomDomain.display_domains.get("clean-#{@ts}.example.com") == @snap_dd_before,
+  Onetime::CustomDomain.display_domain_index.get("clean-#{@ts}.example.com") == @snap_dd_before,
   Onetime::CustomDomain.owners.get(@domain_clean.identifier) == @snap_owners_before
 ]
 #=> [true, true, true, true]
@@ -48,14 +48,14 @@ _result, _out = capture_run(execute: true)
 # Note: the design invariant ("no reads from target structures") means dry-run
 # will always emit writes. True idempotence here = stable final state.
 @before_ddi = Familia.dbclient.hgetall('custom_domain:display_domain_index')
-@before_dd  = Familia.dbclient.hgetall('custom_domain:display_domains')
+@before_dd  = Familia.dbclient.hgetall('custom_domain:display_domain_index')
 @before_ow  = Familia.dbclient.hgetall('custom_domain:owners')
 @before_ex  = Familia.dbclient.hgetall('custom_domain:extid_lookup')
 @before_in  = Familia.dbclient.zrange('custom_domain:instances', 0, -1, with_scores: true)
 capture_run(execute: true)
 [
   Familia.dbclient.hgetall('custom_domain:display_domain_index') == @before_ddi,
-  Familia.dbclient.hgetall('custom_domain:display_domains') == @before_dd,
+  Familia.dbclient.hgetall('custom_domain:display_domain_index') == @before_dd,
   Familia.dbclient.hgetall('custom_domain:owners') == @before_ow,
   Familia.dbclient.hgetall('custom_domain:extid_lookup') == @before_ex,
   Familia.dbclient.zrange('custom_domain:instances', 0, -1, with_scores: true) == @before_in,
@@ -67,7 +67,7 @@ capture_run(execute: true)
 @domain_b = Onetime::CustomDomain.create!("split-b-#{@ts}.example.com", @org.objid)
 @fqdn_a = "split-a-#{@ts}.example.com"
 Familia.dbclient.hset('custom_domain:display_domain_index', @fqdn_a, '"fake-uuid-1"')
-Familia.dbclient.hset('custom_domain:display_domains', @fqdn_a, '"fake-uuid-2"')
+Familia.dbclient.hset('custom_domain:display_domain_index', @fqdn_a, '"fake-uuid-2"')
 Familia.dbclient.zadd('custom_domain:instances', 0, "phantom-objid-#{@ts}")
 # Seed a missing entry: create :object hash whose objid is absent from instances
 @orphan_objid = "orphan-#{@ts}"
@@ -86,7 +86,7 @@ true
 capture_run(execute: true)
 [
   Onetime::CustomDomain.display_domain_index.get(@fqdn_a).to_s.include?(@domain_a.identifier),
-  Onetime::CustomDomain.display_domains.get(@fqdn_a) == @domain_a.identifier,
+  Onetime::CustomDomain.display_domain_index.get(@fqdn_a) == @domain_a.identifier,
   Onetime::CustomDomain.owners.get(@domain_a.identifier) == @org.objid,
 ]
 #=> [true, true, true]
@@ -114,12 +114,12 @@ warned = out3.lines.any? { |l| l.include?('WARN') && l.include?("no-objid-#{@ts}
 Familia.dbclient.del("custom_domain:no-objid-#{@ts}:object")  # clean up empty objid fixture
 capture_run(execute: true)
 @s4_ddi = Familia.dbclient.hgetall('custom_domain:display_domain_index')
-@s4_dd  = Familia.dbclient.hgetall('custom_domain:display_domains')
+@s4_dd  = Familia.dbclient.hgetall('custom_domain:display_domain_index')
 @s4_in  = Familia.dbclient.zrange('custom_domain:instances', 0, -1)
 capture_run(execute: true)
 [
   Familia.dbclient.hgetall('custom_domain:display_domain_index') == @s4_ddi,
-  Familia.dbclient.hgetall('custom_domain:display_domains') == @s4_dd,
+  Familia.dbclient.hgetall('custom_domain:display_domain_index') == @s4_dd,
   Familia.dbclient.zrange('custom_domain:instances', 0, -1) == @s4_in,
 ]
 #=> [true, true, true]
@@ -140,13 +140,13 @@ Familia.dbclient.exists?("organization:#{@org.objid}:domains")
 
 ## SCENARIO 6: Dry-run does not mutate Redis state
 @s6_ddi = Familia.dbclient.hgetall('custom_domain:display_domain_index')
-@s6_dd  = Familia.dbclient.hgetall('custom_domain:display_domains')
+@s6_dd  = Familia.dbclient.hgetall('custom_domain:display_domain_index')
 @s6_in  = Familia.dbclient.zrange('custom_domain:instances', 0, -1, with_scores: true)
 @s6_ow  = Familia.dbclient.hgetall('custom_domain:owners')
 capture_run(execute: false)
 [
   Familia.dbclient.hgetall('custom_domain:display_domain_index') == @s6_ddi,
-  Familia.dbclient.hgetall('custom_domain:display_domains') == @s6_dd,
+  Familia.dbclient.hgetall('custom_domain:display_domain_index') == @s6_dd,
   Familia.dbclient.zrange('custom_domain:instances', 0, -1, with_scores: true) == @s6_in,
   Familia.dbclient.hgetall('custom_domain:owners') == @s6_ow,
 ]
@@ -163,7 +163,7 @@ Familia.dbclient.zscore("organization:#{@org.objid}:domains", "stale-member-#{@t
 #=> nil
 
 ## SCENARIO 8: Record with objid but missing display_domain is included in
-## instances/owners but not in display_domain_index/display_domains.
+## instances/owners but not in display_domain_index/display_domain_index.
 @malformed_objid = "no-fqdn-#{@ts}"
 Familia.dbclient.hset("custom_domain:#{@malformed_objid}:object",
   { 'objid' => @malformed_objid.to_json,
@@ -174,7 +174,7 @@ capture_run(execute: true)
   Onetime::CustomDomain.instances.member?(@malformed_objid),
   Onetime::CustomDomain.owners.get(@malformed_objid) == @org.objid,
   Onetime::CustomDomain.display_domain_index.hgetall.value?(@malformed_objid),
-  Onetime::CustomDomain.display_domains.hgetall.value?(@malformed_objid),
+  Onetime::CustomDomain.display_domain_index.hgetall.value?(@malformed_objid),
 ]
 #=> [true, true, false, false]
 

@@ -15,13 +15,17 @@
 
 require_relative '../spec_helper'
 
-# Define module structure for hooks (normally provided by auth app boot)
-module Auth
-  module Config
-    module Hooks
-    end
-  end
-end unless defined?(Auth::Config::Hooks)
+# Define the Auth::Config namespace (normally provided by auth app boot).
+# Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
+# `module Config` or `class Config`: if this file is ever loaded in a process
+# that also boots the real app, the application registry reopens
+# `class Config < Rodauth::Auth`. A plain module/class fixes the constant to the
+# wrong type, so the reopen raises a TypeError ("Config is not a class") and boot
+# is marked permanently not-ready for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Require Auth::Logging (used by the hook for audit events)
 require_relative '../../lib/logging'

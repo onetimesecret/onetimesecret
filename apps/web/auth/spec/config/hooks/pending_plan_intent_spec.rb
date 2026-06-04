@@ -25,6 +25,21 @@
 
 require 'rspec'
 
+# Define the Auth::Config namespace so the hook file can load without a full
+# app boot. Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
+# `module Config` or `class Config`: if this file is ever loaded in a process
+# that also boots the real app, the application registry reopens
+# `class Config < Rodauth::Auth`. A plain module/class fixes the constant to the
+# wrong type, so the reopen raises a TypeError ("Config is not a class") and boot
+# is marked permanently not-ready for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
+
+# Load the actual production module
+require_relative '../../../config/hooks/account'
+
 RSpec.describe 'Pending plan intent hooks (issue #3126)' do
   # ==========================================================================
   # capture_plan_intent Logic Tests
@@ -474,16 +489,10 @@ RSpec.describe 'Pending plan intent hooks (issue #3126)' do
     end
 
     it 'defines configure class method' do
-      module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
-      require account_file
-
       expect(Auth::Config::Hooks::Account).to respond_to(:configure)
     end
 
     it 'configure accepts one argument (auth object)' do
-      module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
-      require account_file
-
       expect(Auth::Config::Hooks::Account.method(:configure).arity).to eq(1)
     end
   end

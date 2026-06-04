@@ -6,7 +6,7 @@
 #
 # The method must fail-open (return nil) on any error to allow callers
 # to fall back gracefully. This includes:
-#   - Redis connectivity errors during display_domains.get()
+#   - Redis connectivity errors during display_domain_index.get()
 #   - RecordNotFound when the domain_id exists in index but record is gone
 #   - Any unexpected StandardError
 #
@@ -53,16 +53,16 @@ Onetime::CustomDomain.load_by_display_domain('')
 
 # --- Orphaned Index Entry (domain_id in index, but record deleted) ---
 #
-# Simulates data corruption where display_domains hash has a domain_id
+# Simulates data corruption where display_domain_index hash has a domain_id
 # that no longer exists (e.g., manual Redis deletion, partial cleanup).
 
 ## Create orphan scenario: manually insert stale index entry
 @orphan_fqdn = "orphan-#{@ts}-#{@entropy}.example.com"
 @orphan_id = "nonexistent-domain-id-#{@ts}"
 
-## Manually insert stale entry into display_domains index
-Onetime::CustomDomain.display_domains.put(@orphan_fqdn, @orphan_id)
-Onetime::CustomDomain.display_domains.get(@orphan_fqdn)
+## Manually insert stale entry into display_domain_index index
+Onetime::CustomDomain.display_domain_index.put(@orphan_fqdn, @orphan_id)
+Onetime::CustomDomain.display_domain_index.get(@orphan_fqdn)
 #=> @orphan_id
 
 ## load_by_display_domain returns nil for orphaned index entry (not crash)

@@ -269,29 +269,64 @@ module Onetime
     # to propagate the new entitlement set to all memberships. Each membership's
     # effective entitlements are: org.entitlements ∩ ROLE_ENTITLEMENTS[role].
     #
+    # Failures are retried once, targeting only the memberships that failed.
+    # materialize_for_role! is idempotent, so a targeted retry repairs transient
+    # errors (e.g. a Redis blip) without the cost of re-materializing every
+    # member — important at scale (200k+ orgs). Memberships still failing after
+    # the retry are returned in :failed_ids for operator follow-up.
+    #
     # At current scale (orgs are low hundreds of members), this is acceptable
     # inline or in a background job. If org sizes grow to thousands, consider
     # batching or Redis pipelining.
     #
-    # @return [Hash] { success: count, failed: count, total: count }
+    # @return [Hash] { success:, failed:, total:, failed_ids: } — failed_ids
+    #   lists the objids of memberships that failed even after the retry.
     def rematerialize_all_memberships!
       memberships = OrganizationMembership.active_for_org(self)
-      result      = { success: 0, failed: 0, total: memberships.size }
+      total       = memberships.size
 
-      memberships.each do |membership|
-        membership.materialize_for_role!(self)
-        result[:success] += 1
-      rescue StandardError => ex
-        OT.le '[rematerialize_all_memberships!] failed for membership',
-          exception: ex,
-          membership_objid: membership.objid,
-          org_extid: extid
-        result[:failed] += 1
+      # First pass over all active memberships; collect the ones that raised.
+      failed = memberships.reject { |membership| materialize_membership_for_role(membership) }
+
+      # Targeted retry: re-attempt only the failures. The operation is idempotent,
+      # so retrying just the failed set (rather than every member) repairs
+      # transient errors cheaply — re-doing all members would be wasteful at scale.
+      if failed.any?
+        failed = failed.reject { |membership| materialize_membership_for_role(membership, retry_attempt: true) }
       end
 
-      OT.info "[rematerialize_all_memberships!] org=#{extid} success=#{result[:success]} failed=#{result[:failed]}"
+      result = {
+        success: total - failed.size,
+        failed: failed.size,
+        total: total,
+        failed_ids: failed.map(&:objid),
+      }
+
+      OT.info "[rematerialize_all_memberships!] org=#{extid} " \
+              "success=#{result[:success]} failed=#{result[:failed]} total=#{result[:total]}"
       result
     end
+
+    # Materialize a single membership's role entitlements, isolating failures.
+    #
+    # Extracted so the initial pass and the targeted retry in
+    # rematerialize_all_memberships! share identical error handling.
+    #
+    # @param membership [OrganizationMembership]
+    # @param retry_attempt [Boolean] true when invoked from the retry pass (for logs)
+    # @return [Boolean] true on success, false if the attempt raised (logged)
+    def materialize_membership_for_role(membership, retry_attempt: false)
+      membership.materialize_for_role!(self)
+      true
+    rescue StandardError => ex
+      OT.le '[rematerialize_all_memberships!] failed for membership',
+        exception: ex,
+        membership_objid: membership.objid,
+        org_extid: extid,
+        retry_attempt: retry_attempt
+      false
+    end
+    private :materialize_membership_for_role
 
     # Low-level delete with index cleanup
     #

@@ -19,8 +19,14 @@
 # requires sso_enabled.
 
 require_relative '../../../../../try/support/test_helpers'
+require_relative '../../../../../apps/web/billing/lib/test_support/billing_helpers'
 
 OT.boot! :test
+
+# Arrange: Explicitly disable billing for standalone-mode tests.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+BillingTestHelpers.disable_billing!
 
 require 'onetime/models/custom_domain/api_config'
 require 'onetime/models/custom_domain/homepage_config'

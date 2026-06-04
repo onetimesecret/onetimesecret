@@ -17,6 +17,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
+  import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
   import { storeToRefs } from 'pinia';
   import type { ImprovedLayoutProps } from '@/types/ui/layouts';
   import { computed, onMounted } from 'vue';
@@ -44,10 +45,15 @@
   // Test plan mode composable
   const { isPreviewModeActive } = usePreviewPlanMode();
 
+  // Permission check for domain management (admins/owners only)
+  const { canManageDomain } = useOrgPermissions();
+
   // Centralize store refreshing to avoid duplicate API calls from header and footer
   onMounted(() => {
     receiptListStore.refreshRecords(true);
-    if (domains_enabled.value) {
+    // Only fetch domain list for users who can manage domains (admins/owners)
+    // Members get domain context from the permissions API via useDomainContext
+    if (domains_enabled.value && canManageDomain.value) {
       domainsStore.refreshRecords({ force: true });
     }
   });

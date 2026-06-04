@@ -336,13 +336,12 @@ result
 ## ADR-012 invariant (c): membership exists with role 'owner' AND owner_id matches,
 # but status is 'accepted' (pre-activation) → not owner. The membership&.active?
 # guard in Organization#owner? must override both the role match and the
-# owner_id field match. Pins the defensive guard against pre-activation
-# index leaks where an accepted-but-not-yet-active membership could otherwise
-# be treated as conferring owner authority.
+# owner_id field match. Direct composite key load finds the membership, but
+# the active? check rejects it.
 ghost_owner = Onetime::Customer.create!(email: "ghost_e_#{@test_suffix}@onetimesecret.com")
 ghost_org = Onetime::Organization.new(
   display_name: "Ghost Org E",
-  owner_id: ghost_owner.custid,  # owner_id matches to prove status check overrides field match
+  owner_id: ghost_owner.custid,
   contact_email: "ghost_e_#{@test_suffix}@acme.com",
 )
 ghost_org.save
@@ -353,12 +352,7 @@ inactive_membership = Onetime::OrganizationMembership.new(
   status: 'accepted',  # NOT 'active' — pre-activation state
 )
 inactive_membership.save
-# Explicitly populate the org_customer_lookup index so find_by_org_customer
-# resolves to this accepted-but-not-active membership (mirrors what
-# activate! would do, but for the accepted state).
-Onetime::OrganizationMembership.org_customer_lookup[inactive_membership.org_customer_key] = inactive_membership.objid
 result = ghost_org.owner?(ghost_owner)
-Onetime::OrganizationMembership.org_customer_lookup.remove_field(inactive_membership.org_customer_key)
 inactive_membership.destroy!
 ghost_org.destroy!
 ghost_owner.destroy!

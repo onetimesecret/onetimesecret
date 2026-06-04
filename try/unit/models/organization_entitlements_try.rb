@@ -96,8 +96,8 @@ require_relative '../../../apps/web/billing/models/plan'
 @org.limit_for('organizations')
 #=> 5
 
-## SaaS empty planid: limit_for('members_per_team') returns FREE tier max
-@org.limit_for('members_per_team')
+## SaaS empty planid: limit_for('total_members_per_org') returns FREE tier max
+@org.limit_for('total_members_per_org')
 #=> 0
 
 ## SaaS empty planid: limit_for('secret_lifetime') returns DEFAULT_FREE_TTL absent env override

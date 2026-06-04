@@ -4,10 +4,11 @@ import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
 import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
 import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
 import TransactionalLayout from '@/shared/layouts/TransactionalLayout.vue';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { SCOPE_PRESETS } from '@/types/router';
 import type { LayoutProps } from '@/types/ui/layouts';
-import { RouteRecordRaw } from 'vue-router';
+import { RouteRecordRaw, type RouteLocationNormalized } from 'vue-router';
 
 // Extend RouteRecordRaw meta to include our custom componentMode
 declare module 'vue-router' {
@@ -103,6 +104,35 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string): L
   return layoutProps;
 }
 
+/**
+ * Authenticated visitors to the public /pricing routes are already signed up
+ * (and may be on a paid plan), so the marketing CTAs route them to /signup,
+ * which the auth guard then blocks — the click logs but goes nowhere.
+ * Redirect them to the in-app plan selector instead, carrying any deep-linked
+ * product/interval as the query params PlanSelector already parses. The
+ * /billing/plans redirect resolves the current org into /billing/:extid/plans.
+ */
+export function redirectAuthenticatedToPlans(to: RouteLocationNormalized) {
+  const authStore = useAuthStore();
+  if (!authStore.isAuthenticated) return true;
+
+  const query: Record<string, string> = {};
+  // Route params are scalar, but query params can arrive as arrays
+  // (?interval=a&interval=b). Collapse to the first value so the
+  // string ops below never see an array and throw mid-navigation.
+  const rawProduct = to.params.product ?? to.query.product;
+  const product = Array.isArray(rawProduct) ? rawProduct[0] : rawProduct;
+  const rawInterval = to.params.interval ?? to.query.interval;
+  const interval = Array.isArray(rawInterval) ? rawInterval[0] : rawInterval;
+  if (product) query.product = product;
+  if (interval) {
+    const yearAliases = ['year', 'yearly', 'annual'];
+    query.interval = yearAliases.includes(interval.toLowerCase()) ? 'yearly' : 'monthly';
+  }
+
+  return { path: '/billing/plans', query };
+}
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -188,6 +218,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/pricing',
     name: 'Pricing',
     component: () => import('@/apps/secret/support/Pricing.vue'),
+    beforeEnter: redirectAuthenticatedToPlans,
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
@@ -210,6 +241,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/pricing/:product',
     name: 'PricingProduct',
     component: () => import('@/apps/secret/support/Pricing.vue'),
+    beforeEnter: redirectAuthenticatedToPlans,
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
@@ -228,6 +260,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/pricing/:product/:interval',
     name: 'PricingProductInterval',
     component: () => import('@/apps/secret/support/Pricing.vue'),
+    beforeEnter: redirectAuthenticatedToPlans,
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,

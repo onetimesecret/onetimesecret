@@ -67,6 +67,7 @@ export const ENTITLEMENTS = {
   WORKSPACE_BRANDING: 'workspace_branding',
 
   // Organization Management
+  MANAGE_ORG: 'manage_org',
   MANAGE_ORGS: 'manage_orgs',
   MANAGE_TEAMS: 'manage_teams',
   MANAGE_MEMBERS: 'manage_members',

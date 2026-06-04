@@ -11,8 +11,14 @@
 # implement .schedule(), causing a NotImplementedError at boot.
 
 require_relative '../support/test_helpers'
+require_relative '../../apps/web/billing/lib/test_support/billing_helpers'
 
 OT.boot! :test, false
+
+# Arrange: Explicitly disable billing for standalone-mode tests.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+BillingTestHelpers.disable_billing!
 
 # Load the full job hierarchy exactly as the scheduler does
 require_relative '../../lib/onetime/jobs/scheduled_job'

@@ -69,6 +69,7 @@ module Onetime
 
           Catalog & Sync:
             bin/ots billing catalog            Manage plan catalog
+            bin/ots billing catalog sync       Full sync: push + pull + materialize
             bin/ots billing catalog validate   Validate catalog YAML and Stripe consistency
             bin/ots billing catalog generate-docs  Generate catalog documentation
             bin/ots billing sync               Full sync from Stripe to Redis

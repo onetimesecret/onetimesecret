@@ -83,7 +83,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       org_id: tenant_organization.org_id,
     )
     domain.save
-    Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+    Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain
   end
 
@@ -96,7 +96,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
   after do
     sso_customer&.destroy! rescue nil
-    Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+    Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     tenant_custom_domain&.destroy! rescue nil
     tenant_organization&.destroy! rescue nil
     tenant_org_owner&.destroy! rescue nil
@@ -106,7 +106,18 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   # Operation-level: JoinDomainOrganization correctness
   # ==========================================================================
 
-  describe 'JoinDomainOrganization operation' do
+  # :shared_db_state opts these examples out of the per-each Valkey flush.
+  # The fixtures above are built in per-example `let!` hooks, not before(:all),
+  # so the tag name is a slight misnomer here — but the guard is exactly what we
+  # need: the integration flush hooks live in three helpers (this app's
+  # spec_helper, the core integration_spec_helper, and the top-level
+  # spec_helper). Their before(:each) ordering relative to this group's `let!`
+  # is incidental to load order; under some orderings the core
+  # integration_spec_helper flush runs AFTER `let!` and wipes the freshly-saved
+  # CustomDomain before the example body reads it ("Domain not found"). Skipping
+  # the flush makes the group order-proof: each example uses a unique
+  # `test_run_id`, builds its own fixtures, and tears them down in `after`.
+  describe 'JoinDomainOrganization operation', :shared_db_state do
     it 'adds the customer to the tenant organization as a member' do
       result = Auth::Operations::JoinDomainOrganization.new(
         customer: sso_customer,
@@ -141,6 +152,45 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(second[:joined]).to be(false)
       expect(second[:reason]).to eq('already_member')
       expect(second[:organization]&.objid).to eq(tenant_organization.objid)
+    end
+
+    # The invited-then-SSO sub-case: a pending org-scoped invitation is accepted
+    # *through* the SSO join path. ensure_membership takes its accept! branch,
+    # which carries the invitation's own (nil) domain_scope_id — the SSO-supplied
+    # domain_scope_id is ignored. The member therefore stays org-scoped: broader
+    # access than domain-scoped, not a leak. This test pins that as intended
+    # behavior and asserts the invite is consumed (not duplicated) and that
+    # provisioning_source: 'sso' threads through accept!/activate!.
+    it 'accepts a pending org-scoped invitation via SSO and stays org-scoped' do
+      invitation = Onetime::OrganizationMembership.create_invitation!(
+        organization: tenant_organization,
+        email: sso_customer.email,
+        role: 'member',
+        inviter: tenant_org_owner,
+      )
+      expect(invitation.pending?).to be(true)
+      expect(tenant_organization.pending_invitation_count).to eq(1)
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: sso_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true), "Expected invited user to be joined, got: #{result.inspect}"
+      expect(result[:reason]).to eq('added_via_sso')
+      expect(tenant_organization.member?(sso_customer)).to be(true)
+
+      # Invite consumed, not duplicated.
+      expect(tenant_organization.pending_invitation_count).to eq(0)
+
+      membership = result[:membership]
+      expect(membership).not_to be_nil
+      # SSO lifecycle attribution survives the accept! path.
+      expect(membership.provisioning_source).to eq('sso')
+      # Scope invariant: invite's nil scope wins over the SSO domain_scope_id.
+      expect(membership.org_scoped?).to be(true),
+        "Expected membership to stay org-scoped, got domain_scope_id=#{membership.domain_scope_id.inspect}"
+      expect(membership.domain_scope_id.to_s).to be_empty
     end
   end
 
@@ -200,6 +250,161 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   end
 
   # ==========================================================================
+  # Regression: tenant SSO must NOT create a default workspace (issue #3326)
+  # ==========================================================================
+  #
+  # Before the fix, after_omniauth_create_account called CreateDefaultWorkspace
+  # BEFORE JoinDomainOrganization, resulting in tenant SSO users getting BOTH
+  # a default workspace AND membership in the tenant org. This violated the
+  # principle that tenant SSO users should only belong to the tenant org.
+  #
+  # The fix made the paths mutually exclusive:
+  #   - if domain_id present  → JoinDomainOrganization only (tenant SSO)
+  #   - if domain_id absent   → CreateDefaultWorkspace only (canonical SSO)
+  #
+  describe 'tenant SSO does not create default workspace (issue #3326)', :shared_db_state do
+    # Fresh customer with no organizations
+    let!(:fresh_sso_customer) do
+      customer = Onetime::Customer.new(email: "fresh-#{test_run_id}@tenant.example.com")
+      customer.save
+      customer
+    end
+
+    after do
+      # Clean up any orgs created during tests
+      fresh_sso_customer&.organization_instances&.each do |org|
+        org.destroy! rescue nil
+      end
+      fresh_sso_customer&.destroy! rescue nil
+    end
+
+    it 'tenant SSO user joins only the tenant org, no default workspace created' do
+      # Precondition: user has no organizations
+      expect(fresh_sso_customer.organization_instances.count).to eq(0),
+        'Fresh customer should have no organizations before SSO'
+
+      # Simulate tenant SSO path: domain_id is present
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: fresh_sso_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true)
+
+      # Reload participation data
+      orgs = fresh_sso_customer.organization_instances.to_a
+
+      # Critical assertion: user should have exactly ONE organization (the tenant org)
+      expect(orgs.count).to eq(1),
+        "Tenant SSO user should have exactly 1 org, got #{orgs.count}: #{orgs.map(&:display_name)}"
+
+      # And that org should be the tenant org, not a default workspace
+      expect(orgs.first.objid).to eq(tenant_organization.objid),
+        'The single org should be the tenant org, not a default workspace'
+      expect(orgs.first.is_default).to be_falsey,
+        'Tenant org should not be marked as default workspace'
+    end
+
+    it 'canonical SSO user gets default workspace, not tenant org membership' do
+      # Simulate canonical SSO path: no domain_id (SSO on main domain)
+      # CreateDefaultWorkspace should run
+
+      # Precondition: user has no organizations
+      expect(fresh_sso_customer.organization_instances.count).to eq(0)
+
+      # This is what happens when domain_id is nil in the hook
+      Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+
+      orgs = fresh_sso_customer.organization_instances.to_a
+
+      expect(orgs.count).to eq(1),
+        "Canonical SSO user should have exactly 1 org (default workspace)"
+      expect(orgs.first.is_default).to be(true),
+        'The org should be marked as default workspace'
+      expect(orgs.first.member?(fresh_sso_customer)).to be(true)
+
+      # And they should NOT be in the tenant org
+      expect(tenant_organization.member?(fresh_sso_customer)).to be(false),
+        'Canonical SSO user should not be added to tenant org'
+    end
+
+    it 'fallback: creates default workspace when JoinDomainOrganization fails silently' do
+      # Mirrors the safety-net branch added to after_omniauth_create_account:
+      #   if customer.organization_instances.to_a.empty?
+      #     CreateDefaultWorkspace.new(customer: customer).call
+      #   end
+      #
+      # A bad domain_id causes JoinDomainOrganization to return {joined: false}
+      # without raising (RecordNotFound is caught internally). The hook wraps
+      # the call in safe_execute, so either way the customer ends up with zero
+      # orgs -- triggering the fallback.
+
+      # Precondition: user has no organizations
+      expect(fresh_sso_customer.organization_instances.count).to eq(0),
+        'Fresh customer should have no organizations before SSO'
+
+      # Simulate the hook's tenant-SSO branch with a domain_id that will fail lookup
+      bogus_domain_id = 'nonexistent_domain_id'
+
+      # Step 1: JoinDomainOrganization fails silently (mirrors safe_execute wrapper)
+      Onetime::ErrorHandler.safe_execute(
+        'join_domain_organization_omniauth',
+        extid: fresh_sso_customer.extid,
+        domain_id: bogus_domain_id,
+      ) do
+        Auth::Operations::JoinDomainOrganization.new(
+          customer: fresh_sso_customer,
+          domain_id: bogus_domain_id,
+        ).call
+      end
+
+      # Intermediate state: join failed, customer still has zero orgs
+      expect(fresh_sso_customer.organization_instances.to_a).to be_empty,
+        'After failed join, customer should still have zero organizations'
+
+      # Step 2: Fallback triggers because org count is zero
+      if fresh_sso_customer.organization_instances.to_a.empty?
+        Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+      end
+
+      # Customer should now have exactly 1 org (the fallback workspace)
+      orgs = fresh_sso_customer.organization_instances.to_a
+      expect(orgs.count).to eq(1),
+        "After fallback, customer should have exactly 1 org, got #{orgs.count}"
+      expect(orgs.first.is_default).to be(true),
+        'Fallback org should be a default workspace'
+      expect(orgs.first.member?(fresh_sso_customer)).to be(true),
+        'Customer should be a member of the fallback workspace'
+    end
+
+    it 'mutually exclusive: cannot get both default workspace and tenant org' do
+      # This test mirrors the bug scenario from #3326:
+      # If both operations ran, user would end up in 2 orgs
+
+      # Step 1: Join tenant org (tenant SSO path)
+      Auth::Operations::JoinDomainOrganization.new(
+        customer: fresh_sso_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      # Step 2: CreateDefaultWorkspace should now be a no-op
+      # because workspace_already_exists? returns true
+      result = Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+
+      expect(result).to be_nil,
+        'CreateDefaultWorkspace should return nil when user already has an org'
+
+      orgs = fresh_sso_customer.organization_instances.to_a
+      expect(orgs.count).to eq(1),
+        "User should still have only 1 org after both operations attempted"
+
+      # No default workspace should exist
+      expect(orgs.none?(&:is_default)).to be(true),
+        'No default workspace should have been created for tenant SSO user'
+    end
+  end
+
+  # ==========================================================================
   # End-to-end: real OAuth callback flow asserting tenant org membership
   # ==========================================================================
   #
@@ -227,7 +432,11 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
     end
 
     after do
-      Onetime::Customer.find_by_email(e2e_user_email)&.destroy! rescue nil
+      begin
+        Onetime::Customer.find_by_email(e2e_user_email)&.destroy!
+      rescue => e
+        OT.le "[domain_sso_join_organization_spec] Error in after: #{e.message}"
+      end
       cleanup_oauth_test_fixtures
     end
 
@@ -248,7 +457,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
         post '/auth/sso/oidc'
 
         if last_response.status == 404
-          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
+          skip "OmniAuth route not registered (OIDC discovery not available at boot for #{e2e_domain_host})"
         end
         expect(last_response.status).to eq(302),
           "Initiation should redirect, got: #{last_response.status}"

@@ -111,7 +111,7 @@ Create a new Stripe product with required metadata.
 
 **Optional Metadata Fields:**
 - `limit_teams` - Maximum teams (-1 for unlimited)
-- `limit_members_per_team` - Maximum members per team (-1 for unlimited)
+- `limit_total_members_per_org` - Maximum members per org (-1 for unlimited)
 
 **Examples:**
 
@@ -124,7 +124,7 @@ Tier (e.g., single_team, multi_team): single_team
 Region (e.g., us-east, global): us-east
 Capabilities (comma-separated): create_secrets,create_team,custom_domains
 Limit teams (-1 for unlimited): 1
-Limit members per team (-1 for unlimited): -1
+Limit members per org (-1 for unlimited): -1
 
 Creating product 'Identity Plus' with metadata:
   app: onetimesecret
@@ -133,7 +133,7 @@ Creating product 'Identity Plus' with metadata:
   region: us-east
   capabilities: create_secrets,create_team,custom_domains
   limit_teams: 1
-  limit_members_per_team: -1
+  limit_total_members_per_org: -1
 
 Proceed? (y/n): y
 
@@ -181,7 +181,7 @@ Metadata:
   region: us-east
   capabilities: create_secrets,create_team,custom_domains
   limit_teams: 1
-  limit_members_per_team: -1
+  limit_total_members_per_org: -1
 
 Prices:
   price_123ABC - USD 9.00/month (active)
@@ -543,7 +543,7 @@ All products **must** include these metadata fields:
 
 **Optional metadata** (canonical list lives in `Billing::Metadata::LIMIT_FIELDS`):
 - `limit_teams` - Maximum number of teams (-1 = unlimited)
-- `limit_members_per_team` - Maximum members per team (-1 = unlimited)
+- `limit_total_members_per_org` - Maximum members per org (-1 = unlimited)
 - `limit_custom_domains` - Maximum custom domains (-1 = unlimited)
 - `limit_secret_lifetime` - Maximum secret lifetime in seconds
 - `limit_secrets_per_day` - Daily secret creation limit (-1 = unlimited)

@@ -21,9 +21,9 @@ module Onetime
         boot_application!
 
         domain_count = Onetime::CustomDomain.instances.size
-        index_count  = Onetime::CustomDomain.display_domains.size
+        index_count  = Onetime::CustomDomain.display_domain_index.size
 
-        puts format('%d custom domains (%d in display_domains index)', domain_count, index_count)
+        puts format('%d custom domains (%d in display_domain_index index)', domain_count, index_count)
         puts
         puts 'Run bin/ots domains -h for available subcommands'
       end

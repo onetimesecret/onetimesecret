@@ -147,8 +147,10 @@ module DomainsAPI
         def validate_client_credentials
           raise_form_error('Client ID is required', field: :client_id, error_type: :missing) if @client_id.to_s.empty?
 
-          # PUT semantics: client_secret is always required (full replacement)
-          raise_form_error('Client secret is required', field: :client_secret, error_type: :missing) if @client_secret.to_s.empty?
+          # client_secret required for all providers except OIDC (which supports public clients/PKCE)
+          if @client_secret.to_s.empty? && @provider_type != 'oidc'
+            raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
+          end
         end
 
         def validate_provider_specific_fields

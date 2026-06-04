@@ -61,7 +61,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true  # Owner has all entitlements including manage_orgs
+      can?: true  # Owner has all entitlements including manage_org
     )
   end
 
@@ -149,12 +149,12 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
     end
 
-    context 'when user lacks manage_orgs entitlement' do
+    context 'when user lacks manage_org entitlement' do
       let(:owner_membership) do
         instance_double(
           Onetime::OrganizationMembership,
           active?: true,
-          can?: false  # Member without manage_orgs entitlement
+          can?: false  # Member without manage_org entitlement
         )
       end
 
@@ -165,7 +165,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
 
       it 'raises entitlement required error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
-          expect(error.entitlement).to eq('manage_orgs')
+          expect(error.entitlement).to eq('manage_org')
         end
       end
     end

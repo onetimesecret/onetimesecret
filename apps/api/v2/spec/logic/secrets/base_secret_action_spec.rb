@@ -358,4 +358,724 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       end
     end
   end
+
+  # ============================================================================
+  # process_share_domain — ingestion (records the requested domain)
+  #
+  # process_share_domain only sanitizes and records the *requested* domain; it is
+  # auth-agnostic. Whether an anonymous request may actually use that domain is
+  # decided later in validate_anonymous_share_domain (issue #3311), because the
+  # display_domain that decision needs is not reliably available this early
+  # across API versions. These specs pin the ingestion contract: valid custom
+  # domains are recorded; empty, invalid, and canonical/default values leave
+  # @share_domain nil.
+  # ============================================================================
+  describe '#process_share_domain' do
+    # Build a subject and drive process_share_domain directly with a chosen
+    # payload value and anonymity. anonymous_user? resolves via cust.
+    def build_ingest_subject(payload_share_domain:, anonymous: false)
+      action = V2ConfigTestAction.new(strategy_result, base_params)
+      action.instance_variable_set(:@payload, { 'share_domain' => payload_share_domain })
+      if anonymous
+        action.instance_variable_set(:@cust,
+          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil))
+      end
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    context 'a valid, non-default custom domain in the payload' do
+      before do
+        allow(Onetime::CustomDomain).to receive(:valid?).with('secrets.acme.com').and_return(true)
+        allow(Onetime::CustomDomain).to receive(:default_domain?).with('secrets.acme.com').and_return(false)
+      end
+
+      it 'records the requested domain for an authenticated request' do
+        subject = build_ingest_subject(payload_share_domain: 'secrets.acme.com', anonymous: false)
+        subject.send(:process_share_domain)
+        expect(subject.share_domain).to eq('secrets.acme.com')
+      end
+
+      it 'records the requested domain for an anonymous request too (the use check runs later)' do
+        subject = build_ingest_subject(payload_share_domain: 'secrets.acme.com', anonymous: true)
+        subject.send(:process_share_domain)
+        expect(subject.share_domain).to eq('secrets.acme.com')
+      end
+    end
+
+    context 'an empty share_domain in the payload' do
+      subject { build_ingest_subject(payload_share_domain: '') }
+
+      it 'leaves @share_domain nil' do
+        subject.send(:process_share_domain)
+        expect(subject.share_domain).to be_nil
+      end
+    end
+
+    context 'a malformed share_domain' do
+      subject { build_ingest_subject(payload_share_domain: 'not a domain') }
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:valid?).and_return(false)
+      end
+
+      it 'rejects the invalid domain and leaves @share_domain nil' do
+        subject.send(:process_share_domain)
+        expect(subject.share_domain).to be_nil
+      end
+    end
+
+    context "a share_domain that is the site's canonical domain" do
+      subject { build_ingest_subject(payload_share_domain: 'onetimesecret.com') }
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:valid?).and_return(true)
+        allow(Onetime::CustomDomain).to receive(:default_domain?).and_return(true)
+      end
+
+      it 'skips the canonical/default domain and leaves @share_domain nil' do
+        subject.send(:process_share_domain)
+        expect(subject.share_domain).to be_nil
+      end
+    end
+  end
+
+  # ============================================================================
+  # determine_share_domain — domain selection fix
+  #
+  # The bug: when browsing on a custom domain (Host header = custom domain) and
+  # selecting a DIFFERENT org domain from the Domain Context dropdown, the old
+  # code always returned display_domain (the Host header's domain), ignoring
+  # the user's explicit share_domain selection.
+  #
+  # Old code:
+  #   return display_domain if custom_domain?
+  #   share_domain
+  #
+  # Fixed code:
+  #   return share_domain if share_domain
+  #   display_domain if custom_domain?
+  # ============================================================================
+  describe '#determine_share_domain' do
+    # Build a subject with explicit control over share_domain, display_domain,
+    # custom_domain?, and anonymity — the inputs to determine_share_domain.
+    #
+    # anonymous_user? resolves via cust (cust.nil? || cust.anonymous?). The
+    # default strategy_result.user is a non-anonymous customer; pass
+    # anonymous: true to swap in an anonymous customer and exercise the guest
+    # guard added for issue #3311.
+    def build_domain_subject(share_domain:, display_domain:, custom_domain:, anonymous: false)
+      action = V2ConfigTestAction.new(strategy_result, base_params)
+      action.instance_variable_set(:@share_domain, share_domain)
+      action.instance_variable_set(:@display_domain, display_domain)
+      if anonymous
+        action.instance_variable_set(:@cust,
+          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil))
+      end
+      allow(action).to receive(:custom_domain?).and_return(custom_domain)
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    context 'user on custom domain, explicit share_domain set to a different domain' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+        )
+      end
+
+      it 'returns the explicitly selected share_domain, not the Host header domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('secrets.acme.com')
+      end
+    end
+
+    context 'user on custom domain, no explicit share_domain (nil)' do
+      subject do
+        build_domain_subject(
+          share_domain: nil,
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+        )
+      end
+
+      it 'falls back to the display_domain from the Host header' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    context 'user on canonical domain, explicit share_domain set' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+        )
+      end
+
+      it 'returns the explicitly selected share_domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('secrets.acme.com')
+      end
+    end
+
+    context 'user on canonical domain, no share_domain' do
+      subject do
+        build_domain_subject(
+          share_domain: nil,
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+        )
+      end
+
+      it 'returns nil (no custom domain context, no explicit selection)' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to be_nil
+      end
+    end
+
+    context 'user on custom domain, share_domain matches display_domain' do
+      subject do
+        build_domain_subject(
+          share_domain: 'local-secrets.afb.pet',
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+        )
+      end
+
+      it 'returns share_domain (explicit selection takes precedence even when same)' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    # --------------------------------------------------------------------------
+    # Guest (anonymous) second-layer guard — issue #3311
+    #
+    # validate_anonymous_share_domain (see its own describe block) is the primary
+    # guard: it rejects a guest naming any domain other than the one they're on
+    # before determine_share_domain runs. These contexts deliberately set
+    # @share_domain directly to exercise determine_share_domain's independent
+    # second layer — even if a guest value reached it, the domain-selection
+    # authority still pins a custom-domain guest to the Host header.
+    #
+    # The fixtures above all use the default non-anonymous customer, so they
+    # double as the "authenticated user still selects via share_domain" no-
+    # regression checks. The contexts below pin the guest behaviour.
+    # --------------------------------------------------------------------------
+    context 'anonymous guest on custom domain, explicit share_domain in POST body' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'ignores the POST-body share_domain and returns the Host header domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    context 'anonymous guest on custom domain, no explicit share_domain' do
+      subject do
+        build_domain_subject(
+          share_domain: nil,
+          display_domain: 'local-secrets.afb.pet',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'returns the Host header domain' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('local-secrets.afb.pet')
+      end
+    end
+
+    context 'anonymous guest on canonical domain, explicit share_domain in POST body' do
+      subject do
+        build_domain_subject(
+          share_domain: 'secrets.acme.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+          anonymous: true,
+        )
+      end
+
+      # determine_share_domain in isolation still surfaces the posted value on
+      # the canonical domain (the guard is scoped to custom_domain?). In the real
+      # flow validate_anonymous_share_domain raises before this point, so a guest
+      # never reaches here with a smuggled domain — that is covered in the
+      # validate_anonymous_share_domain describe block.
+      it 'returns the posted share_domain (the guest rejection happens earlier in the real flow)' do
+        result = subject.send(:determine_share_domain)
+        expect(result).to eq('secrets.acme.com')
+      end
+    end
+  end
+
+  # ============================================================================
+  # validate_anonymous_share_domain — guest domain boundary (issue #3311)
+  #
+  # The primary guest guard. A guest may keep a requested share_domain only when
+  # they are on that exact custom domain (the /guest endpoints on a branded
+  # domain). Any other custom domain — a guest on the canonical domain naming a
+  # custom one, or a guest on one custom domain naming a different one — is a
+  # cross-domain smuggle and is rejected before the domain is resolved or used.
+  # Authenticated callers are untouched (governed by validate_domain_permissions).
+  # ============================================================================
+  describe '#validate_anonymous_share_domain' do
+    # Seed @share_domain (the requested domain, as process_share_domain would
+    # have recorded it), @display_domain (the Host header), custom_domain?, and
+    # anonymity — the inputs to the guard.
+    def build_guard_subject(requested:, display_domain:, custom_domain:, anonymous:)
+      action = V2ConfigTestAction.new(strategy_result, base_params)
+      action.instance_variable_set(:@share_domain, requested)
+      action.instance_variable_set(:@display_domain, display_domain)
+      if anonymous
+        action.instance_variable_set(:@cust,
+          double('AnonymousCustomer', anonymous?: true, custid: nil, objid: nil))
+      end
+      allow(action).to receive(:custom_domain?).and_return(custom_domain)
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    context 'guest on a custom domain requesting that same domain (the /guest endpoint case)' do
+      subject do
+        build_guard_subject(
+          requested: 'secrets.acme.com',
+          display_domain: 'secrets.acme.com',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'is allowed (no raise)' do
+        expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+      end
+    end
+
+    context 'guest on a custom domain requesting that same domain in a different case' do
+      subject do
+        build_guard_subject(
+          requested: 'Secrets.ACME.com',
+          display_domain: 'secrets.acme.com',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'is allowed (Host comparison is case-insensitive)' do
+        expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+      end
+    end
+
+    context 'guest on a custom domain requesting a DIFFERENT custom domain' do
+      subject do
+        build_guard_subject(
+          requested: 'victim.example.com',
+          display_domain: 'secrets.acme.com',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'raises Forbidden tagged as a cross-domain smuggle' do
+        expect { subject.send(:validate_anonymous_share_domain) }
+          .to raise_error(Onetime::Forbidden) do |error|
+            expect(error.error_key).to eq('api.secrets.errors.domain_permission_anonymous_cross_domain')
+            expect(error.args).to eq(domain: 'victim.example.com')
+          end
+      end
+    end
+
+    context 'guest on the canonical domain requesting a custom domain' do
+      subject do
+        build_guard_subject(
+          requested: 'victim.example.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+          anonymous: true,
+        )
+      end
+
+      it 'raises Forbidden (cross-domain smuggle from canonical)' do
+        expect { subject.send(:validate_anonymous_share_domain) }
+          .to raise_error(Onetime::Forbidden)
+      end
+    end
+
+    context 'guest with no requested share_domain' do
+      subject do
+        build_guard_subject(
+          requested: nil,
+          display_domain: 'secrets.acme.com',
+          custom_domain: true,
+          anonymous: true,
+        )
+      end
+
+      it 'is a no-op (nothing to reject)' do
+        expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+      end
+    end
+
+    context 'authenticated user requesting a different custom domain' do
+      subject do
+        build_guard_subject(
+          requested: 'secrets.acme.com',
+          display_domain: 'onetimesecret.com',
+          custom_domain: false,
+          anonymous: false,
+        )
+      end
+
+      it 'does not raise here (authenticated selection is governed by validate_domain_permissions)' do
+        expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+      end
+    end
+  end
+
+  # ============================================================================
+  # validate_share_domain integration — verifies that determine_share_domain's
+  # return value flows through to validate_domain_access correctly.
+  # ============================================================================
+  describe '#validate_share_domain integration' do
+    # Domain double that passes all permission and verification checks.
+    def build_passing_domain_record(owner: true)
+      double('CustomDomain',
+        owner?: owner,
+        allow_public_homepage?: true,
+        verified: 'true')
+    end
+
+    def build_integration_subject(cust:, share_domain:, display_domain:, custom_domain:)
+      action = V2ConfigTestAction.new(strategy_result, base_params)
+      action.instance_variable_set(:@cust, cust)
+      action.instance_variable_set(:@share_domain, share_domain)
+      action.instance_variable_set(:@display_domain, display_domain)
+      allow(action).to receive(:custom_domain?).and_return(custom_domain)
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    let(:authenticated_member) do
+      double('Customer',
+        anonymous?: false,
+        custid: 'member1',
+        objid: 'obj_member1',
+        planid: 'identity',
+        email: 'member@acme.com',
+        organization_instances: [:existing_org])
+    end
+
+    let(:anonymous_visitor) do
+      double('Customer',
+        anonymous?: true,
+        custid: nil,
+        objid: nil,
+        planid: 'anonymous',
+        email: nil,
+        organization_instances: [])
+    end
+
+    context 'authenticated domain owner on custom domain, selects a different owned domain' do
+      let(:selected_domain) { 'secrets.acme.com' }
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:domain_record)   { build_passing_domain_record(owner: true) }
+
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: selected_domain,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(selected_domain).and_return(domain_record)
+      end
+
+      it 'uses the explicitly selected domain, not the Host header domain' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(selected_domain)
+      end
+
+      it 'looks up the selected domain record, not the Host header domain' do
+        subject.send(:validate_share_domain)
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(selected_domain)
+      end
+    end
+
+    context 'authenticated non-owner on custom domain, selects a domain they do not own' do
+      let(:selected_domain) { 'secrets.other.com' }
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:domain_record) do
+        double('CustomDomain',
+          owner?: false,
+          allow_public_homepage?: false,
+          verified: 'true')
+      end
+
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: selected_domain,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(selected_domain).and_return(domain_record)
+      end
+
+      it 'raises Forbidden for the explicitly selected domain' do
+        expect { subject.send(:validate_share_domain) }
+          .to raise_error(Onetime::Forbidden)
+      end
+    end
+
+    context 'authenticated domain owner on custom domain, no explicit selection' do
+      let(:host_domain)   { 'local-secrets.afb.pet' }
+      let(:domain_record) { build_passing_domain_record(owner: true) }
+
+      subject do
+        build_integration_subject(
+          cust: authenticated_member,
+          share_domain: nil,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(host_domain).and_return(domain_record)
+      end
+
+      it 'falls back to the Host header domain' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+
+      it 'looks up the Host header domain record' do
+        subject.send(:validate_share_domain)
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(host_domain)
+      end
+    end
+
+    context 'anonymous user on custom domain, no explicit selection' do
+      let(:host_domain)   { 'local-secrets.afb.pet' }
+      let(:domain_record) do
+        double('CustomDomain',
+          owner?: false,
+          allow_public_homepage?: true,
+          verified: 'true')
+      end
+
+      subject do
+        build_integration_subject(
+          cust: anonymous_visitor,
+          share_domain: nil,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(host_domain).and_return(domain_record)
+      end
+
+      it 'falls back to the Host header domain and passes when public homepage is enabled' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+
+    # Issue #3311 — a guest on one custom domain POSTs a share_domain naming a
+    # *different* public custom domain. validate_share_domain must reject it
+    # outright, before any domain is resolved or looked up.
+    context 'anonymous guest on custom domain, smuggles a DIFFERENT custom domain via share_domain' do
+      let(:host_domain)     { 'local-secrets.afb.pet' }
+      let(:smuggled_domain) { 'secrets.acme.com' }
+
+      subject do
+        build_integration_subject(
+          cust: anonymous_visitor,
+          share_domain: smuggled_domain,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        # Any lookup at all would be a bug: the guard must raise before resolution.
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      end
+
+      it 'raises Forbidden and never looks any domain up' do
+        expect { subject.send(:validate_share_domain) }.to raise_error(Onetime::Forbidden)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+    end
+
+    # Issue #3311 — the legitimate /guest case: a guest on a custom domain
+    # creating a link for THAT same domain. The request carries the domain it is
+    # served from, so it is allowed and the secret is pinned to that custom domain.
+    context 'anonymous guest on custom domain, creates a link for that same domain' do
+      let(:host_domain) { 'secrets.acme.com' }
+      let(:host_record) do
+        double('CustomDomain',
+          owner?: false,
+          allow_public_homepage?: true,
+          verified: 'true')
+      end
+
+      subject do
+        build_integration_subject(
+          cust: anonymous_visitor,
+          share_domain: host_domain,
+          display_domain: host_domain,
+          custom_domain: true,
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(host_domain).and_return(host_record)
+      end
+
+      it 'is allowed and pins the secret to that custom domain' do
+        expect { subject.send(:validate_share_domain) }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+  end
+
+  # ============================================================================
+  # Full-payload end-to-end regression (issue #3311)
+  #
+  # Unlike the focused specs above (which seed instance variables), these drive
+  # the real entry points with a real params payload and a genuinely anonymous
+  # StrategyResult — a guest on the custom domain `host_domain`. custom_domain?
+  # and display_domain are the real values derived from the metadata; only the
+  # external CustomDomain validity/lookup and the logger are stubbed.
+  # ============================================================================
+  describe 'full-payload end-to-end (anonymous guest, issue #3311)' do
+    let(:host_domain) { 'local-secrets.afb.pet' }
+
+    let(:e2e_session) do
+      double('Session', anonymous?: true, custid: nil, identifier: 'anon-sess')
+    end
+
+    # A genuinely anonymous StrategyResult: user is nil, so anonymous_user? is
+    # true from construction onward (process_params runs during initialize).
+    let(:e2e_strategy_result) do
+      double('StrategyResult',
+        session: e2e_session,
+        user: nil,
+        auth_method: :noauth,
+        metadata: {
+          organization_context: {},
+          domain_strategy: 'custom',
+          display_domain: host_domain,
+        })
+    end
+
+    let(:host_record) do
+      double('CustomDomain', owner?: false, allow_public_homepage?: true, verified: 'true')
+    end
+
+    # Real nested payload, exactly as a guest POST would arrive.
+    def e2e_params(share_domain)
+      {
+        'secret' => {
+          'secret'       => 'top secret value',
+          'share_domain' => share_domain,
+          'ttl'          => '3600',
+          'recipient'    => [],
+        },
+      }
+    end
+
+    def build_e2e_subject(share_domain)
+      action = V2ConfigTestAction.new(e2e_strategy_result, e2e_params(share_domain))
+      allow(action).to receive(:secret_logger).and_return(double('Logger').as_null_object)
+      action
+    end
+
+    before do
+      # Any non-empty posted domain passes format/default validation, so the
+      # requested value is recorded during process_params (real ingestion).
+      allow(Onetime::CustomDomain).to receive(:valid?).and_return(true)
+      allow(Onetime::CustomDomain).to receive(:default_domain?).and_return(false)
+      # Default any lookup to nil; only the Host domain resolves to a record.
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+        .with(host_domain).and_return(host_record)
+    end
+
+    context 'POST body smuggles a DIFFERENT custom domain' do
+      subject { build_e2e_subject('secrets.acme.com') }
+
+      it 'records the requested domain at ingestion (captured for the boundary check)' do
+        # process_params ran in initialize; the requested value is recorded but
+        # is not used as the share domain.
+        expect(subject.share_domain).to eq('secrets.acme.com')
+      end
+
+      it 'raises Forbidden through raise_concerns and never resolves a domain' do
+        expect { subject.raise_concerns }.to raise_error(Onetime::Forbidden)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+    end
+
+    context 'POST body names the custom domain the guest is on (legit /guest case)' do
+      subject { build_e2e_subject(host_domain) }
+
+      it 'is allowed and pins the secret to the Host domain through raise_concerns' do
+        expect { subject.raise_concerns }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+
+    context 'POST body omits share_domain (guest on a custom domain)' do
+      subject { build_e2e_subject('') }
+
+      it 'pins the secret to the Host domain through raise_concerns' do
+        expect { subject.raise_concerns }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+
+    # The policy-table nuance: a guest on a custom domain who names the
+    # *canonical* domain (or anything malformed) is not smuggling — those values
+    # are filtered to nil at ingestion, so the link is created on the custom
+    # domain they are on rather than rejected.
+    context 'POST body names the canonical domain while on a custom domain' do
+      subject { build_e2e_subject('onetimesecret.com') }
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:default_domain?)
+          .with('onetimesecret.com').and_return(true)
+      end
+
+      it 'ignores it and pins the secret to the Host (custom) domain' do
+        expect { subject.raise_concerns }.not_to raise_error
+        expect(subject.share_domain).to eq(host_domain)
+      end
+    end
+  end
 end

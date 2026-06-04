@@ -79,6 +79,11 @@ GRANT ALL ON SCHEMA public TO ots_migrator;
 -- Schema usage (required to see objects, but not create them)
 GRANT USAGE ON SCHEMA public TO ots_user;
 
+-- Revoke the default CREATE privilege on public schema.
+-- PostgreSQL grants CREATE ON SCHEMA public to the PUBLIC role by default,
+-- which would let ots_user create tables — defeating the dual-user model.
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+
 -- Note: Table/sequence/function grants are applied AFTER migrations run.
 -- See the "Post-Migration Grants" section below.
 

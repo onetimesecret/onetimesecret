@@ -100,7 +100,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         .with('ext-org-123').and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
@@ -234,7 +234,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       before do
-        allow(Onetime::OrganizationMembership).to receive(:find_by_org_email)
+        allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email)
           .and_return(pending_invite)
       end
 
@@ -295,7 +295,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:create_invitation!)
         .and_return(new_membership)
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
@@ -400,7 +400,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:pending_invitation_count_by_role).and_return(0)
       allow(organization).to receive(:at_limit?).and_return(false)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-owner-123').and_return(owner_membership)
@@ -421,7 +421,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       before do
         # Current count: 5 members + 2 pending = 7 total
         allow(organization).to receive(:at_limit?)
-          .with('members_per_team', 7).and_return(true)
+          .with('total_members_per_org', 7).and_return(true)
       end
 
       it 'raises upgrade_required error' do
@@ -441,7 +441,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         allow(organization).to receive(:member_count_by_role).with('member').and_return(3)
         allow(organization).to receive(:pending_invitation_count_by_role).with('member').and_return(1)
         allow(organization).to receive(:at_limit?)
-          .with('regular_members_per_team', 4).and_return(true)
+          .with('role_members_per_org', 4).and_return(true)
       end
 
       it 'raises upgrade_required error from per-role check' do
@@ -452,7 +452,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
     end
 
-    context 'when inviting an admin and at admins_per_team', billing: true do
+    context 'when inviting an admin and at role_admins_per_org', billing: true do
       let(:has_entitlements) { true }
       let(:params) { { 'extid' => 'ext-org-123', 'email' => 'newadmin@example.com', 'role' => 'admin' } }
 
@@ -460,7 +460,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         allow(organization).to receive(:member_count_by_role).with('admin').and_return(2)
         allow(organization).to receive(:pending_invitation_count_by_role).with('admin').and_return(0)
         allow(organization).to receive(:at_limit?)
-          .with('admins_per_team', 2).and_return(true)
+          .with('role_admins_per_org', 2).and_return(true)
       end
 
       it 'raises upgrade_required error' do
@@ -477,7 +477,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
       before do
         allow(organization).to receive(:at_limit?)
-          .with('members_per_team', 7).and_return(true)
+          .with('total_members_per_org', 7).and_return(true)
       end
 
       it 'returns email validation error before quota error' do
@@ -495,7 +495,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
         # Default mocks already return false from at_limit?, but assert
         # the aggregate-cap check still fires with the correct total.
         allow(organization).to receive(:at_limit?)
-          .with('members_per_team', 7).and_return(false)
+          .with('total_members_per_org', 7).and_return(false)
       end
 
       it 'allows invitation creation' do

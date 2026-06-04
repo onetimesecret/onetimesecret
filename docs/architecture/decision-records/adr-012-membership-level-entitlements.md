@@ -32,7 +32,7 @@ A static `ROLE_ENTITLEMENTS` map defines which entitlements each role template p
 owner_entitlements  = Set['custom_domains', 'custom_branding', 'custom_privacy_defaults',
                            'homepage_secrets', 'incoming_secrets', 'custom_mail_sender',
                            'flexible_from_domain', 'custom_signup_validation',
-                           'manage_sso', 'manage_orgs', 'manage_billing']
+                           'manage_sso', 'manage_org', 'manage_billing']
 
 admin_entitlements  = Set['manage_teams', 'manage_members', 'audit_logs',
                            'workspace_branding', 'ip_access_rules']

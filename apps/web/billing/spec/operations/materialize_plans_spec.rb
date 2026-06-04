@@ -50,8 +50,8 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
     allow(Onetime::OrganizationMembership).to receive(:active_for_org).with(org).and_return(memberships)
 
     # Route the operation's logger to a controllable fake so tests can
-    # assert on log calls without depending on the live billing category.
-    allow(Onetime).to receive(:billing_logger).and_return(fake_logger)
+    # assert on log calls without depending on the live ents category.
+    allow(Onetime).to receive(:ents_logger).and_return(fake_logger)
   end
 
   describe '.call' do
@@ -178,6 +178,103 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         described_class.call(include_memberships: true, iterator: iterator)
 
         expect(Onetime::OrganizationMembership).not_to have_received(:active_for_org)
+      end
+
+      # materialize_for_role! returns false (does NOT raise) when the role has
+      # no ROLE_ENTITLEMENTS template — e.g. a role removed from the catalog.
+      # The operation must treat that no-op as a failure rather than counting
+      # the org as a clean success while a membership silently stays
+      # unmaterialized. The integration counterpart (a real unknown-role
+      # membership) lives in the CLI integration spec.
+      it 'counts org as FAILED when a membership materialize_for_role! returns false (no raise)' do
+        allow(memberships[1]).to receive(:materialize_for_role!).and_return(false)
+
+        result = described_class.call(include_memberships: true, iterator: iterator)
+
+        expect(result.succeeded).to eq(0)
+        expect(result.failed).to eq(1)
+        expect(result.memberships_succeeded).to eq(2)
+        expect(result.memberships_failed).to eq(1)
+        expect(result.errors.first[:reason]).to include('1/3 membership failures')
+      end
+
+      it 'records the false-return reason in the cascade details for audit' do
+        allow(memberships[2]).to receive(:materialize_for_role!).and_return(false)
+
+        events = []
+        described_class.call(include_memberships: true, iterator: iterator) { |e| events << e }
+
+        failed_event  = events.find { |e| e.event == :failed_cascade }
+        failed_detail = failed_event.cascade[:details].find { |d| d[:status] == :failed }
+        expect(failed_detail[:error]).to include("returned false for role 'member'")
+      end
+    end
+
+    context 'membership_loader seam' do
+      # The cascade resolves memberships through an injectable loader (symmetric
+      # to iterator:) so tests can supply the membership list directly instead
+      # of stubbing OrganizationMembership.active_for_org's internal batch
+      # primitive. Default behavior (active_for_org) is covered by the cascade
+      # specs above.
+      it 'uses the injected loader instead of active_for_org' do
+        injected = [build_membership(objid: 'mem_zzz', role: 'member', entitlements_count: 7)]
+
+        result = described_class.call(
+          include_memberships: true,
+          iterator: iterator,
+          membership_loader: ->(_org) { injected },
+        )
+
+        expect(Onetime::OrganizationMembership).not_to have_received(:active_for_org)
+        expect(injected.first).to have_received(:materialize_for_role!).with(org)
+        expect(result.orgs_cascaded).to eq(1)
+        expect(result.memberships_succeeded).to eq(1)
+      end
+
+      it 'counts org as FAILED when an injected membership raises' do
+        boom = build_membership(objid: 'mem_boom', role: 'admin')
+        allow(boom).to receive(:materialize_for_role!).and_raise(StandardError, 'injected boom')
+
+        result = described_class.call(
+          include_memberships: true,
+          iterator: iterator,
+          membership_loader: ->(_org) { [boom] },
+        )
+
+        expect(result.failed).to eq(1)
+        expect(result.memberships_failed).to eq(1)
+        expect(result.errors.first[:reason]).to include('1/1 membership failures')
+      end
+
+      # Defensive: the seam is documented for non-test callers, so a malformed
+      # loader must not crash the cascade — a nil return and nil entries are
+      # tolerated rather than raising NoMethodError mid-batch.
+      it 'treats a loader returning nil as an empty cascade' do
+        result = described_class.call(
+          include_memberships: true,
+          iterator: iterator,
+          membership_loader: ->(_org) { nil },
+        )
+
+        expect(result.succeeded).to eq(1)
+        expect(result.orgs_cascaded).to eq(1)
+        expect(result.memberships_succeeded).to eq(0)
+        expect(result.memberships_failed).to eq(0)
+      end
+
+      it 'skips nil entries in the loader result without crashing the cascade' do
+        good = build_membership(objid: 'mem_good', role: 'member', entitlements_count: 4)
+
+        result = described_class.call(
+          include_memberships: true,
+          iterator: iterator,
+          membership_loader: ->(_org) { [nil, good, nil] },
+        )
+
+        expect(good).to have_received(:materialize_for_role!).with(org)
+        expect(result.succeeded).to eq(1)
+        expect(result.memberships_succeeded).to eq(1)
+        expect(result.memberships_failed).to eq(0)
       end
     end
 

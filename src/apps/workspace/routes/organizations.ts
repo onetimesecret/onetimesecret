@@ -29,6 +29,9 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.organizations_settings',
       requiresAuth: true,
+      // Owner-only: the list page has no single-org context, so this is met
+      // when the user owns at least one org (handleOrgRoleRequirement).
+      requiresOrgRole: 'owner',
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher on org list page
@@ -42,12 +45,11 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.organization_settings',
       requiresAuth: true,
+      requiresOrgRole: 'admin', // owner or admin of the org named by :extid
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: {
-        ...SCOPE_PRESETS.hideBoth,
-        // SECURITY: Navigate to same tab on new org when switching.
-        // Prevents stale data display if switcher visibility overridden.
+        ...SCOPE_PRESETS.orgShowDomainHide,
         onOrgSwitch: 'same',
       },
       sentryScrubParams: false,

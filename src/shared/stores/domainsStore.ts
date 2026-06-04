@@ -145,6 +145,7 @@ export const useDomainsStore = defineStore('domains', () => {
     }
     if (!records.value) records.value = [];
     records.value.push(result.data.record);
+    count.value = records.value.length;
     return { record: result.data.record, details: result.data.details };
   }
 
@@ -263,6 +264,7 @@ export const useDomainsStore = defineStore('domains', () => {
     await $api.post(`/api/domains/${extid}/remove`);
     if (!records.value) return;
     records.value = records.value.filter((domain) => domain.extid !== extid);
+    count.value = records.value.length;
   }
 
   /**

@@ -1,6 +1,28 @@
 // src/apps/workspace/config/settings-navigation.ts
+//
+// Tab/section visibility matrix — the spec that visible() callbacks implement.
+// Route guards in account.ts mirror these gates as a secondary enforcement layer.
+//
+// ┌──────────────────┬────────────────────┬──────────┬──────────┬──────────┬──────────┬─────────────┬─────────────┐
+// │ Tab / Section    │ Gate               │ Owner pw │ Owner SSO│ Admin pw │ Admin SSO│ Member inv. │ Member SSO  │
+// ├──────────────────┼────────────────────┼──────────┼──────────┼──────────┼──────────┼─────────────┼─────────────┤
+// │ Profile          │ —                  │ ✓        │ ✓        │ ✓        │ ✓        │ ✓           │ ✓           │
+// │  └ Change Email  │ isOwnerOrAdmin     │ ✓        │ —        │ ✓        │ —        │ —           │ —           │
+// │                  │ + hasPassword      │          │          │          │          │             │             │
+// │ Security section │ isFullAuthMode     │ ✓        │ ✓        │ ✓        │ ✓        │ ✓           │ ✓           │
+// │  ├ Password      │ hasPassword        │ ✓        │ —        │ ✓        │ —        │ ✓           │ —           │
+// │  ├ MFA           │ hasPassword        │ ✓        │ —        │ ✓        │ —        │ ✓           │ —           │
+// │  ├ Sessions      │ —                  │ ✓        │ ✓        │ ✓        │ ✓        │ ✓           │ ✓           │
+// │  ├ Recovery      │ hasPassword        │ ✓        │ —        │ ✓        │ —        │ ✓           │ —           │
+// │  └ Passkeys      │ isWebAuthnEnabled  │ ✓        │ ✓        │ ✓        │ ✓        │ ✓           │ ✓           │
+// │ API              │ —                  │ ✓        │ ✓        │ ✓        │ ✓        │ ✓           │ ✓           │
+// │ Region           │ isOwnerOrAdmin     │ ✓*       │ ✓*       │ ✓*       │ ✓*       │ —           │ —           │
+// │ Caution          │ isOwnerOrAdmin     │ ✓*       │ ✓*       │ ✓*       │ ✓*       │ —           │ —           │
+// │                  │                    │          │          │          │          │             │             │
+// │ * also requires isFullAuthMode        │          │          │          │          │             │             │
+// └──────────────────┴────────────────────┴──────────┴──────────┴──────────┴──────────┴─────────────┴─────────────┘
 
-import { hasPassword, isFullAuthMode, isSsoOnlyMode, isWebAuthnEnabled } from '@/utils/features';
+import { hasPassword, isFullAuthMode, isSsoOnlyMode, isOwnerOrAdmin, isWebAuthnEnabled } from '@/utils/features';
 import type { ComposerTranslation } from 'vue-i18n';
 
 /**
@@ -15,6 +37,7 @@ export interface NavigationFeatures {
   hasPassword: boolean;
   isFullAuthMode: boolean;
   isSsoOnlyMode: boolean;
+  isOwnerOrAdmin: boolean;
   isWebAuthnEnabled: boolean;
 }
 
@@ -24,6 +47,7 @@ function resolveFeatures(features?: NavigationFeatures): NavigationFeatures {
       hasPassword: hasPassword(),
       isFullAuthMode: isFullAuthMode(),
       isSsoOnlyMode: isSsoOnlyMode(),
+      isOwnerOrAdmin: isOwnerOrAdmin(),
       isWebAuthnEnabled: isWebAuthnEnabled(),
     }
   );
@@ -62,7 +86,7 @@ export interface SettingsNavigationSection {
 }
 
 /** Profile section navigation */
-function getProfileSection(t: ComposerTranslation): SettingsNavigationItem {
+function getProfileSection(t: ComposerTranslation, f: NavigationFeatures): SettingsNavigationItem {
   return {
     id: 'profile',
     to: '/account/settings/profile',
@@ -87,6 +111,7 @@ function getProfileSection(t: ComposerTranslation): SettingsNavigationItem {
         to: '/account/settings/profile/email',
         icon: { collection: 'heroicons', name: 'envelope' },
         label: t('web.settings.profile.change_email'),
+        visible: () => f.isOwnerOrAdmin && f.hasPassword,
       },
       {
         id: 'notifications',
@@ -101,12 +126,11 @@ function getProfileSection(t: ComposerTranslation): SettingsNavigationItem {
 /**
  * Security section navigation
  *
- * Visibility uses two layers:
- * - Platform config: isSsoOnlyMode — the deployment restricts all login to SSO
- * - Account state: hasPassword — this user authenticated via SSO (no password hash)
- * Both are needed because a mixed-auth platform (isSsoOnlyMode=false) can still
- * have SSO-provisioned accounts that shouldn't see password-centric settings.
- * Same two-layer pattern applies to Region and Caution sections below.
+ * The section is visible to all authenticated users in full-auth mode so
+ * that regular members can access Sessions. Password-dependent sub-tabs
+ * (password, MFA, recovery codes) are gated by hasPassword — visible to
+ * any user who set a password (owners, admins, or invited members).
+ * Passkeys are gated by the webauthn feature flag independently.
  */
 function getSecuritySection(
   t: ComposerTranslation,
@@ -118,7 +142,7 @@ function getSecuritySection(
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
     label: t('web.COMMON.security'),
     description: t('web.settings.security_settings_description'),
-    visible: () => f.isFullAuthMode && !f.isSsoOnlyMode && f.hasPassword,
+    visible: () => f.isFullAuthMode,
     children: [
       {
         id: 'password',
@@ -169,7 +193,7 @@ function getRegionSection(
     icon: { collection: 'heroicons', name: 'globe-alt-solid' },
     label: t('web.account.region'),
     description: t('web.regions.data_sovereignty_title'),
-    visible: () => !f.isSsoOnlyMode && f.hasPassword,
+    visible: () => f.isFullAuthMode && f.isOwnerOrAdmin,
     children: [
       {
         id: 'current',
@@ -227,7 +251,7 @@ export function getSettingsNavigationSections(
       id: 'account',
       label: t('web.settings.sections.account'),
       items: [
-        getProfileSection(t),
+        getProfileSection(t, f),
         getSecuritySection(t, f),
         {
           id: 'api',
@@ -251,7 +275,7 @@ export function getSettingsNavigationSections(
           icon: { collection: 'heroicons', name: 'no-symbol-solid' },
           label: t('web.settings.caution.title'),
           description: t('web.settings.caution.description'),
-          visible: () => !f.isSsoOnlyMode && f.hasPassword,
+          visible: () => f.isFullAuthMode && f.isOwnerOrAdmin,
         },
       ],
     },

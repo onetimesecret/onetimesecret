@@ -48,6 +48,11 @@ export function isLegacyPlan(planId: string): boolean {
   return LEGACY_PLAN_IDS.some((legacy) => planId === legacy);
 }
 
+export function isFreePlan(planId: string | undefined | null): boolean {
+  if (!planId) return true;
+  return planId === 'free' || planId.startsWith('free_');
+}
+
 /**
  * Get detailed information about a legacy plan
  *
