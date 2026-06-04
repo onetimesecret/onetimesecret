@@ -68,6 +68,7 @@ module Onetime
     field :created_by     # Immutable audit field — custid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
+    field :archived_at    # Epoch timestamp: set when workspace is soft-archived by bulk migration
 
     hashkey :urls
     jsonkey :caboose  # Migration metadata and payment link info
@@ -88,6 +89,20 @@ module Onetime
 
     def org_id
       objid
+    end
+
+    def archived?
+      !archived_at.to_s.empty?
+    end
+
+    def archive!
+      self.archived_at = Familia.now.to_f
+      save
+    end
+
+    def unarchive!
+      self.archived_at = nil
+      save
     end
 
     # Owner management
