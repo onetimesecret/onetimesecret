@@ -271,6 +271,21 @@
     "text": ".",
     "content_hash": "cdb4ee2a"
   },
+  "web.organizations.leave_organization": {
+    "text": "Leave this organization"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "You will lose access to this organization and its resources."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Leave Organization"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Are you sure you want to leave {name}? You will need a new invitation to rejoin."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "You have left the organization."
+  },
   "web.organizations.members.title": {
     "text": "Members",
     "content_hash": "1044a4c0"
