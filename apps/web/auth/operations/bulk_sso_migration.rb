@@ -48,7 +48,10 @@ module Auth
       # @yield [scanned, total] Progress callback
       # @return [Array<Onetime::Customer>] eligible customers
       def find_eligible_customers(&progress)
-        email_suffix = "@#{domain.base_domain}"
+        base = domain.base_domain.to_s
+        raise Onetime::Problem, "Domain #{domain.display_domain} has no base_domain — cannot match emails" if base.empty?
+
+        email_suffix = "@#{base}"
         candidates   = []
         all_customers = Onetime::Customer.instances.to_a
         total         = all_customers.size
@@ -156,7 +159,7 @@ module Auth
 
           membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
           next unless membership&.owner?
-          next if membership.domain_scope_id.to_s.length > 0
+          next unless membership.domain_scope_id.to_s.empty?
 
           org
         end.first
