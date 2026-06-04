@@ -7,7 +7,7 @@
  * When a secret is burned, the backend may also set is_expired=true or secret_ttl=0.
  * The UI must show "BURNED" (not "EXPIRED") because burned is the actual state.
  *
- * Priority: burned > expired > revealed > previewed > new
+ * Priority: burned > revealed > expired > previewed > new
  */
 
 import { mount } from '@vue/test-utils';
@@ -292,6 +292,83 @@ describe('SecretReceiptTableItem', () => {
       const listItem = wrapper.find('li');
 
       expect(listItem.classes()).not.toContain('opacity-60');
+    });
+  });
+
+  describe('terminal state timestamps', () => {
+    it('shows revealed timestamp for viewed state when available', () => {
+      const created = new Date('2026-05-01T10:00:00Z');
+      const revealed = new Date('2026-06-01T15:30:00Z');
+      const receipt = createReceipt({
+        created,
+        revealed,
+        is_revealed: true,
+        is_destroyed: true,
+      });
+
+      const wrapper = mountComponent(receipt);
+      const timeElement = wrapper.find('time');
+
+      expect(timeElement.attributes('datetime')).toBe(revealed.toISOString());
+    });
+
+    it('shows burned timestamp for destroyed state when available', () => {
+      const created = new Date('2026-05-01T10:00:00Z');
+      const burned = new Date('2026-06-02T08:45:00Z');
+      const receipt = createReceipt({
+        created,
+        burned,
+        is_burned: true,
+        is_destroyed: true,
+      });
+
+      const wrapper = mountComponent(receipt);
+      const timeElement = wrapper.find('time');
+
+      expect(timeElement.attributes('datetime')).toBe(burned.toISOString());
+    });
+
+    it('falls back to created timestamp when revealed is null', () => {
+      const created = new Date('2026-05-01T10:00:00Z');
+      const receipt = createReceipt({
+        created,
+        revealed: null,
+        is_revealed: true,
+        is_destroyed: true,
+      });
+
+      const wrapper = mountComponent(receipt);
+      const timeElement = wrapper.find('time');
+
+      expect(timeElement.attributes('datetime')).toBe(created.toISOString());
+    });
+
+    it('falls back to created timestamp when burned is null', () => {
+      const created = new Date('2026-05-01T10:00:00Z');
+      const receipt = createReceipt({
+        created,
+        burned: null,
+        is_burned: true,
+        is_destroyed: true,
+      });
+
+      const wrapper = mountComponent(receipt);
+      const timeElement = wrapper.find('time');
+
+      expect(timeElement.attributes('datetime')).toBe(created.toISOString());
+    });
+
+    it('uses created timestamp for expired state', () => {
+      const created = new Date('2026-05-01T10:00:00Z');
+      const receipt = createReceipt({
+        created,
+        is_expired: true,
+      });
+
+      const wrapper = mountComponent(receipt);
+      const timeElement = wrapper.find('time');
+
+      expect(timeElement.attributes('datetime')).toBe(created.toISOString());
     });
   });
 

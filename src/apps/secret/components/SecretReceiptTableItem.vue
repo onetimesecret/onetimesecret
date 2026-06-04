@@ -46,7 +46,6 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   copy: [];
-  burn: [receipt: ReceiptList];
 }>();
 
 // Track if this row's content was copied
@@ -168,6 +167,21 @@ const isActive = computed(() => itemState.value === 'new' || itemState.value ===
 
 // Check if this is a terminal state (no actions available)
 const isTerminal = computed(() => !isActive.value);
+
+// Terminal state timestamp: use action-specific date when available
+const terminalActionDate = computed(() => {
+  if (itemState.value === 'revealed' && props.secretReceipt.revealed) {
+    return props.secretReceipt.revealed;
+  }
+  if (itemState.value === 'burned' && props.secretReceipt.burned) {
+    return props.secretReceipt.burned;
+  }
+  return props.secretReceipt.created;
+});
+
+const formattedTerminalDate = computed(() =>
+  formatDistanceToNow(terminalActionDate.value, { addSuffix: true })
+);
 
 // Time remaining urgency
 const isUrgent = computed(() => getTtlPercentage.value <= 25 && isActive.value);
@@ -460,8 +474,8 @@ const rowClasses = computed(() => ['font-mono text-sm', isTerminal.value && 'opa
               <span v-else-if="itemState === 'burned'">destroyed:</span>
               <span v-else>expired:</span>
               <span class="ml-1 text-gray-500 dark:text-gray-400">
-                <time :datetime="secretReceipt.created.toISOString()">
-                  {{ formattedDate }}
+                <time :datetime="terminalActionDate.toISOString()">
+                  {{ formattedTerminalDate }}
                 </time>
               </span>
             </div>
