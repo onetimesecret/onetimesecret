@@ -25,8 +25,6 @@ module Onetime
     #   # RACK_ENV=test  → spec/logging.test.yaml
     #   # RACK_ENV=dev   → etc/logging.yaml
     #
-    #   ConfigResolver.resolve_stack('config')
-    #   # RACK_ENV=test  → [etc/defaults/config.defaults.yaml, spec/config.test.yaml]
     #
     module ConfigResolver
       class << self
@@ -81,16 +79,6 @@ module Onetime
 
           log_resolution(name, nil, 'defaults not found')
           nil
-        end
-
-        # Resolve the full config stack: [defaults_path, override_path].
-        # Either element may be nil.
-        #
-        # @param name [String] Config name without extension
-        # @return [Array<String, nil>] Two-element array of [defaults, override]
-        #
-        def resolve_stack(name)
-          [defaults_path(name), resolve(name)]
         end
 
         # @return [Boolean]

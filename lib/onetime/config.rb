@@ -227,11 +227,10 @@ module Onetime
         raise ArgumentError, "Config not readable: #{path}"
       end
 
-      loading_file = path
       base_config = if using_default_path
         defaults_file = Onetime::Utils::ConfigResolver.defaults_path('config')
         if defaults_file && defaults_file != path
-          loading_file = defaults_file
+          loading_file = defaults_file # track for rescue reporting
           load_yaml_with_erb(defaults_file)
         else
           {}
