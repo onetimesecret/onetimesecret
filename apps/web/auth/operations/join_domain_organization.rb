@@ -82,11 +82,18 @@ module Auth
 
         OT.info "[JoinDomainOrganization] Added #{customer.custid} to #{organization.objid} as member (via SSO on #{domain.display_domain})"
 
+        # Self-heal: repoint default_org_id away from personal workspace
+        # to the domain org, and soft-archive the personal workspace.
+        # Only fires on first join (not already_member) to avoid clobbering
+        # intentional multi-org ownership.
+        adoption = adopt_domain_default_org(organization)
+
         {
           joined: true,
           reason: 'added_via_sso',
           organization: organization,
           membership: membership,
+          adoption: adoption,
         }
       rescue StandardError => ex
         OT.le "[JoinDomainOrganization] Error: #{ex.message}"
@@ -102,6 +109,74 @@ module Auth
       def skip_result(reason)
         OT.ld "[JoinDomainOrganization] Skipped: #{reason}"
         { joined: false, reason: reason }
+      end
+
+      # After a first-time domain org join, check whether the customer is
+      # still defaulting to a personal workspace they own. If so, repoint
+      # default_org_id to the domain org and soft-archive the personal
+      # workspace so the customer operates in the domain context.
+      #
+      # Covers two scenarios:
+      #   A. default_org_id explicitly set to the personal workspace
+      #   B. default_org_id empty, but a personal workspace with is_default
+      #      flag would be selected by OrganizationLoader step 4
+      #
+      # Conditions are intentionally narrow to avoid clobbering intentional
+      # multi-org setups — only fires when the target org has is_default: true,
+      # is owned by the customer, and is not already archived.
+      #
+      # @param domain_org [Onetime::Organization] The domain org just joined
+      # @return [Hash, nil] Adoption result or nil if conditions not met
+      def adopt_domain_default_org(domain_org)
+        personal_org = resolve_personal_default_org
+        return unless personal_org
+
+        # Repoint customer's default org to the domain org
+        customer.default_org_id = domain_org.objid
+        customer.save
+
+        # Soft-archive the personal workspace
+        personal_org.archive!(reason: "superseded_by_domain_org:#{domain_org.objid}")
+
+        OT.info "[JoinDomainOrganization] Adopted domain org #{domain_org.objid} as default for #{customer.custid}, archived personal workspace #{personal_org.objid}"
+
+        {
+          adopted: true,
+          previous_default_org_id: personal_org.objid,
+          archived_org_id: personal_org.objid,
+        }
+      rescue StandardError => ex
+        OT.le "[JoinDomainOrganization] adopt_domain_default_org error (non-fatal): #{ex.message}"
+        nil
+      end
+
+      # Find the customer's personal default workspace eligible for adoption.
+      #
+      # First checks default_org_id (explicit pointer). If unset, scans the
+      # customer's orgs for one with is_default: true — this is the path
+      # OrganizationLoader step 4 would take, so archiving it prevents the
+      # loader from returning the stale personal workspace.
+      #
+      # @return [Onetime::Organization, nil]
+      def resolve_personal_default_org
+        org = resolve_explicit_default_org || resolve_implicit_default_org
+        return unless org
+        return unless org.is_default
+        return if org.archived?
+        return unless org.owner?(customer)
+
+        org
+      end
+
+      def resolve_explicit_default_org
+        default_org_id = customer.default_org_id
+        return if default_org_id.to_s.empty?
+
+        Onetime::Organization.load(default_org_id)
+      end
+
+      def resolve_implicit_default_org
+        customer.organization_instances.to_a.find { |o| o.is_default }
       end
     end
   end

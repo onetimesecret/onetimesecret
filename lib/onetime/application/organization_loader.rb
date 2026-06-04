@@ -173,7 +173,8 @@ module Onetime
         end
 
         # 4. Organization with is_default flag (typically personal workspace)
-        default_org = orgs.find { |o| o.is_default }
+        #    Skip archived default workspaces — they've been superseded by a domain org.
+        default_org = orgs.find { |o| o.is_default && !o.archived? }
         if default_org
           OT.ld "[OrganizationLoader] Using organization is_default flag: #{default_org.objid}"
           return default_org

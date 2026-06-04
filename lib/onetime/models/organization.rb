@@ -92,22 +92,6 @@ module Onetime
       objid
     end
 
-    def archived?
-      !archived_at.to_s.empty?
-    end
-
-    def archive!(comment = nil)
-      self.archived_at      = Familia.now.to_f
-      self.archived_comment = comment if comment
-      save
-    end
-
-    def unarchive!
-      self.archived_at      = ''
-      self.archived_comment = ''
-      save
-    end
-
     # Owner management
     def owner
       Onetime::Customer.load(owner_id) if owner_id
@@ -279,6 +263,30 @@ module Onetime
 
       # Otherwise, only owners can delete
       owner?(current_user)
+    end
+
+    # Soft-archive the organization. Sets archived_at timestamp; does not
+    # delete data, secrets, or memberships. Archived orgs are skipped by
+    # OrganizationLoader's is_default selection path.
+    #
+    # @param reason [String] Audit context for why the org was archived
+    # @return [self]
+    def archive!(reason: nil)
+      self.archived_at = Time.now.utc.iso8601
+      save
+      OT.info "[Organization#archive!] Archived #{extid}#{reason ? " reason=#{reason}" : ''}"
+      self
+    end
+
+    # @return [Boolean] true if this organization has been soft-archived
+    def archived?
+      archived_at.to_s.length.positive?
+    end
+
+    def unarchive!
+      self.archived_at      = ''
+      self.archived_comment = ''
+      save
     end
 
     # Re-materialize entitlements for all active memberships.

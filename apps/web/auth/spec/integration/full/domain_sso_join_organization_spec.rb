@@ -405,6 +405,209 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   end
 
   # ==========================================================================
+  # Self-heal: repoint default_org and archive personal workspace (#3336)
+  # ==========================================================================
+  #
+  # When a legacy user (who has a personal default workspace) signs in via
+  # domain SSO for the first time, JoinDomainOrganization should:
+  #   1. Add them to the domain org (existing behavior)
+  #   2. Repoint customer.default_org_id to the domain org
+  #   3. Soft-archive the personal workspace
+  #
+  # This ensures the customer operates in the domain context immediately,
+  # not in their stale personal workspace.
+  #
+  describe 'self-heal: repoint default_org and archive personal workspace (#3336)', :shared_db_state do
+    # Legacy customer who already has a personal default workspace
+    let!(:legacy_customer) do
+      customer = Onetime::Customer.new(email: "legacy-#{test_run_id}@tenant.example.com")
+      customer.save
+      customer
+    end
+
+    # Create a personal default workspace for the legacy customer
+    let!(:personal_workspace) do
+      result = Auth::Operations::CreateDefaultWorkspace.new(customer: legacy_customer).call
+      result[:organization]
+    end
+
+    after do
+      legacy_customer&.organization_instances&.each do |org|
+        org.destroy! rescue nil
+      end
+      legacy_customer&.destroy! rescue nil
+    end
+
+    it 'repoints default_org_id and archives personal workspace on first domain join' do
+      # Precondition: customer has a personal workspace with is_default flag
+      expect(personal_workspace.is_default).to be_truthy,
+        'Personal workspace should have is_default flag'
+      expect(personal_workspace.owner?(legacy_customer)).to be(true),
+        'Legacy customer should own the personal workspace'
+      expect(personal_workspace.archived?).to be(false),
+        'Personal workspace should not be archived yet'
+
+      # Set default_org_id to point to personal workspace (simulates legacy state)
+      legacy_customer.default_org_id = personal_workspace.objid
+      legacy_customer.save
+
+      # Domain SSO join
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true), "Expected join to succeed, got: #{result.inspect}"
+
+      # Adoption should have occurred
+      expect(result[:adoption]).not_to be_nil, 'Expected adoption result'
+      expect(result[:adoption][:adopted]).to be(true)
+      expect(result[:adoption][:archived_org_id]).to eq(personal_workspace.objid)
+
+      # Reload customer to verify default_org_id was repointed
+      reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
+      expect(reloaded_customer.default_org_id).to eq(tenant_organization.objid),
+        'default_org_id should now point to the domain org'
+
+      # Personal workspace should be archived
+      reloaded_workspace = Onetime::Organization.load(personal_workspace.objid)
+      expect(reloaded_workspace.archived?).to be(true),
+        'Personal workspace should be soft-archived'
+      expect(reloaded_workspace.archived_at.to_s).not_to be_empty,
+        'archived_at should be set'
+    end
+
+    it 'adopts domain org even when default_org_id is not explicitly set' do
+      # Customer has a personal workspace but default_org_id is not set.
+      # OrganizationLoader would fall through to step 4 (is_default flag).
+      expect(legacy_customer.default_org_id.to_s).to be_empty,
+        'default_org_id should not be set initially'
+      expect(personal_workspace.is_default).to be_truthy
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true)
+      expect(result[:adoption]).not_to be_nil, 'Expected adoption even without explicit default_org_id'
+      expect(result[:adoption][:adopted]).to be(true)
+
+      # default_org_id should now be set to domain org
+      reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
+      expect(reloaded_customer.default_org_id).to eq(tenant_organization.objid)
+
+      # Personal workspace archived
+      reloaded_workspace = Onetime::Organization.load(personal_workspace.objid)
+      expect(reloaded_workspace.archived?).to be(true)
+    end
+
+    it 'does not adopt when customer does not own the personal workspace' do
+      # Transfer ownership of personal workspace to someone else
+      personal_workspace.owner_id = tenant_org_owner.custid
+      personal_workspace.save
+
+      # Repair membership so owner? check uses membership role
+      membership = Onetime::OrganizationMembership.find_by_org_customer(
+        personal_workspace.objid, legacy_customer.objid,
+      )
+      membership.role = 'member' if membership
+      membership&.save
+
+      legacy_customer.default_org_id = personal_workspace.objid
+      legacy_customer.save
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true)
+      expect(result[:adoption]).to be_nil,
+        'Should not adopt when customer is not owner of personal workspace'
+
+      # default_org_id should remain unchanged
+      reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
+      expect(reloaded_customer.default_org_id).to eq(personal_workspace.objid),
+        'default_org_id should not have been changed'
+    end
+
+    it 'does not adopt when returning user is already a member (idempotent)' do
+      legacy_customer.default_org_id = personal_workspace.objid
+      legacy_customer.save
+
+      # First join: should adopt
+      first_result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+      expect(first_result[:joined]).to be(true)
+      expect(first_result[:adoption]&.dig(:adopted)).to be(true)
+
+      # Second join: already_member, no adoption
+      second_result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+      expect(second_result[:joined]).to be(false)
+      expect(second_result[:reason]).to eq('already_member')
+      expect(second_result).not_to have_key(:adoption),
+        'Returning member should not trigger adoption again'
+    end
+
+    it 'does not adopt when default_org_id points to a non-default org' do
+      # Create a second non-default org owned by customer
+      second_org = Onetime::Organization.create!(
+        "Second Org #{test_run_id}",
+        legacy_customer,
+        "second-#{test_run_id}@example.com",
+      )
+      # is_default is NOT set on this org
+
+      legacy_customer.default_org_id = second_org.objid
+      legacy_customer.save
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true)
+      expect(result[:adoption]).to be_nil,
+        'Should not adopt when default org is not a personal workspace (is_default: false)'
+
+      # default_org_id unchanged
+      reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
+      expect(reloaded_customer.default_org_id).to eq(second_org.objid)
+
+      # Cleanup
+      second_org.destroy! rescue nil
+    end
+
+    it 'does not re-archive an already archived personal workspace' do
+      # Archive first, then try to join
+      personal_workspace.archive!(reason: 'test_pre_archived')
+      original_archived_at = personal_workspace.archived_at
+
+      legacy_customer.default_org_id = personal_workspace.objid
+      legacy_customer.save
+
+      result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+
+      expect(result[:joined]).to be(true)
+      expect(result[:adoption]).to be_nil,
+        'Should not adopt an already-archived personal workspace'
+
+      # archived_at should not have been updated
+      reloaded_workspace = Onetime::Organization.load(personal_workspace.objid)
+      expect(reloaded_workspace.archived_at).to eq(original_archived_at)
+    end
+  end
+
+  # ==========================================================================
   # End-to-end: real OAuth callback flow asserting tenant org membership
   # ==========================================================================
   #
