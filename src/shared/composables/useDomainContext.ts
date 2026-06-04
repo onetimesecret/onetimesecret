@@ -80,17 +80,19 @@ function getConfig() {
 
 /** Get display name for a given domain */
 function getDomainDisplayName(domain: string): string {
-  const { canonicalDomain, displayDomain } = getConfig();
-  const isCanonical = domain === canonicalDomain;
-  const defaultDisplay = displayDomain || canonicalDomain || 'onetimesecret.com';
-  return isCanonical ? defaultDisplay : domain;
+  const name = domain || getConfig().canonicalDomain;
+  if (!name) {
+    console.error('[useDomainContext] getDomainDisplayName called with no domain and no canonicalDomain configured');
+  }
+  return name || 'unknown';
 }
 
 /** Build available domains list from store */
 function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>): string[] {
-  const { canonicalDomain } = getConfig();
+  const { canonicalDomain, displayDomain } = getConfig();
   const domainNames = storeDomains.map((d) => d.display_domain);
-  if (canonicalDomain && !domainNames.includes(canonicalDomain)) {
+  const onCustomDomain = displayDomain && displayDomain !== canonicalDomain;
+  if (!onCustomDomain && canonicalDomain && !domainNames.includes(canonicalDomain)) {
     domainNames.push(canonicalDomain);
   }
   return domainNames;
