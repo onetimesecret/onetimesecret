@@ -25,6 +25,11 @@ module Onetime
 
         puts format('%d custom domains (%d in display_domain_index index)', domain_count, index_count)
         puts
+        puts 'Usage:'
+        puts '  bin/ots domains doctor --all               # Check all domains'
+        puts '  bin/ots domains migrate-sso FQDN           # Bulk-migrate SSO users (dry run)'
+        puts '  bin/ots domains migrate-sso FQDN --run     # Bulk-migrate SSO users (execute)'
+        puts
         puts 'Run bin/ots domains -h for available subcommands'
       end
     end

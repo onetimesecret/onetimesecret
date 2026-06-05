@@ -8,6 +8,7 @@ require 'yaml'
 require 'erb'
 require 'singleton'
 require_relative 'utils/config_resolver'
+require_relative 'utils/enumerables'
 
 module Onetime
   class AuthConfig
@@ -15,15 +16,6 @@ module Onetime
 
     # Valid values for full.restrict_to — the single-auth-method override.
     RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
-
-    # Path to the canonical defaults file, used as the base layer when
-    # loading the user config. New keys added to auth.defaults.yaml
-    # (e.g. the `oauth:` feature flag) are picked up by older user
-    # configs that haven't been re-copied.
-    DEFAULTS_PATH = File.expand_path(
-      '../../etc/defaults/auth.defaults.yaml',
-      __dir__,
-    ).freeze
 
     attr_reader :config, :path, :mode, :environment
 
@@ -412,52 +404,31 @@ module Onetime
         return
       end
 
-      defaults     = load_yaml(DEFAULTS_PATH) if File.exist?(DEFAULTS_PATH)
-      user_config  = load_yaml(@path)
+      defaults_file = Onetime::Utils::ConfigResolver.defaults_path('auth')
+      base_config   = if defaults_file && defaults_file != @path
+        load_yaml_from(defaults_file)
+      else
+        {}
+      end
+
+      env_config = load_yaml_from(@path)
 
       # User file wins on conflict; missing keys inherit from defaults.
-      # Mirrors the precedent in Onetime::Config#after_load (config.rb:280)
-      # which deep-merges DEFAULTS into the loaded site config.
-      #
-      # Implemented locally rather than calling Onetime::Config.deep_merge
-      # to avoid coupling AuthConfig to the heavier Onetime::Config
-      # dependency chain (Familia, etc.), which is not always available
-      # when AuthConfig is the only thing loaded.
-      @config = if defaults
-        deep_merge(defaults, user_config)
+      # preserve_nils: false → explicit nil in user file overrides the
+      # default; absent keys still inherit. Mirrors Onetime::Config#load.
+      @config = if base_config.empty?
+        env_config
       else
-        user_config
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
     rescue StandardError => ex
       handle_config_error(ex)
     end
 
-    # ERB-evaluate the YAML at +path+ and parse the result. Shared by
-    # the defaults-merge and user-file load paths in #load_config.
-    def load_yaml(path)
+    def load_yaml_from(path)
       erb_template = ERB.new(File.read(path))
       yaml_content = erb_template.result(binding)
-      YAML.safe_load(yaml_content, symbolize_names: false)
-    end
-
-    # Deep-merge two hashes; +other+ wins on conflict except where its
-    # value is nil (treated as "not specified" → keep default). Mirrors
-    # the semantics of Onetime::Config#deep_merge (config.rb:657-673)
-    # so the two loaders agree on how defaults are applied.
-    def deep_merge(original, other)
-      return other if original.nil?
-      return original if other.nil?
-
-      merger = proc do |_key, v1, v2|
-        if v1.is_a?(Hash) && v2.is_a?(Hash)
-          v1.merge(v2, &merger)
-        elsif v2.nil?
-          v1 # nil in user config = "not specified" → keep default
-        else
-          v2
-        end
-      end
-      original.merge(other, &merger)
+      YAML.safe_load(yaml_content, symbolize_names: false) || {}
     end
 
     def handle_config_error(exception)

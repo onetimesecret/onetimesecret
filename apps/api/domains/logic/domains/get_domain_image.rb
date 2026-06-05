@@ -3,15 +3,29 @@
 # frozen_string_literal: true
 
 require 'base64'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
     # Get Domain Image
     #
     # @api Retrieves a stored image (logo or icon) for a custom domain as
-    #   base64-encoded data with content type metadata. Requires the
-    #   custom_branding entitlement. Returns 404 if no image is stored.
+    #   base64-encoded data with content type metadata. Returns 404 if no
+    #   image is stored.
+    #
+    # Authorization model (read-only, via DomainConfigAuthorization helpers):
+    #   1. Load CustomDomain by extid
+    #   2. Load Organization via domain.org_id
+    #   3. Verify user's membership has custom_branding entitlement
+    #
+    # Unlike the write counterparts (UpdateDomainImage, RemoveDomainImage),
+    # this endpoint does NOT require manage_org. Regular org members can
+    # read image data so the UI can render the brand page as a disabled
+    # overlay, keeping premium features visible per modern SaaS convention.
+    #
     class GetDomainImage < DomainsAPI::Logic::Base
+      include DomainsAPI::Policies::DomainConfigAuthorization
+
       SCHEMAS = { response: 'imageProps' }.freeze
 
       attr_reader :display_domain, :image_field, :image, :custom_domain
@@ -27,21 +41,12 @@ module DomainsAPI::Logic
       end
 
       def raise_concerns
-        require_entitlement!('custom_branding')
-
         raise_form_error 'Please provide a domain ID' if @extid.empty?
+        raise_form_error 'Invalid domain identifier format' unless @extid.match?(/\A[a-z0-9]+\z/)
 
-        # Get customer's organization for domain ownership
-        # Organization available via @organization
-        require_organization!
-
-        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
-        raise_form_error 'Domain not found' unless custom_domain
-
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
-          raise_form_error 'Domain not found'
-        end
+        @custom_domain = load_custom_domain(@extid)
+        @organization = load_organization_for_domain(@custom_domain)
+        require_entitlement_in!(@organization, config_entitlement)
 
         @display_domain = @custom_domain.display_domain
 
@@ -64,11 +69,22 @@ module DomainsAPI::Logic
         }
       end
 
+      protected
+
+      def config_entitlement
+        'custom_branding'
+      end
+
+      def config_entitlement_error
+        'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
+      end
+
+      private
+
       # e.g. custom_domain.logo
       def _image_field
         custom_domain.send(self.class.field)
       end
-      private :_image_field
     end
 
     class GetDomainLogo < GetDomainImage

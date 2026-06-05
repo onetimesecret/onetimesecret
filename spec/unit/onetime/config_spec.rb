@@ -207,6 +207,38 @@ RSpec.describe Onetime::Config do
     end
   end
 
+  describe '#load (layered defaults)' do
+    it 'merges defaults file as base layer under environment config' do
+      defaults_path = Onetime::Utils::ConfigResolver.defaults_path('config')
+      skip 'No config.defaults.yaml found' unless defaults_path
+
+      config = described_class.load
+
+      # email_providers is defined in config.defaults.yaml but not in
+      # config.test.yaml — layered loading makes it visible (#3322)
+      expect(config).to have_key('email_providers')
+    end
+
+    it 'lets environment config override defaults' do
+      config = described_class.load
+
+      # config.test.yaml sets emailer.mode to 'logger', which should
+      # override whatever config.defaults.yaml sets
+      expect(config.dig('emailer', 'mode')).to eq('logger')
+    end
+
+    it 'preserves defaults for sections not in environment config' do
+      defaults_path = Onetime::Utils::ConfigResolver.defaults_path('config')
+      skip 'No config.defaults.yaml found' unless defaults_path
+
+      config = described_class.load
+
+      # compatibility section exists in defaults but not in test config;
+      # after layered merge it should be present
+      expect(config).to have_key('compatibility')
+    end
+  end
+
   describe '#before_load' do
     before do
       # Store original environment variables

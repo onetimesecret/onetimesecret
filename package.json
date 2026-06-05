@@ -151,7 +151,7 @@
     "@vue/runtime-core": "^3.5.34",
     "@vueuse/core": "^14.3.0",
     "@vueuse/integrations": "^14.3.0",
-    "axios": "^1.14.0",
+    "axios": "^1.16.0",
     "brace-expansion": "1.1.13",
     "codemirror": "^6.0.2",
     "date-fns": "^4.1.0",

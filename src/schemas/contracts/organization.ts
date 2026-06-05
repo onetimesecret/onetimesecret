@@ -135,6 +135,7 @@ export const KNOWN_ENTITLEMENTS = [
   'homepage_secrets',
   'incoming_secrets',
   'ip_access_rules',
+  'manage_billing',
   'manage_members',
   'manage_org',
   'manage_orgs',

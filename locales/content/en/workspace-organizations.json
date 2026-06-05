@@ -239,6 +239,9 @@
     "text": "This will permanently delete the organization. This action cannot be undone.",
     "content_hash": "ab2d2c05"
   },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Remove all custom domains before deleting this organization."
+  },
   "web.organizations.delete": {
     "text": "Delete",
     "content_hash": "e2d0a549"
@@ -270,6 +273,24 @@
   "web.organizations.default_org_delete_notice_after": {
     "text": ".",
     "content_hash": "cdb4ee2a"
+  },
+  "web.organizations.leave_organization": {
+    "text": "Leave this organization"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "You will lose access to this organization and its resources."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Leave Organization"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Are you sure you want to leave {name}? You will need a new invitation to rejoin."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "You have left the organization."
+  },
+  "web.organizations.leave_error": {
+    "text": "Failed to leave organization"
   },
   "web.organizations.members.title": {
     "text": "Members",
@@ -683,13 +704,16 @@
     "content_hash": "9a638e9c"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "View discovery document"
+    "text": "View discovery document",
+    "content_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
-    "text": "Callback URL"
+    "text": "Callback URL",
+    "content_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Add this URL to your identity provider's allowed redirect URIs"
+    "text": "Add this URL to your identity provider's allowed redirect URIs",
+    "content_hash": "65d55683"
   },
   "web.organizations.sso.allowed_domains": {
     "text": "Allowed Email Domains",
@@ -818,6 +842,14 @@
   "web.organizations.sso.status_not_configured": {
     "text": "Not Configured",
     "content_hash": "bbea960e"
+  },
+  "web.organizations.sso.no_domains": {
+    "text": "No verified domains",
+    "content_hash": "8a7fbb76"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Add and verify a domain before configuring SSO for it.",
+    "content_hash": "e825d13a"
   },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Different account signed in",

@@ -24,9 +24,11 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { isOrganizationSwitcherEnabled } from '@/utils/features';
 import { computed, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import axios from 'axios';
 const organizationStore = useOrganizationStore();
 const {
+  visibility,
   showOrgSwitcher,
   lockOrgSwitcher,
   showDomainSwitcher,
@@ -35,6 +37,7 @@ const {
 
 const showStaticOrgName = computed(() =>
   isLoaded.value &&
+  visibility.value.organization !== 'hide' &&
   !showOrgSwitcher.value &&
   isOrganizationSwitcherEnabled() &&
   organizationStore.hasOrganizations &&
@@ -52,6 +55,14 @@ const orgIsDefault = computed(() =>
 const orgInitial = computed(() =>
   (orgDisplayName.value || 'O').charAt(0).toUpperCase()
 );
+
+const orgSettingsPath = computed(() => {
+  const org = organizationStore.currentOrganization;
+  if (!org?.extid) return null;
+  const role = org.current_user_role;
+  if (role !== 'owner' && role !== 'admin') return null;
+  return `/org/${org.extid}`;
+});
 
 const isLoaded = ref(false);
 
@@ -124,10 +135,21 @@ const shouldShow = computed(() =>
         <template v-else>{{ orgInitial }}</template>
       </span>
       <span
-        class="hidden max-w-[120px] truncate lg:inline"
+        class="hidden max-w-[120px] truncate font-brand lg:inline"
         :title="orgDisplayName">
         {{ orgDisplayName }}
       </span>
+      <RouterLink
+        v-if="orgSettingsPath"
+        :to="orgSettingsPath"
+        class="rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+        :aria-label="`${orgDisplayName} settings`">
+        <OIcon
+          collection="heroicons"
+          name="cog"
+          class="size-4"
+          aria-hidden="true" />
+      </RouterLink>
     </div>
 
     <!-- Domain Switcher -->

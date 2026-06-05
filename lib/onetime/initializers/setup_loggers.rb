@@ -5,6 +5,7 @@
 require 'yaml'
 require 'semantic_logger'
 require_relative '../utils/config_resolver'
+require_relative '../utils/enumerables'
 
 module Onetime
   module Initializers
@@ -102,10 +103,25 @@ module Onetime
       private
 
       def load_logging_config
-        path = Onetime::Utils::ConfigResolver.resolve('logging')
-        return {} unless path
+        defaults_file = Onetime::Utils::ConfigResolver.defaults_path('logging')
+        override_file = Onetime::Utils::ConfigResolver.resolve('logging')
 
-        YAML.load(ERB.new(File.read(path)).result)
+        base_config = if defaults_file
+          YAML.load(ERB.new(File.read(defaults_file)).result) || {}
+        else
+          {}
+        end
+
+        env_config = if override_file && override_file != defaults_file
+          YAML.load(ERB.new(File.read(override_file)).result) || {}
+        else
+          {}
+        end
+
+        return base_config if env_config.empty?
+        return env_config if base_config.empty?
+
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
 
       # Precedence: LOG_LEVEL env > ONETIME_DEBUG > config file > :info default

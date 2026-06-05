@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'utils/config_resolver'
+require_relative 'utils/enumerables'
 
 module Onetime
   module Config
@@ -196,15 +197,28 @@ module Onetime
       ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
     end
 
-    # Load a YAML configuration file, allowing for ERB templating within the file.
-    # This reads the file at the given path, processes any embedded Ruby (ERB) code,
-    # and then parses the result as YAML.
+    # Load a YAML configuration file with layered defaults support.
     #
-    # @param path [String] (optional the path to the YAML configuration file
-    # @return [Hash] the parsed YAML data
+    # When etc/defaults/config.defaults.yaml exists, it is loaded first as
+    # the base layer. The environment-specific file (from +path+) is then
+    # deep-merged on top so overrides win. This ensures sections defined
+    # only in the defaults file are visible in all environments without
+    # manual duplication. See #3322.
+    #
+    # The YAML layer merge uses preserve_nils: false so that explicit nil
+    # in the environment file means "I want nil" (not "keep the default").
+    # Nil-preservation is reserved for the in-code DEFAULTS merge in
+    # after_load, where nil means "not specified".
+    #
+    # @param path [String] (optional) path to the environment-specific YAML
+    #   file. When nil, layered defaults are applied automatically. When an
+    #   explicit path is given, only that file is loaded (no defaults layer).
+    # @return [Hash] the parsed, merged YAML data
     #
     def load(path = nil)
+      using_default_path = path.nil?
       path ||= self.path
+      loading_file = path
 
       if path.nil? || path.empty?
         raise ArgumentError, 'Config path not set (checked etc/config.yaml and SERVICE_PATHS)'
@@ -214,21 +228,32 @@ module Onetime
         raise ArgumentError, "Config not readable: #{path}"
       end
 
-      parsed_template = ERB.new(File.read(path))
+      base_config = if using_default_path
+        defaults_file = Onetime::Utils::ConfigResolver.defaults_path('config')
+        if defaults_file && defaults_file != path
+          loading_file = defaults_file # track for rescue reporting
+          load_yaml_with_erb(defaults_file)
+        else
+          {}
+        end
+      else
+        {}
+      end
 
-      YAML.load(parsed_template.result)
+      loading_file = path
+      env_config = load_yaml_with_erb(path)
+
+      if base_config.empty?
+        env_config
+      else
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
+      end
     rescue StandardError => ex
-      OT.le "Error loading config: #{path}"
+      OT.le "Error loading config: #{loading_file}"
 
-      # Log the raw template source for debugging purposes.
-      # This helps identify issues with template rendering and provides
-      # context for the error, making it easier to diagnose config
-      # problems, especially when the error involves environment vars.
-      # Note: We use the raw file content, not parsed_template.result,
-      # because calling .result again would re-raise the same error.
       if OT.debug?
         begin
-          template_lines = File.read(path).split("\n")
+          template_lines = File.read(loading_file).split("\n")
           template_lines.each_with_index do |line, index|
             OT.ld "Line #{index + 1}: #{line}"
           end
@@ -240,22 +265,13 @@ module Onetime
       OT.le ex.message
       OT.le ex.backtrace.join("\n")
       raise OT::ConfigError.new(ex.message)
-
-      # NOTE: We revisited handling StandardError here in favour of letting it
-      # bubble up to OT::Boot.boot!. I think it simply doesn't make sense to
-      # spill the beans about an unexpected error here b/c it leads to confusing
-      # log output where the backtrace comes before the actual error message.
-      # That's my hypothesis anyway.
-      #
-      # Leaving this note and the rescue block just in case it causing other,
-      # unintended confusing situations. To re-enable, uncomment the following
-      # rescue block:
-      #
-      #   rescue StandardError => ex
-      #     log_error_with_debug_content(ex)
-      #     raise OT::ConfigError, "Unhandled error: #{ex.message}"
-      #
     end
+
+    def load_yaml_with_erb(path)
+      parsed_template = ERB.new(File.read(path))
+      YAML.load(parsed_template.result) || {}
+    end
+    private :load_yaml_with_erb
 
     # After loading the configuration, this method processes and validates the
     # configuration, setting defaults and ensuring required elements are present.

@@ -19,6 +19,12 @@ full:
   database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
   database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
 
+  # Explicitly nil to prevent defaults layer from injecting ARGON2_SECRET
+  # pepper into test hashes. Direct Argon2 verification in tests (e.g.
+  # password_migration_spec) does not supply a pepper, so hashing must
+  # also omit it.
+  argon2_secret:
+
   # Optional Rodauth features (matches auth.defaults.yaml format)
   # For tests, lockout/password_requirements/sessions enabled by default; others disabled
   features:

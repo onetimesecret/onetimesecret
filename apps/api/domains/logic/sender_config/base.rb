@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/mailer_config'
-require_relative '../concerns/domain_config_authorization'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI
   module Logic
@@ -18,7 +18,7 @@ module DomainsAPI
       #   5. Verify organization has custom_mail_sender entitlement
       #
       class Base < DomainsAPI::Logic::Base
-        include DomainsAPI::Logic::Concerns::DomainConfigAuthorization
+        include DomainsAPI::Policies::DomainConfigAuthorization
 
         VERIFICATION_STATUS_PENDING = 'pending'
 

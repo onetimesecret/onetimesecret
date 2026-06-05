@@ -5,19 +5,25 @@
 module Onetime
   module Utils
     module Enumerables
+      extend self
+
       # Maximum recursion depth for safety
       DEFAULT_MAX_DEPTH = 25
       DEFAULT_MAX_SIZE  = 2 * 1024 * 1024 # 2MB
 
       # Standard deep_merge implementation with symbol/string key normalization
-      # and depth limiting for safety
+      # and depth limiting for safety.
       #
       # @param original [Hash] Base hash with default values
       # @param other [Hash] Hash with values that override defaults
       # @param max_depth [Integer] Maximum recursion depth (default: 25)
+      # @param preserve_nils [Boolean] When true (default), nil in +other+
+      #   means "not specified" and the +original+ value is kept. When false,
+      #   nil in +other+ wins — use this for YAML-to-YAML layered merges
+      #   where nil is an intentional override.
       # @return [Hash] A new hash containing the merged result with string keys
       # @raise [OT::Problem] When max depth is exceeded
-      def deep_merge(original, other, max_depth: DEFAULT_MAX_DEPTH)
+      def deep_merge(original, other, max_depth: DEFAULT_MAX_DEPTH, preserve_nils: true)
         return normalize_keys(deep_clone(other)) if original.nil?
         return normalize_keys(deep_clone(original)) if other.nil?
 
@@ -29,7 +35,7 @@ module Onetime
 
           if v1.is_a?(Hash) && v2.is_a?(Hash)
             v1.merge(v2) { |k, val1, val2| merger.call(k, val1, val2, depth + 1) }
-          elsif v2.nil?
+          elsif v2.nil? && preserve_nils
             v1
           else
             v2

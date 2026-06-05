@@ -324,7 +324,7 @@ describe('formatDate', () => {
     it('formats Unix timestamp (seconds) to locale string', () => {
       const result = formatDate(1609459200); // 2021-01-01T00:00:00Z
       expect(result).toContain('2021');
-      expect(result).toMatch(/1[\/\-]1|Jan/); // Jan 1 in various locale formats
+      expect(result).toMatch(/01[\/\-]01|1[\/\-]1|Jan/); // Jan 1 in various locale formats
     });
 
     it('formats Unix timestamp string to locale string', () => {

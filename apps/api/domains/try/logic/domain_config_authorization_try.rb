@@ -2,10 +2,10 @@
 #
 # frozen_string_literal: true
 
-# Tests for shared domain config authorization logic
+# Tests for shared domain config authorization policy
 #
 # All four config types (ApiConfig, HomepageConfig, SenderConfig,
-# SsoConfig) use the DomainConfigAuthorization concern:
+# SsoConfig) use the DomainConfigAuthorization policy:
 #   1. verify_feature_flag! - check feature flag (if defined)
 #   2. load_custom_domain - find domain by extid
 #   3. load_organization_for_domain - find org from domain's org_id
@@ -182,34 +182,34 @@ end
 #=> 'forbidden'
 
 # ============================================================
-# Concern module inclusion
+# Policy module inclusion
 # ============================================================
 
-## ApiConfig::Base includes DomainConfigAuthorization concern
-DomainsAPI::Logic::ApiConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainConfigAuthorization)
+## ApiConfig::Base includes DomainConfigAuthorization policy
+DomainsAPI::Logic::ApiConfig::Base.include?(DomainsAPI::Policies::DomainConfigAuthorization)
 #=> true
 
-## HomepageConfig::Base includes DomainConfigAuthorization concern
-DomainsAPI::Logic::HomepageConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainConfigAuthorization)
+## HomepageConfig::Base includes DomainConfigAuthorization policy
+DomainsAPI::Logic::HomepageConfig::Base.include?(DomainsAPI::Policies::DomainConfigAuthorization)
 #=> true
 
-## SenderConfig::Base includes DomainConfigAuthorization concern
-DomainsAPI::Logic::SenderConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainConfigAuthorization)
+## SenderConfig::Base includes DomainConfigAuthorization policy
+DomainsAPI::Logic::SenderConfig::Base.include?(DomainsAPI::Policies::DomainConfigAuthorization)
 #=> true
 
-## SsoConfig::Base includes DomainConfigAuthorization concern
-DomainsAPI::Logic::SsoConfig::Base.include?(DomainsAPI::Logic::Concerns::DomainConfigAuthorization)
+## SsoConfig::Base includes DomainConfigAuthorization policy
+DomainsAPI::Logic::SsoConfig::Base.include?(DomainsAPI::Policies::DomainConfigAuthorization)
 #=> true
 
-## ApiConfig::Base includes AuthorizationPolicies via concern
+## ApiConfig::Base includes AuthorizationPolicies via policy
 DomainsAPI::Logic::ApiConfig::Base.include?(Onetime::Application::AuthorizationPolicies)
 #=> true
 
-## SenderConfig::Base includes AuthorizationPolicies via concern
+## SenderConfig::Base includes AuthorizationPolicies via policy
 DomainsAPI::Logic::SenderConfig::Base.include?(Onetime::Application::AuthorizationPolicies)
 #=> true
 
-## SsoConfig::Base includes AuthorizationPolicies via concern
+## SsoConfig::Base includes AuthorizationPolicies via policy
 DomainsAPI::Logic::SsoConfig::Base.include?(Onetime::Application::AuthorizationPolicies)
 #=> true
 
@@ -380,7 +380,7 @@ end
 #=> :forbidden
 
 # ============================================================
-# authorize_domain_config! (shared concern method)
+# authorize_domain_config! (shared policy method)
 # ============================================================
 
 ## authorize_domain_config! sets custom_domain and organization

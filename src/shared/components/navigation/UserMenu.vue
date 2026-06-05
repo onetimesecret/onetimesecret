@@ -105,10 +105,10 @@ const isElevatedRole = computed(() =>
   userRole.value === 'owner' || userRole.value === 'admin'
 );
 
-// Domain context display in menu header (canonical site only)
+// Domain context display in menu header
 const { currentContext, isContextActive } = useDomainContext();
 const showDomainContext = computed(() =>
-  isContextActive.value && !isCustom.value && !props.awaitingMfa
+  isContextActive.value && !props.awaitingMfa
 );
 
 const isOpen = ref(false);
@@ -144,13 +144,13 @@ const menuItems = computed<MenuItem[]>(() => [
     variant: 'caution' as const, condition: () => props.awaitingMfa },
   { id: 'dashboard', to: '/dashboard', label: t('web.TITLES.dashboard'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    condition: () => !props.awaitingMfa && !isCustomDomainMember.value },
+    condition: () => !props.awaitingMfa },
   { id: 'recent', to: '/recent', label: t('web.TITLES.recent'),
     icon: { collection: 'heroicons', name: 'clock' },
-    condition: () => !props.awaitingMfa && !isCustomDomainMember.value },
+    condition: () => !props.awaitingMfa },
   { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
-    condition: () => !props.awaitingMfa && !!billing_enabled.value && !isCustomDomainMember.value },
+    condition: () => !props.awaitingMfa && !!billing_enabled.value && userRole.value === 'owner' },
   { id: 'account', to: '/account', label: t('web.TITLES.account'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa },
@@ -374,52 +374,23 @@ onUnmounted(() => {
         <div
           class="border-b border-gray-200 px-4 py-3
             dark:border-gray-700">
-          <div class="flex items-center justify-between gap-2">
-            <!-- Email -->
+          <!-- Email -->
+          <p
+            class="truncate text-sm font-medium text-gray-900 dark:text-white"
+            :title="cust?.email">
+            {{ cust?.email }}
+          </p>
+          <!-- Domain context + Role badge -->
+          <div
+            v-if="showDomainContext || (isElevatedRole && !awaitingMfa)"
+            class="group/domain mt-1 flex items-center gap-2">
             <p
-              class="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-white"
-              :title="cust?.email">
-              {{ cust?.email }}
-            </p>
-            <!-- Theme Toggle -->
-            <button
-              @click="toggleDarkMode"
-              data-testid="user-menu-theme-toggle"
-              :aria-label="t('web.layout.toggle_dark_mode')"
-              :aria-pressed="isDarkMode"
-              :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
-              class="flex size-7 shrink-0 items-center justify-center rounded-md
-                text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700
-                dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200">
-              <OIcon
-                :collection="isDarkMode ? 'ph' : 'ph'"
-                :name="isDarkMode ? 'moon' : 'sun'"
-                class="size-4"
-                aria-hidden="true" />
-            </button>
-          </div>
-          <!-- Role badge for owners/admins -->
-          <div
-            v-if="isElevatedRole && !awaitingMfa"
-            class="mt-1">
-            <span
-              :class="[
-                'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
-                userRole === 'owner'
-                  ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                  : 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
-              ]">
-              {{ t(`web.organizations.members.roles.${userRole}`) }}
-            </span>
-          </div>
-          <!-- Domain context -->
-          <div
-            v-if="showDomainContext"
-            class="group/domain mt-0.5 flex items-center gap-1">
-            <p class="truncate text-sm text-gray-400/80 dark:text-gray-400">
+              v-if="showDomainContext"
+              class="truncate text-sm text-gray-400/80 dark:text-gray-400">
               {{ currentContext.displayName }}
             </p>
             <button
+              v-if="showDomainContext"
               @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
               :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
               class="shrink-0 rounded p-0.5 text-gray-300 transition-all
@@ -433,6 +404,26 @@ onUnmounted(() => {
                 class="size-3"
                 aria-hidden="true" />
             </button>
+            <!-- Role badge -->
+            <span
+              v-if="isElevatedRole && !awaitingMfa"
+              :class="[
+                'shrink-0 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                'border shadow-xs',
+                userRole === 'owner'
+                  ? 'border-brand-200/60 bg-brand-50 text-brand-600 dark:border-brand-700/40 dark:bg-brand-950/50 dark:text-brand-400'
+                  : 'border-violet-200/60 bg-violet-50 text-violet-600 dark:border-violet-700/40 dark:bg-violet-950/50 dark:text-violet-400'
+              ]">
+              <span
+                :class="[
+                  'size-1.5 rounded-full',
+                  userRole === 'owner'
+                    ? 'bg-brand-500 dark:bg-brand-400'
+                    : 'bg-violet-500 dark:bg-violet-400'
+                ]"
+                aria-hidden="true"></span>
+              {{ t(`web.organizations.members.roles.${userRole}`) }}
+            </span>
           </div>
           <!-- MFA Required Notice -->
           <div
@@ -496,10 +487,46 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </a>
 
-            <!-- Button Item (for logout) -->
+            <!-- Button Item (for logout, test-plan, etc.) -->
+            <!-- Logout row with theme toggle -->
+            <div
+              v-if="item.id === 'logout'"
+              class="flex items-center justify-between px-4 py-2">
+              <button
+                data-testid="user-menu-logout"
+                class="group flex items-center gap-3 text-sm text-red-600 transition-colors
+                  hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                @click="item.onClick"
+                role="menuitem">
+                <OIcon
+                  :collection="item.icon.collection"
+                  :name="item.icon.name"
+                  class="size-5 text-red-500 transition-colors group-hover:text-red-600
+                    dark:text-red-400 dark:group-hover:text-red-300"
+                  aria-hidden="true" />
+                {{ item.label }}
+              </button>
+              <!-- Theme Toggle -->
+              <button
+                @click.stop="toggleDarkMode"
+                data-testid="user-menu-theme-toggle"
+                :aria-label="t('web.layout.toggle_dark_mode')"
+                :aria-pressed="isDarkMode"
+                :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
+                class="flex size-7 items-center justify-center rounded-md
+                  text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600
+                  dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                <OIcon
+                  collection="ph"
+                  :name="isDarkMode ? 'moon' : 'sun'"
+                  class="size-4"
+                  aria-hidden="true" />
+              </button>
+            </div>
+            <!-- Other button items -->
             <button
               v-else-if="item.onClick"
-              :data-testid="item.id === 'logout' ? 'user-menu-logout' : undefined"
+              :data-testid="item.id === 'test-plan' ? 'user-menu-test-plan' : undefined"
               :class="[getMenuItemClasses(item.variant), 'w-full']"
               @click="item.onClick"
               role="menuitem">

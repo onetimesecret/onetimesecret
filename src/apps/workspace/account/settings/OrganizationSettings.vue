@@ -18,6 +18,7 @@ import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
+import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
@@ -26,8 +27,8 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
-import { getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
-import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
+import { getPlanLabel, getSubscriptionStatusLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
+import type { CreateInvitationPayload, Organization, OrganizationInvitation, OrganizationRole } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
 import { SsoService } from '@/services/sso.service';
@@ -115,13 +116,22 @@ const setActiveTab = (tab: TabType) => {
   router.replace({ params: { ...route.params, tab: urlTab } });
 };
 
-// Watch for route param changes (e.g., back/forward navigation)
+// Watch for route param changes (e.g., back/forward navigation).
+// Reject navigation to entitlement-gated tabs the user can't access.
 watch(
   () => route.params.tab,
   (newTab) => {
     const urlTab = newTab as string | undefined;
     if (urlTab && URL_TO_TAB[urlTab]) {
-      activeTab.value = URL_TO_TAB[urlTab];
+      const resolved = URL_TO_TAB[urlTab];
+      if (
+        (resolved === 'members' && !canManageMembers.value) ||
+        (resolved === 'sso' && !canManageSso.value)
+      ) {
+        setActiveTab('domains');
+        return;
+      }
+      activeTab.value = resolved;
     } else if (!urlTab) {
       activeTab.value = props.initialTab;
     }
@@ -187,16 +197,51 @@ const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAG
 // affordance so members don't see a dead-end link.
 const { canCreateDomain } = useOrgPermissions(organization);
 
+const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
+
+const assignableRoles = computed<OrganizationRole[]>(() => {
+  const orgPerms = getOrgPermissions(orgId.value);
+  return (orgPerms?.assignable_roles ?? ['member']) as OrganizationRole[];
+});
+
 const isOwner = computed(() => organization.value?.current_user_role === 'owner');
 const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
 
+const currentUserMember = computed(() =>
+  membersStore.members.find(m => m.is_current_user)
+);
+
 const { isRevealed: isDeleteRevealed, reveal: revealDelete, confirm: confirmDelete, cancel: cancelDelete } = useConfirmDialog();
+const { isRevealed: isLeaveRevealed, reveal: revealLeave, confirm: confirmLeave, cancel: cancelLeave } = useConfirmDialog();
 
 const handleDeleteOrganization = async () => {
   const { isCanceled } = await revealDelete();
-  if (!isCanceled) {
+  if (isCanceled) return;
+
+  try {
     await organizationStore.deleteOrganization(orgId.value);
     router.push('/dashboard');
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.organizations.delete_error');
+    console.error('[OrganizationSettings] Error deleting organization:', err);
+  }
+};
+
+const handleLeaveOrganization = async () => {
+  const member = currentUserMember.value;
+  if (!member) return;
+
+  const { isCanceled } = await revealLeave();
+  if (isCanceled) return;
+
+  try {
+    await membersStore.removeMember(orgId.value, member.extid);
+    router.push('/dashboard');
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.organizations.leave_error');
+    console.error('[OrganizationSettings] Error leaving organization:', err);
   }
 };
 
@@ -271,8 +316,7 @@ watch(formData, () => {
   }
 }, { deep: true });
 
-// Billing email is only shown for paid plans (organizations with a planid set)
-const hasPaidPlan = computed(() => !!organization.value?.planid);
+const hasPaidPlan = computed(() => !isFreePlan(organization.value?.planid));
 
 // Legacy plan detection for grandfathered Early Supporter customers
 const isLegacyCustomer = computed(() =>
@@ -533,14 +577,37 @@ const handleMemberRemoved = () => {
 };
 
 onMounted(async () => {
+  // Point the store at this org immediately so the context bar doesn't
+  // flash the previously-selected org while the full fetch is in flight.
+  const cached = organizationStore.organizations?.find((o) => o.extid === orgId.value);
+  if (cached) {
+    organizationStore.setCurrentOrganization(cached);
+  }
+
   // Initialize entitlement definitions for formatting
   await initDefinitions();
 
+  // Fetch resource-scoped permissions (includes assignable_roles)
+  await fetchAllPermissions();
+
   await loadOrganization();
+
+  // Redirect away from entitlement-gated tabs the user can't access
+  // (e.g. direct URL navigation to /org/.../members without manage_members)
+  if (
+    (activeTab.value === 'members' && !canManageMembers.value) ||
+    (activeTab.value === 'sso' && !canManageSso.value)
+  ) {
+    setActiveTab('domains');
+  }
+
+  // Members are always loaded so the general tab's "Leave" button can
+  // identify the current user's membership record.
+  loadMembers();
 
   // Load data for the initial tab
   if (activeTab.value === 'members') {
-    await Promise.all([loadMembers(), loadInvitations()]);
+    await loadInvitations();
   } else if (activeTab.value === 'domains') {
     await refreshDomains();
   } else if (activeTab.value === 'subscription' && billingEnabled.value) {
@@ -594,8 +661,9 @@ watch(orgId, async (newOrgId, oldOrgId) => {
     if (orgId.value !== newOrgId) return;
     // Only load tab-specific data if the org loaded successfully
     if (!orgNotFound.value && !error.value) {
+      loadMembers();
       if (activeTab.value === 'members') {
-        await Promise.all([loadMembers(), loadInvitations()]);
+        await loadInvitations();
       } else if (activeTab.value === 'domains') {
         await refreshDomains();
       } else if (activeTab.value === 'subscription' && billingEnabled.value) {
@@ -610,11 +678,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 
 // Keyboard navigation for tabs (WCAG 2.1 AA)
 const handleTabKeydown = (e: KeyboardEvent) => {
-  // Build visible tabs array dynamically based on entitlements
-  const tabs: TabType[] = ['domains', 'members'];
-  if (canManageSso.value) {
-    tabs.push('sso');
-  }
+  // Build navigable tabs array — only tabs the user can actually reach
+  const tabs: TabType[] = ['domains'];
+  if (canManageMembers.value) tabs.push('members');
+  if (canManageSso.value) tabs.push('sso');
   tabs.push('general');
 
   const currentIndex = tabs.indexOf(activeTab.value);
@@ -706,38 +773,44 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             ]">
             {{ t('web.organizations.tabs.domains') }}
           </button>
-          <!-- Members tab -->
+          <!-- Members tab (entitlement-gated) -->
           <button
             id="org-tab-members"
             role="tab"
             :aria-selected="activeTab === 'members'"
+            :aria-disabled="!canManageMembers"
             :tabindex="activeTab === 'members' ? 0 : -1"
             aria-controls="org-panel-members"
             data-testid="org-tab-members"
-            @click="setActiveTab('members')"
+            @click="canManageMembers && setActiveTab('members')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'members'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+              !canManageMembers
+                ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
+                : activeTab === 'members'
+                  ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
-          <!-- SSO tab - single sign-on configuration (entitlement-gated) -->
+          <!-- SSO tab (feature-flag + entitlement-gated) -->
           <button
-            v-if="canManageSso"
+            v-if="isOrgsSsoEnabled()"
             id="org-tab-sso"
             role="tab"
             :aria-selected="activeTab === 'sso'"
+            :aria-disabled="!canManageSso"
             :tabindex="activeTab === 'sso' ? 0 : -1"
             aria-controls="org-panel-sso"
             data-testid="org-tab-sso"
-            @click="setActiveTab('sso')"
+            @click="canManageSso && setActiveTab('sso')"
             :class="[
-              'inline-flex items-center whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'sso'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              !canManageSso
+                ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
+                : activeTab === 'sso'
+                  ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
           </button>
@@ -895,14 +968,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           </div>
         </section>
 
-        <!--
-          Default-org delete notice (General tab only).
-          Default organizations are not removable from the dashboard; users
-          must request deletion through the public feedback form so the team
-          can confirm intent and reassign any owned resources.
-        -->
+        <!-- Default-org delete notice — owner-only (General tab) -->
         <div
-          v-if="activeTab === 'general' && organization?.is_default"
+          v-if="activeTab === 'general' && isOwner && organization?.is_default"
           data-testid="org-default-delete-notice"
           class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="flex items-start gap-3">
@@ -960,6 +1028,41 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white hover:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white dark:hover:border-red-600 dark:focus:ring-offset-gray-900"
                   @click="handleDeleteOrganization">
                   {{ t('web.COMMON.remove') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Leave Organization — non-owner members (General tab) -->
+        <template v-if="activeTab === 'general' && !isOwner">
+          <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
+          <div>
+            <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+              <div class="flex items-center justify-between gap-4 px-5 py-4">
+                <div class="flex min-w-0 items-center gap-4">
+                  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+                    <OIcon
+                      collection="heroicons"
+                      name="arrow-right-start-on-rectangle"
+                      class="size-5 text-gray-500 dark:text-gray-400"
+                      aria-hidden="true" />
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                      {{ t('web.organizations.leave_organization') }}
+                    </h3>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('web.organizations.leave_organization_warning') }}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  data-testid="org-leave-button"
+                  class="shrink-0 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+                  @click="handleLeaveOrganization">
+                  {{ t('web.organizations.leave_organization_confirm_title') }}
                 </button>
               </div>
             </div>
@@ -1113,8 +1216,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       id="invite-role"
                       v-model="inviteFormData.role"
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-                      <option value="member">{{ t('web.organizations.invitations.roles.member') }}</option>
-                      <option value="admin">{{ t('web.organizations.invitations.roles.admin') }}</option>
+                      <option v-for="role in assignableRoles"
+:key="role"
+:value="role">
+                        {{ t(`web.organizations.invitations.roles.${role}`) }}
+                      </option>
                     </select>
                   </div>
                   <div class="flex gap-2">
@@ -1141,6 +1247,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 :members="membersStore.members"
                 :org-extid="orgId"
                 :is-loading="membersStore.loading"
+                :assignable-roles="assignableRoles"
                 compact
                 @member-updated="handleMemberUpdated"
                 @member-removed="handleMemberRemoved" />
@@ -1223,8 +1330,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </p>
               </div>
               <router-link
-                v-if="canCreateDomain"
+                v-if="canCreateDomain && domainCount > 0"
                 :to="`/org/${orgId}/domains/add`"
+                data-testid="org-domains-add-cta"
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
@@ -1554,29 +1662,18 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 icon-size="w-5" />
 
               <!-- Empty state -->
-              <div v-else-if="domainCount === 0" class="py-8 text-center">
-                <OIcon
-                  collection="heroicons"
-                  name="globe-alt"
-                  class="mx-auto size-12 text-gray-400"
-                  aria-hidden="true" />
-                <h4 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+              <EmptyState
+                v-else-if="domainCount === 0"
+                :showAction="canCreateDomain"
+                :action-route="`/org/${orgId}/domains/add`"
+                :action-text="t('web.domains.add_domain')">
+                <template #title>
                   {{ t('web.organizations.sso.no_domains') }}
-                </h4>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                </template>
+                <template #description>
                   {{ t('web.organizations.sso.no_domains_description') }}
-                </p>
-                <router-link
-                  :to="`/org/${orgId}/domains/add`"
-                  class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
-                  <OIcon
-                    collection="heroicons"
-                    name="plus"
-                    class="size-4"
-                    aria-hidden="true" />
-                  {{ t('web.domains.add_domain') }}
-                </router-link>
-              </div>
+                </template>
+              </EmptyState>
 
               <!-- Domain list -->
               <div v-else class="space-y-3">
@@ -1644,5 +1741,13 @@ const handleTabKeydown = (e: KeyboardEvent) => {
       type="danger"
       @confirm="confirmDelete"
       @cancel="cancelDelete" />
+
+    <ConfirmDialog
+      v-if="isLeaveRevealed"
+      :title="t('web.organizations.leave_organization_confirm_title')"
+      :message="t('web.organizations.leave_organization_confirm_message', { name: organization?.display_name })"
+      type="danger"
+      @confirm="confirmLeave"
+      @cancel="cancelLeave" />
   </div>
 </template>

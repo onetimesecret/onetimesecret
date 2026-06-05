@@ -11,9 +11,11 @@
 #
 #   1. Active member removal (RemoveMember API logic):
 #      - membership.destroy_with_index_cleanup!
-#        Single authoritative method. Handles Familia sorted sets
-#        (org.members ZREM + customer.participations SREM), OTS
-#        app-level indexes (token_lookup), and destroys the Redis hash.
+#        Single authoritative method. Delegates to Familia's
+#        remove_members_instance for the three-structure invariant
+#        (org.members ZREM + customer.participations SREM + through
+#        model destroy), then cleans OTS app-level indexes (token_lookup,
+#        materialized entitlement sub-keys).
 #
 #   2. Pending invitation revocation (revoke!):
 #      - Cleans OTS indexes (token_lookup)
@@ -24,6 +26,8 @@
 #   - org.pending_invitations staging set
 #   - token_lookup hash
 #   - customer reverse index (organization_instances)
+#   - materialized_entitlements, entitlements_plan, entitlements_grants,
+#     entitlements_revokes (Redis SETs from MembershipMaterializedEntitlements)
 
 require_relative '../../support/test_helpers'
 
@@ -58,8 +62,7 @@ Onetime::OrganizationMembership.find_pending_by_email(@org, @member.email)
 @member.organization_instances.any? { |o| o.objid == @org.objid }
 #=> true
 
-## Remove active member: remove from sorted set first, then destroy membership
-@org.remove_members_instance(@member)
+## Remove active member: single call handles all cleanup
 @membership.destroy_with_index_cleanup!
 @org.member?(@member)
 #=> false
@@ -104,6 +107,14 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @sc_member.obji
 @sc_member.organization_instances.any? { |o| o.objid == @org.objid }
 #=> true
 
+## Single-call baseline: materialized entitlements exist
+@sc_membership.materialized_entitlements.size > 0
+#=> true
+
+## Single-call baseline: entitlements_plan populated
+@sc_membership.entitlements_plan.size > 0
+#=> true
+
 ## Single-call removal: only call destroy_with_index_cleanup! (no remove_members_instance)
 @sc_membership.destroy_with_index_cleanup!
 @org.member?(@sc_member)
@@ -128,6 +139,22 @@ Onetime::OrganizationMembership.load(@sc_objid)
 ## Single-call: reverse index cleaned (customer no longer sees org)
 @sc_member.organization_instances.any? { |o| o.objid == @org.objid }
 #=> false
+
+## Single-call: materialized_entitlements sub-key cleaned
+@sc_membership.materialized_entitlements.size
+#=> 0
+
+## Single-call: entitlements_plan sub-key cleaned
+@sc_membership.entitlements_plan.size
+#=> 0
+
+## Single-call: entitlements_grants sub-key cleaned
+@sc_membership.entitlements_grants.size
+#=> 0
+
+## Single-call: entitlements_revokes sub-key cleaned
+@sc_membership.entitlements_revokes.size
+#=> 0
 
 # ============================================================================
 # Pending invitation revocation via revoke!
@@ -200,8 +227,7 @@ Onetime::OrganizationMembership.load(@pending_objid)
 @full_cleanup_membership.active?
 #=> true
 
-## Full cleanup: remove the now-active member
-@org.remove_members_instance(@full_cleanup_customer)
+## Full cleanup: remove the now-active member (single call)
 @full_cleanup_membership.destroy_with_index_cleanup!
 true
 #=> true
@@ -238,7 +264,6 @@ Onetime::OrganizationMembership.load(@full_cleanup_membership.objid)
 @idempotent_customer = Onetime::Customer.create!(email: generate_unique_test_email("removal_idempotent"))
 @idempotent_ms = Onetime::OrganizationMembership.ensure_membership(@org, @idempotent_customer)
 @idempotent_objid = @idempotent_ms.objid
-@org.remove_members_instance(@idempotent_customer)
 @idempotent_ms.destroy_with_index_cleanup!
 @org.member?(@idempotent_customer)
 #=> false
@@ -264,7 +289,6 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @idempotent_cus
 ## Setup: create member, remove completely, then re-invite
 @reinvite_customer = Onetime::Customer.create!(email: generate_unique_test_email("removal_reinvite"))
 @reinvite_ms = Onetime::OrganizationMembership.ensure_membership(@org, @reinvite_customer)
-@org.remove_members_instance(@reinvite_customer)
 @reinvite_ms.destroy_with_index_cleanup!
 @org.member?(@reinvite_customer)
 #=> false
@@ -321,13 +345,11 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_custo
 #=> 4
 
 ## Count: remove one member
-@org.remove_members_instance(@count_member_a)
 @count_ms_a.destroy_with_index_cleanup!
 @org.member_count
 #=> 3
 
 ## Count: remove another member
-@org.remove_members_instance(@count_member_b)
 @count_ms_b.destroy_with_index_cleanup!
 @org.member_count
 #=> 2
@@ -350,10 +372,7 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_custo
 @count_pending.destroy_with_index_cleanup! if @count_pending&.respond_to?(:destroy!)
 # Clean up reinvited member's active membership
 @reinvite_active = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @reinvite_customer.objid)
-if @reinvite_active
-  @org.remove_members_instance(@reinvite_customer)
-  @reinvite_active.destroy_with_index_cleanup!
-end
+@reinvite_active&.destroy_with_index_cleanup!
 [@org, @owner, @member, @sc_member, @full_cleanup_customer, @idempotent_customer, @reinvite_customer, @count_member_a, @count_member_b].each do |obj|
   obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
 end

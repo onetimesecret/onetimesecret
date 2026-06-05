@@ -12,14 +12,11 @@ require 'omniauth'
 # Provides mock OIDC configuration for testing OmniAuth integration without
 # requiring a real identity provider.
 #
-# IMPORTANT: The env vars and WebMock stubs for OIDC discovery are set up
-# in spec_helper.rb BEFORE this file is loaded. This ensures they're available
-# before any code that might trigger Onetime config loading.
-#
-# The key insight: OmniAuth test_mode mocks the *callback* phase, but our
-# CSRF tests need the *request* phase (OAuth redirect). The request phase
-# requires the OmniAuth strategy to be registered during boot, which means
-# OIDC discovery must be stubbed before the app boots.
+# IMPORTANT: WebMock stubs for the placeholder OIDC issuer
+# (placeholder.invalid) are set in spec_helper.rb BEFORE this file is
+# loaded, so boot-time OIDC discovery succeeds. No OIDC env vars are
+# injected — all providers register via placeholder when
+# ORGS_SSO_ENABLED=true.
 #
 # For tests that can run with mock callbacks (callback phase testing),
 # use the :omniauth_mock tag and the helper methods below.
@@ -48,18 +45,30 @@ module OmniAuthTestHelper
     code_challenge_methods_supported: %w[S256],
   }.freeze
 
-  # Stub the OIDC discovery endpoint
-  # This allows omniauth_openid_connect to register the provider
+  # Stub OIDC discovery for the placeholder issuer used during
+  # route registration (request-phase discovery at runtime).
   def stub_oidc_discovery
-    stub_request(:get, "#{MOCK_ISSUER}/.well-known/openid-configuration")
+    stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/openid-configuration")
       .to_return(
         status: 200,
-        body: MOCK_OIDC_DISCOVERY.to_json,
+        body: {
+          issuer: PLACEHOLDER_OIDC_ISSUER,
+          authorization_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/authorize",
+          token_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/token",
+          userinfo_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/userinfo",
+          jwks_uri: "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json",
+          response_types_supported: %w[code],
+          subject_types_supported: %w[public],
+          id_token_signing_alg_values_supported: %w[RS256],
+          scopes_supported: %w[openid email profile],
+          token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
+          claims_supported: %w[sub email email_verified name],
+          code_challenge_methods_supported: %w[S256],
+        }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
 
-    # Also stub the JWKS endpoint (needed for token validation)
-    stub_request(:get, "#{MOCK_ISSUER}/.well-known/jwks.json")
+    stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json")
       .to_return(
         status: 200,
         body: { keys: [] }.to_json,
@@ -67,10 +76,10 @@ module OmniAuthTestHelper
       )
   end
 
-  # Check if real OIDC is configured (non-mock issuer)
+  # Check if real OIDC is configured (non-placeholder issuer)
   def real_oidc_configured?
     issuer = ENV['OIDC_ISSUER'].to_s.strip
-    !issuer.empty? && issuer != MOCK_ISSUER
+    !issuer.empty? && issuer != PLACEHOLDER_OIDC_ISSUER
   end
 
   # Enable OmniAuth test mode for callback mocking

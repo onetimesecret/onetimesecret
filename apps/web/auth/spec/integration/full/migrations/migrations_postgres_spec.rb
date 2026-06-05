@@ -254,19 +254,31 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
         superuser_db = connect_as_superuser
         skip 'PostgreSQL superuser connection not available' unless superuser_db
 
-        user_exists = false
         original_migration_url = nil
         restricted_db = nil
 
         begin
           drop_all_tables(db: test_db)
 
-          user_exists = superuser_db.fetch(
+          # Preconditions: initialize_test_db.sql must have provisioned this role
+          # with USAGE (but not CREATE) on public. Fail loudly if not.
+          user_provisioned = superuser_db.fetch(
             "SELECT 1 FROM pg_user WHERE usename = 'onetime_migrator_test'"
           ).any?
+          expect(user_provisioned).to be(true),
+            'onetime_migrator_test role missing — run initialize_test_db.sql'
 
-          superuser_db.run("CREATE USER onetime_migrator_test WITH PASSWORD 'testpass'") unless user_exists
-          superuser_db.run("REVOKE CREATE ON SCHEMA public FROM onetime_migrator_test")
+          has_usage = superuser_db.fetch(
+            "SELECT has_schema_privilege('onetime_migrator_test', 'public', 'USAGE') AS ok"
+          ).first[:ok]
+          expect(has_usage).to be(true),
+            'onetime_migrator_test lacks USAGE on public — run initialize_test_db.sql'
+
+          has_create = superuser_db.fetch(
+            "SELECT has_schema_privilege('onetime_migrator_test', 'public', 'CREATE') AS ok"
+          ).first[:ok]
+          expect(has_create).to be(false),
+            'onetime_migrator_test has CREATE on public — run initialize_test_db.sql to reset grants'
 
           restricted_url = build_pg_url(user: 'onetime_migrator_test', password: 'testpass')
           restricted_db = Sequel.connect(restricted_url)
@@ -280,7 +292,8 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
 
           Sequel::Migrator.run(migration_db, migrations_dir)
 
-          superuser_db.run("GRANT USAGE ON SCHEMA public TO onetime_migrator_test")
+          # Grant DML on the freshly-created tables (simulates production
+          # post-migration grant step for the restricted app user)
           setup_db.tables.each do |table|
             setup_db.run("GRANT SELECT, INSERT, UPDATE, DELETE ON #{table} TO onetime_migrator_test")
           end
@@ -307,13 +320,11 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
           ENV['AUTH_DATABASE_URL_MIGRATIONS'] = original_migration_url
 
           begin
-            superuser_db.run("REVOKE ALL ON SCHEMA public FROM onetime_migrator_test")
             setup_db.tables.each do |table|
               setup_db.run("REVOKE ALL ON #{table} FROM onetime_migrator_test")
             end
-            superuser_db.run("DROP USER IF EXISTS onetime_migrator_test") unless user_exists
           rescue Sequel::DatabaseError => e
-            warn "Failed to cleanup test user: #{e.message}"
+            warn "Failed to cleanup test grants: #{e.message}"
           ensure
             superuser_db.disconnect
           end

@@ -49,9 +49,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: {
-        ...SCOPE_PRESETS.hideBoth,
-        // SECURITY: Navigate to same tab on new org when switching.
-        // Prevents stale data display if switcher visibility overridden.
+        ...SCOPE_PRESETS.orgShowDomainHide,
         onOrgSwitch: 'same',
       },
       sentryScrubParams: false,
