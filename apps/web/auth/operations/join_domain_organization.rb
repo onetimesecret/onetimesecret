@@ -131,11 +131,19 @@ module Auth
         personal_org = resolve_personal_default_org
         return unless personal_org
 
-        # Repoint customer's default org to the domain org
+        # These two writes are intentionally ordered: repointing default_org_id
+        # is the higher-priority fix (determines which org the customer sees on
+        # next request). If archive! fails after this succeeds, the customer
+        # still lands in the domain org — the personal workspace just remains
+        # unarchived (benign, and OrganizationLoader's archived? guard prevents
+        # it from shadowing the domain org).
+        #
+        # True cross-model atomicity requires Familia to support multi-instance
+        # atomic_write (MULTI/EXEC spanning two Horreum instances). Until then,
+        # each save is individually atomic via its own MULTI/EXEC.
         customer.default_org_id = domain_org.objid
         customer.save
 
-        # Soft-archive the personal workspace
         personal_org.archive!("Superseded by domain org #{domain_org.objid} via SSO self-heal")
 
         OT.info "[JoinDomainOrganization] Adopted domain org #{domain_org.objid} as default for #{customer.custid}, archived personal workspace #{personal_org.objid}"
