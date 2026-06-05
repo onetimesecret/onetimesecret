@@ -76,11 +76,11 @@ module Onetime
 
         candidates = scan_candidates(migration, json)
         if candidates.empty?
-          finish_empty(domain, json)
+          finish_empty(domain, migration, dry_run, json)
           return
         end
 
-        stats   = { total: 0, migrated: 0, skipped: 0, archive_warnings: 0, errors: [] }
+        stats   = { total: 0, migrated: 0, repaired: 0, skipped: 0, archive_warnings: 0, errors: [] }
         results = []
 
         candidates.each_with_index do |customer, idx|
@@ -127,12 +127,21 @@ module Onetime
         candidates
       end
 
-      def finish_empty(domain, json)
+      def finish_empty(domain, migration, dry_run, json)
         if json
           puts JSON.pretty_generate({
             domain: domain.display_domain,
-            eligible: 0,
-            message: 'No eligible users found',
+            organization: migration.organization.extid,
+            dry_run: dry_run,
+            statistics: {
+              total: 0,
+              migrated: 0,
+              repaired: 0,
+              skipped: 0,
+              archive_warnings: 0,
+              errors: 0,
+            },
+            results: [],
           })
         end
       end
@@ -141,6 +150,7 @@ module Onetime
         case result.status
         when :migrated, :would_migrate      then stats[:migrated] += 1
         when :migrated_archive_failed       then stats[:migrated] += 1; stats[:archive_warnings] += 1
+        when :repaired                      then stats[:repaired] += 1
         when :skipped_already_member        then stats[:skipped] += 1
         when :error                         then stats[:errors] << "#{result.customer_extid}: #{result.message}"
         end
@@ -156,6 +166,8 @@ module Onetime
                     "Migrated: #{result.email_obscured} -> #{result.organization_extid}"
                   when :migrated_archive_failed
                     "Migrated (archive failed): #{result.email_obscured} -> #{result.organization_extid}"
+                  when :repaired
+                    "Repaired: #{result.email_obscured} (#{result.message})"
                   when :skipped_already_member
                     "Skipped: #{result.email_obscured} (already member)"
                   when :error
@@ -173,6 +185,7 @@ module Onetime
         puts "\nStatistics:"
         puts '  Total eligible:'.ljust(35) + stats[:total].to_s
         puts "  #{dry_run ? 'Would migrate' : 'Migrated'}:".ljust(35) + stats[:migrated].to_s
+        puts '  Repaired (partial state):'.ljust(35) + stats[:repaired].to_s if stats[:repaired] > 0
         puts '  Skipped (already member):'.ljust(35) + stats[:skipped].to_s
         puts '  Archive warnings:'.ljust(35) + stats[:archive_warnings].to_s if stats[:archive_warnings] > 0
 
@@ -199,6 +212,7 @@ module Onetime
           statistics: {
             total: stats[:total],
             migrated: stats[:migrated],
+            repaired: stats[:repaired],
             skipped: stats[:skipped],
             archive_warnings: stats[:archive_warnings],
             errors: stats[:errors].size,

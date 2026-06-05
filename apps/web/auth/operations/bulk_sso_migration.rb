@@ -51,9 +51,10 @@ module Auth
         raise Onetime::Problem, "Domain #{domain.display_domain} has no primary organization" unless @organization
       end
 
-      # Provisioning origins that indicate self-signup or invitation —
-      # these users are never eligible for bulk SSO migration.
-      EXCLUDED_ORIGINS = %w[canonical_signup domain_signup invite].freeze
+      # Provisioning origins eligible for bulk SSO migration.
+      # Only nil/empty (legacy install-level accounts) and sso_jit are migrated;
+      # all other origins (self-signup, invite, future methods) are excluded.
+      ELIGIBLE_ORIGINS = [nil, '', 'sso_jit'].freeze
 
       # Find all customers eligible for migration.
       #
@@ -79,7 +80,7 @@ module Auth
           next if customer.email.to_s.empty?
           next unless customer.email.downcase.end_with?(email_suffix)
           next if organization.member?(customer)
-          next if EXCLUDED_ORIGINS.include?(customer.provisioning_origin)
+          next unless ELIGIBLE_ORIGINS.include?(customer.provisioning_origin)
           next unless find_personal_workspace(customer)
 
           candidates << customer
@@ -96,16 +97,21 @@ module Auth
         obscured = OT::Utils.obscure_email(customer.email)
 
         if organization.member?(customer)
+          repaired = false
           unless dry_run
-            repair_default_org!(customer)
-            repair_archive!(customer)
+            repaired |= repair_default_org!(customer)
+            repaired |= repair_archive!(customer)
           end
+
+          status  = repaired ? :repaired : :skipped_already_member
+          message = repaired ? 'Already a member; repaired partial migration state' : 'Already a member of domain organization'
+
           return Result.new(
-            status: :skipped_already_member,
+            status: status,
             customer_extid: customer.extid,
             email_obscured: obscured,
             organization_extid: organization.extid,
-            message: 'Already a member of domain organization',
+            message: message,
           )
         end
 
@@ -178,26 +184,31 @@ module Auth
       # Repair default_org_id if it doesn't point to the domain org.
       # Handles the case where a prior run joined the org but customer.save
       # failed before default_org_id was persisted.
+      # @return [Boolean] true if a repair was made
       def repair_default_org!(customer)
-        return if customer.default_org_id == organization.objid
+        return false if customer.default_org_id == organization.objid
 
         customer.default_org_id = organization.objid
         customer.save
         OT.info "[BulkSsoMigration] Repaired default_org_id for #{customer.extid} -> #{organization.extid}"
+        true
       rescue StandardError => ex
         OT.le "[BulkSsoMigration] Failed to repair default_org_id for #{customer.extid}: #{ex.message}"
+        false
       end
 
       # Archive a personal workspace that a prior run failed to archive.
-      # Handles the :migrated_archive_failed case on re-run.
+      # @return [Boolean] true if a repair was made
       def repair_archive!(customer)
         personal_org = find_personal_workspace(customer)
-        return unless personal_org
+        return false unless personal_org
 
         personal_org.archive!("Bulk SSO migration to #{domain.display_domain}")
         OT.info "[BulkSsoMigration] Repaired: archived personal workspace #{personal_org.extid} for #{customer.extid}"
+        true
       rescue StandardError => ex
         OT.le "[BulkSsoMigration] Failed to repair archive for #{customer.extid}: #{ex.message}"
+        false
       end
 
       # Find a customer's personal default workspace (the one created by
