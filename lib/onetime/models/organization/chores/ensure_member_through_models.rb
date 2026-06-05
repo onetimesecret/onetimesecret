@@ -10,13 +10,12 @@
 # in Redis. The v0.25.6 `require_entitlement!` gate requires this
 # through-model to exist AND have materialized entitlements.
 #
-# Five branches per member entry:
+# Four branches per member entry (ghost records filtered by load_multi):
 #
 #   1. Through-model exists AND materialized      → silent no-op
 #   2. Through-model exists, NOT materialized      → materialize only
-#   3. Through-model missing, customer loadable    → create + materialize
-#   4. Through-model missing, customer NOT loadable → warn (stale ZSET entry)
-#   5. org.members empty                           → no-op
+#   3. Through-model missing, customer present     → create + materialize
+#   4. org.members empty                           → no-op
 #
 # Run via HousekeepingJob:
 #   HousekeepingJob.perform('Onetime::Organization', :ensure_member_through_models)
@@ -34,21 +33,14 @@ Onetime::Organization.chore :ensure_member_through_models do |org|
   owner_objid = org.owner_id
   modified    = false
 
-  org.members.to_a.each do |customer_objid|
-    membership = OT::OrganizationMembership.find_by_org_customer(org.objid, customer_objid)
+  # Batch-load customers from the ZSET; compact drops ghost records.
+  customers = OT::Customer.load_multi(org.members.to_a).compact
+
+  customers.each do |customer|
+    membership = OT::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
 
     if membership.nil?
-      customer = OT::Customer.load(customer_objid)
-
-      if customer.nil? || !customer.exists?
-        logger.warn 'Stale ZSET entry: customer not loadable',
-          chore: :ensure_member_through_models,
-          org_extid: org.extid,
-          customer_objid: customer_objid
-        next
-      end
-
-      role = customer_objid == owner_objid ? 'owner' : 'member'
+      role = customer.objid == owner_objid ? 'owner' : 'member'
 
       membership = org.add_members_instance(
         customer,
@@ -62,7 +54,7 @@ Onetime::Organization.chore :ensure_member_through_models do |org|
       logger.info 'Created membership through-model',
         chore: :ensure_member_through_models,
         org_extid: org.extid,
-        customer_objid: customer_objid,
+        customer_objid: customer.objid,
         role: role
 
       modified = true
@@ -79,7 +71,7 @@ Onetime::Organization.chore :ensure_member_through_models do |org|
     logger.info 'Materialized membership entitlements',
       chore: :ensure_member_through_models,
       org_extid: org.extid,
-      customer_objid: customer_objid
+      customer_objid: customer.objid
 
     modified = true
   end
