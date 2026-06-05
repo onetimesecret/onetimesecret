@@ -83,11 +83,11 @@ module Auth
           next unless customer
           next if customer.email.to_s.empty?
           next unless customer.email.downcase.end_with?(email_suffix)
+          next unless ELIGIBLE_ORIGINS.include?(customer.provisioning_origin)
 
           if organization.member?(customer)
             next unless needs_repair?(customer)
           else
-            next unless ELIGIBLE_ORIGINS.include?(customer.provisioning_origin)
             next unless find_personal_workspace(customer)
           end
 

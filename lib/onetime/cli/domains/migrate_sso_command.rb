@@ -93,6 +93,12 @@ module Onetime
           report_result(result, label, verbose) unless json
         rescue StandardError => ex
           stats[:errors] << "#{customer.extid}: #{ex.message}"
+          results << Auth::Operations::BulkSsoMigration::Result.new(
+            status: :error,
+            customer_extid: customer.extid,
+            email_obscured: OT::Utils.obscure_email(customer.email),
+            message: ex.message
+          )
           puts "  #{label} Error: #{ex.message}" unless json
         end
 
