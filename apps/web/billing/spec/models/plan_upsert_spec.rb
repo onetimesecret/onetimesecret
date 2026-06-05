@@ -117,6 +117,11 @@ module PlanUpsertTestHelpers
     plan.plan_name_label = plan_data[:plan_name_label]
     plan.last_synced_at = Time.now.to_i.to_s
 
+    # Persist scalar fields before mutating collections. Familia v2.10's
+    # raise_on_unsaved_parent_write guard rejects collection writes
+    # (entitlements/features/limits/prices) on a new, unsaved parent.
+    plan.save
+
     plan.entitlements.clear
     plan_data[:entitlements]&.each { |ent| plan.entitlements.add(ent) }
 

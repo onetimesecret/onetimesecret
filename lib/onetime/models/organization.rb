@@ -275,6 +275,17 @@ module Onetime
       save
     end
 
+    # Reverse a soft-archive.
+    #
+    # NOTE: For personal workspaces (is_default: true) archived by the domain
+    # SSO self-heal (see JoinDomainOrganization#adopt_domain_default_org),
+    # unarchiving is durable only while the customer's default_org_id points at
+    # a different active org (e.g. the domain org). The self-heal runs on every
+    # SSO login, including the already_member path, so if this workspace would
+    # again resolve as the customer's default — i.e. default_org_id is empty or
+    # points back at this workspace — it will be re-archived on their next
+    # domain SSO login. To restore it permanently, also repoint default_org_id
+    # to the org the customer should default to.
     def unarchive!
       self.archived_at      = ''
       self.archived_comment = ''
