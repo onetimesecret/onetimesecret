@@ -143,7 +143,11 @@ module Billing
           session_params[:client_reference_id] = cust.extid
 
           # Check for existing Stripe customer on user's default organization
-          default_org = cust.organization_instances.to_a.find { |o| o.is_default && !o.archived? }
+          orgs = cust.organization_instances.to_a.reject(&:archived?)
+          default_org = if cust.default_org_id.to_s.length.positive?
+            orgs.find { |o| o.objid == cust.default_org_id }
+          end
+          default_org ||= orgs.find { |o| o.is_default }
           if default_org&.stripe_customer_id.to_s.length.positive?
             session_params[:customer] = default_org.stripe_customer_id
           else

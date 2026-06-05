@@ -166,9 +166,9 @@ module Onetime
             OT.ld "[OrganizationLoader] Using customer's default_org_id: #{customer_default.objid}"
             return customer_default
           else
-            # Customer's default_org_id references an org they're not a member of
-            # Fall through to other selection methods
-            OT.ld "[OrganizationLoader] Customer default_org_id invalid/not member: #{customer.default_org_id}"
+            # Customer's default_org_id references an org they're not a member of,
+            # or the org is archived. Fall through to other selection methods.
+            OT.ld "[OrganizationLoader] Customer default_org_id archived/invalid/not member: #{customer.default_org_id}"
           end
         end
 
