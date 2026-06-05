@@ -58,7 +58,7 @@ module Onetime
 
         domain = Onetime::CustomDomain.load_by_display_domain(fqdn)
         unless domain
-          $stderr.puts "Domain not found: #{fqdn}"
+          warn "Domain not found: #{fqdn}"
           exit 1
         end
 
@@ -80,7 +80,7 @@ module Onetime
           return
         end
 
-        stats   = { total: 0, migrated: 0, repaired: 0, skipped: 0, archive_warnings: 0, errors: [] }
+        stats = { total: 0, migrated: 0, repaired: 0, skipped: 0, archive_warnings: 0, errors: [] }
         results = []
 
         candidates.each_with_index do |customer, idx|
@@ -128,32 +128,37 @@ module Onetime
       end
 
       def finish_empty(domain, migration, dry_run, json)
-        if json
-          puts JSON.pretty_generate({
-            domain: domain.display_domain,
-            organization: migration.organization.extid,
-            dry_run: dry_run,
-            statistics: {
-              total: 0,
-              migrated: 0,
-              repaired: 0,
-              skipped: 0,
-              archive_warnings: 0,
-              errors: 0,
-            },
-            results: [],
-          })
-        end
+        return unless json
+
+        puts JSON.pretty_generate(
+          domain: domain.display_domain,
+          organization: migration.organization.extid,
+          dry_run: dry_run,
+          statistics: {
+            total: 0,
+            migrated: 0,
+            repaired: 0,
+            skipped: 0,
+            archive_warnings: 0,
+            errors: 0,
+          },
+          results: []
+        )
       end
 
       def update_stats(stats, result)
         case result.status
-        when :migrated, :would_migrate      then stats[:migrated] += 1
-        when :would_repair                  then stats[:repaired] += 1
-        when :migrated_archive_failed       then stats[:migrated] += 1; stats[:archive_warnings] += 1
-        when :repaired                      then stats[:repaired] += 1
-        when :skipped_already_member        then stats[:skipped] += 1
-        when :error                         then stats[:errors] << "#{result.customer_extid}: #{result.message}"
+        when :migrated, :would_migrate
+          stats[:migrated] += 1
+        when :migrated_archive_failed
+          stats[:migrated] += 1
+          stats[:archive_warnings] += 1
+        when :repaired, :would_repair
+          stats[:repaired] += 1
+        when :skipped_already_member
+          stats[:skipped] += 1
+        when :error
+          stats[:errors] << "#{result.customer_extid}: #{result.message}"
         end
       end
 
@@ -208,7 +213,7 @@ module Onetime
       end
 
       def output_json(domain, migration, stats, results, dry_run)
-        puts JSON.pretty_generate({
+        puts JSON.pretty_generate(
           domain: domain.display_domain,
           organization: migration.organization.extid,
           dry_run: dry_run,
@@ -220,7 +225,7 @@ module Onetime
             archive_warnings: stats[:archive_warnings],
             errors: stats[:errors].size,
           },
-          results: results.map { |r|
+          results: results.map do |r|
             {
               status: r.status,
               customer: r.customer_extid,
@@ -229,8 +234,8 @@ module Onetime
               personal_workspace: r.personal_org_extid,
               message: r.message,
             }
-          },
-        })
+          end
+        )
       end
 
       def show_usage_help

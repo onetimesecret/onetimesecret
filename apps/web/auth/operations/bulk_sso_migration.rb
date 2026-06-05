@@ -34,9 +34,13 @@ module Auth
       include Onetime::LoggerMethods
 
       Result = Struct.new(
-        :status, :customer_extid, :email_obscured, :organization_extid,
-        :personal_org_extid, :message,
-        keyword_init: true,
+        :status,
+        :customer_extid,
+        :email_obscured,
+        :organization_extid,
+        :personal_org_extid,
+        :message,
+        keyword_init: true
       )
 
       attr_reader :domain, :organization, :dry_run
@@ -67,8 +71,8 @@ module Auth
         base = domain.base_domain.to_s.downcase
         raise Onetime::Problem, "Domain #{domain.display_domain} has no base_domain — cannot match emails" if base.empty?
 
-        email_suffix = "@#{base}"
-        candidates   = []
+        email_suffix  = "@#{base}"
+        candidates    = []
         all_customers = Onetime::Customer.instances.to_a
         total         = all_customers.size
 
@@ -103,15 +107,24 @@ module Auth
         if organization.member?(customer)
           if dry_run
             repair_needed = needs_repair?(customer)
-            status  = repair_needed ? :would_repair : :skipped_already_member
+            status = repair_needed ? :would_repair : :skipped_already_member
             message = repair_needed ? 'Would repair partial migration state' : 'Already a member of domain organization'
           else
+            repair_needed = needs_repair?(customer)
             repaired = false
             repaired |= repair_default_org!(customer)
             repaired |= repair_archive!(customer)
 
-            status  = repaired ? :repaired : :skipped_already_member
-            message = repaired ? 'Already a member; repaired partial migration state' : 'Already a member of domain organization'
+            if repaired
+              status = :repaired
+              message = 'Already a member; repaired partial migration state'
+            elsif repair_needed
+              status = :error
+              message = 'Repair needed but all repair attempts failed'
+            else
+              status = :skipped_already_member
+              message = 'Already a member of domain organization'
+            end
           end
 
           return Result.new(
@@ -164,7 +177,7 @@ module Auth
           end
         end
 
-        status = archive_failed ? :migrated_archive_failed : :migrated
+        status  = archive_failed ? :migrated_archive_failed : :migrated
         message = archive_failed ? 'Joined domain org but personal workspace archival failed' : 'Migrated successfully'
 
         OT.info "[BulkSsoMigration] Migrated #{customer.extid} to #{organization.extid} (domain: #{domain.display_domain})"

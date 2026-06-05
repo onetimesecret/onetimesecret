@@ -97,13 +97,13 @@ module Onetime
     end
 
     def archive!(comment = nil)
-      self.archived_at = Familia.now.to_f
+      self.archived_at      = Familia.now.to_f
       self.archived_comment = comment if comment
       save
     end
 
     def unarchive!
-      self.archived_at = ''
+      self.archived_at      = ''
       self.archived_comment = ''
       save
     end
