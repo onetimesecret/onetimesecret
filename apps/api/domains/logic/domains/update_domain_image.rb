@@ -81,6 +81,7 @@ module DomainsAPI::Logic
 
       def raise_concerns
         raise_form_error 'Domain ID is required' if @extid.empty?
+        raise_form_error 'Invalid domain identifier format' unless @extid.match?(/\A[a-z0-9]+\z/)
 
         authorize_domain_config!(@extid)
 
