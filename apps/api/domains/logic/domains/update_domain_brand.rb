@@ -185,7 +185,11 @@ module DomainsAPI::Logic
           raise_form_error 'Invalid default TTL - must be a positive integer (seconds)'
         end
 
-        # Gate extended TTL values behind entitlement
+        # Gate extended TTL values behind entitlement.
+        # Intentionally uses org-membership-level check (require_entitlement_in!)
+        # rather than the previous user-level check (require_entitlement!), since
+        # domain branding is an org-scoped feature — the entitlement should flow
+        # from org membership, not personal grants.
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
         if ttl_value > free_ttl
           require_entitlement_in!(@organization, 'extended_default_expiration')
