@@ -359,7 +359,17 @@ module Billing
 
           # 3. Customer's default org (fallback for legacy checkouts)
           orgs = customer.organization_instances.to_a.reject(&:archived?)
-          org  = orgs.find { |o| o.is_default }
+
+          if customer.default_org_id.to_s.length.positive?
+            explicit = orgs.find { |o| o.objid == customer.default_org_id }
+            if explicit
+              OT.info '[ProcessCheckoutSession] Using customer default_org_id (fallback)',
+                { extid: explicit.extid }
+              return explicit
+            end
+          end
+
+          org = orgs.find { |o| o.is_default }
           if org
             OT.info '[ProcessCheckoutSession] Using customer default org (fallback)',
               { extid: org.extid }
