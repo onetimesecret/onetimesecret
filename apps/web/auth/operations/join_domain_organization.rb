@@ -91,7 +91,8 @@ module Auth
 
         # Self-heal: repoint default_org_id away from personal workspace
         # to the domain org, and soft-archive the personal workspace.
-        # Only fires on first join (not already_member) to avoid clobbering
+        # Also called on the already_member path above (retry for partial failures).
+        # Guard conditions in resolve_personal_default_org prevent clobbering
         # intentional multi-org ownership.
         adoption = adopt_domain_default_org(organization)
 

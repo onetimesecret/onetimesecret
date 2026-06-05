@@ -60,9 +60,11 @@ Onetime::CustomDomain.load_by_display_domain('')
 @orphan_fqdn = "orphan-#{@ts}-#{@entropy}.example.com"
 @orphan_id = "nonexistent-domain-id-#{@ts}"
 
-## Manually insert stale entry into display_domain_index index
-Onetime::CustomDomain.display_domain_index.put(@orphan_fqdn, @orphan_id)
-Onetime::CustomDomain.display_domain_index.get(@orphan_fqdn)
+## Manually insert stale entry into display_domain_index via Redis
+# Use the Redis client directly to bypass Familia DataType serialization;
+# this mirrors what a partial cleanup or manual Redis edit would leave behind.
+Familia.dbclient.hset(Onetime::CustomDomain.display_domain_index.dbkey, @orphan_fqdn, @orphan_id)
+Familia.dbclient.hget(Onetime::CustomDomain.display_domain_index.dbkey, @orphan_fqdn)
 #=> @orphan_id
 
 ## load_by_display_domain returns nil for orphaned index entry (not crash)
