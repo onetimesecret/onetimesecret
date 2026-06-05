@@ -33,6 +33,13 @@ OT.info "Cleaned Redis for load_by_display_domain error handling test"
 @org = Onetime::Organization.create!("Error Test Org #{@ts}", @owner, "error_#{@ts}@test.com")
 @domain = Onetime::CustomDomain.create!(@fqdn, @org.objid)
 
+# Orphan fixtures live in setup so they persist across test cases. Tryouts
+# does NOT carry instance variables assigned inside a test-case body into
+# later test cases (only setup-defined ones survive), so defining these in a
+# standalone test case would leave them nil downstream.
+@orphan_fqdn = "orphan-#{@ts}-#{@entropy}.example.com"
+@orphan_id = "nonexistent-domain-id-#{@ts}"
+
 # --- Normal Operation ---
 
 ## load_by_display_domain returns domain for known FQDN
@@ -56,16 +63,12 @@ Onetime::CustomDomain.load_by_display_domain('')
 # Simulates data corruption where display_domain_index hash has a domain_id
 # that no longer exists (e.g., manual Redis deletion, partial cleanup).
 
-## Create orphan scenario: manually insert stale index entry
-@orphan_fqdn = "orphan-#{@ts}-#{@entropy}.example.com"
-@orphan_id = "nonexistent-domain-id-#{@ts}"
-
-## Manually insert stale entry into display_domain_index via Redis
-# Use the Redis client directly to bypass Familia DataType serialization;
-# this mirrors what a partial cleanup or manual Redis edit would leave behind.
-Familia.dbclient.hset(Onetime::CustomDomain.display_domain_index.dbkey, @orphan_fqdn, @orphan_id)
-Familia.dbclient.hget(Onetime::CustomDomain.display_domain_index.dbkey, @orphan_fqdn)
-#=> @orphan_id
+## Manually insert stale entry into display_domain_index, verify presence
+# Assert presence via key? (HEXISTS) rather than round-tripping the value, so
+# the check is independent of Familia v2.10's raw-string vs JSON serialization.
+Onetime::CustomDomain.display_domain_index.put(@orphan_fqdn, @orphan_id)
+Onetime::CustomDomain.display_domain_index.key?(@orphan_fqdn)
+#=> true
 
 ## load_by_display_domain returns nil for orphaned index entry (not crash)
 Onetime::CustomDomain.load_by_display_domain(@orphan_fqdn)
