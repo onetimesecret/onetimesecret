@@ -159,6 +159,9 @@ module DomainsAPI::Logic
         raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
       end
 
+      # Currently disabled (see raise_concerns). When re-enabled, uses
+      # org-membership-level check rather than the previous user-level check,
+      # since domain branding is an org-scoped feature.
       def validate_privacy_defaults_entitlement
         privacy_keys = %w[default_ttl passphrase_required notify_enabled]
         return unless privacy_keys.any? { |k| @brand_settings.key?(k) }
