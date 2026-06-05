@@ -79,9 +79,13 @@ module Auth
           next unless customer
           next if customer.email.to_s.empty?
           next unless customer.email.downcase.end_with?(email_suffix)
-          next if organization.member?(customer)
-          next unless ELIGIBLE_ORIGINS.include?(customer.provisioning_origin)
-          next unless find_personal_workspace(customer)
+
+          if organization.member?(customer)
+            next unless needs_repair?(customer)
+          else
+            next unless ELIGIBLE_ORIGINS.include?(customer.provisioning_origin)
+            next unless find_personal_workspace(customer)
+          end
 
           candidates << customer
         end
@@ -97,14 +101,18 @@ module Auth
         obscured = OT::Utils.obscure_email(customer.email)
 
         if organization.member?(customer)
-          repaired = false
-          unless dry_run
+          if dry_run
+            repair_needed = needs_repair?(customer)
+            status  = repair_needed ? :would_repair : :skipped_already_member
+            message = repair_needed ? 'Would repair partial migration state' : 'Already a member of domain organization'
+          else
+            repaired = false
             repaired |= repair_default_org!(customer)
             repaired |= repair_archive!(customer)
-          end
 
-          status  = repaired ? :repaired : :skipped_already_member
-          message = repaired ? 'Already a member; repaired partial migration state' : 'Already a member of domain organization'
+            status  = repaired ? :repaired : :skipped_already_member
+            message = repaired ? 'Already a member; repaired partial migration state' : 'Already a member of domain organization'
+          end
 
           return Result.new(
             status: status,
@@ -230,6 +238,13 @@ module Auth
 
           org
         end.first
+      end
+
+      def needs_repair?(customer)
+        return true if customer.default_org_id != organization.objid
+        return true if find_personal_workspace(customer)
+
+        false
       end
     end
   end

@@ -149,6 +149,7 @@ module Onetime
       def update_stats(stats, result)
         case result.status
         when :migrated, :would_migrate      then stats[:migrated] += 1
+        when :would_repair                  then stats[:repaired] += 1
         when :migrated_archive_failed       then stats[:migrated] += 1; stats[:archive_warnings] += 1
         when :repaired                      then stats[:repaired] += 1
         when :skipped_already_member        then stats[:skipped] += 1
@@ -162,6 +163,8 @@ module Onetime
         message = case result.status
                   when :would_migrate
                     "Would migrate: #{result.email_obscured} -> #{result.organization_extid}"
+                  when :would_repair
+                    "Would repair: #{result.email_obscured} (partial migration state)"
                   when :migrated
                     "Migrated: #{result.email_obscured} -> #{result.organization_extid}"
                   when :migrated_archive_failed
