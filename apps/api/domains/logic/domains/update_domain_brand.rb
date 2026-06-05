@@ -50,7 +50,7 @@ module DomainsAPI::Logic
         raise_form_error 'Please provide a domain ID' if @extid.to_s.empty?
         raise_form_error 'Invalid domain identifier format' unless valid_extid?(@extid)
 
-        authorize_domain_brand!(@extid)
+        authorize_domain_config!(@extid)
 
         validate_brand_settings
         validate_brand_values
@@ -111,10 +111,6 @@ module DomainsAPI::Logic
 
       def config_entitlement_error
         'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
-      end
-
-      def authorize_domain_brand!(domain_id)
-        authorize_domain_config!(domain_id)
       end
 
       private

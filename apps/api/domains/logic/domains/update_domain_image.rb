@@ -82,7 +82,7 @@ module DomainsAPI::Logic
       def raise_concerns
         raise_form_error 'Domain ID is required' if @extid.empty?
 
-        authorize_domain_brand!(@extid)
+        authorize_domain_config!(@extid)
 
         @display_domain = @custom_domain.display_domain
 
@@ -143,10 +143,6 @@ module DomainsAPI::Logic
 
       def config_entitlement_error
         'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
-      end
-
-      def authorize_domain_brand!(domain_id)
-        authorize_domain_config!(domain_id)
       end
 
       private

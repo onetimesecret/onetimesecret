@@ -45,7 +45,7 @@ module DomainsAPI::Logic
 
         @custom_domain = load_custom_domain(@extid)
         @organization = load_organization_for_domain(@custom_domain)
-        require_entitlement_in!(@organization, 'custom_branding')
+        require_entitlement_in!(@organization, config_entitlement)
 
         @display_domain = @custom_domain.display_domain
 
