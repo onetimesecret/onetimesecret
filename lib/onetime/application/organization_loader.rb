@@ -63,11 +63,18 @@ module Onetime
           # Reload objects from cached IDs
           org = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
 
-          return {
-            organization: org,
-            organization_id: org&.objid,
-            expires_at: cached[:expires_at],
-          }
+          # Invalidate cache if the org was archived since it was cached
+          # (e.g. SSO self-heal archived the personal workspace mid-session)
+          if org&.archived?
+            session.delete(cache_key)
+            OT.ld "[OrganizationLoader] Cached org #{org.objid} is archived, invalidating"
+          else
+            return {
+              organization: org,
+              organization_id: org&.objid,
+              expires_at: cached[:expires_at],
+            }
+          end
         end
 
         # Determine organization (read-only - no writes during auth phase)
