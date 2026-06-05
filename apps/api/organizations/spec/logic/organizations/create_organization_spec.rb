@@ -161,6 +161,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         Onetime::Organization,
         objid: 'org-primary',
         is_default: true,
+        archived?: false,
         entitlements: entitlements
       )
     end

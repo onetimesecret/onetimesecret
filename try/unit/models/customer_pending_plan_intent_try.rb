@@ -44,11 +44,13 @@ cust.respond_to?(:pending_plan_intent) && cust.respond_to?(:pending_plan_intent=
 
 ## New unsaved customer has a StringKey with nil value
 cust = Onetime::Customer.new(email: generate_random_email)
+cust.save
 cust.pending_plan_intent.value.nil?
 #=> true
 
 ## pending_plan_intent is a Familia::StringKey
 cust = Onetime::Customer.new(email: generate_random_email)
+cust.save
 cust.pending_plan_intent.class
 #=> Familia::StringKey
 

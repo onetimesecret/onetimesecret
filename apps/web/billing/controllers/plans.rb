@@ -143,7 +143,11 @@ module Billing
           session_params[:client_reference_id] = cust.extid
 
           # Check for existing Stripe customer on user's default organization
-          default_org = cust.organization_instances.to_a.find(&:is_default)
+          orgs = cust.organization_instances.to_a.reject(&:archived?)
+          default_org = if cust.default_org_id.to_s.length.positive?
+            orgs.find { |o| o.objid == cust.default_org_id }
+          end
+          default_org ||= orgs.find { |o| o.is_default }
           if default_org&.stripe_customer_id.to_s.length.positive?
             session_params[:customer] = default_org.stripe_customer_id
           else
@@ -316,10 +320,14 @@ module Billing
       # @param customer [Onetime::Customer] Customer instance
       # @return [Onetime::Organization] Default organization
       def find_or_create_default_organization(customer)
-        # Find existing default organization
-        orgs        = customer.organization_instances.to_a
-        default_org = orgs.find { |org| org.is_default }
+        orgs = customer.organization_instances.to_a.reject(&:archived?)
 
+        if customer.default_org_id.to_s.length.positive?
+          explicit = orgs.find { |o| o.objid == customer.default_org_id }
+          return explicit if explicit
+        end
+
+        default_org = orgs.find { |org| org.is_default }
         return default_org if default_org
 
         # Create default organization (self-healing fallback)

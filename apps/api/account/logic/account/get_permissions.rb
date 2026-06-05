@@ -162,7 +162,7 @@ module AccountAPI::Logic
 
       def load_user_organizations_with_memberships
         # Get all organizations for this user via Familia participation
-        organizations = cust.organization_instances.to_a
+        organizations = cust.organization_instances.to_a.reject(&:archived?)
 
         # Pair each org with its membership
         organizations.filter_map do |org|

@@ -145,7 +145,7 @@ module OrganizationAPI::Logic
         # Quota enforcement: fail-open when no billing, fail-closed when enabled.
         # See WithEntitlements module for design rationale.
 
-        primary_org = cust.organization_instances.to_a.find { |o| o.is_default } || cust.organization_instances.first
+        primary_org = cust.organization_instances.to_a.reject(&:archived?).then { |orgs| orgs.find { |o| o.is_default } || orgs.first }
 
         # Fail-open conditions: skip quota check
         return unless primary_org
@@ -155,7 +155,7 @@ module OrganizationAPI::Logic
         # Fail-closed: billing enabled, enforce quota
         # NOTE: at_limit?(resource, count) returns true when count >= limit,
         # meaning creating one more would exceed the plan's allowed quota.
-        current_count = cust.organization_instances.size
+        current_count = cust.organization_instances.to_a.count { |o| !o.archived? }
 
         return unless primary_org.at_limit?('organizations', current_count)
 

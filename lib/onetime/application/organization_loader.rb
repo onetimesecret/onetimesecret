@@ -63,11 +63,18 @@ module Onetime
           # Reload objects from cached IDs
           org = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
 
-          return {
-            organization: org,
-            organization_id: org&.objid,
-            expires_at: cached[:expires_at],
-          }
+          # Invalidate cache if the org was archived since it was cached
+          # (e.g. SSO self-heal archived the personal workspace mid-session)
+          if org&.archived?
+            session.delete(cache_key)
+            OT.ld "[OrganizationLoader] Cached org #{org.objid} is archived, invalidating"
+          else
+            return {
+              organization: org,
+              organization_id: org&.objid,
+              expires_at: cached[:expires_at],
+            }
+          end
         end
 
         # Determine organization (read-only - no writes during auth phase)
@@ -161,26 +168,27 @@ module Onetime
         orgs = orgs.reject { |o| denied_org_ids.include?(o.objid) } unless denied_org_ids.empty?
 
         if customer.default_org_id.to_s.length.positive?
-          customer_default = orgs.find { |o| o.objid == customer.default_org_id }
+          customer_default = orgs.find { |o| o.objid == customer.default_org_id && !o.archived? }
           if customer_default
             OT.ld "[OrganizationLoader] Using customer's default_org_id: #{customer_default.objid}"
             return customer_default
           else
-            # Customer's default_org_id references an org they're not a member of
-            # Fall through to other selection methods
-            OT.ld "[OrganizationLoader] Customer default_org_id invalid/not member: #{customer.default_org_id}"
+            # Customer's default_org_id references an org they're not a member of,
+            # or the org is archived. Fall through to other selection methods.
+            OT.ld "[OrganizationLoader] Customer default_org_id archived/invalid/not member: #{customer.default_org_id}"
           end
         end
 
         # 4. Organization with is_default flag (typically personal workspace)
-        default_org = orgs.find { |o| o.is_default }
+        #    Skip archived default workspaces — they've been superseded by a domain org.
+        default_org = orgs.find { |o| o.is_default && !o.archived? }
         if default_org
           OT.ld "[OrganizationLoader] Using organization is_default flag: #{default_org.objid}"
           return default_org
         end
 
-        # 5. First available organization
-        first_org = orgs.first
+        # 5. First available organization (skip archived — they've been superseded)
+        first_org = orgs.find { |o| !o.archived? }
         if first_org
           OT.ld "[OrganizationLoader] Using first organization: #{first_org.objid}"
           return first_org
