@@ -106,7 +106,7 @@ module Onetime
           output_json(domain, migration, stats, results, dry_run)
         else
           print_results(stats, dry_run)
-          print_next_steps(dry_run, stats[:migrated]) if dry_run
+          print_next_steps(fqdn, dry_run, stats[:migrated]) if dry_run
         end
       end
 
@@ -209,12 +209,13 @@ module Onetime
         stats[:errors].each { |err| puts "    - #{err}" }
       end
 
-      def print_next_steps(dry_run, migrated_count)
+      def print_next_steps(fqdn, dry_run, migrated_count)
         return unless dry_run && migrated_count > 0
 
         puts <<~MESSAGE
 
-          To execute, run with --run
+          To execute, run:
+            bin/ots domains migrate-sso #{fqdn} --run
         MESSAGE
       end
 
