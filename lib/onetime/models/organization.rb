@@ -103,8 +103,8 @@ module Onetime
     end
 
     def unarchive!
-      self.archived_at = nil
-      self.archived_comment = nil
+      self.archived_at = ''
+      self.archived_comment = ''
       save
     end
 

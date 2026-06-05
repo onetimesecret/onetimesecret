@@ -80,7 +80,7 @@ module Onetime
           return
         end
 
-        stats   = { total: 0, migrated: 0, skipped: 0, errors: [] }
+        stats   = { total: 0, migrated: 0, skipped: 0, archive_warnings: 0, errors: [] }
         results = []
 
         candidates.each_with_index do |customer, idx|
@@ -139,9 +139,10 @@ module Onetime
 
       def update_stats(stats, result)
         case result.status
-        when :migrated, :would_migrate then stats[:migrated] += 1
-        when :skipped_already_member   then stats[:skipped] += 1
-        when :error                    then stats[:errors] << "#{result.customer_extid}: #{result.message}"
+        when :migrated, :would_migrate      then stats[:migrated] += 1
+        when :migrated_archive_failed       then stats[:migrated] += 1; stats[:archive_warnings] += 1
+        when :skipped_already_member        then stats[:skipped] += 1
+        when :error                         then stats[:errors] << "#{result.customer_extid}: #{result.message}"
         end
       end
 
@@ -153,6 +154,8 @@ module Onetime
                     "Would migrate: #{result.email_obscured} -> #{result.organization_extid}"
                   when :migrated
                     "Migrated: #{result.email_obscured} -> #{result.organization_extid}"
+                  when :migrated_archive_failed
+                    "Migrated (archive failed): #{result.email_obscured} -> #{result.organization_extid}"
                   when :skipped_already_member
                     "Skipped: #{result.email_obscured} (already member)"
                   when :error
@@ -171,6 +174,7 @@ module Onetime
         puts '  Total eligible:'.ljust(35) + stats[:total].to_s
         puts "  #{dry_run ? 'Would migrate' : 'Migrated'}:".ljust(35) + stats[:migrated].to_s
         puts '  Skipped (already member):'.ljust(35) + stats[:skipped].to_s
+        puts '  Archive warnings:'.ljust(35) + stats[:archive_warnings].to_s if stats[:archive_warnings] > 0
 
         return unless stats[:errors].any?
 

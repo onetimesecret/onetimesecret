@@ -135,20 +135,29 @@ module Auth
         customer.default_org_id = organization.objid
         customer.save
 
+        archive_failed = false
         if personal_org && personal_org.objid != organization.objid
-          personal_org.archive!("Bulk SSO migration to #{domain.display_domain}")
-          OT.info "[BulkSsoMigration] Archived personal workspace #{personal_org.extid} for #{customer.extid}"
+          begin
+            personal_org.archive!("Bulk SSO migration to #{domain.display_domain}")
+            OT.info "[BulkSsoMigration] Archived personal workspace #{personal_org.extid} for #{customer.extid}"
+          rescue StandardError => ex
+            archive_failed = true
+            OT.le "[BulkSsoMigration] Joined org but failed to archive personal workspace #{personal_org.extid} for #{customer.extid}: #{ex.message}"
+          end
         end
+
+        status = archive_failed ? :migrated_archive_failed : :migrated
+        message = archive_failed ? 'Joined domain org but personal workspace archival failed' : 'Migrated successfully'
 
         OT.info "[BulkSsoMigration] Migrated #{customer.extid} to #{organization.extid} (domain: #{domain.display_domain})"
 
         Result.new(
-          status: :migrated,
+          status: status,
           customer_extid: customer.extid,
           email_obscured: obscured,
           organization_extid: organization.extid,
           personal_org_extid: personal_org&.extid,
-          message: 'Migrated successfully',
+          message: message,
         )
       rescue StandardError => ex
         OT.le "[BulkSsoMigration] Error migrating #{customer.extid}: #{ex.message}"
@@ -173,6 +182,7 @@ module Auth
           next unless org
           next unless org.is_default.to_s == 'true'
           next if org.objid == organization.objid
+          next if org.archived?
 
           membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
           next unless membership&.owner?
