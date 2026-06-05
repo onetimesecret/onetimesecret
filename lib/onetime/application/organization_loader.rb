@@ -161,7 +161,7 @@ module Onetime
         orgs = orgs.reject { |o| denied_org_ids.include?(o.objid) } unless denied_org_ids.empty?
 
         if customer.default_org_id.to_s.length.positive?
-          customer_default = orgs.find { |o| o.objid == customer.default_org_id }
+          customer_default = orgs.find { |o| o.objid == customer.default_org_id && !o.archived? }
           if customer_default
             OT.ld "[OrganizationLoader] Using customer's default_org_id: #{customer_default.objid}"
             return customer_default

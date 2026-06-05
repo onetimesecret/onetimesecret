@@ -158,7 +158,7 @@ module Billing
         # @return [Onetime::Organization, nil] The default organization
         def ensure_default_workspace(customer)
           # Check for existing default org first
-          orgs = customer.organization_instances.to_a
+          orgs = customer.organization_instances.to_a.reject(&:archived?)
           org  = orgs.find(&:is_default) || orgs.first
           return org if org
 
@@ -353,7 +353,7 @@ module Billing
           end
 
           # 3. Customer's default org (fallback for legacy checkouts)
-          orgs = customer.organization_instances.to_a
+          orgs = customer.organization_instances.to_a.reject(&:archived?)
           org  = orgs.find { |o| o.is_default }
           if org
             OT.info '[ProcessCheckoutSession] Using customer default org (fallback)',

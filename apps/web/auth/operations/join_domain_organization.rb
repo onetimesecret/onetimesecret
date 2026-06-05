@@ -152,7 +152,7 @@ module Auth
         customer.default_org_id = domain_org.objid
         customer.save
 
-        personal_org.archive!("Superseded by domain org #{domain_org.objid} via SSO self-heal")
+        personal_org.archive!("Superseded by domain org #{domain_org.extid} via SSO self-heal")
 
         OT.info "[JoinDomainOrganization] Adopted domain org #{domain_org.objid} as default for #{customer.custid}, archived personal workspace #{personal_org.objid}"
 
