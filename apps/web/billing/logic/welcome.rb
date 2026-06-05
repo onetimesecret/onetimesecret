@@ -157,9 +157,14 @@ module Billing
         # @param customer [Onetime::Customer] The customer needing a workspace
         # @return [Onetime::Organization, nil] The default organization
         def ensure_default_workspace(customer)
-          # Check for existing default org first
           orgs = customer.organization_instances.to_a.reject(&:archived?)
-          org  = orgs.find(&:is_default) || orgs.first
+
+          if customer.default_org_id.to_s.length.positive?
+            explicit = orgs.find { |o| o.objid == customer.default_org_id }
+            return explicit if explicit
+          end
+
+          org = orgs.find(&:is_default) || orgs.first
           return org if org
 
           # Create via canonical operation (includes federation check)
