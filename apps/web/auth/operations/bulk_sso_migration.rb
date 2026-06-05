@@ -63,7 +63,7 @@ module Auth
       # @yield [scanned, total] Progress callback
       # @return [Array<Onetime::Customer>] eligible customers
       def find_eligible_customers(&progress)
-        base = domain.base_domain.to_s
+        base = domain.base_domain.to_s.downcase
         raise Onetime::Problem, "Domain #{domain.display_domain} has no base_domain — cannot match emails" if base.empty?
 
         email_suffix = "@#{base}"
@@ -96,7 +96,10 @@ module Auth
         obscured = OT::Utils.obscure_email(customer.email)
 
         if organization.member?(customer)
-          repair_default_org!(customer) unless dry_run
+          unless dry_run
+            repair_default_org!(customer)
+            repair_archive!(customer)
+          end
           return Result.new(
             status: :skipped_already_member,
             customer_extid: customer.extid,
@@ -183,6 +186,18 @@ module Auth
         OT.info "[BulkSsoMigration] Repaired default_org_id for #{customer.extid} -> #{organization.extid}"
       rescue StandardError => ex
         OT.le "[BulkSsoMigration] Failed to repair default_org_id for #{customer.extid}: #{ex.message}"
+      end
+
+      # Archive a personal workspace that a prior run failed to archive.
+      # Handles the :migrated_archive_failed case on re-run.
+      def repair_archive!(customer)
+        personal_org = find_personal_workspace(customer)
+        return unless personal_org
+
+        personal_org.archive!("Bulk SSO migration to #{domain.display_domain}")
+        OT.info "[BulkSsoMigration] Repaired: archived personal workspace #{personal_org.extid} for #{customer.extid}"
+      rescue StandardError => ex
+        OT.le "[BulkSsoMigration] Failed to repair archive for #{customer.extid}: #{ex.message}"
       end
 
       # Find a customer's personal default workspace (the one created by
