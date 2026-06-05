@@ -444,8 +444,9 @@ module Onetime
         resolved = provider.to_s.strip
         return resolved unless resolved.empty?
 
-        # Fallback to installation config
-        Onetime::Mail::Mailer.send(:determine_provider)
+        # Fallback to installation-level sender provider, which itself
+        # falls back to the sending transport (EMAILER_MODE).
+        Onetime::Mail::Mailer.send(:determine_sender_provider)
       end
 
       class << self

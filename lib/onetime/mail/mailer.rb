@@ -216,6 +216,16 @@ module Onetime
           end
         end
 
+        # Returns the provider for custom mail sender domain provisioning.
+        # Falls back to the sending transport (determine_provider) when unset.
+        def determine_sender_provider
+          conf = emailer_config
+          sp   = conf['sender_provider']
+          return sp.to_s.downcase.strip if sp.is_a?(String) && !sp.strip.empty?
+
+          determine_provider
+        end
+
         def determine_provider
           conf = emailer_config
           mode = conf['mode']&.to_s&.downcase
