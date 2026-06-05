@@ -8,6 +8,7 @@ require 'yaml'
 require 'erb'
 require 'singleton'
 require_relative 'utils/config_resolver'
+require_relative 'utils/enumerables'
 
 module Onetime
   class AuthConfig
@@ -372,11 +373,28 @@ module Onetime
         return
       end
 
-      erb_template = ERB.new(File.read(@path))
-      yaml_content = erb_template.result(binding)
-      @config      = YAML.safe_load(yaml_content, symbolize_names: false)
+      defaults_file = Onetime::Utils::ConfigResolver.defaults_path('auth')
+      base_config = if defaults_file && defaults_file != @path
+        load_yaml_from(defaults_file)
+      else
+        {}
+      end
+
+      env_config = load_yaml_from(@path)
+
+      @config = if base_config.empty?
+        env_config
+      else
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
+      end
     rescue StandardError => ex
       handle_config_error(ex)
+    end
+
+    def load_yaml_from(path)
+      erb_template = ERB.new(File.read(path))
+      yaml_content = erb_template.result(binding)
+      YAML.safe_load(yaml_content, symbolize_names: false) || {}
     end
 
     def handle_config_error(exception)

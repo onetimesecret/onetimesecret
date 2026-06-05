@@ -248,7 +248,7 @@ RSpec.describe 'Email template i18n integration' do
         # Check for translated strings
         expect(text).to include('sent you a secret')
         expect(text).to include('This link will only work once')
-        expect(text).to include('Onetime Secret')
+        expect(text).to include('One-Time Secret')
       end
 
       it 'includes the secret URL path' do
@@ -274,7 +274,7 @@ RSpec.describe 'Email template i18n integration' do
         expect(html).to include('sent you a secret')
         expect(html).to include('Important:')
         expect(html).to include('This link will only work once')
-        expect(html).to include('Onetime Secret')
+        expect(html).to include('One-Time Secret')
       end
 
       it 'includes properly escaped content' do

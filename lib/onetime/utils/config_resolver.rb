@@ -4,17 +4,20 @@
 
 module Onetime
   module Utils
-    # ConfigResolver provides test-aware configuration file resolution.
+    # ConfigResolver provides test-aware configuration file resolution
+    # with two-layer support: a defaults base file and an environment
+    # override file.
     #
-    # Ensures proper test isolation by automatically using test-specific
-    # config files from spec/ when RACK_ENV=test.
+    # Layered resolution (all environments):
+    #   Base:     etc/defaults/{name}.defaults.yaml (if present)
+    #   Override: environment-specific file (see below)
     #
-    # Resolution order (test environment):
+    # Override resolution order (test environment):
     #   1. spec/{name}.test.yaml
     #   2. apps/**/spec/{name}.test.yaml (first match)
     #   3. etc/{name}.yaml (fallback)
     #
-    # Resolution (non-test):
+    # Override resolution (non-test):
     #   - etc/{name}.yaml
     #
     # @example
@@ -22,12 +25,10 @@ module Onetime
     #   # RACK_ENV=test  → spec/logging.test.yaml
     #   # RACK_ENV=dev   → etc/logging.yaml
     #
-    #   ConfigResolver.resolve('billing')
-    #   # RACK_ENV=test  → apps/web/billing/spec/billing.test.yaml
     #
     module ConfigResolver
       class << self
-        # Resolve path to a configuration file.
+        # Resolve path to an environment-specific configuration file.
         #
         # @param name [String] Config name without extension (e.g., 'logging', 'auth')
         # @return [String, nil] Absolute path to config file, or nil if not found
@@ -59,6 +60,24 @@ module Onetime
           end
 
           log_resolution(name, nil, 'not found')
+          nil
+        end
+
+        # Resolve path to the defaults base file.
+        #
+        # @param name [String] Config name without extension
+        # @return [String, nil] Absolute path to defaults file, or nil if not found
+        #
+        def defaults_path(name)
+          base = home_directory
+          path = File.join(base, 'etc', 'defaults', "#{name}.defaults.yaml")
+
+          if File.exist?(path)
+            log_resolution(name, path, 'defaults')
+            return path
+          end
+
+          log_resolution(name, nil, 'defaults not found')
           nil
         end
 
