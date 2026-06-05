@@ -85,6 +85,7 @@ end
 @email_address = generate_unique_test_email('emailchange')
 @cust = Onetime::Customer.new email: @email_address
 @cust.update_passphrase @password
+@cust.save
 @strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 
 # TRYOUTS

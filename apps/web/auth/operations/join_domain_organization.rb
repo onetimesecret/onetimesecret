@@ -62,11 +62,18 @@ module Auth
         # Check if already a member (includes owner)
         if organization.member?(customer)
           OT.ld "[JoinDomainOrganization] Customer #{customer.custid} already member of #{organization.objid}"
+
+          # Retry adoption on subsequent logins: if a previous join succeeded
+          # but adopt_domain_default_org failed partway, the customer is
+          # already_member yet still defaulting to a personal workspace.
+          adoption = adopt_domain_default_org(organization)
+
           return {
             joined: false,
             reason: 'already_member',
             organization: organization,
-          }
+            adoption: adoption,
+          }.compact
         end
 
         # Add as member — activates pending invitation if one exists,

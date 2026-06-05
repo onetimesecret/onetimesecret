@@ -532,7 +532,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
         'default_org_id should not have been changed'
     end
 
-    it 'does not adopt when returning user is already a member (idempotent)' do
+    it 'skips adoption on already_member when default_org already repointed' do
       legacy_customer.default_org_id = personal_workspace.objid
       legacy_customer.save
 
@@ -544,15 +544,54 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(first_result[:joined]).to be(true)
       expect(first_result[:adoption]&.dig(:adopted)).to be(true)
 
-      # Second join: already_member, no adoption
+      # Second join: already_member, adoption retried but no-op because
+      # personal workspace is already archived (guard in resolve_personal_default_org)
       second_result = Auth::Operations::JoinDomainOrganization.new(
         customer: legacy_customer,
         domain_id: tenant_custom_domain.identifier,
       ).call
       expect(second_result[:joined]).to be(false)
       expect(second_result[:reason]).to eq('already_member')
-      expect(second_result).not_to have_key(:adoption),
-        'Returning member should not trigger adoption again'
+      expect(second_result[:adoption]).to be_nil,
+        'Adoption should be nil when personal workspace is already archived'
+    end
+
+    it 'retries adoption on already_member when previous adoption failed' do
+      # First join without adoption setup (no personal workspace as default)
+      legacy_customer.default_org_id = nil
+      legacy_customer.save
+
+      # Temporarily un-default the personal workspace so first join skips adoption
+      personal_workspace.is_default = false
+      personal_workspace.save
+
+      first_result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+      expect(first_result[:joined]).to be(true)
+      expect(first_result[:adoption]).to be_nil
+
+      # Now simulate partial failure recovery: restore personal workspace default
+      # and point customer back to it (as if adoption never ran)
+      personal_workspace.is_default = true
+      personal_workspace.save
+      legacy_customer.default_org_id = personal_workspace.objid
+      legacy_customer.save
+
+      # Second join: already_member, but adoption should now succeed
+      second_result = Auth::Operations::JoinDomainOrganization.new(
+        customer: legacy_customer,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+      expect(second_result[:joined]).to be(false)
+      expect(second_result[:reason]).to eq('already_member')
+      expect(second_result[:adoption]).not_to be_nil,
+        'Adoption should retry on already_member when default_org still points to personal workspace'
+      expect(second_result[:adoption][:adopted]).to be(true)
+
+      reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
+      expect(reloaded_customer.default_org_id).to eq(tenant_organization.objid)
     end
 
     it 'does not adopt when default_org_id points to a non-default org' do
