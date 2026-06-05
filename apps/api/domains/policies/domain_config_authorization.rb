@@ -85,7 +85,20 @@ module DomainsAPI
         org
       end
 
-      # Verify organization has the required entitlement.
+      # Verify organization has the required entitlement at the plan level.
+      #
+      # Uses organization.can? (org plan capabilities) rather than
+      # membership.can? (per-member entitlements). This is intentional:
+      # authorize_domain_config! already verifies the user is an active
+      # member with manage_org via require_entitlement_in!, so this
+      # step answers "does the org's plan include this feature?" — not
+      # "does this individual member have the feature?"
+      #
+      # Note: read-only endpoints (GetDomainBrand, GetDomainImage) use
+      # require_entitlement_in! which checks membership-level entitlements
+      # instead. The two checks can diverge when per-member grants/revokes
+      # are in play (ADR-012), but this matches the existing pattern across
+      # all config endpoints.
       #
       # Delegates to `config_entitlement` for the entitlement name and
       # `config_entitlement_error` for the error message. Both must be
