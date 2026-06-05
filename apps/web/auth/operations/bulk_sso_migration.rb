@@ -110,7 +110,6 @@ module Auth
             status = repair_needed ? :would_repair : :skipped_already_member
             message = repair_needed ? 'Would repair partial migration state' : 'Already a member of domain organization'
           else
-            repair_needed = needs_repair?(customer)
             repaired = false
             repaired |= repair_default_org!(customer)
             repaired |= repair_archive!(customer)
@@ -118,7 +117,7 @@ module Auth
             if repaired
               status = :repaired
               message = 'Already a member; repaired partial migration state'
-            elsif repair_needed
+            elsif needs_repair?(customer)
               status = :error
               message = 'Repair needed but all repair attempts failed'
             else
