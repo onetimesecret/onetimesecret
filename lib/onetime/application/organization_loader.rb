@@ -180,8 +180,8 @@ module Onetime
           return default_org
         end
 
-        # 5. First available organization
-        first_org = orgs.first
+        # 5. First available organization (skip archived — they've been superseded)
+        first_org = orgs.find { |o| !o.archived? }
         if first_org
           OT.ld "[OrganizationLoader] Using first organization: #{first_org.objid}"
           return first_org

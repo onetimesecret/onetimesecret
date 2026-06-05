@@ -59,7 +59,14 @@ RSpec.describe 'OrganizationMembership#change_role!' do
 
     before do
       allow(Onetime::Organization).to receive(:load).with('org-123').and_return(org)
-      # Stub save_with_collections to avoid Redis
+      # Persist the membership so its hash key exists before the stubbed
+      # save_with_collections yields its collection writes. In production the
+      # real save_with_collections saves the scalar fields first; the stub
+      # skips that, so without this Familia v2.10's raise_on_unsaved_parent_write
+      # guard would reject the entitlements_plan writes on a never-saved parent.
+      real_membership.save
+      # Stub save_with_collections to avoid a second Redis round-trip; yield so
+      # the collection operations in materialize_for_role! still execute.
       allow(real_membership).to receive(:save_with_collections).and_yield.and_return(true)
     end
 
