@@ -37,6 +37,7 @@ module DomainsAPI::Logic
 
       def raise_concerns
         raise_form_error 'Please provide a domain ID' if @extid.empty?
+        raise_form_error 'Invalid domain identifier format' unless @extid.match?(/\A[a-z0-9]+\z/)
 
         @custom_domain = load_custom_domain(@extid)
         @organization = load_organization_for_domain(@custom_domain)
