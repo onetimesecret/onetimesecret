@@ -102,7 +102,7 @@ module Auth
           organization: organization,
           membership: membership,
           adoption: adoption,
-        }
+        }.compact
       rescue StandardError => ex
         OT.le "[JoinDomainOrganization] Error: #{ex.message}"
         {
