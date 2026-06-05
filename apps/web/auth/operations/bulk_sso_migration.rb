@@ -96,6 +96,7 @@ module Auth
         obscured = OT::Utils.obscure_email(customer.email)
 
         if organization.member?(customer)
+          repair_default_org!(customer) unless dry_run
           return Result.new(
             status: :skipped_already_member,
             customer_extid: customer.extid,
@@ -170,6 +171,19 @@ module Auth
       end
 
       private
+
+      # Repair default_org_id if it doesn't point to the domain org.
+      # Handles the case where a prior run joined the org but customer.save
+      # failed before default_org_id was persisted.
+      def repair_default_org!(customer)
+        return if customer.default_org_id == organization.objid
+
+        customer.default_org_id = organization.objid
+        customer.save
+        OT.info "[BulkSsoMigration] Repaired default_org_id for #{customer.extid} -> #{organization.extid}"
+      rescue StandardError => ex
+        OT.le "[BulkSsoMigration] Failed to repair default_org_id for #{customer.extid}: #{ex.message}"
+      end
 
       # Find a customer's personal default workspace (the one created by
       # CreateDefaultWorkspace during install-level SSO).

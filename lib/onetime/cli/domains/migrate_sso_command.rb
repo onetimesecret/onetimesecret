@@ -200,6 +200,7 @@ module Onetime
             total: stats[:total],
             migrated: stats[:migrated],
             skipped: stats[:skipped],
+            archive_warnings: stats[:archive_warnings],
             errors: stats[:errors].size,
           },
           results: results.map { |r|
