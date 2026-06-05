@@ -626,7 +626,11 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
     it 'does not re-archive an already archived personal workspace' do
       # Archive first, then try to join
       personal_workspace.archive!('test_pre_archived')
-      original_archived_at = personal_workspace.archived_at
+      # Capture the persisted value (read back from Redis) rather than the
+      # higher-precision in-memory float — archived_at is an epoch float that
+      # loses trailing precision through string serialization, so comparing the
+      # in-memory value against a reloaded one yields a spurious mismatch.
+      original_archived_at = Onetime::Organization.load(personal_workspace.objid).archived_at
 
       legacy_customer.default_org_id = personal_workspace.objid
       legacy_customer.save
@@ -640,7 +644,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(result[:adoption]).to be_nil,
         'Should not adopt an already-archived personal workspace'
 
-      # archived_at should not have been updated
+      # archived_at should not have been updated (no re-archive)
       reloaded_workspace = Onetime::Organization.load(personal_workspace.objid)
       expect(reloaded_workspace.archived_at).to eq(original_archived_at)
     end
