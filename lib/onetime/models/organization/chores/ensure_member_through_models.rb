@@ -33,47 +33,51 @@ Onetime::Organization.chore :ensure_member_through_models do |org|
   owner_objid = org.owner_id
   modified    = false
 
-  # Batch-load customers from the ZSET; compact drops ghost records.
-  customers = OT::Customer.load_multi(org.members.to_a).compact
+  # Ensure org-level entitlements exist before iterating members.
+  org.materialize_standalone_entitlements! if org.entitlements.empty?
 
-  customers.each do |customer|
-    membership = OT::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
+  org.members.to_a.each_slice(100) do |batch|
+    OT::Customer.load_multi(batch).compact.each do |customer|
+      membership = OT::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
 
-    if membership.nil?
-      role = customer.objid == owner_objid ? 'owner' : 'member'
+      if membership.nil?
+        role = customer.objid == owner_objid ? 'owner' : 'member'
 
-      membership = org.add_members_instance(
-        customer,
-        through_attrs: {
-          role: role,
-          status: 'active',
-          joined_at: org.created.to_f,
-        },
-      )
+        membership = org.add_members_instance(
+          customer,
+          through_attrs: {
+            role: role,
+            status: 'active',
+            joined_at: org.created.to_f,
+          },
+        )
 
-      logger.info 'Created membership through-model',
+        logger.info 'Created membership through-model',
+          chore: :ensure_member_through_models,
+          org_extid: org.extid,
+          customer_objid: customer.objid,
+          role: role
+
+        modified = true
+      end
+
+      next unless membership && !membership.entitlements_materialized?
+
+      membership.materialize_for_role!(org)
+
+      logger.info 'Materialized membership entitlements',
+        chore: :ensure_member_through_models,
+        org_extid: org.extid,
+        customer_objid: customer.objid
+
+      modified = true
+    rescue StandardError => ex
+      logger.error 'Member processing failed',
         chore: :ensure_member_through_models,
         org_extid: org.extid,
         customer_objid: customer.objid,
-        role: role
-
-      modified = true
+        error: ex.message
     end
-
-    next unless membership && !membership.entitlements_materialized?
-
-    if org.entitlements.empty?
-      org.materialize_standalone_entitlements!
-    end
-
-    membership.materialize_for_role!(org)
-
-    logger.info 'Materialized membership entitlements',
-      chore: :ensure_member_through_models,
-      org_extid: org.extid,
-      customer_objid: customer.objid
-
-    modified = true
   end
 
   modified || nil
