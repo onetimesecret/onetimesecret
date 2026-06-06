@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/env_feature_loading_spec.rb
+# apps/web/auth/spec/integration/full/config/env_feature_loading_spec.rb
 #
 # frozen_string_literal: true
 
@@ -28,7 +28,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'climate_control'
 require 'rodauth'
 
@@ -42,7 +42,7 @@ module Auth; end
 Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 Auth::Config.const_set(:Features, Module.new) unless Auth::Config.const_defined?(:Features, false)
 
-require_relative '../../config/features/mfa'
+require_relative '../../../../config/features/mfa'
 
 RSpec.describe 'ENV-conditional feature loading' do
   let(:db) { create_test_database }

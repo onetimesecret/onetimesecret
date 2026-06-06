@@ -1,4 +1,4 @@
-# apps/web/auth/spec/unit/seed_dev_oauth_client_idempotency_spec.rb
+# apps/web/auth/spec/integration/full/seed_dev_oauth_client_idempotency_spec.rb
 #
 # frozen_string_literal: true
 
@@ -46,7 +46,7 @@ ENV['OAUTH_JWT_RSA_PRIVATE_KEY'] ||= OpenSSL::PKey::RSA.new(2048).to_pem
 require 'securerandom'
 ENV['OAUTH_SP_DEV_CLIENT_SECRET'] ||= "unit-spec-placeholder-#{SecureRandom.hex(8)}"
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 require 'sequel'
 require 'bcrypt'

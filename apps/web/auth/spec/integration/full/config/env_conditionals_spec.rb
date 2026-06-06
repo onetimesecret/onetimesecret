@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/env_conditionals_spec.rb
+# apps/web/auth/spec/integration/full/config/env_conditionals_spec.rb
 #
 # frozen_string_literal: true
 
@@ -13,7 +13,7 @@
 # The Phase 1 feature specs test that features work when enabled;
 # these tests verify the ENV parsing that controls enablement.
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'climate_control'
 
 RSpec.describe 'Auth::Config ENV Conditional Logic' do

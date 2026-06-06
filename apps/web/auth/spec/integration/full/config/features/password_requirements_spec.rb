@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/features/password_requirements_spec.rb
+# apps/web/auth/spec/integration/full/config/features/password_requirements_spec.rb
 #
 # frozen_string_literal: true
 
@@ -10,7 +10,7 @@
 #
 # Reference: apps/web/auth/config/features/password_requirements.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../../spec_helper'
 
 RSpec.describe 'Auth::Config::Features::PasswordRequirements' do
   let(:db) { create_test_database }

@@ -1,4 +1,4 @@
-# apps/web/auth/spec/unit/noauth_strategy_spec.rb
+# apps/web/auth/spec/integration/full/noauth_strategy_spec.rb
 #
 # frozen_string_literal: true
 
@@ -7,11 +7,11 @@
 # Requires Valkey on port 2121 (pnpm run test:database:start).
 #
 # Run:
-#   pnpm run test:rspec apps/web/auth/spec/unit/noauth_strategy_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/integration/full/noauth_strategy_spec.rb
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
-require_relative '../support/shared_examples/session_contract_examples'
+require_relative '../../spec_helper'
+require_relative '../../support/strategy_test_context'
+require_relative '../../support/shared_examples/session_contract_examples'
 
 RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :integration do
   include_context 'strategy test'
@@ -132,7 +132,7 @@ RSpec.describe Onetime::Application::AuthStrategies::NoAuthStrategy, type: :inte
     # Source comment accuracy
     # -----------------------------------------------------------------
     context 'source documentation' do
-      let(:source_file) { File.read(File.expand_path('../../../../../lib/onetime/application/auth_strategies/no_auth_strategy.rb', __dir__)) }
+      let(:source_file) { File.read(File.expand_path('../../../../../../lib/onetime/application/auth_strategies/no_auth_strategy.rb', __dir__)) }
 
       it 'comment says "Try session first, then fall back to anonymous" (no mention of Basic auth handling here)' do
         # The NoAuthStrategy comment must describe its own scope accurately:

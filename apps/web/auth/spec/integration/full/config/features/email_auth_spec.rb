@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/features/email_auth_spec.rb
+# apps/web/auth/spec/integration/full/config/features/email_auth_spec.rb
 #
 # frozen_string_literal: true
 
@@ -10,7 +10,7 @@
 #
 # Reference: apps/web/auth/config/features/email_auth.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../../spec_helper'
 
 RSpec.describe 'Auth::Config::Features::EmailAuth' do
   let(:db) { create_test_database }

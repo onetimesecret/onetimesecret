@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/features/mfa_spec.rb
+# apps/web/auth/spec/integration/full/config/features/mfa_spec.rb
 #
 # frozen_string_literal: true
 
@@ -10,9 +10,9 @@
 #
 # Reference: apps/web/auth/config/features/mfa.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../../spec_helper'
 
-require_relative '../../support/auth_test_constants'
+require_relative '../../../../support/auth_test_constants'
 include AuthTestConstants
 
 RSpec.describe 'Auth::Config::Features::MFA' do

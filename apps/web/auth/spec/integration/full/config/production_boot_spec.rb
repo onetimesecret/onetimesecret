@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/production_boot_spec.rb
+# apps/web/auth/spec/integration/full/config/production_boot_spec.rb
 #
 # frozen_string_literal: true
 
@@ -29,7 +29,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'climate_control'
 
 # Define the Auth::Config namespace so the feature/hook modules can load without
@@ -52,7 +52,7 @@ RSpec.describe 'Auth module structure smoke tests' do
     before(:all) do
       # Load the features index which requires all feature modules
       # (Auth::Config namespace is established by the top-level shim above)
-      require_relative '../../config/features'
+      require_relative '../../../../config/features'
     end
 
     describe 'Lockout module' do
@@ -187,7 +187,7 @@ RSpec.describe 'Auth module structure smoke tests' do
   describe 'Auth::Config::Hooks modules' do
     before(:all) do
       # Load hooks index
-      require_relative '../../config/hooks'
+      require_relative '../../../../config/hooks'
     end
 
     describe 'Account hooks module' do
@@ -263,7 +263,7 @@ RSpec.describe 'Auth module structure smoke tests' do
 
   describe 'Auth::Config::Base module' do
     before(:all) do
-      require_relative '../../config/base'
+      require_relative '../../../../config/base'
     end
 
     it 'is defined' do
@@ -277,7 +277,7 @@ RSpec.describe 'Auth module structure smoke tests' do
 
   describe 'Auth::Config::Email module' do
     before(:all) do
-      require_relative '../../config/email'
+      require_relative '../../../../config/email'
     end
 
     it 'is defined' do

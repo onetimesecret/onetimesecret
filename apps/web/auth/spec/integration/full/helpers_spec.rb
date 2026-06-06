@@ -1,4 +1,4 @@
-# apps/web/auth/spec/unit/helpers_spec.rb
+# apps/web/auth/spec/integration/full/helpers_spec.rb
 #
 # frozen_string_literal: true
 
@@ -12,9 +12,9 @@
 # `REMOTE_ADDR` (no regression for default deployments).
 #
 # Run:
-#   pnpm run test:rspec apps/web/auth/spec/unit/helpers_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/integration/full/helpers_spec.rb
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 require 'rack/request'
 require 'onetime/application/auth_strategies/helpers'
