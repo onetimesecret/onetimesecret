@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/mailer_config'
+require 'onetime/operations/delete_sender_domain'
 require_relative 'base'
 require_relative 'audit_logger'
 
@@ -38,13 +39,13 @@ module DomainsAPI
           # Load domain and organization, verify ownership and entitlement
           authorize_sender_config!(@domain_id)
 
-          # Verify config exists and capture provider for audit
-          existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
-          unless existing_config
+          # Verify config exists and capture for audit + provider deletion
+          @existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
+          unless @existing_config
             raise_not_found("Sender configuration not found for domain: #{@domain_id}")
           end
 
-          @deleted_provider = existing_config.provider
+          @deleted_provider = @existing_config.provider
         end
 
         def process
@@ -84,21 +85,10 @@ module DomainsAPI
 
         private
 
-        # Deletes sender domain from Lettermint if configured.
-        # Must be called before delete_for_domain! which wipes the config.
-        #
         def delete_sender_domain
-          existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
-          return unless existing_config&.effective_provider == 'lettermint'
-
-          credentials = Onetime::Mail::Mailer.provider_credentials('lettermint')
-          strategy    = Onetime::Mail::SenderStrategies.for_provider('lettermint')
-          result      = strategy.delete_sender_identity(existing_config, credentials: credentials)
-
-          OT.info "[DeleteSenderConfig.delete_sender_domain] #{@custom_domain.display_domain} -> #{result[:message]}"
-        rescue StandardError => ex
-          OT.le "[DeleteSenderConfig.delete_sender_domain error] #{@custom_domain.display_domain} #{ex}"
-          # Continue with config deletion even if Lettermint deletion fails
+          Onetime::Operations::DeleteSenderDomain.new(
+            mailer_config: @existing_config,
+          ).call
         end
       end
     end

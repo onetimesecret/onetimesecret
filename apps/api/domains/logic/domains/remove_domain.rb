@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/domain_validation/strategy'
+require 'onetime/operations/delete_sender_domain'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -70,21 +71,10 @@ module DomainsAPI::Logic
         # Continue with domain removal even if vhost deletion fails
       end
 
-      # Deletes sender domain from Lettermint if configured.
-      # Must be called before destroy! which wipes the mailer_config.
-      #
       def delete_sender_domain
-        mailer_config = @custom_domain.mailer_config
-        return unless mailer_config&.effective_provider == 'lettermint'
-
-        credentials = Onetime::Mail::Mailer.provider_credentials('lettermint')
-        strategy    = Onetime::Mail::SenderStrategies.for_provider('lettermint')
-        result      = strategy.delete_sender_identity(mailer_config, credentials: credentials)
-
-        OT.info "[RemoveDomain.delete_sender_domain] #{@display_domain} -> #{result[:message]}"
-      rescue StandardError => ex
-        OT.le "[RemoveDomain.delete_sender_domain error] #{@cust.extid} #{@display_domain} #{ex}"
-        # Continue with domain removal even if Lettermint deletion fails
+        Onetime::Operations::DeleteSenderDomain.new(
+          mailer_config: @custom_domain.mailer_config,
+        ).call
       end
 
       def success_data

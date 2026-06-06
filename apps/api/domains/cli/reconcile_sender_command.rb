@@ -57,6 +57,12 @@ module Onetime
         puts "  existing config: #{existing_config ? 'yes' : 'no'}"
         puts
 
+        if existing_config && existing_config.effective_provider != 'lettermint'
+          puts "Error: Existing config uses provider '#{existing_config.effective_provider}', not 'lettermint'."
+          puts '  Delete the existing sender config first to switch providers.'
+          return
+        end
+
         if dry_run
           puts '[dry-run] Would reconcile Lettermint sender domain:'
           puts "  domain: #{domain.display_domain}"
@@ -70,14 +76,19 @@ module Onetime
         mailer_config = existing_config
         unless mailer_config
           puts 'Creating mailer config...'
-          mailer_config = Onetime::CustomDomain::MailerConfig.create!(
-            domain_id: domain.identifier,
-            from_address: resolved_from,
-            provider: 'lettermint',
-            enabled: false,
-            sending_mode: 'platform',
-          )
-          puts "  created (domain_id: #{domain.identifier})"
+          begin
+            mailer_config = Onetime::CustomDomain::MailerConfig.create!(
+              domain_id: domain.identifier,
+              from_address: resolved_from,
+              provider: 'lettermint',
+              enabled: false,
+              sending_mode: 'platform',
+            )
+            puts "  created (domain_id: #{domain.identifier})"
+          rescue StandardError => ex
+            puts "Error creating mailer config: #{ex.message}"
+            return
+          end
         end
 
         # Provision via the operation (handles 409 by fetching existing)
