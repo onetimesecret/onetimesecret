@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Fatura iletişim e-postanız Onetime Secret hesap e-postanızdan farklıysa, abonelik avantajlarınızı korumak için yeni bölge hesabında fatura iletişim e-postanızı kullanın.",
+    "text": "Fatura iletişim e-postanız {product_name} hesap e-postanızdan farklıysa, abonelik avantajlarınızı korumak için yeni bölge hesabında fatura iletişim e-postanızı kullanın.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

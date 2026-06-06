@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Se o seu e-mail de contacto de faturação for diferente do e-mail da sua conta Onetime Secret, utilize o e-mail de contacto de faturação para a conta na nova região para manter os benefícios da sua subscrição.",
+    "text": "Se o seu e-mail de contacto de faturação for diferente do e-mail da sua conta {product_name}, utilize o e-mail de contacto de faturação para a conta na nova região para manter os benefícios da sua subscrição.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

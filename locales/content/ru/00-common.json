@@ -108,7 +108,7 @@
     "text": "Создать аккаунт",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "О сервисе",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "напр. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "О проекте",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Статус",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Всегда проверяйте, что находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно как Onetime Secret, чтобы похитить Ваши секреты. Чтобы избежать фишинговых атак, проверяйте домен перед созданием новых ссылок.",
+    "text": "Всегда проверяйте, что находитесь на официальном сайте {product_name}. Мошенники иногда создают поддельные сайты, которые выглядят точно как {product_name}, чтобы похитить Ваши секреты. Чтобы избежать фишинговых атак, проверяйте домен перед созданием новых ссылок.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

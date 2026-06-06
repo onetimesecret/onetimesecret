@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "您正在查看通过 Onetime Secret 分享给您的安全信息。此内容仅显示一次，然后将从我们的服务器永久删除。",
+    "text": "您正在查看通过 {product_name} 分享给您的安全信息。此内容仅显示一次，然后将从我们的服务器永久删除。",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "访问 Onetime Secret 主页",
+    "text": "访问 {product_name} 主页",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {

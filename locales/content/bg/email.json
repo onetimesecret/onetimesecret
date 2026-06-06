@@ -1,690 +1,862 @@
 {
   "email.incomingsupport.subject": {
     "text": "[Тикет: %s]",
+    "renderer": "erb",
     "source_hash": "9e2074ae"
   },
   "email.incomingsupport.body1": {
     "text": "Клиент е изпратил следната информация",
+    "renderer": "erb",
     "source_hash": "9c965ab8"
   },
   "email.secret_link.subject": {
     "text": "%{sender_email} ви изпрати тайна",
+    "renderer": "erb",
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
     "text": "ви изпрати тайна:",
+    "renderer": "erb",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
     "text": "Важно:",
+    "renderer": "erb",
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
     "text": "Тази връзка ще работи само веднъж. След преглеждане тайната ще бъде перманентно изтрита.",
+    "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
   "email.secret_link.sent_via": {
     "text": "Изпратено чрез",
+    "renderer": "erb",
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
     "text": "Добре дошли в %{product_name} - Моля, потвърдете имейла си",
+    "renderer": "erb",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
     "text": "Добре дошли в %{product_name}!",
+    "renderer": "erb",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
     "text": "Моля, потвърдете имейл адреса си като натиснете връзката по-долу:",
+    "renderer": "erb",
     "source_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
     "text": "Потвърди имейл адрес",
+    "renderer": "erb",
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Или копирайте и поставете тази връзка:",
+    "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.welcome.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.welcome.postscript": {
     "text": "P.S. Този имейл беше изпратен до %{email_address}. Ако не сте създали акаунт, можете спокойно да игнорирате това съобщение.",
+    "renderer": "erb",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
     "text": "Нулирайте паролата си (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
     "text": "Нулирайте паролата си",
+    "renderer": "erb",
     "source_hash": "0568c7b0"
   },
   "email.password_request.request_notice": {
     "text": "Получихме заявка за нулиране на паролата ви за %{product_name}.",
+    "renderer": "erb",
     "source_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
     "text": "Нулиране на парола",
+    "renderer": "erb",
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
     "text": "Или копирайте и поставете тази връзка:",
+    "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
     "text": "Ако не сте поискали нулиране на паролата, можете спокойно да игнорирате този имейл.",
+    "renderer": "erb",
     "source_hash": "fbb7eb2d"
   },
   "email.password_request.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.password_request.postscript": {
     "text": "P.S. Този имейл беше изпратен до %{email_address}.",
+    "renderer": "erb",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
     "text": "Вход в %{display_domain}",
+    "renderer": "erb",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
     "text": "Вход с магическа връзка",
+    "renderer": "erb",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
     "text": "Поискахте връзка за вход за вашия %{product_name} акаунт.",
+    "renderer": "erb",
     "source_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
     "text": "Вход",
+    "renderer": "erb",
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "Или копирайте и поставете тази връзка:",
+    "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
     "text": "Тази връзка ще изтече след 15 минути.",
+    "renderer": "erb",
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
     "text": "Ако не сте поискали тази връзка, можете спокойно да игнорирате този имейл.",
+    "renderer": "erb",
     "source_hash": "1863f5be"
   },
   "email.magic_link.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.magic_link.postscript": {
     "text": "P.S. Този имейл беше изпратен до %{email_address}.",
+    "renderer": "erb",
     "source_hash": "8ab1dbea"
   },
   "email.incoming_secret.subject": {
     "text": "Получихте тайно съобщение",
+    "renderer": "erb",
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
     "text": "Получихте защитено съобщение:",
+    "renderer": "erb",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
     "text": "Бележка:",
+    "renderer": "erb",
     "source_hash": "8bab5066"
   },
   "email.incoming_secret.someone_sent": {
     "text": "Някой ви е изпратил защитено съобщение чрез %{display_domain}.",
+    "renderer": "erb",
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
     "text": "За да прегледате тази тайна, натиснете връзката по-долу:",
+    "renderer": "erb",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
     "text": "Важно:",
+    "renderer": "erb",
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
     "text": "Тази връзка ще работи само веднъж. След преглеждане тайната ще бъде перманентно изтрита.",
+    "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
   "email.incoming_secret.passphrase_required": {
     "text": "Тази тайна е защитена с ключова фраза. Подателят трябва да ви я предостави отделно.",
+    "renderer": "erb",
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
     "text": "Изисква се ключова фраза:",
+    "renderer": "erb",
     "source_hash": "1ab9a20f"
   },
   "email.incoming_secret.sent_via": {
     "text": "Изпратено чрез",
+    "renderer": "erb",
     "source_hash": "d01479b3"
   },
   "email.secret_revealed.subject": {
     "text": "Тайната ви беше прегледана",
+    "renderer": "erb",
     "source_hash": "0767ae45"
   },
   "email.secret_revealed.title": {
     "text": "Тайната ви беше прегледана",
+    "renderer": "erb",
     "source_hash": "6a530d71"
   },
   "email.secret_revealed.viewed_on": {
     "text": "Тайната ви беше прегледана на %{date}.",
+    "renderer": "erb",
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
     "text": "ID на тайната:",
+    "renderer": "erb",
     "source_hash": "ab567438"
   },
   "email.secret_revealed.automated_notice": {
     "text": "Това е автоматично известие. Не се изисква действие.",
+    "renderer": "erb",
     "source_hash": "3f6b45dd"
   },
   "email.secret_revealed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.secret_revealed.manage_preferences": {
     "text": "Управление на предпочитанията за известия",
+    "renderer": "erb",
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
     "text": "За да управлявате предпочитанията си за известия:",
+    "renderer": "erb",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
     "text": "Вашата тайна връзка скоро ще изтече",
+    "renderer": "erb",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
     "text": "Вашата тайна връзка ще изтече след %{time_remaining}",
+    "renderer": "erb",
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
     "text": "Прегледайте тайната си преди да изтече",
+    "renderer": "erb",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
     "text": "Напомняне:",
+    "renderer": "erb",
     "source_hash": "e945d640"
   },
   "email.expiration_warning.after_expiration": {
     "text": "След изтичане тайната ще бъде перманентно изтрита и не може да бъде възстановена.",
+    "renderer": "erb",
     "source_hash": "deb92a01"
   },
   "email.expiration_warning.sent_via": {
     "text": "Изпратено чрез",
+    "renderer": "erb",
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
     "text": "Прегледайте я, преди да изчезне:",
+    "renderer": "erb",
     "source_hash": "30342c04"
   },
   "email.expiration_warning.after_expiration_short": {
     "text": "След изтичане тайната ще бъде перманентно изтрита.",
+    "renderer": "erb",
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
     "text": "Обратна връзка на %{date} чрез %{display_domain} (%{strategy})",
+    "renderer": "erb",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
     "text": "Потребителска обратна връзка",
+    "renderer": "erb",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
     "text": "От:",
+    "renderer": "erb",
     "source_hash": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
     "text": "Домейн:",
+    "renderer": "erb",
     "source_hash": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
     "text": "Стратегия:",
+    "renderer": "erb",
     "source_hash": "8132ec6b"
   },
   "email.feedback_email.message_label": {
     "text": "Съобщение:",
+    "renderer": "erb",
     "source_hash": "f5394f72"
   },
   "email.feedback_email.signature": {
     "text": "Поддръжка на тайни",
+    "renderer": "erb",
     "source_hash": "f6a6c90f"
   },
   "email.organization_invitation.subject": {
     "text": "Поканени сте да се присъедините към %{organization_name}",
+    "renderer": "erb",
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
     "text": "Поканени сте да се присъедините към %{organization_name}!",
+    "renderer": "erb",
     "source_hash": "19548dfd"
   },
   "email.organization_invitation.body": {
     "text": "%{inviter_email} ви покани да се присъедините към \"%{organization_name}\" като %{role_description}.",
+    "renderer": "erb",
     "source_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
     "text": "Приеми поканата",
+    "renderer": "erb",
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Или копирайте и поставете тази връзка:",
+    "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.organization_invitation.expiry_notice": {
     "text": "Тази покана ще изтече след %{days} дни.",
+    "renderer": "erb",
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
     "text": "Ако не желаете да се присъедините, можете просто да игнорирате този имейл или да откажете поканата.",
+    "renderer": "erb",
     "source_hash": "734882d2"
   },
   "email.organization_invitation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.organization_invitation.postscript": {
     "text": "P.S. Този имейл беше изпратен до %{invited_email}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение.",
+    "renderer": "erb",
     "source_hash": "608e2b40"
   },
   "email.organization_invitation.roles.member": {
     "text": "член",
+    "renderer": "erb",
     "source_hash": "efdef688"
   },
   "email.organization_invitation.roles.admin": {
     "text": "администратор",
+    "renderer": "erb",
     "source_hash": "603fd5c3"
   },
   "email.password_changed.subject": {
     "text": "Паролата ви беше променена (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "b030deff"
   },
   "email.password_changed.title": {
     "text": "Паролата ви беше променена",
+    "renderer": "erb",
     "source_hash": "adb1f471"
   },
   "email.password_changed.body": {
     "text": "Паролата ви за %{product_name} беше променена на %{date} в %{time}.",
+    "renderer": "erb",
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
     "text": "Ако не сте направили тази промяна, моля, защитете акаунта си незабавно като нулирате паролата и се свържете с поддръжката.",
+    "renderer": "erb",
     "source_hash": "be92cff3"
   },
   "email.password_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.email_changed.subject": {
     "text": "Вашият имейл адрес беше променен (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "d68d2f4c"
   },
   "email.email_changed.title": {
     "text": "Вашият имейл адрес беше променен",
+    "renderer": "erb",
     "source_hash": "62b07299"
   },
   "email.email_changed.body": {
     "text": "Имейл адресът за вашия %{product_name} акаунт беше променен на %{new_email_masked}.",
+    "renderer": "erb",
     "source_hash": "6f3419d1"
   },
   "email.email_changed.security_notice": {
     "text": "Ако не сте направили тази промяна, моля, свържете се с поддръжката незабавно, тъй като акаунтът ви може да е компрометиран.",
+    "renderer": "erb",
     "source_hash": "f505b562"
   },
   "email.email_changed.change_notice": {
     "text": "Имейл адресът на вашия %{product_name} акаунт беше променен.",
+    "renderer": "erb",
     "source_hash": "bb467ebc"
   },
   "email.email_changed.new_email_label": {
     "text": "Нов имейл:",
+    "renderer": "erb",
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
     "text": "Променен на:",
+    "renderer": "erb",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
     "text": "Ако вие направихте тази промяна, не е необходимо допълнително действие.",
+    "renderer": "erb",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
     "text": "Ако не сте направили тази промяна, акаунтът ви може да е компрометиран.",
+    "renderer": "erb",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
     "text": "Свържете се с поддръжката",
+    "renderer": "erb",
     "source_hash": "f8d47b82"
   },
   "email.email_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.email_changed.postscript": {
     "text": "P.S. Този имейл беше изпратен до %{email_address}, за да ви уведоми за промяна на имейл адреса.",
+    "renderer": "erb",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
     "text": "Заявка за промяна на имейл (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
     "text": "Заявка за промяна на имейл",
+    "renderer": "erb",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
     "text": "Беше подадена заявка за промяна на имейл адреса на вашия %{product_name} акаунт.",
+    "renderer": "erb",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
     "text": "Заявен нов имейл:",
+    "renderer": "erb",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
     "text": "Заявено на:",
+    "renderer": "erb",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
     "text": "Ако вие направихте тази заявка, проверете новия си имейл за линк за потвърждение. Все още не са направени промени.",
+    "renderer": "erb",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
     "text": "Ако не сте направили тази заявка, можете спокойно да игнорирате този имейл. Акаунтът ви не е бил променен.",
+    "renderer": "erb",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
     "text": "Свържете се с поддръжката",
+    "renderer": "erb",
     "source_hash": "f8d47b82"
   },
   "email.email_change_requested.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.email_change_requested.postscript": {
     "text": "P.S. Този имейл беше изпратен до %{email_address}, тъй като беше заявена промяна на имейла за вашия акаунт.",
+    "renderer": "erb",
     "source_hash": "500e085e"
   },
   "email.email_change_confirmation.subject": {
     "text": "Потвърдете новия си имейл адрес (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "6caae414"
   },
   "email.email_change_confirmation.title": {
     "text": "Потвърдете новия си имейл адрес",
+    "renderer": "erb",
     "source_hash": "0ec73977"
   },
   "email.email_change_confirmation.body": {
     "text": "Моля, потвърдете този имейл адрес, за да завършите промяната за вашия %{product_name} акаунт.",
+    "renderer": "erb",
     "source_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
     "text": "Потвърди имейл адрес",
+    "renderer": "erb",
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "Беше подадена заявка за промяна на имейл адреса на вашия %{product_name} акаунт на %{new_email}.",
+    "renderer": "erb",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
     "text": "Потвърдете промяната на имейла",
+    "renderer": "erb",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Или копирайте и поставете тази връзка:",
+    "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.email_change_confirmation.expires_notice": {
     "text": "Този линк ще изтече след %{hours} часа.",
+    "renderer": "erb",
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
     "text": "Ако не сте заявили тази промяна, можете спокойно да игнорирате този имейл. Имейл адресът ви няма да бъде променен.",
+    "renderer": "erb",
     "source_hash": "d4d835fc"
   },
   "email.email_change_confirmation.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.email_change_confirmation.postscript": {
     "text": "P.S. Този имейл беше изпратен до %{email_address} за потвърждение на промяна на имейл адрес.",
+    "renderer": "erb",
     "source_hash": "b72f557c"
   },
   "email.mfa_enabled.subject": {
     "text": "Двуфакторното удостоверяване е активирано (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "c067e466"
   },
   "email.mfa_enabled.title": {
     "text": "Двуфакторното удостоверяване е активирано",
+    "renderer": "erb",
     "source_hash": "2398ed9e"
   },
   "email.mfa_enabled.body": {
     "text": "Двуфакторното удостоверяване беше активирано за вашия %{product_name} акаунт на %{date}.",
+    "renderer": "erb",
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
     "text": "Вашият акаунт вече е по-защитен. Ще трябва да въведете код за потвърждение от приложението за удостоверяване при влизане.",
+    "renderer": "erb",
     "source_hash": "e7c11bb0"
   },
   "email.mfa_enabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.mfa_disabled.subject": {
     "text": "Двуфакторното удостоверяване е деактивирано (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "228a686a"
   },
   "email.mfa_disabled.title": {
     "text": "Двуфакторното удостоверяване е деактивирано",
+    "renderer": "erb",
     "source_hash": "372d577a"
   },
   "email.mfa_disabled.body": {
     "text": "Двуфакторното удостоверяване беше деактивирано за вашия %{product_name} акаунт на %{date}.",
+    "renderer": "erb",
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
     "text": "Вашият акаунт вече е по-малко защитен. Ако не сте направили тази промяна, моля, защитете акаунта си незабавно.",
+    "renderer": "erb",
     "source_hash": "97ef0a3e"
   },
   "email.mfa_disabled.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.new_login_alert.subject": {
     "text": "Нов вход във вашия акаунт (%{display_domain})",
+    "renderer": "erb",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
     "text": "Засечен нов вход",
+    "renderer": "erb",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
     "text": "Нов вход във вашия %{product_name} акаунт беше засечен на %{date} в %{time}.",
+    "renderer": "erb",
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
     "text": "Устройство:",
+    "renderer": "erb",
     "source_hash": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
     "text": "Местоположение:",
+    "renderer": "erb",
     "source_hash": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
     "text": "IP адрес:",
+    "renderer": "erb",
     "source_hash": "a2cb73e4"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "Ако това не сте били вие, акаунтът ви може да е компрометиран.",
+    "renderer": "erb",
     "source_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
     "text": "Защитете акаунта си",
+    "renderer": "erb",
     "source_hash": "450c54c5"
   },
   "email.new_login_alert.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.member_removed.subject": {
     "text": "Бяхте премахнати от %{organization_name}",
+    "renderer": "erb",
     "source_hash": "9e35b86b"
   },
   "email.member_removed.title": {
     "text": "Бяхте премахнати от %{organization_name}",
+    "renderer": "erb",
     "source_hash": "6cf4ee6a"
   },
   "email.member_removed.body": {
     "text": "Бяхте премахнати от организацията \"%{organization_name}\" в %{product_name}.",
+    "renderer": "erb",
     "source_hash": "d442beed"
   },
   "email.member_removed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.role_changed.subject": {
     "text": "Ролята ви беше променена в %{organization_name}",
+    "renderer": "erb",
     "source_hash": "f987a7ad"
   },
   "email.role_changed.title": {
     "text": "Ролята ви беше променена",
+    "renderer": "erb",
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
     "text": "Ролята ви в \"%{organization_name}\" беше променена от %{old_role} на %{new_role}.",
+    "renderer": "erb",
     "source_hash": "c2280c0c"
   },
   "email.role_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.organization_deleted.subject": {
     "text": "Организацията \"%{organization_name}\" беше изтрита",
+    "renderer": "erb",
     "source_hash": "056a9921"
   },
   "email.organization_deleted.title": {
     "text": "Организацията е изтрита",
+    "renderer": "erb",
     "source_hash": "41cff705"
   },
   "email.organization_deleted.body": {
     "text": "Организацията \"%{organization_name}\" беше изтрита от %{product_name}. Всички свързани данни бяха премахнати.",
+    "renderer": "erb",
     "source_hash": "7095fc69"
   },
   "email.organization_deleted.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.payment_receipt.subject": {
     "text": "Разписка за плащане за %{product_name}",
+    "renderer": "erb",
     "source_hash": "a1b5cc04"
   },
   "email.payment_receipt.title": {
     "text": "Разписка за плащане",
+    "renderer": "erb",
     "source_hash": "7e677ab8"
   },
   "email.payment_receipt.body": {
     "text": "Благодарим за плащането. Ето детайлите за плащането ви:",
+    "renderer": "erb",
     "source_hash": "a1fb6502"
   },
   "email.payment_receipt.amount_label": {
     "text": "Сума:",
+    "renderer": "erb",
     "source_hash": "cdf45632"
   },
   "email.payment_receipt.date_label": {
     "text": "Дата:",
+    "renderer": "erb",
     "source_hash": "b51489bd"
   },
   "email.payment_receipt.plan_label": {
     "text": "План:",
+    "renderer": "erb",
     "source_hash": "c6c28dbb"
   },
   "email.payment_receipt.invoice_link": {
     "text": "Преглед на фактурата",
+    "renderer": "erb",
     "source_hash": "36008943"
   },
   "email.payment_receipt.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.payment_failed.subject": {
     "text": "Плащането за %{product_name} е неуспешно",
+    "renderer": "erb",
     "source_hash": "77f18a23"
   },
   "email.payment_failed.title": {
     "text": "Плащането е неуспешно",
+    "renderer": "erb",
     "source_hash": "a287ab86"
   },
   "email.payment_failed.body": {
     "text": "Не успяхме да обработим плащането ви за %{product_name}. Моля, актуализирайте метода си на плащане, за да избегнете прекъсване на услугата.",
+    "renderer": "erb",
     "source_hash": "6496ef22"
   },
   "email.payment_failed.update_payment_button": {
     "text": "Актуализирай метода на плащане",
+    "renderer": "erb",
     "source_hash": "926406b1"
   },
   "email.payment_failed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.trial_expiring.subject": {
     "text": "Вашият %{product_name} пробен период изтича след %{days_remaining} дни",
+    "renderer": "erb",
     "source_hash": "82114f95"
   },
   "email.trial_expiring.title": {
     "text": "Пробният ви период скоро изтича",
+    "renderer": "erb",
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
     "text": "Безплатният ви пробен период на %{product_name} ще изтече след %{days_remaining} дни. Надградете сега, за да запазите достъпа до всички функции.",
+    "renderer": "erb",
     "source_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
     "text": "Надградете сега",
+    "renderer": "erb",
     "source_hash": "66a1419e"
   },
   "email.trial_expiring.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.subscription_changed.subject": {
     "text": "Вашият %{product_name} абонамент беше променен",
+    "renderer": "erb",
     "source_hash": "c9b61a4d"
   },
   "email.subscription_changed.title": {
     "text": "Абонаментът е променен",
+    "renderer": "erb",
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
     "text": "Вашият %{product_name} абонамент беше променен от %{old_plan} на %{new_plan}.",
+    "renderer": "erb",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
     "text": "Тази промяна е в сила от %{date}.",
+    "renderer": "erb",
     "source_hash": "5a96ae38"
   },
   "email.subscription_changed.signature": {
     "text": "Delano",
+    "renderer": "erb",
     "source_hash": "f58154f7"
   },
   "email.common.greeting": {
     "text": "Здравейте,",
+    "renderer": "erb",
     "source_hash": "dafe7694"
   },
   "email.common.thanks": {
     "text": "Благодаря,",
+    "renderer": "erb",
     "source_hash": "11dfba8f"
   },
   "email.common.unsubscribe": {
     "text": "Отписване",
+    "renderer": "erb",
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
     "text": "Преглед в браузър",
+    "renderer": "erb",
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "Onetime Secret",
+    "text": "%{product_name}",
+    "renderer": "erb",
     "source_hash": "1cd0194a"
   }
 }

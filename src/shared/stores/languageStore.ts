@@ -2,7 +2,7 @@
 
 import { setGlobalLocale } from '@/i18n';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
-import { localeSchema } from '@/schemas/i18n/locale';
+import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
 import { gracefulParse } from '@/utils/schemaValidation';
@@ -208,7 +208,7 @@ export const useLanguageStore = defineStore('language', () => {
    * validateAndNormalizeLocale('de-CH')  // → 'de' if 'de' available, 'de-CH' otherwise
    */
   const validateAndNormalizeLocale = (locale: string): string => {
-    const localeResult = gracefulParse(localeSchema, locale, 'Locale');
+    const localeResult = gracefulParse(localeCodeSchema, locale, 'Locale');
     const validatedLocale = localeResult.ok ? localeResult.data : locale;
 
     // Normalize separators for comparison (both hyphen and underscore → underscore)

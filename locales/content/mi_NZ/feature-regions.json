@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Mēnā he rerekē tō īmēra nama ki tō īmēra pūkete Onetime Secret, whakamahia te īmēra nama mō te pūkete rohe hou hei pupuri i ō painga ohaurunga.",
+    "text": "Mēnā he rerekē tō īmēra nama ki tō īmēra pūkete {product_name}, whakamahia te īmēra nama mō te pūkete rohe hou hei pupuri i ō painga ohaurunga.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

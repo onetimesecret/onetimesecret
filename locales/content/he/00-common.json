@@ -108,7 +108,7 @@
     "text": "יצירת חשבון",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "אודות",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "לדוגמה {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "אודות",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "סטטוס",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "תמיד ודא שאתה באתר הרשמי של Onetime Secret. נוכלים לפעמים יוצרים אתרים מזויפים שנראים בדיוק כמו Onetime Secret כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות פישינג, בדוק את הדומיין לפני יצירת קישורים חדשים.",
+    "text": "תמיד ודא שאתה באתר הרשמי של {product_name}. נוכלים לפעמים יוצרים אתרים מזויפים שנראים בדיוק כמו {product_name} כדי לגנוב את הסודות שלך. כדי להימנע מהתקפות פישינג, בדוק את הדומיין לפני יצירת קישורים חדשים.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

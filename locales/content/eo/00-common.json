@@ -108,7 +108,7 @@
     "text": "Krei konton",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Pri",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "ekz. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Pri",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Stato",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de Onetime Secret. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn.",
+    "text": "Ĉiam kontrolu, ke vi estas sur la oficiala retejo de {product_name}. Frauduloj foje kreas falsajn retejojn, kiuj aspektas ekzakte kiel {product_name} por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regiona domajno antaŭ krei novajn ligilojn.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {
