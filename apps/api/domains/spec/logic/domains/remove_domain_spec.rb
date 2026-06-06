@@ -23,6 +23,7 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
       display_domain: 'example.com',
       domainid: 'domain123',
       destroy!: true,
+      mailer_config: nil,
     )
   end
 

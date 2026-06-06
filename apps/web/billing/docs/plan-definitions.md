@@ -72,7 +72,7 @@ Loaded from `etc/billing.yaml`.
 
 ### Free (CA) (`free_v1`)
 
-Default tier for all users without subscription
+Secure, self-destructing secret sharing with a custom domain and API access
 
 **Tier:** free
 **Tenancy:** multi
@@ -107,9 +107,9 @@ Default tier for all users without subscription
 
 ### Legacy Plan (Legacy) (`identity`) ⚠️ **(Legacy)**
 
-Original plan, grandfathered for existing customers
+Fully branded secret sharing with expanded limits, reserved for original customers
 
-**Grandfathered Until:** 2028-01-31
+**Grandfathered Until:** 2029-01-31
 
 **Tier:** single_account
 **Tenancy:** multi
@@ -122,6 +122,8 @@ Original plan, grandfathered for existing customers
 - `custom_domains`
 - `custom_mail_sender`
 - `custom_privacy_defaults`
+- `extended_default_expiration`
+- `custom_signup_validation`
 - `homepage_secrets`
 - `incoming_secrets`
 - `manage_members`
@@ -148,7 +150,7 @@ Original plan, grandfathered for existing customers
 
 ### Identity Plus (CA) (`identity_plus_v1`)
 
-For individuals needing custom domains and extended retention
+Fully branded secret sharing across your organization with extended retention
 
 **Tier:** single_account
 **Tenancy:** multi
@@ -191,7 +193,7 @@ For individuals needing custom domains and extended retention
 
 ### Team Plus (CA) (`team_plus_v1`)
 
-For teams needing collaboration features
+Governed secret sharing with SSO, access controls, and organizational visibility
 
 **Tier:** single_team
 **Tenancy:** multi
@@ -209,7 +211,6 @@ For teams needing collaboration features
 - `flexible_from_domain`
 - `homepage_secrets`
 - `incoming_secrets`
-- `ip_access_rules`
 - `manage_members`
 - `manage_orgs`
 - `manage_org`

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/domain_validation/strategy'
+require 'onetime/operations/delete_sender_domain'
 require_relative '../base'
 
 module DomainsAPI::Logic
@@ -38,6 +39,9 @@ module DomainsAPI::Logic
         # Delete from external SSL provider via strategy
         delete_vhost
 
+        # Delete from external mail provider before destroy! wipes mailer_config
+        delete_sender_domain
+
         # Destroy method operates inside a multi block that deletes the domain
         # record, removes it from customer's domain list, and global list so
         # it's all or nothing. It does not delete the external approximated
@@ -65,6 +69,12 @@ module DomainsAPI::Logic
       rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
         OT.le "[RemoveDomain.delete_vhost error] #{@cust.extid} #{@display_domain} #{ex}"
         # Continue with domain removal even if vhost deletion fails
+      end
+
+      def delete_sender_domain
+        Onetime::Operations::DeleteSenderDomain.new(
+          mailer_config: @custom_domain.mailer_config,
+        ).call
       end
 
       def success_data
