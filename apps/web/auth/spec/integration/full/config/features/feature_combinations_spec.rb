@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/features/feature_combinations_spec.rb
+# apps/web/auth/spec/integration/full/config/features/feature_combinations_spec.rb
 #
 # frozen_string_literal: true
 
@@ -9,9 +9,9 @@
 #
 # Reference: apps/web/auth/config.rb
 
-require_relative '../../spec_helper'
+require_relative '../../../../spec_helper'
 
-require_relative '../../support/auth_test_constants'
+require_relative '../../../../support/auth_test_constants'
 include AuthTestConstants
 
 RSpec.describe 'Rodauth Feature Combinations' do

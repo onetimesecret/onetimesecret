@@ -1,4 +1,4 @@
-# apps/web/auth/spec/router_error_shape_spec.rb
+# apps/web/auth/spec/integration/full/router_error_shape_spec.rb
 #
 # frozen_string_literal: true
 
@@ -25,15 +25,15 @@
 # gates integration helpers and DB flushing on type: :integration tag.
 #
 # RUN:
-#   pnpm run test:rspec apps/web/auth/spec/router_error_shape_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/integration/full/router_error_shape_spec.rb
 #
 # =============================================================================
 
-require_relative 'spec_helper'
+require_relative '../../spec_helper'
 require 'rack/test'
 require 'roda'
 require 'json'
-require_relative '../error_translator'
+require_relative '../../../error_translator'
 
 RSpec.describe 'Auth Router ADR-013 error shape' do
   # ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-# apps/web/auth/spec/unit/session_auth_strategy_spec.rb
+# apps/web/auth/spec/integration/full/session_auth_strategy_spec.rb
 #
 # frozen_string_literal: true
 
@@ -7,11 +7,11 @@
 # Requires Valkey on port 2121 (pnpm run test:database:start).
 #
 # Run:
-#   pnpm run test:rspec apps/web/auth/spec/unit/session_auth_strategy_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/integration/full/session_auth_strategy_spec.rb
 
-require_relative '../spec_helper'
-require_relative '../support/strategy_test_context'
-require_relative '../support/shared_examples/session_contract_examples'
+require_relative '../../spec_helper'
+require_relative '../../support/strategy_test_context'
+require_relative '../../support/shared_examples/session_contract_examples'
 
 RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: :integration do
   include_context 'strategy test'

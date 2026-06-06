@@ -1,4 +1,4 @@
-# apps/web/auth/spec/config/email_modules_spec.rb
+# apps/web/auth/spec/integration/full/config/email_modules_spec.rb
 #
 # frozen_string_literal: true
 
@@ -27,7 +27,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'mail'
 
 # Define the Auth::Config namespace so the email modules can load without a full
@@ -45,7 +45,7 @@ Auth::Config.const_set(:Email, Module.new) unless Auth::Config.const_defined?(:E
 # Track whether refactored modules are available
 REFACTORED_MODULES_AVAILABLE = begin
   # Check if email subdirectory exists with the expected files
-  email_dir = File.expand_path('../../config/email', __dir__)
+  email_dir = File.expand_path('../../../../config/email', __dir__)
   File.exist?(File.join(email_dir, 'helpers.rb')) &&
     File.exist?(File.join(email_dir, 'verify_account.rb')) &&
     File.exist?(File.join(email_dir, 'reset_password.rb')) &&
@@ -61,7 +61,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      require_relative '../../config/email/helpers'
+      require_relative '../../../../config/email/helpers'
     end
 
     it 'is defined' do
@@ -84,7 +84,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      require_relative '../../config/email/verify_account'
+      require_relative '../../../../config/email/verify_account'
     end
 
     it 'is defined' do
@@ -107,7 +107,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      require_relative '../../config/email/reset_password'
+      require_relative '../../../../config/email/reset_password'
     end
 
     it 'is defined' do
@@ -130,7 +130,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      require_relative '../../config/email/delivery'
+      require_relative '../../../../config/email/delivery'
     end
 
     it 'is defined' do
@@ -533,7 +533,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     # It will be removed once refactoring is complete
 
     it 'module file exists and is loadable' do
-      email_file = File.expand_path('../../config/email.rb', __dir__)
+      email_file = File.expand_path('../../../../config/email.rb', __dir__)
       expect(File.exist?(email_file)).to be true
     end
 
@@ -541,7 +541,7 @@ RSpec.describe 'Auth::Config::Email modules' do
       # The module is defined when the file is loaded
       # We verify the constant exists (may be defined by earlier tests)
       # Load the email module if not already loaded
-      require_relative '../../config/email'
+      require_relative '../../../../config/email'
 
       expect(defined?(Auth::Config::Email)).to eq('constant')
     end

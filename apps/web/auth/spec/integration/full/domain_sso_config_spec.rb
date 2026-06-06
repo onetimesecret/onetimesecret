@@ -1,4 +1,4 @@
-# apps/web/auth/spec/unit/domain_sso_config_spec.rb
+# apps/web/auth/spec/integration/full/domain_sso_config_spec.rb
 #
 # frozen_string_literal: true
 
@@ -19,10 +19,10 @@
 # Integration tests for persistence belong in a separate file.
 #
 # Run:
-#   pnpm run test:rspec apps/web/auth/spec/unit/domain_sso_config_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/integration/full/domain_sso_config_spec.rb
 
-require_relative '../spec_helper'
-require_relative '../support/domain_sso_test_fixtures'
+require_relative '../../spec_helper'
+require_relative '../../support/domain_sso_test_fixtures'
 
 RSpec.describe Onetime::CustomDomain::SsoConfig do
   include DomainSsoTestFixtures

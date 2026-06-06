@@ -14,6 +14,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/set_customer_verification_spec.rb
 
 require 'spec_helper'
+require 'auth/database' # defines Auth::Database so the connection stubs below resolve
 require 'auth/operations/set_customer_verification'
 
 RSpec.describe Auth::Operations::SetCustomerVerification do

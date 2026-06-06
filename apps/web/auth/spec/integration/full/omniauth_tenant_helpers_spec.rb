@@ -1,4 +1,4 @@
-# apps/web/auth/spec/unit/omniauth_tenant_helpers_spec.rb
+# apps/web/auth/spec/integration/full/omniauth_tenant_helpers_spec.rb
 #
 # frozen_string_literal: true
 
@@ -11,9 +11,9 @@
 # No Valkey, no HTTP -- pure Ruby method testing with doubles.
 #
 # Run:
-#   pnpm run test:rspec apps/web/auth/spec/unit/omniauth_tenant_helpers_spec.rb
+#   pnpm run test:rspec apps/web/auth/spec/integration/full/omniauth_tenant_helpers_spec.rb
 
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 # Define the Auth::Config namespace (normally provided by auth app boot).
 # Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
@@ -28,10 +28,10 @@ Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
 
 # Require Auth::Logging (used by the hook for audit events)
-require_relative '../../lib/logging'
+require_relative '../../../lib/logging'
 
 # Require the hook module under test
-require_relative '../../config/hooks/omniauth_tenant'
+require_relative '../../../config/hooks/omniauth_tenant'
 
 RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   let(:helpers) { described_class }
