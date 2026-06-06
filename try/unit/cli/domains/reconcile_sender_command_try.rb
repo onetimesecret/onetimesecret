@@ -65,9 +65,10 @@ module PSDTestData
   end
 end
 
-# Patch ProvisionSenderDomain to return canned result from PSDTestData
-# This class reopen is global and persistent across ## blocks.
-class Onetime::Operations::ProvisionSenderDomain
+# Patch ProvisionSenderDomain to return canned result from PSDTestData.
+# Uses prepend so `super` chains to the original `call` method — a class
+# reopen would lose the original and `super` would hit Object (NoMethodError).
+module PSDCallStub
   def call
     canned = PSDTestData.canned_result
     return canned if canned
@@ -75,6 +76,7 @@ class Onetime::Operations::ProvisionSenderDomain
     super
   end
 end
+Onetime::Operations::ProvisionSenderDomain.prepend(PSDCallStub)
 
 
 # ===================================================================
