@@ -16,9 +16,11 @@
 # This breaks CustomDomain.from_display_domain and any other unique_index
 # finder until the index is rebuilt.
 #
-# This migration discovers all unique_index hashes via Familia's introspection
-# API (v2.10.1), detects JSON-encoded values, and rewrites them as raw strings.
-# Idempotent: already-raw values are skipped.
+# Uses Familia's introspection API (v2.10.1) to discover stale class-level
+# indexes, then falls back to SCAN for org-scoped indexes that the
+# introspection API intentionally excludes (it can't sample instance-scoped
+# indexes without a scope argument). Idempotent: already-raw values are
+# skipped.
 #
 # Usage:
 #   bin/ots migrate 20260606_01_unique_index_json_to_raw           # Preview
@@ -35,19 +37,39 @@ module Onetime
       self.description  = 'Convert unique_index values from JSON-encoded strings to raw strings (Familia 2.10)'
       self.dependencies = []
 
+      # Org-scoped unique_index hashes that Familia.stale_indexes cannot
+      # discover (instance-scoped indexes need a scope argument to sample).
+      # These are fixed patterns tied to the model declarations at the time
+      # this migration was written — acceptable because the migration runs
+      # once against a known data snapshot.
+      SCOPED_INDEX_PATTERNS = [
+        'organization:*:email_index',
+      ].freeze
+
       def prepare
-        @descriptors = Familia.stale_indexes
+        unless Familia.respond_to?(:stale_indexes)
+          raise Familia::Problem,
+            'This migration requires Familia >= 2.10.1 (introspection API). ' \
+            'Update the familia gem and re-run.'
+        end
+
+        @descriptors  = Familia.stale_indexes
+        @scoped_keys  = discover_scoped_index_keys
       end
 
       def migration_needed?
-        @descriptors.any?
+        @descriptors.any? || @scoped_keys.any? { |key| has_legacy_values?(key) }
       end
 
       def migrate
         run_mode_banner
 
         @descriptors.each do |descriptor|
-          convert_index(descriptor)
+          convert_descriptor(descriptor)
+        end
+
+        @scoped_keys.each do |key|
+          convert_raw_key(key)
         end
 
         print_summary do |mode|
@@ -68,9 +90,27 @@ module Onetime
 
       private
 
-      def convert_index(descriptor)
+      def discover_scoped_index_keys
+        keys = []
+        SCOPED_INDEX_PATTERNS.each do |pattern|
+          redis.scan_each(match: pattern) { |key| keys << key }
+        end
+        keys
+      end
+
+      def has_legacy_values?(index_key)
+        redis.hscan_each(index_key, count: 100) do |_field, value|
+          return true if Familia.legacy_json_encoded?(value)
+        end
+        false
+      end
+
+      def convert_descriptor(descriptor)
         hashkey   = descriptor.owner.public_send(descriptor.index_name)
-        index_key = hashkey.dbkey
+        convert_raw_key(hashkey.dbkey, label: descriptor.coordinate)
+      end
+
+      def convert_raw_key(index_key, label: index_key)
         converted = 0
         skipped   = 0
 
@@ -83,7 +123,7 @@ module Onetime
           raw_value = JSON.parse(value)
 
           if dry_run?
-            info "[DRY RUN] #{descriptor.coordinate} field=#{field}: #{value.inspect} -> #{raw_value.inspect}"
+            info "[DRY RUN] #{label} field=#{field}: #{value.inspect} -> #{raw_value.inspect}"
           else
             redis.hset(index_key, field, raw_value)
           end
@@ -96,8 +136,8 @@ module Onetime
         track_stat(:indexes_scanned)
 
         unless converted.zero?
-          label = dry_run? ? 'would convert' : 'converted'
-          info "#{descriptor.coordinate}: #{label} #{converted}, already raw #{skipped}"
+          verb = dry_run? ? 'would convert' : 'converted'
+          info "#{label}: #{verb} #{converted}, already raw #{skipped}"
         end
       end
     end

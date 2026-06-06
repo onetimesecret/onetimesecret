@@ -29,6 +29,7 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
 
   before do
     allow(migration).to receive(:redis).and_return(redis)
+    allow(redis).to receive(:scan_each).and_return([].each)
     Familia::Migration.migrations.clear
   end
 
@@ -62,10 +63,33 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
     end
   end
 
+  describe '#prepare' do
+    it 'raises when Familia lacks introspection API' do
+      allow(Familia).to receive(:respond_to?).and_call_original
+      allow(Familia).to receive(:respond_to?).with(:stale_indexes).and_return(false)
+
+      expect { migration.send(:prepare) }.to raise_error(Familia::Problem, /requires Familia >= 2.10.1/)
+    end
+  end
+
   describe '#migration_needed?' do
     it 'returns true when Familia.stale_indexes returns descriptors' do
       allow(Familia).to receive(:stale_indexes).and_return([descriptor])
       migration.send(:prepare)
+
+      expect(migration.migration_needed?).to be true
+    end
+
+    it 'returns true when scoped indexes have legacy values' do
+      allow(Familia).to receive(:stale_indexes).and_return([])
+      allow(redis).to receive(:scan_each)
+        .with(match: 'organization:*:email_index')
+        .and_yield('organization:org1:email_index')
+      migration.send(:prepare)
+
+      allow(redis).to receive(:hscan_each)
+        .with('organization:org1:email_index', count: 100)
+        .and_yield('user@example.com', '"cust_abc123"')
 
       expect(migration.migration_needed?).to be true
     end
@@ -78,14 +102,14 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
     end
   end
 
-  describe '#convert_index' do
+  describe '#convert_descriptor' do
     before do
       allow(Familia).to receive(:stale_indexes).and_return([descriptor])
       migration.send(:prepare)
       allow(migration).to receive(:track_stat)
     end
 
-    it 'rewrites JSON-encoded values as raw strings in execute mode' do
+    it 'rewrites JSON-encoded values as raw strings' do
       allow(migration).to receive(:dry_run?).and_return(false)
       allow(migration).to receive(:info)
       entries = [
@@ -97,7 +121,7 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
         .and_return(entries.each)
       allow(redis).to receive(:hset)
 
-      migration.send(:convert_index, descriptor)
+      migration.send(:convert_descriptor, descriptor)
 
       expect(redis).to have_received(:hset).with('custom_domain:display_domain_index', 'example.com', 'dom_abc123')
       expect(migration).to have_received(:track_stat).with(:entries_converted).once
@@ -112,20 +136,45 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
         .with('custom_domain:display_domain_index', count: 100)
         .and_return(entries.each)
 
-      migration.send(:convert_index, descriptor)
+      migration.send(:convert_descriptor, descriptor)
 
       expect(migration).to have_received(:track_stat).with(:entries_converted).once
+    end
+  end
+
+  describe '#convert_raw_key (scoped indexes)' do
+    before do
+      allow(Familia).to receive(:stale_indexes).and_return([])
+      allow(redis).to receive(:scan_each)
+        .with(match: 'organization:*:email_index')
+        .and_yield('organization:org1:email_index')
+      migration.send(:prepare)
+      allow(migration).to receive(:track_stat)
+    end
+
+    it 'converts scoped index entries' do
+      allow(migration).to receive(:dry_run?).and_return(false)
+      allow(migration).to receive(:info)
+      entries = [['user@example.com', '"cust_abc123"']]
+      allow(redis).to receive(:hscan_each)
+        .with('organization:org1:email_index', count: 100)
+        .and_return(entries.each)
+      allow(redis).to receive(:hset)
+
+      migration.send(:convert_raw_key, 'organization:org1:email_index')
+
+      expect(redis).to have_received(:hset).with('organization:org1:email_index', 'user@example.com', 'cust_abc123')
     end
 
     it 'skips already-raw values' do
       allow(migration).to receive(:dry_run?).and_return(false)
       allow(migration).to receive(:info)
-      entries = [['example.com', 'dom_abc123']]
+      entries = [['user@example.com', 'cust_abc123']]
       allow(redis).to receive(:hscan_each)
-        .with('custom_domain:display_domain_index', count: 100)
+        .with('organization:org1:email_index', count: 100)
         .and_return(entries.each)
 
-      migration.send(:convert_index, descriptor)
+      migration.send(:convert_raw_key, 'organization:org1:email_index')
 
       expect(migration).not_to have_received(:track_stat).with(:entries_converted)
       expect(migration).to have_received(:track_stat).with(:entries_already_raw).once
