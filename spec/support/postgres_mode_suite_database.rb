@@ -53,13 +53,15 @@ module PostgresModeSuiteDatabase
   REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
   # Latest schema version, derived from the migration files rather than
   # hardcoded so this constant does not need hand-editing each time a migration
-  # lands (the gap that left it at 7 after OAuth migrations 008–010). Mirrors
-  # the dynamic `latest_version` in the sibling SQLite migration spec. Resolved
-  # relative to this file so it does not depend on Onetime::HOME being loaded
-  # when this support file is required.
+  # lands (the gap that left it at 7 after OAuth migrations 008–010). Uses the
+  # highest migration number — which is what Sequel's schema_info.version
+  # records — rather than the file count, so it stays correct even if the
+  # numbering is ever non-contiguous. Mirrors the sibling SQLite migration spec.
+  # Resolved relative to this file so it does not depend on Onetime::HOME being
+  # loaded when this support file is required.
   EXPECTED_SCHEMA_VERSION = Dir.glob(
     File.expand_path('../../apps/web/auth/migrations/[0-9]*_*.rb', __dir__),
-  ).count
+  ).map { |path| File.basename(path).to_i }.max
 
   class << self
     attr_reader :database, :migration_database
