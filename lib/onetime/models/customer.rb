@@ -172,7 +172,7 @@ module Onetime
       # uuid_v4, hex, etc.) in @objid_generator_used for provenance tracking.
       # Accessing @objid directly bypasses the lazy generation mechanism and
       # skips provenance tracking, causing ExternalIdentifier derivation to fail.
-      self.custid ||= objid # previously <=0.22, custid was email address.
+      self.custid ||= objid
       self.role   ||= 'customer'
 
       # When an instance is first created, any field that doesn't have a
