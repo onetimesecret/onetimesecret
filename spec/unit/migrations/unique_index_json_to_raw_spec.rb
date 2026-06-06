@@ -10,106 +10,69 @@ require_relative '../../../migrations/2026-06-06/20260606_01_unique_index_json_t
 RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
   let(:redis) { instance_double('Redis') }
   let(:migration) { described_class.new }
+  let(:hashkey) do
+    instance_double('Familia::HashKey', dbkey: 'custom_domain:display_domain_index')
+  end
+  let(:descriptor) do
+    instance_double(
+      'Familia::IndexDescriptor',
+      coordinate: 'CustomDomain:display_domain_index',
+      index_name: :display_domain_index,
+      owner: owner_class,
+    )
+  end
+  let(:owner_class) do
+    double('OwnerClass').tap do |klass|
+      allow(klass).to receive(:public_send).with(:display_domain_index).and_return(hashkey)
+    end
+  end
 
   before do
     allow(migration).to receive(:redis).and_return(redis)
     Familia::Migration.migrations.clear
   end
 
-  describe '#json_encoded_string?' do
+  describe 'Familia.legacy_json_encoded? detection' do
     it 'detects JSON-encoded string values' do
-      expect(migration.send(:json_encoded_string?, '"dom_abc123"')).to be true
+      expect(Familia.legacy_json_encoded?('"dom_abc123"')).to be true
     end
 
     it 'rejects raw string values' do
-      expect(migration.send(:json_encoded_string?, 'dom_abc123')).to be false
+      expect(Familia.legacy_json_encoded?('dom_abc123')).to be false
     end
 
     it 'rejects empty strings' do
-      expect(migration.send(:json_encoded_string?, '')).to be false
+      expect(Familia.legacy_json_encoded?('')).to be false
     end
 
     it 'rejects nil' do
-      expect(migration.send(:json_encoded_string?, nil)).to be false
+      expect(Familia.legacy_json_encoded?(nil)).to be false
     end
 
     it 'rejects non-string values' do
-      expect(migration.send(:json_encoded_string?, 42)).to be false
+      expect(Familia.legacy_json_encoded?(42)).to be false
     end
 
-    it 'rejects strings that start but do not end with quote' do
-      expect(migration.send(:json_encoded_string?, '"partial')).to be false
+    it 'rejects too-short quoted strings' do
+      expect(Familia.legacy_json_encoded?('""')).to be false
     end
 
     it 'handles JSON-encoded UUIDs' do
-      expect(migration.send(:json_encoded_string?, '"550e8400-e29b-41d4-a716-446655440000"')).to be true
-    end
-  end
-
-  describe '#discover_index_keys' do
-    before do
-      migration.send(:prepare)
-    end
-
-    it 'includes existing global index keys' do
-      allow(redis).to receive(:exists?).and_return(false)
-      allow(redis).to receive(:exists?).with('custom_domain:display_domain_index').and_return(true)
-      allow(redis).to receive(:exists?).with('customer:email_index').and_return(true)
-      allow(redis).to receive(:scan_each).and_return([].each)
-
-      keys = migration.send(:discover_index_keys)
-      expect(keys).to include('custom_domain:display_domain_index')
-      expect(keys).to include('customer:email_index')
-    end
-
-    it 'excludes non-existent global index keys' do
-      allow(redis).to receive(:exists?).and_return(false)
-      allow(redis).to receive(:scan_each).and_return([].each)
-
-      keys = migration.send(:discover_index_keys)
-      expect(keys).to be_empty
-    end
-
-    it 'discovers org-scoped index keys via SCAN' do
-      allow(redis).to receive(:exists?).and_return(false)
-      scoped_keys = ['organization:org1:email_index', 'organization:org2:email_index']
-      allow(redis).to receive(:scan_each).with(match: 'organization:*:email_index').and_return(scoped_keys.each)
-
-      keys = migration.send(:discover_index_keys)
-      expect(keys).to eq(scoped_keys)
+      expect(Familia.legacy_json_encoded?('"550e8400-e29b-41d4-a716-446655440000"')).to be true
     end
   end
 
   describe '#migration_needed?' do
-    before do
+    it 'returns true when Familia.stale_indexes returns descriptors' do
+      allow(Familia).to receive(:stale_indexes).and_return([descriptor])
       migration.send(:prepare)
-    end
-
-    it 'returns true when JSON-encoded values exist' do
-      allow(redis).to receive(:exists?).and_return(false)
-      allow(redis).to receive(:exists?).with('customer:email_index').and_return(true)
-      allow(redis).to receive(:scan_each).and_return([].each)
-      allow(redis).to receive(:hscan_each)
-        .with('customer:email_index', count: 100)
-        .and_yield('user@example.com', '"cust_abc123"')
 
       expect(migration.migration_needed?).to be true
     end
 
-    it 'returns false when all values are raw' do
-      allow(redis).to receive(:exists?).and_return(false)
-      allow(redis).to receive(:exists?).with('customer:email_index').and_return(true)
-      allow(redis).to receive(:scan_each).and_return([].each)
-      allow(redis).to receive(:hscan_each)
-        .with('customer:email_index', count: 100)
-        .and_return([['user@example.com', 'cust_abc123']].each)
-
-      expect(migration.migration_needed?).to be false
-    end
-
-    it 'returns false when no index keys exist' do
-      allow(redis).to receive(:exists?).and_return(false)
-      allow(redis).to receive(:scan_each).and_return([].each)
+    it 'returns false when no stale indexes found' do
+      allow(Familia).to receive(:stale_indexes).and_return([])
+      migration.send(:prepare)
 
       expect(migration.migration_needed?).to be false
     end
@@ -117,6 +80,7 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
 
   describe '#convert_index' do
     before do
+      allow(Familia).to receive(:stale_indexes).and_return([descriptor])
       migration.send(:prepare)
       allow(migration).to receive(:track_stat)
     end
@@ -133,7 +97,7 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
         .and_return(entries.each)
       allow(redis).to receive(:hset)
 
-      migration.send(:convert_index, 'custom_domain:display_domain_index')
+      migration.send(:convert_index, descriptor)
 
       expect(redis).to have_received(:hset).with('custom_domain:display_domain_index', 'example.com', 'dom_abc123')
       expect(migration).to have_received(:track_stat).with(:entries_converted).once
@@ -148,7 +112,7 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
         .with('custom_domain:display_domain_index', count: 100)
         .and_return(entries.each)
 
-      migration.send(:convert_index, 'custom_domain:display_domain_index')
+      migration.send(:convert_index, descriptor)
 
       expect(migration).to have_received(:track_stat).with(:entries_converted).once
     end
@@ -161,7 +125,7 @@ RSpec.describe Onetime::Migrations::UniqueIndexJsonToRaw do
         .with('custom_domain:display_domain_index', count: 100)
         .and_return(entries.each)
 
-      migration.send(:convert_index, 'custom_domain:display_domain_index')
+      migration.send(:convert_index, descriptor)
 
       expect(migration).not_to have_received(:track_stat).with(:entries_converted)
       expect(migration).to have_received(:track_stat).with(:entries_already_raw).once

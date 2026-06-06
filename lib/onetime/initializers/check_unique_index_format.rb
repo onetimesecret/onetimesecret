@@ -11,41 +11,23 @@ module Onetime
     # lookups like CustomDomain.from_display_domain to silently return nil,
     # breaking domain-based org selection (#3347).
     #
-    # This check samples one entry per index. If any value is still
-    # JSON-encoded it logs a warning with the remediation command.
-    # Non-fatal: the app still starts so operators can run the migration.
+    # Delegates to Familia.assert_indexes_current! (v2.10.1) which samples
+    # raw values via HRANDFIELD and checks for legacy encoding. Non-fatal:
+    # the app still starts so operators can run the migration.
     class CheckUniqueIndexFormat < Onetime::Boot::Initializer
       @depends_on = [:database]
       @provides   = [:unique_index_check]
       @optional   = true
 
-      INDEX_KEYS = %w[
-        custom_domain:display_domain_index
-        customer:email_index
-        organization:contact_email_index
-        org_membership:token_lookup
-      ].freeze
-
       def execute(_context)
-        redis       = Familia.dbclient(0)
-        stale_keys  = []
-
-        INDEX_KEYS.each do |key|
-          next unless redis.exists?(key)
-
-          _cursor, entries = redis.hscan(key, '0', count: 5)
-          entries.each do |_field, value|
-            if value.is_a?(String) && value.start_with?('"') && value.end_with?('"')
-              stale_keys << key
-              break
-            end
-          end
+        unless Familia.respond_to?(:assert_indexes_current!)
+          OT.boot_logger.debug '[init] Familia.assert_indexes_current! not available (requires >= 2.10.1); skipping unique_index format check'
+          return
         end
 
-        return if stale_keys.empty?
+        current = Familia.assert_indexes_current!(on_stale: :warn)
+        return if current
 
-        OT.boot_logger.warn "[init] #{stale_keys.size} unique_index(es) contain JSON-encoded values from pre-Familia-2.10:"
-        stale_keys.each { |k| OT.boot_logger.warn "[init]   - #{k}" }
         OT.boot_logger.warn '[init] Run: bin/ots migrate migrations/2026-06-06/20260606_01_unique_index_json_to_raw --run'
         OT.boot_logger.warn '[init] Until migrated, unique_index lookups (e.g. domain SSO) may silently fail. See #3347.'
       end
