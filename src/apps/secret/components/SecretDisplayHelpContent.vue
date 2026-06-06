@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
 
@@ -25,7 +26,7 @@
           {{ t('web.help.secret_view_faq.what_am_i_looking_at.title') }}
         </h3>
         <p>
-          {{ t('web.help.secret_view_faq.what_am_i_looking_at.description', { product_name: brand_product_name }) }}
+          {{ t('web.help.secret_view_faq.what_am_i_looking_at.description', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
         </p>
       </div>
 

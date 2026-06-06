@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
 
@@ -28,8 +29,8 @@ const { brand_product_name } = storeToRefs(useBootstrapStore());
         class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="t('web.layout.visit_onetime_secret_homepage', { product_name: brand_product_name })">
-        {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name }) }}
+        :aria-label="t('web.layout.visit_onetime_secret_homepage', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })">
+        {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
       </a>
 
       <template v-if="showTerms">
@@ -66,8 +67,8 @@ const { brand_product_name } = storeToRefs(useBootstrapStore());
           dark:text-gray-600 dark:hover:text-gray-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="t('web.layout.visit_onetime_secret_homepage', { product_name: brand_product_name })">
-        {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name }) }}
+        :aria-label="t('web.layout.visit_onetime_secret_homepage', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })">
+        {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
       </a>
     </div>
   </footer>

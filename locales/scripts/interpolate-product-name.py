@@ -309,8 +309,7 @@ def main() -> None:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        default=True,
-        help="Show changes without applying (default)",
+        help="Show changes without applying (default; same as omitting --apply)",
     )
     parser.add_argument(
         "--locale",

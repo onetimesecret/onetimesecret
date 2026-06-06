@@ -234,7 +234,7 @@
             <router-link
               v-if="authentication?.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: brand_product_name })"
+              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })"
               data-testid="header-signin-link"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
