@@ -38,6 +38,9 @@ module DomainsAPI::Logic
         # Delete from external SSL provider via strategy
         delete_vhost
 
+        # Delete from external mail provider before destroy! wipes mailer_config
+        delete_sender_domain
+
         # Destroy method operates inside a multi block that deletes the domain
         # record, removes it from customer's domain list, and global list so
         # it's all or nothing. It does not delete the external approximated
@@ -65,6 +68,23 @@ module DomainsAPI::Logic
       rescue HTTParty::ResponseError, Timeout::Error, Errno::ECONNREFUSED => ex
         OT.le "[RemoveDomain.delete_vhost error] #{@cust.extid} #{@display_domain} #{ex}"
         # Continue with domain removal even if vhost deletion fails
+      end
+
+      # Deletes sender domain from Lettermint if configured.
+      # Must be called before destroy! which wipes the mailer_config.
+      #
+      def delete_sender_domain
+        mailer_config = @custom_domain.mailer_config
+        return unless mailer_config&.effective_provider == 'lettermint'
+
+        credentials = Onetime::Mail::Mailer.provider_credentials('lettermint')
+        strategy    = Onetime::Mail::SenderStrategies.for_provider('lettermint')
+        result      = strategy.delete_sender_identity(mailer_config, credentials: credentials)
+
+        OT.info "[RemoveDomain.delete_sender_domain] #{@display_domain} -> #{result[:message]}"
+      rescue StandardError => ex
+        OT.le "[RemoveDomain.delete_sender_domain error] #{@cust.extid} #{@display_domain} #{ex}"
+        # Continue with domain removal even if Lettermint deletion fails
       end
 
       def success_data
