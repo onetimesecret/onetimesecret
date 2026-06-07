@@ -14,6 +14,8 @@
 #   7. Non-lettermint existing config -> reconciles without provider refusal
 #   8. --provider conflicting with existing config -> refuses to switch
 #   9. Unresolvable/invalid provider -> errors, creates no config
+#  10. New config created with explicit non-lettermint --provider
+#  11. Explicit invalid --provider -> errors, creates no config
 #
 # Run:
 #   try try/unit/cli/domains/reconcile_sender_command_try.rb --agent
@@ -284,6 +286,53 @@ end
 
 ## No MailerConfig is created when the provider is unresolvable
 Onetime::CustomDomain::MailerConfig.exists_for_domain?(@domain_9.identifier)
+#=> false
+
+# ===================================================================
+# Case 10: New config created with explicit non-lettermint --provider
+# ===================================================================
+
+## New config is created with the provider given via --provider
+@domain_10 = Onetime::CustomDomain.create!("rsc-newses-#{@timestamp}-#{@entropy}.example.com", @org.objid)
+PSDTestData.canned_result = Onetime::Operations::ProvisionSenderDomain::Result.new(
+  success: true,
+  dns_records: [],
+  provider_data: { 'status' => 'pending' },
+  error: nil,
+)
+@output_10 = capture_stdout do
+  build_cmd.call(
+    domain_name: @domain_10.display_domain,
+    from_address: "noreply@rsc-newses-#{@timestamp}.example.com",
+    provider: 'ses',
+  )
+end
+@mc_10 = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@domain_10.identifier)
+@mc_10.provider
+#=> 'ses'
+
+## Reconcile output reflects the ses provider for the new config
+@output_10.include?('provider: ses')
+#=> true
+
+# ===================================================================
+# Case 11: Explicit invalid --provider -> errors, creates no config
+# ===================================================================
+
+## Explicit invalid --provider is rejected
+@domain_11 = Onetime::CustomDomain.create!("rsc-bad-#{@timestamp}-#{@entropy}.example.com", @org.objid)
+@output_11 = capture_stdout do
+  build_cmd.call(
+    domain_name: @domain_11.display_domain,
+    from_address: "noreply@rsc-bad-#{@timestamp}.example.com",
+    provider: 'mailchimp',
+  )
+end
+@output_11.include?('Could not resolve a valid sender provider')
+#=> true
+
+## No MailerConfig is created for an invalid provider
+Onetime::CustomDomain::MailerConfig.exists_for_domain?(@domain_11.identifier)
 #=> false
 
 # --- Cleanup ---
