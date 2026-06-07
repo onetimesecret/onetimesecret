@@ -87,7 +87,7 @@
   <div
     class="relative flex min-h-screen items-start justify-center overflow-hidden bg-gray-50 px-4 pt-12 dark:bg-gray-900 sm:px-6 sm:pt-16 lg:px-8">
     <!-- Background Icon -->
-    <div v-if="!hideBackgroundIcon" class="fixed inset-0 overflow-hidden opacity-5 dark:opacity-5 blur-md">
+    <div v-if="!hideBackgroundIcon" class="pointer-events-none fixed inset-0 overflow-hidden opacity-5 dark:opacity-5 blur-md">
       <OIcon
         v-if="backgroundIcon && backgroundIcon.collection && backgroundIcon.name"
         :collection="backgroundIcon.collection"
