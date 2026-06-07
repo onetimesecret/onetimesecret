@@ -127,7 +127,7 @@ GEM
       tzinfo
     faker (3.6.1)
       i18n (>= 1.8.11, < 2)
-    familia (2.10.0)
+    familia (2.10.1)
       concurrent-ruby (~> 1.3)
       connection_pool (>= 2.4, < 4.0)
       csv (~> 3.3)
