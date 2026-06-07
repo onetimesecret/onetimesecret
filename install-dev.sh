@@ -40,13 +40,14 @@ declare -A LINKS=(
     ["Procfile.dev"]="Procfile.dev"
     ["Procfile.volatile"]="Procfile.volatile"
     [".env.test"]=".env.test"
+    [".env.local"]=".env.local"
     ["etc/puma.rb"]="puma.rb"
 )
 
-# Optional: .env if you have one
-if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then
-    LINKS[".env"]=".env"
-fi
+# .env is NOT a shared symlink: it points at the in-repo .env.example (full
+# reference config) via link_env_example. Machine-specific overrides go in
+# .env.local, shared from OTS_DEV_CONFIG via the LINKS entry above and loaded
+# after .env by .envrc.
 
 # Generate .envrc for direnv-based env loading.
 # Creates the file if missing; leaves it alone if present so local
@@ -76,9 +77,41 @@ if [ -f .test-mode ]; then
 else
   export OTS_ENV_LOADED=dev
   dotenv_if_exists
+
+  # .env.local overrides happen last if the file exists. And only in dev mode.
+  #
+  # Because each dotenv call just exports variables into the same sub-shell, the order
+  # you write them determines precedence — later calls override earlier ones. So
+  # .env.local values would win over .env values in the above setup.
+  #
+  test -f .env.local && dotenv .env.local
 fi
 ENVRC
     echo "Created: .envrc"
+}
+
+# Point .env at the in-repo .env.example so the full reference config is always
+# present and tracks the repo. This avoids copying the whole file just to edit a
+# few values: machine-specific overrides go in .env.local (symlinked from
+# OTS_DEV_CONFIG, loaded after .env by .envrc). Don't clobber a real .env file.
+link_env_example() {
+    if [[ ! -f ".env.example" ]]; then
+        echo "Skip: .env.example missing from checkout (unexpected — it is tracked)"
+        return
+    fi
+
+    if [[ -e ".env" && ! -L ".env" ]]; then
+        echo "Skip: .env already exists (not a symlink) — not replacing"
+        return
+    fi
+
+    if [[ -L ".env" && "$(readlink .env)" == ".env.example" ]]; then
+        echo "OK:   .env -> .env.example"
+        return
+    fi
+
+    ln -snf ".env.example" ".env"
+    echo "Link: .env -> .env.example"
 }
 
 # Replace the Caddy webroot symlink with this checkout's public/web.
@@ -275,7 +308,6 @@ if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
     for shared_name in "${LINKS[@]}"; do
         echo "    - $shared_name"
     done
-    echo "    - .env  (optional)"
     echo "  Or point OTS_DEV_CONFIG at an existing directory."
     echo ""
 fi
@@ -293,6 +325,10 @@ if [[ -d "$OTS_DEV_CONFIG" ]]; then
         link_resource "$local_path" "${LINKS[$local_path]}"
     done
 fi
+
+# .env -> .env.example is in-repo (relative), so it is unconditional — not
+# gated on OTS_DEV_CONFIG like the shared links above.
+link_env_example
 
 # Fall back to local copies when symlink sources are absent.
 # Remove dangling symlinks first — [[ ! -e ]] is true for broken symlinks

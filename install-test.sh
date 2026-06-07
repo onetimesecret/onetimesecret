@@ -55,6 +55,14 @@ if [ -f .test-mode ]; then
 else
   export OTS_ENV_LOADED=dev
   dotenv_if_exists
+
+  # .env.local overrides happen last if the file exists. And only in dev mode.
+  #
+  # Because each dotenv call just exports variables into the same sub-shell, the order
+  # you write them determines precedence — later calls override earlier ones. So
+  # .env.local values would win over .env values in the above setup.
+  #
+  test -f .env.local && dotenv .env.local
 fi
 ENVRC
     echo "Created: .envrc"
