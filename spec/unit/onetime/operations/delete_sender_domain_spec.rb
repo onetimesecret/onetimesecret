@@ -8,15 +8,22 @@ require 'onetime/operations/delete_sender_domain'
 RSpec.describe Onetime::Operations::DeleteSenderDomain do
   let(:mock_credentials) { { 'team_token' => 'fake-test-token' } }
 
-  # Build a MailerConfig stand-in. effective_provider drives dispatch;
-  # from_address is only consulted on the back-compat fallback path.
-  def mailer_config_for(provider, from_address: 'sender@example.com')
+  # Real strategy classes, used for verifying doubles so a signature drift
+  # in #delete_sender_identity would fail these tests.
+  strategy_classes = {
+    'ses'        => Onetime::Mail::SenderStrategies::SESSenderStrategy,
+    'sendgrid'   => Onetime::Mail::SenderStrategies::SendGridSenderStrategy,
+    'lettermint' => Onetime::Mail::SenderStrategies::LettermintSenderStrategy,
+  }.freeze
+
+  # MailerConfig stand-in. effective_provider is the single input the
+  # operation dispatches on (already normalized by the real model).
+  def mailer_config_for(provider)
     double(
       'MailerConfig',
       domain_id: 'cd:test123',
-      provider: provider,
       effective_provider: provider,
-      from_address: from_address,
+      from_address: 'sender@example.com',
     )
   end
 
@@ -45,10 +52,10 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return(mock_credentials)
     end
 
-    %w[ses sendgrid lettermint].each do |provider|
+    strategy_classes.each do |provider, klass|
       it "dispatches deletion to the #{provider} strategy" do
         config   = mailer_config_for(provider)
-        strategy = double("#{provider}_strategy")
+        strategy = instance_double(klass)
 
         allow(Onetime::Mail::SenderStrategies).to receive(:for_provider)
           .with(provider).and_return(strategy)
@@ -66,7 +73,10 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
 
     it 'loads credentials for the resolved provider' do
       config   = mailer_config_for('ses')
-      strategy = double('ses_strategy', delete_sender_identity: { deleted: true, message: 'ok' })
+      strategy = instance_double(
+        Onetime::Mail::SenderStrategies::SESSenderStrategy,
+        delete_sender_identity: { deleted: true, message: 'ok' },
+      )
 
       allow(Onetime::Mail::SenderStrategies).to receive(:for_provider)
         .with('ses').and_return(strategy)
@@ -74,20 +84,6 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
         .with('ses').and_return(mock_credentials)
 
       described_class.new(mailer_config: config).call
-    end
-
-    it 'downcases the effective provider before dispatch' do
-      config   = mailer_config_for('Lettermint')
-      strategy = double('lm_strategy', delete_sender_identity: { deleted: true, message: 'ok' })
-
-      allow(Onetime::Mail::Mailer).to receive(:provider_credentials)
-        .with('lettermint').and_return(mock_credentials)
-      expect(Onetime::Mail::SenderStrategies).to receive(:for_provider)
-        .with('lettermint').and_return(strategy)
-
-      result = described_class.new(mailer_config: config).call
-
-      expect(result.success?).to be true
     end
   end
 
@@ -116,7 +112,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
   end
 
   # ==========================================================================
-  # #call — skip / back-compat paths
+  # #call — skip paths (no dispatch, no error)
   # ==========================================================================
 
   describe '#call skip paths' do
@@ -127,8 +123,9 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       expect(result.message).to eq('skipped: no mailer config')
     end
 
-    it 'skips when neither a provider nor a from_address resolves' do
-      config = double('MailerConfig', domain_id: 'cd:x', provider: '', effective_provider: '', from_address: '')
+    it 'skips when no provider resolves' do
+      config = double('MailerConfig', domain_id: 'cd:x', effective_provider: '', from_address: 'a@b.com')
+      expect(Onetime::Mail::SenderStrategies).not_to receive(:for_provider)
 
       result = described_class.new(mailer_config: config).call
 
@@ -136,21 +133,15 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       expect(result.message).to eq('skipped: no effective provider')
     end
 
-    it 'falls back to lettermint for legacy configs (address present, provider unresolvable)' do
-      config   = double('MailerConfig', domain_id: 'cd:x', provider: '', effective_provider: '', from_address: 'a@b.com')
-      strategy = double('lm_strategy')
-
-      allow(Onetime::Mail::Mailer).to receive(:provider_credentials)
-        .with('lettermint').and_return(mock_credentials)
-      allow(Onetime::Mail::SenderStrategies).to receive(:for_provider)
-        .with('lettermint').and_return(strategy)
-      expect(strategy).to receive(:delete_sender_identity)
-        .and_return({ deleted: true, message: 'legacy lettermint deleted' })
+    it 'skips a provider that has no sender strategy (e.g. logger)' do
+      config = double('MailerConfig', domain_id: 'cd:x', effective_provider: 'logger', from_address: 'a@b.com')
+      expect(Onetime::Mail::SenderStrategies).not_to receive(:for_provider)
+      expect(Onetime::Mail::Mailer).not_to receive(:provider_credentials)
 
       result = described_class.new(mailer_config: config).call
 
       expect(result.success?).to be true
-      expect(result.message).to eq('legacy lettermint deleted')
+      expect(result.message).to eq("skipped: unsupported provider 'logger'")
     end
   end
 
@@ -161,7 +152,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
   describe '#call error handling' do
     it 'swallows strategy errors into a failure Result' do
       config   = mailer_config_for('lettermint')
-      strategy = double('lm_strategy')
+      strategy = instance_double(Onetime::Mail::SenderStrategies::LettermintSenderStrategy)
 
       allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return(mock_credentials)
       allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).and_return(strategy)

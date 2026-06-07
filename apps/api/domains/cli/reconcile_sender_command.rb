@@ -63,9 +63,10 @@ module Onetime
 
         # Refuse to switch providers on an existing config: deleting the
         # config first ensures the old provider's sender identity is torn
-        # down before a new one is created.
+        # down before a new one is created. effective_provider is already
+        # normalized, so we only normalize the user-supplied option.
         if existing_config && provider && !provider.strip.empty? &&
-           provider.strip.downcase != existing_config.effective_provider.to_s.strip.downcase
+           provider.strip.downcase != existing_config.effective_provider
           puts "Error: Existing config uses provider '#{existing_config.effective_provider}', not '#{provider}'."
           puts '  Delete the existing sender config first to switch providers.'
           return
@@ -136,7 +137,7 @@ module Onetime
       #
       # Precedence:
       #   1. Explicit --provider option
-      #   2. Existing config's effective_provider
+      #   2. Existing config's effective_provider (already normalized)
       #   3. Installation-level sender provider (Mailer.determine_sender_provider)
       #
       # @param provider_opt [String, nil] Value of the --provider option
@@ -146,10 +147,10 @@ module Onetime
         provider = provider_opt.to_s.strip.downcase
         return provider unless provider.empty?
 
-        provider = existing_config&.effective_provider.to_s.strip.downcase
+        provider = existing_config&.effective_provider.to_s
         return provider unless provider.empty?
 
-        Onetime::Mail::Mailer.send(:determine_sender_provider).to_s.strip.downcase
+        Onetime::Mail::Mailer.determine_sender_provider.to_s.strip.downcase
       end
 
       def print_dns_records(records)

@@ -16,6 +16,10 @@
 
 require_relative '../../support/test_models'
 
+# effective_provider falls back to the installation-level resolver in the
+# mail layer, so it must be loaded for those cases.
+require 'onetime/mail/mailer'
+
 OT.boot! :test
 
 # Configure Familia encryption with known test keys.
@@ -173,6 +177,21 @@ rescue Onetime::Problem => e
   e.message.include?('provider must be one of')
 end
 #=> true
+
+# --- Resolution: effective_provider ---
+
+## effective_provider returns the config's provider when set
+@config.effective_provider
+#=> 'ses'
+
+## effective_provider falls back to the installation sender provider when unset
+@config_noprov.effective_provider == Onetime::Mail::Mailer.determine_sender_provider
+#=> true
+
+## effective_provider normalizes casing and whitespace at the source
+@config_noprov.provider = '  SES  '
+@config_noprov.effective_provider
+#=> 'ses'
 
 # --- Validation: from_address ---
 

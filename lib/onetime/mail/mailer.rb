@@ -135,6 +135,22 @@ module Onetime
           build_provider_config(provider)
         end
 
+        # Returns the provider for custom mail sender domain provisioning.
+        #
+        # Resolves, in order: the explicit `sender_provider` emailer config,
+        # then the sending transport (determine_provider, e.g. EMAILER_MODE).
+        # Public because per-domain sender configs fall back to it when they
+        # carry no explicit provider (see MailerConfig#effective_provider).
+        #
+        # @return [String] Lowercased provider name (e.g. 'ses', 'lettermint')
+        def determine_sender_provider
+          conf = emailer_config
+          sp   = conf['sender_provider']
+          return sp.to_s.downcase.strip if sp.is_a?(String) && !sp.strip.empty?
+
+          determine_provider
+        end
+
         private
 
         def template_class_for(name)
@@ -214,16 +230,6 @@ module Onetime
           else
             warn message
           end
-        end
-
-        # Returns the provider for custom mail sender domain provisioning.
-        # Falls back to the sending transport (determine_provider) when unset.
-        def determine_sender_provider
-          conf = emailer_config
-          sp   = conf['sender_provider']
-          return sp.to_s.downcase.strip if sp.is_a?(String) && !sp.strip.empty?
-
-          determine_provider
         end
 
         def determine_provider

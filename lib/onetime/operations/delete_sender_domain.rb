@@ -12,7 +12,9 @@ module Onetime
     # Dispatches on the mailer config's effective_provider, so each
     # provider's sender identity is torn down through its own strategy
     # (SES, SendGrid, Lettermint). SMTP is a no-op — there is no remote
-    # sender identity to delete.
+    # sender identity to delete. Configs that resolve to no provider, or
+    # to a transport without a sender strategy (e.g. 'logger'), are
+    # skipped rather than treated as errors.
     #
     # Never raises — all errors are wrapped in the Result.
     # Callers can fire-and-forget: domain/config removal proceeds regardless.
@@ -36,8 +38,14 @@ module Onetime
       def call
         return skipped('no mailer config') unless @mailer_config
 
-        provider = resolve_provider
+        # effective_provider is the single source of truth: it returns the
+        # config's provider, or the installation default, already normalized.
+        # Legacy configs predating the provider field resolve correctly here
+        # via that installation-level fallback.
+        provider = @mailer_config.effective_provider.to_s
         return skipped('no effective provider') if provider.empty?
+        return skipped("unsupported provider '#{provider}'") unless
+          Onetime::Mail::SenderStrategies.supported?(provider)
 
         credentials = Onetime::Mail::Mailer.provider_credentials(provider)
         strategy    = Onetime::Mail::SenderStrategies.for_provider(provider)
@@ -58,23 +66,6 @@ module Onetime
       end
 
       private
-
-      # Resolve the provider to dispatch sender-identity deletion to.
-      #
-      # Prefers the mailer config's effective_provider (which itself
-      # falls back to the installation-level sender provider). When that
-      # is unresolvable, default to 'lettermint' for back-compat with
-      # configs created before the `provider` field existed — but only
-      # when a from_address remains to tear down. Returns an empty
-      # string when there is nothing to act on.
-      #
-      # @return [String] Lowercased provider name, or '' when unresolvable
-      def resolve_provider
-        provider = @mailer_config.effective_provider.to_s.strip.downcase
-        return provider unless provider.empty?
-
-        @mailer_config.from_address.to_s.strip.empty? ? '' : 'lettermint'
-      end
 
       def skipped(reason)
         Result.new(success: true, message: "skipped: #{reason}", error: nil)
