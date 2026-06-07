@@ -82,4 +82,19 @@ RSpec.describe Onetime::Mail::SenderStrategies do
       expect(described_class.supported_providers).to contain_exactly('ses', 'sendgrid', 'lettermint', 'smtp')
     end
   end
+
+  # ==========================================================================
+  # Cross-layer invariant: the strategy registry (what we can dispatch to)
+  # and MailerConfig::PROVIDER_TYPES (what a config may store) are maintained
+  # independently but must hold the same set. Reconcile validates against
+  # PROVIDER_TYPES, DeleteSenderDomain dispatches via .supported? — if they
+  # drift, one path accepts a provider the other rejects. This guards it.
+  # ==========================================================================
+
+  describe 'consistency with MailerConfig::PROVIDER_TYPES' do
+    it 'covers exactly the providers a MailerConfig may store' do
+      expect(described_class.supported_providers.sort)
+        .to eq(Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.sort)
+    end
+  end
 end

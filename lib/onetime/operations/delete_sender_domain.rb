@@ -51,10 +51,20 @@ module Onetime
         strategy    = Onetime::Mail::SenderStrategies.for_provider(provider)
         result      = strategy.delete_sender_identity(@mailer_config, credentials: credentials)
 
-        logger.info 'Sender domain deleted',
-          domain_id: @mailer_config.domain_id,
-          provider: provider,
-          message: result[:message]
+        # Strategies signal an actual teardown via result[:deleted]. SMTP —
+        # and some error/no-op cases — return deleted:false, so log those
+        # distinctly to keep audit trails free of false "deleted" events.
+        if result[:deleted]
+          logger.info 'Sender domain deleted',
+            domain_id: @mailer_config.domain_id,
+            provider: provider,
+            message: result[:message]
+        else
+          logger.info 'Sender domain deletion skipped (no-op)',
+            domain_id: @mailer_config.domain_id,
+            provider: provider,
+            message: result[:message]
+        end
 
         Result.new(success: true, message: result[:message], error: nil)
       rescue StandardError => ex

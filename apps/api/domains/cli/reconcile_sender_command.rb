@@ -67,7 +67,7 @@ module Onetime
         # normalized, so we only normalize the user-supplied option.
         if existing_config && provider && !provider.strip.empty? &&
            provider.strip.downcase != existing_config.effective_provider
-          puts "Error: Existing config uses provider '#{existing_config.effective_provider}', not '#{provider}'."
+          puts "Error: Existing config uses provider '#{existing_config.effective_provider}', not '#{provider.strip.downcase}'."
           puts '  Delete the existing sender config first to switch providers.'
           return
         end

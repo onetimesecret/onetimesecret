@@ -109,6 +109,26 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
       # WebMock (disable_net_connect!) would have flagged any HTTP attempt.
       expect(a_request(:any, /.*/)).not_to have_been_made
     end
+
+    it 'logs a no-op rather than a deletion (result[:deleted] is false)' do
+      config        = mailer_config_for('smtp')
+      smtp_strategy = Onetime::Mail::SenderStrategies::SMTPSenderStrategy.new
+
+      logged = []
+      log    = double('logger')
+      allow(log).to receive(:info) { |*args, **_kw| logged << args.first }
+      allow(log).to receive(:error)
+      allow(Onetime).to receive(:get_logger).and_return(log)
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials)
+        .and_return({ 'host' => 'smtp.example.com' })
+      allow(Onetime::Mail::SenderStrategies).to receive(:for_provider)
+        .with('smtp').and_return(smtp_strategy)
+
+      described_class.new(mailer_config: config).call
+
+      expect(logged).to include('Sender domain deletion skipped (no-op)')
+      expect(logged).not_to include('Sender domain deleted')
+    end
   end
 
   # ==========================================================================
