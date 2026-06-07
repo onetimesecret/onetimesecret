@@ -1,4 +1,4 @@
-# spec/integration/api/v1/auth_status_header_spec.rb
+# spec/api/v1/auth_status_header_spec.rb
 #
 # frozen_string_literal: true
 

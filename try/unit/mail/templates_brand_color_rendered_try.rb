@@ -34,10 +34,18 @@ require 'onetime/mail/views/organization_invitation' if File.exist?(
 )
 
 # Helper: run a block with OT.conf['brand'] set to a hash, then restore.
-def with_brand_conf(brand_hash)
+# Optionally merge emailer overrides (e.g. show_logo) into OT.conf['emailer'];
+# show_logo? reads conf['emailer']['show_logo'], so the email <img> gate
+# (show_logo? && logo_url in layout.html.erb) needs it set here. Setting
+# ENV['EMAILER_SHOW_LOGO'] would not work: the config yaml evaluates that ERB
+# once at boot, so a post-boot env change cannot flip the predicate.
+def with_brand_conf(brand_hash, emailer_overrides = nil)
   saved = YAML.load(YAML.dump(OT.conf))
   conf_copy = YAML.load(YAML.dump(saved))
   conf_copy['brand'] = brand_hash
+  if emailer_overrides
+    conf_copy['emailer'] = (conf_copy['emailer'] || {}).merge(emailer_overrides)
+  end
   OT.send(:conf=, conf_copy)
   yield
 ensure
@@ -116,16 +124,18 @@ end
 #=> false
 
 ## REGRESSION GUARD: with no brand.logo_url, the <img> block is omitted entirely
-# secret_link wraps the <img> in <% if logo_url %> per fb9ee72e0.
+# The shared layout.html.erb gates the <img> on `show_logo? && logo_url`; with
+# no logo_url (and show_logo off by default in test) the block is omitted.
 @html_neutral.include?('<img alt="')
 #=> false
 
-## When brand.logo_url is set, the <img> block renders with logo_url and brand_color background
+## When show_logo is enabled and brand.logo_url is set, the <img> renders with logo_url and brand_color background
+# Both gates are required: show_logo? (operator opt-in) and a logo_url.
 @html_with_logo = with_brand_conf({
   'primary_color' => '#1f3a8a',
   'logo_url' => 'https://example.test/logo.svg',
   'product_name' => 'Acme Secrets',
-}) do
+}, { 'show_logo' => true }) do
   Onetime::Mail::Templates::SecretLink
     .new(@secret_link_data, locale: 'en')
     .render_html

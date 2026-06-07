@@ -1,4 +1,4 @@
-# spec/integration/api/account/get_permissions_spec.rb
+# spec/api/account/get_permissions_spec.rb
 #
 # frozen_string_literal: true
 

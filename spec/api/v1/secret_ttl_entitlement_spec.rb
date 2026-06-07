@@ -1,4 +1,4 @@
-# spec/integration/api/v1/secret_ttl_entitlement_spec.rb
+# spec/api/v1/secret_ttl_entitlement_spec.rb
 #
 # frozen_string_literal: true
 

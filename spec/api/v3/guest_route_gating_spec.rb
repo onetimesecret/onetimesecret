@@ -1,4 +1,4 @@
-# spec/integration/api/v3/guest_route_gating_spec.rb
+# spec/api/v3/guest_route_gating_spec.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# spec/integration/api/error_response_shape_spec.rb
+# spec/api/error_response_shape_spec.rb
 #
 # frozen_string_literal: true
 
@@ -20,7 +20,7 @@
 # no `error_type`. See V1::Application docstring and ADR-013 "Out of Scope".
 #
 # RUN:
-#   bundle exec rspec spec/integration/api/error_response_shape_spec.rb
+#   bundle exec rspec spec/api/error_response_shape_spec.rb
 #
 # =============================================================================
 

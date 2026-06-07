@@ -1,4 +1,4 @@
-# spec/integration/api/v2/plan_cache_miss_handling_spec.rb
+# spec/api/v2/plan_cache_miss_handling_spec.rb
 #
 # frozen_string_literal: true
 
