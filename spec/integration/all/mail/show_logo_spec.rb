@@ -125,7 +125,11 @@ RSpec.describe 'Email show_logo toggle', type: :integration do
   # ---------------------------------------------------------------------------
   describe 'rendered HTML logo visibility' do
     # Use SecretLink as representative template; all 12 share the same
-    # conditional <% if show_logo? %> wrapper around the single <img> tag.
+    # conditional <% if logo_url %> wrapper around the single <img> tag.
+    # NOTE: the layout gates the <img> on logo_url presence, not show_logo?.
+    # #3049 neutralized the default logo_url to nil, so an explicit
+    # brand.logo_url is required for the logo to render.
+    let(:logo_url) { 'https://cdn.example.test/brand/logo.svg' }
     let(:template) do
       Onetime::Mail::Templates::SecretLink.new({
         secret_key: 'abc123def456',
@@ -148,17 +152,18 @@ RSpec.describe 'Email show_logo toggle', type: :integration do
       end
     end
 
-    context 'when show_logo is true' do
+    context 'when show_logo is true and a brand logo_url is set' do
       before do
         conf = OT.conf.dup
         conf['emailer'] = (conf['emailer'] || {}).merge('show_logo' => true)
+        conf['brand'] = (conf['brand'] || {}).merge('logo_url' => logo_url)
         OT.instance_variable_set(:@conf, conf)
       end
 
       it 'includes the logo <img tag in HTML output' do
         html = template.render_html
         expect(html).to include('<img')
-        expect(html).to include('onetime-logo')
+        expect(html).to include(logo_url)
       end
     end
 
@@ -185,17 +190,18 @@ RSpec.describe 'Email show_logo toggle', type: :integration do
         end
       end
 
-      context 'when show_logo is true' do
+      context 'when show_logo is true and a brand logo_url is set' do
         before do
           conf = OT.conf.dup
           conf['emailer'] = (conf['emailer'] || {}).merge('show_logo' => true)
+          conf['brand'] = (conf['brand'] || {}).merge('logo_url' => logo_url)
           OT.instance_variable_set(:@conf, conf)
         end
 
         it 'includes the logo <img in rendered HTML' do
           html = welcome_template.render_html
           expect(html).to include('<img')
-          expect(html).to include('onetime-logo')
+          expect(html).to include(logo_url)
         end
       end
     end
