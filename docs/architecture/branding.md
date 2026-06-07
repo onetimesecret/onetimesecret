@@ -401,7 +401,7 @@ The neutral-defaults strategy means existing self-hosted instances render neutra
 6. Confirm email templates render brand color inline via `TemplateContext` helpers.
 7. Run WCAG AA validation on the chosen brand color.
 
-## White-Label Deployment Checklist
+## Private-Label Deployment Checklist
 
 For deploying OTS as a private-label product:
 

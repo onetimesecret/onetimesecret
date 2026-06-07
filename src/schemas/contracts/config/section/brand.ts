@@ -22,7 +22,7 @@ import { cornerStyleValues, fontFamilyValues } from '../../custom-domain/brand-c
 import { nullableString } from '../shared/primitives';
 
 /**
- * Brand configuration for white-label customization.
+ * Brand configuration for private-label customization.
  *
  * Mirrors the `brand:` YAML section. All fields are optional/nullable so
  * operator config can supply any subset; missing values resolve through
