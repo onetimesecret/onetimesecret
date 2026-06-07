@@ -34,10 +34,6 @@ module Onetime
     class MailerConfig < Familia::Horreum
       include Familia::Features::Autoloader
 
-      # Supported mail provider types.
-      # See lib/onetime/mail/mailer.rb for provider implementations.
-      PROVIDER_TYPES = %w[smtp ses sendgrid lettermint].freeze
-
       prefix :custom_domain__mailer_config
 
       feature :encrypted_fields
@@ -48,7 +44,7 @@ module Onetime
       field :domain_id
 
       # Provider selection
-      field :provider         # One of PROVIDER_TYPES
+      field :provider         # One of SenderStrategies.supported_providers (or empty)
 
       # Sender identity fields
       field :from_name        # Display name for sender
@@ -276,12 +272,22 @@ module Onetime
       #
       # @return [Array<String>] List of validation error messages
       def validation_errors
+        # The sender-strategy registry is the single source of truth for valid
+        # provider names: a provider is valid here iff a strategy can be
+        # dispatched for it. Validating against it at runtime (rather than
+        # maintaining a parallel constant) makes the model and the dispatch
+        # layer consistent by construction — they cannot drift. Required lazily,
+        # like computed_verification_status' job_lifecycle require, so the model
+        # does not force the mail-strategy tree to load at class-definition time.
+        require_relative '../../mail/sender_strategies'
+        strategies = Onetime::Mail::SenderStrategies
+
         errors = []
 
         errors << 'domain_id is required' if domain_id.to_s.empty?
-        # Provider is optional - when empty, resolved from installation config
-        if !provider.to_s.empty? && !PROVIDER_TYPES.include?(provider)
-          errors << "provider must be one of: #{PROVIDER_TYPES.join(', ')}"
+        # Provider is optional - when empty, resolved from installation config.
+        if !provider.to_s.empty? && !strategies.supported?(provider)
+          errors << "provider must be one of: #{strategies.supported_providers.join(', ')}"
         end
         errors << 'from_address is required' if from_address.to_s.empty?
 

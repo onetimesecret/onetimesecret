@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require 'onetime/mail/sender_strategies'
 require 'onetime/operations/provision_sender_domain'
 
 module Onetime
@@ -72,9 +73,12 @@ module Onetime
           return
         end
 
+        # Mirror what MailerConfig.create! enforces: both gate on the
+        # sender-strategy registry, so this pre-check can never accept a
+        # provider that create! would later reject.
         resolved_provider = resolve_provider(provider, existing_config)
-        valid_providers   = Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES
-        unless valid_providers.include?(resolved_provider)
+        unless Onetime::Mail::SenderStrategies.supported?(resolved_provider)
+          valid_providers = Onetime::Mail::SenderStrategies.supported_providers
           got = resolved_provider.empty? ? '' : " (got '#{resolved_provider}')"
           puts "Error: Could not resolve a valid sender provider#{got}."
           puts "  Provide --provider (one of: #{valid_providers.join(', ')})."

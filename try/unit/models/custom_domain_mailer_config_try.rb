@@ -10,15 +10,17 @@
 #   - update_from_address clears verified_at and resets verification_status
 #   - rotate_credentials preserves verified_at
 #   - CustomDomain forward navigation (sso_config, mailer_config, sso_config?, mailer_config?)
-#   - Provider type validation against PROVIDER_TYPES constant
+#   - Provider type validation against the SenderStrategies registry
 #   - enabled? and verified? boolean methods
 #   - safe_dump_fields mail_configured and mail_enabled
 
 require_relative '../../support/test_models'
 
 # effective_provider falls back to the installation-level resolver in the
-# mail layer, so it must be loaded for those cases.
+# mail layer, so it must be loaded for those cases. provider validity is
+# sourced from the SenderStrategies registry (single source of truth).
 require 'onetime/mail/mailer'
+require 'onetime/mail/sender_strategies'
 
 OT.boot! :test
 
@@ -208,15 +210,11 @@ rescue Onetime::Problem => e
 end
 #=> true
 
-# --- PROVIDER_TYPES constant ---
+# --- Provider validity is sourced from the SenderStrategies registry ---
 
-## PROVIDER_TYPES includes all expected providers
-Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.sort
+## Valid providers are exactly the registered sender strategies (single source of truth)
+Onetime::Mail::SenderStrategies.supported_providers.sort
 #=> %w[lettermint sendgrid ses smtp].sort
-
-## PROVIDER_TYPES is frozen
-Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.frozen?
-#=> true
 
 # --- validation_errors method ---
 
@@ -236,7 +234,7 @@ mc2 = Onetime::CustomDomain::MailerConfig.new
 mc2.domain_id = 'some-id'
 mc2.provider = 'invalid'
 mc2.from_address = 'x@test.com'
-mc2.validation_errors.include?('provider must be one of: smtp, ses, sendgrid, lettermint')
+mc2.validation_errors.include?('provider must be one of: ses, sendgrid, lettermint, smtp')
 #=> true
 
 # --- enabled? and verified? boolean methods ---

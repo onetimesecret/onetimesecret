@@ -84,17 +84,33 @@ RSpec.describe Onetime::Mail::SenderStrategies do
   end
 
   # ==========================================================================
-  # Cross-layer invariant: the strategy registry (what we can dispatch to)
-  # and MailerConfig::PROVIDER_TYPES (what a config may store) are maintained
-  # independently but must hold the same set. Reconcile validates against
-  # PROVIDER_TYPES, DeleteSenderDomain dispatches via .supported? — if they
-  # drift, one path accepts a provider the other rejects. This guards it.
+  # Single source of truth: MailerConfig validates its provider field against
+  # this registry at runtime (MailerConfig#validation_errors delegates to
+  # .supported? / .supported_providers). The set of providers a config may
+  # store therefore IS the set of registered strategies — they are consistent
+  # by construction and cannot drift. These tests lock that delegation in.
   # ==========================================================================
 
-  describe 'consistency with MailerConfig::PROVIDER_TYPES' do
-    it 'covers exactly the providers a MailerConfig may store' do
-      expect(described_class.supported_providers.sort)
-        .to eq(Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.sort)
+  describe 'as the MailerConfig provider source of truth' do
+    def mailer_config_with_provider(provider)
+      config = Onetime::CustomDomain::MailerConfig.new(domain_id: 'd')
+      config.provider     = provider
+      config.from_address = 'sender@example.com'
+      config
+    end
+
+    it 'accepts exactly the providers it registers a strategy for' do
+      described_class.supported_providers.each do |provider|
+        errors = mailer_config_with_provider(provider).validation_errors
+        expect(errors).not_to include(a_string_matching(/provider must be one of/)),
+          "expected MailerConfig to accept supported provider '#{provider}'"
+      end
+    end
+
+    it 'rejects a provider with no registered strategy, listing the registry' do
+      errors = mailer_config_with_provider('postmark').validation_errors
+      expect(errors)
+        .to include("provider must be one of: #{described_class.supported_providers.join(', ')}")
     end
   end
 end
