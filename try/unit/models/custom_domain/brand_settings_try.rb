@@ -96,9 +96,9 @@ require 'onetime/models/custom_domain'
 [@empty.product_domain, @empty.footer_text, @empty.description, @empty.logo_url, @empty.logo_dark_url, @empty.favicon_url]
 #=> [nil, nil, nil, nil, nil, nil]
 
-## button_text_light defaults to false
+## button_text_light defaults to true (flipped per #3048)
 @bs.from_hash({}).button_text_light
-#=> false
+#=> true
 
 ## from_hash preserves existing 14-field behavior — corner_style default
 @bs.from_hash({}).corner_style

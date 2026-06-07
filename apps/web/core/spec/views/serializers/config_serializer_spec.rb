@@ -245,9 +245,14 @@ RSpec.describe Core::Views::ConfigSerializer do
           brand_button_text_light
           brand_logo_url
           brand_totp_issuer
-          support_email
-          docs_host
         ].each do |key|
+          expect(template_keys).to include(key), "output_template missing #{key}"
+        end
+      end
+
+      it 'includes general config keys in the output_template' do
+        template_keys = described_class.output_template.keys
+        %w[support_email docs_host].each do |key|
           expect(template_keys).to include(key), "output_template missing #{key}"
         end
       end

@@ -203,6 +203,8 @@ module Core
         brand_corner_style          = brand_config['corner_style'] || brand_defaults[:corner_style]
         brand_font_family           = brand_config['font_family'] || brand_defaults[:font_family]
         brand_button_text_light     = brand_config.fetch('button_text_light', brand_defaults[:button_text_light])
+        brand_allow_public_homepage = brand_config.fetch('allow_public_homepage', false)
+        brand_allow_public_api      = brand_config.fetch('allow_public_api', false)
         # Site-wide brand fields not in DEFAULTS (per-domain Data class) —
         # sourced from GLOBAL_DEFAULTS or directly from brand_config. Frontend
         # falls through to NEUTRAL_BRAND_DEFAULTS when nil.
@@ -245,6 +247,8 @@ module Core
           'brand_corner_style' => brand_corner_style,
           'brand_font_family' => brand_font_family,
           'brand_button_text_light' => brand_button_text_light,
+          'brand_allow_public_homepage' => brand_allow_public_homepage,
+          'brand_allow_public_api' => brand_allow_public_api,
           'brand_product_domain' => brand_product_domain,
           'brand_support_email' => brand_support_email,
           'brand_logo_url' => brand_logo_url,

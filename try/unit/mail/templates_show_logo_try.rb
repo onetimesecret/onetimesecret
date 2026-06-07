@@ -77,16 +77,17 @@ with_show_logo(false) do
 end
 #=> false
 
-## Welcome HTML includes <img when show_logo is true
+## Welcome HTML omits <img when show_logo is true but no logo_url configured
+# Layout guard is now logo_url (not show_logo?), so show_logo alone is insufficient.
 with_show_logo(true) do
   template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
   template.render_html.include?('<img')
 end
-#=> true
+#=> false
 
-## Welcome HTML includes logo SVG path when show_logo is true
+## Welcome HTML omits onetime-logo SVG when no logo_url configured (#3049 neutralization)
 with_show_logo(true) do
   template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
   template.render_html.include?('onetime-logo-v3-xl.svg')
 end
-#=> true
+#=> false
