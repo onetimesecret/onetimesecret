@@ -212,7 +212,8 @@ begin
   conf_copy['site']['interface'] ||= {}
   conf_copy['site']['interface']['ui'] ||= {}
   conf_copy['site']['interface']['ui']['header'] ||= {}
-  conf_copy['site']['interface']['ui']['header']['site_name'] = 'LegacySiteName'
+  conf_copy['site']['interface']['ui']['header']['branding'] ||= {}
+  conf_copy['site']['interface']['ui']['header']['branding']['site_name'] = 'LegacySiteName'
   OT.send(:conf=, conf_copy)
   ctx = @ctx_class.new({}, 'en')
   ctx.site_product_name
@@ -227,8 +228,8 @@ begin
   conf_copy = YAML.load(YAML.dump(saved))
   conf_copy.delete('brand')
   # Make sure no site_name is present so the third tier is exercised.
-  if conf_copy.dig('site', 'interface', 'ui', 'header')
-    conf_copy['site']['interface']['ui']['header'].delete('site_name')
+  if conf_copy.dig('site', 'interface', 'ui', 'header', 'branding')
+    conf_copy['site']['interface']['ui']['header']['branding'].delete('site_name')
   end
   OT.send(:conf=, conf_copy)
   ctx = @ctx_class.new({}, 'en')
@@ -325,9 +326,9 @@ offenders = files.select { |path| File.read(path).include?('onetime-logo-v3-xl.s
 offenders.map { |p| File.basename(p) }.sort
 #=> []
 
-## All 12 expected HTML templates are present (purge audit baseline)
+## All 13 expected HTML templates are present (purge audit baseline)
 Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.html.erb')).size
-#=> 12
+#=> 13
 
 # ============================================================================
 # Memoization across config mutation (gap 5 — issue #3048)
