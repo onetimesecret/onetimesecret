@@ -35,7 +35,12 @@
             <!-- Header / wordmark -->
             <tr>
               <td class="container-padding" align="left" style="padding: 28px 36px 0 36px;">
-                <% if logo_url %>
+                <%# Render the logo only when the operator has opted in
+                    (show_logo?) AND a logo_url is configured. show_logo? is a
+                    deliberate safety gate: images can be blocked at the network
+                    or email-client level, so a broken <img> is a negative trust
+                    signal. logo_url presence prevents an empty src. %>
+                <% if show_logo? && logo_url %>
                 <img alt="<%= h(product_name) %>" src="<%= logo_url %>" <%# herb:disable erb-prefer-image-tag-helper %>
                      style="border: 0; display: block; margin: 0 0 14px 0; height: 40px; width: 40px; background-color: <%= brand_color %>; border-radius: 8px;"
                      width="40" height="40">

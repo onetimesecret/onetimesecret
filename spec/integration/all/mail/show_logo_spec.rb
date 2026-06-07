@@ -125,10 +125,13 @@ RSpec.describe 'Email show_logo toggle', type: :integration do
   # ---------------------------------------------------------------------------
   describe 'rendered HTML logo visibility' do
     # Use SecretLink as representative template; all 12 share the same
-    # conditional <% if logo_url %> wrapper around the single <img> tag.
-    # NOTE: the layout gates the <img> on logo_url presence, not show_logo?.
-    # #3049 neutralized the default logo_url to nil, so an explicit
-    # brand.logo_url is required for the logo to render.
+    # conditional <% if show_logo? && logo_url %> wrapper around the single
+    # <img> tag. Both gates are required:
+    #   - show_logo? is the operator's explicit opt-in. It is a safety gate:
+    #     images can be blocked at the network or email-client level, so a
+    #     broken <img> is a negative trust signal an operator may not want.
+    #   - logo_url must be present (#3049 neutralized the default to nil) to
+    #     avoid rendering an <img> with an empty src.
     let(:logo_url) { 'https://cdn.example.test/brand/logo.svg' }
     let(:template) do
       Onetime::Mail::Templates::SecretLink.new({
@@ -139,14 +142,31 @@ RSpec.describe 'Email show_logo toggle', type: :integration do
       })
     end
 
-    context 'when show_logo is false' do
+    context 'when show_logo is false (even with a brand logo_url set)' do
       before do
         conf = OT.conf.dup
         conf['emailer'] = (conf['emailer'] || {}).merge('show_logo' => false)
+        # logo_url is present, so the safety gate (show_logo?) is what must
+        # suppress the <img>, not the absence of a URL.
+        conf['brand'] = (conf['brand'] || {}).merge('logo_url' => logo_url)
         OT.instance_variable_set(:@conf, conf)
       end
 
       it 'does not include an <img tag in HTML output' do
+        html = template.render_html
+        expect(html).not_to include('<img')
+      end
+    end
+
+    context 'when show_logo is true but no brand logo_url is set' do
+      before do
+        conf = OT.conf.dup
+        conf['emailer'] = (conf['emailer'] || {}).merge('show_logo' => true)
+        conf['brand'] = (conf['brand'] || {}).merge('logo_url' => nil)
+        OT.instance_variable_set(:@conf, conf)
+      end
+
+      it 'does not include an <img tag (no URL to render)' do
         html = template.render_html
         expect(html).not_to include('<img')
       end
@@ -178,10 +198,11 @@ RSpec.describe 'Email show_logo toggle', type: :integration do
         })
       end
 
-      context 'when show_logo is false' do
+      context 'when show_logo is false (even with a brand logo_url set)' do
         before do
           conf = OT.conf.dup
           conf['emailer'] = (conf['emailer'] || {}).merge('show_logo' => false)
+          conf['brand'] = (conf['brand'] || {}).merge('logo_url' => logo_url)
           OT.instance_variable_set(:@conf, conf)
         end
 
