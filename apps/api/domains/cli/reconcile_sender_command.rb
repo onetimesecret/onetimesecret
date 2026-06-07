@@ -7,19 +7,22 @@ require 'onetime/operations/provision_sender_domain'
 
 module Onetime
   module CLI
-    # Reconcile a domain's Lettermint sender configuration.
+    # Reconcile a domain's sender configuration with its mail provider.
+    #
+    # Dispatches on the effective provider (SES, SendGrid, Lettermint),
+    # so it works regardless of which provider a domain is configured for.
     #
     # Handles two scenarios:
-    #   1. Domain was deleted and re-added: the old Lettermint record
-    #      causes a 409 duplicate. This command uses create_or_get_domain
-    #      which handles 409 by fetching the existing record.
-    #   2. Domain was added manually via Lettermint UI: this command
+    #   1. Domain was deleted and re-added: the old provider record
+    #      causes a 409 duplicate. Provisioning handles 409 by fetching
+    #      the existing record.
+    #   2. Domain was added manually via the provider's UI: this command
     #      creates the local MailerConfig and links it to the remote record.
     #
     class DomainsReconcileSenderCommand < Command
       include DomainsHelpers
 
-      desc 'Reconcile Lettermint sender domain with local mailer config'
+      desc 'Reconcile a sender domain with its local mailer config'
 
       argument :domain_name, type: :string, required: true, desc: 'Domain name (e.g. example.com)'
 
@@ -28,12 +31,17 @@ module Onetime
         default: nil,
         desc: 'From address (default: existing mailer_config.from_address)'
 
+      option :provider,
+        type: :string,
+        default: nil,
+        desc: 'Provider for a new config (default: existing config or installation default)'
+
       option :dry_run,
         type: :boolean,
         default: false,
         desc: 'Show what would happen without making changes'
 
-      def call(domain_name:, from_address: nil, dry_run: false, **)
+      def call(domain_name:, from_address: nil, provider: nil, dry_run: false, **)
         boot_application!
 
         domain = load_domain_by_name(domain_name)
@@ -53,21 +61,35 @@ module Onetime
           return
         end
 
-        puts "  from_address: #{resolved_from}"
-        puts "  existing config: #{existing_config ? 'yes' : 'no'}"
-        puts
-
-        if existing_config && existing_config.effective_provider != 'lettermint'
-          puts "Error: Existing config uses provider '#{existing_config.effective_provider}', not 'lettermint'."
+        # Refuse to switch providers on an existing config: deleting the
+        # config first ensures the old provider's sender identity is torn
+        # down before a new one is created.
+        if existing_config && provider && !provider.strip.empty? &&
+           provider.strip.downcase != existing_config.effective_provider.to_s.strip.downcase
+          puts "Error: Existing config uses provider '#{existing_config.effective_provider}', not '#{provider}'."
           puts '  Delete the existing sender config first to switch providers.'
           return
         end
 
+        resolved_provider = resolve_provider(provider, existing_config)
+        valid_providers   = Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES
+        unless valid_providers.include?(resolved_provider)
+          got = resolved_provider.empty? ? '' : " (got '#{resolved_provider}')"
+          puts "Error: Could not resolve a valid sender provider#{got}."
+          puts "  Provide --provider (one of: #{valid_providers.join(', ')})."
+          return
+        end
+
+        puts "  from_address: #{resolved_from}"
+        puts "  provider: #{resolved_provider}"
+        puts "  existing config: #{existing_config ? 'yes' : 'no'}"
+        puts
+
         if dry_run
-          puts '[dry-run] Would reconcile Lettermint sender domain:'
+          puts '[dry-run] Would reconcile sender domain:'
           puts "  domain: #{domain.display_domain}"
           puts "  from_address: #{resolved_from}"
-          puts '  provider: lettermint'
+          puts "  provider: #{resolved_provider}"
           puts "  action: #{existing_config ? 'provision with existing config' : 'create new config, then provision'}"
           return
         end
@@ -80,7 +102,7 @@ module Onetime
             mailer_config = Onetime::CustomDomain::MailerConfig.create!(
               domain_id: domain.identifier,
               from_address: resolved_from,
-              provider: 'lettermint',
+              provider: resolved_provider,
               enabled: false,
               sending_mode: 'platform',
             )
@@ -92,7 +114,7 @@ module Onetime
         end
 
         # Provision via the operation (handles 409 by fetching existing)
-        puts 'Provisioning sender domain with Lettermint...'
+        puts "Provisioning sender domain with #{resolved_provider}..."
         result = Onetime::Operations::ProvisionSenderDomain.new(
           mailer_config: mailer_config,
         ).call
@@ -109,6 +131,26 @@ module Onetime
       end
 
       private
+
+      # Resolve which provider to reconcile against.
+      #
+      # Precedence:
+      #   1. Explicit --provider option
+      #   2. Existing config's effective_provider
+      #   3. Installation-level sender provider (Mailer.determine_sender_provider)
+      #
+      # @param provider_opt [String, nil] Value of the --provider option
+      # @param existing_config [CustomDomain::MailerConfig, nil] Existing config
+      # @return [String] Lowercased provider name, or '' when unresolvable
+      def resolve_provider(provider_opt, existing_config)
+        provider = provider_opt.to_s.strip.downcase
+        return provider unless provider.empty?
+
+        provider = existing_config&.effective_provider.to_s.strip.downcase
+        return provider unless provider.empty?
+
+        Onetime::Mail::Mailer.send(:determine_sender_provider).to_s.strip.downcase
+      end
 
       def print_dns_records(records)
         return if records.nil? || records.empty?

@@ -6,8 +6,13 @@ require_relative '../mail/sender_strategies'
 
 module Onetime
   module Operations
-    # Deletes a sender domain from the mail provider (currently Lettermint).
+    # Deletes a sender domain from its mail provider.
     # Extracted from RemoveDomain and DeleteSenderConfig for reuse.
+    #
+    # Dispatches on the mailer config's effective_provider, so each
+    # provider's sender identity is torn down through its own strategy
+    # (SES, SendGrid, Lettermint). SMTP is a no-op — there is no remote
+    # sender identity to delete.
     #
     # Never raises — all errors are wrapped in the Result.
     # Callers can fire-and-forget: domain/config removal proceeds regardless.
@@ -30,14 +35,17 @@ module Onetime
 
       def call
         return skipped('no mailer config') unless @mailer_config
-        return skipped('not a lettermint provider') unless @mailer_config.effective_provider == 'lettermint'
 
-        credentials = Onetime::Mail::Mailer.provider_credentials('lettermint')
-        strategy    = Onetime::Mail::SenderStrategies.for_provider('lettermint')
+        provider = resolve_provider
+        return skipped('no effective provider') if provider.empty?
+
+        credentials = Onetime::Mail::Mailer.provider_credentials(provider)
+        strategy    = Onetime::Mail::SenderStrategies.for_provider(provider)
         result      = strategy.delete_sender_identity(@mailer_config, credentials: credentials)
 
         logger.info 'Sender domain deleted',
           domain_id: @mailer_config.domain_id,
+          provider: provider,
           message: result[:message]
 
         Result.new(success: true, message: result[:message], error: nil)
@@ -50,6 +58,23 @@ module Onetime
       end
 
       private
+
+      # Resolve the provider to dispatch sender-identity deletion to.
+      #
+      # Prefers the mailer config's effective_provider (which itself
+      # falls back to the installation-level sender provider). When that
+      # is unresolvable, default to 'lettermint' for back-compat with
+      # configs created before the `provider` field existed — but only
+      # when a from_address remains to tear down. Returns an empty
+      # string when there is nothing to act on.
+      #
+      # @return [String] Lowercased provider name, or '' when unresolvable
+      def resolve_provider
+        provider = @mailer_config.effective_provider.to_s.strip.downcase
+        return provider unless provider.empty?
+
+        @mailer_config.from_address.to_s.strip.empty? ? '' : 'lettermint'
+      end
 
       def skipped(reason)
         Result.new(success: true, message: "skipped: #{reason}", error: nil)
