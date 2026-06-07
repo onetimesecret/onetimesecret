@@ -308,7 +308,6 @@ if [[ ! -d "$OTS_DEV_CONFIG" ]]; then
     for shared_name in "${LINKS[@]}"; do
         echo "    - $shared_name"
     done
-    echo "    - .env  (optional)"
     echo "  Or point OTS_DEV_CONFIG at an existing directory."
     echo ""
 fi
