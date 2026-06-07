@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative '../../../../apps/web/billing/errors'
+require_relative '../../../apps/web/billing/errors'
 
 # Integration tests for API behavior when Billing::PlanCacheMissError is raised.
 #

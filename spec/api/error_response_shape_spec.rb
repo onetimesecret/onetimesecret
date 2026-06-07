@@ -24,8 +24,8 @@
 #
 # =============================================================================
 
-require_relative '../../spec_helper'
-require_relative '../integration_spec_helper'
+require_relative '../spec_helper'
+require_relative '../integration/integration_spec_helper'
 require 'json'
 
 RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
@@ -181,7 +181,7 @@ RSpec.describe 'API error response wire format (ADR-013)', type: :integration do
     # Build the router once for the describe. Per-example `let` would rebuild
     # the full middleware/initializer stack on each it-block.
     before(:all) do
-      require_relative '../../../apps/web/billing/application'
+      require_relative '../../apps/web/billing/application'
       @billing_router = Billing::Application.new.send(:build_router)
     end
 

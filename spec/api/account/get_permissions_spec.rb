@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../integration_spec_helper'
+require_relative '../../integration/integration_spec_helper'
 require 'rack/test'
 
 # Integration tests for GET /api/account/permissions
