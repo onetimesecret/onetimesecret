@@ -41,15 +41,41 @@ def last_response; @test.last_response; end
 
 @session = { 'authenticated' => true, 'external_id' => @owner.extid, 'email' => @owner.email }
 
-# Plan data used across all billing blocks
+# Plan data used across all billing blocks.
+#
+# Per-role limits are set to 'unlimited' so the existing aggregate-cap
+# scenarios remain driven by `total_members_per_org.max`. A separate plan below
+# exercises the per-role bucket enforcement.
 @limited_plan = {
   plan_id: 'limited_members',
   name: 'Limited Members Plan',
   tier: 'free',
   interval: 'month',
   region: 'us',
-  entitlements: ['create_secrets'],
-  limits: { 'members_per_team.max' => '3' }  # Limit: 3 total members
+  entitlements: ['create_secrets', 'manage_members'],
+  limits: {
+    'total_members_per_org.max' => '3',
+    'role_owners_per_org.max' => '1',
+    'role_admins_per_org.max' => 'unlimited',
+    'role_members_per_org.max' => 'unlimited',
+  }
+}
+
+# Plan with a strict regular-members cap and a generous aggregate cap.
+# Exercises the per-role bucket check independently of `total_members_per_org`.
+@role_capped_plan = {
+  plan_id: 'role_capped_members',
+  name: 'Role Capped Members Plan',
+  tier: 'free',
+  interval: 'month',
+  region: 'us',
+  entitlements: ['create_secrets', 'manage_members'],
+  limits: {
+    'total_members_per_org.max' => 'unlimited',
+    'role_owners_per_org.max' => '1',
+    'role_admins_per_org.max' => 'unlimited',
+    'role_members_per_org.max' => '1',
+  }
 }
 
 # Helper to run billing-enabled test and return results
@@ -58,6 +84,9 @@ def run_billing_test_invite(org, session, email, plan)
   BillingTestHelpers.with_billing_enabled(plans: [plan]) do
     org.planid = plan[:plan_id]
     org.save
+    # Materialize entitlements on org and cascade to memberships
+    org.materialize_entitlements_from_config(plan)
+    org.rematerialize_all_memberships!
     org = Onetime::Organization.load(org.objid)
 
     # Capture counts before the API call
@@ -74,8 +103,8 @@ def run_billing_test_invite(org, session, email, plan)
       result[:record_id] = resp['record']['id']
       result[:record_email] = resp['record']['email']
     else
-      result[:error_type] = resp['error']
-      result[:error_message] = resp['message']
+      result[:error_type] = resp['error_type']
+      result[:error_message] = resp['error']
     end
   end
   result
@@ -153,6 +182,17 @@ reloaded_org.pending_invitation_count
 @invite3_id = @result3[:record_id]
 @result3[:record_email]
 #=> "member4_#{@timestamp}@example.com"
+
+## Per-role cap: with role_members_per_org=1 already met, a member invite is rejected
+# Org currently has 1 active regular member (@member1) and 1 pending member invite (@invite3)
+# under the role_capped_plan whose role_members_per_org limit is 1.
+@result4 = run_billing_test_invite(@org, @session, "member5_#{@timestamp}@example.com", @role_capped_plan)
+@result4[:status]
+#=> 422
+
+## Per-role cap error indicates upgrade required
+@result4[:error_type]
+#=> "upgrade_required"
 
 # Teardown
 # invite1 was accepted (now active membership for @member1)

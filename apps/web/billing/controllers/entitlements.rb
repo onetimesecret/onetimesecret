@@ -25,7 +25,7 @@ module Billing
       #     "entitlements": ["api_access", "custom_domains", "manage_teams"],
       #     "limits": {
       #       "teams": 1,
-      #       "members_per_team": null,
+      #       "total_members_per_org": null,
       #       "secret_lifetime": 2592000
       #     },
       #     "is_legacy": false
@@ -48,15 +48,16 @@ module Billing
         data = {
           planid: org.planid,
           plan_name: Billing::PlanHelpers.plan_name(org.planid),
-          entitlements: org.entitlements,
+          entitlements: org.entitlements_for_request(session),
           limits: build_limits_hash(org),
           is_legacy: Billing::PlanHelpers.legacy_plan?(org.planid),
           cache_stale: plan_cache_stale,
         }
 
         json_response(data)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403).
+        raise
       rescue StandardError => ex
         billing_logger.error 'Failed to load entitlements',
           {
@@ -101,8 +102,21 @@ module Billing
           return json_error('Entitlement parameter required', status: 400)
         end
 
-        # Use organization's check_entitlement method
-        result = org.check_entitlement(entitlement)
+        # Check entitlement with preview mode support
+        effective_entitlements = org.entitlements_for_request(session)
+        allowed                = effective_entitlements.include?(entitlement.to_s)
+
+        result = {
+          allowed: allowed,
+          entitlement: entitlement.to_s,
+          current_plan: org.planid,
+          upgrade_needed: !allowed,
+        }
+
+        # Add upgrade path if not allowed
+        if !allowed && defined?(Billing::PlanHelpers)
+          result[:upgrade_to] = Billing::PlanHelpers.upgrade_path_for(entitlement, org.planid)
+        end
 
         # Enhance with upgrade messaging if needed
         if result[:upgrade_needed] && result[:upgrade_to]
@@ -111,8 +125,9 @@ module Billing
         end
 
         json_response(result)
-      rescue OT::Problem => ex
-        json_error(ex.message, status: 403)
+      rescue Onetime::Forbidden
+        # Propagate to OttoHooks Forbidden handler (ADR-013 → 403).
+        raise
       rescue StandardError => ex
         billing_logger.error 'Failed entitlement check',
           {
@@ -134,7 +149,7 @@ module Billing
       #   {
       #     "entitlements": {
       #       "core": ["api_access", "custom_privacy_defaults", "extended_default_expiration"],
-      #       "collaboration": ["manage_orgs", "manage_teams", "manage_members"],
+      #       "collaboration": ["manage_org", "manage_teams", "manage_members"],
       #       "infrastructure": ["custom_domains", "custom_branding", "homepage_secrets"],
       #       "communication": ["incoming_secrets", "custom_mail_sender"],
       #       "advanced": ["audit_logs"]
@@ -183,15 +198,27 @@ module Billing
 
       # Build limits hash with symbolic limit names
       #
+      # Reads from org's materialized limits_plan when available,
+      # falls back to Plan.load for unmaterialized orgs.
+      #
       # Returns empty hash if:
       # - Organization has no planid
-      # - Plan not found in cache
+      # - Entitlements not materialized and plan not found in cache
       #
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Limits with nil for infinity
       def build_limits_hash(org)
         return {} if org.planid.to_s.empty?
 
+        # Materialized path: read from org-local storage (no Plan.load)
+        if org.entitlements_materialized?
+          limits = org.limits_plan.hgetall || {}
+          return limits.transform_values do |value|
+            value == 'unlimited' ? nil : value.to_i
+          end
+        end
+
+        # Fallback for unmaterialized orgs
         plan = ::Billing::Plan.load(org.planid)
         return {} unless plan
 

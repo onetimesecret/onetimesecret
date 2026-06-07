@@ -22,6 +22,21 @@
 # no database or full app context needed
 require 'rspec'
 
+# Define the Auth::Config namespace so the hook file can load without a full
+# app boot. Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
+# `module Config` or `class Config`: if this file is ever loaded in a process
+# that also boots the real app, the application registry reopens
+# `class Config < Rodauth::Auth`. A plain module/class fixes the constant to the
+# wrong type, so the reopen raises a TypeError ("Config is not a class") and boot
+# is marked permanently not-ready for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Hooks, Module.new) unless Auth::Config.const_defined?(:Hooks, false)
+
+# Load the actual production module
+require_relative '../../../config/hooks/omniauth'
+
 RSpec.describe 'OmniAuth hooks' do
   describe '_account_from_omniauth email normalization' do
     # ==========================================================================
@@ -590,17 +605,10 @@ RSpec.describe 'OmniAuth hooks' do
     end
 
     it 'defines configure class method' do
-      # Load the module to test its interface
-      module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
-      require omniauth_file
-
       expect(Auth::Config::Hooks::OmniAuth).to respond_to(:configure)
     end
 
     it 'configure accepts one argument (auth object)' do
-      module Auth; module Config; module Hooks; end; end; end unless defined?(Auth::Config::Hooks)
-      require omniauth_file
-
       expect(Auth::Config::Hooks::OmniAuth.method(:configure).arity).to eq(1)
     end
   end

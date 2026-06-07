@@ -129,7 +129,7 @@ export type OrganizationWire = OrganizationCanonical & {
   member_count?: number | null;
   current_user_role?: 'owner' | 'admin' | 'member' | null;
   entitlements?: string[] | null;
-  limits?: { teams?: number; members_per_team?: number; custom_domains?: number } | null;
+  limits?: { teams?: number; total_members_per_org?: number; custom_domains?: number } | null;
   domain_count?: number | null;
 };
 
@@ -143,14 +143,14 @@ export function createWireOrganization(
   canonicalOrOverrides?: OrganizationCanonical | Partial<OrganizationWire>
 ): OrganizationWire {
   // If overrides have wire-only fields, use as overrides; otherwise treat as canonical
-  const hasWireFields = canonicalOrOverrides && (
-    'billing_email' in canonicalOrOverrides ||
-    'member_count' in canonicalOrOverrides ||
-    'current_user_role' in canonicalOrOverrides ||
-    'entitlements' in canonicalOrOverrides ||
-    'limits' in canonicalOrOverrides ||
-    'domain_count' in canonicalOrOverrides
-  );
+  const hasWireFields =
+    canonicalOrOverrides &&
+    ('billing_email' in canonicalOrOverrides ||
+      'member_count' in canonicalOrOverrides ||
+      'current_user_role' in canonicalOrOverrides ||
+      'entitlements' in canonicalOrOverrides ||
+      'limits' in canonicalOrOverrides ||
+      'domain_count' in canonicalOrOverrides);
 
   if (hasWireFields) {
     // Overrides mode: merge with defaults
@@ -164,7 +164,7 @@ export function createWireOrganization(
       entitlements: ['create_secrets', 'view_receipt'],
       limits: {
         teams: 1,
-        members_per_team: 5,
+        total_members_per_org: 5,
         custom_domains: 0,
       },
       domain_count: 0,
@@ -185,7 +185,7 @@ export function createWireOrganization(
     entitlements: ['create_secrets', 'view_receipt'],
     limits: {
       teams: 1,
-      members_per_team: 5,
+      total_members_per_org: 5,
       custom_domains: 0,
     },
     domain_count: 0,
@@ -195,9 +195,7 @@ export function createWireOrganization(
 /**
  * Creates wire format for a paid organization with entitlements.
  */
-export function createWirePaidOrganization(
-  canonical?: OrganizationCanonical
-): OrganizationWire {
+export function createWirePaidOrganization(canonical?: OrganizationCanonical): OrganizationWire {
   const org = canonical ?? createPaidOrganization();
   return {
     ...org,
@@ -210,13 +208,13 @@ export function createWirePaidOrganization(
       'api_access',
       'custom_domains',
       'custom_branding',
-      'manage_orgs',
+      'manage_org',
       'manage_teams',
       'manage_members',
     ],
     limits: {
       teams: 10,
-      members_per_team: 50,
+      total_members_per_org: 50,
       custom_domains: 5,
     },
     domain_count: 2,
@@ -234,13 +232,15 @@ export function createWireFreeOrganization(
   overrides?: Partial<OrganizationWire>
 ): OrganizationWire {
   return {
-    ...createWireOrganization(createCanonicalOrganization({
-      objid: 'org_free_123',
-      extid: 'on%org_free_123',
-      planid: 'free_v1',
-    })),
+    ...createWireOrganization(
+      createCanonicalOrganization({
+        objid: 'org_free_123',
+        extid: 'on%org_free_123',
+        planid: 'free_v1',
+      })
+    ),
     entitlements: [],
-    limits: { teams: 0, members_per_team: 0, custom_domains: 0 },
+    limits: { teams: 0, total_members_per_org: 0, custom_domains: 0 },
     ...overrides,
   };
 }
@@ -252,16 +252,18 @@ export function createWireSingleTeamOrganization(
   overrides?: Partial<OrganizationWire>
 ): OrganizationWire {
   return {
-    ...createWireOrganization(createCanonicalOrganization({
-      objid: 'org_single_123',
-      extid: 'on%org_single_123',
-      planid: 'identity_plus_v1_monthly',
-    })),
+    ...createWireOrganization(
+      createCanonicalOrganization({
+        objid: 'org_single_123',
+        extid: 'on%org_single_123',
+        planid: 'identity_plus_v1',
+      })
+    ),
     billing_email: 'billing@example.com',
     member_count: 5,
     current_user_role: 'owner',
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
+    limits: { teams: 1, total_members_per_org: 10, custom_domains: 3 },
     ...overrides,
   };
 }
@@ -273,11 +275,13 @@ export function createWireMultiTeamOrganization(
   overrides?: Partial<OrganizationWire>
 ): OrganizationWire {
   return {
-    ...createWireOrganization(createCanonicalOrganization({
-      objid: 'org_multi_123',
-      extid: 'on%org_multi_123',
-      planid: 'team_plus_v1_monthly',
-    })),
+    ...createWireOrganization(
+      createCanonicalOrganization({
+        objid: 'org_multi_123',
+        extid: 'on%org_multi_123',
+        planid: 'team_plus_v1',
+      })
+    ),
     billing_email: 'billing@enterprise.example.com',
     member_count: 15,
     current_user_role: 'owner',
@@ -289,7 +293,7 @@ export function createWireMultiTeamOrganization(
       'manage_members',
       'audit_logs',
     ],
-    limits: { teams: 5, members_per_team: 25, custom_domains: 10 },
+    limits: { teams: 5, total_members_per_org: 25, custom_domains: 10 },
     ...overrides,
   };
 }
@@ -302,17 +306,19 @@ export function createWireLegacyIdentityOrganization(
   overrides?: Partial<OrganizationWire>
 ): OrganizationWire {
   return {
-    ...createWireOrganization(createCanonicalOrganization({
-      objid: 'org_legacy_123',
-      extid: 'on%org_legacy_123',
-      display_name: 'Early Supporter Org',
-      planid: 'identity',
-    })),
+    ...createWireOrganization(
+      createCanonicalOrganization({
+        objid: 'org_legacy_123',
+        extid: 'on%org_legacy_123',
+        display_name: 'Early Supporter Org',
+        planid: 'identity',
+      })
+    ),
     billing_email: 'billing@legacy.example.com',
     member_count: 3,
     current_user_role: 'owner',
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-    limits: { teams: 1, members_per_team: 10, custom_domains: 3 },
+    limits: { teams: 1, total_members_per_org: 10, custom_domains: 3 },
     ...overrides,
   };
 }
@@ -342,19 +348,11 @@ export function compareCanonicalOrganization(
   const differences: string[] = [];
 
   // String fields
-  const stringFields = [
-    'objid',
-    'extid',
-    'display_name',
-    'owner_id',
-    'planid',
-  ] as const;
+  const stringFields = ['objid', 'extid', 'display_name', 'owner_id', 'planid'] as const;
 
   for (const field of stringFields) {
     if (a[field] !== b[field]) {
-      differences.push(
-        `${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`
-      );
+      differences.push(`${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`);
     }
   }
 
@@ -363,9 +361,7 @@ export function compareCanonicalOrganization(
 
   for (const field of nullableStringFields) {
     if (a[field] !== b[field]) {
-      differences.push(
-        `${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`
-      );
+      differences.push(`${field}: ${JSON.stringify(a[field])} !== ${JSON.stringify(b[field])}`);
     }
   }
 

@@ -79,8 +79,8 @@ strategy_result = MockStrategyResult.new(session: sess, user: nil)
 logic = AccountAPI::Logic::Account::CreateAccount.new strategy_result, @valid_params.call, 'en'
 logic.raise_concerns
 logic.process
-[logic.autoverify, logic.cust.verified, OT.conf.dig('site', 'authentication', 'autoverify')]
-#=> [false, false, false]
+[logic.autoverify.to_s, logic.cust.verified.to_s, OT.conf.dig('site', 'authentication', 'autoverify').to_s]
+#=> ['false', 'false', 'false']
 
 ## Can create account and have it auto-verified.
 sess = {}

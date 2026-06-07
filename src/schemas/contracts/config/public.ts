@@ -6,6 +6,10 @@
  * These schemas validate public settings API responses where values are
  * native types (boolean, number) from Ruby/YAML serialized to JSON.
  *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults, TTL bounds, passphrase length limits, and password-generation
+ * bounds live in `shapes/config/public.ts`.
+ *
  * NOTE: These are distinct from the YAML config section schemas which
  * validate backend configuration file structure.
  */
@@ -21,19 +25,15 @@ import { z } from 'zod';
 export const publicSecretOptionsSchema = z.object({
   /**
    * Default Time-To-Live (TTL) for secrets in seconds
-   * Default: 604800 (7 days in seconds)
    */
-  default_ttl: z.number().int().positive().default(604800),
+  default_ttl: z.number().optional(),
 
   /**
    * Available TTL options for secret creation (in seconds)
    * These options will be presented to users when they create a new secret
    * Format: Array of integers representing seconds
-   * Default: [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600]
    */
-  ttl_options: z
-    .array(z.number().int().positive().min(60).max(2592000))
-    .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
+  ttl_options: z.array(z.number()).optional(),
 
   /**
    * Settings for the passphrase field that protects access to secrets
@@ -43,24 +43,23 @@ export const publicSecretOptionsSchema = z.object({
       /**
        * Whether passphrases are required for all secrets
        */
-      required: z.boolean().default(false),
+      required: z.boolean().optional(),
 
       /**
        * Minimum length required for passphrases.
-       * Default: 4. Set to 0 to disable enforcement.
        * @sync apps/api/v1/logic/secrets/base_secret_action.rb — passphrase validation
        */
-      minimum_length: z.number().int().min(0).max(256).default(4),
+      minimum_length: z.number().optional(),
 
       /**
        * Maximum length allowed for passphrases
        */
-      maximum_length: z.number().int().min(8).max(1024).default(128),
+      maximum_length: z.number().optional(),
 
       /**
        * Whether to enforce complexity requirements
        */
-      enforce_complexity: z.boolean().default(false),
+      enforce_complexity: z.boolean().optional(),
     })
     .optional(),
 
@@ -72,23 +71,23 @@ export const publicSecretOptionsSchema = z.object({
       /**
        * Default length for generated passwords
        */
-      default_length: z.number().int().min(4).max(128).default(12),
+      default_length: z.number().optional(),
 
       /**
        * Available length options for password generation
        */
-      length_options: z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+      length_options: z.array(z.number()).optional(),
 
       /**
        * Character sets to include in generated passwords
        */
       character_sets: z
         .object({
-          uppercase: z.boolean().default(true),
-          lowercase: z.boolean().default(true),
-          numbers: z.boolean().default(true),
-          symbols: z.boolean().default(false),
-          exclude_ambiguous: z.boolean().default(true),
+          uppercase: z.boolean().optional(),
+          lowercase: z.boolean().optional(),
+          numbers: z.boolean().optional(),
+          symbols: z.boolean().optional(),
+          exclude_ambiguous: z.boolean().optional(),
         })
         .optional(),
     })
@@ -144,13 +143,21 @@ export const publicAuthenticationSchema = z.object({
 export type PublicAuthenticationSettings = z.infer<typeof publicAuthenticationSchema>;
 
 /**
+ * Schema for jurisdiction icon
+ */
+const jurisdictionIconSchema = z.object({
+  collection: z.string(),
+  name: z.string(),
+});
+
+/**
  * Schema for the :jurisdiction section
  */
 const jurisdictionSchema = z.object({
   identifier: z.string(),
-  display_name: z.string(),
+  display_name_i18n_key: z.string(),
   domain: z.string(),
-  icon: z.string(),
+  icon: jurisdictionIconSchema.optional(),
 });
 
 /**
@@ -163,26 +170,50 @@ const regionsSchema = z.object({
 });
 
 /**
- * Schema for the :cluster section within :domains (proxy configuration)
+ * Schema for the :approximated section within :domains
+ *
+ * Approximated proxy configuration (used by the 'approximated' validation
+ * strategy). All fields default to nil in the Ruby YAML when env vars are
+ * unset, so every key is optional/nullable here.
  */
-const clusterSchema = z
+const approximatedSchema = z
   .object({
-    type: z.string().optional(),
-    //  api_key: z.string().optional(),
-    proxy_ip: z.string().optional(),
-    proxy_host: z.string().optional(),
-    proxy_name: z.string(),
-    vhost_target: z.string(),
+    api_key: z.string().nullable().optional(),
+    proxy_ip: z.string().nullable().optional(),
+    proxy_host: z.string().nullable().optional(),
+    proxy_name: z.string().nullable().optional(),
+    vhost_target: z.string().nullable().optional(),
+  })
+  .strip();
+
+/**
+ * Schema for the :acme section within :domains
+ *
+ * Internal ACME endpoint configuration (used by the 'caddy_on_demand'
+ * validation strategy).
+ */
+const acmeSchema = z
+  .object({
+    enabled: z.boolean(),
+    listen_address: z.string().optional(),
+    port: z.union([z.string(), z.number()]).optional(),
   })
   .strip();
 
 /**
  * Schema for the :domains section
+ *
+ * Mirrors `features.domains` in etc/defaults/config.defaults.yaml. The
+ * bootstrap payload is the raw Ruby hash (see ConfigSerializer), so any
+ * rename here must be applied on the Ruby side as well.
  */
 const domainsSchema = z.object({
   enabled: z.boolean(),
-  default: z.string().optional(),
-  cluster: clusterSchema,
+  require_verified: z.boolean().optional(),
+  default: z.string().nullable().optional(),
+  validation_strategy: z.string().optional(),
+  approximated: approximatedSchema.optional(),
+  acme: acmeSchema.optional(),
 });
 
 /**
@@ -214,7 +245,7 @@ export const publicFeaturesSchema = z.object({
 });
 
 /**
- * Combined Schema for PublicSettings based on :site in config.schema.yaml
+ * Combined Schema for PublicSettings (public-facing subset of the site config)
  */
 export const publicSettingsSchema = z
   .object({

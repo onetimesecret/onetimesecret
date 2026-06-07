@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'utils/config_resolver'
+require_relative 'utils/enumerables'
 
 module Onetime
   module Config
@@ -82,7 +83,14 @@ module Onetime
         },
         'features' => {
           'regions' => { 'enabled' => false },
-          'domains' => { 'enabled' => false },
+          'domains' => {
+            'enabled' => false,
+            # When true, secret creation against an unverified custom
+            # share_domain raises a form error. When false (default),
+            # creation is allowed regardless of the domain's verification
+            # status. Canonical domains are unaffected.
+            'require_verified' => false,
+          },
           'incoming' => {
             'enabled' => false,
             'memo_max_length' => 50,
@@ -106,7 +114,74 @@ module Onetime
           'frontend_host' => '',
           'allow_nil_global_secret' => false, # defaults to a secure setting
         },
+        'compatibility' => {
+          # How the boot process responds when a deprecated config key or
+          # env var is detected: 'strict' raises OT::ConfigError, 'warn'
+          # logs and continues, 'silent' ignores. See DEPRECATIONS.
+          'deprecated_config_mode' => 'strict',
+        },
       }
+
+      # Declarative manifest of removed configuration keys.
+      #
+      # Each entry maps a deprecated config path and/or the env var that
+      # used to populate it to a migration message. check_deprecations
+      # scans these at boot; compatibility.deprecated_config_mode decides
+      # whether a match raises OT::ConfigError ('strict'), logs ('warn'),
+      # or is ignored ('silent').
+      #
+      # Fields:
+      #   path:    Array of keys to dig into conf (optional)
+      #   env:     Environment variable name (optional)
+      #   trigger: Proc that receives the path value; returns true to fire (optional)
+      #            When absent, any non-nil value triggers. Use for type-specific checks.
+      #   message: User-facing migration guidance
+      DEPRECATIONS = [
+        {
+          path: %w[site interface ui homepage trusted_proxy_depth],
+          env: 'UI_HOMEPAGE_TRUSTED_PROXY_DEPTH',
+          message: <<~MSG.chomp,
+            site.interface.ui.homepage.trusted_proxy_depth is ignored. Configure proxy
+            depth globally via site.network.trusted_proxy (TRUSTED_PROXY_ENABLED,
+            TRUSTED_PROXY_MODE=depth, TRUSTED_PROXY_DEPTH).
+          MSG
+        },
+        {
+          path: %w[site interface ui homepage trusted_ip_header],
+          env: 'UI_HOMEPAGE_TRUSTED_IP_HEADER',
+          message: <<~MSG.chomp,
+            site.interface.ui.homepage.trusted_ip_header is ignored. Configure the
+            forwarding header globally via site.network.trusted_proxy.header
+            (TRUSTED_PROXY_HEADER).
+          MSG
+        },
+        {
+          path: %w[site domains],
+          env: nil,
+          message: <<~MSG.chomp,
+            site.domains is ignored. This config moved to features.domains;
+            only the new path is read.
+          MSG
+        },
+        {
+          path: %w[site regions],
+          env: nil,
+          message: <<~MSG.chomp,
+            site.regions is ignored. This config moved to features.regions;
+            only the new path is read.
+          MSG
+        },
+        {
+          path: %w[features regions jurisdictions],
+          env: nil,
+          # Only trigger on Array (old YAML format), not String (new ENV format)
+          trigger: ->(value) { value.is_a?(Array) },
+          message: <<~MSG.chomp,
+            features.regions.jurisdictions array format is deprecated. Use JURISDICTIONS env var
+            (format: EU:eu.example.com,CA:ca.example.com) instead.
+          MSG
+        },
+      ].freeze
 
     end
 
@@ -122,33 +197,63 @@ module Onetime
       ENV['REGIONS_ENABLED'] = ENV.values_at('REGIONS_ENABLED', 'REGIONS_ENABLE').compact.first || 'false'
     end
 
-    # Load a YAML configuration file, allowing for ERB templating within the file.
-    # This reads the file at the given path, processes any embedded Ruby (ERB) code,
-    # and then parses the result as YAML.
+    # Load a YAML configuration file with layered defaults support.
     #
-    # @param path [String] (optional the path to the YAML configuration file
-    # @return [Hash] the parsed YAML data
+    # When etc/defaults/config.defaults.yaml exists, it is loaded first as
+    # the base layer. The environment-specific file (from +path+) is then
+    # deep-merged on top so overrides win. This ensures sections defined
+    # only in the defaults file are visible in all environments without
+    # manual duplication. See #3322.
+    #
+    # The YAML layer merge uses preserve_nils: false so that explicit nil
+    # in the environment file means "I want nil" (not "keep the default").
+    # Nil-preservation is reserved for the in-code DEFAULTS merge in
+    # after_load, where nil means "not specified".
+    #
+    # @param path [String] (optional) path to the environment-specific YAML
+    #   file. When nil, layered defaults are applied automatically. When an
+    #   explicit path is given, only that file is loaded (no defaults layer).
+    # @return [Hash] the parsed, merged YAML data
     #
     def load(path = nil)
+      using_default_path = path.nil?
       path ||= self.path
+      loading_file = path
 
-      raise ArgumentError, "Bad path (#{path})" unless path && File.readable?(path)
+      if path.nil? || path.empty?
+        raise ArgumentError, 'Config path not set (checked etc/config.yaml and SERVICE_PATHS)'
+      end
 
-      parsed_template = ERB.new(File.read(path))
+      unless File.readable?(path)
+        raise ArgumentError, "Config not readable: #{path}"
+      end
 
-      YAML.load(parsed_template.result)
+      base_config = if using_default_path
+        defaults_file = Onetime::Utils::ConfigResolver.defaults_path('config')
+        if defaults_file && defaults_file != path
+          loading_file = defaults_file # track for rescue reporting
+          load_yaml_with_erb(defaults_file)
+        else
+          {}
+        end
+      else
+        {}
+      end
+
+      loading_file = path
+      env_config = load_yaml_with_erb(path)
+
+      if base_config.empty?
+        env_config
+      else
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
+      end
     rescue StandardError => ex
-      OT.le "Error loading config: #{path}"
+      OT.le "Error loading config: #{loading_file}"
 
-      # Log the raw template source for debugging purposes.
-      # This helps identify issues with template rendering and provides
-      # context for the error, making it easier to diagnose config
-      # problems, especially when the error involves environment vars.
-      # Note: We use the raw file content, not parsed_template.result,
-      # because calling .result again would re-raise the same error.
       if OT.debug?
         begin
-          template_lines = File.read(path).split("\n")
+          template_lines = File.read(loading_file).split("\n")
           template_lines.each_with_index do |line, index|
             OT.ld "Line #{index + 1}: #{line}"
           end
@@ -160,22 +265,13 @@ module Onetime
       OT.le ex.message
       OT.le ex.backtrace.join("\n")
       raise OT::ConfigError.new(ex.message)
-
-      # NOTE: We revisited handling StandardError here in favour of letting it
-      # bubble up to OT::Boot.boot!. I think it simply doesn't make sense to
-      # spill the beans about an unexpected error here b/c it leads to confusing
-      # log output where the backtrace comes before the actual error message.
-      # That's my hypothesis anyway.
-      #
-      # Leaving this note and the rescue block just in case it causing other,
-      # unintended confusing situations. To re-enable, uncomment the following
-      # rescue block:
-      #
-      #   rescue StandardError => ex
-      #     log_error_with_debug_content(ex)
-      #     raise OT::ConfigError, "Unhandled error: #{ex.message}"
-      #
     end
+
+    def load_yaml_with_erb(path)
+      parsed_template = ERB.new(File.read(path))
+      YAML.load(parsed_template.result) || {}
+    end
+    private :load_yaml_with_erb
 
     # After loading the configuration, this method processes and validates the
     # configuration, setting defaults and ensuring required elements are present.
@@ -201,10 +297,33 @@ module Onetime
 
       raise_concerns(conf)
 
-      # MIGRATION VALIDATION: Check for legacy configuration locations
-      # Warn if both old (site.*) and new (features.*) config exist
-      validate_domains_migration(conf)
-      validate_regions_migration(conf)
+      # MIGRATION VALIDATION: Detect deprecated configuration keys / env vars
+      # and respond per compatibility.deprecated_config_mode.
+      # Must run BEFORE jurisdiction parsing so trigger proc sees original type.
+      check_deprecations(conf)
+
+      # Parse jurisdictions from string env var format AFTER deprecation check.
+      # Format: "EU:eu.example.com,CA:ca.example.com" -> array of hashes
+      # The trigger proc above only fires on Array (old YAML format), not String.
+      jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
+      if jurisdictions.is_a?(String) && !jurisdictions.empty?
+        entries                                      = jurisdictions.split(',').map(&:strip).reject(&:empty?)
+        conf['features']['regions']['jurisdictions'] = entries.map do |entry|
+          identifier, domain = entry.split(':', 2).map(&:strip)
+          if identifier.empty? || domain.to_s.empty?
+            raise OT::ConfigError, "Invalid JURISDICTIONS format: '#{entry}' (expected ID:domain)"
+          end
+
+          {
+            'identifier' => identifier,
+            'domain' => domain,
+            'display_name_i18n_key' => "web.regions.jurisdictions.#{identifier.downcase}.name",
+          }
+        end
+      elsif jurisdictions.is_a?(String) || jurisdictions.nil?
+        # Empty string or nil -> empty array
+        conf['features']['regions']['jurisdictions'] = []
+      end
 
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
@@ -257,6 +376,17 @@ module Onetime
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.split(/\s+/).map(&:to_i)
       elsif length_options.is_a?(Array)
         conf['site']['secret_options']['password_generation']['length_options'] = length_options.map(&:to_i)
+      end
+
+      # Ensure array jurisdiction entries have display_name_i18n_key
+      # (String format already converted to Array above, before check_deprecations)
+      jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
+      if jurisdictions.is_a?(Array)
+        conf['features']['regions']['jurisdictions'] = jurisdictions.map do |j|
+          j                            = j.dup if j.frozen?
+          j['display_name_i18n_key'] ||= "web.regions.jurisdictions.#{j['identifier'].to_s.downcase}.name"
+          j
+        end
       end
 
       # Apply the defaults to sentry backend and frontend configs
@@ -336,32 +466,51 @@ module Onetime
       end
     end
 
-    # Validates domains configuration migration from site to features
+    # Detects deprecated configuration keys and environment variables.
     #
-    # Checks if both legacy (site.domains) and new (features.domains) configurations
-    # exist, logging a warning if both are present. The features.domains configuration
-    # takes precedence.
+    # Scans the DEPRECATIONS manifest. A deprecation is considered present
+    # when its config path resolves to a non-nil value, or its env var is
+    # set to a non-empty value. The response is governed by
+    # compatibility.deprecated_config_mode:
     #
-    # @param conf [Hash] The loaded configuration
+    #   strict (default) - raise OT::ConfigError, refusing to boot
+    #   warn             - log each migration message and continue
+    #   silent           - ignore
+    #
+    # An unrecognized policy value is treated as strict.
+    #
+    # @param conf [Hash] The merged configuration
     # @return [void]
-    def validate_domains_migration(conf)
-      if conf.dig('site', 'domains') && conf.dig('features', 'domains')
-        OT.le 'CONFIG MIGRATION WARNING: Both site.domains and features.domains configured. Using features.domains'
-      end
-    end
+    # @raise [OT::ConfigError] When a deprecated key is found under strict policy
+    def check_deprecations(conf)
+      detected = DEPRECATIONS.select do |dep|
+        env_set = !!(dep[:env] && !ENV[dep[:env]].to_s.empty?)
 
-    # Validates regions configuration migration from site to features
-    #
-    # Checks if both legacy (site.regions) and new (features.regions) configurations
-    # exist, logging a warning if both are present. The features.regions configuration
-    # takes precedence.
-    #
-    # @param conf [Hash] The loaded configuration
-    # @return [void]
-    def validate_regions_migration(conf)
-      if conf.dig('site', 'regions') && conf.dig('features', 'regions')
-        OT.le 'CONFIG MIGRATION WARNING: Both site.regions and features.regions configured. Using features.regions'
+        # Check path, optionally with a trigger proc for type-specific detection
+        path_value = dep[:path] && conf.dig(*dep[:path])
+        path_set   = if dep[:trigger] && path_value
+          dep[:trigger].call(path_value)
+        else
+          !path_value.nil?
+        end
+
+        env_set || path_set
       end
+      return if detected.empty?
+
+      policy   = (conf.dig('compatibility', 'deprecated_config_mode') || 'strict').to_s
+      messages = detected.map { |dep| dep[:message] }
+      return if policy == 'silent'
+
+      if policy == 'warn'
+        messages.each { |msg| OT.le "CONFIG DEPRECATION: #{msg}" }
+        return
+      end
+
+      raise OT::ConfigError,
+        "Deprecated configuration detected:\n  - #{messages.join("\n  - ")}\n\n" \
+        "Set compatibility.deprecated_config_mode (DEPRECATED_CONFIG_MODE) to 'warn' " \
+        'to downgrade this to a logged warning.'
     end
 
     def dirname

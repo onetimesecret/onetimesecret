@@ -11,7 +11,7 @@
 #   When an organization is deleted:
 #   1. All pending invitations (OrganizationMembership with status='pending') should be destroyed
 #   2. The pending_invitations sorted set should be emptied
-#   3. Invitation indexes should be cleaned up (token_lookup, org_email_lookup)
+#   3. Invitation indexes should be cleaned up (token_lookup)
 #
 # Test Coverage:
 #   - Organization#destroy! cleans up pending invitations
@@ -19,7 +19,6 @@
 #   - After cleanup: pending_invitations sorted set is empty
 #   - After cleanup: invitation record no longer exists
 #   - After cleanup: token_lookup entry is removed
-#   - After cleanup: org_email_lookup entry is removed
 #   - Multiple invitations are all cleaned up
 #   - Mixed state (pending + declined) cleanup behavior
 #
@@ -61,7 +60,6 @@ OT.boot! :test
 )
 @invite1_id = @invite1.objid
 @invite1_token = @invite1.token
-@invite1_email_key = @invite1.org_email_key
 @org.pending_invitation_count
 #=> 1
 
@@ -73,8 +71,8 @@ OT.boot! :test
 Onetime::OrganizationMembership.find_by_token(@invite1_token).nil?
 #=> false
 
-## Verify org_email lookup exists before destroy
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, "pending_user1_#{@timestamp}@example.com").nil?
+## Verify find_pending_by_email discovers invitation before destroy
+Onetime::OrganizationMembership.find_pending_by_email(@org, "pending_user1_#{@timestamp}@example.com").nil?
 #=> false
 
 ## Organization destroy! cleans up pending invitations
@@ -88,10 +86,6 @@ Onetime::OrganizationMembership.load(@invite1_id)
 
 ## After org destroy: token_lookup entry is removed
 Onetime::OrganizationMembership.find_by_token(@invite1_token)
-#=> nil
-
-## After org destroy: org_email_lookup entry is removed
-Onetime::OrganizationMembership.org_email_lookup[@invite1_email_key]
 #=> nil
 
 # --- Test Multiple Invitations Cleanup ---
@@ -213,7 +207,7 @@ Onetime::OrganizationMembership.load(@pending_invite_id)
 # NOTE: Issue #2878 focuses on pending invitations only. Declined invitations
 # retain their FK reference to the now-deleted org. However, this is now less
 # problematic because:
-#   1. decline! now cleans up token_lookup and org_email_lookup indexes
+#   1. decline! now cleans up token_lookup index
 #   2. Declined records are not in pending_invitations set (so quota is correct)
 #   3. The record exists but has no active indexes pointing to it
 #   4. Re-invitation to the same email is now possible after decline!
@@ -285,7 +279,6 @@ Onetime::Organization.load(@org4_id)
 )
 @revoke_invite_id = @revoke_invite.objid
 @revoke_invite_token = @revoke_invite.token
-@revoke_invite_email_key = @revoke_invite.org_email_key
 @org6.pending_invitation_count
 #=> 1
 
@@ -298,8 +291,8 @@ Onetime::OrganizationMembership.load(@revoke_invite_id)
 Onetime::OrganizationMembership.find_by_token(@revoke_invite_token)
 #=> nil
 
-## After revoke: org_email lookup is removed
-Onetime::OrganizationMembership.org_email_lookup[@revoke_invite_email_key]
+## After revoke: find_pending_by_email no longer discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org6, "revoke_test_#{@timestamp}@example.com")
 #=> nil
 
 ## After revoke: pending_invitations count is 0

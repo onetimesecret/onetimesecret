@@ -137,12 +137,12 @@ describe('UpgradeBanner', () => {
     });
 
     it('hides banner for paid plan (identity_plus)', () => {
-      const wrapper = mountBanner({ planId: 'identity_plus_v1_monthly' });
+      const wrapper = mountBanner({ planId: 'identity_plus_v1' });
       expect(wrapper.find('[role="region"]').exists()).toBe(false);
     });
 
     it('hides banner for paid plan (team_plus)', () => {
-      const wrapper = mountBanner({ planId: 'team_plus_v1_monthly' });
+      const wrapper = mountBanner({ planId: 'team_plus_v1' });
       expect(wrapper.find('[role="region"]').exists()).toBe(false);
     });
 

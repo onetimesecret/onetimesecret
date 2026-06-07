@@ -150,24 +150,6 @@ OT.boot! :test
 
 
 # =============================================================================
-# Composite Index Key Tests
-# =============================================================================
-
-## org_customer_key format is correct for active membership
-@owner_membership.org_customer_key
-#=> "#{@org.objid}:#{@owner.objid}"
-
-## org_email_key returns nil if invited_email is empty (active membership)
-# Note: invited_email may still be set from invitation, but org_email_key checks both fields
-@admin_membership.invited_email.nil? || @admin_membership.org_email_key.nil? || @admin_membership.org_email_key.include?(@admin.email.downcase)
-#=> true
-
-## org_email_key format is correct for pending invitation
-@pending_invite.org_email_key
-#=> "#{@org.objid}:#{@pending_email.downcase}"
-
-
-# =============================================================================
 # Lookup Method Tests
 # =============================================================================
 
@@ -190,8 +172,8 @@ Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @outsider.objid
 Onetime::OrganizationMembership.find_by_token("nonexistent_token").nil?
 #=> true
 
-## find_by_org_email returns pending invitation
-@found_by_email = Onetime::OrganizationMembership.find_by_org_email(@org.objid, @pending_email)
+## find_pending_by_email returns pending invitation
+@found_by_email = Onetime::OrganizationMembership.find_pending_by_email(@org, @pending_email)
 @found_by_email.objid == @pending_invite.objid
 #=> true
 

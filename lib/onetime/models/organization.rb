@@ -46,7 +46,11 @@ module Onetime
     feature :external_identifier, format: 'on%<id>s'
     feature :required_fields
     feature :with_organization_billing
+    feature :with_materialized_entitlements
     feature :with_entitlements
+    feature :with_materialized_limits
+    feature :with_plan_entitlements
+    feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
     feature :with_migration_fields
@@ -61,8 +65,11 @@ module Onetime
     field :display_name
     field :description
     field :owner_id       # custid of organization owner (internal objid of Customer)
+    field :created_by     # Immutable audit field — custid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
+    field :archived_at      # Epoch timestamp: set when workspace is soft-archived by bulk migration
+    field :archived_comment # Free-text reason for archival (e.g. "Bulk SSO migration to domain X")
 
     hashkey :urls
     jsonkey :caboose  # Migration metadata and payment link info
@@ -77,7 +84,7 @@ module Onetime
     # Manual declarations will CLOBBER the auto-generated relationship functionality!
 
     def init
-      @planid ||= 'free'  # Default to free plan
+      @planid ||= 'free_v1'  # Default to canonical free plan
       nil
     end
 
@@ -91,7 +98,10 @@ module Onetime
     end
 
     def owner?(customer)
-      customer && customer.custid == owner_id
+      return false unless customer
+
+      membership = OrganizationMembership.find_by_org_customer(objid, customer.objid)
+      (membership&.active? && membership.owner?) || false
     end
 
     # Member management - Familia v2 auto-generated methods
@@ -111,9 +121,25 @@ module Onetime
       members.member?(dummy_customer)
     end
 
+    # Whether new memberships require explicit admin approval after the invitee
+    # consents (clicks Accept). Hardcoded to false until the approval workflow
+    # ships in a follow-up iteration; OrganizationMembership#accept! auto-promotes
+    # via activate! while this stays false.
+    def requires_admin_approval?
+      false
+    end
+
     def member_count
       # members is auto-generated sorted_set
       members.size
+    end
+
+    # Count active memberships by role.
+    #
+    # @param role [String, Symbol] Role to count ('owner', 'admin', 'member')
+    # @return [Integer] Number of active memberships matching the role
+    def member_count_by_role(role)
+      OrganizationMembership.active_for_org(self).count { |m| m.role == role.to_s }
     end
 
     def list_members
@@ -133,6 +159,14 @@ module Onetime
 
     def pending_invitation_count
       pending_invitations.size
+    end
+
+    # Count pending invitations by role.
+    #
+    # @param role [String, Symbol] Role to count ('owner', 'admin', 'member')
+    # @return [Integer] Number of pending invitations matching the role
+    def pending_invitation_count_by_role(role)
+      list_pending_invitations.count { |inv| inv.role == role.to_s }
     end
 
     def list_pending_invitations
@@ -231,6 +265,98 @@ module Onetime
       owner?(current_user)
     end
 
+    def archived?
+      !archived_at.to_s.empty?
+    end
+
+    def archive!(comment = nil)
+      self.archived_at      = Familia.now.to_f
+      self.archived_comment = comment if comment
+      save
+    end
+
+    # Reverse a soft-archive.
+    #
+    # NOTE: For personal workspaces (is_default: true) archived by the domain
+    # SSO self-heal (see JoinDomainOrganization#adopt_domain_default_org),
+    # unarchiving is durable only while the customer's default_org_id points at
+    # a different active org (e.g. the domain org). The self-heal runs on every
+    # SSO login, including the already_member path, so if this workspace would
+    # again resolve as the customer's default — i.e. default_org_id is empty or
+    # points back at this workspace — it will be re-archived on their next
+    # domain SSO login. To restore it permanently, also repoint default_org_id
+    # to the org the customer should default to.
+    def unarchive!
+      self.archived_at      = ''
+      self.archived_comment = ''
+      save
+    end
+
+    # Re-materialize entitlements for all active memberships.
+    #
+    # ADR-012 Stage 3: Called when the org's plan changes (subscription webhook)
+    # to propagate the new entitlement set to all memberships. Each membership's
+    # effective entitlements are: org.entitlements ∩ ROLE_ENTITLEMENTS[role].
+    #
+    # Failures are retried once, targeting only the memberships that failed.
+    # materialize_for_role! is idempotent, so a targeted retry repairs transient
+    # errors (e.g. a Redis blip) without the cost of re-materializing every
+    # member — important at scale (200k+ orgs). Memberships still failing after
+    # the retry are returned in :failed_ids for operator follow-up.
+    #
+    # At current scale (orgs are low hundreds of members), this is acceptable
+    # inline or in a background job. If org sizes grow to thousands, consider
+    # batching or Redis pipelining.
+    #
+    # @return [Hash] { success:, failed:, total:, failed_ids: } — failed_ids
+    #   lists the objids of memberships that failed even after the retry.
+    def rematerialize_all_memberships!
+      memberships = OrganizationMembership.active_for_org(self)
+      total       = memberships.size
+
+      # First pass over all active memberships; collect the ones that raised.
+      failed = memberships.reject { |membership| materialize_membership_for_role(membership) }
+
+      # Targeted retry: re-attempt only the failures. The operation is idempotent,
+      # so retrying just the failed set (rather than every member) repairs
+      # transient errors cheaply — re-doing all members would be wasteful at scale.
+      if failed.any?
+        failed = failed.reject { |membership| materialize_membership_for_role(membership, retry_attempt: true) }
+      end
+
+      result = {
+        success: total - failed.size,
+        failed: failed.size,
+        total: total,
+        failed_ids: failed.map(&:objid),
+      }
+
+      OT.info "[rematerialize_all_memberships!] org=#{extid} " \
+              "success=#{result[:success]} failed=#{result[:failed]} total=#{result[:total]}"
+      result
+    end
+
+    # Materialize a single membership's role entitlements, isolating failures.
+    #
+    # Extracted so the initial pass and the targeted retry in
+    # rematerialize_all_memberships! share identical error handling.
+    #
+    # @param membership [OrganizationMembership]
+    # @param retry_attempt [Boolean] true when invoked from the retry pass (for logs)
+    # @return [Boolean] true on success, false if the attempt raised (logged)
+    def materialize_membership_for_role(membership, retry_attempt: false)
+      membership.materialize_for_role!(self)
+      true
+    rescue StandardError => ex
+      OT.le '[rematerialize_all_memberships!] failed for membership',
+        exception: ex,
+        membership_objid: membership.objid,
+        org_extid: extid,
+        retry_attempt: retry_attempt
+      false
+    end
+    private :materialize_membership_for_role
+
     # Low-level delete with index cleanup
     #
     # Overrides Familia::Horreum#delete! to ensure contact_email_index
@@ -303,6 +429,7 @@ module Onetime
         org = new(
           display_name: display_name,
           owner_id: owner_customer.custid,
+          created_by: owner_customer.custid,
           contact_email: contact_email,
           **,
         )
@@ -325,6 +452,33 @@ module Onetime
 
           # Add owner as first member with owner role using Familia v2 auto-generated bidirectional method
           org.add_members_instance(owner_customer, through_attrs: { role: 'owner' })
+
+          # Standalone-mode materialization (ADR-012 §Standalone mode).
+          # In billing-enabled mode this returns false and the subscription
+          # webhook handles materialization from the assigned plan instead.
+          #
+          # Explicit rescue: materialization is degradable while the runtime
+          # fallback at WithPlanEntitlements#entitlements remains. If this
+          # raises, org creation succeeds and the fallback applies.
+          begin
+            org.materialize_standalone_entitlements!
+          rescue StandardError => ex
+            OT.le '[Organization.create!] standalone materialization failed, fallback applies',
+              exception: ex,
+              org_extid: org.extid
+          end
+
+          # Materialize owner membership entitlements (ADR-012 Stage 3).
+          # Must run after org.materialize_standalone_entitlements! so the org's
+          # materialized set is populated for the intersection computation.
+          begin
+            owner_membership = OrganizationMembership.find_by_org_customer(org.objid, owner_customer.objid)
+            owner_membership&.materialize_for_role!
+          rescue StandardError => ex
+            OT.le '[Organization.create!] owner membership materialization failed, fallback applies',
+              exception: ex,
+              org_extid: org.extid
+          end
 
           OT.ld "[Organization.create!] org: #{org.extid}, owner: #{owner_customer.custid}"
 

@@ -12,6 +12,7 @@ module V1
     class Base
       using Familia::Refinements::TimeLiterals
 
+      include Onetime::LoggerMethods
       include V1::Logic::UriHelpers
       include Onetime::Security::InputSanitizers
 
@@ -29,7 +30,7 @@ module V1
         process_settings
 
         if cust.is_a?(String)
-          OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
+          logger.info "Friendly reminder to pass in a Customer instance instead of a custid", logic_class: self.class
           @cust = Onetime::Customer.load_by_extid_or_email(cust)
         end
 
@@ -46,14 +47,13 @@ module V1
       end
 
       def valid_email?(email_field)
-        OT.ld "[valid_email?] Email field: #{email_field}"
+        logger.debug "[valid_email?] Email field", email_field: email_field
 
         begin
           validator = Truemail.validate(email_field)
 
         rescue StandardError => e
-          OT.le "Email validation error: #{e.message}"
-          OT.le e.backtrace
+          logger.error "Email validation error", exception: e
           false
         else
           valid = validator.result.valid?
@@ -61,24 +61,6 @@ module V1
           OT.info "[valid_email?] Address is valid (#{valid}): #{validation_str}"
           valid
         end
-      end
-
-      # V1-specific email validation [#2621]
-      #
-      # v0.23.4 used basic format validation only. v0.24 introduced Truemail
-      # with stricter DNS MX + SMTP verification, rejecting disposable email
-      # addresses that previously succeeded. V1 preserves the old format-only
-      # check via a standalone RFC 5321 regex — no Truemail dependency, no
-      # DNS lookups, no SMTP probes.
-      V1_EMAIL_REGEX = /\A[a-zA-Z0-9.!\#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\z/
-
-      def v1_valid_email?(email_field)
-        valid = V1_EMAIL_REGEX.match?(email_field.to_s)
-        OT.ld "[v1_valid_email?] valid=#{valid}"
-        valid
-      rescue StandardError => e
-        OT.le "V1 email validation error: #{e.message}"
-        false
       end
 
       def success_data
@@ -92,18 +74,19 @@ module V1
       end
 
       def form_fields
-        OT.ld "No form_fields method for #{self.class} via:", caller[0..2].join("\n")
+        logger.debug "No form_fields method", logic_class: self.class, caller: caller[0..2]
         {}
       end
 
-      def raise_not_found(msg)
-        ex = Onetime::RecordNotFound.new
-        ex.message = msg
+      # Two call shapes (and a hybrid): see lib/onetime/logic/base.rb for documentation.
+      def raise_not_found(msg = nil, error_key: nil, args: {})
+        ex = Onetime::RecordNotFound.new(msg, error_key: error_key, args: args)
         raise ex
       end
 
-      def raise_form_error(msg, field: nil, error_type: nil)
-        ex = OT::FormError.new(msg, field: field, error_type: error_type)
+      def raise_form_error(msg = nil, error_key: nil, args: {}, field: nil, error_type: nil)
+        ex = OT::FormError.new(msg, error_key: error_key, args: args,
+                                    field: field, error_type: error_type)
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end

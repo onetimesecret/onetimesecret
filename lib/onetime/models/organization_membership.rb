@@ -44,15 +44,72 @@ module Onetime
   # API responses return organization.extid (not objid) to prevent enumeration.
   # See safe_dump_fields for serialization details.
   #
+  # rubocop:disable Metrics/ClassLength
   class OrganizationMembership < Familia::Horreum
+    include Familia::Features::Autoloader
+
     using Familia::Refinements::TimeLiterals
 
     INVITATION_TTL_SECONDS = 7.days.to_i
+
+    # Role -> Entitlement Templates (ADR-012 Stage 3)
+    #
+    # Defines which entitlements each role template permits. The hierarchy
+    # composes via set union: owner includes admin, admin includes member.
+    #
+    # At materialization, effective entitlements are:
+    #   org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]
+    #
+    # This ensures a membership never exceeds its org's plan. Role predicates
+    # (`owner?`, `admin?`, `member?`) remain for display logic; authority lives
+    # in the materialized entitlements, not role string checks.
+    #
+    # Categories mirror billing.example.yaml entitlement definitions:
+    # - owner: org-level management, billing, SSO, IP rules, workspace branding
+    # - admin: member management, custom domains, audit, secret display/branding
+    # - member: core usage entitlements
+    #
+    MEMBER_ENTITLEMENTS = Set[
+      'create_secrets',
+      'view_receipt',
+      'api_access',
+      'extended_default_expiration',
+      'notifications',
+    ].freeze
+
+    ADMIN_ENTITLEMENTS = Set[
+      'audit_logs',
+      'manage_members',
+      'custom_domains',
+      'homepage_secrets',
+      'incoming_secrets',
+      'custom_branding',
+      'custom_privacy_defaults',
+    ].freeze
+
+    OWNER_ENTITLEMENTS = Set[
+      'ip_access_rules',
+      'workspace_branding',
+      'custom_mail_sender',
+      'flexible_from_domain',
+      'custom_signup_validation',
+      'manage_sso',
+      'manage_org',
+      'manage_billing',
+    ].freeze
+
+    ROLE_ENTITLEMENTS = {
+      'owner' => (OWNER_ENTITLEMENTS | ADMIN_ENTITLEMENTS | MEMBER_ENTITLEMENTS).freeze,
+      'admin' => (ADMIN_ENTITLEMENTS | MEMBER_ENTITLEMENTS).freeze,
+      'member' => MEMBER_ENTITLEMENTS.freeze,
+    }.freeze
 
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
     feature :relationships
     feature :safe_dump
+    feature :housekeeping
+    feature :membership_materialized_entitlements
 
     prefix :org_membership
     identifier_field :objid
@@ -73,6 +130,7 @@ module Onetime
       :token,
       :domain_scope_id,
       { domain_scoped: ->(obj) { obj.domain_scoped? } },
+      :provisioning_source,
     )
 
     # Foreign keys - auto-set by ThroughModelOperations
@@ -107,13 +165,13 @@ module Onetime
 
     field :domain_scope_id
 
+    # How this membership was provisioned. Lifecycle attribution, independent
+    # of role. Expected values: 'invited', 'sso', 'scim' (future). Nil for
+    # self-created owner rows (no upstream provisioning).
+    field :provisioning_source
+
     # Indexes for fast lookups
     unique_index :token, :token_lookup
-
-    # Composite indexes for org-scoped lookups
-    # Note: These use string keys combining the two fields
-    unique_index :org_email_key, :org_email_lookup
-    unique_index :org_customer_key, :org_customer_lookup
 
     def init
       @status       ||= 'active'
@@ -121,25 +179,6 @@ module Onetime
       @joined_at    ||= Familia.now.to_f if @status == 'active'
       @resend_count ||= 0
       nil
-    end
-
-    # Composite index key methods
-    # These generate deterministic keys for org-scoped lookups
-
-    # Key for finding pending invites by org + email
-    # Only set for pending invitations (customer_objid is nil)
-    def org_email_key
-      return nil unless organization_objid && invited_email
-
-      "#{organization_objid}:#{OT::Utils.normalize_email(invited_email)}"
-    end
-
-    # Key for finding active memberships by org + customer
-    # Only set for active memberships (customer_objid is set)
-    def org_customer_key
-      return nil unless organization_objid && customer_objid
-
-      "#{organization_objid}:#{customer_objid}"
     end
 
     # Check if this is an active membership
@@ -205,6 +244,34 @@ module Onetime
       role == 'member' || admin?
     end
 
+    # Change the membership's role and re-materialize entitlements.
+    #
+    # ADR-012 Stage 3: Role changes trigger re-materialization so the effective
+    # entitlement set reflects the new role template. This is the canonical way
+    # to change a membership's role — direct assignment (self.role = 'admin')
+    # does not trigger re-materialization.
+    #
+    # @param new_role [String] The new role ('owner', 'admin', or 'member')
+    # @return [Boolean] True if role change and materialization succeeded
+    # @raise [Onetime::Problem] If new_role is invalid
+    def change_role!(new_role)
+      new_role = new_role.to_s
+      unless ROLE_ENTITLEMENTS.key?(new_role)
+        raise Onetime::Problem, "Invalid role: #{new_role}. Must be one of: #{ROLE_ENTITLEMENTS.keys.join(', ')}"
+      end
+
+      return true if role == new_role # No-op if unchanged
+
+      self.role = new_role
+
+      # Re-materialize entitlements with new role template (persists role field)
+      unless materialize_for_role!
+        raise Onetime::Problem, "Materialization failed for role change to #{new_role}"
+      end
+
+      true
+    end
+
     def org_scoped?
       domain_scope_id.to_s.empty?
     end
@@ -221,24 +288,29 @@ module Onetime
       org_scoped? || domain_scope_id == domain.objid
     end
 
-    # Accept a pending invitation
+    # Accept a pending invitation (invitee consent step)
     #
-    # Uses Familia's staged relationship activation to atomically:
-    # - Add customer to org.members (active sorted set)
-    # - Add org to customer's participation reverse index
-    # - Remove from org.pending_invitations (staging set)
-    # - Create composite-keyed through model
-    # - Destroy UUID-keyed staged model
+    # Records the recipient's intent to join. Consumes the one-shot token and
+    # pending-state lookup indexes so the invite URL stops resolving — even
+    # if final activation is deferred for admin approval. When the
+    # organization does not require approval (the default), accept! auto-
+    # promotes via activate! and the membership becomes active in one call.
     #
-    # OTS-specific index transitions are handled before/after activation:
-    # - token_lookup: removed (pending-only index, token cleared for security)
-    # - org_email_lookup: removed (pending-only index)
-    # - org_customer_lookup: populated (active-only index)
+    # State transitions:
+    #   pending → accepted (when organization.requires_admin_approval?)
+    #   pending → active   (when no approval required; via activate!)
+    #
+    # Side-effect placement matrix:
+    #   accept!   — token consumed, pending indexes cleared
+    #   activate! — joined_at set, customer added to members, entitlements materialized
     #
     # @param customer [Onetime::Customer] The customer accepting the invite
+    # @param provisioning_source [String, nil] Lifecycle attribution forwarded
+    #   to activate! for the activated membership (e.g. 'invited', 'sso').
     # @return [Boolean] true if acceptance succeeded
-    # @raise [Onetime::Problem] if invitation is expired or declined
-    def accept!(customer)
+    # @raise [Onetime::Problem] if invitation is expired, declined, or
+    #   the accepting customer's email does not match the invited email
+    def accept!(customer, provisioning_source: nil)
       # Idempotency guard: if the customer was concurrently added to the org
       # (e.g. by another process calling add_members_instance), return the
       # existing membership rather than attempting a second activation that
@@ -251,79 +323,117 @@ module Onetime
       raise Onetime::Problem, 'Invitation expired' if expired?
       raise Onetime::Problem, 'Invitation declined' if status == 'declined'
 
+      # Defense-in-depth email match. The primary check happens earlier in
+      # the request lifecycle (apps/web/auth/config/hooks/account.rb
+      # before_create_account and apps/api/invite/logic/invites/*#raise_concerns)
+      # so account creation aborts before partial Redis state lands.
       emails_match = invited_email.nil? ||
                      OT::Utils.normalize_email(customer.email) ==
                      OT::Utils.normalize_email(invited_email)
       raise Onetime::Problem, 'Email mismatch' unless emails_match
 
-      # Capture values from staged model before activation destroys it
-      old_token              = token
-      old_org_email_key      = org_email_key
-      carry_role             = role
-      carry_invited_email    = invited_email
-      carry_invited_by       = invited_by
-      carry_invited_at       = invited_at
-      carry_resend_count     = resend_count
-      carry_domain_scope_id  = domain_scope_id
-
       org = organization
       raise Onetime::Problem, 'Organization not found' unless org
 
-      # Clean up pending-state OTS indexes BEFORE activation.
-      # The staged model's save populated these indexes. The activated model
-      # will re-populate org_email_lookup (same key, new objid) during its save,
-      # so we must remove the old entry first to avoid RecordExistsError.
+      # Consume the one-shot token so the invite URL stops resolving.
+      old_token = token
       self.class.token_lookup.remove_field(old_token) if old_token
-      self.class.org_email_lookup.remove_field(old_org_email_key) if old_org_email_key
 
       begin
-        # Activate via Familia staged relationships: handles the three-structure
-        # invariant (active set + reverse index + staging set removal) atomically,
-        # then creates composite-keyed through model and destroys this UUID model.
-        activated = org.activate_members_instance(
-          self,
-          customer,
-          through_attrs: {
-            role: carry_role,
-            status: 'active',
-            invited_email: carry_invited_email,
-            invited_by: carry_invited_by,
-            invited_at: carry_invited_at,
-            joined_at: Familia.now.to_f,
-            resend_count: carry_resend_count,
-            domain_scope_id: carry_domain_scope_id,
-            token: nil, # Clear token for security
-          },
-        )
+        if org.requires_admin_approval?
+          # Intermediate state: customer consented, awaiting admin approval.
+          # NOTE: the approval endpoint and an `awaiting_approval` staging
+          # set ship in a follow-up. While requires_admin_approval? stays
+          # hardcoded false, this branch is unreachable in production.
+          self.status         = 'accepted'
+          self.customer_objid = customer.objid
+          self.token          = nil
+          save
+        else
+          # Auto-promote: no approval required, activate inline.
+          activate!(customer, provisioning_source: provisioning_source)
+        end
       rescue Familia::Problem, Redis::BaseError, Onetime::Problem
-        # Restore pending-state indexes so the invitation remains discoverable
+        # Restore token so the invitation remains discoverable
         # if activation fails (e.g. Redis/network error, validation error).
-        self.class.token_lookup[old_token]             = objid if old_token
-        self.class.org_email_lookup[old_org_email_key] = objid if old_org_email_key
+        self.class.token_lookup[old_token] = objid if old_token
         raise
       end
 
-      # Re-populate org_email_lookup on the NEW composite-keyed model.
-      # activate_members_instance saves the composite model (populates
-      # org_email_lookup) and then destroys the staged UUID model. As of
-      # Familia 2.5.0, Horreum#destroy! auto-cleans class-level unique_index
-      # entries — and because staged and activated models share the same
-      # org_email_key, the destroy wipes the entry the activated save just
-      # wrote. Restore it here so find_by_org_email continues to resolve
-      # the active membership.
-      if activated.org_email_key
-        self.class.org_email_lookup[activated.org_email_key] = activated.objid
+      true
+    end
+
+    # Promote a staged or accepted membership to active.
+    #
+    # Owns the staged → active transition via activate_members_instance.
+    # Invoked inline from accept! for orgs that do not require admin approval,
+    # and (in a follow-up iteration) from an explicit /approve endpoint when
+    # approval is required.
+    #
+    # Uses Familia's staged relationship activation to atomically:
+    # - Add customer to org.members (active sorted set)
+    # - Add org to customer's participation reverse index
+    # - Remove from org.pending_invitations (staging set)
+    # - Create composite-keyed through model
+    # - Destroy UUID-keyed staged model
+    #
+    # @param customer [Onetime::Customer] The customer becoming active
+    # @param provisioning_source [String, nil] Lifecycle attribution stored
+    #   on the activated membership.
+    # @return [Boolean] true if activation succeeded
+    def activate!(customer, provisioning_source: nil)
+      org = organization
+      raise Onetime::Problem, 'Organization not found' unless org
+
+      if active? || org.member?(customer)
+        OT.info "[activate!] Customer #{customer.custid} already active in org #{organization_objid} — skipping"
+        return true
       end
 
-      # Populate active-state OTS index on the NEW composite-keyed model
-      if activated.org_customer_key
-        self.class.org_customer_lookup[activated.org_customer_key] = activated.objid
+      carry_role            = role
+      carry_invited_email   = invited_email
+      carry_invited_by      = invited_by
+      carry_invited_at      = invited_at
+      carry_resend_count    = resend_count
+      carry_domain_scope_id = domain_scope_id
+
+      # Activate via Familia staged relationships: handles the three-structure
+      # invariant (active set + reverse index + staging set removal) atomically,
+      # then creates composite-keyed through model and destroys this UUID model.
+      activated = org.activate_members_instance(
+        self,
+        customer,
+        through_attrs: {
+          role: carry_role,
+          status: 'active',
+          invited_email: carry_invited_email,
+          invited_by: carry_invited_by,
+          invited_at: carry_invited_at,
+          joined_at: Familia.now.to_f,
+          resend_count: carry_resend_count,
+          domain_scope_id: carry_domain_scope_id,
+          provisioning_source: provisioning_source,
+          token: nil, # Clear token for security
+        },
+      )
+
+      # Materialize entitlements for the activated membership (ADR-012 Stage 3).
+      # Computes org.entitlements ∩ ROLE_ENTITLEMENTS[role] and persists to Redis.
+      # Uses the activated model (composite-keyed) which has the correct org reference.
+      begin
+        activated.materialize_for_role!
+      rescue StandardError => ex
+        # Materialization is degradable — the fallback path in entitlements()
+        # computes on-the-fly from org + role. Log and continue.
+        OT.le '[activate!] entitlement materialization failed, fallback applies',
+          exception: ex,
+          membership_objid: activated.objid
       end
 
-      # Update in-memory state so callers see the accepted state.
+      # Update in-memory state so callers see the activated state.
       # The UUID-keyed Redis entry is already destroyed by activate.
       # Setting objid to the composite key ensures that refresh! and
-      # load(objid) work correctly post-accept.
+      # load(objid) work correctly post-activate.
       self.objid          = activated.objid
       self.customer_objid = customer.objid
       self.status         = 'active'
@@ -337,7 +447,6 @@ module Onetime
     #
     # Cleans up indexes to prevent stale entries from accumulating:
     #   - token_lookup: removed (token is cleared anyway)
-    #   - org_email_lookup: removed (allows re-invitation to same email)
     #   - pending_invitations: removed from staging set (quota accuracy)
     #
     # The record itself is preserved with status='declined' for audit purposes.
@@ -353,9 +462,8 @@ module Onetime
       self.token  = nil
       save
 
-      # Clean up indexes AFTER save (save re-adds indexes via auto_update_class_indexes)
+      # Clean up token index AFTER save (save re-adds indexes via auto_update_class_indexes)
       self.class.token_lookup.remove_field(old_token) if old_token
-      self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
 
       # Remove from org's pending_invitations staging set (preserves the record)
       organization&.pending_invitations&.remove(objid)
@@ -364,7 +472,7 @@ module Onetime
     # Revoke a pending invitation (by org owner/admin)
     #
     # Uses Familia's unstage to remove from staging set and destroy the model,
-    # plus OTS-specific index cleanup for token_lookup and org_email_lookup.
+    # plus OTS-specific index cleanup for token_lookup.
     def revoke!
       raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
 
@@ -372,8 +480,6 @@ module Onetime
 
       # Clean up OTS-specific indexes before unstaging destroys the model
       self.class.token_lookup.remove_field(token) if token
-      self.class.org_email_lookup.remove_field(org_email_key) if org_email_key
-      self.class.org_customer_lookup.remove_field(org_customer_key) if org_customer_key
 
       if org
         # Use Familia staged relationship: removes from pending_invitations set
@@ -386,6 +492,12 @@ module Onetime
     end
 
     # Destroy the membership with proper index cleanup
+    #
+    # Member removal must cascade all derived state in a single operation:
+    #   1. Delete the membership join (org.members + customer.participations)
+    #   2. Cascade derived state (materialized entitlements, role caches)
+    #   3. The caller logs an audit event
+    #   4. The customer's account/login is never modified
     #
     # DESIGN NOTE: This method exists because Familia's base destroy! only
     # deletes the object's Redis hash. It intentionally doesn't know about
@@ -402,8 +514,8 @@ module Onetime
     # Cleans up:
     #   - org.members sorted set (ZREM customer from org's active members)
     #   - customer.participations reverse index (SREM org collection key)
-    #   - org_email_lookup (allows email to be re-invited)
-    #   - org_customer_lookup
+    #   - materialized_entitlements, entitlements_plan, entitlements_grants,
+    #     entitlements_revokes (Redis SETs from MembershipMaterializedEntitlements)
     #   - token_lookup
     #   - pending_invitations staging set (prevents stale quota counts)
     #
@@ -411,42 +523,26 @@ module Onetime
       org  = organization
       cust = customer
 
-      # Remove from Familia sorted sets (the same work remove_members_instance does).
-      # Guard on both org and cust existing — pending invitations have no customer.
-      if org && cust
-        # ZREM customer from org's members sorted set.
-        # Pass the Customer object, not a string — the sorted set was created
-        # without reference: true, so a raw string would be JSON-encoded and
-        # not match the identifier stored when the object was added.
-        org.members.remove(cust)
-
-        # SREM org's members collection key from customer's participations reverse index
-        cust.untrack_participation_in(org.members.dbkey) if cust.respond_to?(:untrack_participation_in)
-      end
+      # Clear materialized entitlement sub-keys (Redis SETs) before the
+      # through model is destroyed — destroy! only deletes the hash key.
+      materialized_entitlements.clear
+      entitlements_plan.clear
+      entitlements_grants.clear
+      entitlements_revokes.clear
 
       # Remove OTS application-level indexes
-
-      # Remove org_email_lookup entry if exists
-      # Use remove_field since the index is a Familia::HashKey
-      if org_email_key
-        self.class.org_email_lookup.remove_field(org_email_key)
-      end
-
-      # Remove org_customer_lookup entry if exists
-      if org_customer_key
-        self.class.org_customer_lookup.remove_field(org_customer_key)
-      end
-
-      # Remove token_lookup entry if exists
-      if token
-        self.class.token_lookup.remove_field(token)
-      end
-
-      # Remove from org's pending_invitations staging set if still pending
-      # This prevents stale objids from affecting quota calculations
+      self.class.token_lookup.remove_field(token) if token
       organization&.pending_invitations&.remove(objid) if pending?
 
-      destroy!
+      # Delegate the three-structure invariant to Familia's remove_members_instance:
+      #   1. ZREM customer from org.members sorted set
+      #   2. SREM org collection key from customer.participations reverse index
+      #   3. Destroy the through model (this object's Redis hash)
+      if org && cust
+        org.remove_members_instance(cust)
+      else
+        destroy!
+      end
     end
 
     # Generate a secure invitation token
@@ -472,8 +568,8 @@ module Onetime
         email = OT::Utils.normalize_email(email)
 
         # Check for existing pending invitation
-        existing = find_by_org_email(organization.objid, email)
-        raise Onetime::Problem, 'Invitation already pending for this email' if existing&.pending?
+        existing = find_pending_by_email(organization, email)
+        raise Onetime::Problem, 'Invitation already pending for this email' if existing
 
         # Generate token before staging so it's included in index population
         token = SecureRandom.urlsafe_base64(32)
@@ -508,22 +604,29 @@ module Onetime
         load(objid)
       end
 
-      # Find an invitation by organization and email
+      # Find a pending invitation by organization and email.
       #
-      # @param org_objid [String] the organization's objid
+      # Scans the org's pending_invitations staged set (with ghost cleanup)
+      # instead of maintaining a separate class-level index. The set is
+      # org-scoped and small (low tens), so the O(n) scan is acceptable.
+      #
+      # @param org [Organization] the organization to search
       # @param email [String] the invited email address
-      # @return [OrganizationMembership, nil] the invitation or nil if not found
-      def find_by_org_email(org_objid, email)
-        return nil if org_objid.nil? || email.nil?
+      # @return [OrganizationMembership, nil] the pending invitation or nil
+      def find_pending_by_email(org, email)
+        return nil if org.nil? || email.nil?
 
-        key   = "#{org_objid}:#{OT::Utils.normalize_email(email)}"
-        objid = org_email_lookup[key]
-        return nil unless objid
-
-        load(objid)
+        normalized = OT::Utils.normalize_email(email)
+        org.list_pending_invitations.find do |m|
+          m.pending? && OT::Utils.normalize_email(m.invited_email) == normalized
+        end
       end
 
-      # Find a membership by organization and customer
+      # Find a membership by organization and customer.
+      #
+      # Derives the composite objid directly — no secondary index needed.
+      # The active membership's objid matches Familia's build_key output:
+      #   "organization:{org_objid}:customer:{cust_objid}:org_membership"
       #
       # @param org_objid [String] the organization's objid
       # @param customer_objid [String] the customer's objid
@@ -531,10 +634,7 @@ module Onetime
       def find_by_org_customer(org_objid, customer_objid)
         return nil if org_objid.nil? || customer_objid.nil?
 
-        key   = "#{org_objid}:#{customer_objid}"
-        objid = org_customer_lookup[key]
-        return nil unless objid
-
+        objid = composite_objid(org_objid, customer_objid)
         load(objid)
       end
 
@@ -574,10 +674,9 @@ module Onetime
       # a new membership directly.
       #
       # Familia provides four primitives: stage, activate, unstage, add.
-      # This method composes activate + add with a domain-specific lookup
-      # (find_by_org_email) that Familia can't perform -- matching a staged
-      # model's invited_email against the participant's email is OTS
-      # domain knowledge.
+      # This method composes activate + add with a staged set scan
+      # (find_pending_by_email) -- matching a staged model's invited_email
+      # against the participant's email is OTS domain knowledge.
       #
       # Race safety: Between the member? check (ZSCORE) and mutation
       # (accept! or add_members_instance), another process may complete
@@ -595,15 +694,19 @@ module Onetime
       # @param domain_scope_id [String, nil] Set once at first join. Re-login
       #   returns existing membership unchanged — scope is immutable short of
       #   explicit admin upgrade to org-scope.
+      # @param provisioning_source [String, nil] Lifecycle attribution recorded
+      #   on the resulting membership (e.g. 'sso' for JoinDomainOrganization).
+      #   Applied to both the activate-pending path and direct-add path so the
+      #   caller's intent is preserved regardless of prior invitation state.
       # @return [OrganizationMembership] the active membership (composite-keyed)
-      def ensure_membership(organization, customer, role: 'member', domain_scope_id: nil)
+      def ensure_membership(organization, customer, role: 'member', domain_scope_id: nil, provisioning_source: nil)
         return find_by_org_customer(organization.objid, customer.objid) if organization.member?(customer)
 
-        pending = find_by_org_email(organization.objid, customer.email)
+        pending = find_pending_by_email(organization, customer.email)
 
         if pending&.pending? && !pending.expired?
           begin
-            pending.accept!(customer)
+            pending.accept!(customer, provisioning_source: provisioning_source)
           rescue Onetime::Problem, Familia::Problem, ArgumentError
             # Another process already activated this invitation or the staged
             # model was destroyed mid-flight. The customer may now be a member
@@ -624,15 +727,27 @@ module Onetime
             end
           end
 
-          organization.add_members_instance(
+          membership = organization.add_members_instance(
             customer,
             through_attrs: {
               role: role,
               status: 'active',
               joined_at: Familia.now.to_f,
               domain_scope_id: domain_scope_id,
+              provisioning_source: provisioning_source,
             },
           )
+
+          # Materialize entitlements for the new direct-add membership (ADR-012 Stage 3).
+          # The accept! path materializes in activate!; this handles SSO first-auth
+          # and other direct-add scenarios.
+          begin
+            membership.materialize_for_role! if membership
+          rescue StandardError => ex
+            OT.le '[ensure_membership] entitlement materialization failed, fallback applies',
+              exception: ex,
+              membership_objid: membership&.objid
+          end
         end
 
         # Final convergence lookup: regardless of which path succeeded
@@ -652,10 +767,10 @@ module Onetime
         org.list_pending_invitations.select(&:pending?)
       end
 
-      # Find active memberships for an organization
+      # Find active memberships for an organization.
       #
-      # Uses batch lookup via HMGET on the org_customer_lookup index,
-      # then bulk loads all memberships with load_multi.
+      # Derives composite objids directly from org.members, then bulk loads
+      # via load_multi (single pipelined HGETALL).
       #
       # @param org [Organization] the organization to query
       # @return [Array<OrganizationMembership>] active memberships
@@ -663,15 +778,17 @@ module Onetime
         customer_objids = org.members.to_a
         return [] if customer_objids.empty?
 
-        # Build composite keys for batch lookup: "org_objid:customer_objid"
-        composite_keys = customer_objids.map { |cust_objid| "#{org.objid}:#{cust_objid}" }
-
-        # Batch lookup via HMGET (single Redis call instead of N)
-        membership_objids = org_customer_lookup.values_at(*composite_keys).compact
-
-        # Bulk load all memberships (single MGET instead of N HGETALL)
+        membership_objids = customer_objids.map { |cust_objid| composite_objid(org.objid, cust_objid) }
         load_multi(membership_objids).compact.select(&:active?)
+      end
+
+      # Derive the deterministic objid for an active membership.
+      # Mirrors Familia::ThroughModelOperations.build_key:
+      #   "{target_prefix}:{target_objid}:{participant_prefix}:{participant_objid}:{through_prefix}"
+      def composite_objid(org_objid, customer_objid)
+        "organization:#{org_objid}:customer:#{customer_objid}:org_membership"
       end
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

@@ -6,10 +6,12 @@
 import { describe, it, expect } from 'vitest';
 import {
   uiCapabilitiesSchema as configUiCapabilitiesSchema,
+  uiHelpSchema as configUiHelpSchema,
   uiSchema as configUiSchema,
 } from '@/schemas/contracts/config/section/ui';
 import {
   uiCapabilitiesSchema as bootstrapUiCapabilitiesSchema,
+  uiHelpSchema as bootstrapUiHelpSchema,
   uiInterfaceSchema as bootstrapUiInterfaceSchema,
 } from '@/schemas/contracts/bootstrap';
 
@@ -142,6 +144,117 @@ describe('uiCapabilitiesSchema nested in parent schema (bootstrap uiInterfaceSch
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.capabilities).toBeUndefined();
+    }
+  });
+});
+
+/**
+ * Both config and bootstrap define their own uiHelpSchema.
+ * These tests verify both behave identically for explicit values
+ * and integrate with their respective parent schemas.
+ */
+describe.each([
+  { label: 'config/section/ui', schema: configUiHelpSchema },
+  { label: 'contracts/bootstrap', schema: bootstrapUiHelpSchema },
+])('uiHelpSchema ($label)', ({ schema }) => {
+  it('accepts { enabled: true }', () => {
+    const result = schema.safeParse({ enabled: true });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.enabled).toBe(true);
+    }
+  });
+
+  it('accepts { enabled: false }', () => {
+    const result = schema.safeParse({ enabled: false });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.enabled).toBe(false);
+    }
+  });
+
+  it('accepts empty object', () => {
+    const result = schema.safeParse({});
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects non-boolean value for enabled', () => {
+    const result = schema.safeParse({ enabled: 'yes' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toContain('enabled');
+    }
+  });
+});
+
+describe('uiHelpSchema default behavior differences', () => {
+  it('config schema: enabled is undefined when omitted', () => {
+    const result = configUiHelpSchema.safeParse({});
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.enabled).toBeUndefined();
+    }
+  });
+
+  it('bootstrap schema: enabled defaults to true when omitted', () => {
+    const result = bootstrapUiHelpSchema.safeParse({});
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.enabled).toBe(true);
+    }
+  });
+});
+
+describe('uiHelpSchema nested in parent schema (config uiSchema)', () => {
+  it('parses help nested inside uiSchema', () => {
+    const input = {
+      enabled: true,
+      help: {
+        enabled: false,
+      },
+    };
+
+    const result = configUiSchema.safeParse(input);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.help?.enabled).toBe(false);
+    }
+  });
+
+  it('parses uiSchema without help field', () => {
+    const input = { enabled: true };
+
+    const result = configUiSchema.safeParse(input);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.help).toBeUndefined();
+    }
+  });
+});
+
+describe('uiHelpSchema nested in parent schema (bootstrap uiInterfaceSchema)', () => {
+  it('parses help nested inside uiInterfaceSchema', () => {
+    const input = {
+      enabled: true,
+      help: {
+        enabled: true,
+      },
+    };
+
+    const result = bootstrapUiInterfaceSchema.safeParse(input);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.help?.enabled).toBe(true);
+    }
+  });
+
+  it('parses uiInterfaceSchema without help field', () => {
+    const input = { enabled: true };
+
+    const result = bootstrapUiInterfaceSchema.safeParse(input);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.help).toBeUndefined();
     }
   });
 });

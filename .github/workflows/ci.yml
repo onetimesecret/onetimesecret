@@ -28,8 +28,18 @@ name: CI
 # - ACTIONS_STEP_DEBUG=true    Enable purple debug output for all steps
 # - ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
 # - Set in Settings → Secrets and variables → Actions → Variables
+#
+# Checkout Behavior by Event:
+# - pull_request: checks out refs/pull/<PR#>/merge, a synthetic merge commit
+#   of the PR branch into the base branch. Tests run against the merged result,
+#   so divergence from base can cause unexpected behavior if branches conflict.
+# - workflow_dispatch: checks out the branch/tag selected in the UI (github.ref).
+#   No merge commit — runs against the exact branch tip.
+# - push (not used here): checks out the pushed commit (github.sha), no merge.
 
 on:
+  # Runs on synthetic merge commit (PR branch merged into base). If your branch
+  # diverges from main, CI tests the merged result — not your branch in isolation.
   pull_request:
     branches:
       - main
@@ -37,6 +47,7 @@ on:
       - 'rel/*'
       - 'fix/*'
       - 'feature/*'
+  # Runs on exact branch tip selected in UI. No merge commit.
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -175,7 +186,10 @@ jobs:
       - uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
         with:
           ruby-version: '3.4.9'
-          bundler-cache: true
+          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
         run: |
@@ -187,7 +201,7 @@ jobs:
 
       - name: Upload Rubocop results
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: rubocop-results
           path: tmp/rubocop_results.json
@@ -253,7 +267,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: frontend-build
           path: public/web/dist/
@@ -312,16 +326,18 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Setup Node.js for locale sync
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version: '22'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Generate locale files
         run: pnpm run locales:sync
+
+      # The billing catalog validate CLI/spec loads
+      # generated/schemas/config/billing.schema.json, which is gitignored
+      # (generated from src/schemas/). spec:fast runs that spec, so the
+      # schema must be generated before the Ruby suite.
+      - name: Generate JSON schemas
+        run: pnpm run schemas:json:generate
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
@@ -396,6 +412,12 @@ jobs:
       - name: Generate locale files
         run: pnpm run locales:sync
 
+      # smoke:ruby runs spec:apps:web_billing, which includes the catalog
+      # validate spec that loads generated/schemas/config/billing.schema.json
+      # (gitignored, generated from src/schemas/).
+      - name: Generate JSON schemas
+        run: pnpm run schemas:json:generate
+
       - name: Run smoke test
         shell: bash
         env:
@@ -451,56 +473,60 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'rspec_simple_results.json'
 
-  ruby-integration-full-sqlite:
-    name: T3 · Ruby Integration (Full Mode - SQLite)
+  ruby-integration-full:
+    name: 'T3 · Ruby Integration (Full, ${{ matrix.name }})'
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-unit]
     if: *if-ruby-integration
     permissions: *perms-pr-comment
 
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
-
-    steps:
-      - *checkout-step
-
-      - name: Setup Ruby test environment
-        uses: ./.github/actions/setup-ruby-test-env
-
-      - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.14'
-
-      - name: Setup Node.js for locale sync
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version: '22'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
-        with:
-          test-type: integration
-          auth-mode: full
-          auth-database-url: 'sqlite::memory:'
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'rspec_full_sqlite_results.json'
-
-  ruby-integration-full-postgres:
-    name: T3 · Ruby Integration (Full Mode - PostgreSQL)
-    timeout-minutes: 10
-    runs-on: *runs-on
-    needs: [changes, ruby-unit]
-    if: *if-ruby-integration
-    permissions: *perms-pr-comment
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'SQLite, billing: off'
+            db: sqlite
+            billing-enabled: 'false'
+            auth-database-url: 'sqlite::memory:'
+            auth-database-url-migrations: ''
+            rspec-tag: ''
+            results-file: 'rspec_full_sqlite_billing_off_results.json'
+          - name: 'SQLite, billing: on'
+            db: sqlite
+            billing-enabled: 'true'
+            auth-database-url: 'sqlite::memory:'
+            auth-database-url-migrations: ''
+            rspec-tag: ''
+            results-file: 'rspec_full_sqlite_billing_on_results.json'
+          - name: 'PG, billing: off'
+            db: postgres
+            billing-enabled: 'false'
+            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+            rspec-tag: 'postgres_database'
+            results-file: 'rspec_full_postgres_billing_off_results.json'
+          - name: 'PG, billing: on'
+            db: postgres
+            billing-enabled: 'true'
+            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+            rspec-tag: 'postgres_database'
+            results-file: 'rspec_full_postgres_billing_on_results.json'
+          - name: 'PG agnostic, billing: off'
+            db: postgres
+            billing-enabled: 'false'
+            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+            rspec-tag: 'agnostic_on_pg'
+            results-file: 'rspec_full_pg_agnostic_billing_off_results.json'
+          - name: 'PG agnostic, billing: on'
+            db: postgres
+            billing-enabled: 'true'
+            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
+            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
+            rspec-tag: 'agnostic_on_pg'
+            results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
 
     services:
       redis: *valkey-service
@@ -542,57 +568,23 @@ jobs:
         run: pnpm run locales:sync
 
       - name: Setup PostgreSQL users
+        if: matrix.db == 'postgres'
         env:
           PGPASSWORD: postgres
-        run: |
-          # Create application user (limited privileges)
-          psql -h localhost -U postgres -d onetime_auth_test -c "
-            DO \$\$
-            BEGIN
-              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_user') THEN
-                CREATE USER onetime_user WITH PASSWORD 'testpass';
-              END IF;
-            END
-            \$\$;
-          "
-
-          # Create migration user (elevated privileges)
-          psql -h localhost -U postgres -d onetime_auth_test -c "
-            DO \$\$
-            BEGIN
-              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator') THEN
-                CREATE USER onetime_migrator WITH PASSWORD 'migratepass' CREATEDB;
-              END IF;
-            END
-            \$\$;
-          "
-
-          # Grant permissions with proper privilege separation
-          psql -h localhost -U postgres -d onetime_auth_test -c "
-            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_user;
-            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_migrator;
-            GRANT ALL ON SCHEMA public TO onetime_user;
-            GRANT ALL ON SCHEMA public TO onetime_migrator;
-
-            -- Tables created by onetime_migrator are accessible to onetime_user for DML only
-            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-              GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user;
-            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-              GRANT USAGE, SELECT ON SEQUENCES TO onetime_user;
-            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-              GRANT EXECUTE ON FUNCTIONS TO onetime_user;
-          "
+        run: psql -h localhost -U postgres -d onetime_auth_test -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
         with:
           test-type: integration
           auth-mode: full
-          auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
-          auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
-          rspec-tag: 'postgres_database'
+          auth-database-url: ${{ matrix.auth-database-url }}
+          auth-database-url-migrations: ${{ matrix.auth-database-url-migrations }}
+          rspec-tag: ${{ matrix.rspec-tag }}
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'rspec_full_postgres_results.json'
+          billing-enabled: ${{ matrix.billing-enabled }}
+          results-file: ${{ matrix.results-file }}
+          db-engine: ${{ matrix.db }}
 
   ruby-integration-disabled:
     name: T3 · Ruby Integration (Disabled Mode)
@@ -648,8 +640,7 @@ jobs:
       [
         changes,
         ruby-integration-simple,
-        ruby-integration-full-sqlite,
-        ruby-integration-full-postgres,
+        ruby-integration-full,
         ruby-integration-disabled,
         typescript-unit,
       ]
@@ -657,8 +648,7 @@ jobs:
       always() &&
       (needs.changes.outputs.oci == 'true' || needs.changes.outputs.frontend == 'true') &&
       (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
-      (needs.ruby-integration-full-sqlite.result == 'success' || needs.ruby-integration-full-sqlite.result == 'skipped') &&
-      (needs.ruby-integration-full-postgres.result == 'success' || needs.ruby-integration-full-postgres.result == 'skipped') &&
+      (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
       (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
       (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
       !contains(needs.*.result, 'failure')
@@ -689,7 +679,7 @@ jobs:
       - name: Build Container image
         uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
-          source: .  # Use local checkout instead of fetching git URL (avoids PR merge ref issues)
+          source: . # Use local checkout instead of fetching git URL (avoids PR merge ref issues)
           files: docker/bake.hcl
           targets: main
           load: true
@@ -730,8 +720,7 @@ jobs:
     needs:
       - ruby-unit
       - ruby-integration-simple
-      - ruby-integration-full-sqlite
-      - ruby-integration-full-postgres
+      - ruby-integration-full
       - ruby-integration-disabled
       - typescript-unit
       - smoke-test
@@ -772,7 +761,7 @@ jobs:
 
       - name: Upload unified test report
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unified-test-report
           path: test-results/unified-report.json
@@ -793,8 +782,7 @@ jobs:
       - ruby-unit
       - typescript-unit
       - ruby-integration-simple
-      - ruby-integration-full-sqlite
-      - ruby-integration-full-postgres
+      - ruby-integration-full
       - ruby-integration-disabled
       - smoke-test
       - check-oci-image
@@ -831,14 +819,13 @@ jobs:
           echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruby Integration (Full - SQLite) | ${{ needs.ruby-integration-full-sqlite.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruby Integration (Full - PostgreSQL) | ${{ needs.ruby-integration-full-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full matrix) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
 
-      # Post CI metrics summary as PR comment (PRs only)
+      # Post CI metrics summary as PR comment (PRs only, skip forks - no write access)
       - name: Post metrics to PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork
         uses: actions/github-script@v7
         with:
           github-token: ${{ github.token }}

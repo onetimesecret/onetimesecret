@@ -20,4 +20,11 @@ module AuthTestConstants
   STATUS_UNVERIFIED = 1
   STATUS_VERIFIED = 2
   STATUS_CLOSED = 3
+
+  # Tables whose rows must survive per-example cleanup (clear_auth_database):
+  #   - schema_info / schema_migrations: Sequel's migration bookkeeping
+  #   - account_statuses: seed-once reference table backing accounts.status_id;
+  #     deleting its rows orphans the FK and breaks the next create_account
+  # Add any future seed-once reference table here.
+  PRESERVED_TABLES = %i[schema_info schema_migrations account_statuses].freeze
 end

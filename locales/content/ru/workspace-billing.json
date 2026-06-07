@@ -203,7 +203,7 @@
     "text": "Входящие секреты",
     "source_hash": "883dbca9"
   },
-  "web.billing.overview.entitlements.manage_orgs": {
+  "web.billing.overview.entitlements.manage_org": {
     "text": "Управление организациями",
     "source_hash": "be0fe4c3"
   },

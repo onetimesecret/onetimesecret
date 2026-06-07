@@ -531,6 +531,71 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     expect(getCurrentTab(page)).toBe('subscription');
   });
 
+  test('ORG-DETAIL-011: Back/forward to entitlement-gated tab redirects to domains', async ({ page }) => {
+    if (!testOrg) {
+      test.skip(true, 'No organizations available for testing');
+      return;
+    }
+
+    await page.goto(`/org/${testOrg.extid}`);
+    await page.waitForLoadState('networkidle');
+
+    // Check which tabs the user lacks access to
+    const membersTab = page.getByTestId('org-tab-members');
+    const ssoTab = page.getByTestId('org-tab-sso');
+    const hasMembersTab = await membersTab.isVisible().catch(() => false);
+    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
+
+    // If user has access to both members and SSO, we can't test the redirect
+    if (hasMembersTab && hasSsoTab) {
+      test.skip(true, 'User has access to all tabs - cannot test entitlement redirect');
+      return;
+    }
+
+    // Determine which gated tab to test
+    const gatedTab = !hasMembersTab ? 'members' : 'sso';
+
+    // Navigate to domains, then settings to build history
+    await page.goto(`/org/${testOrg.extid}/domains`);
+    await page.waitForLoadState('networkidle');
+
+    const settingsTab = page.getByTestId('org-tab-settings');
+    await settingsTab.click();
+    await page.waitForURL(/\/settings/);
+
+    // Directly navigate to the gated tab URL (simulating a bookmark or typed URL)
+    await page.goto(`/org/${testOrg.extid}/${gatedTab}`);
+    await page.waitForLoadState('networkidle');
+
+    // Should redirect to domains since user lacks entitlement
+    await page.waitForURL(/\/domains/, { timeout: 5000 });
+    expect(getCurrentTab(page)).toBe('domains');
+
+    // Verify the domains tab is actually selected
+    const domainsTab = page.getByTestId('org-tab-domains');
+    await expect(domainsTab).toHaveAttribute('aria-selected', 'true');
+
+    // Now test back/forward: go to settings first
+    await settingsTab.click();
+    await page.waitForURL(/\/settings/);
+
+    // Manually push the gated URL into history via evaluate
+    await page.evaluate((url) => {
+      window.history.pushState({}, '', url);
+    }, `/org/${testOrg.extid}/${gatedTab}`);
+
+    // Go back (should land on the gated URL, then immediately redirect)
+    await page.goBack();
+    await page.waitForLoadState('networkidle');
+
+    // URL should be corrected to domains
+    await page.waitForURL(/\/domains/, { timeout: 5000 });
+    expect(getCurrentTab(page)).toBe('domains');
+
+    // Verify the UI state matches
+    await expect(domainsTab).toHaveAttribute('aria-selected', 'true');
+  });
+
   test('ORG-TAB-ORDER-001: Tabs render in correct visual order', async ({ page }) => {
     if (!testOrg) {
       test.skip(true, 'No organizations available for testing');
@@ -690,6 +755,7 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
  * | ORG-DETAIL-008  | Back navigation to /orgs works                 | High       | Automated  |
  * | ORG-DETAIL-009  | Direct URL navigation to specific tabs works   | High       | Automated  |
  * | ORG-DETAIL-010  | Browser back/forward preserves tab state       | Medium     | Automated  |
+ * | ORG-DETAIL-011  | Back/forward to gated tab redirects to domains | High       | Automated  |
  * | ORG-TAB-ORDER-001| Tabs render in correct visual order           | High       | Automated  |
  * | ORG-ERROR-001   | Invalid org extid shows error state            | High       | Automated  |
  * | ORG-A11Y-001    | Tab navigation with keyboard (Arrow keys)      | Medium     | Automated  |

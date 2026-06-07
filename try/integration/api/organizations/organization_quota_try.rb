@@ -101,9 +101,9 @@ BillingTestHelpers.with_billing_enabled(plans: [
 
   @billing_test_status = last_response.status
   resp = JSON.parse(last_response.body)
-  # API returns flat structure: {"error": "ErrorType", "message": "..."}
-  @billing_test_error_type = resp['error']
-  @billing_test_error_message = resp['message']
+  # API returns flat structure: {"error": "<message>", "error_type": "ErrorType"}
+  @billing_test_error_type = resp['error_type']
+  @billing_test_error_message = resp['error']
 end
 @billing_test_status
 #=> 422

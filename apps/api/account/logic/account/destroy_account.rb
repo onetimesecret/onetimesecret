@@ -7,6 +7,7 @@ require 'onetime/logic/sso_only_gating'
 module AccountAPI::Logic
   module Account
     class DestroyAccount < AccountAPI::Logic::Base
+      include Onetime::LoggerMethods
       include Onetime::Logic::SsoOnlyGating
 
       attr_reader :raised_concerns_was_called, :greenlighted
@@ -14,7 +15,7 @@ module AccountAPI::Logic
       def process_params
         return if params.nil?
 
-        OT.ld "[DestroyAccount#process_params] param keys: #{params.keys.sort}"
+        auth_logger.debug '[DestroyAccount#process_params] param keys', param_keys: params.keys.sort
         @confirmation = self.class.normalize_password(params['confirmation'])
       end
 
@@ -46,7 +47,7 @@ module AccountAPI::Logic
         # TODO: Limit to dev as well
         if Onetime.debug?
           cust.destroy_requested # not saved
-          OT.ld "[destroy-account] Simulated account destruction #{cust.objid} #{cust.role} #{session_sid}"
+          auth_logger.debug '[destroy-account] Simulated account destruction', extid: cust.extid, role: cust.role, session: session_sid
 
           # Since we intentionally don't call Customer#destroy_requested!
           # when running in debug mode (to simulate the destruction but
@@ -124,11 +125,10 @@ module AccountAPI::Logic
       def verify_password_full_mode(password)
         Auth::Config.valid_login_and_password?(login: cust.email, password: password)
       rescue Rodauth::InternalRequestError => ex
-        OT.le "[destroy-account] Rodauth verification failed: #{ex.message}"
+        auth_logger.error '[destroy-account] Rodauth verification failed', exception: ex
         false
       rescue StandardError => ex
-        OT.le "[destroy-account] Password verification error: #{ex.message}"
-        OT.ld ex.backtrace.first(5).join("\n")
+        auth_logger.error '[destroy-account] Password verification error', exception: ex
         false
       end
 

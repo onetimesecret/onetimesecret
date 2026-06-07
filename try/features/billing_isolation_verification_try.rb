@@ -1,20 +1,22 @@
-#!/usr/bin/env ruby
-
 # frozen_string_literal: true
 
 # Billing Isolation Verification Tests
 #
-# Tests Issue #2228 fix: Verify that billing is disabled by default
-# in tests and that plan cache isolation works correctly.
+# Tests Issue #2228 fix: Verify that billing isolation works correctly.
 #
 # These tests verify:
-# 1. Billing is disabled by default (no config file loaded)
+# 1. BillingTestHelpers can disable billing (standalone mode)
 # 2. Entitlements fall back to standalone mode when billing disabled
 # 3. Plan cache doesn't persist between test runs
 # 4. BillingTestHelpers properly isolate test state
 
 require_relative '../support/test_helpers'
 require_relative '../../apps/web/billing/lib/test_support/billing_helpers'
+
+# Arrange: Explicitly disable billing for standalone-mode tests.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+BillingTestHelpers.disable_billing!
 
 ## Billing config file exists in test environment (billing.test.yaml)
 # ConfigResolver finds apps/web/billing/spec/billing.test.yaml
@@ -37,9 +39,13 @@ defined?(Billing::Plan) ? Billing::Plan.all.empty? : true
 #=> true
 
 ## Creating a test class with entitlements mixin
-# Tests that billing_enabled? works correctly in the mixin
+# Tests that billing_enabled? works correctly in the mixin.
+# WithPlanEntitlements must be included AFTER WithEntitlements so its
+# `entitlements` override (with STANDALONE_ENTITLEMENTS short-circuit and
+# Plan.load fallback) sits at the top of the method-resolution chain.
 @test_class = Class.new do
   include Onetime::Models::Features::WithEntitlements
+  include Onetime::Models::Features::WithPlanEntitlements
 
   attr_accessor :planid
 
@@ -172,8 +178,8 @@ Billing::Plan.all.empty?
 # ---------------------------------------------------------------------------
 # Regional isolation tests (Issue #2228 follow-up)
 #
-# correct_region? guards both the refresh_from_stripe (collect_stripe_plans)
-# and the webhook handler paths. Each testcase builds its own stub objects
+# correct_region? guards both the Catalog::Pull operation and the webhook
+# handler paths. Each testcase builds its own stub objects
 # inline so there is no cross-testcase state dependency.
 # ---------------------------------------------------------------------------
 

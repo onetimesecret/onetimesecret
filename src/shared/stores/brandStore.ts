@@ -8,13 +8,14 @@ import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+// allow_public_homepage / allow_public_api were retired from BrandSettings
+// in #3026. Read the canonical values from the HomepageConfig / ApiConfig
+// endpoints (the identity store exposes allowPublicHomepage already).
 const defaultBranding: BrandSettings = {
   ...NEUTRAL_BRAND_DEFAULTS,
   instructions_pre_reveal: '',
   instructions_post_reveal: '',
   instructions_reveal: '',
-  allow_public_api: false,
-  allow_public_homepage: false,
   passphrase_required: false,
   notify_enabled: false,
 };
@@ -130,8 +131,6 @@ function isEqual(a: BrandSettings, b: BrandSettings): boolean {
     'instructions_pre_reveal',
     'instructions_post_reveal',
     'instructions_reveal',
-    'allow_public_api',
-    'allow_public_homepage',
     'passphrase_required',
     'notify_enabled',
   ];

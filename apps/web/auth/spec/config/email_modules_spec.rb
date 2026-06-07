@@ -30,6 +30,18 @@
 require_relative '../spec_helper'
 require 'mail'
 
+# Define the Auth::Config namespace so the email modules can load without a full
+# app boot. Auth::Config MUST be a Rodauth::Auth subclass here, never a plain
+# `module Config` or `class Config`: if this file is ever loaded in a process
+# that also boots the real app, the application registry reopens
+# `class Config < Rodauth::Auth`. A plain module/class fixes the constant to the
+# wrong type, so the reopen raises a TypeError ("Config is not a class") and boot
+# is marked permanently not-ready for every later spec in the process.
+require 'rodauth'
+module Auth; end
+Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
+Auth::Config.const_set(:Email, Module.new) unless Auth::Config.const_defined?(:Email, false)
+
 # Track whether refactored modules are available
 REFACTORED_MODULES_AVAILABLE = begin
   # Check if email subdirectory exists with the expected files
@@ -49,7 +61,6 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/helpers'
     end
 
@@ -73,7 +84,6 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/verify_account'
     end
 
@@ -97,7 +107,6 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/reset_password'
     end
 
@@ -121,7 +130,6 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/delivery'
     end
 
@@ -532,8 +540,6 @@ RSpec.describe 'Auth::Config::Email modules' do
     it 'defines Auth::Config::Email constant after require' do
       # The module is defined when the file is loaded
       # We verify the constant exists (may be defined by earlier tests)
-      module Auth; module Config; end; end unless defined?(Auth::Config)
-
       # Load the email module if not already loaded
       require_relative '../../config/email'
 

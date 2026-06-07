@@ -61,11 +61,6 @@ module V1::Logic
       # maxLength: 10000 documented in the OpenAPI definition.
       V1_MAX_SECRET_SIZE = 10_000
 
-      # Basic email shape check for parsing recipient input. Only used
-      # to extract email-shaped tokens from free-text input; actual
-      # validation is done by Truemail in validate_recipient.
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/
-
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
 
@@ -200,12 +195,12 @@ module V1::Logic
         @passphrase = payload['passphrase'].to_s
       end
 
+      # Sanitizes but does not validate as an email address.
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
         @recipient = payload['recipient'].collect { |email_address|
           next if email_address.to_s.empty?
           sanitized_email = sanitize_email(email_address)
-          sanitized_email.scan(EMAIL_REGEX).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
@@ -215,6 +210,11 @@ module V1::Logic
       # that CustomDomain objects go through so if we don't get past this
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
+      #
+      # This records the *requested* domain only. Whether an anonymous request
+      # is allowed to use it is decided later in validate_anonymous_share_domain
+      # (display_domain is not set on V1 logic objects until the controller
+      # applies domain context, after construction).
       def process_share_domain
         potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
@@ -259,6 +259,7 @@ module V1::Logic
       # Validates the share domain for secret creation.
       # Determines appropriate domain and validates access permissions.
       def validate_share_domain
+        validate_anonymous_share_domain
         # If we're on a custom domain creating a link, the only possible share
         # domain  is the custom domain itself. This is bc we only allow logging
         # in on the canonical domain (e.g. onetimesecret.com) AND we don't offer
@@ -266,6 +267,24 @@ module V1::Logic
         # domain.
         @share_domain = determine_share_domain
         validate_domain_access(@share_domain)
+      end
+
+      # Guests may create links only on the domain they are currently visiting.
+      #
+      # process_share_domain captured any requested domain in @share_domain. For
+      # an anonymous request the only legitimate value is the custom domain named
+      # by the Host header (display_domain) — a guest creating links for that same
+      # branded domain. Any other custom domain is a cross-domain smuggle: a guest
+      # on the canonical domain naming a custom domain, or a guest on one custom
+      # domain naming a different one (issue #3311). Those are rejected here,
+      # before determine_share_domain pins the resolved domain to the Host header.
+      def validate_anonymous_share_domain
+        return unless cust.nil? || cust.anonymous?
+        return if share_domain.nil?
+        return if custom_domain? && share_domain.casecmp?(display_domain.to_s)
+
+        OT.li "[validate_anonymous_share_domain]: #{share_domain} cross-domain from #{display_domain} [#{cust&.custid}]"
+        raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
 
       # @sync src/schemas/contracts/config/public.ts — passphrase options
@@ -339,8 +358,7 @@ module V1::Logic
 
         # Anonymous users: free tier limit
         if cust.nil? || cust.anonymous?
-          free_max = Onetime::Models::Features::WithEntitlements
-                       .free_tier_limits['secret_lifetime.max']
+          free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max']
           return free_max.positive? ? free_max : config_max
         end
 
@@ -352,8 +370,7 @@ module V1::Logic
         end
 
         # No org found (edge case): fall back to free tier limit
-        free_max = Onetime::Models::Features::WithEntitlements
-                     .free_tier_limits['secret_lifetime.max']
+        free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max']
         free_max.positive? ? free_max : config_max
       rescue StandardError => e
         OT.ld "[BaseSecretAction] TTL limit resolution failed: #{e.message}"
@@ -410,7 +427,7 @@ module V1::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
-        # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
+        # e.g. dbkey -> customdomain:display_domain_index -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
@@ -422,31 +439,57 @@ module V1::Logic
             custom_domain?:  #{custom_domain?}
             allow_public?:   #{domain_record.allow_public_homepage?}
             owner?:          #{domain_record.owner?(@cust)}
+            verified?:       #{domain_record.verified}
         DEBUG
 
         validate_domain_permissions(domain_record)
+        validate_domain_verification(domain_record)
+      end
+
+      # Rejects secret creation against an unverified custom share_domain when
+      # the features.domains.require_verified toggle is on. Canonical domains
+      # are filtered out earlier in process_share_domain via default_domain?.
+      #
+      # @param domain_record [CustomDomain] The domain record to check
+      # @raise [FormError] If require_verified is on and the domain is not
+      #   yet verified
+      def validate_domain_verification(domain_record)
+        return unless OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        return if domain_record.verified.to_s == 'true'
+
+        OT.li "[validate_domain_verif]: #{share_domain} unverified [#{cust&.custid}]"
+        raise_form_error "Custom domain is not verified: #{share_domain}"
       end
 
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
       # @raise [FormError] If access is not permitted
+      # @see docs/specs/domain-permissions.md for the full truth table
       #
-      # Validation Rules:
-      # - On custom domains:
-      #   - Allows access if public sharing is enabled
-      #   - Rejects if public sharing is disabled
-      # - On canonical domain:
-      #   - Requires domain ownership
+      # Validation Rules (issue #3073):
+      # - Domain owner / org member: always permitted, regardless of toggle.
+      # - Authenticated non-owner: never permitted. The Homepage Secrets toggle
+      #   gates anonymous public intake only.
+      # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+      # - Anonymous on canonical with share_domain set: not permitted.
       def validate_domain_permissions(domain_record)
+        # Owner / org member can always use the domain.
+        return if domain_record.owner?(@cust)
+
+        # Authenticated non-owner: permission denied regardless of toggle.
+        unless cust.nil? || cust.anonymous?
+          OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+          raise_form_error "You do not have permission to use domain: #{share_domain}"
+        end
+
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
         if custom_domain?
           return if domain_record.allow_public_homepage?
           raise_form_error "Public sharing disabled for domain: #{share_domain}"
         end
 
-        return if domain_record.owner?(@cust)
-
-        OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+        # Anonymous on canonical domain attempting to use someone else's domain.
         raise_form_error "You do not have permission to use domain: #{share_domain}"
       end
     end

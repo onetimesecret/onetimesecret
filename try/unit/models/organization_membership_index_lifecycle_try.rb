@@ -10,18 +10,16 @@
 #
 #   STAGED (pending invitation):
 #     - token_lookup: populated (enables find_by_token for accept links)
-#     - org_email_lookup: populated (prevents duplicate invitations)
-#     - org_customer_lookup: NOT populated (customer_objid is nil)
+#     - find_pending_by_email: discoverable via staged set scan
 #
 #   ACTIVE (accepted invitation):
 #     - token_lookup: removed (token cleared for security)
-#     - org_email_lookup: repopulated with new composite-keyed objid
-#     - org_customer_lookup: populated (enables find_by_org_customer)
+#     - find_pending_by_email: no longer discoverable (status is active)
+#     - find_by_org_customer: discoverable via direct composite key load
 #
 #   REVOKED (via unstage):
 #     - token_lookup: removed
-#     - org_email_lookup: removed (allows re-invitation)
-#     - org_customer_lookup: removed
+#     - find_pending_by_email: no longer discoverable (model destroyed)
 #     - model destroyed
 #
 # This complements organization_membership_accept_participation_try.rb which
@@ -59,13 +57,9 @@ Onetime::OrganizationMembership.find_by_token(@staged_token).nil?
 Onetime::OrganizationMembership.find_by_token(@staged_token).objid == @invitation.objid
 #=> true
 
-## Staged: org_email_lookup is populated (find_by_org_email works)
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invitee_email).nil?
+## Staged: find_pending_by_email discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @invitee_email).nil?
 #=> false
-
-## Staged: org_customer_lookup is NOT populated (customer_objid is nil)
-@invitation.org_customer_key
-#=> nil
 
 # ============================================================================
 # Phase 2: Active (accepted invitation) index state
@@ -81,26 +75,17 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invitee_email).ni
 Onetime::OrganizationMembership.find_by_token(@staged_token)
 #=> nil
 
-## Active: org_email_lookup still works but resolves to composite-keyed model
-@active_via_email = Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invitee_email)
-@active_via_email.nil?
-#=> false
+## Active: find_pending_by_email no longer discovers the membership (not pending)
+Onetime::OrganizationMembership.find_pending_by_email(@org, @invitee_email)
+#=> nil
 
-## Active: org_email_lookup resolves to an active membership
-@active_via_email.active?
-#=> true
-
-## Active: org_customer_lookup is populated (find_by_org_customer works)
+## Active: find_by_org_customer works (direct composite key load)
 @active_via_customer = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @invitee.objid)
 @active_via_customer.nil?
 #=> false
 
 ## Active: find_by_org_customer returns an active membership
 @active_via_customer.active?
-#=> true
-
-## Active: both lookups resolve to the same composite-keyed model
-@active_via_email.objid == @active_via_customer.objid
 #=> true
 
 ## Active: the in-memory invitation objid was updated to the composite key
@@ -127,8 +112,8 @@ Onetime::OrganizationMembership.find_by_token(@staged_token)
 Onetime::OrganizationMembership.find_by_token(@revoke_token).nil?
 #=> false
 
-## Pre-revoke: org_email_lookup is populated
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @revoke_email).nil?
+## Pre-revoke: find_pending_by_email discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @revoke_email).nil?
 #=> false
 
 ## Revoke the invitation (unstage)
@@ -139,15 +124,15 @@ Onetime::OrganizationMembership.find_by_org_email(@org.objid, @revoke_email).nil
 Onetime::OrganizationMembership.find_by_token(@revoke_token)
 #=> nil
 
-## Post-revoke: org_email_lookup is removed (allows re-invitation)
-Onetime::OrganizationMembership.find_by_org_email(@org.objid, @revoke_email)
+## Post-revoke: find_pending_by_email no longer discovers the invitation
+Onetime::OrganizationMembership.find_pending_by_email(@org, @revoke_email)
 #=> nil
 
 ## Post-revoke: model is destroyed
 Onetime::OrganizationMembership.load(@revoke_invitation.objid)
 #=> nil
 
-## Post-revoke: can re-invite the same email (org_email_lookup cleared)
+## Post-revoke: can re-invite the same email (staged set cleared)
 @reinvite = Onetime::OrganizationMembership.create_invitation!(
   organization: @org,
   email: @revoke_email,
@@ -156,13 +141,3 @@ Onetime::OrganizationMembership.load(@revoke_invitation.objid)
 )
 @reinvite.pending?
 #=> true
-
-## Re-invitation has a different objid than the revoked one
-@reinvite.objid != @revoke_invitation.objid
-#=> true
-
-# Cleanup
-@reinvite.destroy_with_index_cleanup! if @reinvite&.exists?
-[@org, @owner, @invitee].each do |obj|
-  obj.destroy! if obj&.respond_to?(:destroy!) && obj.exists?
-end

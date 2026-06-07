@@ -5,7 +5,8 @@
 module Onetime
   module CLI
     # Shared validation helpers for billing commands
-    # Used by prices_validate, plans_validate, and products_validate commands
+    # Used by prices_validate, plans_validate, products_validate, and
+    # orgs_validate commands.
     module ValidationHelpers
       # Status indicators (consistent across all validation commands)
       STATUS_VALID      = '✓ Valid'
@@ -96,10 +97,11 @@ module Onetime
       #
       # @param title [String] Section title
       # @param width [Integer] Line width (default: 80)
-      def print_section_header(title, width = 80)
-        print_separator(width)
+      # @param char [String] Separator character (default: '━')
+      def print_section_header(title, width = 80, char = '━')
+        print_separator(width, char)
         puts title
-        print_separator(width)
+        print_separator(width, char)
       end
 
       # Prints structured errors with details and resolution steps
@@ -216,6 +218,54 @@ module Onetime
           item_id = item.is_a?(Hash) ? item[id_field] : item.send(id_field)
           !error_ids.include?(item_id) && !warning_ids.include?(item_id)
         end
+      end
+
+      # Prints an in-place progress indicator to stdout.
+      #
+      # Emits a CR-prefixed line at most every `interval` iterations (and
+      # always on the final iteration). Caller is responsible for calling
+      # {#clear_progress_line} when the loop completes.
+      #
+      # @param current [Integer] Current iteration count (1-indexed)
+      # @param total [Integer] Total iterations expected
+      # @param interval [Integer] How often to emit progress (every Nth iteration)
+      # @param label [String] What's being processed (e.g., 'organizations scanned')
+      def print_progress(current, total, interval, label: 'items processed')
+        return unless (current % interval).zero? || current == total
+
+        print "\r  Progress: #{current}/#{total} #{label}"
+        $stdout.flush
+      end
+
+      # Clears the current progress line from stdout.
+      #
+      # Overwrites the line with whitespace and resets the cursor to the
+      # start of the line, allowing subsequent output to begin cleanly.
+      #
+      # @param width [Integer] Width of the line to clear (default: 80)
+      def clear_progress_line(width = 80)
+        print "\r" + (' ' * width) + "\r"
+        $stdout.flush
+      end
+
+      # Prints a standalone "Resolution:" block listing next-step hints.
+      #
+      # Use this for commands that surface aggregate guidance (e.g., a list
+      # of operator commands to run after a scan) separate from structured
+      # per-item errors. Structured errors should embed their own
+      # `:resolution` array and let {#print_errors_section} render them.
+      #
+      # @param steps [Array<String>] Resolution hint lines to print
+      # @param width [Integer] Separator line width (default: 60)
+      # @param char [String] Separator character (default: '-')
+      # @param label [String] Heading label (default: 'Resolution:')
+      def print_resolution_section(steps, width: 60, char: '-', label: 'Resolution:')
+        return if steps.empty?
+
+        print_separator(width, char)
+        puts label
+        steps.each { |step| puts "  - #{step}" }
+        puts
       end
     end
   end

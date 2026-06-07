@@ -9,11 +9,12 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
+  import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import type { Organization } from '@/types/organization';
-  import { getPlanDisplayName, isLegacyPlan } from '@/types/billing';
+  import { getPlanLabel, isLegacyPlan } from '@/types/billing';
   import { computed, onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
 
@@ -22,7 +23,9 @@
   const organizationStore = useOrganizationStore();
   const bootstrapStore = useBootstrapStore();
 
-  const isLoading = ref(false);
+  // Best practice: Initialize loading states to `true` to prevent uninitialized
+  // content or empty states from briefly flashing on mount.
+  const isLoading = ref(true);
   const showCreateModal = ref(false);
 
   /**
@@ -44,7 +47,7 @@
    */
   const getOrgPlanName = (org: Organization): string => {
     if (!org.planid) return t('web.billing.plans.free_plan');
-    return getPlanDisplayName(org.planid);
+    return getPlanLabel(org.planid);
   };
 
   // Use the first organization to check entitlements for single-org users
@@ -68,7 +71,6 @@
    * Uses entitlement-based framework instead of hardcoded plan checks.
    */
   const canCreateMultipleOrgs = computed(() =>
-    // Users with org management entitlement can create multiple organizations
     can(ENTITLEMENTS.MANAGE_ORGS)
   );
 
@@ -139,20 +141,7 @@
         class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
         <div class="p-6">
           <!-- Loading State -->
-          <div
-            v-if="isLoading"
-            class="flex items-center justify-center py-12">
-            <div class="text-center">
-              <OIcon
-                collection="heroicons"
-                name="arrow-path"
-                class="mx-auto size-8 animate-spin text-gray-400"
-                aria-hidden="true" />
-              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.COMMON.loading') }}
-              </p>
-            </div>
-          </div>
+          <ListSkeleton v-if="isLoading" />
 
           <!-- Organizations List -->
           <div

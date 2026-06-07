@@ -42,10 +42,27 @@ module AccountAPI::Logic
         # account creation and existing account scenarios uniformly, returning the same
         # success response in both cases. This prevents attackers from discovering which
         # emails are registered in the system by observing different validation error messages.
-        raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless valid_email?(email)
-        # Security: Use generic error message to prevent domain enumeration
-        raise_form_error 'Is that a valid email address?', field: 'login', error_type: 'invalid' unless allowed_signup_domain?(email)
-        raise_form_error 'Password is too short', field: 'password', error_type: 'too_short' unless password.size >= 6
+        unless valid_email?(email)
+          raise_form_error 'Is that a valid email address?',
+            error_key: 'api.account.errors.invalid_email',
+            field: 'login',
+            error_type: 'invalid'
+        end
+        # Security: reuse `api.account.errors.invalid_email` — identical user-visible
+        # text prevents enumeration of which domains are on the signup allowlist.
+        # Do not split into a domain-specific key without re-reviewing this threat.
+        unless allowed_signup_domain?(email)
+          raise_form_error 'Is that a valid email address?',
+            error_key: 'api.account.errors.invalid_email',
+            field: 'login',
+            error_type: 'invalid'
+        end
+        return if password.size >= 6
+
+        raise_form_error 'Password is too short',
+          error_key: 'api.account.errors.password_too_short',
+          field: 'password',
+          error_type: 'too_short'
       end
 
       def process
@@ -82,6 +99,22 @@ module AccountAPI::Logic
           cust.verified    = @autoverify
           cust.verified_by = 'autoverify' if @autoverify  # Track verification method
           cust.role        = @customer_role
+
+          # Capture the signup domain for re-verification and background jobs,
+          # and record the provisioning origin as lifecycle/audit metadata.
+          # Origin is metadata only — capabilities are governed by org role.
+          custom_domain = if display_domain
+                            Onetime::CustomDomain.load_by_display_domain(display_domain)
+                          end
+          cust.signup_domain_id    = custom_domain.identifier if custom_domain
+          cust.provisioning_origin = if params['invite_token'].to_s.strip != ''
+                                       'invite'
+                                     elsif custom_domain
+                                       'domain_signup'
+                                     else
+                                       'canonical_signup'
+                                     end
+
           cust.save
 
           session_id = @strategy_result.session['id']
@@ -121,36 +154,20 @@ module AccountAPI::Logic
         { email: email }
       end
 
-      # Validates if the email domain is allowed for account creation
+      # Validates if the email domain is allowed for account creation.
+      #
+      # Resolution order:
+      #   1. Per-domain SignupConfig (if display_domain available and config enabled)
+      #   2. Global allowed_signup_domains config (fallback)
       #
       # @param email [String] The email address to validate
       # @return [Boolean] true if domain is allowed or no restrictions configured
       #
       # @note This method is security-sensitive:
-      #   - Returns true when no restrictions are configured (default behavior)
-      #   - Returns false for malformed emails (no @ or empty domain)
-      #   - Uses case-insensitive domain matching
       #   - Does not reveal which domains are allowed in error messages
+      #   - Uses case-insensitive domain matching
       def allowed_signup_domain?(email)
-        allowed_domains = OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
-
-        # No restrictions configured - allow all domains
-        return true if allowed_domains.nil? || allowed_domains.empty?
-
-        # Extract domain from email, handling edge cases
-        email_parts = email.to_s.strip.downcase.split('@')
-
-        # Reject malformed emails (no @ symbol or multiple @ symbols)
-        return false if email_parts.length != 2
-
-        email_domain = email_parts.last
-
-        # Reject emails with empty domain (e.g., "user@")
-        return false if email_domain.nil? || email_domain.empty?
-
-        # Case-insensitive domain matching
-        normalized_domains = allowed_domains.compact.map(&:downcase)
-        normalized_domains.include?(email_domain)
+        Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
       end
     end
   end

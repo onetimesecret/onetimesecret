@@ -19,14 +19,10 @@ import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
-import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
+import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import {
-  brandSettingsCanonical,
-  cornerStyleValues,
-  fontFamilyValues,
-  homepageConfigCanonical,
-} from '@/schemas/contracts/custom-domain';
+import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
+import { disabledHomepageConfigSchema } from '@/schemas/contracts/disabled-homepage';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -80,6 +76,12 @@ export const headerLogoSchema = z.object({
   alt: z.string().default(''),
   link_to: z.string().default('/'),
   show_name: z.boolean().optional(),
+  /**
+   * When true, render the logo at a larger size in the authenticated header.
+   * Useful for rasterized brand assets that need visual presence alongside
+   * the org/domain switchers. Defaults to false (compact 40px logo).
+   */
+  prominent: z.boolean().optional(),
 });
 
 export const headerBrandingSchema = z.object({
@@ -147,12 +149,62 @@ export const uiCapabilitiesSchema = z.object({
   recipient: z.boolean().optional(),
 });
 
+export const uiHelpSchema = z.object({
+  enabled: z.boolean().default(true),
+});
+
+/**
+ * Public-facing links surfaced when the homepage secret form is gated by
+ * auth. Recipients arriving via a shared link use these to learn about
+ * the service. Each field is nullable; when null/empty the corresponding
+ * affordance is hidden rather than rendered with a broken target.
+ */
+export const homepagePublicLinksSchema = z.object({
+  recipient_intro: z.string().nullable().optional(),
+});
+
+/**
+ * Homepage UI configuration: mode (CIDR/header gating) plus public-facing
+ * links surfaced on the disabled-homepage view.
+ */
+export const homepageUiConfigSchema = z.object({
+  public_links: homepagePublicLinksSchema.optional(),
+});
+
 export const uiInterfaceSchema = z.object({
   enabled: z.boolean().default(true),
   header: headerConfigSchema.optional(),
   footer_links: footerLinksConfigSchema.optional(),
   workspace_links: workspaceLinksConfigSchema.optional(),
   capabilities: uiCapabilitiesSchema.optional(),
+  show_version: z.boolean().default(true),
+  help: uiHelpSchema.optional(),
+  homepage: homepageUiConfigSchema.optional(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// API CONFIGURATION SCHEMAS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Guest route permissions for API access.
+ */
+export const apiGuestRoutesSchema = z.object({
+  enabled: z.boolean().default(true),
+  conceal: z.boolean().default(true),
+  generate: z.boolean().default(true),
+  reveal: z.boolean().default(true),
+  burn: z.boolean().default(true),
+  show: z.boolean().default(true),
+  receipt: z.boolean().default(true),
+});
+
+/**
+ * API interface configuration schema controlling API access and guest routes.
+ */
+export const apiInterfaceSchema = z.object({
+  enabled: z.boolean().default(true),
+  guest_routes: apiGuestRoutesSchema.default(apiGuestRoutesSchema.parse({})),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -329,7 +381,7 @@ export const organizationSchema = z
     extid: z.string(),
     display_name: z.string(),
     is_default: z.boolean(),
-    planid: z.string().nullish(),
+    planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
   })
   .nullable();
@@ -355,7 +407,10 @@ export type HeaderBranding = z.infer<typeof headerBrandingSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
 export type UiCapabilities = z.infer<typeof uiCapabilitiesSchema>;
+export type UiHelp = z.infer<typeof uiHelpSchema>;
 export type UiInterface = z.infer<typeof uiInterfaceSchema>;
+export type ApiGuestRoutes = z.infer<typeof apiGuestRoutesSchema>;
+export type ApiInterface = z.infer<typeof apiInterfaceSchema>;
 export type AuthenticationSettings = z.infer<typeof authenticationSettingsSchema>;
 export type SSOProvider = z.infer<typeof ssoProviderSchema>;
 export type SSOConfig = z.infer<typeof ssoConfigSchema>;
@@ -391,11 +446,26 @@ export type Passphrase = z.infer<typeof passphraseSchema>;
  * - I18nSerializer fields
  * - MessagesSerializer fields
  * - SystemSerializer fields
+ *
+ * ## Schema contract pattern: `.default()` vs `.optional()`
+ *
+ * Use `.default(...)` for fields the Ruby serializer ALWAYS emits. This:
+ * - Documents the actual contract (Ruby always sends it)
+ * - Produces a non-optional TypeScript type (no unnecessary `?.` guards)
+ * - Provides a fallback if parsing somehow receives `undefined`
+ *
+ * Use `.optional()` ONLY for fields Ruby conditionally emits (e.g., `regions`
+ * is only sent when `regions_enabled` is true). The TypeScript type will
+ * include `| undefined`, correctly reflecting the contract.
+ *
+ * When in doubt, check the Ruby serializer's `output_template` and the field
+ * assignment logic to determine which pattern applies.
  */
 export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   // ConfigSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
+  api: apiInterfaceSchema.default(apiInterfaceSchema.parse({})),
   authentication: authenticationSettingsSchema.default(authenticationSettingsInner.parse({})),
   d9s_enabled: z.boolean().default(false),
   diagnostics: diagnosticsSchema.default(diagnosticsInner.parse({})),
@@ -414,6 +484,12 @@ export const bootstrapSchema = z.object({
   support_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
+
+  // Frontend rendering config for the disabled-homepage view. All knobs
+  // optional with auto-detection defaults; backend may omit entirely.
+  disabled_homepage: disabledHomepageConfigSchema.default(
+    disabledHomepageConfigSchema.parse({})
+  ),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Brand fields (per-installation defaults from OT.conf['brand'])
@@ -511,13 +587,13 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   // Entitlement test mode (colonel only)
   // ─────────────────────────────────────────────────────────────────────────────
-  entitlement_test_planid: z.string().nullish(),
-  entitlement_test_plan_name: z.string().nullish(),
+  entitlement_preview_planid: z.string().nullish(),
+  entitlement_preview_plan_name: z.string().nullish(),
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Development
+  // Development (always emitted by ConfigSerializer)
   // ─────────────────────────────────────────────────────────────────────────────
-  development: developmentConfigSchema.optional(),
+  development: developmentConfigSchema.default(developmentConfigSchema.parse({})),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -255,3 +255,158 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
     end
   end
 end
+
+# Minimal concrete subclass (process_secret is abstract in the base).
+class V1ShareDomainTestAction < V1::Logic::Secrets::BaseSecretAction
+  def process_secret
+    @kind = :test
+    @secret_value = 'test_secret'
+  end
+end
+
+# ============================================================================
+# process_share_domain — ingestion (records the requested domain)
+#
+# Auth-agnostic: it only sanitizes and records the *requested* domain. Whether
+# an anonymous request may use that domain is decided later in
+# validate_anonymous_share_domain (issue #3311), because V1 logic objects don't
+# receive display_domain until the controller applies domain context, after
+# construction.
+# ============================================================================
+RSpec.describe 'V1 BaseSecretAction process_share_domain' do
+  using Familia::Refinements::TimeLiterals
+
+  before(:all) { OT.boot!(:test) }
+
+  before do
+    allow(Truemail).to receive(:validate).and_return(
+      double('Validator', result: double('Result', valid?: true), as_json: '{}'),
+    )
+  end
+
+  # V1::Logic::Base takes (session, customer, params).
+  def build_v1_ingest_subject(payload_share_domain:, anonymous: false)
+    cust = double('Customer',
+      anonymous?: anonymous,
+      custid: anonymous ? nil : 'cust123',
+      objid: anonymous ? nil : 'obj123',
+      planid: 'anonymous')
+    sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
+    V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => payload_share_domain, 'recipient' => [] })
+  end
+
+  context 'a valid, non-default custom domain in the payload' do
+    before do
+      allow(Onetime::CustomDomain).to receive(:valid?).with('secrets.acme.com').and_return(true)
+      allow(Onetime::CustomDomain).to receive(:default_domain?).with('secrets.acme.com').and_return(false)
+    end
+
+    it 'records the requested domain for an authenticated request' do
+      subject = build_v1_ingest_subject(payload_share_domain: 'secrets.acme.com', anonymous: false)
+      subject.send(:process_share_domain)
+      expect(subject.share_domain).to eq('secrets.acme.com')
+    end
+
+    it 'records the requested domain for an anonymous request too (the use check runs later)' do
+      subject = build_v1_ingest_subject(payload_share_domain: 'secrets.acme.com', anonymous: true)
+      subject.send(:process_share_domain)
+      expect(subject.share_domain).to eq('secrets.acme.com')
+    end
+  end
+
+  context 'an empty share_domain in the payload' do
+    subject { build_v1_ingest_subject(payload_share_domain: '') }
+
+    it 'leaves @share_domain nil' do
+      subject.send(:process_share_domain)
+      expect(subject.share_domain).to be_nil
+    end
+  end
+end
+
+# ============================================================================
+# validate_anonymous_share_domain — guest domain boundary (issue #3311)
+#
+# Parity with V2: a guest may keep a requested share_domain only when they are
+# on that exact custom domain (creating links for the branded domain they're
+# visiting). Any other custom domain — a guest on the canonical domain naming a
+# custom one, or a guest on one custom domain naming a different one — is a
+# cross-domain smuggle and is rejected. V1 raises a FormError (matching its
+# existing validate_domain_permissions style).
+# ============================================================================
+RSpec.describe 'V1 BaseSecretAction validate_anonymous_share_domain' do
+  using Familia::Refinements::TimeLiterals
+
+  before(:all) { OT.boot!(:test) }
+
+  before do
+    allow(Truemail).to receive(:validate).and_return(
+      double('Validator', result: double('Result', valid?: true), as_json: '{}'),
+    )
+  end
+
+  # Seed @share_domain (the requested domain), display_domain (Host header) and
+  # domain_strategy (custom_domain? reads it), plus anonymity.
+  def build_v1_guard_subject(requested:, display_domain:, custom_domain:, anonymous:)
+    cust = double('Customer',
+      anonymous?: anonymous,
+      custid: anonymous ? nil : 'cust123',
+      objid: anonymous ? nil : 'obj123',
+      planid: 'anonymous')
+    sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
+    action = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+    action.instance_variable_set(:@share_domain, requested)
+    action.display_domain  = display_domain
+    action.domain_strategy = custom_domain ? 'custom' : nil
+    action
+  end
+
+  context 'guest on a custom domain requesting that same domain (the /guest case)' do
+    subject { build_v1_guard_subject(requested: 'secrets.acme.com', display_domain: 'secrets.acme.com', custom_domain: true, anonymous: true) }
+
+    it 'is allowed (no raise)' do
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+  end
+
+  context 'guest on a custom domain requesting that same domain in a different case' do
+    subject { build_v1_guard_subject(requested: 'Secrets.ACME.com', display_domain: 'secrets.acme.com', custom_domain: true, anonymous: true) }
+
+    it 'is allowed (Host comparison is case-insensitive)' do
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+  end
+
+  context 'guest on a custom domain requesting a DIFFERENT custom domain' do
+    subject { build_v1_guard_subject(requested: 'victim.example.com', display_domain: 'secrets.acme.com', custom_domain: true, anonymous: true) }
+
+    it 'raises a FormError (cross-domain smuggle)' do
+      expect { subject.send(:validate_anonymous_share_domain) }
+        .to raise_error(OT::FormError, /permission to use domain/)
+    end
+  end
+
+  context 'guest on the canonical domain requesting a custom domain' do
+    subject { build_v1_guard_subject(requested: 'victim.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true) }
+
+    it 'raises a FormError (cross-domain smuggle from canonical)' do
+      expect { subject.send(:validate_anonymous_share_domain) }.to raise_error(OT::FormError)
+    end
+  end
+
+  context 'guest with no requested share_domain' do
+    subject { build_v1_guard_subject(requested: nil, display_domain: 'secrets.acme.com', custom_domain: true, anonymous: true) }
+
+    it 'is a no-op (nothing to reject)' do
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+  end
+
+  context 'authenticated user requesting a different domain' do
+    subject { build_v1_guard_subject(requested: 'secrets.acme.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: false) }
+
+    it 'does not raise here (authenticated handling is governed downstream)' do
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+  end
+end

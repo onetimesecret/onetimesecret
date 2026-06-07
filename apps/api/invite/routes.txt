@@ -16,3 +16,4 @@
 GET    /:token                              InviteAPI::Logic::Invites::ShowInvite response=json auth=noauth
 POST   /:token/accept                       InviteAPI::Logic::Invites::AcceptInvite response=json auth=sessionauth
 POST   /:token/decline                      InviteAPI::Logic::Invites::DeclineInvite response=json auth=noauth
+POST   /:token/signup                       InviteAPI::Logic::Invites::SignupAndAccept response=json auth=noauth

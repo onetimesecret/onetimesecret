@@ -160,7 +160,7 @@ last_response.status >= 400
 ## TEST 5: Non-member access - verify error message indicates access denied
 resp = JSON.parse(last_response.body) rescue {}
 [
-  resp['message']&.include?('access denied') || resp['message']&.include?('not found'),
+  resp['error']&.include?('access denied') || resp['error']&.include?('not found'),
   resp['records'].nil?
 ]
 #=> [true, true]

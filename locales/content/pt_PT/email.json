@@ -855,7 +855,7 @@
     "source_hash": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "%{product_name}",
+    "text": "Onetime Secret",
     "renderer": "erb",
     "source_hash": "1cd0194a"
   }

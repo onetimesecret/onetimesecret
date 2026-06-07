@@ -85,10 +85,12 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         skip 'Plans array empty - cannot verify attributes' if data['plans'].empty?
 
         plan = data['plans'].first
+        # API returns flat records per interval (one record per plan+interval combo)
         expect(plan).to include(
-          'id', 'name', 'tier', 'interval', 'amount', 'currency',
-          'features', 'limits', 'entitlements'
+          'id', 'name', 'tier', 'interval', 'currency',
+          'features', 'limits', 'entitlements', 'stripe_price_id', 'amount'
         )
+        expect(plan['interval']).to eq('month').or eq('year')
       end
 
       it 'includes plans sorted by display_order' do
@@ -109,8 +111,11 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
   # TC-2309-001, TC-2309-002
   # ---------------------------------------------------------------------------
   describe 'BLOCKER 1 & 2: Plans by interval' do
+    # NOTE: API now returns flat records with top-level interval field
+    # Each plan+interval combo is a separate record in the array
+
     context 'monthly plans' do
-      it 'returns plans with interval=month' do
+      it 'returns plans with a month price' do
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
@@ -131,13 +136,13 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
 
         monthly_plans.each do |plan|
           expect(plan['amount'].to_i).to be > 0,
-            "Plan #{plan['id']} should have positive amount"
+            "Plan #{plan['id']} should have positive monthly amount"
         end
       end
     end
 
     context 'yearly plans' do
-      it 'returns plans with interval=year' do
+      it 'returns plans with a year price' do
         get '/billing/api/plans'
 
         data = JSON.parse(last_response.body)
@@ -210,7 +215,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
     end
 
     context 'with organization that has a plan' do
-      let(:test_plan_id) { 'identity_plus_v1_monthly' }
+      let(:test_plan_id) { 'identity_plus_v1' }
 
       before do
         organization.planid = test_plan_id
@@ -282,12 +287,16 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
     end
 
     it 'plans are retrievable by tier and billing cycle' do
-      skip 'Plan cache empty' if ::Billing::Plan.list_plans.empty?
+      plans = ::Billing::Plan.list_plans
+      skip 'Plan cache empty' if plans.empty?
 
-      # Test common tier/billing cycle combinations
-      plan = ::Billing::Plan.get_plan('single_team', 'monthly', 'EU')
+      # Get actual tier and region from loaded plans (config-dependent)
+      sample_plan = plans.find { |p| p.tier != 'free' }
+      skip 'No paid plans in cache' unless sample_plan
+
+      plan = ::Billing::Plan.get_plan(sample_plan.tier, 'monthly', sample_plan.region)
       expect(plan).not_to be_nil,
-        'Could not retrieve single_team monthly plan. ' \
+        "Could not retrieve #{sample_plan.tier} monthly plan. " \
         'Check Plan.get_plan lookup logic and cache keys.'
     end
   end

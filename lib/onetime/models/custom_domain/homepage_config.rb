@@ -9,10 +9,11 @@
 # When enabled, anonymous users can create secrets on the domain's public
 # homepage without authentication.
 #
-# This is the canonical source for homepage settings, replacing the legacy
-# allow_public_homepage field stored in BrandSettings. During migration,
-# CustomDomain#allow_public_homepage? checks HomepageConfig first, then
-# falls back to BrandSettings.
+# This is the single source of truth for homepage settings. The legacy
+# allow_public_homepage field on BrandSettings was retired in #3026 once
+# the #3023 backfill migration guaranteed every CustomDomain has a record.
+# CustomDomain.create! bootstraps a default-disabled record so the
+# invariant holds for new domains as well.
 #
 # @see IncomingConfig - Similar pattern for incoming secrets recipients
 #
@@ -33,12 +34,22 @@ module Onetime
       # Whether homepage secrets is enabled for this domain
       field :enabled
 
+      # Per-domain UI toggles for the homepage auth nav. Both default to true
+      # so existing records (no field set) render the links. The system-level
+      # site.authentication.{signup,signin} flags remain the master switch:
+      # the frontend ANDs both layers, so toggling a system flag off hides
+      # the link regardless of this domain-level value.
+      field :signup_enabled
+      field :signin_enabled
+
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
 
       def init
-        self.enabled ||= 'false'
+        self.enabled      ||= 'false'
+        self.signup_enabled = true if signup_enabled.nil?
+        self.signin_enabled = true if signin_enabled.nil?
       end
 
       # Check if homepage secrets is enabled for this domain.
@@ -46,6 +57,18 @@ module Onetime
       # @return [Boolean] true if homepage secrets is active
       def enabled?
         enabled.to_s == 'true'
+      end
+
+      # Whether the Sign Up link should render on this domain's homepage.
+      # Records pre-dating this field return nil, which we treat as enabled
+      # (only an explicit `false` hides the link).
+      def signup_enabled?
+        signup_enabled != false
+      end
+
+      # Whether the Sign In link should render on this domain's homepage.
+      def signin_enabled?
+        signin_enabled != false
       end
 
       # Enable homepage secrets for this domain.
@@ -133,18 +156,27 @@ module Onetime
         # @param domain_id [String] CustomDomain identifier
         # @param enabled [Boolean, String] Whether to enable homepage secrets
         # @return [CustomDomain::HomepageConfig] The config (created or updated)
-        def upsert(domain_id:, enabled:)
+        def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
           config = find_by_domain_id(domain_id)
           now    = Familia.now.to_i
 
           if config
-            config.created ||= now  # repair missing created from legacy records
-            config.enabled   = enabled.to_s
-            config.updated   = now
+            config.created      ||= now  # repair missing created from legacy records
+            config.enabled        = enabled.to_s
+            config.signup_enabled = signup_enabled unless signup_enabled.nil?
+            config.signin_enabled = signin_enabled unless signin_enabled.nil?
+            config.updated        = now
           else
-            config = new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now)
+            config = new(
+              domain_id: domain_id,
+              enabled: enabled.to_s,
+              signup_enabled: signup_enabled.nil? || signup_enabled,
+              signin_enabled: signin_enabled.nil? || signin_enabled,
+              created: now,
+              updated: now,
+            )
           end
 
           config.save
@@ -162,14 +194,21 @@ module Onetime
         # @param domain_id [String] CustomDomain identifier
         # @param enabled   [Boolean, String] value to use only if creating
         # @return [Array(HomepageConfig, Symbol)] [config, :created | :existed]
-        def find_or_create_for_domain(domain_id:, enabled:)
+        def find_or_create_for_domain(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
           existing = find_by_domain_id(domain_id)
           return [existing, :existed] if existing
 
           now    = Familia.now.to_i
-          config = new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now)
+          config = new(
+            domain_id: domain_id,
+            enabled: enabled.to_s,
+            signup_enabled: signup_enabled.nil? || signup_enabled,
+            signin_enabled: signin_enabled.nil? || signin_enabled,
+            created: now,
+            updated: now,
+          )
 
           begin
             config.save_if_not_exists!
@@ -199,7 +238,9 @@ module Onetime
 
           config = new(domain_id: domain_id)
 
-          config.enabled = attrs[:enabled].to_s if attrs.key?(:enabled)
+          config.enabled        = attrs[:enabled].to_s if attrs.key?(:enabled)
+          config.signup_enabled = attrs[:signup_enabled] if attrs.key?(:signup_enabled)
+          config.signin_enabled = attrs[:signin_enabled] if attrs.key?(:signin_enabled)
 
           now            = Familia.now.to_i
           config.created = now

@@ -6,6 +6,7 @@
   import JurisdictionToggle from '@/shared/components/ui/JurisdictionToggle.vue';
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
+  import { useFooterConfig } from '@/shared/composables/useFooterConfig';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { storeToRefs } from 'pinia';
@@ -27,6 +28,8 @@ const { t } = useI18n();
     ot_version_long,
   } = storeToRefs(bootstrapStore);
 
+  const { showVersionConfig } = useFooterConfig();
+
 </script>
 <template>
   <footer
@@ -40,7 +43,7 @@ const { t } = useI18n();
         <div
           class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
-            v-if="displayVersion"
+            v-if="displayVersion && showVersionConfig"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`">v{{ ot_version_long }}</a>
           </span>

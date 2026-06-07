@@ -76,6 +76,16 @@ end
 @context3[:organization].objid == @personal_workspace.objid
 #=> true
 
+## Step 5 (first-available fallback) skips archived orgs
+# Archive both orgs. With no default_org_id (step 3) and no non-archived
+# is_default org (step 4), the first-available fallback must NOT hand back
+# an archived "soft-deleted" org — it falls through to nil (step 6).
+@personal_workspace.archive!('superseded in test')
+@company_org.archive!('superseded in test')
+@context4 = @loader.load_organization_context(@cust, {}, {})
+@context4[:organization].nil?
+#=> true
+
 ## CLEANUP
 @cust&.destroy!
 @personal_workspace&.destroy!

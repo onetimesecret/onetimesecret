@@ -22,7 +22,7 @@ module DomainsAPI
         end
 
         def raise_concerns
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+          raise_form_error('Authentication required', field: :user_id, error_type: :authentication_required) if cust.anonymous?
           raise_form_error('Domain ID required', field: :domain_id, error_type: :missing) if @domain_id.to_s.empty?
 
           authorize_domain_homepage!(@domain_id)
@@ -43,6 +43,8 @@ module DomainsAPI
                       {
                         domain_id: @homepage_config.domain_id,
                         enabled: @homepage_config.enabled?,
+                        signup_enabled: @homepage_config.signup_enabled?,
+                        signin_enabled: @homepage_config.signin_enabled?,
                         created_at: @homepage_config.created.to_i,
                         updated_at: @homepage_config.updated.to_i,
                       }

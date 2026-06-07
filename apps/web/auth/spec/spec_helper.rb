@@ -14,60 +14,52 @@
 #   pnpm run test:rspec apps/web/auth/spec/config/features/mfa_spec.rb
 
 # =============================================================================
-# EARLY ENVIRONMENT AND WEBMOCK SETUP
+# EARLY WEBMOCK SETUP
 # =============================================================================
-# Set env vars AND WebMock stubs BEFORE any requires that might trigger config
-# loading. Onetime config uses ERB which evaluates at YAML load time, so these
-# must be set before any code path that loads the config.
+# WebMock stubs BEFORE any requires that might trigger config loading or
+# provider registration. The OmniAuth OIDC strategy fetches the discovery
+# document during provider registration (boot time), so the placeholder
+# issuer must be stubbed before the app boots.
 #
-# The OmniAuth OIDC strategy fetches the discovery document during provider
-# registration, so WebMock must be configured before the app boots.
+# No OIDC env vars are injected here — all four SSO providers (OIDC, Entra,
+# GitHub, Google) register via placeholder credentials when
+# ORGS_SSO_ENABLED=true. The OmniAuthTenant hook injects real credentials
+# at request time.
 #
-#
-MOCK_OIDC_ISSUER = 'https://mock-idp.example.com'
+ENV['AUTHENTICATION_MODE'] ||= 'full'
 
-unless ENV['OIDC_ISSUER'].to_s.strip.length.positive?
-  ENV['OIDC_ISSUER'] = MOCK_OIDC_ISSUER
-  ENV['OIDC_CLIENT_ID'] = 'test-client-id'
-  ENV['OIDC_CLIENT_SECRET'] = 'test-client-secret'
-  ENV['OIDC_REDIRECT_URI'] = 'http://localhost:3000/auth/sso/oidc/callback'
-  ENV['AUTH_SSO_ENABLED'] = 'true'
-  ENV['AUTHENTICATION_MODE'] ||= 'full'
+PLACEHOLDER_OIDC_ISSUER = 'https://placeholder.invalid'
 
-  # Set up WebMock BEFORE loading any app code
-  require 'webmock'
-  WebMock.enable!
-  WebMock.disable_net_connect!(allow_localhost: true)
+require 'webmock'
+WebMock.enable!
+WebMock.disable_net_connect!(allow_localhost: true)
 
-  # Mock OIDC discovery document
-  WebMock.stub_request(:get, "#{MOCK_OIDC_ISSUER}/.well-known/openid-configuration")
-    .to_return(
-      status: 200,
-      body: {
-        issuer: MOCK_OIDC_ISSUER,
-        authorization_endpoint: "#{MOCK_OIDC_ISSUER}/authorize",
-        token_endpoint: "#{MOCK_OIDC_ISSUER}/token",
-        userinfo_endpoint: "#{MOCK_OIDC_ISSUER}/userinfo",
-        jwks_uri: "#{MOCK_OIDC_ISSUER}/.well-known/jwks.json",
-        response_types_supported: %w[code],
-        subject_types_supported: %w[public],
-        id_token_signing_alg_values_supported: %w[RS256],
-        scopes_supported: %w[openid email profile],
-        token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
-        claims_supported: %w[sub email email_verified name],
-        code_challenge_methods_supported: %w[S256],
-      }.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-    )
+WebMock.stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/openid-configuration")
+  .to_return(
+    status: 200,
+    body: {
+      issuer: PLACEHOLDER_OIDC_ISSUER,
+      authorization_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/authorize",
+      token_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/token",
+      userinfo_endpoint: "#{PLACEHOLDER_OIDC_ISSUER}/userinfo",
+      jwks_uri: "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json",
+      response_types_supported: %w[code],
+      subject_types_supported: %w[public],
+      id_token_signing_alg_values_supported: %w[RS256],
+      scopes_supported: %w[openid email profile],
+      token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
+      claims_supported: %w[sub email email_verified name],
+      code_challenge_methods_supported: %w[S256],
+    }.to_json,
+    headers: { 'Content-Type' => 'application/json' }
+  )
 
-  # Mock JWKS endpoint
-  WebMock.stub_request(:get, "#{MOCK_OIDC_ISSUER}/.well-known/jwks.json")
-    .to_return(
-      status: 200,
-      body: { keys: [] }.to_json,
-      headers: { 'Content-Type' => 'application/json' }
-    )
-end
+WebMock.stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json")
+  .to_return(
+    status: 200,
+    body: { keys: [] }.to_json,
+    headers: { 'Content-Type' => 'application/json' }
+  )
 
 require 'rspec'
 require 'sequel'
@@ -80,6 +72,7 @@ require 'rack/test'
 require_relative 'support/omniauth_test_helper'
 require_relative 'support/auth_test_constants'
 require_relative 'support/mock_omniauth_strategy'
+require_relative 'support/config_recreator'
 require_relative '../database'
 
 # =============================================================================
@@ -130,6 +123,7 @@ module RodauthTestHelper
     create_security_tables(db)
     create_mfa_tables(db)
     create_email_auth_tables(db)
+    create_omniauth_tables(db)
     create_webauthn_tables(db)
     create_audit_tables(db)
     create_password_tables(db)
@@ -228,6 +222,17 @@ module RodauthTestHelper
       String :key, null: false
       DateTime :deadline, null: false
       DateTime :email_last_sent, null: false, default: Sequel::CURRENT_TIMESTAMP
+    end
+  end
+
+  # Creates tables for OmniAuth (SSO identity linking)
+  def self.create_omniauth_tables(db)
+    db.create_table(:account_identities) do
+      primary_key :id, type: :Bignum
+      foreign_key :account_id, :accounts, type: :Bignum, null: false
+      String :provider, null: false
+      String :uid, null: false
+      index [:provider, :uid], unique: true
     end
   end
 
@@ -452,7 +457,55 @@ module ProductionConfigHelper
 
     Familia.dbclient.flushdb
   rescue StandardError => e
-    warn "Failed to flush test database: #{e.message}" if ENV['DEBUG']
+    OT.le "[flush_test_database] Failed to flush test database: #{e.message}"
+  end
+
+  # Clean up SQL auth data between integration examples.
+  #
+  # The Valkey side is flushed every example, but Auth::Database.connection is
+  # memoized for the whole process, so accounts accumulate and desync from the
+  # flushed Redis customers (manifests as account_id climbing, then a JIT
+  # re-create colliding on the unique email index in SyncSession).
+  #
+  # DELETE rows rather than reconnect: the in-memory SQLite schema lives in the
+  # single shared connection, so disconnecting would drop the tables. Reset the
+  # autoincrement counter so account_id restarts at 1 (deterministic IDs).
+  #
+  # For PostgreSQL in CI, the application connection (onetime_user) lacks TRUNCATE
+  # privileges. Use AUTH_DATABASE_URL_MIGRATIONS (onetime_migrator) when available.
+  def clear_auth_database
+    db = Auth::Database.connection
+    # Preserve schema bookkeeping and seed-once reference tables (PRESERVED_TABLES).
+    tables = db.tables - AuthTestConstants::PRESERVED_TABLES
+    return if tables.empty?
+
+    case db.database_type
+    when :postgres
+      # Use elevated connection for TRUNCATE if available (CI privilege separation)
+      # Prefer existing PostgresModeSuiteDatabase connection to avoid per-test connect overhead
+      if defined?(PostgresModeSuiteDatabase) && PostgresModeSuiteDatabase.migration_database
+        PostgresModeSuiteDatabase.migration_database.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+      else
+        migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+        if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
+          elevated_db = Sequel.connect(migration_url)
+          begin
+            elevated_db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+          ensure
+            elevated_db.disconnect
+          end
+        else
+          db.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
+        end
+      end
+    when :sqlite
+      db.run('PRAGMA foreign_keys = OFF')
+      tables.each { |t| db[t].delete }
+      db[:sqlite_sequence].delete if db.table_exists?(:sqlite_sequence)
+      db.run('PRAGMA foreign_keys = ON')
+    end
+  rescue StandardError => e
+    OT.le "[clear_auth_database] Failed to clear auth database: #{e.message}"
   end
 
   # Get the auth database connection for assertions
@@ -493,6 +546,17 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :integration
   config.include ProductionConfigHelper, type: :integration
 
+  # Capture AUTH_* env vars before integration suite to prevent leakage
+  # between spec files that set different feature flags.
+  # See: apps/web/auth/docs/auth-config-one-shot.md (Pattern 2)
+  config.before(:all, type: :integration) do
+    @saved_auth_env = Auth::ConfigRecreator.capture_auth_env
+  end
+
+  config.after(:all, type: :integration) do
+    Auth::ConfigRecreator.restore_auth_env(@saved_auth_env) if @saved_auth_env
+  end
+
   # Skip integration tests if Valkey not available
   config.before(:each, type: :integration) do
     unless valkey_available?
@@ -500,13 +564,41 @@ RSpec.configure do |config|
     end
   end
 
-  # Clean database before each integration test
-  config.before(:each, type: :integration) do
+  # Clean database before each integration test.
+  #
+  # Respect the same opt-outs as the top-level spec/spec_helper.rb flush:
+  # specs that build fixtures in before(:all) and read them across examples
+  # set shared_db_state: true; billing specs manage their own state. Without
+  # this guard, requiring this helper in a shared rspec process (apps + core
+  # integration specs run together since 7b9cd9202) flushes those specs'
+  # before(:all) data out from under them.
+  config.before(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
+
     flush_test_database if respond_to?(:flush_test_database)
   end
 
-  # Clean database after each integration test
-  config.after(:each, type: :integration) do
+  # Clean database after each integration test (same opt-outs as above).
+  config.after(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
+
     flush_test_database if respond_to?(:flush_test_database)
+    clear_auth_database if respond_to?(:clear_auth_database)
+  end
+
+  # Restore the OmniAuth request-method global after every example.
+  #
+  # OmniAuth.config is process-global mutable state. Many specs set
+  # allowed_request_methods = %i[get post] (to exercise GET callbacks) but
+  # never reset it, so :get leaks into subsequent strategy inits and triggers
+  # the CVE-2015-9284 GET-request CSRF warning mid-suite. Unguarded (no
+  # shared_db_state/billing opt-out) so it always runs.
+  config.after(:each) do
+    next unless defined?(OmniAuth)
+
+    OmniAuth.config.allowed_request_methods = [:post]
+    OmniAuth.config.silence_get_warning = false
   end
 end

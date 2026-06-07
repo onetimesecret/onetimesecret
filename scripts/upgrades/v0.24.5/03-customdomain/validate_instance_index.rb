@@ -66,7 +66,7 @@ class CustomDomainInstanceIndexValidator
       org_sorted_set_phantoms: [],
       org_sorted_set_entries: 0,
       owner_hash_mismatches: [],
-      duplicate_display_domains: [],
+      duplicate_display_domain_index: [],
       display_domain_index_entries: 0,
       live_instance_count: nil,
       live_count_mismatch: nil,
@@ -457,7 +457,7 @@ class CustomDomainInstanceIndexValidator
     dd_to_domainids.each do |display_domain, domainids|
       next if domainids.size <= 1
 
-      @stats[:duplicate_display_domains] << {
+      @stats[:duplicate_display_domain_index] << {
         display_domain: display_domain,
         domainids: domainids,
       }
@@ -588,7 +588,7 @@ class CustomDomainInstanceIndexValidator
     puts "Missing from org sorted set: #{@stats[:org_sorted_set_missing].size}"
     puts "Phantom refs in org sorted sets: #{@stats[:org_sorted_set_phantoms].size}"
     puts "Display domain index entries: #{@stats[:display_domain_index_entries]}"
-    puts "Duplicate display_domains: #{@stats[:duplicate_display_domains].size}"
+    puts "Duplicate display_domain_index: #{@stats[:duplicate_display_domain_index].size}"
 
     if @stats[:live_instance_count]
       mismatch = @stats[:live_count_mismatch]
@@ -655,9 +655,9 @@ class CustomDomainInstanceIndexValidator
       puts
     end
 
-    if @stats[:duplicate_display_domains].any?
+    if @stats[:duplicate_display_domain_index].any?
       puts '=== Duplicate display_domain Values (routing conflicts) ==='
-      @stats[:duplicate_display_domains].first(10).each do |entry|
+      @stats[:duplicate_display_domain_index].first(10).each do |entry|
         puts "  #{redact_fqdn(entry[:display_domain])}: domainids=#{entry[:domainids].join(', ')}"
       end
       puts
@@ -715,7 +715,7 @@ class CustomDomainInstanceIndexValidator
       @stats[:org_id_missing].empty? &&
       @stats[:org_sorted_set_missing].empty? &&
       @stats[:org_sorted_set_phantoms].empty? &&
-      @stats[:duplicate_display_domains].empty? &&
+      @stats[:duplicate_display_domain_index].empty? &&
       @stats[:owner_hash_mismatches].empty?
   end
 end

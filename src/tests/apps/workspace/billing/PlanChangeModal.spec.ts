@@ -59,7 +59,7 @@ vi.mock('@/services/billing.service', () => ({
 
 // Test data
 const mockCurrentPlan = {
-  id: 'identity_plus_v1_monthly',
+  id: 'identity_plus_v1',
   stripe_price_id: 'price_current_123',
   name: 'Identity Plus',
   tier: 'single_team',
@@ -74,7 +74,7 @@ const mockCurrentPlan = {
 };
 
 const mockTargetPlan = {
-  id: 'team_plus_v1_monthly',
+  id: 'team_plus_v1',
   stripe_price_id: 'price_target_456',
   name: 'Team Plus',
   tier: 'multi_team',
@@ -299,7 +299,7 @@ describe('PlanChangeModal', () => {
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
       mockChangePlan.mockResolvedValueOnce({
         success: true,
-        new_plan: 'team_plus_v1_monthly',
+        new_plan: 'team_plus_v1',
         status: 'active',
         current_period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
       });
@@ -323,7 +323,7 @@ describe('PlanChangeModal', () => {
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
       mockChangePlan.mockResolvedValueOnce({
         success: true,
-        new_plan: 'team_plus_v1_monthly',
+        new_plan: 'team_plus_v1',
         status: 'active',
         current_period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
       });

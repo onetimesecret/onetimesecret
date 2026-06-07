@@ -13,6 +13,8 @@
   import TimelineDisplay from '@/apps/secret/components/receipt/TimelineDisplay.vue';
   import { useReceipt } from '@/shared/composables/useReceipt';
   import { useSecretExpiration, EXPIRATION_EVENTS } from '@/shared/composables/useSecretExpiration';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { onMounted, onUnmounted, watch, computed, ref } from 'vue';
 
   import UnknownReceipt from './UnknownReceipt.vue';
@@ -37,6 +39,14 @@
   );
 
   const isAvailable = computed(() => !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_revealed));
+
+  // The receipt-page Burn action is shown unless ui.capabilities.burn is
+  // explicitly disabled. An unset flag (undefined) is treated as enabled,
+  // matching the config default of true.
+  const bootstrapStore = useBootstrapStore();
+  const { uiCapabilities } = storeToRefs(bootstrapStore);
+  const showBurn = computed(() => uiCapabilities.value?.burn !== false);
+  const helpEnabled = computed(() => bootstrapStore.ui?.help?.enabled ?? true);
 
   const goBack = () => {
     window.history.back();
@@ -126,17 +136,37 @@
               :is-initial-view="!record.is_previewed" />
           </section>
 
-          <!-- Recipients Section -->
+          <!-- Recipient + Memo Section -->
           <div
-            v-if="details.show_recipients"
+            v-if="details.show_recipients || record.memo"
             class="border-t border-gray-200/60 p-4 sm:p-6 dark:border-gray-700/40">
-            <h3 class="flex items-center text-base font-medium text-gray-900 dark:text-white">
+            <!-- Recipient (primary): who this secret is for -->
+            <h3
+              v-if="details.show_recipients"
+              class="flex items-center text-lg font-semibold text-gray-900 dark:text-white">
               <OIcon
                 collection="material-symbols"
                 name="mail-outline"
                 class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
-              {{ t('web.COMMON.sent_to') }} {{ record.recipients }}
+              <span class="mr-2 text-gray-500 dark:text-gray-400">{{ t('web.COMMON.sent_to') }}</span>
+              <span class="break-words">{{ record.recipient_name || record.recipients }}</span>
             </h3>
+
+            <!-- Memo (secondary): supporting context -->
+            <p
+              v-if="record.memo"
+              :class="[
+                'flex items-start text-sm text-gray-600 dark:text-gray-400',
+                details.show_recipients ? 'mt-2 pl-7' : '',
+              ]">
+              <OIcon
+                v-if="!details.show_recipients"
+                collection="material-symbols"
+                name="notes"
+                class="mr-2 mt-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-500" />
+              <span class="mr-1 text-gray-500 dark:text-gray-400">{{ t('incoming.memo_label') }}:</span>
+              <span class="break-words">{{ record.memo }}</span>
+            </p>
           </div>
 
           <!-- Secret Value with Enhanced Styling -->
@@ -234,7 +264,7 @@
           <!-- Actions Section with Improved Layout -->
           <!-- prettier-ignore-attribute class -->
           <section
-            v-if="isAvailable"
+            v-if="isAvailable && showBurn"
             class="border-t border-gray-200/60 bg-gray-50 p-4 sm:p-6
             dark:border-gray-700/60 dark:bg-gray-800/30"
             aria-labelledby="section-actions">
@@ -253,7 +283,7 @@
         <!-- Help Section with Card Styling -->
         <!-- prettier-ignore-attribute class -->
         <section
-          v-if="isAvailable"
+          v-if="isAvailable && helpEnabled"
           aria-labelledby="section-help"
           class="relative rounded-xl border border-gray-200/60
           bg-white/60 p-4 shadow-sm backdrop-blur-sm sm:p-6

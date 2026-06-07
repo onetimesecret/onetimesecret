@@ -9,9 +9,6 @@ module V2::Logic
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
 
-      # Email validation regex - defined once to avoid recompilation on every call
-      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
-
       attr_reader :passphrase,
         :secret_value,
         :kind,
@@ -138,28 +135,32 @@ module V2::Logic
         raise NotImplementedError, 'You must implement process_secret'
       end
 
+      # Our passphrase contract: presence determines intent.
+      #   - Param key missing → no passphrase protection (nil)
+      #   - Param key present → use value as-is (including empty string)
+      #
+      # We honour exactly what is included with the request without guessing.
+      # It's the, "if it fits, I sits" design model.
+      #
+      # UX concerns (e.g. preventing accidental empty-passphrase secrets) are
+      # the client's responsibility. The API layer remains value-neutral.
       def process_passphrase
-        # API Contract: Key presence determines intent.
-        #   - Key missing → no passphrase protection (nil)
-        #   - Key present → use value as-is (including empty string)
-        #
-        # The backend honors exactly what the client sends without guessing intent.
-        # "If you send this key, I use its value" - predictable and explicit.
-        #
-        # UX concerns (e.g., preventing accidental empty-passphrase secrets) are
-        # the client's responsibility. The API layer remains value-neutral.
         @passphrase = payload.key?('passphrase') ? payload['passphrase'].to_s : nil
       end
 
+      # Our recipient contract: always a list of sanitized strings.
+      #
+      # Sanitization keeps trash out but does not validate as an email address.
+      #
       def process_recipient
-        payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
-        @recipient           = payload['recipient'].collect do |email_address|
+        # Make sure we're dealing with a list.
+        recipient_list  = [payload['recipient']].flatten.compact.uniq
+        @recipient      = recipient_list.collect do |email_address|
           next if email_address.to_s.empty?
 
-          sanitized_email = sanitize_email(email_address)
-          sanitized_email.scan(EMAIL_REGEX).uniq.first
+          sanitize_email(email_address)
         end.compact.uniq
-        @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
 
       # Capture the selected domain the link is meant for, as long as it's
@@ -167,6 +168,10 @@ module V2::Logic
       # that CustomDomain objects go through so if we don't get past this
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
+      #
+      # This records the *requested* domain only. Whether an anonymous request
+      # is allowed to use it is decided later in validate_anonymous_share_domain
+      # (display_domain is not reliably available this early across API versions).
       def process_share_domain
         potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
@@ -197,25 +202,75 @@ module V2::Logic
         @share_domain = potential_domain
       end
 
+      # Check each individual recipient email address using
+      # the centralized Truemail-based validation. Depending
+      # on the configuration, this could be a regex, mx, or
+      # full smtp level check.
       def validate_recipient
         return if recipient.empty?
 
-        raise_form_error 'An account is required to send emails.', field: 'recipient', error_type: 'requires_account' if anonymous_user?
-        recipient.each do |recip|
-          raise_form_error "Undeliverable email address: #{recip}", field: 'recipient', error_type: 'invalid_email' unless valid_email?(recip)
+        if anonymous_user?
+          raise_form_error 'An account is required to send emails.',
+            field: 'recipient',
+            error_type: 'requires_account'
+        end
+
+        recipient.each do |email_address|
+          next if valid_email?(email_address)
+
+          raise_form_error "Undeliverable email address: #{email_address}",
+            field: 'recipient',
+            error_type: 'invalid_email'
         end
       end
 
       # Validates the share domain for secret creation.
       # Determines appropriate domain and validates access permissions.
       def validate_share_domain
-        # If we're on a custom domain creating a link, the only possible share
-        # domain  is the custom domain itself. This is bc we only allow logging
-        # in on the canonical domain (e.g. onetimesecret.com) AND we don't offer
-        # any way to change the share domain when creating a link from a custom
-        # domain.
+        validate_anonymous_share_domain
         @share_domain = determine_share_domain
         validate_domain_access(@share_domain)
+      end
+
+      # Guest share-domain policy (issue #3311): a guest's link is always created
+      # on the domain they are currently visiting. The POST body can only reject
+      # the request (by naming a *different* custom domain); it can never redirect
+      # the link somewhere else.
+      #
+      #   Guest is on…    | POST body share_domain         | Result
+      #   ----------------+--------------------------------+--------------------------
+      #   custom domain X | X, omitted, canonical, or junk | allowed — link on X
+      #   custom domain X | a different valid custom dom. Y | rejected (Forbidden)
+      #   canonical       | omitted, canonical, or junk    | allowed — link on canonical
+      #   canonical       | any valid custom domain         | rejected (Forbidden)
+      #
+      # Nuance: only a valid, non-default custom domain that differs from the one
+      # the guest is on counts as a smuggle. process_share_domain already filters
+      # empty, malformed, and canonical/default values to nil, so they arrive here
+      # as "no request" (share_domain.nil?) and are ignored rather than rejected —
+      # the link is created on whatever domain the guest is on. The only legitimate
+      # non-nil value is the Host-header custom domain (display_domain), i.e. a
+      # guest using the /guest endpoints on a branded domain.
+      #
+      # Authenticated callers are unaffected: domain selection is governed by
+      # validate_domain_permissions (ownership / membership).
+      def validate_anonymous_share_domain
+        return unless anonymous_user?
+        return if share_domain.nil?
+        return if custom_domain? && share_domain.casecmp?(display_domain.to_s)
+
+        secret_logger.warn 'Anonymous cross-domain share_domain rejected',
+          {
+            domain: share_domain,
+            display_domain: display_domain,
+            action: 'validate_anonymous_share_domain',
+            result: :cross_domain,
+          }
+        raise Onetime::Forbidden.new(
+          "You do not have permission to use domain: #{share_domain}",
+          error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
+          args: { domain: share_domain },
+        )
       end
 
       # @sync src/schemas/contracts/config/public.ts — passphrase options
@@ -342,13 +397,21 @@ module V2::Logic
       end
 
       # Determines which domain should be used for sharing.
-      # Uses display domain if on custom domain, otherwise uses specified share domain.
+      #
+      # share_domain is the authenticated Domain Context selection. Guest requests
+      # are validated upstream by validate_anonymous_share_domain (issue #3311),
+      # which rejects any anonymous attempt to use a domain other than the Host
+      # header. The anonymous_user? check here is a defensive second layer: a
+      # guest on a custom domain is always resolved to that Host domain regardless
+      # of @share_domain. Authenticated users keep their explicit selection,
+      # falling back to the Host-header domain on a custom domain with no override.
       #
       # @return [String, nil] The domain to use for sharing
       def determine_share_domain
-        return display_domain if custom_domain?
+        return display_domain if custom_domain? && anonymous_user?
+        return share_domain if share_domain
 
-        share_domain
+        display_domain if custom_domain?
       end
 
       # Validates domain exists and checks access permissions.
@@ -358,7 +421,7 @@ module V2::Logic
       def validate_domain_access(domain)
         return if domain.nil?
 
-        # e.g. dbkey -> customdomain:display_domains -> hash -> key: value
+        # e.g. dbkey -> customdomain:display_domain_index -> hash -> key: value
         # where key is the domain and value is the domainid
         domain_record = Onetime::CustomDomain.from_display_domain(domain)
         raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
@@ -373,20 +436,69 @@ module V2::Logic
           }
 
         validate_domain_permissions(domain_record)
+        validate_domain_verification(domain_record)
+      end
+
+      # Rejects secret creation against an unverified custom share_domain when
+      # the features.domains.require_verified toggle is on. Canonical domains
+      # are filtered out earlier in process_share_domain via default_domain?.
+      #
+      # @param domain_record [CustomDomain] The domain record to check
+      # @raise [FormError] If require_verified is on and the domain is not
+      #   yet verified
+      def validate_domain_verification(domain_record)
+        return unless OT.conf.dig('features', 'domains', 'require_verified').to_s == 'true'
+        return if domain_record.verified.to_s == 'true'
+
+        secret_logger.warn 'Unverified custom share_domain rejected',
+          {
+            domain: share_domain,
+            user_id: @cust&.objid,
+            action: 'validate_domain_verification',
+            result: :unverified,
+          }
+        raise_form_error "Custom domain is not verified: #{share_domain}",
+          field: 'share_domain',
+          error_type: 'domain_unverified'
       end
 
       # Validates domain permissions based on context and configuration.
       #
       # @param domain_record [CustomDomain] The domain record to validate
-      # @raise [FormError] If access is not permitted
+      # @raise [Onetime::Forbidden] If access is not permitted
+      # @see docs/specs/domain-permissions.md for the full truth table
       #
-      # Validation Rules:
-      # - On custom domains:
-      #   - Allows access if public sharing is enabled
-      #   - Rejects if public sharing is disabled
-      # - On canonical domain:
-      #   - Requires domain ownership
+      # Validation Rules (issue #3073):
+      # - Domain owner / org member: always permitted, regardless of toggle.
+      # - Authenticated non-owner: never permitted. The Homepage Secrets toggle
+      #   gates anonymous public intake; it does not let authenticated users
+      #   borrow someone else's domain.
+      # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
+      # - Anonymous on the canonical domain (with share_domain set to a custom
+      #   domain): not permitted.
       def validate_domain_permissions(domain_record)
+        # Owner / org member can always use the domain.
+        return if domain_record.owner?(@cust)
+
+        # Authenticated non-owner: permission denied regardless of toggle.
+        # The toggle controls anonymous traffic, not who may share via the
+        # domain when authenticated.
+        unless anonymous_user?
+          secret_logger.warn 'Non-owner attempted domain access',
+            {
+              domain: share_domain,
+              user_id: @cust&.objid,
+              action: 'validate_domain_permissions',
+              result: :non_owner,
+            }
+          raise Onetime::Forbidden.new(
+            "You do not have permission to use domain: #{share_domain}",
+            error_key: 'api.secrets.errors.domain_permission_authenticated_non_owner',
+            args: { domain: share_domain },
+          )
+        end
+
+        # Anonymous on a custom domain: gated by the Homepage Secrets toggle.
         if custom_domain?
           return if domain_record.allow_public_homepage?
 
@@ -397,19 +509,26 @@ module V2::Logic
               action: 'validate_domain_permissions',
               result: :access_denied,
             }
-          raise_form_error "Public sharing disabled for domain: #{share_domain}"
+          raise Onetime::Forbidden.new(
+            "Public sharing disabled for domain: #{share_domain}",
+            error_key: 'api.secrets.errors.domain_public_sharing_disabled',
+            args: { domain: share_domain },
+          )
         end
 
-        return if domain_record.owner?(@cust)
-
-        secret_logger.warn 'Non-owner attempted domain access',
+        # Anonymous on canonical domain attempting to share via someone else's
+        # custom domain via share_domain.
+        secret_logger.warn 'Anonymous cross-domain access denied',
           {
             domain: share_domain,
-            user_id: @cust&.objid,
             action: 'validate_domain_permissions',
             result: :non_owner,
           }
-        raise_form_error "You do not have permission to use domain: #{share_domain}"
+        raise Onetime::Forbidden.new(
+          "You do not have permission to use domain: #{share_domain}",
+          error_key: 'api.secrets.errors.domain_permission_anonymous_cross_domain',
+          args: { domain: share_domain },
+        )
       end
     end
   end

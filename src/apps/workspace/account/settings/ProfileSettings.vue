@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { useAccount } from '@/shared/composables/useAccount';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import LanguageToggle
     from '@/shared/components/ui/LanguageToggle.vue';
@@ -13,14 +14,22 @@
   import {
     useBootstrapStore,
   } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { storeToRefs } from 'pinia';
-  import { computed, ref, onMounted } from 'vue';
+  import { formatDisplayDate } from '@/utils/format';
+  import { isOwnerOrAdminOf } from '@/utils/features';
+  import { computed, ref, onMounted, watch } from 'vue';
 
   const { t } = useI18n();
   const { accountInfo, fetchAccountInfo } = useAccount();
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled, has_password } = storeToRefs(bootstrapStore);
+  const canChangeEmail = computed(() => has_password.value && isOwnerOrAdminOf(bootstrapStore));
+  const isOwner = computed(() => bootstrapStore.organization?.current_user_role === 'owner');
+
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
 
   const currentEmail = computed(
     () => bootstrapStore.email
@@ -30,7 +39,25 @@
     () => accountInfo.value?.email_verified ?? false
   );
 
+  const accountCreatedDate = computed(() => {
+    if (!accountInfo.value?.created_at) return '';
+    return formatDisplayDate(new Date(accountInfo.value.created_at));
+  });
+
   const isLoading = ref(false);
+  // Best practice: Initialize loading states to `true` to prevent uninitialized
+  // content or empty states from briefly flashing on mount.
+  const isLoadingEntitlements = ref(true);
+
+  const defaultOrg = computed(
+    () =>
+      organizations.value.find((o) => o.is_default) ??
+      organizations.value[0] ??
+      null
+  );
+
+  const { entitlements, formatEntitlement, isStandaloneMode, initDefinitions } =
+    useEntitlements(defaultOrg);
 
   const handleThemeChange = async (
     _isDark: boolean
@@ -47,7 +74,44 @@
 
   onMounted(async () => {
     await fetchAccountInfo();
+
+    isLoadingEntitlements.value = true;
+    try {
+      await Promise.all([
+        organizationStore.fetchOrganizations(),
+        initDefinitions(),
+      ]);
+
+      const org = defaultOrg.value;
+      if (!isStandaloneMode.value && org && (!org.entitlements || org.entitlements.length === 0)) {
+        await organizationStore.fetchEntitlements(org.extid);
+      }
+    } catch (error) {
+      console.error('Error loading entitlements:', error);
+    } finally {
+      isLoadingEntitlements.value = false;
+    }
   });
+
+  watch(
+    () => defaultOrg.value?.extid,
+    async (newExtid, oldExtid) => {
+      if (!newExtid || !oldExtid || newExtid === oldExtid) return;
+      if (isStandaloneMode.value) return;
+
+      const org = defaultOrg.value;
+      if (!org || (org.entitlements && org.entitlements.length > 0)) return;
+
+      isLoadingEntitlements.value = true;
+      try {
+        await organizationStore.fetchEntitlements(org.extid);
+      } catch (error) {
+        console.error('Error loading entitlements:', error);
+      } finally {
+        isLoadingEntitlements.value = false;
+      }
+    }
+  );
 </script>
 
 <template>
@@ -61,19 +125,14 @@
         <div
           class="border-b border-gray-200 px-6 py-4
             dark:border-gray-700">
-          <div class="flex items-center gap-3">
+          <h2 class="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
             <OIcon
               collection="heroicons"
               name="envelope"
-              class="size-5 text-gray-500
-                dark:text-gray-400"
+              class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
               aria-hidden="true" />
-            <h2
-              class="text-lg font-semibold
-                text-gray-900 dark:text-white">
-              {{ t('web.auth.account.email') }}
-            </h2>
-          </div>
+            {{ t('web.auth.account.email') }}
+          </h2>
         </div>
 
         <div class="px-6 py-4">
@@ -133,7 +192,7 @@
               </div>
             </div>
             <router-link
-              v-if="has_password"
+              v-if="canChangeEmail"
               to="/account/settings/profile/email"
               class="inline-flex items-center gap-2
                 text-sm font-medium text-brand-600
@@ -150,6 +209,17 @@
                 aria-hidden="true" />
             </router-link>
           </div>
+
+          <div
+            v-if="accountCreatedDate"
+            class="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('web.auth.account.created') }}
+            </p>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              {{ accountCreatedDate }}
+            </p>
+          </div>
         </div>
       </section>
 
@@ -161,19 +231,14 @@
         <div
           class="border-b border-gray-200 px-6 py-4
             dark:border-gray-700">
-          <div class="flex items-center gap-3">
+          <h2 class="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
             <OIcon
               collection="heroicons"
               name="adjustments-horizontal-solid"
-              class="size-5 text-gray-500
-                dark:text-gray-400"
+              class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
               aria-hidden="true" />
-            <h2
-              class="text-lg font-semibold
-                text-gray-900 dark:text-white">
-              {{ t('web.settings.preferences') }}
-            </h2>
-          </div>
+            {{ t('web.settings.preferences') }}
+          </h2>
         </div>
 
         <div class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -225,7 +290,9 @@
               <LanguageToggle />
             </div>
 
-            <div class="mt-4 space-y-4">
+            <div
+              v-if="isOwner"
+              class="mt-4 space-y-4">
               <!-- Translation Notice -->
               <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
                 <div class="prose prose-sm prose-blue max-w-none dark:prose-invert">
@@ -257,6 +324,65 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Entitlements -->
+      <section
+        v-if="!isStandaloneMode && defaultOrg"
+        class="rounded-lg border border-gray-200/60
+          bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60
+          dark:bg-gray-800/60">
+        <div
+          class="border-b border-gray-200 px-6 py-4
+            dark:border-gray-700">
+          <h2 class="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
+            <OIcon
+              collection="heroicons"
+              name="puzzle-piece"
+              class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
+              aria-hidden="true" />
+            {{ t('web.billing.overview.plan_features') }}
+          </h2>
+        </div>
+
+        <div class="p-6">
+          <!-- Loading skeleton -->
+          <div
+            v-if="isLoadingEntitlements"
+            class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div
+              v-for="i in 4"
+              :key="i"
+              class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
+              <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+
+          <!-- Entitlements list -->
+          <div
+            v-else-if="entitlements.length > 0"
+            class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div
+              v-for="ent in entitlements"
+              :key="ent"
+              class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <OIcon
+                collection="heroicons"
+                name="check-circle"
+                class="size-5 text-green-500 dark:text-green-400"
+                aria-hidden="true" />
+              {{ formatEntitlement(ent) }}
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div
+            v-else
+            class="text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.billing.overview.no_entitlements') }}
           </div>
         </div>
       </section>

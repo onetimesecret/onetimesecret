@@ -13,11 +13,21 @@
 
   const productIdentity = useProductIdentity();
   const bootstrapStore = useBootstrapStore();
-  const { authentication } = storeToRefs(bootstrapStore);
+  const { authentication, homepage_config } = storeToRefs(bootstrapStore);
   const imageError = ref(false);
 
   /**
-   * Show Sign In link when signin route is available AND either:
+   * Per-domain narrowing for the auth nav links. Defaults to enabled when
+   * no homepage_config exists for the domain. The frontend ANDs the system
+   * authentication flags with these domain-level toggles — the domain owner
+   * can only narrow, never broaden.
+   */
+  const domainSignupEnabled = computed(() => homepage_config.value?.signup_enabled !== false);
+  const domainSigninEnabled = computed(() => homepage_config.value?.signin_enabled !== false);
+
+  /**
+   * Show Sign In link when signin route is available AND the domain hasn't
+   * disabled it AND either:
    * - Platform authentication is enabled (authentication.enabled), OR
    * - Platform-level SSO is configured (features.sso.enabled), OR
    * - Domain-level SSO is enabled (features.organizations.sso_enabled)
@@ -31,8 +41,22 @@
     const platformSsoEnabled = isSsoEnabled();
     const domainSsoEnabled = isOrgsSsoEnabled();
 
-    return hasSigninRoute && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
+    return hasSigninRoute
+      && domainSigninEnabled.value
+      && (platformAuthEnabled || platformSsoEnabled || domainSsoEnabled);
   });
+
+  /**
+   * Sign Up requires platform authentication — SSO users are provisioned
+   * through their identity provider, not the platform signup flow, so we
+   * mirror the canonical MastHead gating here rather than the broader SSO
+   * gating used for Sign In.
+   */
+  const showSignUp = computed(() =>
+    authentication.value?.enabled === true
+    && authentication.value?.signup === true
+    && domainSignupEnabled.value
+  );
 
   const handleImageError = () => {
     imageError.value = true;
@@ -53,18 +77,35 @@
 
 <template>
   <div class="relative bg-white py-8 transition-colors duration-200 dark:bg-gray-900">
-    <!-- Sign In Link (for custom domain SSO users) -->
+    <!-- Auth Links (Sign Up / Sign In for custom domain users) -->
     <nav
-      v-if="showSignIn"
-      class="absolute right-4 top-4"
+      v-if="showSignUp || showSignIn"
+      class="absolute right-4 top-4 flex items-center gap-2"
       role="navigation"
       :aria-label="t('web.layout.main_navigation')">
       <router-link
+        v-if="showSignUp"
+        to="/signup"
+        :title="t('web.homepage.signup_individual_and_business_plans')"
+        data-testid="branded-signup-link"
+        class="text-sm font-bold text-gray-600 transition-colors duration-200
+          hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+        {{ t('web.COMMON.header_create_account') }}
+      </router-link>
+      <span
+        v-if="showSignUp && showSignIn"
+        class="text-sm text-gray-400"
+        aria-hidden="true"
+        role="separator">
+        |
+      </span>
+      <router-link
+        v-if="showSignIn"
         to="/signin"
         :title="t('web.homepage.log_in_to_onetime_secret')"
         data-testid="branded-signin-link"
-        class="text-sm text-gray-500 transition-colors duration-200
-          hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+        class="text-sm text-gray-600 transition-colors duration-200
+          hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
         {{ t('web.COMMON.header_sign_in') }}
       </router-link>
     </nav>

@@ -137,8 +137,8 @@ module Billing
             context: context,
             stripe_key_nil: Stripe.api_key.nil?,
             billing_enabled: OT.billing_config.enabled?,
-            env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
-            config_key_present: !OT.billing_config.billing['stripe_key'].to_s.strip.empty?,
+            env_key_present: !ENV.fetch('STRIPE_API_KEY', '').strip.empty?,
+            config_key_present: !OT.billing_config.config.fetch('stripe_key', '').to_s.strip.empty?,
           }
         true
       end
@@ -199,10 +199,15 @@ module Billing
       # @param extid [String] Organization external identifier
       # @param require_owner [Boolean] If true, require current user to be owner
       # @return [Onetime::Organization] Loaded organization
-      # @raise [OT::Problem] If organization not found or access denied
+      # @raise [Onetime::Forbidden] If organization not found, caller is not a
+      #   member, or owner access is required and caller is not an owner.
+      #   All three conditions return 403 deliberately: returning 404 for
+      #   "organization not found" would let an unauthenticated probe
+      #   distinguish real extids from random ones. The handler in
+      #   OttoHooks#configure_otto_request_hook renders the ADR-013 wire shape.
       def load_organization(extid, require_owner: false)
         org = Onetime::Organization.find_by_extid(extid)
-        raise OT::Problem, 'Organization not found' unless org
+        raise Onetime::Forbidden, 'Organization not found' unless org
 
         is_member = org.member?(cust)
         is_owner  = org.owner?(cust)
@@ -213,7 +218,7 @@ module Billing
               extid: extid,
               user: cust.extid,
             }
-          raise OT::Problem, 'Access denied'
+          raise Onetime::Forbidden, 'Access denied'
         end
 
         # Self-heal: owner exists in org hash but missing from members sorted set.
@@ -244,7 +249,7 @@ module Billing
               extid: extid,
               user: cust.extid,
             }
-          raise OT::Problem, 'Owner access required'
+          raise Onetime::Forbidden, 'Owner access required'
         end
 
         org

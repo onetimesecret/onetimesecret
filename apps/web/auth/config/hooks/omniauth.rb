@@ -122,23 +122,23 @@ module Auth::Config::Hooks
       # This hook fires BEFORE Rodauth creates a new account for an SSO user.
       # Used to enforce domain restrictions for SSO signups.
       #
-      # CONFIGURATION:
-      # Uses the same `allowed_signup_domains` config as regular signup.
-      # Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated).
+      # RESOLUTION ORDER:
+      # 1. Per-domain SignupConfig (if custom domain and config enabled)
+      # 2. Global allowed_signup_domains config (fallback)
       #
-      # Example: ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com
+      # CONFIGURATION:
+      # Per-domain: Configure via CustomDomain::SignupConfig
+      # Global: Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated)
       #
       auth.before_omniauth_create_account do
-        allowed_domains = OT.conf.dig('site', 'authentication', 'allowed_signup_domains')
-
-        # No restrictions configured - allow all domains
-        next if allowed_domains.nil? || allowed_domains.empty?
-
-        # Extract and validate domain from email
         email       = omniauth_email.to_s.strip.downcase
         email_parts = email.split('@')
 
-        # Reject malformed emails
+        # Reject malformed emails from IdP (distinct from policy rejection).
+        # Redirect with a stable error code so Login.vue can show a localized message —
+        # matches the email_auth/omniauth_on_failure convention. Inline JSON via
+        # throw_error_status was clobbered by omniauth_on_failure, collapsing the
+        # specific code into the generic sso_failed.
         if email_parts.length != 2 || email_parts.last.to_s.empty?
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
@@ -146,29 +146,31 @@ module Auth::Config::Hooks
             email: OT::Utils.obscure_email(email),
             provider: omniauth_provider,
           )
-          throw_error_status(400, 'invalid_email', 'Invalid email address from identity provider')
+          redirect '/signin?auth_error=invalid_email'
         end
 
-        email_domain = email_parts.last
+        # Get display_domain from DomainStrategy middleware (already in env)
+        display_domain = request.env['onetime.display_domain']
 
-        # Check if domain is allowed (case-insensitive)
-        normalized_domains = allowed_domains.compact.map(&:downcase)
-        unless normalized_domains.include?(email_domain)
+        # Use shared validation module for per-domain + global fallback
+        unless Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
           Auth::Logging.log_auth_event(
             :omniauth_domain_rejected,
             level: :warn,
             email: OT::Utils.obscure_email(email),
-            domain: email_domain,
+            domain: email_parts.last,
+            display_domain: display_domain,
             provider: omniauth_provider,
           )
-          # Generic error message - don't reveal which domains are allowed
-          throw_error_status(403, 'domain_not_allowed', 'Your email domain is not authorized for SSO signup')
+          # Generic error code — don't reveal which domains are allowed.
+          redirect '/signin?auth_error=domain_not_allowed'
         end
 
         Auth::Logging.log_auth_event(
           :omniauth_domain_validated,
           level: :debug,
           email: OT::Utils.obscure_email(email),
+          display_domain: display_domain,
           provider: omniauth_provider,
         )
       end
@@ -190,6 +192,13 @@ module Auth::Config::Hooks
           provider: omniauth_provider,
         )
 
+        # Capture the signup domain so it can be set on the new Customer in a
+        # single write (instead of save-then-update). Lookup is cheap and pure;
+        # leave it outside safe_execute so failures still surface.
+        display_domain   = request.env['onetime.display_domain']
+        custom_domain    = display_domain ? Onetime::CustomDomain.load_by_display_domain(display_domain) : nil
+        signup_domain_id = custom_domain&.identifier
+
         # Create Customer record (same as regular signup)
         customer = Onetime::ErrorHandler.safe_execute(
           'create_customer_omniauth',
@@ -200,22 +209,23 @@ module Auth::Config::Hooks
             account_id: account_id,
             account: account,
             db: db,
+            provisioning_origin: 'sso_jit',
+            signup_domain_id: signup_domain_id,
           ).call
         end
 
-        # Create default organization and team
+        # Organization assignment for new SSO accounts.
+        #
+        # MUTUALLY EXCLUSIVE paths — tenant SSO users join the tenant org,
+        # canonical SSO users get a default workspace. Never both.
+        #
+        # Consuming domain_id via session.delete ensures after_login sees nil
+        # and skips for new accounts — preventing a redundant idempotent call.
         if customer.is_a?(Onetime::Customer)
-          Onetime::ErrorHandler.safe_execute(
-            'create_default_workspace_omniauth',
-            extid: customer.extid,
-          ) do
-            Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
-          end
+          domain_id = session.delete(:validated_omniauth_domain_id)
 
-          # Join domain's organization if SSO came from a custom domain
-          # This enables domain-based org selection in OrganizationLoader
-          domain_id = session[:omniauth_tenant_domain_id]
           if domain_id
+            # Tenant domain SSO → join the domain's organization only
             Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_omniauth',
               extid: customer.extid,
@@ -225,6 +235,31 @@ module Auth::Config::Hooks
                 customer: customer,
                 domain_id: domain_id,
               ).call
+            end
+
+            # IMPORTANT: Do NOT create a fallback workspace here.
+            #
+            # If JoinDomainOrganization failed, the user authenticated via
+            # tenant-domain SSO to join a *specific* organization. Creating
+            # an unrelated personal workspace would:
+            #   1. Leave them outside the org they intended to join
+            #   2. Give them a full account with no org affiliation
+            #   3. Bury the join failure — no one investigates
+            #
+            # The correct response is to fail visibly so the org admin
+            # and ops can diagnose why the join didn't stick.
+            if customer.organization_instances.to_a.empty?
+              OT.le '[omniauth] CRITICAL: Tenant SSO join produced no org membership ' \
+                    "for #{customer.external_identifier} (domain_id=#{domain_id}). Orphaned account — admin must investigate."
+              redirect '/signin?auth_error=org_join_failed'
+            end
+          else
+            # Canonical domain SSO → create default workspace
+            Onetime::ErrorHandler.safe_execute(
+              'create_default_workspace_omniauth',
+              extid: customer.extid,
+            ) do
+              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
             end
           end
         end

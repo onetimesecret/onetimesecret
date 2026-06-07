@@ -8,19 +8,19 @@ http_interactions:
       string: email=test%40example.com
     headers:
       User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
+      - Stripe/v1 RubyBindings/18.4.2
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_JGf3qpU7VtEGBx","request_duration_ms":417}}'
+      - '{"last_request_metrics":{"request_id":"req_gbRig3wA1oHqL8","request_duration_ms":396}}'
       Idempotency-Key:
-      - 1766985451-f8c779ff-06e4-48dc-b48e-7faa183b281f
+      - 1779242520-07c278c0-4a02-4ab0-a321-ee89f4dc06cc
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      - '{"bindings_version":"18.4.2","lang":"ruby","lang_version":"3.4.9 p82 (2026-03-11)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:31:17 PDT
+        2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Content-Type:
       - application/x-www-form-urlencoded
       Accept-Encoding:
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:17:32 GMT
+      - Wed, 20 May 2026 02:02:01 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,16 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=2pvSIWNpuAg3EBaC1K8Szzaq9H5YaKgDbgRLG1xeK_Xlj2Wl03EAyJ4-OFk8998GbEeAEP20xFPmm_tO
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=9ouwV3B1WEiSZ2o2mfr49wDofoFTDficPLIzWsaaESLziTX5ATMxBw1_5PNVILnBs0ZHQGR8u6Nc9ZCV;
+        report-to csp
       Idempotency-Key:
-      - 1766985451-f8c779ff-06e4-48dc-b48e-7faa183b281f
+      - 1779242520-07c278c0-4a02-4ab0-a321-ee89f4dc06cc
       Original-Request:
-      - req_Llq3q554HZv8Jq
+      - req_GgtK4wM54Lx2kN
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=9ouwV3B1WEiSZ2o2mfr49wDofoFTDficPLIzWsaaESLziTX5ATMxBw1_5PNVILnBs0ZHQGR8u6Nc9ZCV&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=9ouwV3B1WEiSZ2o2mfr49wDofoFTDficPLIzWsaaESLziTX5ATMxBw1_5PNVILnBs0ZHQGR8u6Nc9ZCV&t=1"
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -74,18 +79,18 @@ http_interactions:
       X-Stripe-Routing-Context-Priority-Tier:
       - api-testmode
       X-Wc:
-      - ABGHIJ
+      - 3c3
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains; preload
     body:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TgwjX213W35IBq",
+          "id": "cus_UY5dY8MLlltOmz",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766985452,
+          "created": 1779242521,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +98,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "test@example.com",
-          "invoice_prefix": "58NBTJGP",
+          "invoice_prefix": "ONL0PP47",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,5 +115,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Mon, 29 Dec 2025 05:17:32 GMT
-recorded_with: VCR 6.3.1
+  recorded_at: Wed, 20 May 2026 02:02:01 GMT
+recorded_with: VCR 6.4.0

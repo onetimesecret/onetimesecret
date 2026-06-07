@@ -25,10 +25,12 @@ export type NotificationsStore = {
 
   // Actions
   init: () => void;
-  show: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition) => void;
+  show: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition, duration?: number) => void;
   hide: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
+
+const DEFAULT_AUTO_HIDE_MS = 5000;
 
 /**
  * Frontend notification management store integrated with server-side messages
@@ -99,11 +101,12 @@ export const useNotificationsStore = defineStore('notifications', () => {
     _initialized.value = true;
   }
 
-  /** Display a notification with auto-dismissal after 5 s. */
-  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition) {
+  /** Display a notification with auto-dismissal. Defaults to 5 s; pass 0 or negative to disable. */
+  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition, duration?: number) {
     // Clear any pending hide timer so earlier timeouts don't dismiss this message
     if (_hideTimerId !== null) {
       clearTimeout(_hideTimerId);
+      _hideTimerId = null;
     }
 
     message.value = msg;
@@ -111,9 +114,12 @@ export const useNotificationsStore = defineStore('notifications', () => {
     position.value = pos || 'top';
     isVisible.value = true;
 
-    _hideTimerId = setTimeout(() => {
-      hide();
-    }, 5000);
+    const ms = duration ?? DEFAULT_AUTO_HIDE_MS;
+    if (ms > 0) {
+      _hideTimerId = setTimeout(() => {
+        hide();
+      }, ms);
+    }
   }
 
   /** Hide the current notification and reset its state. */

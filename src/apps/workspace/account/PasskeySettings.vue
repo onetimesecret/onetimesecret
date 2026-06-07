@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import PasswordConfirmModal from '@/shared/components/modals/PasswordConfirmModal.vue';
   import { useWebAuthn } from '@/shared/composables/useWebAuthn';
@@ -102,16 +103,10 @@
       </div>
 
       <!-- Loading state -->
-      <div
+      <ListSkeleton
         v-if="isLoadingPasskeys"
-        class="flex items-center justify-center py-12">
-        <OIcon
-          collection="heroicons"
-          name="arrow-path"
-          class="mr-2 size-6 animate-spin text-gray-400"
-          aria-hidden="true" />
-        <span class="text-gray-600 dark:text-gray-400">Loading passkeys...</span>
-      </div>
+        icon
+        icon-size="w-5" />
 
       <!-- Browser not supported -->
       <div

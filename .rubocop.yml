@@ -70,6 +70,11 @@ Layout/SpaceAroundEqualsInParameterDefault:
 Layout/SpaceAroundOperators:
   Enabled: false
 
+# Glob results are not guaranteed to be in a consistent order across platforms, so we
+# disable this cop to avoid false positives.
+Lint/RedundantDirGlobSort:
+  Enabled: false
+
 Lint/UnusedMethodArgument:
   Enabled: true
 
@@ -87,7 +92,8 @@ Lint/DuplicateBranch:
 Metrics/PerceivedComplexity:
   Max: 20
 
-# When true: Use match? instead of =~ when MatchData is not used. True is preferred but not for autocorrection. Regexs are too picky. Need to manually check every time.
+# When true: Use match? instead of =~ when MatchData is not used. True is preferred but
+# not for autocorrection. Regexs are too picky. Need to manually check every time.
 Performance/RegexpMatch:
   Enabled: false
 
@@ -331,6 +337,7 @@ Metrics/ClassLength:
   Max: 350
   Exclude:
     - 'apps/web/billing/cli/catalog_push_command.rb' # CLI command with self-contained sync logic
+    - 'apps/web/billing/operations/catalog/push.rb' # Operations class with self-contained sync logic
 
 # Offense count: non-0
 Metrics/MethodLength:

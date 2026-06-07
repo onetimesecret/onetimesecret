@@ -93,6 +93,14 @@ inputs:
     description: 'Enable tmate debugging session'
     required: false
     default: 'false'
+  billing-enabled:
+    description: 'Enable billing features for this test run'
+    required: false
+    default: 'false'
+  db-engine:
+    description: 'Database engine label for job summary (e.g., sqlite, postgres)'
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -118,6 +126,8 @@ runs:
         elif [ "$TEST_TYPE" == "integration" ]; then
           if [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "postgres_database" ]; then
             echo "rspec-task=spec:integration:full:postgres" >> $GITHUB_OUTPUT
+          elif [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "agnostic_on_pg" ]; then
+            echo "rspec-task=spec:integration:full:agnostic_on_pg" >> $GITHUB_OUTPUT
           else
             echo "rspec-task=spec:integration:$AUTH_MODE" >> $GITHUB_OUTPUT
           fi
@@ -132,6 +142,28 @@ runs:
           exit 1
         fi
 
+    # Diagnostic probe for CI-only hash mismatch (issue being investigated).
+    # Runs BEFORE tryouts to capture environment state. Non-blocking (|| true).
+    - name: Run hash-mismatch diagnostic probe
+      if: steps.rake-tasks.outputs.tryouts-task != '' && inputs.test-type == 'unit'
+      shell: bash
+      env:
+        REDIS_URL: ${{ inputs.redis-url }}
+        RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
+        RACK_ENV: 'test'
+        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
+        DEBUG_DATABASE: 'true'
+        DEBUG_LOGGERS: 'Familia:trace'
+      run: |
+        echo "::group::Hash-mismatch diagnostic probe"
+        if [ -f "try/unit/billing/hash_mismatch_probe.rb" ]; then
+          bundle exec ruby try/unit/billing/hash_mismatch_probe.rb 2>&1 || true
+        else
+          echo "Probe file not found, skipping"
+        fi
+        echo "::endgroup::"
+
     - name: Run Tryouts via rake
       id: tryouts
       if: steps.rake-tasks.outputs.tryouts-task != ''
@@ -141,6 +173,7 @@ runs:
         RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
         AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
       # Pipe through tee so the runner's live log still streams while we keep
@@ -161,6 +194,7 @@ runs:
         RABBITMQ_URL: ${{ inputs.rabbitmq-url }}
         RACK_ENV: 'test'
         AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
         AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
         AUTH_DATABASE_URL_MIGRATIONS: ${{ inputs.auth-database-url-migrations }}
         RSPEC_OUTPUT_FILE: tmp/${{ inputs.results-file }}
@@ -227,8 +261,21 @@ runs:
     - name: Generate job summary
       if: always()
       shell: bash
+      env:
+        AUTH_MODE: ${{ inputs.auth-mode }}
+        BILLING_ENABLED: ${{ inputs.billing-enabled }}
+        DB_ENGINE: ${{ inputs.db-engine }}
       run: |
-        echo "## Ruby Test Results (${{ inputs.auth-mode }} mode)" >> $GITHUB_STEP_SUMMARY
+        echo "## Ruby Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| auth | ${AUTH_MODE} |" >> $GITHUB_STEP_SUMMARY
+        echo "| billing | ${BILLING_ENABLED} |" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${DB_ENGINE}" ]; then
+          echo "| db engine | ${DB_ENGINE} |" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
 
         if [ -n "${{ steps.rake-tasks.outputs.tryouts-task }}" ]; then
           echo "### Tryouts" >> $GITHUB_STEP_SUMMARY

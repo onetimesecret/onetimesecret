@@ -112,7 +112,7 @@ setup_test_plan({
   interval: 'month',
   region: 'EU',
   entitlements: ['create_secrets', 'custom_domains'],
-  limits: { teams: 1, members_per_team: 5 }
+  limits: { teams: 1, total_members_per_org: 5 }
 })
 
 # Mock billing configuration

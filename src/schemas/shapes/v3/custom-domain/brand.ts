@@ -45,10 +45,12 @@ export {
  * ```
  */
 export const brandSettingsSchema = brandSettingsCanonical.extend({
-  // V3 sends native booleans, add defaults
+  // V3 sends native booleans, add defaults.
+  // allow_public_homepage / allow_public_api are intentionally absent — they
+  // were retired from BrandSettings in #3026; consume HomepageConfig.enabled
+  // and ApiConfig.enabled (e.g. via the identity store / homepage_config
+  // response field) instead.
   button_text_light: z.boolean().default(false),
-  allow_public_homepage: z.boolean().default(false),
-  allow_public_api: z.boolean().default(false),
   passphrase_required: z.boolean().default(false),
   notify_enabled: z.boolean().default(false),
 });

@@ -32,7 +32,7 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_member(@organization)
+        require_entitlement_in!(@organization, 'api_access')
       end
 
       def process
@@ -74,6 +74,8 @@ module OrganizationAPI::Logic
           joined_at: membership.joined_at,
           is_owner: membership.owner?,
           is_current_user: member.objid == cust.objid,
+          provisioning_source: membership.provisioning_source.to_s.empty? ? nil : membership.provisioning_source,
+          domain_scope_id: membership.domain_scoped? ? membership.domain_scope_id : nil,
         }
       end
     end

@@ -56,7 +56,7 @@ module Billing
             }
           # Preserve plan selection through signup so the auth billing hook
           # can carry it through to checkout after authentication.
-          res.redirect "/signup?product=#{product}&interval=#{interval}"
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
           return
         end
 
@@ -70,9 +70,32 @@ module Billing
               interval: interval,
               plan_id: result.plan_id,
             }
-          res.redirect "/signup?product=#{product}&interval=#{interval}"
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
           return
         end
+
+        # Unauthenticated users must sign up first; preserve plan selection
+        if cust.nil? || cust.anonymous?
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
+          return
+        end
+
+        # Get the price for the requested interval
+        interval_sym = interval.to_s.sub(/ly$/, '').to_sym  # 'monthly' -> :month
+        price_data   = plan.price_for(interval_sym)
+
+        unless price_data&.dig('stripe_price_id')
+          billing_logger.warn 'No price found for interval',
+            {
+              plan_id: plan.plan_id,
+              interval: interval,
+              available_intervals: plan.available_intervals,
+            }
+          res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
+          return
+        end
+
+        stripe_price_id = price_data['stripe_price_id']
 
         # Build checkout session parameters
         site_host = Onetime.conf['site']['host']
@@ -85,7 +108,7 @@ module Billing
         session_params = {
           mode: 'subscription',
           line_items: [{
-            price: plan.stripe_price_id,
+            price: stripe_price_id,
             quantity: 1,
           }],
           success_url: success_url,
@@ -106,6 +129,11 @@ module Billing
           #
           automatic_tax: { enabled: true },
           tax_id_collection: { enabled: true },  # EU B2B VAT reverse charge
+
+          # Show the "Add promotion code" field on the Stripe-hosted checkout.
+          # Promotion codes must first be created in the Stripe Dashboard
+          # (Products → Coupons → Promotion codes).
+          allow_promotion_codes: true,
         }
 
         # Customer handling for authenticated users
@@ -115,7 +143,11 @@ module Billing
           session_params[:client_reference_id] = cust.extid
 
           # Check for existing Stripe customer on user's default organization
-          default_org = cust.organization_instances.to_a.find(&:is_default)
+          orgs = cust.organization_instances.to_a.reject(&:archived?)
+          default_org = if cust.default_org_id.to_s.length.positive?
+            orgs.find { |o| o.objid == cust.default_org_id }
+          end
+          default_org ||= orgs.find { |o| o.is_default }
           if default_org&.stripe_customer_id.to_s.length.positive?
             session_params[:customer] = default_org.stripe_customer_id
           else
@@ -174,7 +206,7 @@ module Billing
             product: product,
             interval: interval,
           }
-        res.redirect "/signup?product=#{product}&interval=#{interval}"
+        res.redirect "/signup?#{Rack::Utils.build_query(product: product, interval: interval)}"
       end
 
       # Welcome page after successful Stripe checkout
@@ -288,10 +320,14 @@ module Billing
       # @param customer [Onetime::Customer] Customer instance
       # @return [Onetime::Organization] Default organization
       def find_or_create_default_organization(customer)
-        # Find existing default organization
-        orgs        = customer.organization_instances.to_a
-        default_org = orgs.find { |org| org.is_default }
+        orgs = customer.organization_instances.to_a.reject(&:archived?)
 
+        if customer.default_org_id.to_s.length.positive?
+          explicit = orgs.find { |o| o.objid == customer.default_org_id }
+          return explicit if explicit
+        end
+
+        default_org = orgs.find { |org| org.is_default }
         return default_org if default_org
 
         # Create default organization (self-healing fallback)

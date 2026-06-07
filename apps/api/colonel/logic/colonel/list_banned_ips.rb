@@ -46,16 +46,10 @@ module ColonelAPI
         end
 
         def success_data
-          # Get IP from strategy_result metadata or session
-          client_ip = @strategy_result.metadata[:ip] ||
-                      @strategy_result.metadata['ip'] ||
-                      sess['ip_address'] ||
-                      'unknown'
-
           {
             record: {},
             details: {
-              current_ip: client_ip,
+              current_ip: @strategy_result.metadata[:ip],
               banned_ips: banned_ips,
               total_count: total_count,
             },

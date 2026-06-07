@@ -27,7 +27,7 @@ OT.info "Cleaned Redis for claim_orphan branch tests"
 @org_b   = Onetime::Organization.create!("Org B #{@ts}", @owner_b, "claim-branch-b-#{@ts}@test.com")
 
 # Helper: orphan a freshly-created domain by clearing org_id + org zset + owners.
-# Leaves display_domain and display_domains/display_domain_index intact, which
+# Leaves display_domain and display_domain_index/display_domain_index intact, which
 # is the exact state claim_orphaned_domain expects.
 def orphan!(domain, owning_org)
   owning_org.remove_domain(domain)
@@ -115,8 +115,8 @@ Onetime::CustomDomain.owners.get(@claimed_atomic.to_s) == @org_b.objid
 @claimed_atomic.send(:guard_unique_display_domain_index!)
 #=> nil
 
-## display_domains (manual) still maps to the same identifier after claim
-Onetime::CustomDomain.display_domains.get(@atomic_domain_name) == @claimed_atomic.identifier
+## display_domain_index (manual) still maps to the same identifier after claim
+Onetime::CustomDomain.display_domain_index.get(@atomic_domain_name) == @claimed_atomic.identifier
 #=> true
 
 ## display_domain_index (auto) still maps to the same identifier after claim

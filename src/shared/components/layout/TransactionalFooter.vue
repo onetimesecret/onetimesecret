@@ -10,6 +10,7 @@
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useFooterConfig } from '@/shared/composables/useFooterConfig';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
@@ -36,6 +37,7 @@
   } = storeToRefs(bootstrapStore);
 
   const { isCustom } = storeToRefs(useProductIdentity());
+  const { showVersionConfig } = useFooterConfig();
 
   // Hide regions toggle on custom domains (they're tied to a specific deployment)
   const showRegionsToggle = computed(
@@ -79,8 +81,8 @@
           text-center
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
-            v-if="displayVersion"
-            :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })} ${t('web.COMMON.version')}`">
+            v-if="displayVersion && showVersionConfig"
+            :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               :aria-label="t('web.layout.release_notes')">
@@ -88,7 +90,7 @@
             </a>
           </span>
           <span
-            v-if="displayVersion && displayPoweredBy"
+            v-if="displayVersion && showVersionConfig && displayPoweredBy"
             class="flex items-center justify-center px-2">
             -
           </span>

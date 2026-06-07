@@ -59,7 +59,7 @@ const currencyUpper = computed(() => props.targetCurrency.toUpperCase());
               v-if="isCompletingMigration"
               collection="heroicons"
               name="arrow-path"
-              class="mr-2 size-4 animate-spin"
+              class="mr-2 size-4 animate-spin motion-reduce:animate-none"
               aria-hidden="true" />
             {{ isCompletingMigration
               ? t('web.COMMON.processing')

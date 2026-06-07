@@ -3,12 +3,37 @@
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
-import { hasPassword, isFullAuthMode } from '@/utils/features';
+import { hasPassword, isFullAuthMode, isOwnerOrAdmin } from '@/utils/features';
+
+/**
+ * Route guard for org-management account routes (password, MFA,
+ * recovery codes, passkeys, region, caution). Requires full auth mode
+ * AND owner/admin role — regular members' accounts are managed by
+ * the org owner.
+ */
+function checkOwnerOrAdminAccess() {
+  if (!isFullAuthMode() || !isOwnerOrAdmin()) {
+    return { name: 'Account' };
+  }
+  return true;
+}
+
+/**
+ * Route guard for owner/admin routes that also require a password
+ * (e.g. Change Email). Members must be reinvited for email changes.
+ */
+function checkOwnerWithPasswordAccess() {
+  if (!isFullAuthMode() || !isOwnerOrAdmin() || !hasPassword()) {
+    return { name: 'Account' };
+  }
+  return true;
+}
 
 /**
  * Route guard for password-dependent security routes (password, MFA,
- * recovery codes, passkeys). Requires both full auth mode AND a
- * password-based account.
+ * recovery codes). Requires full auth mode AND a password-based
+ * account. Invited members who set a password see these;
+ * SSO-provisioned members (no password) do not.
  */
 function checkPasswordSecurityAccess() {
   if (!isFullAuthMode() || !hasPassword()) {
@@ -18,9 +43,8 @@ function checkPasswordSecurityAccess() {
 }
 
 /**
- * Route guard for security routes that do not depend on having a
- * password (Security Overview, Active Sessions). SSO-only users
- * still have sessions and should access these pages.
+ * Route guard for security routes accessible to all authenticated
+ * users (Security Overview, Active Sessions).
  */
 function checkSecurityAccess() {
   if (!isFullAuthMode()) {
@@ -56,11 +80,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/region',
     name: 'Data Region',
+    beforeEnter: checkOwnerOrAdminAccess,
     component: () => import('@/apps/workspace/account/DataRegion.vue'),
     meta: {
       title: 'web.TITLES.data_region',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -70,11 +94,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/region/current',
     name: 'Current Region',
+    beforeEnter: checkOwnerOrAdminAccess,
     component: () => import('@/apps/workspace/account/region/CurrentRegion.vue'),
     meta: {
       title: 'web.TITLES.current_region',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -84,11 +108,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/region/available',
     name: 'Available Regions',
+    beforeEnter: checkOwnerOrAdminAccess,
     component: () => import('@/apps/workspace/account/region/AvailableRegions.vue'),
     meta: {
       title: 'web.TITLES.available_regions',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -98,11 +122,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/region/why',
     name: 'Why Data Sovereignty Matters',
+    beforeEnter: checkOwnerOrAdminAccess,
     component: () => import('@/apps/workspace/account/region/WhyItMatters.vue'),
     meta: {
       title: 'web.TITLES.why_data_sovereignty',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -159,12 +183,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/profile/email',
     name: 'Change Email',
-    beforeEnter: checkPasswordSecurityAccess,
+    beforeEnter: checkOwnerWithPasswordAccess,
     component: () => import('@/apps/workspace/account/settings/ChangeEmail.vue'),
     meta: {
       title: 'web.TITLES.change_email',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -194,7 +217,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.security_overview',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -209,7 +231,20 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.change_password',
       requiresAuth: true,
-      excludeSsoOnly: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      sentryScrubParams: false,
+    },
+  },
+  {
+    path: '/account/settings/security/reset-password',
+    name: 'Reset Password',
+    beforeEnter: checkPasswordSecurityAccess,
+    component: () => import('@/apps/workspace/account/ResetPassword.vue'),
+    meta: {
+      title: 'web.TITLES.reset_password',
+      requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -224,7 +259,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.mfa_settings',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -239,7 +273,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.active_sessions',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -254,7 +287,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.recovery_codes',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -264,12 +296,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/passkeys',
     name: 'Passkeys',
-    beforeEnter: checkPasswordSecurityAccess,
+    beforeEnter: checkSecurityAccess,
     component: () => import('@/apps/workspace/account/PasskeySettings.vue'),
     meta: {
       title: 'web.TITLES.passkeys',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,
@@ -292,11 +323,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/caution',
     name: 'Advanced Settings',
+    beforeEnter: checkOwnerOrAdminAccess,
     component: () => import('@/apps/workspace/account/settings/CautionZone.vue'),
     meta: {
       title: 'web.TITLES.advanced_settings',
       requiresAuth: true,
-      excludeSsoOnly: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: SCOPE_PRESETS.hideBoth,

@@ -35,11 +35,11 @@ module Onetime
     #
     # Multipart and other recognized body types are left alone.
     class NormalizeContentType
-      JSON_TYPE = 'application/json'
-      FORM_TYPE = 'application/x-www-form-urlencoded'
+      JSON_TYPE       = 'application/json'
+      FORM_TYPE       = 'application/x-www-form-urlencoded'
       PARSEABLE_TYPES = [JSON_TYPE, FORM_TYPE].freeze
-      BODY_METHODS = %w[POST PUT PATCH].freeze
-      SNIFF_BYTES = 256
+      BODY_METHODS    = %w[POST PUT PATCH].freeze
+      SNIFF_BYTES     = 256
 
       # Conservative form-data signature: a token, then `=`. Matches the
       # `key=value&key2=value2` shape without false-positiving on prose
@@ -63,8 +63,8 @@ module Onetime
         raw = env['CONTENT_TYPE']
         return unless raw.is_a?(String) && raw.include?(',')
 
-        parts = raw.split(',').map(&:strip).reject(&:empty?)
-        preferred = parts.find { |part| parseable_type?(part) }
+        parts               = raw.split(',').map(&:strip).reject(&:empty?)
+        preferred           = parts.find { |part| parseable_type?(part) }
         env['CONTENT_TYPE'] = preferred if preferred
       end
 
@@ -77,7 +77,7 @@ module Onetime
         sample = read_sample(body)
         return if sample.nil? || sample.empty?
 
-        sniffed = sniff(sample)
+        sniffed             = sniff(sample)
         env['CONTENT_TYPE'] = sniffed if sniffed
       end
 

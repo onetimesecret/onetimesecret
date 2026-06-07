@@ -27,7 +27,7 @@ require_relative '../../operations/sync_session'
 
 @test_id = SecureRandom.hex(6)
 
-# Create test customer with lowercase email and bcrypt password
+# Create test customer with lowercase email
 @lowercase_email = "migrate_case_#{@test_id}@example.com"
 @test_password = 'TestPassword123!'
 
@@ -36,7 +36,7 @@ require_relative '../../operations/sync_session'
   role: 'customer',
   verified: false
 )
-@customer.update_passphrase(@test_password, algorithm: :bcrypt)
+@customer.update_passphrase(@test_password)
 @customer.save
 
 # TRYOUTS

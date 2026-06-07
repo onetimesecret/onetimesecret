@@ -75,8 +75,6 @@ describe('useWorkspacePrivacyDefaults', () => {
       font_family: 'sans',
       corner_style: 'rounded',
       button_text_light: false,
-      allow_public_homepage: false,
-      allow_public_api: false,
       default_ttl: undefined,
       passphrase_required: false,
       notify_enabled: false,

@@ -1,9 +1,10 @@
 <!-- src/shared/components/modals/settings/JurisdictionList.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { Jurisdiction } from '@/schemas/shapes/config';
+import { resolveJurisdictionIcon, resolveJurisdictionDisplayName } from '@/shared/stores/jurisdictionStore';
 
 const { t } = useI18n();
 
@@ -14,6 +15,9 @@ const props = defineProps<{
 
 const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
   jurisdiction.identifier === props.currentJurisdiction?.identifier;
+
+const getIcon = (jurisdiction: Jurisdiction) => resolveJurisdictionIcon(jurisdiction);
+const getDisplayName = (jurisdiction: Jurisdiction) => resolveJurisdictionDisplayName(jurisdiction, t);
 </script>
 
 <template>
@@ -26,8 +30,8 @@ const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
       class="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 sm:flex-nowrap sm:p-4">
       <div class="flex w-full items-center gap-3 sm:w-auto">
         <OIcon
-          :collection="jurisdiction.icon.collection"
-          :name="jurisdiction.icon.name"
+          :collection="getIcon(jurisdiction).collection"
+          :name="getIcon(jurisdiction).name"
           class="size-5 shrink-0 text-gray-400 dark:text-gray-500"
           aria-hidden="true" />
 
@@ -36,8 +40,8 @@ const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
           :class="{ 'font-medium': isCurrentJurisdiction(jurisdiction) }"
           class="grow text-sm text-gray-700 hover:text-brand-600 dark:text-gray-200 dark:hover:text-brand-400"
           :aria-current="isCurrentJurisdiction(jurisdiction) ? 'true' : undefined"
-          :aria-label="t('web.regions.jurisdiction_display_name_iscurrentjurisdiction_', [jurisdiction.display_name, isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``])">
-          {{ jurisdiction.display_name }}
+          :aria-label="t('web.regions.jurisdiction_display_name_iscurrentjurisdiction_', [getDisplayName(jurisdiction), isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``])">
+          {{ getDisplayName(jurisdiction) }}
         </a>
       </div>
 

@@ -50,7 +50,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { loginAndAccept, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
+const { loginForInvite, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
 const {
   requestMagicLink,
   sent: magicLinkSent,
@@ -153,7 +153,7 @@ const handleSubmit = async () => {
   clearErrors();
 
   try {
-    const result = await loginAndAccept(
+    const result = await loginForInvite(
       props.invitedEmail,
       password.value,
       props.inviteToken
@@ -413,7 +413,7 @@ const handleSubmit = async () => {
                        disabled:cursor-not-allowed disabled:opacity-50"
                 data-testid="invite-signin-submit">
                 <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
-                <span v-else>{{ t('web.organizations.invitations.sign_in_and_accept') }}</span>
+                <span v-else>{{ t('web.organizations.invitations.signin_continue') }}</span>
               </button>
             </div>
             <!-- Loading state announcement (screen reader only) -->
@@ -497,7 +497,7 @@ const handleSubmit = async () => {
               data-testid="invite-signin-magic-link-button">
               <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
                 <svg
-                  class="-ml-1 mr-3 size-5 animate-spin text-white"
+                  class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -695,7 +695,7 @@ const handleSubmit = async () => {
                    disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="invite-signin-submit">
             <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
-            <span v-else>{{ t('web.organizations.invitations.sign_in_and_accept') }}</span>
+            <span v-else>{{ t('web.organizations.invitations.signin_continue') }}</span>
           </button>
         </div>
         <!-- Loading state announcement (screen reader only) -->
@@ -778,7 +778,7 @@ const handleSubmit = async () => {
             data-testid="invite-signin-magic-link-button">
             <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
               <svg
-                class="-ml-1 mr-3 size-5 animate-spin text-white"
+                class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"

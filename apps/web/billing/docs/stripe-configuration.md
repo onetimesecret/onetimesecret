@@ -36,12 +36,21 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
 ```json
 {
   "app": "onetimesecret",
-  "plan_id": "identity_v1",
+  "plan_id": "identity_plus_v1",
   "entitlements": "create_secrets,create_team,custom_domains",
   "limit_teams": "1",
-  "limit_members_per_team": "-1"
+  "limit_total_members_per_org": "-1",
+  "limit_role_owners_per_org": "1",
+  "limit_role_admins_per_org": "-1",
+  "limit_role_members_per_org": "-1"
 }
 ```
+
+**Member limit semantics:** `limit_total_members_per_org` is the aggregate ceiling
+across all roles. The three role-specific keys (`limit_role_owners_per_org`,
+`limit_role_admins_per_org`, `limit_role_members_per_org`) apply sub-caps per
+role. Both the role-specific bucket and the aggregate are enforced on
+invitation; the stricter of the two wins.
 
 **Available plan_id values:** See `apps/web/billing/plan_helpers.rb` and plan cache
 
@@ -84,6 +93,33 @@ stripe listen --forward-to localhost:3000/billing/webhook
 stripe trigger checkout.session.completed
 ```
 
+## Promotion Codes
+
+Stripe Checkout Sessions created by this application enable
+`allow_promotion_codes: true`, which renders an "Add promotion code" field
+on the Stripe-hosted checkout page during both initial signup
+(`GET /billing/plans/:product/:interval`) and existing-org upgrades
+(`POST /billing/org/:extid/checkout`).
+
+For the field to be useful, promotion codes must first be created in the
+Stripe Dashboard:
+
+1. **Create a coupon:** [Stripe Dashboard → Products → Coupons](https://dashboard.stripe.com/coupons)
+   - Set the discount (percent off or amount off)
+   - Set duration (once, repeating, or forever)
+   - Optionally restrict to specific products
+2. **Create a promotion code** for the coupon
+   - Promotion codes are customer-facing strings (e.g., `WELCOME20`) that
+     customers enter at checkout
+   - One coupon can have many promotion codes
+3. Customers enter the promotion code on the Stripe-hosted checkout page —
+   no extra UI work is required on our side.
+
+**Note on currency:** Amount-off coupons are denominated in a single currency
+and only apply to checkouts in that currency. Percent-off coupons work across
+currencies. See `apps/web/billing/lib/currency_migration_service.rb` for how
+incompatible coupons are surfaced during currency migrations.
+
 ## Regional Setup
 
 For multi-region deployments, create separate products per region with `region` metadata:
@@ -91,7 +127,7 @@ For multi-region deployments, create separate products per region with `region` 
 ```json
 {
   "app": "onetimesecret",
-  "plan_id": "identity_v1",
+  "plan_id": "identity_plus_v1",
   "region": "us-east",
   ...
 }

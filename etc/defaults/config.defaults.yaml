@@ -50,25 +50,21 @@ site:
       #   - Prefix lengths greater than minimum are not supported for privacy
       #
       # Proxy Configuration:
-      #   - trusted_proxy_depth: How many proxies to trust for client IP extraction
-      #   - 0: Don't trust proxies, use REMOTE_ADDR (direct connections only)
-      #   - 1: Trust 1 proxy - STANDARD for reverse proxy (nginx, Caddy)
-      #   - 2+: Trust N proxies (e.g., CDN → reverse proxy → app)
-      #
-      #   - trusted_ip_header: Which header to use for client IP extraction
-      #   - X-Forwarded-For: Standard header (most common)
-      #   - Forwarded: RFC 7239 standard header
-      #   - Both: Try Forwarded first, fallback to X-Forwarded-For
-      #
-      # Default is 1 (standard reverse proxy) as most deployments use nginx/Caddy.
-      # Set to 0 only for development or direct-to-internet deployments.
+      #   The client IP used for CIDR matching is resolved by Rack::Request#ip,
+      #   configured globally under site.network.trusted_proxy (see below).
+      #   Homepage mode no longer carries its own proxy-depth settings.
       #
       homepage:
         mode: <%= ENV['UI_HOMEPAGE_MODE'] || nil %>
         matching_cidrs: <%= ENV['UI_HOMEPAGE_MATCHING_CIDRS']&.split(',')&.map(&:strip) || [] %>
         mode_header: <%= ENV['UI_HOMEPAGE_MODE_HEADER'] || 'O-Homepage-Mode' %>
-        trusted_proxy_depth: <%= ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
-        trusted_ip_header: <%= ENV['UI_HOMEPAGE_TRUSTED_IP_HEADER'] || 'X-Forwarded-For' %>
+        # Links rendered when a public visitor lands on the homepage but
+        # the secret form is gated by auth (e.g. mode=external). Recipients
+        # arriving via a shared link use these to learn about the service.
+        public_links:
+          # URL the "What is this link?" affordance points at. When empty,
+          # the affordance is hidden in the disabled-homepage view.
+          recipient_intro: <%= ENV['HOMEPAGE_PUBLIC_LINKS_RECIPIENT_INTRO'] || nil %>
 
       # Form field visibility flags
       # Controls which optional fields appear on the secret creation form.
@@ -96,6 +92,14 @@ site:
             # Set false for icon-only display; SITE_NAME remains active
             # in page titles, MFA labels, and emails regardless.
             show_name: <%= ENV['LOGO_SHOW_NAME'] != 'false' %>
+            # Render the logo at a larger size in the authenticated header.
+            # Useful for rasterized brand assets (e.g. LOGO_URL=/img/brand.png)
+            # that need more visual presence alongside the org/domain switchers.
+            # The default (false) keeps the logo compact (40px) so context
+            # switchers fit on the same row. When true, custom logos render at
+            # 80px in authenticated views. Unauthenticated views (branded
+            # homepage / disabled page) always render the logo prominently.
+            prominent: <%= ENV['LOGO_PROMINENT'] == 'true' %>
           # Product name used across the application:
           #   - Masthead text mark (when logo.show_name is true)
           #   - Browser page title
@@ -158,9 +162,16 @@ site:
         - text: Branding Guide
           i18n_key: web.footer.branding_guide
           url: <%= ENV['WORKSPACE_BRANDING_GUIDE_URL'] || 'https://docs.onetimesecret.com/' %>
+        <% if ENV['WORKSPACE_FEEDBACK_ENABLED'] != 'false' %>
         - text: Feedback
           i18n_key: web.TITLES.feedback
           url: <%= ENV['WORKSPACE_FEEDBACK_URL'] || '/feedback' %>
+        <% end %>
+      # Show or hide the version number in the workspace footer
+      show_version: <%= ENV['FOOTER_VERSION_ENABLED'] != 'false' %>
+      # Show or hide the "Need help?" modal trigger on secret pages
+      help:
+        enabled: <%= ENV['HELP_ENABLED'] != 'false' %>
     # Controls whether the API endpoints are available. When disabled, the API
     # is completely disabled. Requests to /api/* will return 404.
     api:
@@ -335,57 +346,84 @@ site:
     csp:
       enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
-# Brand / Private-Label Configuration
-# -----------------------------------
-# All values default to nil. The runtime resolvers in
-# BrandSettingsConstants.defaults / .global_defaults fall back to neutral
-# values (blue #3B82F6, 'OTS' product name, nil support email) per #3049
-# so shipped defaults stay brand-agnostic. Per-domain Redis branding
-# overrides bootstrap config; bootstrap config overrides Ruby defaults.
-#
-# Operators set BRAND_* env vars to override the neutral fallbacks. Empty
-# string is treated as unset (falls through to defaults).
-brand:
-  # Primary brand color as 6- or 3-digit hex (e.g. #FF0000 or #F00).
-  # Used for buttons, links, accents across the UI and email templates.
-  # Wrapped in single-quoted YAML literal so the leading '#' isn't parsed
-  # as a YAML comment. Operator-supplied single-quotes are doubled to
-  # escape per YAML 1.2 single-quoted scalar rules.
-  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRIMARY_COLOR'].gsub("'", "''")}'} %>
-  # Product / brand display name. Surfaces in page titles, MFA issuer
-  # labels, email senders, and the masthead text mark.
-  product_name: <%= ENV['BRAND_PRODUCT_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_NAME'].gsub("'", "''")}'} %>
-  # Public-facing product domain (e.g. 'example.com'). Used in email
-  # templates and outbound links when the request domain isn't suitable.
-  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_DOMAIN'].gsub("'", "''")}'} %>
-  # Support contact email shown in email templates and help surfaces.
-  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SUPPORT_EMAIL'].gsub("'", "''")}'} %>
-  # UI corner style: rounded | square | pill
-  corner_style: <%= ENV['BRAND_CORNER_STYLE'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_CORNER_STYLE'].gsub("'", "''")}'} %>
-  # UI font family: sans | serif | mono
-  font_family: <%= ENV['BRAND_FONT_FAMILY'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FONT_FAMILY'].gsub("'", "''")}'} %>
-  # When true, button labels render in light text (for use over dark
-  # primary colors). Default true matches the BrandSettings DEFAULTS flip.
-  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'].to_s.empty? ? 'null' : ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
-  # When true, allow the secret-create form to render on the public
-  # homepage of branded instances. Default false (require auth).
-  allow_public_homepage: <%= ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'].to_s.empty? ? 'null' : ENV['BRAND_ALLOW_PUBLIC_HOMEPAGE'] == 'true' %>
-  # When true, expose the public API on branded instances. Default false.
-  allow_public_api: <%= ENV['BRAND_ALLOW_PUBLIC_API'].to_s.empty? ? 'null' : ENV['BRAND_ALLOW_PUBLIC_API'] == 'true' %>
-  # Logo URL used in email templates and views. Must be absolute (https://)
-  # or a relative path starting with /. When unset, runtime falls back
-  # to nil and templates may suppress the logo.
-  logo_url: <%= ENV['BRAND_LOGO_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_LOGO_URL'].gsub("'", "''")}'} %>
-  # TOTP issuer name shown in authenticator apps (e.g. Google
-  # Authenticator). Changing this after enrollment is cosmetic only —
-  # existing codes still work, but the label is frozen at enrollment
-  # time. Defaults to GLOBAL_DEFAULTS[:totp_issuer] ('OTS').
-  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_TOTP_ISSUER'].gsub("'", "''")}'} %>
+  # Network Configuration
+  # Settings for proxy trust, client IP resolution, and network-level behavior.
+  network:
+    # Trusted Proxy Configuration
+    #
+    # Controls how client IPs are resolved when behind reverse proxies
+    # (Kubernetes ingress, cloud load balancers, CDNs, etc.).
+    #
+    # Affects all IP-based features: ban checks, session tracking,
+    # audit logs, homepage-mode CIDR matching, and the Colonel
+    # "Your Current IP" display.
+    #
+    # WARNING: Only enable when:
+    # - The app is behind a trusted reverse proxy
+    # - Direct client access is blocked by firewall
+    # - The proxy strips/overwrites client-provided X-Forwarded-For headers
+    # - Each proxy appends its own IP to the forwarding header
+    #
+    trusted_proxy:
+      # Master switch. When false, all forwarded headers are ignored
+      # and REMOTE_ADDR is used directly.
+      enabled: <%= ENV['TRUSTED_PROXY_ENABLED'] == 'true' %>
+
+      # How to resolve client IP behind proxies:
+      #
+      # 'filter' (default): Rack walks X-Forwarded-For right-to-left,
+      #   automatically skipping RFC1918 private IPs (10.x, 172.16-31.x,
+      #   192.168.x). Returns first non-private IP. Works for most k8s/cloud
+      #   deployments where proxies have internal IPs.
+      #
+      # 'depth': Position-based counting. Skip exactly N rightmost hops.
+      #   Use when:
+      #   - CDN has a public IP (not RFC1918)
+      #   - Variable proxy depth that filter can't handle
+      #   - You need deterministic hop selection regardless of IP class
+      #
+      # When filter and depth differ:
+      #   - CDN with public IP: filter returns CDN IP (add to cidrs or use depth)
+      #   - Variable hop count: filter handles automatically; depth fails if wrong
+      #   - Spoofed private IP in header: filter skips it; depth trusts if in range
+      #
+      mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>
+
+      # Which header to read the forwarding chain from.
+      # - X-Forwarded-For: Most common (nginx, Caddy, AWS ALB)
+      # - Forwarded: RFC 7239 standard; IPv6 addresses are bracketed,
+      #   e.g. for="[2001:db8::1]"
+      # - Both: Try Forwarded first, fall back to X-Forwarded-For
+      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
+
+      # Filter mode only: Additional CIDR ranges to trust as proxies
+      # beyond RFC1918 defaults. Use when your CDN or proxy has public IPs.
+      # Example: ["203.0.113.0/24", "2001:db8::/32"]
+      cidrs: <%= ENV['TRUSTED_PROXY_CIDRS']&.split(',')&.map(&:strip) || [] %>
+
+      # Depth mode only: Number of proxy hops to skip from the right.
+      # 1 = standard single reverse proxy (nginx/Caddy)
+      # 2 = CDN → reverse proxy → app
+      # No-proxy / direct connection: set enabled: false above rather
+      # than depth: 0; the master switch falls back to REMOTE_ADDR.
+      depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
 features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
     current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+    # Available jurisdictions for regional deployment
+    #
+    # Environment Variable Format:
+    #   JURISDICTIONS=ID:domain,ID:domain,...
+    #   where ID is the jurisdiction identifier (e.g., EU, CA, US)
+    #   and domain is the hostname for that jurisdiction
+    #
+    # Examples:
+    #   JURISDICTIONS=EU:eu.example.com,CA:ca.example.com
+    #   JURISDICTIONS=US:us.onetimesecret.com,EU:eu.onetimesecret.com,APAC:apac.onetimesecret.com
+    #
+    jurisdictions: <%= ENV['JURISDICTIONS'] || '' %>
   # Incoming Secrets Feature
   # Allows anonymous users to send encrypted secrets to pre-configured recipients
   # via a dedicated web form at /incoming. Recipients receive email notifications.
@@ -418,6 +456,10 @@ features:
       - <%= ENV['INCOMING_RECIPIENT_4']&.split(',') %>
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
+    # When true, secret creation rejects an unverified custom share_domain
+    # with a form error. When false (default), creation is allowed regardless
+    # of the domain's verification status. Canonical domains are unaffected.
+    require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
@@ -524,6 +566,11 @@ emailer:
   # Production Settings (for reference)
   # ----------------------------------
   mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+  # Provider for custom mail sender domain provisioning (DNS/DKIM).
+  # When set, decouples domain provisioning from the sending transport.
+  # Valid values: ses, sendgrid, lettermint, smtp
+  # If unset, falls back to mode (EMAILER_MODE).
+  sender_provider: <%= ENV['CUSTOM_MAIL_PROVIDER'] || nil %>
   region: <%= ENV['EMAILER_REGION'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
   from_name: <%= ENV['FROM_NAME'] || 'Support' %>
@@ -535,6 +582,14 @@ emailer:
   pass: "<%= ENV['SMTP_PASSWORD'] %>"
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
+  # Recipient ("To:") address for /feedback submissions.
+  # When set, feedback emails are delivered here instead of the first colonel
+  # in the database. Useful for routing to a shared inbox or alias.
+  feedback_to: <%= ENV['FEEDBACK_TO_EMAIL'] || nil %>
+  # Whether to include the logo image in HTML emails (default: false).
+  # Set to true only when recipients can reach the app's base URI to
+  # load the image; otherwise a broken image looks less trustworthy.
+  show_logo: <%= ENV['EMAILER_SHOW_LOGO'] == 'true' %>
 
 # Email Provider DNS Validation Settings
 # --------------------------------------
@@ -549,8 +604,8 @@ email_providers:
   # AWS SES configuration
   ses:
     # AWS region for SES endpoints (affects MX record values)
-    # Override via EMAIL_PROVIDERS_SES_REGION env var
-    region: <%= ENV['EMAIL_PROVIDERS_SES_REGION'] || 'us-east-1' %>
+    # Override via CUSTOM_MAIL_SES_REGION env var
+    region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>
     # Number of DKIM selectors (SES uses 3 by default)
     dkim_selector_count: 3
     # SPF include domain
@@ -559,8 +614,8 @@ email_providers:
   # SendGrid configuration
   sendgrid:
     # Branding subdomain prefix (appears in CNAME records)
-    # Override via EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN env var
-    subdomain: <%= ENV['EMAIL_PROVIDERS_SENDGRID_SUBDOMAIN'] || 'em' %>
+    # Override via CUSTOM_MAIL_SENDGRID_SUBDOMAIN env var
+    subdomain: <%= ENV['CUSTOM_MAIL_SENDGRID_SUBDOMAIN'] || 'em' %>
     # DKIM selector names
     dkim_selectors:
       - s1
@@ -589,11 +644,11 @@ email_providers:
     # Override via LETTERMINT_BASE_URL env var
     api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>
     # SPF CNAME subdomain prefix (e.g., 'lm-bounces' creates lm-bounces.yourdomain.com)
-    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX env var
-    spf_cname_prefix: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>
+    # Override via CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX env var
+    spf_cname_prefix: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>
     # SPF CNAME target domain (Lettermint maintains SPF at this target)
-    # Override via EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET env var
-    spf_cname_target: <%= ENV['EMAIL_PROVIDERS_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>
+    # Override via CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET env var
+    spf_cname_target: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>
 
 mail:
   truemail:
@@ -727,6 +782,20 @@ jobs:
   # failures or log permanent failures for investigation.
   dlq_consumer_enabled: <%= ENV['JOBS_DLQ_CONSUMER_ENABLED'] != 'false' %>
 
+  # Domain refresh job
+  # Periodically refreshes cached vhost/resolving status for custom domains
+  # so the domains-list page shows current state without depending on a user
+  # visiting the verify page. See issue #3080.
+  # Skips gracefully when no custom domains are registered.
+  domain_refresh:
+    enabled: <%= ENV['JOBS_DOMAIN_REFRESH_ENABLED'] == 'true' || false %>
+    # How often to refresh (rufus-scheduler interval)
+    check_interval: <%= ENV['JOBS_DOMAIN_REFRESH_INTERVAL'] || '30m' %>
+    # Maximum domains processed per run (rate limiting)
+    batch_size: <%= ENV['JOBS_DOMAIN_REFRESH_BATCH_SIZE']&.to_i || 200 %>
+    # Seconds between Approximated API calls within a run
+    rate_limit: <%= ENV['JOBS_DOMAIN_REFRESH_RATE_LIMIT']&.to_f || 0.5 %>
+
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:
@@ -782,6 +851,13 @@ jobs:
       enabled: <%= ENV['JOBS_INSTANCES_REBUILD_ENABLED'] == 'true' || false %>
       cron: <%= ENV['JOBS_INSTANCES_REBUILD_CRON'] || '0 3 * * 0' %>
       auto_repair: <%= ENV['JOBS_INSTANCES_REBUILD_AUTO_REPAIR'] == 'true' || false %>
+
+    # Familia model housekeeping chores (nightly 2 AM)
+    # Iterates models that declare `feature :housekeeping` and runs every
+    # registered chore. Disable when no chores are active.
+    housekeeping:
+      enabled: <%= ENV['JOBS_HOUSEKEEPING_ENABLED'] == 'true' || false %>
+      cron: <%= ENV['JOBS_HOUSEKEEPING_CRON'] || '0 2 * * *' %>
 
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
@@ -1016,3 +1092,13 @@ development:
   # @see lib/onetime/application/auth_strategies/dev_session_auth_strategy.rb
   # @see https://github.com/onetimesecret/onetimesecret/issues/2735
   devsessionauth: <%= ENV['DEV_SESSION_AUTH'] == 'true' %>
+
+# Compatibility Configuration
+# Controls how the boot process responds to deprecated configuration keys.
+compatibility:
+  # When a removed/relocated config key or its environment variable is
+  # detected at boot:
+  #   strict (default): raise an error and refuse to start
+  #   warn:             log a migration message and continue
+  #   silent:           ignore
+  deprecated_config_mode: <%= ENV['DEPRECATED_CONFIG_MODE'] || 'strict' %>

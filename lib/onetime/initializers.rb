@@ -21,16 +21,17 @@ require_relative 'initializers/set_secrets'
 require_relative 'initializers/configure_domains'
 require_relative 'initializers/configure_truemail'
 require_relative 'initializers/configure_rhales'
+require_relative 'initializers/configure_trusted_proxy'
 require_relative 'initializers/load_fortunes'
 
 # Dependent initializers
-require_relative 'initializers/setup_diagnostics'      # depends_on: [:logging]
-require_relative 'initializers/setup_database_logging' # depends_on: [:logging]
-require_relative 'initializers/setup_auth_database'    # depends_on: [:logging], fork-sensitive
+require_relative 'initializers/validate_auth_config'    # depends_on: [:logging]
+require_relative 'initializers/setup_diagnostics'       # depends_on: [:logging]
+require_relative 'initializers/setup_database_logging'  # depends_on: [:logging]
+require_relative 'initializers/setup_auth_database'     # depends_on: [:logging, :auth_config_validated], fork-sensitive
 require_relative 'initializers/setup_rabbitmq'         # depends_on: [:logging]
 require_relative 'initializers/configure_familia'      # depends_on: [:logging]
-require_relative 'initializers/detect_legacy_data_and_warn' # depends_on: [:familia_config]
-require_relative 'initializers/setup_connection_pool'  # depends_on: [:legacy_check]
+require_relative 'initializers/setup_connection_pool'  # depends_on: [:familia_config]
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/print_log_banner'       # depends_on: [:logging]
 

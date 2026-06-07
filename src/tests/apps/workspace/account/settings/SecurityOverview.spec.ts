@@ -38,9 +38,17 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
 // Mock feature flags
 const mockMfaEnabled = ref(true);
 const mockWebAuthnEnabled = ref(true);
+const mockHasPassword = ref(true);
 vi.mock('@/utils/features', () => ({
   isMfaEnabled: () => mockMfaEnabled.value,
   isWebAuthnEnabled: () => mockWebAuthnEnabled.value,
+  // SecurityOverview reads through the `*Of` predicate variants so it can
+  // recompute reactively from the bootstrap store. The test stubs ignore the
+  // store argument and read the flag refs directly so existing assertions keep
+  // exercising the same MFA/WebAuthn on/off matrix.
+  isMfaEnabledOf: () => mockMfaEnabled.value,
+  isWebAuthnEnabledOf: () => mockWebAuthnEnabled.value,
+  hasPasswordOf: () => mockHasPassword.value,
 }));
 
 // Mock useAccount composable
@@ -109,6 +117,9 @@ const i18n = createI18n({
             improve_security: 'Improve your security',
             enable_mfa_recommendation: 'Enable two-factor authentication',
             generate_recovery_codes_recommendation: 'Generate recovery codes',
+            sso_managed_title: 'Security managed by SSO',
+            sso_managed_description:
+              "Your account is authenticated through your organization's single sign-on provider.",
           },
         },
       },
@@ -135,7 +146,7 @@ describe('SecurityOverview', () => {
   };
 
   // Helper to find card by title text
-  const findCardByTitle = (title: string) => {
+  const _findCardByTitle = (title: string) => {
     const cards = wrapper.findAll('.grid > div');
     return cards.find((card) => card.text().includes(title));
   };
@@ -145,6 +156,7 @@ describe('SecurityOverview', () => {
     // Reset mocks
     mockMfaEnabled.value = true;
     mockWebAuthnEnabled.value = true;
+    mockHasPassword.value = true;
     mockAccountInfo.value = {
       email_verified: true,
       mfa_enabled: false,
@@ -632,6 +644,61 @@ describe('SecurityOverview', () => {
           expect(description.classes()).toContain('text-gray-600');
         }
       });
+    });
+  });
+
+  // Coverage for the SSO-only (no password) path added on fix/sso-ui:
+  // SecurityOverview filters password-dependent cards via hasPasswordOf and
+  // renders an SSO-managed empty state when every card is filtered out.
+  describe('SSO-Only Account (no password)', () => {
+    // hasPasswordOf is mocked to return mockHasPassword, so setting it false
+    // drives both the card filter (component line 150) and the empty-state
+    // v-if (line 265, `!hasPw`). No store seeding is needed — the component
+    // reads the predicate, not the store ref.
+
+    it('hides password, MFA, and recovery codes cards', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = true;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('lock-closed-solid')).toBeUndefined();
+      expect(findCardByIcon('key-solid')).toBeUndefined();
+      expect(findCardByIcon('document-text-solid')).toBeUndefined();
+    });
+
+    it('still shows the passkey card when WebAuthn is enabled', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = true;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('finger-print-solid')).toBeDefined();
+      expect(wrapper.findAll('.grid > div').length).toBe(1);
+    });
+
+    it('renders the SSO-managed empty state when all cards are filtered out', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain('Security managed by SSO');
+    });
+
+    it('does not render the cards grid when all cards are filtered out', () => {
+      mockHasPassword.value = false;
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(wrapper.find('.grid').exists()).toBe(false);
+    });
+
+    it('does not render the SSO empty state for a password account', () => {
+      mockHasPassword.value = true;
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(false);
+      expect(wrapper.find('.grid').exists()).toBe(true);
     });
   });
 });

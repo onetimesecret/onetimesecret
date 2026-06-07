@@ -17,6 +17,8 @@ module Billing
       # @note The external API remains unchanged: GET /welcome?checkout={ID}
       #
       class FromStripePaymentLink < Onetime::Logic::Base
+        include Onetime::LoggerMethods
+
         attr_reader :checkout_session_id,
           :checkout_session,
           :checkout_email,
@@ -57,7 +59,7 @@ module Billing
 
             unless checkout_email.eql?(cust.email)
               # Security: Don't link checkout to a different account than checkout_email
-              OT.le "[FromStripePaymentLink] Email mismatch: checkout email differs from authenticated user #{cust.obscure_email}"
+              billing_logger.error '[FromStripePaymentLink] Email mismatch: checkout email differs from authenticated user', customer: cust.obscure_email
               raise_form_error 'Please log out first to complete checkout with a different email address'
             end
 
@@ -144,7 +146,7 @@ module Billing
           org.update_from_stripe_subscription(stripe_subscription)
         rescue Stripe::StripeError, Familia::Problem => ex
           # Log but don't fail the checkout flow - billing can be reconciled later
-          OT.le "[FromStripePaymentLink] Error updating organization billing: #{ex.message}"
+          billing_logger.error '[FromStripePaymentLink] Error updating organization billing', exception: ex
         end
 
         # Ensure customer has a default workspace, creating one if needed.
@@ -155,9 +157,14 @@ module Billing
         # @param customer [Onetime::Customer] The customer needing a workspace
         # @return [Onetime::Organization, nil] The default organization
         def ensure_default_workspace(customer)
-          # Check for existing default org first
-          orgs = customer.organization_instances.to_a
-          org  = orgs.find(&:is_default) || orgs.first
+          orgs = customer.organization_instances.to_a.reject(&:archived?)
+
+          if customer.default_org_id.to_s.length.positive?
+            explicit = orgs.find { |o| o.objid == customer.default_org_id }
+            return explicit if explicit
+          end
+
+          org = orgs.find(&:is_default) || orgs.first
           return org if org
 
           # Create via canonical operation (includes federation check)
@@ -195,7 +202,7 @@ module Billing
             },
           )
         rescue StandardError => ex
-          OT.le "[FromStripePaymentLink] Error sending verification email: #{ex.message}"
+          billing_logger.error '[FromStripePaymentLink] Error sending verification email', exception: ex
         end
 
         # Preserve existing stripe_customer_id during checkout association
@@ -213,12 +220,10 @@ module Billing
           new_id      = fields[:stripe_customer_id].to_s
 
           if existing_id.present? && existing_id != new_id
-            OT.lw '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing',
-              {
-                existing: existing_id,
-                new: new_id,
-                customer: customer.obscure_email,
-              }
+            billing_logger.warn '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing',
+              existing: existing_id,
+              new: new_id,
+              customer: customer.obscure_email
             fields.delete(:stripe_customer_id)
           end
 
@@ -236,6 +241,8 @@ module Billing
       # @note This is used by /billing/welcome endpoint
       #
       class ProcessCheckoutSession < Onetime::Logic::Base
+        include Onetime::LoggerMethods
+
         attr_reader :session_id, :checkout_session, :subscription, :target_organization
 
         def process_params
@@ -283,7 +290,7 @@ module Billing
           # The customer_extid was embedded in subscription metadata when checkout was created
           customer = Onetime::Customer.find_by_extid(customer_extid)
           unless customer
-            OT.le "[ProcessCheckoutSession] Customer not found: #{customer_extid}"
+            billing_logger.error '[ProcessCheckoutSession] Customer not found', extid: customer_extid
             raise_form_error 'Customer not found'
           end
 
@@ -336,7 +343,7 @@ module Billing
                 { orgid: orgid, extid: org.extid }
               return org
             end
-            OT.lw '[ProcessCheckoutSession] orgid in metadata not found', { orgid: orgid }
+            billing_logger.warn '[ProcessCheckoutSession] orgid in metadata not found', orgid: orgid
           end
 
           # 2. Org already linked to Stripe customer (idempotent replay case)
@@ -351,8 +358,18 @@ module Billing
           end
 
           # 3. Customer's default org (fallback for legacy checkouts)
-          orgs = customer.organization_instances.to_a
-          org  = orgs.find { |o| o.is_default }
+          orgs = customer.organization_instances.to_a.reject(&:archived?)
+
+          if customer.default_org_id.to_s.length.positive?
+            explicit = orgs.find { |o| o.objid == customer.default_org_id }
+            if explicit
+              OT.info '[ProcessCheckoutSession] Using customer default_org_id (fallback)',
+                { extid: explicit.extid }
+              return explicit
+            end
+          end
+
+          org = orgs.find { |o| o.is_default }
           if org
             OT.info '[ProcessCheckoutSession] Using customer default org (fallback)',
               { extid: org.extid }
@@ -361,8 +378,8 @@ module Billing
 
           # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org context)
           # See: apps/web/auth/operations/create_default_workspace.rb
-          OT.lw '[ProcessCheckoutSession] Creating default org during checkout (unexpected)',
-            { customer_extid: customer.extid }
+          billing_logger.warn '[ProcessCheckoutSession] Creating default org during checkout (unexpected)',
+            extid: customer.extid
           Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,

@@ -11,8 +11,8 @@ require_relative '../../../support/test_helpers'
 OT.boot! :test, false
 
 require 'v1/logic'
-require 'apps/api/domains/logic/base'
-require 'apps/api/domains/logic/domains/add_domain'
+require 'api/domains/logic/base'
+require 'api/domains/logic/domains/add_domain'
 
 @timestamp = Familia.now.to_i
 @owner = Onetime::Customer.create!(email: "domain_owner_#{@timestamp}@test.com")

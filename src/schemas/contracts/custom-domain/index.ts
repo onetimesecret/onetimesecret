@@ -217,6 +217,13 @@ export const customDomainCanonical = z.object({
   /** Whether DNS A/CNAME record is resolving correctly. */
   resolving: z.boolean().optional(),
 
+  /**
+   * Epoch seconds of the most recent failed vhost-status fetch from the
+   * provider, or null when the last fetch succeeded. Drives the staleness
+   * indicator on the domains list (see issue #3080).
+   */
+  vhost_fetch_failed_at: z.number().nullable().optional(),
+
   // ─────────────────────────────────────────────────────────────────────────
   // Nested objects
   // ─────────────────────────────────────────────────────────────────────────

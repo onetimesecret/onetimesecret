@@ -17,7 +17,7 @@
 # Output: customdomain_indexes.jsonl with Redis commands for:
 #   - custom_domain:instances (ZADD) - sorted set by created timestamp
 #   - custom_domain:display_domain_index (HSET) - fqdn -> "domainid"
-#   - custom_domain:display_domains (HSET) - fqdn -> "domainid" (compat)
+#   - custom_domain:display_domain_index (HSET) - fqdn -> "domainid" (compat)
 #   - custom_domain:extid_lookup (HSET) - extid -> "domainid"
 #   - custom_domain:objid_lookup (HSET) - domainid -> "domainid"
 #   - custom_domain:owners (HSET) - domainid -> "org_id"
@@ -232,7 +232,7 @@ class CustomDomainIndexCreator
       }
       commands << {
         command: 'HSET',
-        key: 'custom_domain:display_domains',
+        key: 'custom_domain:display_domain_index',
         args: [display_domain, domainid.to_json],
       }
       @stats[:display_domain_lookups] += 1
@@ -428,7 +428,7 @@ def parse_args(args)
         Index commands generated:
           ZADD custom_domain:instances <score> <domainid>
           HSET custom_domain:display_domain_index <fqdn> "<domainid>"
-          HSET custom_domain:display_domains <fqdn> "<domainid>"
+          HSET custom_domain:display_domain_index <fqdn> "<domainid>"
           HSET custom_domain:extid_lookup <extid> "<domainid>"
           HSET custom_domain:objid_lookup <domainid> "<domainid>"
           HSET custom_domain:owners <domainid> "<org_id>"

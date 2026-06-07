@@ -11,6 +11,8 @@ module OrganizationAPI::Logic
     #   organization quotas when billing is enabled. Uses a distributed
     #   lock to prevent race conditions during creation.
     class CreateOrganization < OrganizationAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       SCHEMAS = { response: 'organization' }.freeze
 
       attr_reader :organization, :display_name, :description, :contact_email
@@ -27,21 +29,39 @@ module OrganizationAPI::Logic
 
         # Validate display_name (basic validation before quota check)
         if display_name.empty?
-          raise_form_error('Organization name is required', field: 'display_name', error_type: :missing)
+          raise_form_error(
+            error_key: 'api.organizations.errors.display_name_required',
+            field: 'display_name',
+            error_type: :missing,
+          )
         end
 
         if display_name.length > 100
-          raise_form_error('Organization name must be less than 100 characters', field: 'display_name', error_type: :invalid)
+          raise_form_error(
+            error_key: 'api.organizations.errors.display_name_too_long',
+            args: { max: 100 },
+            field: 'display_name',
+            error_type: :invalid,
+          )
         end
 
         # Validate contact_email (optional, but must be unique if provided)
         if !contact_email.empty? && Onetime::Organization.contact_email_exists?(contact_email)
-          raise_form_error('An organization with this contact email already exists', field: 'contact_email', error_type: :exists)
+          raise_form_error(
+            error_key: 'api.organizations.errors.contact_email_exists',
+            field: 'contact_email',
+            error_type: :exists,
+          )
         end
 
         # Description is optional but limit length if provided
         if !description.empty? && description.length > 500
-          raise_form_error('Description must be less than 500 characters', field: 'description', error_type: :invalid)
+          raise_form_error(
+            error_key: 'api.organizations.errors.description_too_long',
+            args: { max: 500 },
+            field: 'description',
+            error_type: :invalid,
+          )
         end
 
         # Check organization quota AFTER basic validation
@@ -52,7 +72,7 @@ module OrganizationAPI::Logic
       def process
         # Mask display_name in debug logs - safe even for 1-2 char names (Ruby returns available chars)
         masked_name = display_name.length > 3 ? "#{display_name[0, 3]}..." : "[#{display_name.length}chars]"
-        OT.ld "[CreateOrganization] Creating organization '#{masked_name}' for user #{cust.extid}"
+        logger.debug '[CreateOrganization] Creating organization', masked_name: masked_name, extid: cust.extid
 
         # Acquire distributed lock for organization creation to prevent quota race conditions
         lock_key   = "customer:#{cust.objid}:org_creation_lock"
@@ -65,7 +85,7 @@ module OrganizationAPI::Logic
 
           unless lock_token
             raise_form_error(
-              'Organization creation in progress. Please try again.',
+              error_key: 'api.organizations.errors.creation_in_progress',
               field: 'display_name',
               error_type: :conflict,
             )
@@ -93,7 +113,7 @@ module OrganizationAPI::Logic
             begin
               lock.release(lock_token)
             rescue StandardError => ex
-              OT.lw "[CreateOrganization] Lock release failed: #{ex.message}"
+              logger.warn '[CreateOrganization] Lock release failed', exception: ex
             end
           end
         end
@@ -125,7 +145,7 @@ module OrganizationAPI::Logic
         # Quota enforcement: fail-open when no billing, fail-closed when enabled.
         # See WithEntitlements module for design rationale.
 
-        primary_org = cust.organization_instances.to_a.find { |o| o.is_default } || cust.organization_instances.first
+        primary_org = cust.organization_instances.to_a.reject(&:archived?).then { |orgs| orgs.find { |o| o.is_default } || orgs.first }
 
         # Fail-open conditions: skip quota check
         return unless primary_org
@@ -135,12 +155,12 @@ module OrganizationAPI::Logic
         # Fail-closed: billing enabled, enforce quota
         # NOTE: at_limit?(resource, count) returns true when count >= limit,
         # meaning creating one more would exceed the plan's allowed quota.
-        current_count = cust.organization_instances.size
+        current_count = cust.organization_instances.to_a.count { |o| !o.archived? }
 
         return unless primary_org.at_limit?('organizations', current_count)
 
         raise_form_error(
-          'Organization limit reached. Upgrade your plan to create more organizations.',
+          error_key: 'api.organizations.errors.organization_limit_reached',
           field: 'display_name',
           error_type: :upgrade_required,
         )

@@ -2,7 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/custom_domain/incoming_config'
 require_relative 'base'
 require_relative 'serializers'
 
@@ -34,10 +33,24 @@ module DomainsAPI
 
         def raise_concerns
           # Require authenticated user
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+          if cust.anonymous?
+            raise_form_error(
+              'Authentication required',
+              error_key: 'api.errors.authentication_required',
+              field: :user_id,
+              error_type: :authentication_required,
+            )
+          end
 
           # Validate domain_id parameter
-          raise_form_error('Domain ID required', field: :domain_id, error_type: :missing) if @domain_id.to_s.empty?
+          if @domain_id.to_s.empty?
+            raise_form_error(
+              'Domain ID required',
+              error_key: 'api.domains.errors.domain_id_required',
+              field: :domain_id,
+              error_type: :missing,
+            )
+          end
 
           # Load domain and organization, verify ownership and entitlement
           authorize_domain_incoming!(@domain_id)

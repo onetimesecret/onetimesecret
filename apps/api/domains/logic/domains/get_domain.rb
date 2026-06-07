@@ -39,6 +39,11 @@ module DomainsAPI::Logic
         unless @custom_domain.owner?(@cust)
           raise_form_error 'Domain not found'
         end
+
+        # Members can be in the org but cannot view domain details — admin+ required (#3326)
+        domain_org = @custom_domain.primary_organization
+        raise_form_error 'Domain has no associated organization' unless domain_org
+        require_entitlement_in!(domain_org, 'custom_domains')
       end
 
       def process

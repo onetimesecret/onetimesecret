@@ -57,8 +57,10 @@ export const brandSettingschema = z
     instructions_post_reveal: z.string().nullish(),
     description: z.string().optional(),
     button_text_light: transforms.fromString.boolean.default(false),
-    allow_public_homepage: transforms.fromString.boolean.default(false),
-    allow_public_api: transforms.fromString.boolean.default(false),
+    // allow_public_homepage / allow_public_api retired in #3026; the backend
+    // strips them from the brand payload and emits the canonical values via
+    // HomepageConfig / ApiConfig endpoints instead. Any stale string values
+    // returned by older backends are silently dropped by Zod (strict object).
     font_family: z.enum(fontFamilyValues).default('sans'),
     corner_style: z.enum(cornerStyleValues).default('rounded'),
     locale: localeCodeSchema.default('en'),

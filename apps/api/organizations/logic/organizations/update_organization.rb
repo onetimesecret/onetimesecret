@@ -47,23 +47,39 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         # Validate extid parameter
-        raise_form_error('Organization ID required', field: :extid, error_type: :missing) if @extid.to_s.empty?
+        if @extid.to_s.empty?
+          raise_form_error(
+            error_key: 'api.organizations.errors.extid_required',
+            field: :extid,
+            error_type: :missing,
+          )
+        end
 
         # Load organization
         @organization = load_organization(@extid)
 
-        # Verify user is owner
-        verify_organization_owner(@organization)
+        # Verify user has manage_org entitlement in this organization
+        require_entitlement_in!(@organization, 'manage_org')
 
         # Validate display_name if provided
         if !display_name.empty? && (display_name.length > 100)
-          raise_form_error('Organization name must be less than 100 characters', field: :display_name, error_type: :invalid)
+          raise_form_error(
+            error_key: 'api.organizations.errors.display_name_too_long',
+            args: { max: 100 },
+            field: :display_name,
+            error_type: :invalid,
+          )
         end
 
         # Validate description if provided
-        if description.to_s.length > 500
-          raise_form_error('Description must be less than 500 characters', field: :description, error_type: :invalid)
-        end
+        return unless description.to_s.length > 500
+
+        raise_form_error(
+          error_key: 'api.organizations.errors.description_too_long',
+          args: { max: 500 },
+          field: :description,
+          error_type: :invalid,
+        )
       end
 
       def process

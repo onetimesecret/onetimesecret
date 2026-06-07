@@ -42,6 +42,9 @@ module DomainsAPI::Logic
         else
           @target_organization = organization
         end
+
+        # Members can view the org but cannot list domains — admin+ required (#3326)
+        require_entitlement_in!(@target_organization, 'custom_domains')
       end
 
       def process

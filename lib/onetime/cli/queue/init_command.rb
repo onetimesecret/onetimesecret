@@ -50,7 +50,7 @@ module Onetime
         def call(force: false, dry_run: false, **)
           boot_application!
 
-          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          amqp_url = OT.conf.dig('jobs', 'rabbitmq_url')
           parsed   = parse_amqp_url(amqp_url)
 
           puts 'RabbitMQ Initialization'

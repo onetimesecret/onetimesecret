@@ -71,7 +71,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
 
       # Verify plans summary structure
       # Note: free_v1 has no prices so it's skipped by load_all_from_config
-      # identity_plus_v1 creates identity_plus_v1_monthly and identity_plus_v1_yearly
+      # identity_plus_v1 is now family-keyed (no interval suffix)
       expect(data['plans']).to be_a(Hash)
       expect(data['plans']).not_to be_empty
       first_plan = data['plans'].values.first
@@ -127,11 +127,11 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
   end
 
   describe 'GET /billing/api/entitlements/:extid' do
-    # Plan IDs in Redis include the interval suffix
-    let(:show_test_plan_id) { 'identity_plus_v1_monthly' }
+    # Plan IDs in Redis use family-keyed format (no interval suffix)
+    let(:show_test_plan_id) { 'identity_plus_v1' }
 
     it 'returns organization entitlements and limits', :vcr do
-      # Set a plan for the organization (use identity_plus_v1_monthly from billing.test.yaml)
+      # Set a plan for the organization (use identity_plus_v1 from billing.test.yaml)
       organization.planid = show_test_plan_id
       organization.save
 
@@ -214,9 +214,9 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
   end
 
   describe 'GET /billing/api/entitlements/:extid/:entitlement' do
-    # Plan IDs in Redis include the interval suffix (e.g., identity_plus_v1_monthly)
-    # because load_all_from_config creates "{plan_key}_{interval}ly" format
-    let(:test_plan_id) { 'identity_plus_v1_monthly' }
+    # Plan IDs in Redis now use family-keyed format (e.g., identity_plus_v1)
+    # load_all_from_config creates one Plan per plan_key with nested prices
+    let(:test_plan_id) { 'identity_plus_v1' }
 
     before do
       organization.planid = test_plan_id
@@ -224,7 +224,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     end
 
     it 'returns allowed status for granted entitlement', :vcr do
-      # identity_plus_v1_monthly has api_access entitlement
+      # identity_plus_v1 has api_access entitlement
       get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       expect(last_response.status).to eq(200)
@@ -238,7 +238,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     end
 
     it 'returns denied status for missing entitlement', :vcr do
-      # identity_plus_v1_monthly has all entitlements in test config
+      # identity_plus_v1 has all entitlements in test config
       # Test with an entitlement that doesn't exist in the plan
       get "/billing/api/entitlements/#{organization.extid}/sso"
 

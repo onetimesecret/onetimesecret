@@ -162,5 +162,33 @@
   "web.regions.changing_regions_subscription_note": {
     "text": "Your subscription benefits will automatically apply to any account created with your billing email address.",
     "content_hash": "5b2238b2"
+  },
+  "web.regions.jurisdictions.eu.name": {
+    "text": "European Union",
+    "content_hash": "7fe24f2b"
+  },
+  "web.regions.jurisdictions.us.name": {
+    "text": "United States",
+    "content_hash": "49dca65f"
+  },
+  "web.regions.jurisdictions.ca.name": {
+    "text": "Canada",
+    "content_hash": "be55ef3f"
+  },
+  "web.regions.jurisdictions.uk.name": {
+    "text": "United Kingdom",
+    "content_hash": "8d23a6e3"
+  },
+  "web.regions.jurisdictions.nz.name": {
+    "text": "New Zealand",
+    "content_hash": "2898e16d"
+  },
+  "web.regions.jurisdictions.at.name": {
+    "text": "Austria",
+    "content_hash": "c9cab023"
+  },
+  "web.regions.jurisdictions.apac.name": {
+    "text": "Asia-Pacific",
+    "content_hash": "7a757670"
   }
 }

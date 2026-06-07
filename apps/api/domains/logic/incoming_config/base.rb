@@ -2,7 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/custom_domain/incoming_config'
 require 'onetime/application/authorization_policies'
 
 module DomainsAPI
@@ -33,7 +32,13 @@ module DomainsAPI
         # @raise [FormError] if domain not found
         def load_custom_domain(domain_id)
           domain = Onetime::CustomDomain.find_by_extid(domain_id)
-          raise_not_found("Domain not found: #{domain_id}") if domain.nil?
+          if domain.nil?
+            raise_not_found(
+              "Domain not found: #{domain_id}",
+              error_key: 'api.domains.errors.domain_not_found',
+              args: { extid: domain_id },
+            )
+          end
           domain
         end
 
@@ -44,23 +49,14 @@ module DomainsAPI
         # @raise [FormError] if organization not found
         def load_organization_for_domain(domain)
           org = Onetime::Organization.load(domain.org_id)
-          raise_not_found("Organization not found for domain: #{domain.display_domain}") if org.nil?
+          if org.nil?
+            raise_not_found(
+              "Organization not found for domain: #{domain.display_domain}",
+              error_key: 'api.domains.errors.organization_not_found',
+              args: { domain: domain.display_domain },
+            )
+          end
           org
-        end
-
-        # Verify current user owns the organization.
-        #
-        # Colonels (site admins) have automatic superuser bypass.
-        # Otherwise, user must be organization owner.
-        #
-        # @param organization [Onetime::Organization]
-        # @raise [FormError] If user is not owner and not admin
-        def verify_organization_owner(organization)
-          verify_one_of_roles!(
-            colonel: true,
-            custom_check: -> { organization.owner?(cust) },
-            error_message: 'Only organization owner can perform this action',
-          )
         end
 
         # Verify organization has incoming_secrets entitlement.
@@ -72,6 +68,7 @@ module DomainsAPI
 
           raise_form_error(
             'Incoming secrets management requires the incoming_secrets entitlement. Please upgrade your plan.',
+            error_key: 'api.domains.errors.incoming_secrets_entitlement_required',
             error_type: :forbidden,
           )
         end
@@ -83,13 +80,17 @@ module DomainsAPI
         # @return [void]
         def authorize_domain_incoming!(domain_id)
           unless OT.conf.dig('features', 'incoming', 'enabled')
-            raise_form_error('Incoming secrets is not enabled on this instance', error_type: :forbidden)
+            raise_form_error(
+              'Incoming secrets is not enabled on this instance',
+              error_key: 'api.domains.errors.incoming_secrets_disabled',
+              error_type: :forbidden,
+            )
           end
 
           @custom_domain = load_custom_domain(domain_id)
           @organization  = load_organization_for_domain(@custom_domain)
 
-          verify_organization_owner(@organization)
+          require_entitlement_in!(@organization, 'manage_org')
           verify_incoming_secrets_entitlement(@organization)
         end
 

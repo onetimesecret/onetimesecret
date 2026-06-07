@@ -111,12 +111,17 @@ Onetime::OrganizationMembership.exists?(@org_membership_objid)
 #
 # Bare code between `##` testcases does not execute under Tryouts; wrap
 # setup as its own testcase so @ivars propagate to subsequent testcases.
+# Post-#3026 CustomDomain.create! bootstraps Homepage/Api configs, so the
+# "truly bare" state requires explicit deletion of those records to
+# exercise destroy!'s no-op cleanup path.
 
-## Setup: fresh domain with no sibling configs
+## Setup: fresh domain, then delete the bootstrap configs so all siblings are absent
 @bare_owner = Onetime::Customer.create!(email: generate_unique_test_email("cascade_bare"))
 @bare_org = Onetime::Organization.create!("Cascade Bare Org", @bare_owner, generate_unique_test_email("cascade_bare_contact"))
 @bare_domain = Onetime::CustomDomain.create!("cascade-bare.example.com", @bare_org.objid)
 @bare_domain_id = @bare_domain.identifier
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@bare_domain_id)
+Onetime::CustomDomain::ApiConfig.delete_for_domain!(@bare_domain_id)
 [Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@bare_domain_id),
  Onetime::CustomDomain::ApiConfig.exists_for_domain?(@bare_domain_id),
  Onetime::CustomDomain::SsoConfig.exists_for_domain?(@bare_domain_id),
@@ -181,7 +186,7 @@ Onetime::CustomDomain.find_by_identifier(@fail_domain_id)
 # mid-cascade failure would orphan siblings with no recovery path. Capture
 # the primary record's existence at sibling-cleanup time to prove the order.
 
-## Setup: ordering-path domain with HomepageConfig present (unique name avoids stale display_domains)
+## Setup: ordering-path domain with HomepageConfig present (unique name avoids stale display_domain_index)
 @order_owner = Onetime::Customer.create!(email: generate_unique_test_email("cascade_order"))
 @order_org = Onetime::Organization.create!("Cascade Order Org", @order_owner, generate_unique_test_email("cascade_order_contact"))
 @order_domain_name = "cascade-order-#{SecureRandom.hex(4)}.example.com"

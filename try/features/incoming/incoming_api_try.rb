@@ -13,7 +13,7 @@
 # The enabled tests configure the feature inline within each test.
 
 require_relative '../../support/test_logic'
-require 'apps/api/incoming/logic/incoming'
+require 'api/incoming/logic/incoming'
 
 
 OT.boot! :test, false
@@ -43,8 +43,9 @@ def enable_incoming_feature(recipient_hash, recipient_email)
   OT.instance_variable_set(:@incoming_recipient_lookup, {
     recipient_hash => recipient_email
   }.freeze)
+  # Match production shape (see SetupIncomingRecipients): {'digest', 'display_name'}
   OT.instance_variable_set(:@incoming_public_recipients, [
-    { hash: recipient_hash, name: 'Test Recipient' }
+    { 'digest' => recipient_hash, 'display_name' => 'Test Recipient' }
   ].freeze)
 end
 
@@ -92,19 +93,18 @@ end
 
 # Configure incoming secrets on the custom domain for V3 tests
 # The recipient hash needs to match what the config will produce
-@v3_incoming_config = Onetime::CustomDomain::IncomingSecretsConfig.new({
-  'recipients' => [
-    { 'email' => @v3_recipient_email, 'name' => 'V3 Test Recipient' }
-  ],
-  'memo_max_length' => 100,
-  'default_ttl' => 604800
-})
-@v3_custom_domain.update_incoming_secrets_config(@v3_incoming_config)
+@v3_incoming_config = Onetime::CustomDomain::IncomingConfig.create!(
+  domain_id: @v3_custom_domain.identifier,
+  enabled: true,
+  recipients: [
+    { email: @v3_recipient_email, name: 'V3 Test Recipient' }
+  ]
+)
 
 # Get the actual hashed recipient from the config (for use in tests)
-# Note: public_incoming_recipients returns hashes with string keys
+# Note: public_recipients returns hashes with string keys ('digest', 'display_name')
 site_secret = OT.conf.dig('site', 'secret')
-@v3_recipient_hash = @v3_custom_domain.incoming_secrets_config.public_incoming_recipients(site_secret).first['digest']
+@v3_recipient_hash = @v3_incoming_config.public_recipients.first['digest']
 
 ## Incoming::Logic::GetConfig class exists
 defined?(Incoming::Logic::GetConfig)
@@ -178,7 +178,7 @@ logic = Incoming::Logic::GetConfig.new(@strategy_result, {})
 logic.process_params
 logic.raise_concerns
 result = logic.process
-result[:config][:recipients].first[:hash]
+result[:config][:recipients].first['digest']
 #=> 'test_recipient_hash_abc123'
 
 ## ValidateRecipient returns valid true for valid hash
@@ -283,6 +283,54 @@ result = logic.process
 result[:details][:recipient]
 #=> 'test_recipient_hash_abc123'
 
+## CreateIncomingSecret stores raw recipient email on the receipt (clean data)
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Memo for receipt recipient check',
+    'secret' => 'Secret for receipt recipient test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+logic.receipt.recipients == @test_recipient_email
+#=> true
+
+## CreateIncomingSecret stores recipient display_name on the receipt
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Memo for recipient name check',
+    'secret' => 'Secret for recipient name test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+logic.receipt.recipient_name
+#=> 'Test Recipient'
+
+## Receipt safe_dump obscures the recipient email so it does not leak to the frontend
+enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
+logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
+  'secret' => {
+    'memo' => 'Safe dump check',
+    'secret' => 'Secret for safe dump test',
+    'recipient' => @test_recipient_hash
+  }
+})
+logic.process_params
+logic.raise_concerns
+logic.process
+dumped = logic.receipt.safe_dump
+!dumped[:recipients].to_s.include?(@test_recipient_email) &&
+  dumped[:recipients] == OT::Utils.obscure_email(@test_recipient_email) &&
+  dumped[:recipient_name] == 'Test Recipient'
+#=> true
+
 ## CreateIncomingSecret works without memo (memo is optional)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
@@ -379,7 +427,7 @@ logic.process
 logic.receipt.memo
 #=> 'Stored memo test'
 
-## CreateIncomingSecret stores recipients on receipt
+## CreateIncomingSecret stores recipients on receipt (raw email)
 enable_incoming_feature(@test_recipient_hash, @test_recipient_email)
 logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {
   'secret' => {
@@ -541,7 +589,7 @@ true
 # Setup is done in global setup section above (before first ## marker).
 
 ## V3 CreateIncomingSecret with custom domain sets receipt.domain_id to resolved domain objid
-# Custom domain uses its own incoming_secrets_config, not global config
+# Custom domain uses its own IncomingConfig record, not global config
 v3_strategy = create_v3_strategy_with_domain(@v3_cust, @v3_custom_fqdn)
 logic = Incoming::Logic::CreateIncomingSecret.new(v3_strategy, {
   'secret' => {

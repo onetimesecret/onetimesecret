@@ -31,10 +31,11 @@
   import OrganizationContextBar from '@/apps/workspace/components/navigation/OrganizationContextBar.vue';
   import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
   import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
-  import TestModeBanner from '@/shared/components/ui/TestModeBanner.vue';
+  import PreviewModeBanner from '@/shared/components/ui/PreviewModeBanner.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
-  import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
+  import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
+  import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
   import type { ImprovedLayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
@@ -61,12 +62,17 @@
   const { domains_enabled } = storeToRefs(bootstrapStore);
 
   // Test plan mode composable
-  const { isTestModeActive } = useTestPlanMode();
+  const { isPreviewModeActive } = usePreviewPlanMode();
+
+  // Permission check for domain management (admins/owners only)
+  const { canManageDomain } = useOrgPermissions();
 
   // Centralize store refreshing to avoid duplicate API calls from header and footer
   onMounted(() => {
     receiptListStore.refreshRecords(true);
-    if (domains_enabled.value) {
+    // Only fetch domain list for users who can manage domains (admins/owners)
+    // Members get domain context from the permissions API via useDomainContext
+    if (domains_enabled.value && canManageDomain.value) {
       domainsStore.refreshRecords({ force: true });
     }
   });
@@ -85,7 +91,7 @@
       <ManagementHeader v-bind="layoutProps">
         <OrganizationContextBar />
       </ManagementHeader>
-      <TestModeBanner v-if="isTestModeActive" />
+      <PreviewModeBanner v-if="isPreviewModeActive" />
     </template>
 
     <template #main>

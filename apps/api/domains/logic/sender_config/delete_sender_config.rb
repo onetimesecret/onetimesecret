@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/mailer_config'
+require 'onetime/operations/delete_sender_domain'
 require_relative 'base'
 require_relative 'audit_logger'
 
@@ -30,7 +31,7 @@ module DomainsAPI
 
         def raise_concerns
           # Require authenticated user
-          raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
+          raise_form_error('Authentication required', field: :user_id, error_type: :authentication_required) if cust.anonymous?
 
           # Validate domain_id parameter
           raise_form_error('Domain ID required', field: :domain_id, error_type: :missing) if @domain_id.to_s.empty?
@@ -38,17 +39,20 @@ module DomainsAPI
           # Load domain and organization, verify ownership and entitlement
           authorize_sender_config!(@domain_id)
 
-          # Verify config exists and capture provider for audit
-          existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
-          unless existing_config
+          # Verify config exists and capture for audit + provider deletion
+          @existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
+          unless @existing_config
             raise_not_found("Sender configuration not found for domain: #{@domain_id}")
           end
 
-          @deleted_provider = existing_config.provider
+          @deleted_provider = @existing_config.provider
         end
 
         def process
           OT.ld "[DeleteSenderConfig] Deleting sender config for domain #{@domain_id} by user #{cust.extid}"
+
+          # Delete from external mail provider before local config is wiped
+          delete_sender_domain
 
           # Delete the config atomically
           deleted = Onetime::CustomDomain::MailerConfig.delete_for_domain!(@custom_domain.identifier)
@@ -77,6 +81,14 @@ module DomainsAPI
           {
             domain_id: @domain_id,
           }
+        end
+
+        private
+
+        def delete_sender_domain
+          Onetime::Operations::DeleteSenderDomain.new(
+            mailer_config: @existing_config,
+          ).call
         end
       end
     end

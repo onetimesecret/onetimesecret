@@ -19,7 +19,7 @@ source 'https://rubygems.org/'
 # ====================================
 
 gem 'otto', '~> 2.0.0'
-gem 'rhales', '~> 0.6.0'
+gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
 gem 'rodauth-omniauth', '~> 0.4'
@@ -75,7 +75,7 @@ gem 'truemail'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-gem 'familia', '~> 2.6.0'
+gem 'familia', '~> 2.10'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
@@ -90,7 +90,6 @@ gem 'uri-valkey', '~> 1.4.0'
 
 gem 'argon2', '~> 2.3'
 gem 'bcrypt', '~> 3.1'
-gem 'encryptor', '= 1.1.3'
 gem 'passforge', '~> 1.1'
 gem 'rotp', '~> 6.2'
 gem 'rqrcode', '~> 3.1'

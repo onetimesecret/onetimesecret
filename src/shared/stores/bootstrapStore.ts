@@ -1,11 +1,14 @@
 // src/shared/stores/bootstrapStore.ts
 
-import { getBootstrapSnapshot } from '@/services/bootstrap.service';
+import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 import {
   bootstrapSchema,
+  type ApiGuestRoutes,
+  type ApiInterface,
   type BootstrapPayload,
   type FooterLinksConfig,
   type HeaderConfig,
+  type UiCapabilities,
 } from '@/schemas/contracts/bootstrap';
 import { defineStore } from 'pinia';
 
@@ -33,28 +36,16 @@ const SCHEMA_DEFAULTS = bootstrapSchema.parse({});
  */
 const DEFAULTS: BootstrapPayload = {
   ...SCHEMA_DEFAULTS,
-  // Explicitly include optional fields that Zod omits
+  // Explicitly include optional fields that Zod omits (fields marked .optional()
+  // in the schema, not fields with .default() which are included in SCHEMA_DEFAULTS)
   apitoken: undefined,
   customer_since: undefined,
   regions: undefined,
   stripe_customer: undefined,
   stripe_subscriptions: undefined,
-  entitlement_test_planid: undefined,
-  entitlement_test_plan_name: undefined,
+  entitlement_preview_planid: undefined,
+  entitlement_preview_plan_name: undefined,
   organization: undefined,
-  development: undefined,
-  // Brand fields (per-installation defaults from OT.conf['brand'])
-  brand_primary_color: undefined,
-  brand_product_name: undefined,
-  brand_product_domain: undefined,
-  brand_support_email: undefined,
-  brand_corner_style: undefined,
-  brand_font_family: undefined,
-  brand_button_text_light: undefined,
-  brand_allow_public_homepage: undefined,
-  brand_allow_public_api: undefined,
-  brand_logo_url: undefined,
-  brand_totp_issuer: undefined,
 };
 
 /**
@@ -163,6 +154,24 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * Provides typed access to footer config with fallback.
      */
     footerLinksConfig: (state): FooterLinksConfig | undefined => state.ui.footer_links,
+
+    /**
+     * UI capability flags controlling optional form-field visibility.
+     * Each flag is undefined when unset; consumers treat undefined as enabled.
+     */
+    uiCapabilities: (state): UiCapabilities | undefined => state.ui.capabilities,
+
+    /**
+     * API configuration from bootstrap payload.
+     * Contains enabled flag and guest route permissions.
+     */
+    apiConfig: (state): ApiInterface => state.api,
+
+    /**
+     * Guest route permissions for API access.
+     * Controls which API routes are available to unauthenticated users.
+     */
+    guestRoutes: (state): ApiGuestRoutes => state.api.guest_routes,
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -226,6 +235,11 @@ export const useBootstrapStore = defineStore('bootstrap', {
         Object.assign(state, filterDefined(data));
       });
 
+      // Keep the bootstrap.service snapshot in sync so non-Pinia readers
+      // (features.ts hasPassword/isSsoOnlyMode used by route guards and the
+      // settings sidebar) see fresh values after login or other auth mutations.
+      updateBootstrapSnapshot(data);
+
       console.debug('[BootstrapStore.update] Updated with:', {
         authenticated: data.authenticated,
         awaiting_mfa: data.awaiting_mfa,
@@ -276,12 +290,14 @@ export const useBootstrapStore = defineStore('bootstrap', {
     resetForLogout(): void {
       // Capture current server config values before reset
       const preservedConfig = {
+        api: this.api,
         authentication: this.authentication,
         ui: this.ui,
         features: this.features,
         regions: this.regions,
         secret_options: this.secret_options,
         diagnostics: this.diagnostics,
+        disabled_homepage: this.disabled_homepage,
       };
 
       // Use built-in $reset to restore all state to DEFAULTS
@@ -290,12 +306,14 @@ export const useBootstrapStore = defineStore('bootstrap', {
       // Restore server config fields and _initialized flag
       // Use functional $patch to avoid _DeepPartial type issues
       this.$patch((state) => {
+        state.api = preservedConfig.api;
         state.authentication = preservedConfig.authentication;
         state.ui = preservedConfig.ui;
         state.features = preservedConfig.features;
         state.regions = preservedConfig.regions;
         state.secret_options = preservedConfig.secret_options;
         state.diagnostics = preservedConfig.diagnostics;
+        state.disabled_homepage = preservedConfig.disabled_homepage;
         state._initialized = true;
       });
 

@@ -12,12 +12,14 @@ import {
 
 import {
   AuthValidator,
+  handleOrgRoleRequirement,
   handleSsoOnlyRoute,
   setupRouterGuards,
   validateAuthentication,
 } from '@/router/guards.routes';
 import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { isSsoOnlyMode } from '@/utils/features';
 
 /** Sync guard that blocks routes for disabled auth features. */
@@ -70,6 +72,10 @@ vi.mock('@/shared/composables/usePageTitle', () => ({
 
 vi.mock('@/utils/features', () => ({
   isSsoOnlyMode: vi.fn(() => false),
+}));
+
+vi.mock('@/shared/stores/organizationStore', () => ({
+  useOrganizationStore: vi.fn(),
 }));
 
 describe('Router Guards', () => {
@@ -653,7 +659,9 @@ describe('Router Guards', () => {
   describe('SSO-only mode guard (handleSsoOnlyRoute)', () => {
     // Direct unit tests for handleSsoOnlyRoute — no router registration needed.
 
-    const makeRoute = (overrides: Partial<RouteLocationNormalized> = {}): RouteLocationNormalized => ({
+    const makeRoute = (
+      overrides: Partial<RouteLocationNormalized> = {}
+    ): RouteLocationNormalized => ({
       meta: {},
       path: '/test',
       name: 'Test',
@@ -821,6 +829,168 @@ describe('Router Guards', () => {
 
         const result = handleSsoOnlyRoute(to);
         expect(result).toEqual({ path: '/signin' });
+      });
+    });
+  });
+
+  describe('org-role requirement guard (handleOrgRoleRequirement)', () => {
+    // Direct unit tests for handleOrgRoleRequirement. The organization store is
+    // mocked so each test controls cached orgs, list-fetched state, and fetch
+    // outcomes without hitting the API.
+
+    type OrgRecord = { extid: string; current_user_role: string | null };
+
+    const makeStore = (overrides: Record<string, unknown> = {}) =>
+      ({
+        isListFetched: true,
+        organizations: [] as OrgRecord[],
+        currentOrganization: null as OrgRecord | null,
+        getOrganizationByExtid: (_extid: string): OrgRecord | undefined => undefined,
+        fetchOrganizations: vi.fn(async () => []),
+        fetchOrganization: vi.fn(async () => {
+          throw new Error('not found');
+        }),
+        ...overrides,
+      }) as unknown as ReturnType<typeof useOrganizationStore>;
+
+    const makeRoute = (
+      overrides: Partial<RouteLocationNormalized> = {}
+    ): RouteLocationNormalized => ({
+      meta: {},
+      path: '/test',
+      name: 'Test',
+      query: {},
+      params: {},
+      hash: '',
+      fullPath: '/test',
+      matched: [],
+      redirectedFrom: undefined,
+      ...overrides,
+    });
+
+    const useStore = (store: ReturnType<typeof useOrganizationStore>) =>
+      vi.mocked(useOrganizationStore).mockReturnValue(store);
+
+    it('allows routes without requiresOrgRole', async () => {
+      useStore(makeStore());
+      const result = await handleOrgRoleRequirement(makeRoute({ meta: {} }));
+      expect(result).toBeNull();
+    });
+
+    describe('list page (/orgs, no org in path)', () => {
+      it('allows when the user owns at least one org', async () => {
+        useStore(makeStore({ organizations: [{ extid: 'on1', current_user_role: 'member' }, { extid: 'on2', current_user_role: 'owner' }] }));
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
+        );
+        expect(result).toBeNull();
+      });
+
+      it('redirects to /dashboard when the user owns no org', async () => {
+        useStore(makeStore({ organizations: [{ extid: 'on1', current_user_role: 'admin' }, { extid: 'on2', current_user_role: 'member' }] }));
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
+        );
+        expect(result).toEqual({ path: '/dashboard' });
+      });
+
+      it('fetches the list first when not yet loaded, then decides', async () => {
+        const store = makeStore({
+          isListFetched: false,
+          organizations: [{ extid: 'on1', current_user_role: 'owner' }],
+        });
+        useStore(store);
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
+        );
+        expect(store.fetchOrganizations).toHaveBeenCalled();
+        expect(result).toBeNull();
+      });
+
+      it('fails closed (redirect) when the list fetch rejects', async () => {
+        useStore(
+          makeStore({
+            isListFetched: false,
+            fetchOrganizations: vi.fn(async () => {
+              throw new Error('network');
+            }),
+          })
+        );
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
+        );
+        expect(result).toEqual({ path: '/dashboard' });
+      });
+    });
+
+    describe('single-org route (:extid / :orgid in path)', () => {
+      it('allows an admin when admin is required', async () => {
+        useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'admin' }) }));
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
+        );
+        expect(result).toBeNull();
+      });
+
+      it('redirects a member away from an admin-only route', async () => {
+        useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'member' }) }));
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
+        );
+        expect(result).toEqual({ path: '/dashboard' });
+      });
+
+      it('redirects an admin away from an owner-only route', async () => {
+        useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'admin' }) }));
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'owner' } })
+        );
+        expect(result).toEqual({ path: '/dashboard' });
+      });
+
+      it('resolves the org from :orgid even when :extid (the domain id) is also present', async () => {
+        // Domain routes are /org/:orgid/domains/:extid — both params exist and
+        // :extid is the domain, not the org. The lookup must use :orgid. The
+        // mock only knows 'on1', so a wrong key (e.g. the domain id) misses and
+        // would fall through to a rejecting fetch → redirect.
+        useStore(
+          makeStore({
+            getOrganizationByExtid: (key: string) =>
+              key === 'on1' ? { extid: 'on1', current_user_role: 'owner' } : undefined,
+          })
+        );
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ params: { orgid: 'on1', extid: 'dom5' }, meta: { requiresOrgRole: 'admin' } })
+        );
+        expect(result).toBeNull();
+      });
+
+      it('fetches the org when the role is unknown, then allows', async () => {
+        const store = makeStore({
+          getOrganizationByExtid: () => undefined,
+          fetchOrganization: vi.fn(async () => ({ extid: 'on1', current_user_role: 'admin' })),
+        });
+        useStore(store);
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
+        );
+        expect(store.fetchOrganization).toHaveBeenCalledWith('on1');
+        expect(result).toBeNull();
+      });
+
+      it('fails closed (redirect) when the org fetch rejects (e.g. non-member 403)', async () => {
+        useStore(
+          makeStore({
+            getOrganizationByExtid: () => undefined,
+            fetchOrganization: vi.fn(async () => {
+              throw new Error('forbidden');
+            }),
+          })
+        );
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
+        );
+        expect(result).toEqual({ path: '/dashboard' });
       });
     });
   });

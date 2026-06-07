@@ -90,8 +90,8 @@ Familia.dbclient.flushdb if ENV['ENV'] == 'test'
 Onetime::CustomDomain.instances.size == @initial_domain_count
 #=> true
 
-## Validation: display_domains index is populated
-Onetime::CustomDomain.display_domains.get(@domain1.display_domain) == @domain1.identifier
+## Validation: display_domain_index index is populated
+Onetime::CustomDomain.display_domain_index.get(@domain1.display_domain) == @domain1.identifier
 #=> true
 
 ## Validation: Can load domain by display_domain

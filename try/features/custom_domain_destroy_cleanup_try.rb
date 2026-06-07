@@ -2,27 +2,19 @@
 #
 # frozen_string_literal: true
 
-# Stage 5b regression anchor: CustomDomain#destroy! cleans every class-level
+# Regression anchor: CustomDomain#destroy! cleans every class-level
 # structure that holds a reference to the destroyed record.
 #
-# Current cleanup chain (as of this commit):
-#   CustomDomain#destroy! (lib/onetime/models/custom_domain.rb:402)
-#     -> self.class.rem(self) (lib/onetime/models/custom_domain.rb:989)
-#          -> instances.remove
-#          -> display_domains.remove         (manual class_hashkey)
-#          -> owners.remove                  (manual class_hashkey)
-#          -> fobj.remove_from_all_indexes   (iterates indexing_relationships,
-#                                             dispatches remove_from_class_*_index)
-#     -> super -> ExternalIdentifier#destroy! (clears extid_lookup)
-#           -> Horreum::Persistence#destroy! (clears main key, related_fields,
-#                                             instances)
+# Cleanup is handled by Familia 2.9.1's destroy! via remove_from_class_indexes!
+# which iterates indexing_relationships and dispatches remove_from_class_*_index.
+# Indexes cleaned: display_domain_index (unique_index), instances, owners, extid_lookup.
 #
 # These tests lock that behavior in. They will fail if a future refactor
 # drops any of these cleanups.
 
 require_relative '../../try/support/test_helpers'
 
-OT.boot! :test, false
+OT.boot! :test
 
 Familia.dbclient.flushdb
 
@@ -47,7 +39,7 @@ Familia.dbclient.flushdb
 ## S1: Before destroy, the record is present in every structure
 [
   Onetime::CustomDomain.display_domain_index.get(@s1_display).nil?,
-  Onetime::CustomDomain.display_domains.get(@s1_display).nil?,
+  Onetime::CustomDomain.display_domain_index.get(@s1_display).nil?,
   Onetime::CustomDomain.owners.get(@s1_objid).nil?,
   Onetime::CustomDomain.instances.member?(@s1_objid),
   Onetime::CustomDomain.extid_lookup.get(@s1_extid).nil?,
@@ -58,7 +50,7 @@ Familia.dbclient.flushdb
 @dom_1.destroy!
 [
   Onetime::CustomDomain.display_domain_index.get(@s1_display),
-  Onetime::CustomDomain.display_domains.get(@s1_display),
+  Onetime::CustomDomain.display_domain_index.get(@s1_display),
   Onetime::CustomDomain.owners.get(@s1_objid),
   Onetime::CustomDomain.instances.member?(@s1_objid),
   Onetime::CustomDomain.extid_lookup.get(@s1_extid),
@@ -88,7 +80,7 @@ Familia.dbclient.exists("custom_domain:#{@s1_objid}:object")
 @dom_2a.destroy!
 [
   Onetime::CustomDomain.display_domain_index.get(@s2_fqdn),
-  Onetime::CustomDomain.display_domains.get(@s2_fqdn),
+  Onetime::CustomDomain.display_domain_index.get(@s2_fqdn),
   @org_a.domains.member?(@s2_a_objid),
 ]
 #=> [nil, nil, false]
@@ -167,9 +159,31 @@ end
 ## S4: Indexes remain clean after the second destroy
 [
   Onetime::CustomDomain.display_domain_index.get("double.example.com"),
-  Onetime::CustomDomain.display_domains.get("double.example.com"),
+  Onetime::CustomDomain.display_domain_index.get("double.example.com"),
 ]
 #=> [nil, nil]
+
+# --------------------------------------------------------------------------
+# Scenario 5: Case normalization — mixed-case input stored as lowercase.
+# --------------------------------------------------------------------------
+
+## S5: Create with mixed-case input
+@dom_5 = Onetime::CustomDomain.create!("MiXeD.Example.COM", @org_a.objid)
+@dom_5.display_domain
+#=> "mixed.example.com"
+
+## S5: Index stores lowercase key
+Onetime::CustomDomain.display_domain_index.get("mixed.example.com").nil?
+#=> false
+
+## S5: Mixed-case key returns nil (not indexed)
+Onetime::CustomDomain.display_domain_index.get("MiXeD.Example.COM")
+#=> nil
+
+## S5: destroy! cleans lowercase entry
+@dom_5.destroy!
+Onetime::CustomDomain.display_domain_index.get("mixed.example.com")
+#=> nil
 
 # Teardown
 Familia.dbclient.flushdb

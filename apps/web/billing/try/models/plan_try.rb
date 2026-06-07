@@ -7,7 +7,7 @@ require_relative '../../../../../try/support/test_helpers'
 # Billing Plan tests
 #
 # Tests Stripe plan data caching, refresh, and retrieval.
-# Uses mock Stripe API responses to avoid external dependencies.
+# Plans are keyed by canonical family ID with nested per-interval prices.
 
 ## Setup: Load billing models
 require 'apps/web/billing/models/plan'
@@ -19,15 +19,12 @@ BillingTestHelpers.restore_billing!(enabled: true)
 Billing::Plan.clear_cache.class
 #=> Integer
 
-## Create a mock plan manually (metadata-based plan_id with interval)
-@plan                                = Billing::Plan.new(
-  plan_id: 'identity_v1_monthly',
-  stripe_price_id: 'price_test123',
+## Create a plan with canonical family ID and nested prices
+@plan = Billing::Plan.new(
+  plan_id: 'identity_plus_v1',
   stripe_product_id: 'prod_test123',
-  name: 'Single Team',
+  name: 'Identity Plus',
   tier: 'single_team',
-  interval: 'month',
-  amount: '2900',
   currency: 'cad',
   region: 'us-east',
 )
@@ -35,8 +32,11 @@ Billing::Plan.clear_cache.class
 @plan.entitlements.add('manage_teams')
 @plan.features.add('Feature 1')
 @plan.features.add('Feature 2')
-@plan.limits['teams.max']            = '1'
-@plan.limits['members_per_team.max'] = '10'
+@plan.limits['teams.max'] = '1'
+@plan.limits['total_members_per_org.max'] = '10'
+# Add prices to hashkey (stored as JSON strings)
+@plan.prices['month'] = { stripe_price_id: 'price_monthly123', amount: '2900', currency: 'cad' }.to_json
+@plan.prices['year'] = { stripe_price_id: 'price_yearly123', amount: '29000', currency: 'cad' }.to_json
 @plan.save
 #=> true
 
@@ -44,8 +44,8 @@ Billing::Plan.clear_cache.class
 Billing::Plan.instances.size
 #=> 1
 
-## Retrieve plan by ID (metadata-based with interval)
-@retrieved = Billing::Plan.load('identity_v1_monthly')
+## Retrieve plan by canonical family ID
+@retrieved = Billing::Plan.load('identity_plus_v1')
 @retrieved.tier
 #=> 'single_team'
 
@@ -55,39 +55,35 @@ Billing::Plan.instances.size
 
 ## Get limits as hash (sorted for stable comparison)
 @retrieved.limits_hash.sort.to_h
-#=> {"members_per_team.max"=>10, "teams.max"=>1}
+#=> {"total_members_per_org.max"=>10, "teams.max"=>1}
+
+## Get available intervals
+@retrieved.available_intervals.sort
+#=> ['month', 'year']
+
+## Get monthly price data via price_for
+@monthly_price = @retrieved.price_for('month')
+@monthly_price['amount']
+#=> '2900'
+
+## Get yearly price data via price_for
+@yearly_price = @retrieved.price_for('year')
+@yearly_price['amount']
+#=> '29000'
 
 ## Get plan using tier, interval, region
-@monthly_plan = Billing::Plan.get_plan('single_team', 'monthly', 'us-east')
-@monthly_plan.plan_id
-#=> 'identity_v1_monthly'
+@found_plan = Billing::Plan.get_plan('single_team', 'month', 'us-east')
+@found_plan&.plan_id
+#=> 'identity_plus_v1'
 
-## Get plan with yearly interval (different plan_id for yearly)
-@yearly_plan                                = Billing::Plan.new(
-  plan_id: 'identity_v1_yearly',
-  stripe_price_id: 'price_yearly123',
-  stripe_product_id: 'prod_test123',
-  name: 'Single Team Annual',
-  tier: 'single_team',
-  interval: 'year',
-  amount: '29000',
-  currency: 'cad',
-  region: 'us-east',
-)
-@yearly_plan.entitlements.add('api_access')
-@yearly_plan.entitlements.add('manage_teams')
-@yearly_plan.features.add('Feature 1')
-@yearly_plan.features.add('Feature 2')
-@yearly_plan.limits['teams.max']            = '1'
-@yearly_plan.limits['members_per_team.max'] = '10'
-@yearly_plan.save
-@yearly_retrieved                           = Billing::Plan.get_plan('single_team', 'yearly', 'us-east')
-@yearly_retrieved.plan_id
-#=> 'identity_v1_yearly'
+## Get plan with yearly interval (same plan returned)
+@yearly_via_get = Billing::Plan.get_plan('single_team', 'year', 'us-east')
+@yearly_via_get&.plan_id
+#=> 'identity_plus_v1'
 
-## List all plans
+## List all plans (just 1 family)
 Billing::Plan.list_plans.size
-#=> 2
+#=> 1
 
 ## Clear cache
 Billing::Plan.clear_cache

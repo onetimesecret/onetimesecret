@@ -21,9 +21,6 @@ GET    /:extid/logo                       DomainsAPI::Logic::Domains::GetDomainL
 DELETE /:extid/icon                       DomainsAPI::Logic::Domains::RemoveDomainIcon response=json auth=sessionauth,basicauth
 POST   /:extid/icon                       DomainsAPI::Logic::Domains::UpdateDomainIcon response=json auth=sessionauth,basicauth
 GET    /:extid/icon                       DomainsAPI::Logic::Domains::GetDomainIcon response=json auth=sessionauth,basicauth
-GET    /:extid/recipients                 DomainsAPI::Logic::Domains::GetDomainRecipients response=json auth=sessionauth,basicauth
-PUT    /:extid/recipients                 DomainsAPI::Logic::Domains::UpdateDomainRecipients response=json auth=sessionauth,basicauth
-DELETE /:extid/recipients                 DomainsAPI::Logic::Domains::RemoveDomainRecipients response=json auth=sessionauth,basicauth
 GET    /                                  DomainsAPI::Logic::Domains::ListDomains response=json auth=sessionauth,basicauth
 
 # Domain SSO Configuration
@@ -56,3 +53,9 @@ DELETE /:extid/api-config                DomainsAPI::Logic::ApiConfig::DeleteApi
 GET    /:extid/incoming-config           DomainsAPI::Logic::IncomingConfig::GetIncomingConfig response=json auth=sessionauth
 PUT    /:extid/incoming-config           DomainsAPI::Logic::IncomingConfig::PutIncomingConfig response=json auth=sessionauth
 DELETE /:extid/incoming-config           DomainsAPI::Logic::IncomingConfig::DeleteIncomingConfig response=json auth=sessionauth
+
+# Domain Signup Configuration (Per-domain email validation strategy)
+GET    /:extid/signup-config             DomainsAPI::Logic::SignupConfig::GetSignupConfig response=json auth=sessionauth
+PUT    /:extid/signup-config             DomainsAPI::Logic::SignupConfig::PutSignupConfig response=json auth=sessionauth
+PATCH  /:extid/signup-config             DomainsAPI::Logic::SignupConfig::PatchSignupConfig response=json auth=sessionauth
+DELETE /:extid/signup-config             DomainsAPI::Logic::SignupConfig::DeleteSignupConfig response=json auth=sessionauth

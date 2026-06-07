@@ -46,35 +46,10 @@ def create_mock_request(headers = {})
 end
 
 # -------------------------------------------------------------------
-# SETUP: Mock OT.conf for testing
+# NOTE: Tests call header_matches_mode? with explicit arguments.
+# No need to mock OT.conf since the method takes header_name and
+# expected_mode as parameters directly.
 # -------------------------------------------------------------------
-
-## Create a test config that we can modify
-@test_config = {
-  'site' => {
-    'interface' => {
-      'ui' => {
-        'homepage' => {
-          'mode' => 'protected',
-          'request_header' => 'O-Homepage-Mode'
-        }
-      }
-    }
-  }
-}
-
-## Stub OT.conf to return our test config
-def OT.conf
-  @test_config_override || super
-end
-
-def OT.conf=(config)
-  @test_config_override = config
-end
-
-OT.conf = @test_config
-OT.conf.dig('site', 'interface', 'ui', 'homepage', 'mode')
-#=> 'protected'
 
 # -------------------------------------------------------------------
 # TEST: Method returns true when header matches
@@ -137,78 +112,53 @@ OT.conf.dig('site', 'interface', 'ui', 'homepage', 'mode')
 # -------------------------------------------------------------------
 
 ## Configure with header containing underscores
-@test_config['site']['interface']['ui']['homepage']['request_header'] = 'X_Custom_Header'
-OT.conf = @test_config
 @req_underscore = create_mock_request('X-Custom-Header' => 'protected')
 @controller7 = TestController.new(@req_underscore, nil)
 @controller7.send(:header_matches_mode?, 'X_Custom_Header', 'protected')
 #=> true
 
 ## Configure with header already in HTTP_ format
-@test_config['site']['interface']['ui']['homepage']['request_header'] = 'HTTP_X_BYPASS'
-OT.conf = @test_config
 @req_http_prefix = create_mock_request('X-Bypass' => 'protected')
 @controller8 = TestController.new(@req_http_prefix, nil)
 @controller8.send(:header_matches_mode?, 'HTTP_X_BYPASS', 'protected')
 #=> true
 
 # -------------------------------------------------------------------
-# TEST: Method returns nil when mode is not configured
+# TEST: Method returns false when mode is nil
 # -------------------------------------------------------------------
 
 ## With nil mode value (should return false since header doesn't match nil)
-@test_config['site']['interface']['ui']['homepage']['mode'] = nil
-OT.conf = @test_config
 @req_no_mode = create_mock_request('O-Homepage-Mode' => 'protected')
 @controller9 = TestController.new(@req_no_mode, nil)
 @controller9.send(:header_matches_mode?, 'O-Homepage-Mode', nil)
 #=> false
 
 # -------------------------------------------------------------------
-# TEST: Method returns nil when mode is different
+# TEST: Method returns false when mode doesn't match header value
 # -------------------------------------------------------------------
 
 ## With different expected mode value
-@test_config['site']['interface']['ui']['homepage']['mode'] = 'some-other-mode'
-OT.conf = @test_config
 @req_other_mode = create_mock_request('O-Homepage-Mode' => 'protected')
 @controller10 = TestController.new(@req_other_mode, nil)
 @controller10.send(:header_matches_mode?, 'O-Homepage-Mode', 'some-other-mode')
 #=> false
 
 # -------------------------------------------------------------------
-# TEST: Method returns nil when request_header is not configured
+# TEST: Method returns false when header name is nil
 # -------------------------------------------------------------------
 
 ## With nil header name (should return false)
-@test_config['site']['interface']['ui']['homepage']['mode'] = 'protected'
-@test_config['site']['interface']['ui']['homepage']['request_header'] = nil
-OT.conf = @test_config
 @req_no_header_config = create_mock_request('O-Homepage-Mode' => 'protected')
 @controller11 = TestController.new(@req_no_header_config, nil)
 @controller11.send(:header_matches_mode?, nil, 'protected')
 #=> false
 
 # -------------------------------------------------------------------
-# TEST: Method returns nil when request_header is empty string
+# TEST: Method returns false when header name is empty string
 # -------------------------------------------------------------------
 
 ## With empty header name (should return false)
-@test_config['site']['interface']['ui']['homepage']['request_header'] = ''
-OT.conf = @test_config
 @req_empty_header_config = create_mock_request('O-Homepage-Mode' => 'protected')
 @controller12 = TestController.new(@req_empty_header_config, nil)
 @controller12.send(:header_matches_mode?, '', 'protected')
 #=> false
-
-# -------------------------------------------------------------------
-# TEARDOWN: Remove config override
-# -------------------------------------------------------------------
-
-## Remove the test config override and the singleton methods so that
-## later test files reading OT.conf get the real attr_reader, not our stub.
-OT.instance_variable_set(:@test_config_override, nil)
-OT.singleton_class.send(:remove_method, :conf) if OT.singleton_class.method_defined?(:conf) || OT.singleton_class.private_method_defined?(:conf)
-OT.singleton_class.send(:remove_method, :conf=) if OT.singleton_class.method_defined?(:conf=) || OT.singleton_class.private_method_defined?(:conf=)
-true
-#=> true

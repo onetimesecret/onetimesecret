@@ -14,6 +14,18 @@ module OrganizationAPI::Logic
     #   - role (optional): Role to assign ('member' or 'admin', default: 'member')
     #
     class CreateInvitation < OrganizationAPI::Logic::Base
+      # Maps an invitee's role to the role-specific plan limit resource.
+      # The aggregate `total_members_per_org` cap is enforced separately.
+      ROLE_LIMIT_RESOURCES = {
+        # Unreachable through this flow today: role validation in raise_concerns
+        # rejects `role == 'owner'` because the UI doesn't wire owner invites
+        # yet. Kept here so the per-role check works the moment owner invites
+        # are enabled — no enforcement gap when the gate is lifted.
+        'owner' => 'role_owners_per_org',
+        'admin' => 'role_admins_per_org',
+        'member' => 'role_members_per_org',
+      }.freeze
+
       attr_reader :organization, :email, :role, :membership
 
       def process_params
@@ -27,34 +39,38 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(@organization)
+        require_entitlement_in!(@organization, 'manage_members')
 
         # Validate email (basic validation before quota check)
-        raise_form_error('Email is required', field: :email) if @email.empty?
-        raise_form_error('Invalid email format', field: :email) unless valid_email?(@email)
+        if @email.empty?
+          raise_form_error(error_key: 'api.organizations.invitations.errors.email_required', field: 'email', error_type: :missing)
+        end
+        unless valid_email?(@email)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_email_format', field: 'email', error_type: :invalid)
+        end
 
         # Validate role
         unless %w[member admin].include?(@role)
-          raise_form_error('Role must be member or admin', field: :role)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invalid_role', field: 'role', error_type: :invalid)
         end
 
         # Owners cannot be invited (must be assigned directly)
         if @role == 'owner'
-          raise_form_error('Cannot invite as owner', field: :role)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.cannot_invite_as_owner', field: 'role', error_type: :forbidden)
         end
 
         # Check if user is already a member
         existing_customer = Onetime::Customer.find_by_email(@email)
         if existing_customer && @organization.member?(existing_customer)
-          raise_form_error('User is already a member of this organization', field: :email)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.user_already_member', field: 'email', error_type: :exists)
         end
 
         # Check for existing pending invitation
-        existing_invite = Onetime::OrganizationMembership.find_by_org_email(
-          @organization.objid, @email
+        existing_invite = Onetime::OrganizationMembership.find_pending_by_email(
+          @organization, @email
         )
-        if existing_invite&.pending?
-          raise_form_error('Invitation already pending for this email', field: :email)
+        if existing_invite
+          raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: 'email', error_type: :exists)
         end
 
         # Check member quota AFTER basic validation
@@ -110,6 +126,11 @@ module OrganizationAPI::Logic
       # Uses the organization being invited to for billing context.
       # Only enforced when billing is enabled and plan cache is populated.
       # Counts both active members and pending invitations.
+      #
+      # Two checks run in order; whichever fails first raises:
+      # 1. Per-role bucket: count of the invited role's active + pending vs.
+      #    the role-specific limit (e.g. `role_admins_per_org`).
+      # 2. Aggregate cap: total active + pending vs. `total_members_per_org`.
       def check_member_quota!
         # Quota enforcement: fail-open when no billing, fail-closed when enabled.
         # See WithEntitlements module for design rationale.
@@ -118,39 +139,25 @@ module OrganizationAPI::Logic
         return unless @organization.respond_to?(:at_limit?)
         return unless @organization.entitlements.any?
 
-        # Fail-closed: billing enabled, enforce quota
-        # Count both active members and pending invitations
-        current_count = @organization.member_count + @organization.pending_invitation_count
+        # Per-role bucket check
+        role_resource = ROLE_LIMIT_RESOURCES[@role]
+        if role_resource
+          role_count = @organization.member_count_by_role(@role) +
+                       @organization.pending_invitation_count_by_role(@role)
+          raise_member_limit_error! if @organization.at_limit?(role_resource, role_count)
+        end
 
-        return unless @organization.at_limit?('members_per_team', current_count)
+        # Aggregate cap check
+        total_count = @organization.member_count + @organization.pending_invitation_count
+        raise_member_limit_error! if @organization.at_limit?('total_members_per_org', total_count)
+      end
 
+      def raise_member_limit_error!
         raise_form_error(
-          'Member limit reached. Upgrade your plan to invite more members.',
+          error_key: 'api.organizations.invitations.errors.member_limit_reached',
           field: 'email',
           error_type: :upgrade_required,
         )
-      end
-
-      # Verify current user has admin privileges in the organization
-      def verify_organization_admin(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can create invitations',
-        )
-      end
-
-      # Check if user is an organization admin
-      def organization_admin?(organization)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
-      end
-
-      # Basic email validation
-      def valid_email?(email)
-        email =~ /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
       end
     end
   end

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'delivery/base'
+require_relative 'delivery/disabled'
 require_relative 'delivery/logger'
 require_relative 'delivery/smtp'
 require_relative 'delivery/ses'
@@ -172,6 +173,8 @@ module Onetime
           log_info "[mail] Using #{provider} delivery backend"
 
           case provider
+          when 'disabled', 'none'
+            Delivery::Disabled.new(config)
           when 'smtp'
             Delivery::SMTP.new(config)
           when 'ses'
@@ -211,6 +214,16 @@ module Onetime
           else
             warn message
           end
+        end
+
+        # Returns the provider for custom mail sender domain provisioning.
+        # Falls back to the sending transport (determine_provider) when unset.
+        def determine_sender_provider
+          conf = emailer_config
+          sp   = conf['sender_provider']
+          return sp.to_s.downcase.strip if sp.is_a?(String) && !sp.strip.empty?
+
+          determine_provider
         end
 
         def determine_provider

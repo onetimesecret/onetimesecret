@@ -45,12 +45,15 @@ module Onetime
       # - format_config_value(config): Formats complex config values for display
       # - format_duration(seconds): Converts seconds to human-readable format (e.g., "5m", "2h", "7d")
       def print_log_banner
-      site_config  = OT.conf.fetch('site') # if site is missing we got real problems
-      email_config = OT.conf.fetch('emailer', {})
-      redis_info   = Familia.dbclient.info
+      site_config     = OT.conf.fetch('site') # if site is missing we got real problems
+      features_config = OT.conf.fetch('features', {})
+      email_config    = OT.conf.fetch('emailer', {})
+      redis_info      = Familia.dbclient.info
 
       # Header banner
-      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.details}  #{'---' * 3}"
+      auth_mode      = defined?(OT.auth_config) ? OT.auth_config.mode : 'n/a'
+      billing_status = defined?(OT.billing_config) ? OT.billing_config.enabled? : 'n/a'
+      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.details}  auth:#{auth_mode} billing:#{billing_status}  #{'---' * 3}"
 
       # Create a buffer to collect all output
       output = []
@@ -65,7 +68,7 @@ module Onetime
         output << render_section('Development', 'Settings', dev_rows)
       end
 
-      feature_rows = build_features_section(site_config)
+      feature_rows = build_features_section(features_config)
       unless feature_rows.empty?
         output << render_section('Features', 'Configuration', feature_rows)
       end
@@ -146,19 +149,34 @@ module Onetime
         dev_rows
       end
 
-      # Builds features section rows
-      def build_features_section(site_config)
+      # Builds features section rows from features config
+      def build_features_section(features_config)
         feature_rows = []
 
-        # Domains and regions
-        %w[domains regions].each do |key|
-          next unless site_config.key?(key)
+        # Domains feature
+        if features_config.key?('domains')
+          domains = features_config['domains']
+          if is_feature_disabled?(domains)
+            feature_rows << %w[Domains disabled]
+          elsif domains.is_a?(Hash) && !domains.empty?
+            feature_rows << ['Domains', format_config_value(domains)]
+          end
+        end
 
-          config = site_config[key]
-          if is_feature_disabled?(config)
-            feature_rows << [key.to_s.capitalize, 'disabled']
-          elsif !config.empty?
-            feature_rows << [key.to_s.capitalize, format_config_value(config)]
+        # Regions feature with jurisdictions
+        if features_config.key?('regions')
+          regions = features_config['regions']
+          if is_feature_disabled?(regions)
+            feature_rows << %w[Regions disabled]
+          elsif regions.is_a?(Hash)
+            jurisdictions = regions.fetch('jurisdictions', [])
+            if jurisdictions.any?
+              ids = jurisdictions.map { |j| j['identifier'] }.join(', ')
+              feature_rows << ['Regions', "enabled (#{ids})"]
+              feature_rows << ['Current', regions['current_jurisdiction']] if regions['current_jurisdiction']
+            else
+              feature_rows << ['Regions', 'enabled (no jurisdictions)']
+            end
           end
         end
 

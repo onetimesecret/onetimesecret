@@ -124,32 +124,3 @@ result, elapsed = helper.measure_api_time do
 end
 elapsed >= 10
 #=> true
-
-## Test: validate_product_metadata detects missing fields
-helper  = @helper_class.new
-# Mock a product with minimal metadata
-product = MockProduct.new(metadata: { 'app' => 'onetimesecret' })
-errors  = helper.validate_product_metadata(product)
-errors.any? { |e| e.include?('Missing required') }
-#=> true
-
-## Test: validate_product_metadata accepts valid app
-helper  = @helper_class.new
-product = MockProduct.new(metadata: {
-  'app' => 'onetimesecret',
-  'plan_id' => 'test_v1',
-  'tier' => 'basic',
-  'region' => 'global',
-  'entitlements' => 'test',
-  'tenancy' => 'single',
-})
-errors  = helper.validate_product_metadata(product)
-errors.none? { |e| e.include?('Invalid app metadata') }
-#=> true
-
-## Test: validate_product_metadata rejects wrong app
-helper  = @helper_class.new
-product = MockProduct.new(metadata: { 'app' => 'wrong_app' })
-errors  = helper.validate_product_metadata(product)
-errors.any? { |e| e.include?('Invalid app metadata') }
-#=> true

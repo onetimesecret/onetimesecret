@@ -58,12 +58,40 @@ module Auth::Config::Hooks
       auth.omniauth_setup do
         host = request.host
 
+        # Skip tenant context storage during callback phase.
+        # The setup hook fires for BOTH request and callback phases, but we only
+        # want to store the initiating domain during the request phase. During
+        # callback, the before_omniauth_callback_route hook validates that the
+        # callback host matches the stored initiation host.
+        #
+        # Without this guard, an attacker could:
+        # 1. Initiate auth on domain A (stores domain A's ID in session)
+        # 2. Redirect callback to domain B
+        # 3. Setup hook fires on domain B, overwrites session with domain B's ID
+        # 4. Callback validation sees domain B → no mismatch detected
+        strategy          = request.env['omniauth.strategy']
+        is_callback_phase = strategy&.on_callback_path?
+
+        # OIDC strategies require an explicit redirect_uri in both the
+        # authorize request and token exchange. Unlike OAuth2-based strategies,
+        # omniauth_openid_connect reads client_options.redirect_uri verbatim
+        # (no auto-construction from the request host). We set it here so the
+        # value derives from the current request host — correct for both
+        # install-level (canonical domain) and domain-level (custom domain).
+        # Must be identical across both phases (authorize + callback).
+        if strategy&.options&.dig(:discovery) == true
+          redirect_uri                                     = strategy.full_host + strategy.callback_path
+          strategy.options[:client_options]              ||= {}
+          strategy.options[:client_options][:redirect_uri] = redirect_uri
+        end
+
         Auth::Logging.log_auth_event(
           :omniauth_tenant_resolution_start,
           level: :debug,
           host: host,
           path: request.path,
           ip: request.ip,
+          is_callback_phase: is_callback_phase,
         )
 
         # Attempt to resolve tenant from custom domain
@@ -103,11 +131,13 @@ module Auth::Config::Hooks
           next # Continue with platform defaults (if allowed)
         end
 
-        # Store tenant context in session for callback validation
-        # This prevents an attacker from initiating auth on domain A
-        # then redirecting callback to domain B.
-        session[:omniauth_tenant_domain_id] = custom_domain.identifier
-        session[:omniauth_tenant_host]      = host
+        # Store tenant context in session for callback validation.
+        # Only during request phase — callback phase must NOT overwrite the
+        # stored context, otherwise the mismatch check is defeated.
+        unless is_callback_phase
+          session[:omniauth_tenant_domain_id] = custom_domain.identifier
+          session[:omniauth_tenant_host]      = host
+        end
 
         Auth::Logging.log_auth_event(
           :omniauth_tenant_credentials_injecting,
@@ -156,10 +186,27 @@ module Auth::Config::Hooks
             actual_host: request.host,
             actual_domain_id: current_domain&.identifier,
             ip: request.ip,
+            session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
           )
 
-          throw_error_status(403, 'tenant_mismatch', 'Authentication context mismatch')
+          # Return 403 directly rather than throw_error_status, which throws
+          # :rodauth_error that may not be caught in OmniAuth callback context.
+          response.status          = 403
+          response['Content-Type'] = 'application/json'
+          response.write(
+            JSON.generate(
+              error: 'tenant_mismatch',
+              message: 'Authentication context mismatch',
+            ),
+          )
+          request.halt
         end
+
+        # Re-store validated domain_id under a separate key so downstream hooks
+        # (after_omniauth_create_account, after_login) can join the tenant org.
+        # The original :omniauth_tenant_domain_id is intentionally consumed by
+        # session.delete above — separating "pending" from "validated" state.
+        session[:validated_omniauth_domain_id] = expected_domain_id
 
         Auth::Logging.log_auth_event(
           :omniauth_tenant_callback_validated,
@@ -202,7 +249,7 @@ module Auth::Config::Hooks
     # Platform-level requests (on the canonical domain) should not be subject
     # to tenant fallback policy - they are not tenant requests at all.
     #
-    # @param host [String] Request hostname
+    # @param host [String] Request hostname (from request.host, excludes port)
     # @return [Boolean] true if host matches canonical domain
     def self.canonical_domain?(host)
       return false if host.to_s.empty?
@@ -210,8 +257,9 @@ module Auth::Config::Hooks
       canonical = Onetime::Middleware::DomainStrategy.canonical_domain
       return false if canonical.nil?
 
-      # Normalize comparison (case-insensitive)
-      host.to_s.downcase == canonical.to_s.downcase
+      # Normalize comparison: strip port from canonical (request.host excludes port)
+      canonical_host = canonical.to_s.split(':').first
+      host.to_s.downcase == canonical_host.to_s.downcase
     end
 
     # Handle requests where no tenant SSO config is available.
@@ -238,7 +286,7 @@ module Auth::Config::Hooks
         host: host,
       )
 
-      rodauth.throw_error_status(403, 'sso_not_configured', 'SSO not configured for this domain')
+      rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
     end
 
     # Inject tenant credentials into the OmniAuth strategy.
@@ -272,7 +320,8 @@ module Auth::Config::Hooks
           domain_id: sso_config.domain_id,
           provider_type: sso_config.provider_type,
         )
-        rodauth.throw_error_status(
+        rodauth.send(
+          :throw_error_status,
           400,
           'provider_mismatch',
           "SSO provider mismatch: tenant configured #{sso_config.provider_type}, but request is for #{strategy.class.name}",

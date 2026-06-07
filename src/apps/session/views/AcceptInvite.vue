@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
   import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
@@ -36,11 +37,7 @@
     notify: false,
   });
 
-  // Delay before redirecting so the success message is visible and the
-  // background authStore sync (fire-and-forget from useInviteAuth) has time
-  // to settle before /orgs mounts and queries the store.
-  const ACCEPT_SUCCESS_REDIRECT_DELAY_MS = 1500;
-  // Longer delay for the direct accept/decline paths where the server has
+  // Delay for the direct accept/decline paths where the server has
   // already confirmed and no background auth sync is pending.
   const DIRECT_ACTION_REDIRECT_DELAY_MS = 2000;
 
@@ -53,7 +50,7 @@
   const isProcessing = ref(false);
 
   /**
-   * Invite state machine - 6 possible states
+   * Invite state machine
    *
    * States:
    * - loading: Initial fetch in progress
@@ -62,6 +59,8 @@
    * - direct_accept: Authenticated with correct email, can accept immediately
    * - wrong_email: Authenticated but with different email than invitation
    * - already_accepted: Invitation was already accepted (status: active)
+   * - accepted: User just accepted in this session (terminal, redirect pending)
+   * - declined: User just declined in this session (terminal, redirect pending)
    * - invalid: Invitation is expired, declined, revoked, or doesn't exist
    */
   type InviteState =
@@ -71,10 +70,18 @@
     | 'direct_accept'
     | 'wrong_email'
     | 'already_accepted'
+    | 'accepted'
+    | 'declined'
     | 'invalid';
+
+  // Terminal result of the in-session action. Once set, the state machine
+  // pins to the accepted/declined view until the redirect fires, preventing
+  // the action row from re-rendering during the redirect delay window.
+  const actionResult = ref<'accepted' | 'declined' | null>(null);
 
   const inviteState = computed<InviteState>(() => {
     if (isLoading.value) return 'loading';
+    if (actionResult.value) return actionResult.value;
     // If loading finished but no invitation (API error), show invalid state
     if (!invitation.value) return 'invalid';
 
@@ -171,10 +178,10 @@
         shrimp: csrfStore.shrimp,
       });
 
-      success.value = t('web.organizations.invitations.accept_success');
-
       // Reset organization store to force refetch on next mount
       organizationStore.$reset();
+
+      actionResult.value = 'accepted';
 
       setTimeout(() => {
         router.push('/orgs');
@@ -194,11 +201,7 @@
     try {
       await $api.post(`/api/invite/${invitationToken.value}/decline`);
 
-      // Update local state to hide invitation details immediately
-      if (invitation.value) {
-        invitation.value.status = 'declined';
-      }
-      success.value = t('web.organizations.invitations.decline_success');
+      actionResult.value = 'declined';
 
       setTimeout(() => {
         router.push('/');
@@ -214,16 +217,15 @@
   const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
 
   /**
-   * Handler for successful signup/signin + accept flow.
-   * Redirects to organizations page.
+   * Handler for successful signup/signin (auth established, session live).
+   *
+   * Does NOT redirect — the invitation is still pending. The state machine
+   * recomputes to direct_accept once authStore.isAuthenticated flips, which
+   * renders the explicit Accept/Decline buttons. The user must click one.
    */
-  function onAcceptSuccess() {
-    success.value = t('web.organizations.invitations.accept_success');
-    // Reset organization store to force refetch on next mount
-    organizationStore.$reset();
-    setTimeout(() => {
-      router.push('/orgs');
-    }, ACCEPT_SUCCESS_REDIRECT_DELAY_MS);
+  function onAuthSuccess() {
+    error.value = '';
+    success.value = t('web.organizations.invitations.confirm_join_below');
   }
 
   /**
@@ -240,6 +242,16 @@
   function onMfaRequired(redirect: string) {
     router.push({ path: '/mfa-verify', query: { redirect } });
   }
+
+  /**
+   * Handler for when signup fails because account already exists.
+   * Updates invitation state to trigger signin flow instead.
+   */
+  function onAccountExists() {
+    if (invitation.value) {
+      invitation.value.account_exists = true;
+    }
+  }
 </script>
 
 <template>
@@ -248,17 +260,36 @@
     <div
       v-if="inviteState === 'loading'"
       data-testid="invite-loading"
-      class="flex items-center justify-center py-12">
-      <div class="text-center">
-        <OIcon
-          collection="heroicons"
-          name="arrow-path"
-          class="mx-auto size-8 animate-spin text-gray-400"
-          aria-hidden="true" />
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.invitations.loading_invitation') }}
-        </p>
+      role="status"
+      aria-busy="true"
+      class="animate-pulse space-y-6 rounded-lg border border-gray-200 bg-white p-8 shadow-sm motion-reduce:animate-none dark:border-gray-700 dark:bg-gray-800">
+      <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
+      <!-- Heading block -->
+      <Skeleton
+        width="w-2/3"
+        height="h-8"
+        :pulse="false" />
+      <!-- Invite-context lines -->
+      <div class="space-y-3">
+        <Skeleton
+          width="w-1/2"
+          height="h-4"
+          :pulse="false" />
+        <Skeleton
+          width="w-3/4"
+          height="h-4"
+          :pulse="false" />
+        <Skeleton
+          width="w-2/5"
+          height="h-4"
+          :pulse="false" />
       </div>
+      <!-- Action button block -->
+      <Skeleton
+        width="w-full"
+        height="h-10"
+        rounded="rounded-md"
+        :pulse="false" />
     </div>
 
     <!-- Invalid/Expired State -->
@@ -332,6 +363,36 @@
       </div>
     </div>
 
+    <!-- Terminal Action State (just accepted or declined in this session) -->
+    <div
+      v-else-if="inviteState === 'accepted' || inviteState === 'declined'"
+      :data-testid="inviteState === 'accepted' ? 'invite-accepted' : 'invite-declined'"
+      :style="{ '--brand-primary': primaryColor }"
+      class="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div class="text-center">
+        <OIcon
+          collection="heroicons"
+          :name="inviteState === 'accepted' ? 'check-circle' : 'x-circle'"
+          :class="[
+            'mx-auto size-12',
+            inviteState === 'accepted'
+              ? 'text-green-500 dark:text-green-400'
+              : 'text-gray-400 dark:text-gray-500',
+          ]"
+          aria-hidden="true" />
+        <p class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {{
+            inviteState === 'accepted'
+              ? t('web.organizations.invitations.accept_success')
+              : t('web.organizations.invitations.decline_success')
+          }}
+        </p>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.COMMON.redirecting') }}
+        </p>
+      </div>
+    </div>
+
     <!-- Signup Required State (new user, no account) -->
     <div
       v-else-if="inviteState === 'signup_required'"
@@ -350,9 +411,6 @@
         </h1>
       </div>
 
-      <BasicFormAlerts
-        v-if="error"
-        :error="error" />
       <BasicFormAlerts
         v-if="success"
         :success="success" />
@@ -379,16 +437,17 @@
 
       </div>
 
-      <!-- Inline Signup Form -->
+      <!-- Inline Signup Form (handles its own error display) -->
       <InviteSignUpForm
         v-if="invitation"
         :invited-email="invitation.email"
         :invite-token="invitationToken"
         :org-name="invitation.organization_name"
         :auth-methods="invitation.auth_methods || []"
-        @success="onAcceptSuccess"
+        @success="onAuthSuccess"
         @error="onFormError"
-        @decline="handleDecline" />
+        @decline="handleDecline"
+        @account-exists="onAccountExists" />
 
       <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
@@ -414,9 +473,6 @@
         </h1>
       </div>
 
-      <BasicFormAlerts
-        v-if="error"
-        :error="error" />
       <BasicFormAlerts
         v-if="success"
         :success="success" />
@@ -469,7 +525,7 @@
           :invite-token="invitationToken"
           :org-name="invitation.organization_name"
           :auth-methods="invitation.auth_methods || []"
-          @success="onAcceptSuccess"
+          @success="onAuthSuccess"
           @error="onFormError"
           @mfa-required="onMfaRequired"
           @decline="handleDecline" />

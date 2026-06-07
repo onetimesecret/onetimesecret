@@ -96,7 +96,7 @@ ENTITLEMENTS.AUDIT_LOGS          // Has access to audit logs
 
 ```typescript
 limit('teams')              // Max number of teams
-limit('members_per_team')   // Max members per team
+limit('total_members_per_org')   // Max members per org
 limit('custom_domains')     // Max custom domains
 ```
 
@@ -190,8 +190,8 @@ const formatEntitlement = (ent: string): string => {
 ## Don't Do This
 
 ```typescript
-// ❌ Don't check plan IDs
-if (org.planid === 'identity_v1') { }
+// ❌ Don't check plan IDs directly
+if (org.planid === 'identity_plus_v1') { }
 
 // ❌ Don't hardcode plan names
 <p>Upgrade to Identity Plus</p>

@@ -39,6 +39,12 @@ require_relative '../../../../api/colonel/models/banned_ip'
 # Load billing models (includes WebhookSyncFlag needed by webhook handlers)
 require_relative '../../models'
 
+# Load apply_subscription_to_org explicitly. WithOrganizationBilling only
+# requires it at boot time when billing_config.enabled? is true, which
+# depends on the user's local etc/billing.yaml. Tests stub billing as
+# enabled after boot, so the operation must be loaded unconditionally here.
+require_relative '../../operations/apply_subscription_to_org'
+
 # NOTE: Billing config is mocked in before(:each) blocks.
 # Tests should not depend on etc/billing.yaml existing.
 
@@ -65,7 +71,10 @@ module BillingSpecHelper
   # Mock region configuration for plan lookups
   # Tests need a valid region (e.g., 'EU') to match cached Stripe plans
   def mock_region!(region = 'EU')
-    # Override the detect_region method on all billing controllers
+    # Override the detect_region method on all billing controllers (if loaded)
+    # CLI-only specs don't load controllers, so skip gracefully
+    return unless defined?(Billing::Controllers::Base)
+
     allow_any_instance_of(Billing::Controllers::Base).to receive(:region).and_return(region)
   end
 
@@ -128,24 +137,91 @@ module BillingSpecHelper
   # Call this in before(:each) blocks for tests that process subscriptions.
   #
   def stub_test_plan_catalog!
-    # Create a mock plan that responds to plan_id
+    # Mock entitlements set and limits hash for materialization
+    mock_entitlements = double('entitlements_set')
+    allow(mock_entitlements).to receive(:to_a).and_return(%w[secret:create secret:read secret:burn api:access])
+    allow(mock_entitlements).to receive(:each).and_yield('secret:create').and_yield('secret:read').and_yield('secret:burn').and_yield('api:access')
+
+    mock_limits = double('limits_hash')
+    allow(mock_limits).to receive(:hgetall).and_return({ 'secrets_per_day' => '100', 'ttl_max' => '604800' })
+
+    # Mirror of mock_limits.hgetall in the parsed shape (string -> Integer/Float)
+    mock_limits_hash = { 'secrets_per_day' => 100, 'ttl_max' => 604_800 }
+
+    # Mock prices hash (new schema: prices keyed by interval)
+    mock_prices = double('prices_hash')
+    allow(mock_prices).to receive(:hgetall).and_return({
+      'month' => { 'stripe_price_id' => 'price_test', 'amount' => '1900' }.to_json,
+    })
+
+    # Create a mock plan that responds to plan_id and materialization methods
+    # NOTE: plan_id uses family-keyed format (no interval suffix)
+    # NOTE: stripe_price_id/interval/amount moved to nested prices hash
+    mock_price_data = { 'stripe_price_id' => 'price_test', 'amount' => '1200', 'currency' => 'cad' }
+    mock_prices_hash = { 'month' => mock_price_data, 'year' => mock_price_data }
+
     mock_plan = instance_double(
       Billing::Plan,
-      plan_id: 'test_plan_v1_monthly',
-      stripe_price_id: 'price_test',
+      plan_id: 'test_plan_v1',
+      name: 'Test Plan',
       stripe_product_id: 'prod_test',
       tier: 'single_team',
-      interval: 'month',
-      amount: '1900',
       currency: 'cad',
+      entitlements: mock_entitlements,
+      limits: mock_limits,
+      limits_hash: mock_limits_hash,
+      prices: mock_prices,
+      prices_hash: mock_prices_hash,
+      available_intervals: %w[month year],
     )
+    allow(mock_plan).to receive(:destroy!).and_return(true)
+    allow(mock_plan).to receive(:exists?).and_return(true)
+    allow(mock_plan).to receive(:price_for) { |interval| mock_prices_hash[interval.to_s] }
 
     # Mock plan for federation metadata validation
+    # Entitlements/limits mirror billing.test.yaml's identity_plus_v1 so
+    # specs that check named entitlements (e.g., api_access) resolve to true.
+    identity_plus_entitlements_list = %w[
+      create_secrets view_receipt api_access custom_domains
+      extended_default_expiration custom_branding homepage_secrets
+      incoming_secrets custom_mail_sender manage_org
+    ]
+    identity_plus_entitlements = double('identity_plus_entitlements_set')
+    allow(identity_plus_entitlements).to receive(:to_a).and_return(identity_plus_entitlements_list)
+    allow(identity_plus_entitlements).to receive(:member?) { |ent| identity_plus_entitlements_list.include?(ent.to_s) }
+    allow(identity_plus_entitlements).to receive(:include?) { |ent| identity_plus_entitlements_list.include?(ent.to_s) }
+    allow(identity_plus_entitlements).to receive(:each) do |&blk|
+      identity_plus_entitlements_list.each(&blk)
+    end
+
+    identity_plus_limits_hash = {
+      'teams.max' => 0,
+      'organizations.max' => 10,
+      'total_members_per_org.max' => 10,
+      'custom_domains.max' => Float::INFINITY,
+      'secret_lifetime.max' => 2_592_000,
+    }
+    identity_plus_limits = double('identity_plus_limits')
+    allow(identity_plus_limits).to receive(:hgetall).and_return(
+      identity_plus_limits_hash.transform_values { |v| v == Float::INFINITY ? 'unlimited' : v.to_s },
+    )
+
     identity_plus_plan = instance_double(
       Billing::Plan,
       plan_id: 'identity_plus_v1',
+      name: 'Identity Plus',
+      tier: 'single_team',
+      currency: 'cad',
+      entitlements: identity_plus_entitlements,
+      limits: identity_plus_limits,
+      limits_hash: identity_plus_limits_hash,
+      prices: mock_prices,
+      prices_hash: mock_prices_hash,
+      available_intervals: %w[month year],
     )
+    allow(identity_plus_plan).to receive(:destroy!).and_return(true)
     allow(identity_plus_plan).to receive(:exists?).and_return(true)
+    allow(identity_plus_plan).to receive(:price_for) { |interval| mock_prices_hash[interval.to_s] }
 
     # Stub find_by_stripe_price_id to return mock plan for test price IDs
     allow(Billing::Plan).to receive(:find_by_stripe_price_id).and_call_original
@@ -159,9 +235,14 @@ module BillingSpecHelper
       .with(satisfy { |id| id&.start_with?('price_test_') })
       .and_return(mock_plan)
 
-    # Stub Plan.load to validate plan IDs used in federation metadata
-    # This is called by PlanValidator.valid_plan_id? for metadata lookups
+    # Stub Plan.load for plan IDs used in materialization and validation.
+    # These mocks support READS only (for ApplySubscriptionToOrg etc).
+    # Tests that need to WRITE plans (ConfigLoader.load_all_from_config) should
+    # reset this stub via: allow(Billing::Plan).to receive(:load).and_call_original
     allow(Billing::Plan).to receive(:load).and_call_original
+    allow(Billing::Plan).to receive(:load)
+      .with('test_plan_v1')
+      .and_return(mock_plan)
     allow(Billing::Plan).to receive(:load)
       .with('identity_plus_v1')
       .and_return(identity_plus_plan)

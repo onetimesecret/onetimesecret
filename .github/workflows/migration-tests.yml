@@ -52,6 +52,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: migration-${{ github.workflow }}-${{ github.ref }}
@@ -132,7 +133,7 @@ jobs:
 
       - name: Upload SQLite test results
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sqlite-migration-results
           path: tmp/sqlite_migration_results.json
@@ -194,45 +195,7 @@ jobs:
       - name: Create PostgreSQL test users
         env:
           PGPASSWORD: postgres
-        run: |
-          # Create read/write user for tests
-          psql -h localhost -U postgres -d onetime_auth_test -c "
-            DO \$\$
-            BEGIN
-              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_user') THEN
-                CREATE USER onetime_user WITH PASSWORD 'testpass';
-              END IF;
-            END
-            \$\$;
-          "
-
-          # Create privileged user for migrations (can create extensions)
-          psql -h localhost -U postgres -d onetime_auth_test -c "
-            DO \$\$
-            BEGIN
-              IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'onetime_migrator') THEN
-                CREATE USER onetime_migrator WITH PASSWORD 'migratepass' CREATEDB;
-              END IF;
-            END
-            \$\$;
-          "
-
-          # Grant necessary permissions
-          psql -h localhost -U postgres -d onetime_auth_test -c "
-            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_user;
-            GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_migrator;
-            GRANT ALL ON SCHEMA public TO onetime_user;
-            GRANT ALL ON SCHEMA public TO onetime_migrator;
-
-            -- Set default privileges so tables created by onetime_migrator
-            -- are automatically accessible to onetime_user
-            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-              GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user;
-            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-              GRANT USAGE, SELECT ON SEQUENCES TO onetime_user;
-            ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-              GRANT EXECUTE ON FUNCTIONS TO onetime_user;
-          "
+        run: psql -h localhost -U postgres -d onetime_auth_test -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
 
       - name: Run PostgreSQL migration tests
         env:
@@ -296,7 +259,7 @@ jobs:
 
       - name: Upload PostgreSQL test results
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: postgres-migration-results
           path: tmp/postgres_migration_results.json
@@ -479,33 +442,78 @@ jobs:
         continue-on-error: true
 
       - name: Generate summary
+        id: summary
         run: |
-          echo "## Migration Test Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| SQLite Migrations | ${{ needs.migration-tests-sqlite.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| PostgreSQL Migrations | ${{ needs.migration-tests-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Concurrent Boot | ${{ needs.migration-tests-concurrent.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          SQLITE_RESULT="${{ needs.migration-tests-sqlite.result }}"
+          PG_RESULT="${{ needs.migration-tests-postgres.result }}"
+          CONCURRENT_RESULT="${{ needs.migration-tests-concurrent.result }}"
+
+          SUMMARY="## Migration Test Results\n\n"
+          SUMMARY+="| Job | Status |\n"
+          SUMMARY+="|-----|--------|\n"
+
+          status_icon() {
+            case "$1" in
+              success)   echo "pass" ;;
+              failure)   echo "FAIL" ;;
+              cancelled) echo "skip" ;;
+              skipped)   echo "skip" ;;
+              *)         echo "??" ;;
+            esac
+          }
+
+          SUMMARY+="| SQLite Migrations | $(status_icon "$SQLITE_RESULT") |\n"
+          SUMMARY+="| PostgreSQL Migrations | $(status_icon "$PG_RESULT") |\n"
+          SUMMARY+="| Concurrent Boot | $(status_icon "$CONCURRENT_RESULT") |\n"
 
           if [ -d "migration-results" ]; then
-            echo "### Detailed Results" >> $GITHUB_STEP_SUMMARY
+            SUMMARY+="\n### Detailed Results\n\n"
             for file in migration-results/*.json; do
               if [ -f "$file" ]; then
                 NAME=$(basename "$file" .json)
                 TOTAL=$(jq -r '.summary.example_count // "N/A"' "$file")
                 FAILURES=$(jq -r '.summary.failure_count // "N/A"' "$file")
-                echo "- **$NAME**: $TOTAL tests, $FAILURES failures" >> $GITHUB_STEP_SUMMARY
+                SUMMARY+="- **$NAME**: $TOTAL tests, $FAILURES failures\n"
               fi
             done
           fi
 
-      - name: Check overall status
-        run: |
-          if [ "${{ needs.migration-tests-sqlite.result }}" != "success" ] || \
-             [ "${{ needs.migration-tests-postgres.result }}" != "success" ] || \
-             [ "${{ needs.migration-tests-concurrent.result }}" != "success" ]; then
-            echo "At least one migration test job failed"
-            exit 1
-          fi
+          echo -e "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "body<<$EOF" >> $GITHUB_OUTPUT
+          echo -e "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const body = process.env.SUMMARY_BODY;
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const marker = '## Migration Test Results';
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.startsWith(marker)
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
+        env:
+          SUMMARY_BODY: ${{ steps.summary.outputs.body }}

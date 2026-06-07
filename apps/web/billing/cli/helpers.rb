@@ -10,9 +10,6 @@ module Onetime
   module CLI
     # Base module for billing command helpers
     module BillingHelpers
-      # Use constants from Billing::Metadata module to avoid magic strings
-      REQUIRED_METADATA_FIELDS = ::Billing::Metadata::REQUIRED_FIELDS
-
       # Retry configuration for Stripe API calls
       MAX_STRIPE_RETRIES      = 3
       STRIPE_RETRY_BASE_DELAY = 2 # seconds
@@ -170,17 +167,41 @@ module Onetime
       end
 
       def format_plan_row(plan)
-        amount             = format_amount(plan.amount, plan.currency)
         entitlements_count = plan.entitlements&.size || 0
 
+        # Family-keyed plans have nested prices; show intervals available
+        intervals         = plan.available_intervals.join(',')
+        intervals_display = intervals.empty? ? 'N/A' : intervals
+
+        # Show monthly amount if available, else yearly, else N/A
+        monthly = plan.price_for('month')
+        yearly  = plan.price_for('year')
+        amount  = if monthly
+                    format_amount(monthly['amount'], monthly['currency'])
+                  elsif yearly
+                    format_amount(yearly['amount'], yearly['currency'])
+                  else
+                    'N/A'
+                  end
+
+        # Show all stripe price IDs (comma-separated)
+        price_ids         = plan.all_stripe_price_ids.join(',')
+        price_ids_display = price_ids.empty? ? 'N/A' : price_ids
+
+        # App identifier from constant (all OTS plans share this)
+        app = Billing::Metadata::APP_NAME
+
         format(
-          '%-20s %-18s %-10s %-10s %-12s %d',
+          '%-20s %-12s %-18s %-10s %-10s %-12s %-6d %-26s %s',
           (plan.plan_id || 'N/A')[0..19],
+          app[0..11],
           (plan.tier || 'N/A')[0..17],
-          (plan.interval || 'N/A')[0..9],
+          intervals_display[0..9],
           amount[0..9],
           (plan.region || 'N/A')[0..11],
           entitlements_count,
+          (plan.stripe_product_id || 'N/A')[0..25],
+          price_ids_display,
         )
       end
 
@@ -191,58 +212,40 @@ module Onetime
         "#{currency&.upcase || 'CAD'} #{format('%.2f', dollars)}"
       end
 
-      def validate_product_metadata(product)
-        errors = []
-
-        REQUIRED_METADATA_FIELDS.each do |field|
-          unless product.metadata[field]
-            errors << "Missing required metadata field: #{field}"
-          end
-        end
-
-        unless product.metadata[Billing::Metadata::FIELD_APP] == Billing::Metadata::APP_NAME
-          errors << "Invalid app metadata (should be '#{Billing::Metadata::APP_NAME}')"
-        end
-
-        errors
-      end
-
       def prompt_for_metadata
         metadata = {}
 
         # Always include all metadata fields (using constants)
         metadata[Billing::Metadata::FIELD_APP] = Billing::Metadata::APP_NAME
 
-        print 'Plan ID (optional, e.g., identity_plus_v1): '
-        metadata[Billing::Metadata::FIELD_PLAN_ID] = $stdin.gets.chomp
+        # Skip blank/EOF inputs so we don't clutter Stripe metadata with empty
+        # strings. Fields with explicit defaults (display_order, show_on_plans_page)
+        # handle blanks below.
+        assign_if_present = ->(key, prompt) do
+          print prompt
+          input         = $stdin.gets&.chomp
+          metadata[key] = input if input && !input.empty?
+        end
 
-        print 'Tier (e.g., single_team, multi_team): '
-        metadata[Billing::Metadata::FIELD_TIER] = $stdin.gets.chomp
-
-        print 'Region (e.g., EU, global): '
-        metadata[Billing::Metadata::FIELD_REGION] = $stdin.gets.chomp
-
-        print 'Tenancy (e.g., single, multi): '
-        metadata[Billing::Metadata::FIELD_TENANCY] = $stdin.gets.chomp
-
-        print 'Entitlements (comma-separated, e.g., api_access,custom_domains): '
-        metadata[Billing::Metadata::FIELD_ENTITLEMENTS] = $stdin.gets.chomp
+        assign_if_present.call(Billing::Metadata::FIELD_PLAN_ID, 'Plan ID (optional, e.g., identity_plus_v1): ')
+        assign_if_present.call(Billing::Metadata::FIELD_TIER, 'Tier (e.g., single_team, multi_team): ')
+        assign_if_present.call(Billing::Metadata::FIELD_REGION, 'Region (e.g., EU, global): ')
+        assign_if_present.call(Billing::Metadata::FIELD_TENANCY, 'Tenancy (e.g., single, multi): ')
+        assign_if_present.call(Billing::Metadata::FIELD_ENTITLEMENTS, 'Entitlements (comma-separated, e.g., api_access,custom_domains): ')
 
         print 'Display order (higher = earlier, default: 0): '
-        display_order                                    = $stdin.gets.chomp
-        metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] = display_order.empty? ? '0' : display_order
+        display_order                                    = $stdin.gets&.chomp
+        metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] = display_order.nil? || display_order.empty? ? '0' : display_order
 
         print 'Show on plans page? (yes/no, default: yes): '
-        show_on_plans                                         = $stdin.gets.chomp
-        # Default to 'yes' if empty, otherwise check for truthy value
-        show_on_plans_value                                   = show_on_plans.empty? || Onetime::Utils.yes?(show_on_plans)
+        show_on_plans                                         = $stdin.gets&.chomp
+        # Default to 'yes' on empty/EOF, otherwise check for truthy value
+        show_on_plans_value                                   = show_on_plans.nil? || show_on_plans.empty? || Onetime::Utils.yes?(show_on_plans)
         metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = show_on_plans_value.to_s
 
-        print 'Limit teams (-1 for unlimited): '
-        metadata[Billing::Metadata::FIELD_LIMIT_TEAMS] = $stdin.gets.chomp
-
-        print 'Limit members per team (-1 for unlimited): '
-        metadata[Billing::Metadata::FIELD_LIMIT_MEMBERS_PER_TEAM] = $stdin.gets.chomp
+        Billing::Metadata::LIMIT_FIELDS.each_key do |field_name|
+          assign_if_present.call(field_name, "#{Billing::Metadata.limit_field_description(field_name)}: ")
+        end
 
         metadata[Billing::Metadata::FIELD_CREATED] = Time.now.utc.iso8601
 

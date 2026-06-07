@@ -73,8 +73,17 @@ describe('schemaRegistry completeness', () => {
     expect(apiKeys).toHaveLength(expected.length);
   });
 
+  it('contains all expected config schemas', () => {
+    const configKeys = registryKeys.filter((k) => k.startsWith('config/'));
+    const expected = ['config/billing', 'config/static'];
+    for (const key of expected) {
+      expect(configKeys, `missing ${key}`).toContain(key);
+    }
+    expect(configKeys).toHaveLength(expected.length);
+  });
+
   it('total count matches expected', () => {
-    expect(registryKeys).toHaveLength(15);
+    expect(registryKeys).toHaveLength(17);
   });
 
   it('every entry resolves to a valid Zod schema', () => {

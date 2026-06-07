@@ -58,5 +58,17 @@
   "web.feedback.reason_email_change_unauthorized": {
     "text": "It looks like you're reporting an unauthorized email change on your account. Please describe what happened and we'll investigate right away.",
     "content_hash": "00e56551"
+  },
+  "web.feedback.anonymous_no_reply": {
+    "text": "Note: if you'd like a response, please sign or include an email address in the message.",
+    "content_hash": "c984f705"
+  },
+  "web.feedback.characters_remaining": {
+    "text": "{count} characters remaining",
+    "content_hash": "8d796f40"
+  },
+  "web.feedback.character_limit_reached": {
+    "text": "Character limit reached",
+    "content_hash": "031e9310"
   }
 }

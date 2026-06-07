@@ -49,8 +49,6 @@ const v3BrandSettingsSchema = z
     instructions_post_reveal: z.string().nullish(),
     description: z.string().optional(),
     button_text_light: z.boolean().default(false),
-    allow_public_homepage: z.boolean().default(false),
-    allow_public_api: z.boolean().default(false),
     font_family: z.enum(['sans', 'serif', 'mono']).default('sans'),
     corner_style: z.enum(['rounded', 'pill', 'square']).default('rounded'),
     locale: z.string().default('en'),
@@ -230,7 +228,6 @@ describe('V2 CustomDomain Round-Trip', () => {
       if (parsed.brand) {
         expect(parsed.brand.primary_color).toBe('#336699');
         expect(parsed.brand.button_text_light).toBe(true);
-        expect(parsed.brand.allow_public_homepage).toBe(true);
         expect(parsed.brand.font_family).toBe('serif');
         expect(parsed.brand.corner_style).toBe('pill');
       }
@@ -360,7 +357,7 @@ describe('V3 CustomDomain Round-Trip', () => {
       expect(v3Wire.brand).not.toBeNull();
       if (v3Wire.brand) {
         expect(typeof v3Wire.brand.button_text_light).toBe('boolean');
-        expect(typeof v3Wire.brand.allow_public_homepage).toBe('boolean');
+        expect(typeof v3Wire.brand.notify_enabled).toBe('boolean');
       }
     });
   });

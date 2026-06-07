@@ -39,10 +39,7 @@ import { z } from 'zod';
  *    - count: for list responses
  *    - user_id/shrimp: session/CSRF data
  *
- *    Error responses (4xx/5xx):
- *    - message: human-readable error message
- *    - code: machine-readable error code (e.g., "VALIDATION_ERROR")
- *    - details: optional structured error data
+ *    Error responses (4xx/5xx): see src/schemas/errors/ and ADR-013.
  *
  * 3. Single Record vs List Responses:
  *    We explicitly distinguish between:
@@ -172,46 +169,12 @@ export const createApiListResponseSchema = <
     count: z.number().int().optional(),
   });
 
-/**
- * Schema for API error responses (4xx/5xx status codes).
- *
- * @category API
- *
- * @example
- * ```typescript
- * // Parse error response
- * const error = apiErrorResponseSchema.parse({
- *   message: 'Secret not found',
- *   code: 'NOT_FOUND',
- * });
- *
- * // Display to user
- * showError(error.message);
- *
- * // Log for debugging
- * if (error.code) {
- *   logger.error(`API error: ${error.code}`, error.details);
- * }
- * ```
- */
-export const apiErrorResponseSchema = z.object({
-  /** Human-readable error message for display. */
-  message: z.string(),
-  /** Machine-readable error code (e.g., "VALIDATION_ERROR", "NOT_FOUND"). */
-  code: z.string().optional(),
-  /** Optional structured error data for debugging. */
-  details: z.record(z.string(), z.unknown()).optional(),
-});
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Type exports
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** TypeScript type for base API response fields (user_id, shrimp). */
 export type ApiBaseResponse = z.infer<typeof apiResponseBaseSchema>;
-
-/** TypeScript type for API error responses. */
-export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
 
 /** TypeScript type for single-record API responses. */
 export type ApiRecordResponse<T> = z.infer<

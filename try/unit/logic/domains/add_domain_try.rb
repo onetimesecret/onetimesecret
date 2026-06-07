@@ -15,8 +15,8 @@ require 'securerandom'
 OT.boot! :test
 
 # Load DomainsAPI logic classes
-require 'apps/api/domains/logic/base'
-require 'apps/api/domains/logic/domains/add_domain'
+require 'api/domains/logic/base'
+require 'api/domains/logic/domains/add_domain'
 
 # Setup test fixtures with unique identifiers
 @timestamp = Familia.now.to_i
@@ -26,9 +26,17 @@ require 'apps/api/domains/logic/domains/add_domain'
 @org1 = Onetime::Organization.create!("First Corp", @owner1, "domains1_#{@timestamp}@first.com")
 @org2 = Onetime::Organization.create!("Second Corp", @owner2, "domains2_#{@timestamp}@second.com")
 
-# Enable standalone mode (billing disabled) to grant custom_domains entitlement
+# Enable standalone mode (billing disabled) to grant custom_domains entitlement.
+# Note: The singleton method override happens AFTER org creation, so we must
+# re-materialize the owner memberships with the overridden org instance.
 @org1.define_singleton_method(:billing_enabled?) { false }
 @org2.define_singleton_method(:billing_enabled?) { false }
+
+# Re-materialize owner memberships with the billing-disabled org instances.
+# Without this, the memberships' entitlements were computed during create!
+# using the original org (with billing_enabled? returning its default value).
+Onetime::OrganizationMembership.find_by_org_customer(@org1.objid, @owner1.objid)&.materialize_for_role!(@org1)
+Onetime::OrganizationMembership.find_by_org_customer(@org2.objid, @owner2.objid)&.materialize_for_role!(@org2)
 
 # Define unique test domain names
 @test_domain1 = "secrets-#{@timestamp}.example.com"
@@ -170,8 +178,14 @@ end
 # This enables org context to persist across navigation when session hasn't been updated
 
 ## Membership was returned (not nil)
-# Add owner1 as member of org2 so they can add domains to it via explicit org_id
-@membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'member' })
+# Add owner1 as owner of org2 so they can add domains to it via explicit org_id.
+# The role 'owner' includes custom_domains entitlement (ADR-012 Stage 3).
+# 'admin' lacks custom_domains, and 'member' lacks the admin-gate check —
+# explicit-org_id tests focus on resolution, not role-gate behavior.
+# Role-gate coverage lives in the separate cases further down.
+@membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'owner' })
+# Re-materialize with the billing-disabled org instance (see note at top of file)
+@membership.materialize_for_role!(@org2)
 @membership.nil?
 #=> false
 
@@ -226,6 +240,88 @@ rescue Onetime::FormError => e
   e.message
 end
 #=> "Organization not found or access denied"
+
+# -----------------------------------------------------------------------------
+# Role gate (#3033 §2, ADR-012 Stage 3): custom_domains is an owner-level
+# entitlement by default. Admins need an explicit grant to add domains.
+# Owner path is exercised by every preceding case (owners created the orgs).
+# The cases below cover: admin with explicit grant (allowed), member (rejected).
+# -----------------------------------------------------------------------------
+
+## Setup: invite a plain member and an admin into @org1 for the role-gate cases
+@member_user = Onetime::Customer.create!(email: "member_#{@timestamp}@test.com")
+@admin_user  = Onetime::Customer.create!(email: "admin_#{@timestamp}@test.com")
+@member_membership = @org1.add_members_instance(@member_user, through_attrs: { role: 'member' })
+@admin_membership  = @org1.add_members_instance(@admin_user,  through_attrs: { role: 'admin'  })
+# Re-materialize with the billing-disabled org instance (see note at top of file)
+@member_membership.materialize_for_role!(@org1)
+@admin_membership.materialize_for_role!(@org1)
+# Grant custom_domains to admin explicitly (ADR-012: custom_domains is owner-only by default;
+# this test verifies admin + explicit grant can add domains)
+@admin_membership.grant_entitlement('custom_domains')
+[@member_membership.role, @admin_membership.role]
+#=> ['member', 'admin']
+
+## Member is rejected with Forbidden (not FormError) when adding a domain
+@strategy_result_member = MockStrategyResult.new(
+  session: {},
+  user: @member_user,
+  metadata: { organization_context: { organization: @org1 } }
+)
+@test_domain_member = "member-#{@timestamp}.example.com"
+@logic_member = DomainsAPI::Logic::Domains::AddDomain.new(
+  @strategy_result_member,
+  { 'domain' => @test_domain_member }
+)
+begin
+  @logic_member.raise_concerns
+  "unexpected_success"
+rescue Onetime::Forbidden => e
+  e.is_a?(Onetime::Forbidden)
+end
+#=> true
+
+## No domain was created for the member-rejected attempt
+@org1.list_domains.map(&:display_domain).include?(@test_domain_member)
+#=> false
+
+## Admin is allowed to add a domain
+@strategy_result_admin = MockStrategyResult.new(
+  session: {},
+  user: @admin_user,
+  metadata: { organization_context: { organization: @org1 } }
+)
+@test_domain_admin = "admin-#{@timestamp}.example.com"
+@logic_admin = DomainsAPI::Logic::Domains::AddDomain.new(
+  @strategy_result_admin,
+  { 'domain' => @test_domain_admin }
+)
+@logic_admin.raise_concerns
+@logic_admin.process
+[@logic_admin.greenlighted, @logic_admin.custom_domain.display_domain]
+#=> [true, @test_domain_admin]
+
+## Member is rejected even via explicit org_id path (auth gate runs after resolution)
+@org2.add_members_instance(@member_user, through_attrs: { role: 'member' })
+@test_domain_member_explicit = "member-explicit-#{@timestamp}.example.com"
+@logic_member_explicit = DomainsAPI::Logic::Domains::AddDomain.new(
+  @strategy_result_member,
+  { 'domain' => @test_domain_member_explicit, 'org_id' => @org2.objid }
+)
+begin
+  @logic_member_explicit.raise_concerns
+  "unexpected_success"
+rescue Onetime::Forbidden => e
+  e.is_a?(Onetime::Forbidden)
+end
+#=> true
+
+## Role-gate cleanup
+@logic_admin.custom_domain.destroy! if @logic_admin&.custom_domain&.exists?
+@member_membership.destroy! if @member_membership&.exists?
+@admin_membership.destroy! if @admin_membership&.exists?
+@member_user.destroy! if @member_user&.exists?
+@admin_user.destroy! if @admin_user&.exists?
 
 ## Cleanup for explicit org_id tests
 @logic_extid.custom_domain.destroy! if @logic_extid&.custom_domain&.exists?

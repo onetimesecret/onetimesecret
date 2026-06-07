@@ -11,9 +11,10 @@
 module BillingTestHelpers
   class << self
     # Disable billing globally for tests by resetting the singleton
-    # ConfigResolver will return nil when no billing config exists in spec/
+    # and forcing enabled=false regardless of config file.
     def disable_billing!
       ensure_familia_configured!
+      ENV['BILLING_ENABLED'] = 'false'
       reset_billing_singleton!
     end
 
@@ -28,10 +29,8 @@ module BillingTestHelpers
       ensure_familia_configured!
       ensure_billing_loaded! if enabled
       clear_plan_cache!
+      ENV['BILLING_ENABLED'] = enabled.to_s
       reset_billing_singleton!
-
-      # Override config file setting with the enabled parameter value
-      Onetime::BillingConfig.instance.config['enabled'] = enabled
     end
 
     # Load billing module if not already defined
@@ -94,10 +93,13 @@ module BillingTestHelpers
     end
 
     # Populate Redis plan cache with test data
+    # Clears entitlements/limits first to avoid polluting from prior test runs.
     def populate_test_plans(plans)
       ensure_familia_configured!
       plans.each do |plan_data|
         plan                                                    = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
+        plan.entitlements.clear
+        plan.limits.clear
         (plan_data[:entitlements] || []).each { |e| plan.entitlements.add(e) }
         (plan_data[:limits] || {}).each { |k, v| plan.limits[k] = v.to_s }
         plan.save

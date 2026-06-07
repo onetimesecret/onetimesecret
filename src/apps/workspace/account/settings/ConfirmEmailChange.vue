@@ -64,7 +64,7 @@
         <OIcon
           collection="heroicons"
           name="arrow-path-solid"
-          class="mx-auto size-8 animate-spin
+          class="mx-auto size-8 animate-spin motion-reduce:animate-none
             text-brand-500"
           aria-hidden="true" />
         <p

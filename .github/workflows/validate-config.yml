@@ -39,7 +39,10 @@ jobs:
         uses: ruby/setup-ruby@97b333846670e3cb692f29c0c5d42b71efc6bc93
         with:
           ruby-version: '3.4.9'
-          bundler-cache: true
+          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+
+      - name: Install Ruby dependencies
+        run: bundle install --jobs 4 --retry 3
 
       - name: Set up Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -53,19 +56,7 @@ jobs:
         run: pnpm install
 
       - name: Generate JSON schemas
-        run: pnpm run schema:generate
+        run: pnpm run schemas:json:generate
 
-      - name: Validate example config
-        run: pnpm run config:validate
-
-      - name: Show config
-        run: pnpm run config
-
-      - name: Show config types
-        run: pnpm run config --types
-
-      - name: Validate test config
-        continue-on-error: true
-        run: |
-          echo "Validating test configuration (may have intentional errors)..."
-          bin/ots validate tests/unit/ruby/config.test.yaml || true
+      - name: Validate config.defaults.yaml against the generated schema
+        run: bin/ots config validate

@@ -22,20 +22,22 @@ module OrganizationAPI::Logic
         verify_authenticated!
 
         @organization = load_organization(@extid)
-        verify_organization_admin(@organization)
+        require_entitlement_in!(@organization, 'manage_members')
 
         # Find invitation by token
         @invitation = Onetime::OrganizationMembership.find_by_token(@token)
-        raise_not_found('Invitation not found') if @invitation.nil?
+        if @invitation.nil?
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
+        end
 
         # Verify invitation belongs to this organization
         if @invitation.organization_objid != @organization.objid
-          raise_not_found('Invitation not found')
+          raise_not_found(error_key: 'api.organizations.invitations.errors.invitation_not_found')
         end
 
         # Can only revoke pending invitations
         unless @invitation.pending?
-          raise_form_error('Can only revoke pending invitations', field: :token)
+          raise_form_error(error_key: 'api.organizations.invitations.errors.revoke_only_pending', field: :token, error_type: :invalid)
         end
       end
 
@@ -56,23 +58,6 @@ module OrganizationAPI::Logic
           organization_id: @organization.extid,
           revoked: true,
         }
-      end
-
-      protected
-
-      def verify_organization_admin(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) || organization_admin?(organization) },
-          error_message: 'Only organization owners and admins can revoke invitations',
-        )
-      end
-
-      def organization_admin?(organization)
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid, cust.objid
-        )
-        membership&.admin?
       end
     end
   end

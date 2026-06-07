@@ -42,7 +42,7 @@ enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
 stripe_key: <%= ENV['STRIPE_API_KEY'] || 'nostripekey' %>
 webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
 stripe_api_version: "2025-12-15.clover"
-currency: <%= ENV['BILLING_CURRENCY'] || 'cad' %>
+currency: <%= ENV['BILLING_CURRENCY'] || ENV['CURRENCY'] || 'cad' %>
 
 # Product Matching Configuration
 #
@@ -86,6 +86,10 @@ entitlements:
     category: infrastructure
     description: Can configure custom domains
 
+  extended_default_expiration:
+    category: core
+    description: Extended secret expiration (30 days default)
+
   custom_branding:
     category: branding
     description: Custom branding and styling
@@ -108,11 +112,19 @@ entitlements:
 
   manage_orgs:
     category: collaboration
-    description: Can create and manage organizations
+    description: Add and manage organizations on your account
+
+  manage_org:
+    category: collaboration
+    description: Can manage organization settings, members, and domains
 
   manage_teams:
     category: collaboration
     description: Can create and manage teams
+
+  manage_billing:
+    category: billing
+    description: Can manage billing details and change plans
 
   manage_members:
     category: collaboration
@@ -141,6 +153,10 @@ entitlements:
   manage_sso:
     category: advanced
     description: Single sign-on configuration and management
+
+  custom_signup_validation:
+    category: advanced
+    description: Per-domain signup validation strategy (passthrough, allowlist, MX, SMTP)
 
 # Plan Definitions
 #
@@ -179,7 +195,10 @@ plans:
 
     limits:
       organizations: 1
-      members_per_team: 1
+      total_members_per_org: 1         # aggregate cap across all roles
+      role_owners_per_org: 1          # always 1 — explicit for clarity
+      role_admins_per_org: 0
+      role_members_per_org: 0
       custom_domains: 1
       secret_lifetime: 1209600 # 14 days in seconds
       secrets_per_day: null    # TBD - not yet enforced
@@ -202,16 +221,16 @@ plans:
     description: "For individuals needing custom domains and extended retention"
 
     entitlements:
-      - create_secrets
-      - view_receipt
       - api_access
-      - custom_domains
-      - custom_privacy_defaults
+      - create_secrets
       - custom_branding
+      - custom_domains
+      - custom_mail_sender
+      - custom_privacy_defaults
+      - extended_default_expiration
       - homepage_secrets
       - incoming_secrets
-      - custom_mail_sender
-      - flexible_from_domain
+      - view_receipt
 
     features:
       - web.billing.features.custom_domains
@@ -221,18 +240,23 @@ plans:
       - web.billing.features.api_access
 
     limits:
-      organizations: 1
-      members_per_team: 1
       custom_domains: -1       # unlimited
-      secret_lifetime: 1209600 # 14 days in seconds
+      organizations: 1
+      role_admins_per_org: 0
+      role_members_per_org: 0
+      role_owners_per_org: 1          # always 1 — explicit for clarity
+      secret_lifetime: 2592000 # 30 days in seconds
       secrets_per_day: -1      # unlimited
+      total_members_per_org: 1         # aggregate cap across all roles
 
     # Changes to prices requires a full catalog push && catalog pull. If a price is
     # updated/deleted/archived through the Stripe dashboard, the pull command must
     # include the --clear flag to properly updated the cache.
     prices:
-        # Complimentary price for pro-bono accounts (see #2657)
-        # Used by: bin/ots migrations migrate-probono-accounts --price-id <id>
+        # Optional $0 price for complimentary subscriptions created via the
+        # Stripe dashboard. Legacy pro-bono accounts (customer.planid=identity)
+        # are migrated directly via `bin/ots migrations grant-probono-entitlements`
+        # and do not require a Stripe subscription.
       - interval: month
         amount: 0
         metadata:
@@ -264,6 +288,7 @@ plans:
   #     - incoming_secrets
   #     - custom_mail_sender
   #     - flexible_from_domain
+  #     - extended_default_expiration
   #     - manage_teams
   #     - manage_members
   #
@@ -273,9 +298,12 @@ plans:
   #
   #   limits:
   #     organizations: 1
-  #     members_per_team: 5
+  #     total_members_per_org: 5            # aggregate cap across all roles
+  #     role_owners_per_org: 1             # always 1 — explicit for clarity
+  #     role_admins_per_org: 2
+  #     role_members_per_org: -1   # unlimited regular members (capped by total_members_per_org)
   #     custom_domains: -1       # unlimited
-  #     secret_lifetime: 2592000 # 30 days in seconds
+  #     secret_lifetime: 7776000 # 90 days in seconds
   #     secrets_per_day: -1      # unlimited
   #
   #   prices:
@@ -283,8 +311,8 @@ plans:
   #       amount: 8500  # $85.00
   #     - interval: year
   #       amount: 85000 # $850.00
-  #       # Complimentary price for pro-bono accounts (see #2657)
-  #       # Used by: bin/ots migrations migrate-probono-accounts --price-id <id>
+  #       # Optional $0 price for complimentary subscriptions created via the
+  #       # Stripe dashboard.
   #     - interval: month
   #       amount: 0
   #       metadata:
@@ -296,17 +324,21 @@ plans:
 stripe_metadata_schema:
   required:
     - app: "onetimesecret"  # Must be exactly this value
+    - plan_id: "Unique plan identifier (must match catalog key)"
     - tier: "Tier identifier (single_account, single_team, multi_team, etc.)"
     - tenancy: "Tenancy type (multi, dedicated)"
 
   optional:
-    - plan_id: "Unique plan identifier (auto-generated if not provided)"
     - region: "Regional scope (e.g., EU, US, CA); omit for global plans"
     - display_order: "Sort order on plans page (lower = earlier, default: 0)"
     - show_on_plans_page: "Visibility on plans page (true/false, default: true)"
     - entitlements: "Comma-separated entitlement list"
     - created: "ISO 8601 creation timestamp"
-    - limit_members_per_team: "Max members per team (-1 for unlimited)"
+    - limit_teams: "Max teams (-1 for unlimited)"
+    - limit_total_members_per_org: "Aggregate member cap across all roles (-1 for unlimited)"
+    - limit_role_owners_per_org: "Max owners per organization (typically 1)"
+    - limit_role_admins_per_org: "Max admin members (-1 for unlimited)"
+    - limit_role_members_per_org: "Max regular members (-1 for unlimited)"
     - limit_custom_domains: "Max custom domains (-1 for unlimited)"
     - limit_secret_lifetime: "Max secret lifetime in seconds (-1 for unlimited)"
     - limit_secrets_per_day: "Daily secret creation limit (-1 for unlimited)"

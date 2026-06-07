@@ -24,7 +24,7 @@ export type SystemSettingsStore = {
   $reset: () => void;
 } & PiniaCustomProperties;
 
-export const useSystemSettingsStore = defineStore('colonel', () => {
+export const useSystemSettingsStore = defineStore('systemSettings', () => {
   const $api = useApi();
 
   // State

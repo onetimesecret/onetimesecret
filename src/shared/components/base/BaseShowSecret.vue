@@ -78,14 +78,14 @@
       <!-- Global Loading State -->
       <div
         v-if="state.isLoading"
-        class="animate-pulse space-y-6 p-4">
+        class="animate-pulse motion-reduce:animate-none space-y-6 p-4">
         <SecretSkeleton />
       </div>
 
       <!-- Initial Loading - Prevent UnknownSecret flash -->
       <div
         v-else-if="!state.isLoading && !record && !state.error"
-        class="animate-pulse space-y-6 p-4">
+        class="animate-pulse motion-reduce:animate-none space-y-6 p-4">
         <SecretSkeleton />
       </div>
 

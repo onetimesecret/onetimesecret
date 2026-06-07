@@ -4,6 +4,9 @@
 
 require_relative 'base_handler'
 require_relative '../../lib/stripe_circuit_breaker'
+require_relative '../catalog/pull'
+require_relative '../catalog/plan_persister'
+require_relative '../catalog/data_extractor'
 
 module Billing
   module Operations
@@ -53,13 +56,21 @@ module Billing
             mark_price_inactive(@data_object.id)
           when 'plan.created', 'plan.updated'
             # Legacy plan events - still trigger full refresh for compatibility
-            Billing::Plan.refresh_from_stripe
+            Billing::Operations::Catalog::Pull.call
             billing_logger.info '[CatalogUpdated] Legacy plan event, full refresh complete'
           end
 
           :success
         rescue Billing::CircuitOpenError => ex
           schedule_circuit_retry(ex)
+        rescue Onetime::ConfigError => ex
+          billing_logger.warn '[CatalogUpdated] Skipping product with invalid metadata',
+            {
+              error: ex.message,
+              event_type: @event.type,
+              object_id: @data_object.id,
+            }
+          :success
         rescue StandardError => ex
           billing_logger.error '[CatalogUpdated] Sync failed',
             {
@@ -169,8 +180,8 @@ module Billing
           # Fetch fresh from Stripe - webhook payload is a snapshot and may be stale
           product = fetch_with_retry { Stripe::Product.retrieve(product_id) }
 
-          # Only sync OTS products (filter by app metadata)
-          return unless product.metadata['app'] == 'onetimesecret'
+          # Only sync valid OTS products (app metadata + required fields)
+          return unless Billing::Plan.valid_ots_product?(product)
 
           # Skip products from a different region when regional isolation is configured
           return unless Billing::Plan.correct_region?(product)
@@ -183,12 +194,12 @@ module Billing
             # Skip non-recurring prices (one-time payments, etc.)
             next unless price.type == 'recurring'
 
-            plan_data     = Billing::Plan.extract_plan_data(product, price)
-            Billing::Plan.upsert_from_stripe_data(plan_data)
+            plan_data     = Billing::Operations::Catalog::DataExtractor.call(product, price)
+            Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(plan_data)
             synced_count += 1
           end
 
-          Billing::Plan.rebuild_stripe_price_id_cache
+          Billing::Operations::Catalog::PlanPersister.rebuild_stripe_price_id_cache
 
           billing_logger.info '[CatalogUpdated] Synced product',
             {
@@ -209,8 +220,8 @@ module Billing
           price   = fetch_with_retry { Stripe::Price.retrieve(price_id) }
           product = fetch_with_retry { Stripe::Product.retrieve(price.product) }
 
-          # Only sync OTS products
-          return unless product.metadata['app'] == 'onetimesecret'
+          # Only sync valid OTS products (app metadata + required fields)
+          return unless Billing::Plan.valid_ots_product?(product)
 
           # Skip products from a different region when regional isolation is configured
           return unless Billing::Plan.correct_region?(product)
@@ -218,9 +229,9 @@ module Billing
           # Skip non-recurring prices
           return unless price.type == 'recurring'
 
-          plan_data = Billing::Plan.extract_plan_data(product, price)
-          Billing::Plan.upsert_from_stripe_data(plan_data)
-          Billing::Plan.rebuild_stripe_price_id_cache
+          plan_data = Billing::Operations::Catalog::DataExtractor.call(product, price)
+          Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(plan_data)
+          Billing::Operations::Catalog::PlanPersister.rebuild_stripe_price_id_cache
 
           billing_logger.info '[CatalogUpdated] Synced price',
             {
@@ -253,7 +264,7 @@ module Billing
             marked_count += 1
           end
 
-          Billing::Plan.rebuild_stripe_price_id_cache if marked_count > 0
+          Billing::Operations::Catalog::PlanPersister.rebuild_stripe_price_id_cache if marked_count > 0
 
           billing_logger.info '[CatalogUpdated] Product deletion processed',
             {
@@ -283,7 +294,7 @@ module Billing
           plan.last_synced_at = Time.now.to_i.to_s
           plan.save
 
-          Billing::Plan.rebuild_stripe_price_id_cache
+          Billing::Operations::Catalog::PlanPersister.rebuild_stripe_price_id_cache
 
           billing_logger.info '[CatalogUpdated] Marked plan inactive (price deleted)',
             {

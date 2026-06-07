@@ -5,7 +5,7 @@
 #
 # Invariant: the only input is the set of custom_domain:<objid>:object hashes
 # discovered by SCAN. Target structures (instances, display_domain_index,
-# display_domains, owners, extid_lookup, organization:*:domains) are never
+# display_domain_index, owners, extid_lookup, organization:*:domains) are never
 # read as input. Every step writes to a temp key and atomic-swaps onto the
 # final key.
 #
@@ -50,7 +50,7 @@ module Onetime
         counts = {}
         counts[:instances]            = rebuild_instances(log)
         counts[:display_domain_index] = rebuild_display_domain_index(log)
-        counts[:display_domains]      = rebuild_hashkey(log, CustomDomain.display_domains,
+        counts[:display_domain_index]      = rebuild_hashkey(log, CustomDomain.display_domain_index,
                                           ->(o) { [o.display_domain.to_s, o.identifier.to_s] })
         counts[:owners]               = rebuild_hashkey(log, CustomDomain.owners,
                                           ->(o) { [o.identifier.to_s, o.org_id.to_s] })
@@ -242,11 +242,13 @@ if $PROGRAM_NAME == __FILE__
     warn 'Refusing: --execute requires CONFIRM=yes.'
     exit 2
   end
-  OT.boot! :cli
-  abort 'Boot failed: OT.conf is nil' unless OT.conf
   begin
+    OT.boot! :cli
     Onetime::CustomDomain::IndexRebuilder.run(execute: execute, verbose: verbose)
     exit 0
+  rescue Onetime::FatalBootError => ex
+    warn ex.message
+    exit 1
   rescue StandardError => ex
     warn "[rebuild_custom_domain_indexes] #{ex.class}: #{ex.message}"
     warn ex.backtrace.first(10).join("\n") if verbose

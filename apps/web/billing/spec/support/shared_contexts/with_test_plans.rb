@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../operations/catalog/config_loader'
+
 # Shared context for loading test plans for billing specs
 #
 # Purpose: Enable unit testing of billing logic without Stripe API access.
@@ -26,8 +28,12 @@ RSpec.shared_context 'with_test_plans' do
     # The test config has enabled: false by default for isolation
     allow(Onetime::BillingConfig.instance).to receive(:enabled?).and_return(true)
 
+    # Reset Plan.load stubs from stub_test_plan_catalog! so ConfigLoader can
+    # create real Plan instances (the mocks only support reads, not writes)
+    allow(Billing::Plan).to receive(:load).and_call_original
+
     # Load all plans from test config into Redis cache
-    Billing::Plan.load_all_from_config
+    Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
     # Mock region to match test plans (EU)
     mock_region!('EU')
@@ -60,14 +66,14 @@ RSpec.shared_context 'with_test_plans' do
     end
   end
 
-  # Helper: Get test plan ID for tier/interval/region
+  # Helper: Get test plan ID for tier/region (family-keyed, no interval suffix)
   #
   # @param tier [String] Plan tier
-  # @param interval [String] Billing interval ('monthly' or 'yearly')
+  # @param _interval [String] Ignored (kept for API compatibility)
   # @param region [String] Region code (defaults to 'EU')
-  # @return [String] Plan ID in format: tier_region_interval
-  def test_plan_id(tier, interval = 'monthly', region = 'EU')
-    "#{tier}_#{region}_#{interval}".downcase
+  # @return [String] Plan ID in format: tier_region (family-keyed)
+  def test_plan_id(tier, _interval = nil, region = 'EU')
+    "#{tier}_#{region}".downcase
   end
 
   # Helper: Load test entitlements from config

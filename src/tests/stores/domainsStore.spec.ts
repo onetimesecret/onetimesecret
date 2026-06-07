@@ -51,8 +51,6 @@ describe('domainsStore', () => {
         font_family: 'sans',
         corner_style: 'rounded',
         button_text_light: false,
-        allow_public_api: false,
-        allow_public_homepage: false,
         locale: 'en',
         notify_enabled: false,
         passphrase_required: false,

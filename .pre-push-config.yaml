@@ -56,7 +56,10 @@ repos:
         name: Validate YAML files
         args: ['--allow-multiple-documents']
         files: \.(yaml|yml)$
-        exclude: 'etc/defaults/.*\.yaml$'
+        # These config files are ERB templates, not plain YAML: they carry
+        # <% %> control tags that the YAML parser cannot handle. They are
+        # rendered through ERB before being parsed at runtime.
+        exclude: '^etc/defaults/.*\.yaml$|^etc/examples/billing\.example\.yaml$|^spec/.*\.test\.yaml$'
 
       - id: check-toml
         name: Validate TOML files
@@ -65,6 +68,9 @@ repos:
       - id: check-json
         name: Validate JSON files
         files: \.json$
+        # tsconfig*.json files are JSONC (TypeScript permits comments); the
+        # broken.json fixture is an intentionally-malformed test input.
+        exclude: '(^|/)tsconfig[^/]*\.json$|^src/tests/i18n/fixtures/invalid/syntax/broken\.json$'
 
       - id: mixed-line-ending
         name: Check line endings

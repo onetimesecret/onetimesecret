@@ -11,10 +11,15 @@
 
 import { z } from 'zod';
 
+import { BillingTierSchema, CanonicalPlanIdSchema } from './config/billing';
+
 /**
  * Plan type schema
+ *
+ * Reuses the authoritative billing tier enum from the catalog config
+ * schema so runtime subscription state and the catalog stay in lockstep.
  */
-export const planTypeSchema = z.enum(['free', 'single_team', 'multi_team']);
+export const planTypeSchema = BillingTierSchema;
 
 export type PlanType = z.infer<typeof planTypeSchema>;
 
@@ -61,7 +66,7 @@ export const subscriptionContractSchema = z.object({
   status: subscriptionStatusSchema,
   teams_limit: z.number(),
   teams_used: z.number(),
-  members_per_team_limit: z.number(),
+  total_members_per_org_limit: z.number(),
   billing_interval: billingIntervalSchema,
   current_period_start: z.number(),
   current_period_end: z.number(),
@@ -92,25 +97,6 @@ export const invoiceContractSchema = z.object({
 });
 
 export type InvoiceContract = z.infer<typeof invoiceContractSchema>;
-
-/**
- * Plan schema
- *
- * Validates plan definition data.
- */
-export const planSchema = z.object({
-  id: z.string(),
-  type: planTypeSchema,
-  name: z.string(),
-  description: z.string(),
-  price_monthly: z.number(),
-  price_yearly: z.number(),
-  teams_limit: z.number(),
-  members_per_team_limit: z.number(),
-  features: z.array(z.string()),
-});
-
-export type Plan = z.infer<typeof planSchema>;
 
 /**
  * Payment method card schema
@@ -231,7 +217,8 @@ export const pendingMigrationSchema = z.object({
   target_price_id: z.string(),
   target_plan_name: z.string(),
   target_currency: z.string(),
-  target_plan_id: z.string(),
+  target_plan_id: CanonicalPlanIdSchema,
+  target_interval: z.enum(['month', 'year']).optional(),
   effective_after: z.number(),
 });
 

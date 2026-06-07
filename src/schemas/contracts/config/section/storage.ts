@@ -4,28 +4,32 @@
  * Storage Configuration Schema
  *
  * Maps to the `redis:` section in config.defaults.yaml
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and Redis database-number bounds live in
+ * `shapes/config/section/storage.ts`.
  */
 
 import { z } from 'zod';
 
 /**
  * Redis database mapping
- * Maps database names to their Redis database numbers (0-15)
+ * Maps database names to their Redis database numbers
  */
 const redisDbsSchema = z.object({
-  session: z.number().int().min(0).max(15).default(0),
-  custom_domain: z.number().int().min(0).max(15).default(0),
-  customer: z.number().int().min(0).max(15).default(0),
-  metadata: z.number().int().min(0).max(15).default(0),
-  secret: z.number().int().min(0).max(15).default(0),
-  feedback: z.number().int().min(0).max(15).default(0),
+  session: z.number().optional(),
+  custom_domain: z.number().optional(),
+  customer: z.number().optional(),
+  metadata: z.number().optional(),
+  secret: z.number().optional(),
+  feedback: z.number().optional(),
 });
 
 /**
  * Redis/Valkey connection configuration
  */
 const redisSchema = z.object({
-  uri: z.string().default('redis://127.0.0.1:6379'),
+  uri: z.string().optional(),
   dbs: redisDbsSchema.optional(),
 });
 
@@ -36,7 +40,7 @@ const storageSchema = z.object({
   db: z
     .object({
       connection: z.object({
-        url: z.string().default('redis://localhost:6379'),
+        url: z.string().optional(),
       }),
       database_mapping: z.record(z.string(), z.number().nullable()).optional(),
     })

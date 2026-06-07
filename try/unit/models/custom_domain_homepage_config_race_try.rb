@@ -27,6 +27,9 @@ OT.info 'Cleaned Redis for HomepageConfig race-condition test run'
 @owner   = Onetime::Customer.create!(email: "hp_race_owner_#{@ts}_#{@entropy}@test.com")
 @org     = Onetime::Organization.create!("HpRace Test Org #{@ts}", @owner, "hp_race_#{@ts}@test.com")
 @domain  = Onetime::CustomDomain.create!("hp-race-#{@ts}.example.com", @org.objid)
+# CustomDomain.create! bootstraps a default-disabled HomepageConfig; drop it
+# so this test races find_or_create_for_domain from a clean slate.
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@domain.identifier)
 
 ## Setup: target domain has no HomepageConfig
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain.identifier)
@@ -122,8 +125,9 @@ Onetime::CustomDomain::HomepageConfig.find_by_domain_id(@domain_pre.identifier).
 # the pre-check, and pass through on subsequent calls so the re-read inside
 # the rescue branch returns the persisted record.
 
-## Setup: third domain, no HomepageConfig
+## Setup: third domain, no HomepageConfig (drop the bootstrap record)
 @domain_rescue = Onetime::CustomDomain.create!("hp-race-rescue-#{@ts}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@domain_rescue.identifier)
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_rescue.identifier)
 #=> false
 
@@ -228,8 +232,9 @@ end
 # raise RecordExistsError directly, since without a real pre-existing record
 # the WATCH path would actually persist successfully).
 
-## Setup: fourth domain for the vanish scenario
+## Setup: fourth domain for the vanish scenario (drop the bootstrap record)
 @domain_vanish = Onetime::CustomDomain.create!("hp-race-vanish-#{@ts}.example.com", @org.objid)
+Onetime::CustomDomain::HomepageConfig.delete_for_domain!(@domain_vanish.identifier)
 Onetime::CustomDomain::HomepageConfig.exists_for_domain?(@domain_vanish.identifier)
 #=> false
 

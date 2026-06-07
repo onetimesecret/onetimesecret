@@ -104,7 +104,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       org_id: test_organization.org_id,
     )
     domain.save
-    Onetime::CustomDomain.display_domains.put(tenant_domain, domain.domainid)
+    Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain
   end
 
@@ -135,7 +135,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
   # Clean up after each test
   after do
     Onetime::CustomDomain::MailerConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
-    Onetime::CustomDomain.display_domains.remove(tenant_domain) rescue nil
+    Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy! rescue nil
     test_organization&.destroy! rescue nil
     test_owner&.destroy! rescue nil
@@ -366,7 +366,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('From address')
+          expect(body['error']).to include('From address')
         end
 
         it 'succeeds without provider param (resolved from installation config)' do
@@ -394,7 +394,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           body = json_body
-          expect(body['message']).to include('Invalid email format')
+          expect(body['error']).to include('Invalid email format')
           expect(body['field']).to eq('from_address')
         end
       end
@@ -419,19 +419,19 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         # Feature flag check uses raise_form_error -> FormError -> 422
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('not enabled')
+        expect(body['error']).to include('not enabled')
       end
 
-      it 'returns 403 for non-owner of organization' do
+      it 'returns 403 for non-member of organization' do
         enable_sender_feature_flag
         login_as(test_non_owner)
 
         csrf_put api_path(test_custom_domain.extid), valid_ses_params
 
-        # Non-owner check uses verify_one_of_roles! -> Onetime::Forbidden -> 403
+        # Non-member check uses require_entitlement_in! -> Onetime::Forbidden -> 403
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['message']).to include('owner')
+        expect(body['error']).to include('member')
       end
 
       it 'returns 422 when organization lacks custom_mail_sender entitlement' do
@@ -446,7 +446,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         # Entitlement check uses raise_form_error -> FormError -> 422
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('custom_mail_sender')
+        expect(body['error']).to include('custom_mail_sender')
       end
 
       it 'returns 404 for non-existent domain' do
@@ -456,7 +456,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Domain not found')
+        expect(body['error']).to include('Domain not found')
       end
     end
   end
@@ -543,7 +543,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Sender configuration not found')
+        expect(body['error']).to include('Sender configuration not found')
       end
     end
 
@@ -771,7 +771,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('Invalid email format')
+        expect(body['error']).to include('Invalid email format')
         expect(body['field']).to eq('from_address')
       end
     end
@@ -802,7 +802,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('required')
+        expect(body['error']).to include('required')
       end
     end
   end
@@ -853,7 +853,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Sender configuration not found')
+        expect(body['error']).to include('Sender configuration not found')
       end
     end
 
@@ -909,14 +909,14 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'returns 403 for non-owner of organization' do
+      it 'returns 403 for non-member of organization' do
         login_as(test_non_owner)
 
         csrf_post provision_path(test_custom_domain.extid), {}
 
         expect(last_response.status).to eq(403)
         body = json_body
-        expect(body['message']).to include('owner')
+        expect(body['error']).to include('member')
       end
 
       it 'returns 422 when organization lacks custom_mail_sender entitlement' do
@@ -928,7 +928,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         # Entitlement check uses raise_form_error -> FormError -> 422
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('custom_mail_sender')
+        expect(body['error']).to include('custom_mail_sender')
       end
 
       it 'returns 404 for non-existent domain' do
@@ -937,7 +937,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Domain not found')
+        expect(body['error']).to include('Domain not found')
       end
     end
 
@@ -951,7 +951,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(404)
         body = json_body
-        expect(body['message']).to include('Sender configuration not found')
+        expect(body['error']).to include('Sender configuration not found')
       end
 
       it 'returns 422 when provider is not configured' do
@@ -967,7 +967,7 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
 
         expect(last_response.status).to eq(422)
         body = json_body
-        expect(body['message']).to include('Provider')
+        expect(body['error']).to include('Provider')
       end
     end
 
@@ -1078,8 +1078,8 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         # The endpoint returns error but may use different status codes
         # Based on the implementation, errors go through error_response which defaults to 400
         body = json_body
-        expect(body).to have_key('message')
-        expect(body['message']).to include('Daily quota exceeded')
+        expect(body).to have_key('error')
+        expect(body['error']).to include('Daily quota exceeded')
       end
     end
   end

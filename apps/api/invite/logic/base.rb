@@ -40,7 +40,9 @@ module InviteAPI
       # @raise [NotFoundError] if token is invalid or expired
       def load_invitation(token)
         invitation = Onetime::OrganizationMembership.find_by_token(token)
-        raise_not_found('Invitation not found or expired') if invitation.nil?
+        if invitation.nil?
+          raise_not_found(error_key: 'api.invite.errors.invitation_not_found_or_expired')
+        end
         invitation
       end
 

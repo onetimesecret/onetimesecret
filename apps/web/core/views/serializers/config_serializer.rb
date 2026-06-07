@@ -39,6 +39,10 @@ module Core
         diagnostics = view_vars['diagnostics']
 
         output['ui']             = site.dig('interface', 'ui')
+        output['api']            = {
+          'enabled' => site.dig('interface', 'api', 'enabled') != false,
+          'guest_routes' => site.dig('interface', 'api', 'guest_routes') || {},
+        }
         output['authentication'] = site.fetch('authentication', nil)
         output['homepage_mode']  = view_vars['homepage_mode']
         output['secret_options'] = site['secret_options']
@@ -48,8 +52,9 @@ module Core
         domains                  = features.fetch('domains', {})
 
         # Only send the regions config when the feature is enabled.
+        # Transform jurisdictions to send identifier + i18n key only (no domain data).
         output['regions_enabled'] = regions.fetch('enabled', false)
-        output['regions']         = regions if output['regions_enabled']
+        output['regions']         = transform_regions(regions) if output['regions_enabled']
 
         output['domains_enabled'] = domains.fetch('enabled', false)
         output['domains']         = domains if output['domains_enabled']
@@ -115,6 +120,7 @@ module Core
         # @return [Hash] Template with all possible configuration output fields
         def output_template
           {
+            'api' => nil,
             'authentication' => nil,
             'brand_primary_color' => nil,
             'brand_product_name' => nil,
@@ -273,6 +279,36 @@ module Core
                 'display_name' => config.display_name.to_s,
               },
             ],
+          }
+        end
+
+        # Transform regions config for frontend consumption
+        #
+        # Passes through identifier, domain, icon, and i18n key.
+        # Domain is public (users navigate to it directly).
+        # Icons are optional; frontend falls back to src/sources/jurisdictions.ts.
+        #
+        # @param regions [Hash] Raw regions config from features
+        # @return [Hash] Transformed regions with jurisdiction data
+        def transform_regions(regions)
+          jurisdictions = regions.fetch('jurisdictions', [])
+
+          transformed_jurisdictions = jurisdictions.map do |j|
+            identifier     = j['identifier'].to_s
+            result         = {
+              'identifier' => identifier,
+              'domain' => j['domain'].to_s,
+              'display_name_i18n_key' => j['display_name_i18n_key'] ||
+                                         "web.regions.jurisdictions.#{identifier.downcase}.name",
+            }
+            result['icon'] = j['icon'] if j['icon'].is_a?(Hash)
+            result
+          end
+
+          {
+            'enabled' => regions.fetch('enabled', false),
+            'current_jurisdiction' => regions['current_jurisdiction'],
+            'jurisdictions' => transformed_jurisdictions,
           }
         end
 

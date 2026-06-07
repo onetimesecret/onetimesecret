@@ -91,7 +91,7 @@
         <div class="flex">
           <div class="shrink-0">
             <svg
-              class="size-5 animate-spin text-blue-400"
+              class="size-5 animate-spin motion-reduce:animate-none text-blue-400"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"

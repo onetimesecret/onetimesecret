@@ -5,6 +5,8 @@
 //
 // Architecture: contract → shape → API
 
+import { captureMessage } from '@/services/diagnostics.service';
+
 /**
  * Organization record contracts defining field names and wire format.
  *
@@ -21,6 +23,8 @@
  */
 
 import { z } from 'zod';
+
+import { CanonicalPlanIdSchema } from './config/billing';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Organization canonical schema
@@ -65,8 +69,8 @@ export const organizationCanonical = z.object({
   /** Whether this is an auto-created default workspace (prevents deletion). */
   is_default: z.boolean(),
 
-  /** Subscription plan ID (defaults to 'free'). */
-  planid: z.string(),
+  /** Subscription plan ID (defaults to 'free_v1'). */
+  planid: CanonicalPlanIdSchema,
 
   /** Organization creation timestamp (Unix epoch seconds). */
   created: z.number(),
@@ -94,7 +98,7 @@ import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
  */
 export const organizationLimitsSchema = z.object({
   teams: z.number().optional(),
-  members_per_team: z.number().optional(),
+  total_members_per_org: z.number().optional(),
   custom_domains: z.number().optional(),
 });
 
@@ -111,32 +115,53 @@ export const organizationRoleSchema = membershipRoleSchema;
 export type OrganizationRole = z.infer<typeof organizationRoleSchema>;
 
 /**
- * Entitlement schema
+ * Known entitlements for TypeScript type checking
  *
- * Maps to STANDALONE_ENTITLEMENTS in backend (lib/onetime/billing/catalog.rb)
+ * Maps to STANDALONE_ENTITLEMENTS in backend
+ * @see etc/examples/billing.example.yaml
+ * @see lib/onetime/billing/catalog.rb
  */
-export const entitlementSchema = z.enum([
-  // Core entitlements (standalone mode)
+export const KNOWN_ENTITLEMENTS = [
   'api_access',
-  'custom_domains',
-  'custom_privacy_defaults',
-  'extended_default_expiration',
-  'custom_mail_sender',
-  'flexible_from_domain',
-  'custom_branding',
-  'incoming_secrets',
-  'manage_orgs',
-  'manage_teams',
-  'manage_members',
-  'manage_sso',
   'audit_logs',
-  // Free tier entitlements (from billing.yaml free_v1 plan)
   'create_secrets',
-  'view_receipt',
-  // Paid plan entitlements (from billing.yaml)
-  'homepage_secrets',
+  'custom_branding',
+  'custom_domains',
+  'custom_mail_sender',
+  'custom_privacy_defaults',
+  'custom_signup_validation',
+  'extended_default_expiration',
   'flexible_from_domain',
-]);
+  'homepage_secrets',
+  'incoming_secrets',
+  'ip_access_rules',
+  'manage_billing',
+  'manage_members',
+  'manage_org',
+  'manage_orgs',
+  'manage_sso',
+  'manage_teams',
+  'notifications',
+  'view_receipt',
+  'workspace_branding',
+] as const;
+
+const knownEntitlementSet = new Set<string>(KNOWN_ENTITLEMENTS);
+const warnedEntitlements = new Set<string>();
+
+/**
+ * Entitlement schema - accepts any string to avoid breaking on unknown entitlements.
+ * Logs a warning for unknown values (once per value) to surface config drift.
+ */
+export const entitlementSchema = z.string().transform((val) => {
+  if (!knownEntitlementSet.has(val) && !warnedEntitlements.has(val)) {
+    warnedEntitlements.add(val);
+    const message = `Unfamiliar entitlement: "${val}"`;
+    console.warn(`[entitlements] ${message}`);
+    captureMessage(message, { level: 'warning', tags: { entitlement: val } });
+  }
+  return val;
+});
 
 export type Entitlement = z.infer<typeof entitlementSchema>;
 
@@ -221,6 +246,8 @@ export const organizationMemberContractSchema = z.object({
   joined_at: z.number(),
   is_owner: z.boolean(),
   is_current_user: z.boolean(),
+  provisioning_source: z.string().nullish(),
+  domain_scope_id: z.string().nullish(),
 });
 
 export type OrganizationMemberContract = z.infer<typeof organizationMemberContractSchema>;

@@ -50,6 +50,9 @@ require_relative 'factories/auth_account_factory'
 #   end
 #
 module PostgresModeSuiteDatabase
+  REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
+  EXPECTED_SCHEMA_VERSION = 7
+
   class << self
     attr_reader :database, :migration_database
 
@@ -78,8 +81,6 @@ module PostgresModeSuiteDatabase
     end
 
     def setup!
-      return if @setup_complete
-
       require 'sequel'
       require 'auth/database'
       Sequel.extension :migration
@@ -87,10 +88,24 @@ module PostgresModeSuiteDatabase
       # Check if PostgreSQL is available - return early if not (specs will be skipped)
       return unless postgres_available?
 
+      # Fast path: if setup ran and schema is intact, nothing to do
+      if @setup_complete && schema_intact?
+        return
+      end
+
+      # If setup ran before but schema was destroyed (e.g. migration spec
+      # dropped tables), clean slate and re-run migrations.
+      if @setup_complete && !schema_intact?
+        clean_database_for_setup
+        run_migrations
+        verify_schema!
+        return
+      end
+
       database_url = ENV['AUTH_DATABASE_URL']
 
       # Create PostgreSQL database connection
-      @database = Sequel.connect(database_url)
+      @database = Sequel.connect(database_url).tap { |db| db.extension :date_arithmetic }
 
       # Verify we're connected to PostgreSQL
       unless @database.database_type == :postgres
@@ -103,6 +118,9 @@ module PostgresModeSuiteDatabase
       # Run migrations (may require elevated privileges)
       run_migrations
 
+      # Verify migrations actually created the expected schema
+      verify_schema!
+
       # Save original connection method for restoration
       @original_connection_method = Auth::Database.method(:connection)
 
@@ -113,10 +131,22 @@ module PostgresModeSuiteDatabase
       db = @database
       Auth::Database.define_singleton_method(:connection) { db }
 
-      # Ensure application is booted (idempotent in test mode)
+      # Boot the application with a forced fresh boot.
+      #
+      # `force: true` resets boot state first so the full initializer chain
+      # re-runs here. A plain `Onetime.boot! :test` is idempotent in test mode
+      # and silently skips when boot state is already :started — which happens
+      # whenever an earlier spec (e.g. spec/integration/all boot/config specs)
+      # booted first. The skip is mostly harmless, except it bypasses the
+      # ConfigureFamilia initializer that sets Familia's encryption keys and
+      # current_key_version. Those are process-global; if a prior connect_to_db:
+      # false boot left boot :started without running ConfigureFamilia, the
+      # encryption config is never populated and any encrypted-field write
+      # (e.g. Receipt.spawn_pair) raises "Key version cannot be nil".
+      # Forcing a fresh boot guarantees ConfigureFamilia runs for the suite.
       require 'onetime'
       require 'onetime/config'
-      Onetime.boot! :test
+      Onetime.boot!(:test, force: true)
 
       # Reset and rebuild registry with our test database connection
       require 'onetime/auth_config'
@@ -156,6 +186,36 @@ module PostgresModeSuiteDatabase
       @setup_complete == true
     end
 
+    # Check whether the schema is intact (tables exist at correct version).
+    # Another spec (e.g. migrations_postgres_spec) may have dropped tables
+    # or left a partial migration state on the shared database.
+    def schema_intact?
+      return false unless @database
+      return false unless REQUIRED_TABLES.all? { |t| @database.table_exists?(t) }
+      return false unless @database.table_exists?(:schema_info)
+
+      @database[:schema_info].get(:version) == EXPECTED_SCHEMA_VERSION
+    rescue Sequel::DatabaseError
+      false
+    end
+
+    # Hard-fail if migrations didn't produce the expected schema.
+    def verify_schema!
+      missing = REQUIRED_TABLES.reject { |t| @database.table_exists?(t) }
+      unless missing.empty?
+        raise <<~MSG
+          [PostgresModeSuiteDatabase] Migration completed but required tables are missing: #{missing.join(', ')}
+          This indicates migrations failed silently or another spec dropped tables.
+        MSG
+      end
+
+      return if @database.table_exists?(:schema_info) &&
+                @database[:schema_info].get(:version) == EXPECTED_SCHEMA_VERSION
+
+      actual = @database.table_exists?(:schema_info) ? @database[:schema_info].get(:version) : 'none'
+      raise "[PostgresModeSuiteDatabase] Schema version mismatch: expected #{EXPECTED_SCHEMA_VERSION}, got #{actual}"
+    end
+
     # Clean database for initial setup
     #
     # Uses elevated connection if available to handle CI permission model where
@@ -181,53 +241,41 @@ module PostgresModeSuiteDatabase
         # Use regular connection (works when running as database owner)
         clean_schema_with_connection(@database)
       end
-    rescue Sequel::DatabaseError => e
-      warn "[PostgresModeSuiteDatabase] Failed to clean database: #{e.message}"
-      # Continue - migrations may still succeed if database is actually clean
     end
 
-    # Perform the actual schema drop/recreate with the given connection
+    # Perform the actual schema cleanup with the given connection
+    #
+    # Uses DROP TABLE CASCADE instead of DROP SCHEMA because onetime_migrator
+    # doesn't own the public schema in CI (postgres does). Table owners can
+    # drop their own tables, but only schema owners can drop schemas.
+    #
+    # Drops ALL tables including schema_info so migrations re-run from scratch.
+    # Functions are also dropped since migrations recreate them.
     def clean_schema_with_connection(db)
-      # Drop and recreate public schema (removes all objects)
-      db.run 'DROP SCHEMA IF EXISTS public CASCADE'
-      db.run 'CREATE SCHEMA public'
-      db.run 'GRANT ALL ON SCHEMA public TO postgres'
-      db.run 'GRANT ALL ON SCHEMA public TO public'
+      # Get all tables in public schema and drop in a single statement
+      tables = db.tables
 
-      # Re-apply grants for test users after schema recreation
-      apply_schema_grants_with_connection(db)
-    end
+      # Drop ALL tables including schema_info — we want migrations to re-run
+      if tables.any?
+        table_list = tables.map { |t| db.literal(Sequel.identifier(t)) }.join(', ')
+        db.run "DROP TABLE IF EXISTS #{table_list} CASCADE"
+      end
 
-    # Apply schema-level grants using the given connection
-    def apply_schema_grants_with_connection(db)
-      # Check if onetime_migrator role exists (CI environment)
-      migrator_exists = db.fetch(
-        "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
-      ).any?
+      # Drop functions that migrations will recreate (exclude system/extension functions)
+      # Only drop functions we created, not citext extension functions etc.
+      our_functions = %w[
+        rodauth_get_salt
+        rodauth_valid_password_hash
+        cleanup_expired_tokens
+        update_last_login_time
+        cleanup_expired_tokens_extended
+        update_accounts_updated_at
+        update_session_last_use
+        cleanup_old_audit_logs
+        get_account_security_summary
+      ]
 
-      return unless migrator_exists
-
-      # Re-apply schema grants
-      db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
-      db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
-
-      # Re-apply default privileges so tables created by onetime_migrator
-      # are automatically accessible to onetime_user
-      db.run <<~SQL
-        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-          GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
-      SQL
-      db.run <<~SQL
-        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-          GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
-      SQL
-      db.run <<~SQL
-        ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-          GRANT EXECUTE ON FUNCTIONS TO onetime_user
-      SQL
-    rescue Sequel::DatabaseError => e
-      warn "[PostgresModeSuiteDatabase] Failed to apply schema grants: #{e.message}"
-      # Continue - may not have permission or roles don't exist
+      db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE" if our_functions.any?
     end
 
 
@@ -243,7 +291,9 @@ module PostgresModeSuiteDatabase
       if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
         # Use separate elevated connection for migrations
         # Keep it open for test data setup (infrastructure tests need INSERT privileges)
-        @migration_database = Sequel.connect(migration_url)
+        unless @migration_database
+          @migration_database = Sequel.connect(migration_url)
+        end
         Sequel::Migrator.run(@migration_database, migrations_path)
       else
         # Run migrations with standard connection
@@ -278,7 +328,7 @@ module PostgresModeSuiteDatabase
       begin
         # Fetch all sequence names for tables with serial columns using Sequel's DSL
         table_names = AuthAccountFactory::RODAUTH_TABLES.map(&:to_s)
-        sequences_to_reset = db[:information_schema__columns]
+        sequences_to_reset = db[Sequel[:information_schema][:columns]]
           .select { Sequel.function(:pg_get_serial_sequence, :table_name, :column_name).as(:sequence_name) }
           .distinct
           .where(table_schema: 'public')

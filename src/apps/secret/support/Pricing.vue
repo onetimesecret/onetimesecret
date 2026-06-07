@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { RouterLink, useRoute } from 'vue-router';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import PlanCardSkeleton from '@/shared/components/billing/PlanCardSkeleton.vue';
   import PlanCard from '@/shared/components/billing/PlanCard.vue';
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import { classifyError } from '@/schemas/errors';
@@ -110,7 +110,7 @@
   /**
    * Check if plan should be highlighted based on URL product parameter.
    * Matches the product param against the plan ID prefix.
-   * Example: product='identity_plus' matches plan.id='identity_plus_v1_monthly'
+   * Example: product='identity_plus' matches plan.id='identity_plus_v1'
    */
   const isPlanHighlighted = (plan: BillingPlan): boolean => {
     if (!highlightedProduct.value) return false;
@@ -126,17 +126,6 @@
   };
 
   /**
-   * Extract product name from plan ID for signup query params.
-   * Plan ID format: {product}_v{version}_{interval}
-   * Example: identity_plus_v1_monthly -> identity_plus_v1
-   *
-   * @param planId - The full plan ID (e.g., 'identity_plus_v1_monthly')
-   * @returns Product identifier without interval (e.g., 'identity_plus_v1')
-   */
-  const extractProductFromPlanId = (planId: string): string =>
-    // Remove the interval suffix (monthly, yearly, etc.)
-    planId.replace(/_(monthly|yearly|month|year)$/i, '');
-  /**
    * Get the interval name for query params from plan interval.
    * Uses 'monthly' or 'yearly' format for URL query params.
    */
@@ -145,17 +134,28 @@
 
   /**
    * Build signup URL with product and interval query params.
-   * Free plans go to /signup without params.
+   * Free plans go to /signup without billing params.
    * Paid plans include product and interval for checkout flow.
+   * All variants include redirect=<current fullPath> so the user returns
+   * to this pricing view (with any query/hash preserved) after authentication.
    */
   const getSignupUrl = (plan: BillingPlan): string => {
-    if (plan.tier === 'free') {
-      return '/signup';
+    const params = new URLSearchParams();
+    if (plan.tier !== 'free') {
+      params.set('product', plan.id);
+      params.set('interval', getIntervalForQuery(plan));
     }
-    const product = extractProductFromPlanId(plan.id);
-    const interval = getIntervalForQuery(plan);
-    return `/signup?product=${encodeURIComponent(product)}&interval=${encodeURIComponent(interval)}`;
+    params.set('redirect', route.fullPath);
+    return `/signup?${params.toString()}`;
   };
+
+  /**
+   * Build signin URL preserving the current fullPath as a redirect target.
+   */
+  const signinUrl = computed(() => {
+    const params = new URLSearchParams({ redirect: route.fullPath });
+    return `/signin?${params.toString()}`;
+  });
 
   const loadPlans = async () => {
     isLoadingPlans.value = true;
@@ -227,20 +227,9 @@
         :error="error" />
 
       <!-- Loading State -->
-      <div
+      <PlanCardSkeleton
         v-if="isLoadingPlans"
-        class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+        class="py-12" />
 
       <!-- Free Tier Section (standalone banner mode) -->
       <div
@@ -256,8 +245,8 @@
             </p>
           </div>
           <RouterLink
-            v-if="signupEnabled"
-            to="/signup"
+            v-if="signupEnabled && freePlan"
+            :to="getSignupUrl(freePlan)"
             class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
             {{ t('web.pricing.get_started_free') }}
           </RouterLink>
@@ -281,7 +270,7 @@
           :is-recommended="isPlanRecommended(plan)"
           :is-highlighted="isPlanHighlighted(plan)"
           :button-label="getCtaLabel(plan)"
-          class="w-full max-w-sm sm:w-80">
+          class="w-full max-w-sm">
           <template #action="{ plan: currentPlan }">
             <RouterLink
               v-if="signupEnabled"
@@ -337,7 +326,7 @@
         <p class="text-sm text-gray-600 dark:text-gray-400">
           {{ t('web.pricing.already_have_account') }}
           <RouterLink
-            to="/signin"
+            :to="signinUrl"
             class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
             {{ t('web.pricing.sign_in') }}
           </RouterLink>

@@ -65,6 +65,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_add',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayFeedback: false,
@@ -82,6 +83,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_detail',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -103,6 +105,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_verify',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -124,6 +127,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_brand',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -145,6 +149,29 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_sso',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
+      layout: WorkspaceLayout,
+      layoutProps: {
+        displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
+      sentryScrubParams: false,
+    },
+    props: true,
+  },
+  {
+    path: '/org/:orgid/domains/:extid/signup',
+    name: 'DomainSignup',
+    component: () => import('@/apps/workspace/domains/DomainSignup.vue'),
+    meta: {
+      title: 'web.TITLES.domain_signup',
+      requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -166,6 +193,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_email',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
@@ -187,6 +215,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.domain_incoming',
       requiresAuth: true,
+      requiresOrgRole: 'admin',
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,

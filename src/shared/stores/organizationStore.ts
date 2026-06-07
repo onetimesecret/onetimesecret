@@ -89,6 +89,19 @@ export const useOrganizationStore = defineStore('organization', () => {
         organizations.value.find((o) => o.objid === orgId)
   );
 
+  /**
+   * Lookup by external (route-visible) id. Mirrors `getOrganizationById` but
+   * uses the `extid` field that route params and the auth-result envelope
+   * carry. Returns `undefined` when the list hasn't loaded the org yet —
+   * callers that want to fall back to the active org compose that themselves
+   * (e.g. `getOrganizationByExtid(extid) ?? currentOrganization`).
+   */
+  const getOrganizationByExtid = computed(
+    () =>
+      (extid: string): Organization | undefined =>
+        organizations.value.find((o) => o.extid === extid)
+  );
+
   const isInitialized = computed(() => _initialized.value);
   const isListFetched = computed(() => _listFetched.value);
 
@@ -513,7 +526,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           owner_id: '',
           contact_email: null,
           is_default: bootstrapOrg.is_default,
-          planid: bootstrapOrg.planid ?? 'free',
+          planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           // These fields will be populated when full org is fetched
           created: new Date(),
@@ -539,6 +552,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     hasOrganizations,
     hasNonDefaultOrganizations,
     getOrganizationById,
+    getOrganizationByExtid,
     isInitialized,
     isListFetched,
 

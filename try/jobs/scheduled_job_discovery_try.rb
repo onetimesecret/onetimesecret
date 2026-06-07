@@ -11,8 +11,14 @@
 # implement .schedule(), causing a NotImplementedError at boot.
 
 require_relative '../support/test_helpers'
+require_relative '../../apps/web/billing/lib/test_support/billing_helpers'
 
 OT.boot! :test, false
+
+# Arrange: Explicitly disable billing for standalone-mode tests.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+BillingTestHelpers.disable_billing!
 
 # Load the full job hierarchy exactly as the scheduler does
 require_relative '../../lib/onetime/jobs/scheduled_job'
@@ -132,10 +138,9 @@ filtered = all_with_concrete.select { |k| has_own_schedule?(k) }
 filtered.include?(stub_concrete)
 #=> true
 
-## Billing-specific scheduled jobs are not defined when billing is disabled
-# Guard pattern at top of file prevents class definition
-billing_jobs_defined = [
-  defined?(Onetime::Jobs::Scheduled::PlanCacheRefreshJob),
-  defined?(Onetime::Jobs::Scheduled::CatalogRetryJob)
-].any?
-#=> false
+## CatalogRetryJob is not defined when billing is disabled
+# Guard pattern at top of file prevents class definition.
+# Note: PlanCacheRefreshJob removed load-time guard in #3182;
+# it uses runtime checks in .schedule and refresh_plan_cache instead.
+defined?(Onetime::Jobs::Scheduled::CatalogRetryJob)
+#=> nil

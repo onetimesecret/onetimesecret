@@ -120,7 +120,6 @@ describe('BrandedHeader', () => {
             corner_style: 'rounded',
             font_family: 'sans',
             button_text_light: true,
-            allow_public_homepage: false,
           },
           homepage_config: storeOverrides.homepage_config ?? null,
           ui: {
@@ -197,7 +196,7 @@ describe('BrandedHeader', () => {
   });
 
   describe('Header text on custom domains', () => {
-    it('shows "Secure Links" when allow_public_homepage is false', async () => {
+    it('shows "Secure Links" when homepage_config is null/disabled', async () => {
       wrapper = mountComponent({}, {
         domain_strategy: 'custom',
         domain_logo: 'https://cdn.example.com/logo.png',
@@ -206,7 +205,6 @@ describe('BrandedHeader', () => {
           corner_style: 'square',
           font_family: 'sans',
           button_text_light: false,
-          allow_public_homepage: false,
         },
       });
 
@@ -227,7 +225,6 @@ describe('BrandedHeader', () => {
           corner_style: 'square',
           font_family: 'sans',
           button_text_light: false,
-          allow_public_homepage: false,
         },
         homepage_config: {
           domain_id: 'cd_acme',

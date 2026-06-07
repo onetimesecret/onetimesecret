@@ -634,11 +634,25 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
     # Validates that the regular database user (test_db / onetime_user) cannot
     # perform privileged DDL operations. This ensures proper security boundaries
     # between application-level database access and administrative operations.
+    #
+    # These tests require the CI dual-user setup where test_db (onetime_user) has
+    # restricted privileges. When running locally as database owner, test_db and
+    # setup_db are the same connection with full privileges, so skip these tests.
 
     let(:test_table) { :account_jwt_refresh_keys }
     let(:test_trigger) { :trigger_cleanup_expired_tokens_extended }
 
+    # Skip privilege separation tests when not using dual-user model
+    let(:dual_user_mode?) do
+      PostgresModeSuiteDatabase.migration_database &&
+        PostgresModeSuiteDatabase.migration_database != PostgresModeSuiteDatabase.database
+    end
+
     context 'trigger manipulation restrictions' do
+      before do
+        skip 'Requires CI dual-user setup (onetime_user vs onetime_migrator)' unless dual_user_mode?
+      end
+
       it 'test_db cannot disable triggers (requires table ownership)' do
         expect {
           test_db.run("ALTER TABLE #{test_table} DISABLE TRIGGER #{test_trigger}")
@@ -667,6 +681,10 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
     context 'setup_db retains elevated privileges' do
       # Confirms that setup_db (migration connection) CAN perform these operations,
       # validating the dual-connection security model works as designed.
+
+      before do
+        skip 'Requires CI dual-user setup (onetime_user vs onetime_migrator)' unless dual_user_mode?
+      end
 
       it 'setup_db can disable and re-enable triggers' do
         expect {

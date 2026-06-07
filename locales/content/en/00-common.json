@@ -1041,6 +1041,10 @@
     "text": "DNS Incorrect",
     "content_hash": "7848d601"
   },
+  "web.STATUS.unverified": {
+    "text": "Unverified",
+    "content_hash": "33c8e8de"
+  },
   "web.STATUS.active": {
     "text": "Active",
     "content_hash": "92340695"
@@ -1215,7 +1219,7 @@
   },
   "web.TITLES.domain_detail": {
     "text": "Domain Settings",
-    "content_hash": "b8c9d0e1"
+    "content_hash": "e24f338d"
   },
   "web.TITLES.account": {
     "text": "Account",
@@ -1313,6 +1317,10 @@
   "web.TITLES.domain_sso": {
     "text": "Domain SSO",
     "content_hash": "13161464"
+  },
+  "web.TITLES.domain_signup": {
+    "text": "Domain Signup Validation",
+    "content_hash": "c8ce809a"
   },
   "web.TITLES.domain_email": {
     "text": "Email Configuration",
@@ -1427,6 +1435,16 @@
     "context": "Error message for recoverable server errors",
     "content_hash": "fb961f3f"
   },
+  "api.errors.authentication_required": {
+    "text": "Authentication required",
+    "context": "Returned when an authenticated endpoint receives an anonymous request",
+    "content_hash": "0fcfb12d"
+  },
+  "api.errors.sso_only_action_blocked": {
+    "text": "This action is not available in SSO-only mode",
+    "context": "Returned when an account management action (destroy, change password/email) is attempted while SSO-only mode is active (lib/onetime/logic/sso_only_gating.rb)",
+    "content_hash": "9bc26394"
+  },
   "web.COMMON.upgrade_description": {
     "text": "Upgrade to unlock more features",
     "context": "Description shown for free plan users encouraging upgrade",
@@ -1451,5 +1469,29 @@
     "text": "or",
     "context": "Alternative conjunction (e.g., Sign in or use SSO)",
     "content_hash": "7175517a"
+  },
+  "web.COMMON.copied": {
+    "text": "Copied",
+    "context": "Feedback when content copied to clipboard",
+    "content_hash": "8d525e5f"
+  },
+  "web.COMMON.copy": {
+    "text": "Copy",
+    "context": "Tooltip for copy buttons"
+  },
+  "web.COMMON.copy_email": {
+    "text": "Copy email address",
+    "context": "Tooltip for copy email button in user menu",
+    "content_hash": "61b94846"
+  },
+  "web.COMMON.copy_id": {
+    "text": "Copy account ID",
+    "context": "Tooltip for copy ID button in user menu",
+    "content_hash": "fd493ffd"
+  },
+  "web.COMMON.org_id_tooltip": {
+    "text": "Your organization's unique identifier",
+    "context": "Tooltip for organization ID in user menu footer",
+    "content_hash": "c8c08d29"
   }
 }

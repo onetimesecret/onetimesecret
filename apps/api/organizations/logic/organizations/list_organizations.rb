@@ -27,13 +27,13 @@ module OrganizationAPI::Logic
         OT.ld "[ListOrganizations] Listing organizations for user #{cust.extid}"
 
         # Use Familia v2 reverse collection method
-        @organizations = cust.organization_instances
+        @organizations = cust.organization_instances.to_a.reject(&:archived?)
 
         # Fallback if reverse lookup not working - use org: prefix (not organization:)
         if @organizations.empty? && !cust.participations.empty?
           org_keys       = cust.participations.to_a.select { |k| k.start_with?('org:') && k.end_with?(':members') }
           org_ids        = org_keys.map { |k| k.split(':')[1] }.uniq
-          @organizations = Onetime::Organization.load_multi(org_ids).compact if org_ids.any?
+          @organizations = Onetime::Organization.load_multi(org_ids).compact.reject(&:archived?) if org_ids.any?
         end
 
         OT.ld "[ListOrganizations] Found #{@organizations.size} organizations"

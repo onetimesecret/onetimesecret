@@ -70,7 +70,21 @@ RSpec.describe Core::Views::ConfigSerializer do
       'site' => {
         'host' => canonical_domain,
         'ssl' => true,
-        'interface' => { 'ui' => {} },
+        'interface' => {
+          'ui' => {},
+          'api' => {
+            'enabled' => true,
+            'guest_routes' => {
+              'enabled' => true,
+              'conceal' => true,
+              'generate' => true,
+              'reveal' => true,
+              'burn' => true,
+              'show' => true,
+              'receipt' => true,
+            },
+          },
+        },
         'authentication' => {},
         'secret_options' => {},
         'support' => { 'host' => 'support.example.com' },
@@ -130,135 +144,44 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(result['features']).to have_key('sso')
     end
 
-    # Brand-field bootstrap exposure (gap 6 — issue #3048)
-    #
-    # ConfigSerializer must copy every configured brand_* view var into the
-    # bootstrap payload so the frontend can theme on first paint without a
-    # round-trip. Covers all 11 brand_* keys (7 from DEFAULTS, 4 from
-    # GLOBAL_DEFAULTS) plus support_email/docs_host that come through the
-    # same channel.
-    describe 'brand_* bootstrap exposure' do
-      let(:brand_view_vars) do
+    it 'returns api as a nested object with enabled and guest_routes' do
+      result = described_class.serialize(base_view_vars)
+      expect(result).to have_key('api')
+      expect(result['api']).to be_a(Hash)
+      expect(result['api']['enabled']).to be true
+      expect(result['api']['guest_routes']).to be_a(Hash)
+      expect(result['api']['guest_routes']['conceal']).to be true
+    end
+
+    context 'when api config is missing' do
+      let(:minimal_view_vars) do
         base_view_vars.merge(
-          'brand_primary_color' => '#112233',
-          'brand_product_name' => 'Acme Vault',
-          'brand_product_domain' => 'vault.acme.test',
-          'brand_support_email' => 'help@acme.test',
-          'brand_corner_style' => 'square',
-          'brand_font_family' => 'serif',
-          'brand_button_text_light' => false,
-          'brand_allow_public_homepage' => true,
-          'brand_allow_public_api' => true,
-          'brand_logo_url' => 'https://acme.test/logo.svg',
-          'brand_totp_issuer' => 'Acme',
-          'support_email' => 'help@acme.test',
-          'docs_host' => 'https://docs.acme.test/'
+          'site' => base_view_vars['site'].merge('interface' => { 'ui' => {} })
         )
       end
 
-      it 'copies brand_primary_color from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_primary_color']).to eq('#112233')
+      it 'defaults api.enabled to true and guest_routes to empty hash' do
+        result = described_class.serialize(minimal_view_vars)
+        expect(result['api']['enabled']).to be true
+        expect(result['api']['guest_routes']).to eq({})
+      end
+    end
+
+    context 'when api.enabled is explicitly false' do
+      let(:api_disabled_view_vars) do
+        base_view_vars.merge(
+          'site' => base_view_vars['site'].merge(
+            'interface' => {
+              'ui' => {},
+              'api' => { 'enabled' => false, 'guest_routes' => {} },
+            }
+          )
+        )
       end
 
-      it 'copies brand_product_name from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_product_name']).to eq('Acme Vault')
-      end
-
-      it 'copies brand_product_domain from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_product_domain']).to eq('vault.acme.test')
-      end
-
-      it 'copies brand_support_email from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_support_email']).to eq('help@acme.test')
-      end
-
-      it 'copies brand_corner_style from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_corner_style']).to eq('square')
-      end
-
-      it 'copies brand_font_family from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_font_family']).to eq('serif')
-      end
-
-      it 'copies brand_button_text_light from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_button_text_light']).to be false
-      end
-
-      it 'copies brand_allow_public_homepage from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_allow_public_homepage']).to be true
-      end
-
-      it 'copies brand_allow_public_api from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_allow_public_api']).to be true
-      end
-
-      it 'copies brand_logo_url from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_logo_url']).to eq('https://acme.test/logo.svg')
-      end
-
-      it 'copies brand_totp_issuer from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['brand_totp_issuer']).to eq('Acme')
-      end
-
-      it 'copies support_email from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['support_email']).to eq('help@acme.test')
-      end
-
-      it 'copies docs_host from view_vars to output' do
-        result = described_class.serialize(brand_view_vars)
-        expect(result['docs_host']).to eq('https://docs.acme.test/')
-      end
-
-      it 'leaves brand_* keys nil when view_vars omits them' do
-        result = described_class.serialize(base_view_vars)
-        %w[
-          brand_primary_color
-          brand_product_name
-          brand_product_domain
-          brand_support_email
-          brand_corner_style
-          brand_font_family
-          brand_button_text_light
-          brand_allow_public_homepage
-          brand_allow_public_api
-          brand_logo_url
-          brand_totp_issuer
-        ].each do |key|
-          expect(result[key]).to be_nil, "expected #{key} to be nil when view_vars omits it"
-        end
-      end
-
-      it 'includes every brand_* key in the output_template (single source of truth)' do
-        template_keys = described_class.output_template.keys
-        %w[
-          brand_primary_color
-          brand_product_name
-          brand_product_domain
-          brand_support_email
-          brand_corner_style
-          brand_font_family
-          brand_button_text_light
-          brand_allow_public_homepage
-          brand_allow_public_api
-          brand_logo_url
-          brand_totp_issuer
-          support_email
-          docs_host
-        ].each do |key|
-          expect(template_keys).to include(key), "output_template missing #{key}"
-        end
+      it 'returns api.enabled as false' do
+        result = described_class.serialize(api_disabled_view_vars)
+        expect(result['api']['enabled']).to be false
       end
     end
   end
@@ -714,6 +637,134 @@ RSpec.describe Core::Views::ConfigSerializer do
       it 'returns false' do
         expect(described_class.allow_platform_fallback?).to be false
       end
+    end
+  end
+
+  describe '.transform_regions' do
+    it 'returns enabled false and empty jurisdictions for empty regions config' do
+      result = described_class.transform_regions({})
+
+      expect(result['enabled']).to be false
+      expect(result['jurisdictions']).to eq([])
+      expect(result['current_jurisdiction']).to be_nil
+    end
+
+    it 'transforms jurisdictions with identifier, domain, and i18n key' do
+      regions = {
+        'enabled' => true,
+        'current_jurisdiction' => 'EU',
+        'jurisdictions' => [
+          { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
+          { 'identifier' => 'CA', 'domain' => 'ca.example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['enabled']).to be true
+      expect(result['current_jurisdiction']).to eq('EU')
+      expect(result['jurisdictions'].length).to eq(2)
+      expect(result['jurisdictions'][0]).to eq({
+        'identifier' => 'EU',
+        'domain' => 'eu.example.com',
+        'display_name_i18n_key' => 'web.regions.jurisdictions.eu.name',
+      })
+      expect(result['jurisdictions'][1]).to eq({
+        'identifier' => 'CA',
+        'domain' => 'ca.example.com',
+        'display_name_i18n_key' => 'web.regions.jurisdictions.ca.name',
+      })
+    end
+
+    it 'includes domain in output for navigation' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          { 'identifier' => 'EU', 'domain' => 'eu.onetimesecret.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['domain']).to eq('eu.onetimesecret.com')
+    end
+
+    it 'includes icon when present in config' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'icon' => { 'collection' => 'fa6-solid', 'name' => 'earth-europe' },
+          },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['icon']).to eq({
+        'collection' => 'fa6-solid',
+        'name' => 'earth-europe',
+      })
+    end
+
+    it 'omits icon when not present in config' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          { 'identifier' => 'EU', 'domain' => 'eu.example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]).not_to have_key('icon')
+    end
+
+    it 'lowercases identifier for i18n key generation' do
+      regions = {
+        'enabled' => false,
+        'jurisdictions' => [
+          { 'identifier' => 'US-WEST', 'domain' => 'west.example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('web.regions.jurisdictions.us-west.name')
+    end
+
+    it 'uses display_name_i18n_key from config when provided' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          {
+            'identifier' => 'EU',
+            'domain' => 'eu.example.com',
+            'display_name_i18n_key' => 'custom.key.eu',
+          },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('custom.key.eu')
+    end
+
+    it 'handles jurisdictions with nil identifier gracefully' do
+      regions = {
+        'enabled' => true,
+        'jurisdictions' => [
+          { 'identifier' => nil, 'domain' => 'example.com' },
+        ],
+      }
+
+      result = described_class.transform_regions(regions)
+
+      expect(result['jurisdictions'][0]['identifier']).to eq('')
+      expect(result['jurisdictions'][0]['domain']).to eq('example.com')
+      expect(result['jurisdictions'][0]['display_name_i18n_key']).to eq('web.regions.jurisdictions..name')
     end
   end
 

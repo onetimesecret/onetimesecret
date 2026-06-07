@@ -163,6 +163,22 @@
     "text": "Domain not verified — click to verify",
     "content_hash": "a9806710"
   },
+  "web.domains.status_tooltip_unverified": {
+    "text": "Domain status unverified — click to refresh",
+    "content_hash": "a45aa76d"
+  },
+  "web.domains.last_check_failed": {
+    "text": "Last verification check failed",
+    "content_hash": "88b594b8"
+  },
+  "web.domains.last_check_failed_ago": {
+    "text": "last check failed {0}",
+    "content_hash": "ddfb6412"
+  },
+  "web.domains.verify_now": {
+    "text": "Verify now",
+    "content_hash": "db383efb"
+  },
   "web.domains.click_to_verify": {
     "text": "click to verify",
     "content_hash": "6eae7d9c"
@@ -375,6 +391,10 @@
     "text": "Remove Domain",
     "content_hash": "07a1675d"
   },
+  "web.domains.remove_domain_description": {
+    "text": "Permanently remove this domain and all its configuration.",
+    "content_hash": "73946b9e"
+  },
   "web.domains.domain_removed_successfully": {
     "text": "Domain removed successfully",
     "content_hash": "2984d483"
@@ -382,6 +402,18 @@
   "web.domains.failed_to_add_domain": {
     "text": "Failed to add domain",
     "content_hash": "5fc4c4b3"
+  },
+  "web.domains.add_access_denied": {
+    "text": "Access Denied",
+    "content_hash": "d134ca02"
+  },
+  "web.domains.add_access_denied_description": {
+    "text": "You don't have permission to add domains to this organization. Contact your organization administrator.",
+    "content_hash": "25e035c6"
+  },
+  "api.domains.errors.add_admin_required": {
+    "text": "Only organization owners and admins can add custom domains",
+    "content_hash": "3324aabe"
   },
   "web.domains.domain_added_successfully": {
     "text": "Domain added successfully",
@@ -482,6 +514,98 @@
   "web.domains.sso.not_configured_notice": {
     "text": "SSO is not yet configured for this domain. Enable single sign-on to allow team members to authenticate using your organization's identity provider.",
     "content_hash": "c439214b"
+  },
+  "web.domains.signup.title": {
+    "text": "Signup Validation",
+    "content_hash": "2c34ac0a"
+  },
+  "web.domains.signup.config_description": {
+    "text": "Configure signup validation for this domain",
+    "content_hash": "e9c81e8a"
+  },
+  "web.domains.signup.access_denied": {
+    "text": "Access Denied",
+    "content_hash": "d134ca02"
+  },
+  "web.domains.signup.upgrade_to_configure": {
+    "text": "Upgrade your plan to configure per-domain signup validation.",
+    "content_hash": "d87d6614"
+  },
+  "web.domains.signup.configure_signup": {
+    "text": "Configure Signup",
+    "content_hash": "e2697662"
+  },
+  "web.domains.signup.not_configured_notice": {
+    "text": "Signup validation is not yet configured for this domain. Configure a strategy to control who can sign up via this domain.",
+    "content_hash": "fc6c6eb8"
+  },
+  "web.domains.signup.site_signups_disabled_warning": {
+    "text": "Signups are currently disabled at the site level. This per-domain policy is configured but will not gate any traffic until site signups are enabled.",
+    "content_hash": "c0e59f86"
+  },
+  "web.domains.signup.strategy_label": {
+    "text": "Validation strategy",
+    "content_hash": "a2e95531"
+  },
+  "web.domains.signup.strategy_description": {
+    "text": "Choose how email addresses are validated when users sign up on this domain.",
+    "content_hash": "8e232b03"
+  },
+  "web.domains.signup.network_validation_warning": {
+    "text": "This strategy performs network calls during signup, which may add latency or be blocked by some providers.",
+    "content_hash": "53d4c266"
+  },
+  "web.domains.signup.allowed_domains_label": {
+    "text": "Allowed signup domains",
+    "content_hash": "9b5bb5b1"
+  },
+  "web.domains.signup.allowed_domains_hint": {
+    "text": "Only these email domains will be allowed to sign up. Add one domain per entry.",
+    "content_hash": "c082414d"
+  },
+  "web.domains.signup.domain_placeholder": {
+    "text": "example.com",
+    "content_hash": "a379a6f6"
+  },
+  "web.domains.signup.invalid_domain": {
+    "text": "Please enter a valid domain (e.g. example.com)",
+    "content_hash": "16807983"
+  },
+  "web.domains.signup.domain_exists": {
+    "text": "This domain is already in the list",
+    "content_hash": "3fccb721"
+  },
+  "web.domains.signup.remove_domain": {
+    "text": "Remove {domain}",
+    "content_hash": "ae708a1d"
+  },
+  "web.domains.signup.enabled_label": {
+    "text": "Enable per-domain validation",
+    "content_hash": "db103925"
+  },
+  "web.domains.signup.enabled_hint": {
+    "text": "When enabled, signups on this domain use the strategy above instead of the global policy.",
+    "content_hash": "99de2008"
+  },
+  "web.domains.signup.delete_config": {
+    "text": "Delete configuration",
+    "content_hash": "a9a30c7f"
+  },
+  "web.domains.signup.delete_confirm": {
+    "text": "Delete signup validation config? Signups will fall back to the global policy.",
+    "content_hash": "a8c9086e"
+  },
+  "web.domains.signup.save_config": {
+    "text": "Save configuration",
+    "content_hash": "b2b158f2"
+  },
+  "web.domains.signup.update_success": {
+    "text": "Signup validation updated successfully",
+    "content_hash": "57a529ac"
+  },
+  "web.domains.signup.delete_success": {
+    "text": "Signup validation configuration removed successfully",
+    "content_hash": "eb6add4d"
   },
   "web.domains.email.title": {
     "text": "Email Sending",
@@ -929,34 +1053,46 @@
   },
   "web.domains.detail.manage": {
     "text": "Manage",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "5a234448"
   },
   "web.domains.detail.features": {
     "text": "Features",
-    "content_hash": "f1e2d3c4"
+    "content_hash": "5697d03d"
   },
   "web.domains.detail.homepage_title": {
     "text": "Homepage Secrets",
-    "content_hash": "h1o2m3e4"
+    "content_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
     "text": "Allow public access to create secrets on your domain homepage",
-    "content_hash": "h5o6m7e8"
+    "content_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
     "text": "Logo, colors, and custom branding",
-    "content_hash": "d4e5f6a7"
+    "content_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
     "text": "Single sign-on provider settings",
-    "content_hash": "e5f6a7b8"
+    "content_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
     "text": "Custom email sender configuration",
-    "content_hash": "f6a7b8c9"
+    "content_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
     "text": "Incoming secret recipient settings",
-    "content_hash": "a7b8c9d0"
+    "content_hash": "37c1fd6d"
+  },
+  "web.domains.detail.signup_description": {
+    "text": "Per-domain signup validation strategy",
+    "content_hash": "3c5a511f"
+  },
+  "web.domains.entitlement_required_owner": {
+    "text": "This feature requires a plan upgrade.",
+    "content_hash": "6de1f752"
+  },
+  "web.domains.entitlement_required_member": {
+    "text": "This feature is not available on your current plan. Contact your organization owner.",
+    "content_hash": "8f1688b2"
   }
 }

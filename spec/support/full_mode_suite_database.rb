@@ -7,9 +7,10 @@ require_relative 'factories/auth_account_factory'
 
 # Suite-level database setup for full auth mode tests.
 #
-# Creates a single in-memory SQLite database shared across all :full_auth_mode
-# tagged specs within a test suite run. This avoids the overhead of creating
-# and migrating a database per-file or per-test.
+# Connects to whatever AUTH_DATABASE_URL specifies — SQLite (in-memory or
+# file-backed) or PostgreSQL — so the same DB-agnostic specs can run against
+# either engine. When no URL is set, defaults to in-memory SQLite for local
+# development speed.
 #
 # The database is lazily initialized when the first :full_auth_mode spec runs,
 # and torn down only at suite end. This ensures:
@@ -31,7 +32,7 @@ require_relative 'factories/auth_account_factory'
 #
 module FullModeSuiteDatabase
   class << self
-    attr_reader :database
+    attr_reader :database, :migration_database
 
     def setup!
       return if @setup_complete
@@ -40,19 +41,26 @@ module FullModeSuiteDatabase
       require 'auth/database'
       Sequel.extension :migration
 
-      # Use SQLite for non-PostgreSQL full auth mode tests.
-      # AUTH_DATABASE_URL is reserved for PostgreSQL tests (see postgres_mode_suite_database.rb).
-      # Only use AUTH_DATABASE_URL if it's explicitly a SQLite URL (for CI file-based SQLite).
       database_url = ENV.fetch('AUTH_DATABASE_URL', nil)
-      @database = if database_url && database_url.start_with?('sqlite')
+
+      @using_postgres = database_url &&
+                        database_url.start_with?('postgresql://', 'postgres://')
+
+      @database = if @using_postgres
+        Sequel.connect(database_url).tap { |db| db.extension :date_arithmetic }
+      elsif database_url && database_url.start_with?('sqlite')
         Sequel.connect(database_url)
       else
-        Sequel.sqlite  # In-memory SQLite for local development
+        Sequel.sqlite
       end
 
-      # Run Rodauth migrations
-      migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
-      Sequel::Migrator.run(@database, migrations_path)
+      if @using_postgres
+        clean_postgres_for_setup
+        run_postgres_migrations
+      else
+        migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
+        Sequel::Migrator.run(@database, migrations_path)
+      end
 
       # Save original connection method for restoration
       @original_connection_method = Auth::Database.method(:connection)
@@ -64,10 +72,22 @@ module FullModeSuiteDatabase
       db = @database
       Auth::Database.define_singleton_method(:connection) { db }
 
-      # Ensure application is booted (idempotent in test mode)
+      # Boot the application with a forced fresh boot.
+      #
+      # `force: true` resets boot state first so the full initializer chain
+      # re-runs here. A plain `Onetime.boot! :test` is idempotent in test mode
+      # and silently skips when boot state is already :started — which happens
+      # whenever an earlier spec (e.g. spec/integration/all boot/config specs)
+      # booted first. The skip is mostly harmless, except it bypasses the
+      # ConfigureFamilia initializer that sets Familia's encryption keys and
+      # current_key_version. Those are process-global; if a prior connect_to_db:
+      # false boot left boot :started without running ConfigureFamilia, the
+      # encryption config is never populated and any encrypted-field write
+      # (e.g. Receipt.spawn_pair) raises "Key version cannot be nil".
+      # Forcing a fresh boot guarantees ConfigureFamilia runs for the suite.
       require 'onetime'
       require 'onetime/config'
-      Onetime.boot! :test
+      Onetime.boot!(:test, force: true)
 
       # Reset and rebuild registry with our test database connection
       require 'onetime/auth_config'
@@ -82,6 +102,8 @@ module FullModeSuiteDatabase
     def teardown!
       return unless @setup_complete
 
+      @migration_database&.disconnect
+      @migration_database = nil
       @database&.disconnect
       @database = nil
 
@@ -105,25 +127,107 @@ module FullModeSuiteDatabase
       @setup_complete == true
     end
 
+    def postgres?
+      @using_postgres == true
+    end
+
+    def engine_label
+      postgres? ? 'PostgreSQL' : 'SQLite'
+    end
+
     # Clean all Rodauth tables (for tests that need a fresh database state)
     def clean_tables!
       return unless @database
 
+      if postgres?
+        clean_tables_postgres!
+      else
+        clean_tables_sqlite!
+      end
+    end
+
+    private
+
+    def clean_tables_sqlite!
       AuthAccountFactory::RODAUTH_TABLES.each do |table|
         @database[table].delete if @database.table_exists?(table)
       rescue Sequel::DatabaseError
         nil
       end
     end
+
+    def clean_tables_postgres!
+      db = @migration_database || @database
+      AuthAccountFactory::RODAUTH_TABLES.each do |table|
+        next unless db.table_exists?(table)
+        db[table].truncate(cascade: true, restart: true)
+      rescue Sequel::DatabaseError => e
+        warn "Failed to truncate #{table}: #{e.message}"
+      end
+    end
+
+    # Drop all tables so migrations re-run from scratch on PostgreSQL.
+    # Mirrors PostgresModeSuiteDatabase#clean_database_for_setup.
+    def clean_postgres_for_setup
+      migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+      use_elevated = migration_url &&
+                     !migration_url.to_s.empty? &&
+                     migration_url != ENV['AUTH_DATABASE_URL']
+
+      if use_elevated
+        elevated_db = Sequel.connect(migration_url)
+        begin
+          drop_all_tables(elevated_db)
+        ensure
+          elevated_db.disconnect
+        end
+      else
+        drop_all_tables(@database)
+      end
+    end
+
+    def drop_all_tables(db)
+      tables = db.tables
+      if tables.any?
+        table_list = tables.map { |t| db.literal(Sequel.identifier(t)) }.join(', ')
+        db.run "DROP TABLE IF EXISTS #{table_list} CASCADE"
+      end
+
+      our_functions = %w[
+        rodauth_get_salt
+        rodauth_valid_password_hash
+        cleanup_expired_tokens
+        update_last_login_time
+        cleanup_expired_tokens_extended
+        update_accounts_updated_at
+        update_session_last_use
+        cleanup_old_audit_logs
+        get_account_security_summary
+      ]
+      db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE"
+    end
+
+    def run_postgres_migrations
+      migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
+      migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+
+      if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
+        @migration_database ||= Sequel.connect(migration_url)
+        Sequel::Migrator.run(@migration_database, migrations_path)
+      else
+        Sequel::Migrator.run(@database, migrations_path)
+        @migration_database = nil
+      end
+    end
   end
 end
 
-# RSpec configuration for full auth mode tests with SQLite
+# RSpec configuration for full auth mode tests (SQLite or PostgreSQL)
 RSpec.configure do |config|
   # Database setup lambda - shared between :full_auth_mode and :sqlite_database tags
   # Setup is idempotent, so it's safe if multiple hooks trigger it
   full_mode_setup = lambda do |example_or_group|
-    # Skip if this is a PostgreSQL test
+    # Skip if this is a PG-only spec (handled by PostgresModeSuiteDatabase)
     metadata = example_or_group.respond_to?(:metadata) ? example_or_group.metadata : example_or_group.class.metadata
     return if metadata[:postgres_database]
 
@@ -138,7 +242,7 @@ RSpec.configure do |config|
   end
 
   # Lazy setup for :full_auth_mode specs (derived from spec/integration/full/ directory)
-  # This ensures SQLite database is set up even without explicit :sqlite_database tag
+  # This ensures the database is set up even without explicit :sqlite_database tag
   config.before(:context, :full_auth_mode, &full_mode_setup)
   config.after(:context, :full_auth_mode, &full_mode_cleanup)
 
@@ -160,9 +264,25 @@ RSpec.configure do |config|
   config.after(:each, :full_auth_mode, &full_mode_per_test_cleanup)
   config.after(:each, :sqlite_database, &full_mode_per_test_cleanup)
 
+  # Early PG setup: when AUTH_DATABASE_URL is PostgreSQL and mode is full,
+  # run FullModeSuiteDatabase.setup! at suite start so tables exist before
+  # any example — regardless of RSpec seed or context ordering. Without this,
+  # app-level specs whose metadata derives :full_auth_mode too late can hit
+  # the PG database before migrations run.
+  config.before(:suite) do
+    db_url = ENV.fetch('AUTH_DATABASE_URL', '')
+    auth_mode = ENV.fetch('AUTHENTICATION_MODE', 'simple')
+    if auth_mode == 'full' && db_url.start_with?('postgresql://', 'postgres://')
+      FullModeSuiteDatabase.setup!
+    end
+  end
+
   # Suite-level teardown: only runs once at the very end
   # Note: Simple/disabled mode tests explicitly clear the stub if needed
   config.after(:suite) do
+    if FullModeSuiteDatabase.setup_complete?
+      warn "[FullModeSuiteDatabase] Suite ran on #{FullModeSuiteDatabase.engine_label}"
+    end
     FullModeSuiteDatabase.teardown!
   end
 

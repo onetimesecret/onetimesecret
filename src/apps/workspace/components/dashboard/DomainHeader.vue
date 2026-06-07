@@ -7,13 +7,20 @@
   import { CustomDomain } from '@/schemas/shapes/v3';
   import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-  const props = defineProps<{
-    domain: CustomDomain | null;
-    hasUnsavedChanges: boolean;
-    orgid: string;
-  }>();
+  const props = withDefaults(
+    defineProps<{
+      domain: CustomDomain | null;
+      hasUnsavedChanges: boolean;
+      orgid: string;
+      /** Optional path appended to domain URL for external link (e.g., '/incoming') */
+      externalPath?: string;
+    }>(),
+    {
+      externalPath: '',
+    }
+  );
 
   // Optional chaining on domain is defensive: the only consumer
   // (<RouterLink :to="verifyRoute">) lives inside v-if="domain", so the
@@ -22,8 +29,12 @@ const { t } = useI18n();
   // prop contract (domain is CustomDomain | null).
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
-  const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
+  const { statusIcon, statusColor, displayStatus } = useDomainStatus(
     () => props.domain
+  );
+
+  const showExternalLink = computed(
+    () => !props.hasUnsavedChanges && !!props.externalPath
   );
 </script>
 
@@ -43,9 +54,9 @@ const { t } = useI18n();
               <span class="truncate">{{ domain.display_domain }}</span>
               <!-- prettier-ignore-attribute class -->
               <a
-                :href="`https://${domain.display_domain}`"
+                :href="`https://${domain.display_domain}${externalPath}`"
                 target="_blank"
-                v-show="!hasUnsavedChanges"
+                v-show="showExternalLink"
                 rel="noopener noreferrer"
                 class="ml-1
                   text-gray-400 hover:text-gray-600
@@ -70,11 +81,7 @@ const { t } = useI18n();
                 collection="mdi"
                 :name="statusIcon"
                 class="size-4 shrink-0"
-                :class="{
-                  'text-emerald-600 dark:text-emerald-400': isActive,
-                  'text-amber-500 dark:text-amber-400': isWarning,
-                  'text-rose-600 dark:text-rose-500': isError,
-                }" />
+                :class="statusColor" />
               <span class="font-brand text-sm leading-none">{{ displayStatus }}</span>
             </RouterLink>
           </div>
@@ -85,8 +92,8 @@ const { t } = useI18n();
         v-else
         class="mt-4 flex flex-col gap-1">
         <!-- Loading placeholder -->
-        <div class="h-8 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-        <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-8 w-64 animate-pulse motion-reduce:animate-none rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-4 w-24 animate-pulse motion-reduce:animate-none rounded bg-gray-200 dark:bg-gray-700"></div>
       </div>
     </div>
   </div>

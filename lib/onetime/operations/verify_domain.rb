@@ -290,22 +290,33 @@ module Onetime
           error: ex.message
       end
 
-      # Persist verification changes to the domain
+      # Persist verification changes to the domain.
+      #
+      # Atomic update: persist a field only when the originating call returned
+      # authoritative data. Mixing stale and fresh state caused issue #3080
+      # (vhost stayed green while resolving flipped to "false" on API failure).
+      #
+      # Fresh-data indicators:
+      #   :data present — active strategy returned a payload (Approximated 200)
+      #   :mode present — passive strategy, no remote call to fail
       #
       # @param domain [Onetime::CustomDomain]
       # @param dns_result [Hash]
       # @param status_result [Hash]
       # @return [Boolean] Whether changes were saved
       def persist_changes(domain, dns_result, status_result)
-        # Update verification status
-        domain.verified! dns_result[:validated] unless dns_result[:validated].nil?
+        if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil?
+          domain.verified! dns_result[:validated]
+        end
 
-        # Update vhost data if present
-        domain.vhost = status_result[:data].to_json if status_result[:data]
-
-        # Update resolving status
-        unless status_result[:is_resolving].nil?
-          domain.resolving = status_result[:is_resolving].to_s
+        if status_result[:data] || status_result[:mode]
+          domain.vhost                 = status_result[:data].to_json if status_result[:data]
+          unless status_result[:is_resolving].nil?
+            domain.resolving = status_result[:is_resolving].to_s
+          end
+          domain.vhost_fetch_failed_at = nil
+        else
+          domain.vhost_fetch_failed_at = OT.now.to_i
         end
 
         domain.updated = OT.now.to_i

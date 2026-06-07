@@ -2,30 +2,33 @@
 """
 Add a field to all entries in locale content JSON files.
 
-Inserts the field after "text" and before "content_hash"/"source_hash" for consistent
-ordering. Entries that already have the field are skipped.
+Inserts the field after "text" and before "content_hash"/"source_hash" for
+consistent ordering. Entries that already have the field are skipped.
 
 Usage:
     # Dry run (default)
-    python3 locales/scripts/add_field.py --name renderer --value erb locales/content/*/email.json
+    python3 locales/scripts/add_field.py --name renderer --value erb \\
+        locales/content/*/email.json
 
     # Apply changes
-    python3 locales/scripts/add_field.py --name renderer --value erb --apply locales/content/*/email.json
+    python3 locales/scripts/add_field.py --name renderer --value erb --apply \\
+        locales/content/*/email.json
 
     # Null value (field present, value is null)
-    python3 locales/scripts/add_field.py --name needs_review --apply locales/content/*/email.json
+    python3 locales/scripts/add_field.py --name needs_review --apply \\
+        locales/content/*/email.json
+
+    # Non-string value (number, boolean, array, object) via JSON
+    python3 locales/scripts/add_field.py --name priority --value-json 1 --apply \\
+        locales/content/*/email.json
+    python3 locales/scripts/add_field.py --name reviewed --value-json false --apply \\
+        locales/content/*/email.json
 """
 
+import argparse
 import json
+import sys
 from pathlib import Path
-from typing import Annotated
-
-from cyclopts import App, Parameter
-
-app = App(
-    name="add_field",
-    help="Add a field to all entries in locale content JSON files.",
-)
 
 
 def add_field_to_file(
@@ -71,32 +74,62 @@ def add_field_to_file(
     return modified
 
 
-@app.default
-def main(
-    *files: Annotated[Path, Parameter(help="Locale JSON files to process.")],
-    name: Annotated[str, Parameter(help="Field name to add.")],
-    value: Annotated[
-        str | None,
-        Parameter(help="Field value. Omit for null."),
-    ] = None,
-    apply: Annotated[
-        bool,
-        Parameter(help="Write changes. Default is dry run."),
-    ] = False,
-) -> None:
-    """Add a named field to every entry in the given locale JSON files."""
-    if not files:
-        print("No files specified.")
-        raise SystemExit(1)
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Add a named field to every entry in the given locale JSON files.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__,
+    )
+    parser.add_argument(
+        "files",
+        nargs="+",
+        type=Path,
+        help="Locale JSON files to process.",
+    )
+    parser.add_argument(
+        "--name",
+        required=True,
+        help="Field name to add.",
+    )
+    value_group = parser.add_mutually_exclusive_group()
+    value_group.add_argument(
+        "--value",
+        default=None,
+        help="Field value as a string. Omit (and --value-json) for null.",
+    )
+    value_group.add_argument(
+        "--value-json",
+        default=None,
+        help=(
+            "Field value parsed as JSON. Use for numbers, booleans, arrays, "
+            'or objects (e.g. --value-json true, --value-json \'["a","b"]\').'
+        ),
+    )
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Write changes. Default is dry run.",
+    )
 
-    dry_run = not apply
+    args = parser.parse_args()
+
+    if args.value_json is not None:
+        try:
+            value: object = json.loads(args.value_json)
+        except json.JSONDecodeError as exc:
+            print(f"Error: --value-json is not valid JSON: {exc}", file=sys.stderr)
+            return 2
+    else:
+        value = args.value
+
+    dry_run = not args.apply
     if dry_run:
         print("DRY RUN (use --apply to write changes)\n")
 
     total_modified = 0
     total_files = 0
 
-    for path in files:
+    for path in args.files:
         if not path.exists():
             print(f"  {path}: not found, skipping")
             continue
@@ -104,7 +137,7 @@ def main(
             continue
 
         total_files += 1
-        count = add_field_to_file(path, name, value, dry_run=dry_run)
+        count = add_field_to_file(path, args.name, value, dry_run=dry_run)
 
         if count > 0:
             status = "would update" if dry_run else "updated"
@@ -116,7 +149,8 @@ def main(
 
     label = "would modify" if dry_run else "modified"
     print(f"\nTotal: {label} {total_modified} entries across {total_files} files")
+    return 0
 
 
 if __name__ == "__main__":
-    app()
+    sys.exit(main())

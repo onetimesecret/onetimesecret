@@ -239,6 +239,9 @@
     "text": "This will permanently delete the organization. This action cannot be undone.",
     "content_hash": "ab2d2c05"
   },
+  "web.organizations.delete_organization_remove_domains_first": {
+    "text": "Remove all custom domains before deleting this organization."
+  },
   "web.organizations.delete": {
     "text": "Delete",
     "content_hash": "e2d0a549"
@@ -254,6 +257,40 @@
   "web.organizations.delete_error": {
     "text": "Failed to delete organization",
     "content_hash": "a8e5bb28"
+  },
+  "web.organizations.default_org_delete_notice_title": {
+    "text": "Deleting this organization",
+    "content_hash": "9191d915"
+  },
+  "web.organizations.default_org_delete_notice_before": {
+    "text": "This is your default organization and can't be removed from the dashboard. To delete it, please reach out through the",
+    "content_hash": "e203607d"
+  },
+  "web.organizations.default_org_delete_notice_link": {
+    "text": "feedback form",
+    "content_hash": "94645a9e"
+  },
+  "web.organizations.default_org_delete_notice_after": {
+    "text": ".",
+    "content_hash": "cdb4ee2a"
+  },
+  "web.organizations.leave_organization": {
+    "text": "Leave this organization"
+  },
+  "web.organizations.leave_organization_warning": {
+    "text": "You will lose access to this organization and its resources."
+  },
+  "web.organizations.leave_organization_confirm_title": {
+    "text": "Leave Organization"
+  },
+  "web.organizations.leave_organization_confirm_message": {
+    "text": "Are you sure you want to leave {name}? You will need a new invitation to rejoin."
+  },
+  "web.organizations.leave_organization_success": {
+    "text": "You have left the organization."
+  },
+  "web.organizations.leave_error": {
+    "text": "Failed to leave organization"
   },
   "web.organizations.members.title": {
     "text": "Members",
@@ -278,6 +315,18 @@
   "web.organizations.members.member_plural": {
     "text": "members",
     "content_hash": "17373ca1"
+  },
+  "web.organizations.members.member_quota": {
+    "text": "{used} of {limit} members",
+    "content_hash": "51183b79"
+  },
+  "web.organizations.members.pending_suffix": {
+    "text": "({count} pending)",
+    "content_hash": "c13f787f"
+  },
+  "web.organizations.members.limit_reached_hint": {
+    "text": "Member limit reached.",
+    "content_hash": "26cdb6b8"
   },
   "web.organizations.members.name": {
     "text": "Name",
@@ -555,8 +604,8 @@
     "content_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization.",
-    "content_hash": "cf10d623"
+    "text": "Member invites require a paid plan. Upgrade to add collaborators to your organization.",
+    "content_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
     "text": "Pro",
@@ -654,6 +703,18 @@
     "text": "e.g. https://login.example.com",
     "content_hash": "9a638e9c"
   },
+  "web.organizations.sso.view_discovery_document": {
+    "text": "View discovery document",
+    "content_hash": "513bda60"
+  },
+  "web.organizations.sso.callback_url": {
+    "text": "Callback URL",
+    "content_hash": "dc297ae9"
+  },
+  "web.organizations.sso.callback_url_hint": {
+    "text": "Add this URL to your identity provider's allowed redirect URIs",
+    "content_hash": "65d55683"
+  },
   "web.organizations.sso.allowed_domains": {
     "text": "Allowed Email Domains",
     "content_hash": "0295ad71"
@@ -688,11 +749,11 @@
   },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Enforce SSO only",
-    "content_hash": "a1b2c3d4"
+    "content_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
     "text": "Require SSO for all sign-ins on this domain. When enabled, password-based authentication is disabled.",
-    "content_hash": "b2c3d4e5"
+    "content_hash": "19432210"
   },
   "web.organizations.sso.save_config": {
     "text": "Save SSO Configuration",
@@ -782,6 +843,14 @@
     "text": "Not Configured",
     "content_hash": "bbea960e"
   },
+  "web.organizations.sso.no_domains": {
+    "text": "No verified domains",
+    "content_hash": "8a7fbb76"
+  },
+  "web.organizations.sso.no_domains_description": {
+    "text": "Add and verify a domain before configuring SSO for it.",
+    "content_hash": "e825d13a"
+  },
   "web.organizations.invitations.email_mismatch_title": {
     "text": "Different account signed in",
     "content_hash": "6516362a"
@@ -811,15 +880,20 @@
     "context": "Hint text explaining why email field is readonly",
     "content_hash": "2cff7075"
   },
-  "web.organizations.invitations.create_account_and_join": {
+  "web.organizations.invitations.signup_continue": {
     "text": "Continue",
-    "context": "Button text for signup form in invitation flow",
+    "context": "Submit button on the invite signup form. Submits the form and creates the account; the user then confirms the join on the next screen.",
     "content_hash": "31fbef16"
   },
-  "web.organizations.invitations.sign_in_and_accept": {
-    "text": "Sign In & Accept Invitation",
-    "context": "Button text for signin form in invitation flow",
-    "content_hash": "a6a5417a"
+  "web.organizations.invitations.signin_continue": {
+    "text": "Sign In",
+    "context": "Submit button on the invite signin form. Signs the user in; the user then confirms the join on the next screen.",
+    "content_hash": "bcc0bcc9"
+  },
+  "web.organizations.invitations.confirm_join_below": {
+    "text": "Almost done — confirm below to join the organization.",
+    "context": "Success message shown after the user completes signup or signin from an invite link. The Decline/Accept buttons appear immediately below.",
+    "content_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
     "text": "Go to Organizations",
@@ -845,5 +919,130 @@
     "text": "Decline",
     "context": "Button text for declining an invitation inline",
     "content_hash": "a2d285b3"
+  },
+  "api.organizations.errors.not_found": {
+    "text": "Organization not found: %{extid}",
+    "context": "Returned when an organization extid lookup fails",
+    "content_hash": "c8d058eb"
+  },
+  "api.organizations.errors.owner_required": {
+    "text": "Only organization owner can perform this action",
+    "context": "Returned when an action requires owner role",
+    "content_hash": "5a729e94"
+  },
+  "api.organizations.errors.admin_required": {
+    "text": "Only organization owners and admins can perform this action",
+    "context": "Generic default when admin/owner role is required",
+    "content_hash": "cd9e8c0e"
+  },
+  "api.organizations.errors.member_required": {
+    "text": "You must be an organization member to perform this action",
+    "context": "Returned when an action requires any organization role",
+    "content_hash": "f66f4a60"
+  },
+  "api.organizations.invitations.errors.create_admin_required": {
+    "text": "Only organization owners and admins can create invitations",
+    "context": "Returned when a non-admin tries to create an invitation",
+    "content_hash": "777d150d"
+  },
+  "api.organizations.invitations.errors.resend_admin_required": {
+    "text": "Only organization owners and admins can resend invitations",
+    "context": "Returned when a non-admin tries to resend an invitation",
+    "content_hash": "6a857d59"
+  },
+  "api.organizations.invitations.errors.view_admin_required": {
+    "text": "Only organization owners and admins can view invitations",
+    "context": "Returned when a non-admin tries to list invitations",
+    "content_hash": "42f5878b"
+  },
+  "api.organizations.invitations.errors.revoke_admin_required": {
+    "text": "Only organization owners and admins can revoke invitations",
+    "context": "Returned when a non-admin tries to revoke an invitation",
+    "content_hash": "52f73c8a"
+  },
+  "api.organizations.invitations.errors.email_required": {
+    "text": "Email is required",
+    "context": "Returned when invitation create is missing the email field",
+    "content_hash": "aae92911"
+  },
+  "api.organizations.invitations.errors.email_invalid": {
+    "text": "Invalid email format",
+    "context": "Returned when invitation create has a malformed email",
+    "content_hash": "0bcecf66"
+  },
+  "api.organizations.invitations.errors.role_invalid": {
+    "text": "Role must be member or admin",
+    "context": "Returned when invitation specifies an unsupported role",
+    "content_hash": "650ea5f6"
+  },
+  "api.organizations.invitations.errors.cannot_invite_owner": {
+    "text": "Cannot invite as owner",
+    "context": "Returned when invitation specifies owner role (owners assigned directly)",
+    "content_hash": "e6581025"
+  },
+  "api.organizations.invitations.errors.already_member": {
+    "text": "User is already a member of this organization",
+    "context": "Returned when inviting a user who is already in the org",
+    "content_hash": "8eb45780"
+  },
+  "api.organizations.invitations.errors.already_pending": {
+    "text": "Invitation already pending for this email",
+    "context": "Returned when a duplicate invitation is attempted",
+    "content_hash": "7f5e3093"
+  },
+  "api.organizations.invitations.errors.member_limit_reached": {
+    "text": "Member limit reached. Upgrade your plan to invite more members.",
+    "context": "Returned when org members_per_org quota is hit",
+    "content_hash": "b8f316e8"
+  },
+  "api.organizations.invitations.errors.not_found": {
+    "text": "Invitation not found",
+    "context": "Returned when a token does not match a known invitation",
+    "content_hash": "775ba9eb"
+  },
+  "api.organizations.invitations.errors.cannot_resend_non_pending": {
+    "text": "Can only resend pending invitations",
+    "context": "Returned when resending an accepted/declined/expired invitation",
+    "content_hash": "b7578b3e"
+  },
+  "api.organizations.invitations.errors.cannot_revoke_non_pending": {
+    "text": "Can only revoke pending invitations",
+    "context": "Returned when revoking an accepted/declined/expired invitation",
+    "content_hash": "732b78a6"
+  },
+  "api.organizations.invitations.errors.resend_limit_reached": {
+    "text": "Maximum resend limit (%{max}) reached",
+    "context": "Returned when invitation resend_count reaches MAX_RESENDS",
+    "content_hash": "8dc96729"
+  },
+  "api.organizations.invitations.errors.accept_token_required": {
+    "text": "Token is required",
+    "context": "Returned when accept invite missing token",
+    "content_hash": "6c718161"
+  },
+  "api.organizations.invitations.errors.accept_organization_gone": {
+    "text": "Organization no longer exists",
+    "context": "Returned when the invitation's org was deleted",
+    "content_hash": "a5df7d22"
+  },
+  "api.organizations.invitations.errors.accept_already_acted": {
+    "text": "Invitation has already been %{status}",
+    "context": "Returned when accepting an invitation already accepted/declined/expired",
+    "content_hash": "130c87e0"
+  },
+  "api.organizations.invitations.errors.accept_expired": {
+    "text": "Invitation has expired",
+    "context": "Returned when the invitation has expired",
+    "content_hash": "7186297b"
+  },
+  "api.organizations.invitations.errors.accept_email_mismatch": {
+    "text": "Your email address does not match the invitation",
+    "context": "Returned when accepting user's email differs from invitation email",
+    "content_hash": "11026f46"
+  },
+  "api.organizations.invitations.errors.accept_already_member": {
+    "text": "You are already a member of this organization",
+    "context": "Returned when accept invite by user who is already a member",
+    "content_hash": "f56ad547"
   }
 }

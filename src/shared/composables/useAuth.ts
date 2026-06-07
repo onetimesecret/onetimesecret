@@ -228,14 +228,6 @@ export function useAuth() {
   }
 
   /**
-   * Normalizes plan IDs for comparison by stripping version/interval suffixes.
-   * e.g., 'identity_plus_v1_monthly' -> 'identity_plus'
-   */
-  function normalizePlanId(planId: string): string {
-    return planId.replace(/_v\d+.*$/, '');
-  }
-
-  /**
    * Handles redirect for users with existing subscriptions.
    * @returns true if redirect was performed
    */
@@ -245,10 +237,8 @@ export function useAuth() {
     product: string,
     interval: string
   ): Promise<boolean> {
-    const normalizedCurrent = normalizePlanId(currentPlanId);
-    const normalizedRequested = normalizePlanId(product);
-
-    if (normalizedCurrent === normalizedRequested) {
+    // Plan IDs are canonical family IDs (e.g., 'identity_plus_v1') - compare directly
+    if (currentPlanId === product) {
       // Already subscribed to the same plan - redirect to billing overview
       loggingService.info('[useAuth] User already subscribed to requested plan', {
         currentPlan: currentPlanId,

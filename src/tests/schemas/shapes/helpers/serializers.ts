@@ -978,8 +978,6 @@ export type V2WireBrandSettings = {
   instructions_post_reveal?: string | null;
   description?: string;
   button_text_light?: string;
-  allow_public_homepage?: string;
-  allow_public_api?: string;
   font_family?: string;
   corner_style?: string;
   locale?: string;
@@ -1000,8 +998,6 @@ export type V3WireBrandSettings = {
   instructions_post_reveal?: string | null;
   description?: string;
   button_text_light?: boolean;
-  allow_public_homepage?: boolean;
-  allow_public_api?: boolean;
   font_family?: string;
   corner_style?: string;
   locale?: string;
@@ -1147,12 +1143,6 @@ function toV2WireBrandSettings(canonical: BrandSettingsCanonical): V2WireBrandSe
   if (canonical.button_text_light !== undefined) {
     result.button_text_light = booleanToString(canonical.button_text_light);
   }
-  if (canonical.allow_public_homepage !== undefined) {
-    result.allow_public_homepage = booleanToString(canonical.allow_public_homepage);
-  }
-  if (canonical.allow_public_api !== undefined) {
-    result.allow_public_api = booleanToString(canonical.allow_public_api);
-  }
   if (canonical.font_family !== undefined) {
     result.font_family = canonical.font_family;
   }
@@ -1292,12 +1282,6 @@ function toV3WireBrandSettings(canonical: BrandSettingsCanonical): V3WireBrandSe
   }
   if (canonical.button_text_light !== undefined) {
     result.button_text_light = canonical.button_text_light;
-  }
-  if (canonical.allow_public_homepage !== undefined) {
-    result.allow_public_homepage = canonical.allow_public_homepage;
-  }
-  if (canonical.allow_public_api !== undefined) {
-    result.allow_public_api = canonical.allow_public_api;
   }
   if (canonical.font_family !== undefined) {
     result.font_family = canonical.font_family;

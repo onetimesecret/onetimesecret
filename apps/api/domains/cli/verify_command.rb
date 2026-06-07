@@ -193,7 +193,7 @@ module Onetime
           output_verification_results(result, domain)
           output_state_info(result)
           output_organization_info(domain) if dry_run
-          output_brand_info(domain) if dry_run
+          output_feature_toggle_info(domain) if dry_run
           output_diagnostic_commands(result, domain)
         else
           puts "ERROR: #{result.error}"
@@ -236,8 +236,10 @@ module Onetime
         puts
       end
 
-      def output_brand_info(domain)
-        puts 'Brand Settings:'
+      # Per-domain feature toggles (HomepageConfig / ApiConfig); kept
+      # separate from cosmetic brand fields post-#3026.
+      def output_feature_toggle_info(domain)
+        puts 'Feature Toggles:'
         puts "  Public Homepage:  #{domain.allow_public_homepage?}"
         puts "  Public API:       #{domain.allow_public_api?}"
         puts
@@ -355,11 +357,13 @@ module Onetime
 
         # Add extended info for dry-run mode (health check mode)
         if dry_run
-          output[:organization] = build_organization_json(domain)
-          output[:brand]        = {
-            allow_public_homepage: domain.allow_public_homepage?,
-            allow_public_api: domain.allow_public_api?,
-          }
+          output[:organization]    = build_organization_json(domain)
+          # Per-domain feature toggles emitted as their own blocks to match the
+          # colonel admin list and the public domain serializer (#3026); the
+          # legacy `brand: { allow_public_*: ... }` nesting was removed because
+          # the toggles never lived in BrandSettings.
+          output[:homepage_config] = { enabled: domain.allow_public_homepage? }
+          output[:api_config]      = { enabled: domain.allow_public_api? }
         end
 
         puts JSON.pretty_generate(output)

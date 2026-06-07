@@ -59,7 +59,7 @@
 ARG APP_DIR=/app
 ARG PUBLIC_DIR=/app/public
 ARG VERSION
-ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:510c441d2541a5ef8c6a657a67ae98d5b0c6acdd886691690ed30f986095f55e
+ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:3f335cdd6daf8a5835071065bb27cc26f4293be25657818ea2e5943ae3255ae5
 
 ##
 # DEPENDENCIES: Install application dependencies
@@ -77,7 +77,7 @@ WORKDIR ${APP_DIR}
 ENV NODE_PATH=${APP_DIR}/node_modules
 
 # Copy dependency manifests
-COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml ./
+COPY Gemfile Gemfile.lock package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install Ruby dependencies
 # BUNDLE_WITHOUT excludes dev/test/optional gems from production image
@@ -106,7 +106,7 @@ WORKDIR ${APP_DIR}
 COPY public ./public
 COPY src ./src
 COPY locales ./locales
-COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts \
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json vite.config.ts \
      tailwind.config.ts eslint.config.ts ./
 
 # Belt-and-suspenders version patch: if the host-side update-version.sh ran
@@ -176,12 +176,15 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
 
 # Install system packages + S6 dependencies
+# procps provides pgrep, used by bin/healthcheck.sh for role detection
+# (web vs. worker/scheduler) — see docker/entrypoints/healthcheck.sh
 RUN set -eux && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
         curl \
+        procps \
         xz-utils \
         ca-certificates && \
     apt-get clean && \
@@ -263,10 +266,10 @@ RUN set -eux && \
     for file in etc/defaults/*.defaults.*; do \
         if [ -f "$file" ]; then \
             target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
-            cp --preserve --no-clobber "$file" "$target"; \
+            cp --preserve --update=none "$file" "$target"; \
         fi; \
     done && \
-    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
     chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000
@@ -299,12 +302,15 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
       org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
 
+# procps provides pgrep, used by bin/healthcheck.sh for role detection
+# (web vs. worker/scheduler) — see docker/entrypoints/healthcheck.sh
 RUN set -eux && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
         curl \
+        procps \
         ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
@@ -359,15 +365,15 @@ ENV RACK_ENV=production \
 #   etc/defaults/config.defaults.yaml -> etc/config.yaml
 #   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
 #   etc/defaults/logging.defaults.yaml -> etc/logging.yaml
-# The --no-clobber flag ensures existing files are not overwritten.
+# The --update=none flag ensures existing files are not overwritten.
 RUN set -eux && \
     for file in etc/defaults/*.defaults.*; do \
         if [ -f "$file" ]; then \
             target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
-            cp --preserve --no-clobber "$file" "$target"; \
+            cp --preserve --update=none "$file" "$target"; \
         fi; \
     done && \
-    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    cp --preserve --update=none etc/examples/puma.example.rb etc/puma.rb && \
     chmod +x bin/entrypoint.sh bin/healthcheck.sh
 
 EXPOSE 3000

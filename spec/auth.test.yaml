@@ -17,6 +17,13 @@ full:
   # Database connection for Full mode
   # Uses in-memory SQLite for tests to avoid file persistence issues
   database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
+
+  # Explicitly nil to prevent defaults layer from injecting ARGON2_SECRET
+  # pepper into test hashes. Direct Argon2 verification in tests (e.g.
+  # password_migration_spec) does not supply a pepper, so hashing must
+  # also omit it.
+  argon2_secret:
 
   # Optional Rodauth features (matches auth.defaults.yaml format)
   # For tests, lockout/password_requirements/sessions enabled by default; others disabled
@@ -29,7 +36,7 @@ full:
     mfa: false
     email_auth: false
     webauthn: false
-    sso: false
+    sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 
   # Restrict login page to a single auth method.
   # Values: password, email_auth, webauthn, sso (or blank for all)

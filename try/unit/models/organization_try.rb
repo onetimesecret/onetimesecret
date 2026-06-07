@@ -57,9 +57,9 @@ OT.boot! :test
 @org.owner?(@member1)
 #=> false
 
-## Owner check handles nil customer
+## Owner check handles nil customer (strict boolean per ADR-012)
 @org.owner?(nil)
-#=> nil
+#=> false
 
 ## Organization owner is automatically added as first member via participates_in
 @org.member?(@owner)
@@ -121,9 +121,9 @@ members = @org.list_members
 @org.can_modify?(@member1)
 #=> false
 
-## Can modify handles nil customer
+## Can modify handles nil customer (strict boolean per ADR-012)
 @org.can_modify?(nil)
-#=> nil
+#=> false
 
 ## Owner can delete organization
 @org.can_delete?(@owner)
@@ -133,9 +133,9 @@ members = @org.list_members
 @org.can_delete?(@member1)
 #=> false
 
-## Can delete handles nil customer
+## Can delete handles nil customer (strict boolean per ADR-012)
 @org.can_delete?(nil)
-#=> nil
+#=> false
 
 ## Factory method requires owner
 begin
@@ -252,6 +252,154 @@ reloaded_org = Onetime::Organization.load(@org.objid)
 ## receipt? returns false for empty string
 @org.receipt?("")
 #=> false
+
+# ============================================================================
+# ADR-012 Stage 2 Unit B: owner? delegates to OrganizationMembership.
+# Authority comes from membership row (role = 'owner'), NOT from owner_id
+# field matching. The factory's auto-membership convenience must not paper
+# over the underlying invariant.
+#
+# Note: Tryouts setup runs once at the top of the file (before the first ##
+# block). Between-block code is NOT setup — it's only re-evaluated as part of
+# whatever test it ends up grouped with. To create the membership-less
+# fixtures these invariants require, each block instantiates the org inline
+# via Organization.new(...).save (bypassing create!'s auto-add-owner).
+# ============================================================================
+
+## ADR-012 invariant (a): owner_id matches but no membership → not owner
+ghost_owner = Onetime::Customer.create!(email: "ghost_a_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost Org A",
+  owner_id: ghost_owner.custid,
+  contact_email: "ghost_a_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+result = ghost_org.owner?(ghost_owner)
+ghost_org.destroy!
+ghost_owner.destroy!
+result
+#=> false
+
+## ADR-012 invariant (a): owner_id matches AND membership has role 'member' → not owner
+ghost_owner = Onetime::Customer.create!(email: "ghost_b_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost Org B",
+  owner_id: ghost_owner.custid,
+  contact_email: "ghost_b_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+ghost_org.add_members_instance(ghost_owner, through_attrs: { role: 'member' })
+result = ghost_org.owner?(ghost_owner)
+ghost_org.remove_members_instance(ghost_owner)
+ghost_org.destroy!
+ghost_owner.destroy!
+result
+#=> false
+
+## ADR-012 invariant (a): membership with role 'owner' → owner
+ghost_owner = Onetime::Customer.create!(email: "ghost_c_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost Org C",
+  owner_id: ghost_owner.custid,
+  contact_email: "ghost_c_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+ghost_org.add_members_instance(ghost_owner, through_attrs: { role: 'owner' })
+result = ghost_org.owner?(ghost_owner)
+ghost_org.remove_members_instance(ghost_owner)
+ghost_org.destroy!
+ghost_owner.destroy!
+result
+#=> true
+
+## ADR-012 invariant (b): membership wins, owner_id field is ignored
+# owner_id points at @ghost_owner_d (no membership), but @ghost_member_d
+# has a membership with role 'owner'. The membership wins.
+ghost_owner_d  = Onetime::Customer.create!(email: "ghost_owner_d_#{@test_suffix}@onetimesecret.com")
+ghost_member_d = Onetime::Customer.create!(email: "ghost_member_d_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Membership Wins Org",
+  owner_id: ghost_owner_d.custid,  # Intentionally NOT ghost_member_d.custid
+  contact_email: "membership_wins_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+ghost_org.add_members_instance(ghost_member_d, through_attrs: { role: 'owner' })
+# Member-with-owner-role is the owner; owner_id-matching-no-membership is not.
+result = [ghost_org.owner?(ghost_member_d), ghost_org.owner?(ghost_owner_d)]
+ghost_org.remove_members_instance(ghost_member_d)
+ghost_org.destroy!
+ghost_owner_d.destroy!
+ghost_member_d.destroy!
+result
+#=> [true, false]
+
+## ADR-012 invariant (c): membership exists with role 'owner' AND owner_id matches,
+# but status is 'accepted' (pre-activation) → not owner. The membership&.active?
+# guard in Organization#owner? must override both the role match and the
+# owner_id field match. Direct composite key load finds the membership, but
+# the active? check rejects it.
+ghost_owner = Onetime::Customer.create!(email: "ghost_e_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost Org E",
+  owner_id: ghost_owner.custid,
+  contact_email: "ghost_e_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+inactive_membership = Onetime::OrganizationMembership.new(
+  organization_objid: ghost_org.objid,
+  customer_objid: ghost_owner.objid,
+  role: 'owner',
+  status: 'accepted',  # NOT 'active' — pre-activation state
+)
+inactive_membership.save
+result = ghost_org.owner?(ghost_owner)
+inactive_membership.destroy!
+ghost_org.destroy!
+ghost_owner.destroy!
+result
+#=> false
+
+# ============================================================================
+# CustomDomain#owner? Unit B migration coverage (custom_domain.rb:270).
+# A customer whose custid matches org.owner_id but who has NO membership is
+# no longer treated as the domain's owner. The route-level integration suite
+# (try/integration/api/domains/add_domain_role_gate_try.rb) uses create!
+# exclusively, so this membership-less edge is uncovered there.
+# ============================================================================
+
+## CustomDomain#owner? returns false when org.owner_id matches but no membership
+ghost_owner = Onetime::Customer.create!(email: "ghost_cd_a_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost CD Org A",
+  owner_id: ghost_owner.custid,
+  contact_email: "ghost_cd_a_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+ghost_domain = Onetime::CustomDomain.create!("ghost-#{@test_suffix}.example.com", ghost_org.objid)
+result = ghost_domain.owner?(ghost_owner)
+ghost_domain.destroy!
+ghost_org.destroy!
+ghost_owner.destroy!
+result
+#=> false
+
+## CustomDomain#owner? returns true when customer has owner-role membership
+ghost_member = Onetime::Customer.create!(email: "ghost_cd_b_#{@test_suffix}@onetimesecret.com")
+ghost_org = Onetime::Organization.new(
+  display_name: "Ghost CD Org B",
+  owner_id: "some_other_custid_#{@test_suffix}",
+  contact_email: "ghost_cd_b_#{@test_suffix}@acme.com",
+)
+ghost_org.save
+ghost_org.add_members_instance(ghost_member, through_attrs: { role: 'owner' })
+ghost_domain = Onetime::CustomDomain.create!("membership-#{@test_suffix}.example.com", ghost_org.objid)
+result = ghost_domain.owner?(ghost_member)
+ghost_domain.destroy!
+ghost_org.remove_members_instance(ghost_member)
+ghost_org.destroy!
+ghost_member.destroy!
+result
+#=> true
 
 # Teardown
 @org.destroy!

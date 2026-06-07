@@ -316,7 +316,9 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       processed_config = Onetime::Config.after_load(config)
 
       # Domains config moved from site.domains to features.domains
-      expect(processed_config['features']['domains']).to eq({ 'enabled' => false })
+      expect(processed_config['features']['domains']).to eq(
+        { 'enabled' => false, 'require_verified' => false }
+      )
     end
 
     it 'does not add billing configuration when not present' do
@@ -332,7 +334,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
 
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config['features']['regions']).to eq({ 'enabled' => false })
+      expect(processed_config['features']['regions']).to eq({ 'enabled' => false, 'jurisdictions' => [] })
     end
 
     it 'disables authentication sub-features when main feature is off' do
@@ -653,6 +655,65 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         end
       end
     end # This closes the `context 'with validation errors'`
+
+    context 'with deprecated configuration' do
+      # A bootable minimal config carrying no deprecated keys.
+      let(:base_config) do
+        {
+          'development' => { 'enabled' => false },
+          'mail' => {
+            'truemail' => {
+              'default_validation_type' => :regex,
+              'verifier_email' => 'hello@example.com',
+            },
+          },
+          'site' => {
+            'authentication' => { 'enabled' => true },
+            'host' => 'example.com',
+            'secret' => 'test_secret',
+          },
+          'redis' => { 'uri' => 'redis://localhost:6379/0' },
+        }
+      end
+
+      it 'accepts a clean configuration without raising' do
+        expect { Onetime::Config.after_load(base_config) }.not_to raise_error
+      end
+
+      it 'raises ConfigError for a deprecated key under the default strict policy' do
+        base_config['site']['domains'] = { 'enabled' => true }
+
+        expect {
+          Onetime::Config.after_load(base_config)
+        }.to raise_error(OT::ConfigError, /site\.domains/)
+      end
+
+      it 'logs and continues when deprecated_config_mode is warn' do
+        allow(OT).to receive(:le)
+        base_config['site']['regions'] = { 'enabled' => true }
+        base_config['compatibility'] = { 'deprecated_config_mode' => 'warn' }
+
+        expect { Onetime::Config.after_load(base_config) }.not_to raise_error
+        expect(OT).to have_received(:le).with(/CONFIG DEPRECATION.*site\.regions/)
+      end
+
+      it 'ignores deprecated keys when deprecated_config_mode is silent' do
+        base_config['site']['domains'] = { 'enabled' => true }
+        base_config['compatibility'] = { 'deprecated_config_mode' => 'silent' }
+
+        expect { Onetime::Config.after_load(base_config) }.not_to raise_error
+      end
+
+      it 'detects a deprecated environment variable even when config is clean' do
+        ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH'] = '2'
+
+        expect {
+          Onetime::Config.after_load(base_config)
+        }.to raise_error(OT::ConfigError, /trusted_proxy_depth is ignored/)
+      ensure
+        ENV.delete('UI_HOMEPAGE_TRUSTED_PROXY_DEPTH')
+      end
+    end
   end
 
   describe '.mapped_key' do

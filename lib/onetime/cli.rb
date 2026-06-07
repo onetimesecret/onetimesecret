@@ -18,11 +18,6 @@ module Onetime
       def boot_application!
         # Make sure all the models are loaded before calling boot
         OT.boot! :cli
-
-        # boot! swallows exceptions in CLI mode (for console debugging).
-        # Commands that depend on a fully-booted app should fail fast
-        # with a clear message instead of hitting nil errors later.
-        warn 'Boot failed: OT.conf is nil' unless OT.conf
       end
 
       protected
@@ -40,6 +35,12 @@ module Onetime
 
       def debug?
         OT.debug?
+      end
+
+      def valid_email?(email)
+        return false if email.nil? || email.to_s.empty?
+
+        Truemail.validate(email.to_s).result.valid?
       end
     end
 
@@ -70,8 +71,9 @@ require_relative 'cli/simple_commands'
 require_relative 'cli/status_command'
 require_relative 'cli/server_command'
 require_relative 'cli/boot_test_command'
+require_relative 'cli/config_group_command'
+require_relative 'cli/config_validate_command'
 require_relative 'cli/migrate_command'
-require_relative 'cli/migrate_redis_data_command'
 require_relative 'cli/customers/shared'
 require_relative 'cli/customers/sync_auth_accounts_command'
 require_relative 'cli/customers/dates_command'
@@ -79,15 +81,21 @@ require_relative 'cli/customers/purge_command'
 require_relative 'cli/customers/show_command'
 require_relative 'cli/customers/list_command'
 require_relative 'cli/customers/create_command'
+require_relative 'cli/customers/verify_command'
+require_relative 'cli/customers/unverify_command'
 require_relative 'cli/customers/doctor_command'
 require_relative 'cli/customers_command'
 require_relative 'cli/memberships/doctor_command'
 require_relative 'cli/memberships_command'
 require_relative 'cli/domains/doctor_command'
+require_relative 'cli/domains/migrate_sso_command'
 require_relative 'cli/domains_command'
 require_relative 'cli/org/doctor_command'
 require_relative 'cli/org_command'
 require_relative 'cli/apitoken_command'
+require_relative 'cli/housekeeping_command'
+require_relative 'cli/housekeeping/list_command'
+require_relative 'cli/housekeeping/run_command'
 
 # Load migration CLI commands
 require_relative 'cli/migrations/backfill_email_hash_command'
@@ -96,12 +104,13 @@ require_relative 'cli/migrations/backfill_subscription_status_command'
 require_relative 'cli/migrations/dedupe_instances_command'
 require_relative 'cli/migrations/dedupe_relationships_command'
 require_relative 'cli/migrations/dedupe_participations_command'
-require_relative 'cli/migrations/migrate_probono_accounts_command'
+require_relative 'cli/migrations/grant_probono_entitlements_command'
 require_relative 'cli/customers/role_command'
 require_relative 'cli/passwords_command'
 require_relative 'cli/test_data_command'
 require_relative 'cli/session_command'
 require_relative 'cli/totp_command'
+require_relative 'cli/ratelimit_command'
 
 # Load worker and scheduler commands (top-level)
 require_relative 'cli/worker_command'
@@ -114,6 +123,7 @@ require_relative 'cli/email/test_command'
 require_relative 'cli/email/templates_command'
 require_relative 'cli/email/preview_command'
 require_relative 'cli/email/config_command'
+require_relative 'cli/email/validate_command'
 
 # Load diagnostics CLI commands
 require_relative 'cli/diagnostics'

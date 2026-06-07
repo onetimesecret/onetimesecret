@@ -45,19 +45,44 @@ module ColonelAPI
           end_idx           = start_idx + @per_page - 1
           paginated_domains = all_domains[start_idx..end_idx] || []
 
+          # Batch-load sibling configs for the page in two pipelined fetches.
+          # HomepageConfig / ApiConfig use `identifier_field :domain_id`, so the
+          # CustomDomain identifiers serve directly as load_multi keys. Missing
+          # records come back as nil and are dropped by compact; lookup-misses
+          # in the loop below become nil blocks in the JSON response.
+          #
+          # Consistent with CustomDomain's predicates (`#allow_public_homepage?`
+          # / `#allow_public_api?`), which also fail-closed (return false +
+          # log) when a sibling record is missing. Both read paths prefer
+          # graceful degradation over raising so a single corrupt row can't
+          # take down the admin list OR the user-facing authorization flow;
+          # the write path (create! bootstrap, brand PUT upsert, migration)
+          # is where integrity is enforced.
+          domain_identifiers = paginated_domains.map(&:identifier)
+          homepage_by_id     = Onetime::CustomDomain::HomepageConfig
+            .load_multi(domain_identifiers).compact
+            .each_with_object({}) { |cfg, h| h[cfg.domain_id] = cfg }
+          api_by_id          = Onetime::CustomDomain::ApiConfig
+            .load_multi(domain_identifiers).compact
+            .each_with_object({}) { |cfg, h| h[cfg.domain_id] = cfg }
+
           # Format domain data
           @domains = paginated_domains.map do |domain|
             # Get organization details
             org = domain.primary_organization
 
-            # Get brand details from the hashkey
+            # Brand carries cosmetic fields only; the homepage / API toggles
+            # live in their own per-domain records (#3026) and are emitted
+            # alongside brand below.
+            brand_raw  = domain.brand.hgetall
             brand_data = {
-              name: domain.brand['name'],
-              tagline: domain.brand['tagline'],
-              homepage_url: domain.brand['homepage_url'],
-              allow_public_homepage: domain.allow_public_homepage?,
-              allow_public_api: domain.allow_public_api?,
+              name: brand_raw['name'],
+              tagline: brand_raw['tagline'],
+              homepage_url: brand_raw['homepage_url'],
             }
+
+            homepage_config = homepage_by_id[domain.identifier]
+            api_config      = api_by_id[domain.identifier]
 
             # Check if images exist
             has_logo = !domain.logo['filename'].to_s.empty?
@@ -77,8 +102,20 @@ module ColonelAPI
               created: domain.created,
               updated: domain.updated,
               org_id: domain.org_id,
-              org_name: org ? org.name : 'Unknown',
+              org_name: org ? org.display_name : 'Unknown',
               brand: brand_data,
+              homepage_config: homepage_config && {
+                domain_id: homepage_config.domain_id,
+                enabled: homepage_config.enabled?,
+                created_at: homepage_config.created&.to_i,
+                updated_at: homepage_config.updated&.to_i,
+              },
+              api_config: api_config && {
+                domain_id: api_config.domain_id,
+                enabled: api_config.enabled?,
+                created_at: api_config.created&.to_i,
+                updated_at: api_config.updated&.to_i,
+              },
               has_logo: has_logo,
               has_icon: has_icon,
               logo_url: has_logo ? "/imagine/#{domain.domainid}/logo.png" : nil,

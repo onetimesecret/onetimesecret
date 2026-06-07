@@ -13,6 +13,7 @@ require 'yaml'
 require 'erb'
 require 'singleton'
 require_relative 'utils/config_resolver'
+require_relative 'utils/enumerables'
 
 module Onetime
   class BillingConfig
@@ -27,8 +28,12 @@ module Onetime
     end
 
     # Whether billing is enabled
-    # Returns false if file doesn't exist or enabled is not true
+    # Returns false if file doesn't exist or enabled is not true.
+    # ENV['BILLING_ENABLED'] overrides config when set ('true'/'false').
     def enabled?
+      env_val = ENV.fetch('BILLING_ENABLED', nil)
+      return env_val == 'true' unless env_val.nil?
+
       config['enabled'].to_s == 'true'
     end
 
@@ -127,12 +132,6 @@ module Onetime
       config['payment_links'] || {}
     end
 
-    # Full billing configuration hash
-    # Returns the entire config for backward compatibility
-    def billing
-      config
-    end
-
     # Reload configuration (useful for testing)
     # Also picks up any changes to BillingConfig.path
     def reload!
@@ -150,12 +149,29 @@ module Onetime
         return
       end
 
-      erb_template = ERB.new(File.read(@path))
-      yaml_content = erb_template.result
-      @config      = YAML.safe_load(yaml_content, symbolize_names: false) || {}
+      defaults_file = Onetime::Utils::ConfigResolver.defaults_path('billing')
+      base_config = if defaults_file && defaults_file != @path
+        load_yaml_from(defaults_file)
+      else
+        {}
+      end
+
+      env_config = load_yaml_from(@path)
+
+      @config = if base_config.empty?
+        env_config
+      else
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
+      end
     rescue StandardError => ex
       OT.le "[BillingConfig] Error loading billing config: #{ex.message}"
       @config = {}
+    end
+
+    def load_yaml_from(path)
+      erb_template = ERB.new(File.read(path))
+      yaml_content = erb_template.result
+      YAML.safe_load(yaml_content, symbolize_names: false) || {}
     end
   end
 

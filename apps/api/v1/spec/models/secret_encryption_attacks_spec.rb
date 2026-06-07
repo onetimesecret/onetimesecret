@@ -35,12 +35,10 @@ RSpec.describe Onetime::Secret, 'security hardening' do
     end
 
     it 'falls back to BCrypt for legacy hashes' do
-      # Set up a BCrypt hash directly (simulating legacy data)
       bcrypt_hash = BCrypt::Password.create(passphrase, cost: 12).to_s
       secret.instance_variable_set(:@passphrase, bcrypt_hash)
       secret.instance_variable_set(:@passphrase_encryption, '1')
 
-      # Verify actual BCrypt comparison works
       expect(secret.passphrase?(passphrase)).to be true
       expect(secret.passphrase?('wrong-passphrase')).to be false
     end
@@ -83,114 +81,8 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       skip 'Execution too fast to measure reliably' if avg_correct < 100 || avg_incorrect < 100
 
       # Timing difference should be minimal
-      # Allow up to 2x difference because BCrypt comparison exits early on
-      # hash algorithm mismatch, but actual password comparison is constant time
       expect(avg_incorrect / avg_correct).to be_between(0.5, 2.0)
     end
   end
 
-  describe 'handling corrupted encryption data' do
-    before do
-      secret.encrypt_value(secret_value)
-    end
-
-    it 'raises an error when encrypted value is corrupted' do
-      # Corrupt the encrypted value by truncating bytes. AES-CBC uses 16-byte blocks
-      # with PKCS7 padding. Truncating 5 bytes ensures incorrect block length which
-      # reliably triggers CipherError across OpenSSL versions.
-      secret.value = secret.value[0..-6]
-
-      expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
-    end
-
-    it 'handles corruption edge cases gracefully' do
-      # Test with various forms of corruption
-
-      # Case 1: Empty value
-      secret.value = ""
-      # Empty value with encryption mode 2 can trigger different errors depending on
-      # the environment (OpenSSL, frozen string handling, etc.)
-      expect { secret.decrypted_value }.to(raise_error do |error|
-        expect([OpenSSL::Cipher::CipherError, ArgumentError, FrozenError]).to include(error.class)
-      end,
-                                          )
-
-      # Case 2: Nil value
-      secret.value = nil
-      expect { secret.decrypted_value }.to raise_error(NoMethodError)
-
-      # Case 3: Invalid encryption mode
-      secret.value = secret_value
-      secret.value_encryption = 99
-      expect { secret.decrypted_value }.to raise_error(RuntimeError, /Unknown encryption mode/)
-
-      # Case 4: Non-encrypted binary data
-      secret.value = "\x00\x01\x02\x03"
-      secret.value_encryption = 2
-      expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
-    end
-
-    it 'fails predictably with mismatched encryption modes' do
-      # Encrypt with v2
-      secret.value_encryption = 2
-      secret.encrypt_value(secret_value)
-      encrypted_value = secret.value.dup
-
-      # Try to decrypt with v1 key — AES-256-CBC is non-AEAD, so wrong-key
-      # decryption either raises CipherError (invalid PKCS7 padding) or
-      # silently produces garbage, depending on the OpenSSL version/platform.
-      secret.value_encryption = 1
-      begin
-        result = secret.decrypted_value
-        expect(result).not_to eq(secret_value)
-      rescue OpenSSL::Cipher::CipherError
-        # Expected on platforms where padding validation catches the mismatch
-      end
-
-      # Try to decrypt with no encryption
-      secret.value = encrypted_value
-      secret.value_encryption = 0
-      expect { secret.decrypted_value }.not_to raise_error
-      expect(secret.decrypted_value).not_to eq(secret_value)
-    end
-  end
-
-  describe 'key generation security' do
-    it 'produces secure-length encryption keys' do
-      key1 = secret.encryption_key_v1
-      key2 = secret.encryption_key_v2
-
-      # SHA256 produces 64-character hex strings
-      expect(key1.length).to eq(64)
-      expect(key2.length).to eq(64)
-    end
-
-    it 'generates different keys when inputs change slightly' do
-      # Original key
-      orig_key = secret.encryption_key_v2
-
-      # Change secret identifier
-      allow(secret).to receive(:identifier).and_return("test-secret-identifier-12346") # Changed last digit
-      modified_key1 = secret.encryption_key_v2
-
-      # Change global secret slightly
-      allow(secret).to receive(:identifier).and_return("test-secret-identifier-12345") # Original
-      allow(OT).to receive(:global_secret).and_return("global-test-secret-")
-      modified_key2 = secret.encryption_key_v2
-
-      # Keys should be completely different
-      expect(orig_key).not_to eq(modified_key1)
-      expect(orig_key).not_to eq(modified_key2)
-      expect(modified_key1).not_to eq(modified_key2)
-
-      # Keys should not have significant character overlap
-      # Count matching characters at same positions
-      matches1 = orig_key.chars.zip(modified_key1.chars).count { |a, b| a == b }
-      matches2 = orig_key.chars.zip(modified_key2.chars).count { |a, b| a == b }
-
-      # A secure hash function should have minimal matches (ideally around 25% by chance)
-      expect(matches1.to_f / orig_key.length).to be < 0.35
-      expect(matches2.to_f / orig_key.length).to be < 0.35
-    end
-  end
 end

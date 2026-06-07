@@ -14,13 +14,10 @@
 # Organization API uses same modern conventions as Account API and Team API for consistency.
 
 require 'onetime/logic/base'
-require 'onetime/application/authorization_policies'
 
 module OrganizationAPI
   module Logic
     class Base < Onetime::Logic::Base
-      include Onetime::Application::AuthorizationPolicies
-
       # Transform v2 response data to Organization API format
       #
       # Organization API changes (same as Account API and Team API):
@@ -96,42 +93,10 @@ module OrganizationAPI
         membership&.role || 'member'
       end
 
-      # Verify current user owns the organization
-      #
-      # Colonels (site admins) have automatic superuser bypass.
-      # Otherwise, user must be organization owner.
-      #
-      # @param organization [Onetime::Organization]
-      # @raise [FormError] If user is not owner and not admin
-      def verify_organization_owner(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.owner?(cust) },
-          error_message: 'Only organization owner can perform this action',
-        )
-      end
-
-      # Verify current user is an organization member
-      #
-      # Colonels (site admins) have automatic superuser bypass.
-      # Otherwise, user must be organization member.
-      #
-      # @param organization [Onetime::Organization]
-      # @raise [FormError] If user is not a member and not admin
-      def verify_organization_member(organization)
-        verify_one_of_roles!(
-          colonel: true,
-          custom_check: -> { organization.member?(cust) },
-          error_message: 'You must be an organization member to perform this action',
-        )
-      end
-
-      # Load organization and verify it exists
-      def load_organization(extid)
-        organization = Onetime::Organization.find_by_extid(extid)
-        raise_not_found("Organization not found: #{extid}") if organization.nil?
-        organization
-      end
+      # Organization-level authorization helpers (verify_organization_owner,
+      # verify_organization_admin, verify_organization_member, organization_admin?,
+      # load_organization) are inherited via Onetime::Application::AuthorizationPolicies,
+      # which is included by Onetime::Logic::Base.
     end
   end
 end

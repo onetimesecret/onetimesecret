@@ -45,10 +45,12 @@ const emit = defineEmits<{
   (e: 'success'): void;
   (e: 'error', message: string): void;
   (e: 'decline'): void;
+  /** Emitted when signup fails because an account already exists for this email. */
+  (e: 'account-exists'): void;
 }>();
 
 const { t } = useI18n();
-const { signupAndAccept, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
+const { signupForInvite, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
 const {
   requestMagicLink,
   sent: magicLinkSent,
@@ -169,7 +171,7 @@ const handleSubmit = async () => {
   clearErrors();
 
   try {
-    const result = await signupAndAccept(
+    const result = await signupForInvite(
       props.invitedEmail,
       password.value,
       termsAgreed.value,
@@ -179,6 +181,9 @@ const handleSubmit = async () => {
 
     if (result.success) {
       emit('success');
+    } else if (result.accountExists) {
+      // Account already exists - parent should switch to signin flow
+      emit('account-exists');
     } else if (result.error) {
       emit('error', result.error);
     }
@@ -533,7 +538,7 @@ const handleSubmit = async () => {
                 data-testid="invite-signup-submit">
                 <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
                 <template v-else>
-                  {{ t('web.organizations.invitations.create_account_and_join') }}
+                  {{ t('web.organizations.invitations.signup_continue') }}
                   <OIcon collection="heroicons"
 name="arrow-right"
 class="size-4"
@@ -622,7 +627,7 @@ aria-hidden="true" />
               data-testid="invite-signup-magic-link-button">
               <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
                 <svg
-                  class="-ml-1 mr-3 size-5 animate-spin text-white"
+                  class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -924,7 +929,7 @@ aria-hidden="true" />
             data-testid="invite-signup-submit">
             <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
             <template v-else>
-              {{ t('web.organizations.invitations.create_account_and_join') }}
+              {{ t('web.organizations.invitations.signup_continue') }}
               <OIcon collection="heroicons"
 name="arrow-right"
 class="size-4"
@@ -1012,7 +1017,7 @@ aria-hidden="true" />
             data-testid="invite-signup-magic-link-button">
             <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
               <svg
-                class="-ml-1 mr-3 size-5 animate-spin text-white"
+                class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"

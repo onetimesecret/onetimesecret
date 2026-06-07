@@ -2,9 +2,10 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/jobs/publisher'
+require 'onetime/incoming/recipient_resolver'
+
 require_relative 'base'
-require_relative '../../../../lib/onetime/jobs/publisher'
-require_relative '../../../../lib/onetime/incoming/recipient_resolver'
 
 module Incoming
   module Logic
@@ -83,12 +84,16 @@ module Incoming
 
         # Validate recipient hash exists and maps to valid email
         if @recipient_email.nil?
-          OT.lw "[IncomingSecret] Invalid recipient hash attempted: #{@recipient_hash}"
+          secret_logger.warn "[IncomingSecret] Invalid recipient hash attempted", recipient_hash: @recipient_hash
           raise_form_error 'Invalid recipient'
         end
 
-        unless recipient_email.to_s.match?(/\A[\w+\-.]+@[a-z\d-]+(\.[a-z\d-]+)*\.[a-z]+\z/i)
-          OT.le "[IncomingSecret] Lookup returned invalid email for hash: #{@recipient_hash}"
+        # Corruption guard: email was validated at config time, this catches
+        # data corruption or misconfigured storage. Uses Truemail :regex mode
+        # (no DNS) since this runs on every incoming secret creation.
+        # Flow: POST /api/incoming/secret -> resolve_recipient_and_config -> here
+        unless Truemail.validate(recipient_email.to_s, with: :regex).result.valid?
+          secret_logger.error "[IncomingSecret] Lookup returned invalid email for hash", recipient_hash: @recipient_hash
           raise_form_error 'Invalid recipient configuration'
         end
       end
@@ -142,6 +147,18 @@ module Incoming
         )
       end
 
+      # Returns the display_name for a recipient hash by scanning the
+      # resolver's public_recipients list. Both canonical and per-domain
+      # configs produce entries shaped {'digest' => ..., 'display_name' => ...}.
+      # Returns an empty string when no match is found so the receipt field
+      # is consistently a string (avoids nil vs '' noise downstream).
+      def lookup_recipient_display_name(hash)
+        return '' if hash.to_s.empty?
+
+        match = resolver.public_recipients.find { |r| r['digest'] == hash }
+        match ? match['display_name'].to_s : ''
+      end
+
       # Performs resolver I/O after entitlement check passes.
       # Sets @recipient_email, @ttl, and re-truncates @memo per domain config.
       def resolve_recipient_and_config
@@ -169,9 +186,13 @@ module Incoming
           passphrase: passphrase,
         )
 
-        # Store incoming-specific fields
-        receipt.memo       = memo
-        receipt.recipients = recipient_email
+        # Store incoming-specific fields. Persist the raw email so the
+        # underlying record stays accurate; obscuring for display happens
+        # at the serializer (Receipt::Features::SafeDumpFields). For the
+        # frontend, prefer the recipient's display name when available.
+        receipt.memo           = memo
+        receipt.recipients     = recipient_email
+        receipt.recipient_name = lookup_recipient_display_name(@recipient_hash)
 
         # Set domain_id for custom domain requests (#2864)
         if domain_strategy == :custom && display_domain
@@ -213,7 +234,7 @@ module Incoming
 
         Onetime.secret_logger.info "[IncomingSecret] Notification enqueued for #{OT::Utils.obscure_email(recipient_email)} (receipt: #{receipt.shortid})"
       rescue StandardError => ex
-        Onetime.secret_logger.error "[IncomingSecret] Failed to enqueue notification: #{ex.message}"
+        secret_logger.error "[IncomingSecret] Failed to enqueue notification", exception: ex
         # Don't raise - email failure shouldn't prevent secret creation
       end
     end

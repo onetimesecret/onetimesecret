@@ -15,14 +15,14 @@
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { useDomainsStore } from '@/shared/stores/domainsStore';
   import { ENTITLEMENTS } from '@/types/organization';
   import { isOrgsSsoEnabled, isOrgsCustomMailEnabled, isOrgsIncomingSecretsEnabled } from '@/utils/features';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
-  import { computed } from 'vue';
-  import { storeToRefs } from 'pinia';
+  import { computed, reactive } from 'vue';
 
 const { t } = useI18n();
 
@@ -42,9 +42,8 @@ const { t } = useI18n();
   const addDomainRoute = computed(() => `/org/${props.orgid}/domains/add`);
 
   const organizationStore = useOrganizationStore();
-  const { organizations } = storeToRefs(organizationStore);
-  const organization = computed(() =>
-    organizations.value.find((o) => o.extid === props.orgid) ?? null
+  const organization = computed(
+    () => organizationStore.getOrganizationByExtid(props.orgid) ?? null
   );
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
@@ -52,28 +51,43 @@ const { t } = useI18n();
   const canEmailConfig = computed(() => isOrgsCustomMailEnabled() && can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
   const canIncomingSecrets = computed(() => isOrgsIncomingSecretsEnabled() && can(ENTITLEMENTS.INCOMING_SECRETS));
 
-  /** Current user is owner or admin — can modify domain settings */
-  const canAdmin = computed(() => {
-    const role = organization.value?.current_user_role;
-    return role === 'owner' || role === 'admin';
-  });
+  /** Role-based permissions for the org backing this table (see #3033). */
+  const { isOwnerOrAdmin: canAdmin, canCreateDomain } = useOrgPermissions(organization);
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
   }>();
 
   const handleDelete = async (domain: string) => {
-    const confirmed = await reveal();
-    if (confirmed) {
+    const { isCanceled } = await reveal();
+    if (!isCanceled) {
       await deleteDomain(domain);
     }
   };
 
-  const handleHomepageToggle = async (domain: CustomDomain) => {
-    const newValue = !(domain.homepage_config?.enabled ?? false);
-    await domainsStore.putHomepageConfig(domain.extid, newValue);
+  // Optimistic toggle state: tracks in-flight toggles by extid so each
+  // switch reflects its pending value immediately and ignores clicks
+  // while its API call is in flight.
+  const pendingToggles: Record<string, boolean> = reactive({});
 
-    emit('toggle-homepage', domain);
+  const isHomepageEnabled = (domain: CustomDomain): boolean => {
+    if (domain.extid in pendingToggles) return pendingToggles[domain.extid];
+    return domain.homepage_config?.enabled ?? false;
+  };
+
+  const isTogglePending = (extid: string): boolean => extid in pendingToggles;
+
+  const handleHomepageToggle = async (domain: CustomDomain) => {
+    if (isTogglePending(domain.extid)) return;
+
+    const newValue = !isHomepageEnabled(domain);
+    pendingToggles[domain.extid] = newValue;
+    try {
+      await domainsStore.putHomepageConfig(domain.extid, newValue);
+      emit('toggle-homepage', domain);
+    } finally {
+      delete pendingToggles[domain.extid];
+    }
   };
 </script>
 
@@ -101,6 +115,7 @@ const { t } = useI18n();
           </p>
         </div>
         <router-link
+          v-if="canCreateDomain"
           :to="addDomainRoute"
           class="inline-flex shrink-0 whitespace-nowrap items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
           <OIcon
@@ -138,7 +153,7 @@ const { t } = useI18n();
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="domain in domains"
-              :key="domain.domainid"
+              :key="domain.extid"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Domain & Status -->
               <td class="px-6 py-4">
@@ -152,8 +167,8 @@ const { t } = useI18n();
               <td class="px-6 py-4 text-center">
                 <div>
                   <ToggleWithIcon
-                    :enabled="domain.homepage_config?.enabled ?? false"
-                    :disabled="isLoading || !canAdmin"
+                    :enabled="isHomepageEnabled(domain)"
+                    :disabled="isLoading || !canAdmin || isTogglePending(domain.extid)"
                     @update:enabled="handleHomepageToggle(domain)" />
                 </div>
               </td>

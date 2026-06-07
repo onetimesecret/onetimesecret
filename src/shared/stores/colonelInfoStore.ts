@@ -3,14 +3,11 @@
 import {
   type ColonelStatsDetails,
   type ColonelInfoDetails,
-  type ColonelUsersDetails,
   type ColonelUser,
   type Pagination,
-  type ColonelSecretsDetails,
   type ColonelSecret,
   type DatabaseMetricsDetails,
   type RedisMetricsDetails,
-  type BannedIPsDetails,
   type BannedIP,
   type UsageExportDetails,
   type ColonelCustomDomain,
@@ -19,57 +16,14 @@ import {
   type InvestigateOrganizationResult,
   type QueueMetrics,
 } from '@/schemas/api/account/responses/colonel';
-import { type SystemSettingsDetails } from '@/schemas/contracts/config';
 import { responseSchemas } from '@/schemas/api/internal/responses';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
-import { defineStore, PiniaCustomProperties } from 'pinia';
-import { ref } from 'vue';
+import { defineStore } from 'pinia';
+import { reactive, ref } from 'vue';
 
 // Use the imported type from schemas
 export type ColonelStats = ColonelStatsDetails;
-
-/**
- * Type definition for ColonelInfoStore.
- */
-export type ColonelInfoStore = {
-  // State
-  _initialized: boolean;
-  record: {} | null; // response is empty object
-  details: ColonelInfoDetails;
-  stats: ColonelStats | null;
-  config: SystemSettingsDetails | null;
-  users: ColonelUser[];
-  usersPagination: Pagination | null;
-  secrets: ColonelSecret[];
-  secretsPagination: Pagination | null;
-  databaseMetrics: DatabaseMetricsDetails | null;
-  redisMetrics: RedisMetricsDetails | null;
-  bannedIPs: BannedIP[];
-  usageExport: UsageExportDetails | null;
-  queueMetrics: QueueMetrics | null;
-
-  // Actions
-  fetchInfo: () => Promise<ColonelInfoDetails>;
-  fetchStats: () => Promise<ColonelStats>;
-  fetchUsers: (
-    page?: number,
-    perPage?: number,
-    roleFilter?: string
-  ) => Promise<ColonelUsersDetails>;
-  fetchSecrets: (page?: number, perPage?: number) => Promise<ColonelSecretsDetails>;
-  fetchDatabaseMetrics: () => Promise<DatabaseMetricsDetails>;
-  fetchRedisMetrics: () => Promise<RedisMetricsDetails>;
-  fetchBannedIPs: () => Promise<BannedIPsDetails>;
-  banIP: (ipAddress: string, reason?: string) => Promise<void>;
-  unbanIP: (ipAddress: string) => Promise<void>;
-  fetchUsageExport: (startDate?: number, endDate?: number) => Promise<UsageExportDetails>;
-  fetchQueueMetrics: () => Promise<QueueMetrics>;
-  fetchConfig: () => Promise<SystemSettingsDetails>;
-  updateConfig: (config: SystemSettingsDetails) => Promise<void>;
-  dispose: () => void;
-  $reset: () => void;
-} & PiniaCustomProperties;
 
 // eslint-disable-next-line max-lines-per-function -- Admin store with many related endpoints
 export const useColonelInfoStore = defineStore('colonel', () => {
@@ -95,11 +49,34 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const usageExport = ref<UsageExportDetails | null>(null);
   const queueMetrics = ref<QueueMetrics | null>(null);
   const _initialized = ref(false);
-  const isLoading = ref(false);
+
+  // Per-resource loading flags to prevent concurrent fetches from stomping each other
+  const loading = reactive({
+    info: false,
+    stats: false,
+    users: false,
+    secrets: false,
+    databaseMetrics: false,
+    redisMetrics: false,
+    bannedIPs: false,
+    customDomains: false,
+    organizations: false,
+    usageExport: false,
+    queueMetrics: false,
+  });
+
+  // Per-list-resource validation error state. Holds the schema name when
+  // gracefulParse fails so views can distinguish "fetch returned nothing"
+  // from "the response did not match the expected schema". Set to null on
+  // each successful fetch.
+  const usersFetchError = ref<string | null>(null);
+  const secretsFetchError = ref<string | null>(null);
+  const customDomainsFetchError = ref<string | null>(null);
+  const organizationsFetchError = ref<string | null>(null);
 
   // Actions
   async function fetch() {
-    isLoading.value = true;
+    loading.info = true;
     try {
       const response = await $api.get('/api/colonel/info');
       const result = gracefulParse(responseSchemas.colonelInfo, response.data, 'ColonelInfoResponse');
@@ -118,13 +95,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       console.error('Failed to fetch colonel info:', error);
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.info = false;
     }
   }
 
   // Lightweight stats-only fetch for dashboard
   async function fetchStats() {
-    isLoading.value = true;
+    loading.stats = true;
     try {
       // Use the dedicated stats endpoint for better performance
       const response = await $api.get('/api/colonel/stats');
@@ -142,13 +119,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       stats.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.stats = false;
     }
   }
 
   // Fetch users list with optional pagination
   async function fetchUsers(page = 1, perPage = 50, roleFilter?: string) {
-    isLoading.value = true;
+    loading.users = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -162,9 +139,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       if (!result.ok) {
         users.value = [];
         usersPagination.value = null;
+        usersFetchError.value = 'ColonelUsersResponse';
         return null;
       }
 
+      usersFetchError.value = null;
       if (result.data.details) {
         users.value = result.data.details.users;
         usersPagination.value = result.data.details.pagination;
@@ -177,13 +156,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       usersPagination.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.users = false;
     }
   }
 
   // Fetch secrets list with optional pagination
   async function fetchSecrets(page = 1, perPage = 50) {
-    isLoading.value = true;
+    loading.secrets = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -194,9 +173,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       if (!result.ok) {
         secrets.value = [];
         secretsPagination.value = null;
+        secretsFetchError.value = 'ColonelSecretsResponse';
         return null;
       }
 
+      secretsFetchError.value = null;
       if (result.data.details) {
         secrets.value = result.data.details.secrets;
         secretsPagination.value = result.data.details.pagination;
@@ -209,13 +190,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       secretsPagination.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.secrets = false;
     }
   }
 
   // Fetch database metrics
   async function fetchDatabaseMetrics() {
-    isLoading.value = true;
+    loading.databaseMetrics = true;
     try {
       const response = await $api.get('/api/colonel/system/database');
       const result = gracefulParse(responseSchemas.databaseMetrics, response.data, 'DatabaseMetricsResponse');
@@ -233,13 +214,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       databaseMetrics.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.databaseMetrics = false;
     }
   }
 
   // Fetch Redis metrics
   async function fetchRedisMetrics() {
-    isLoading.value = true;
+    loading.redisMetrics = true;
     try {
       const response = await $api.get('/api/colonel/system/redis');
       const result = gracefulParse(responseSchemas.redisMetrics, response.data, 'RedisMetricsResponse');
@@ -257,13 +238,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       redisMetrics.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.redisMetrics = false;
     }
   }
 
   // Fetch banned IPs list
   async function fetchBannedIPs() {
-    isLoading.value = true;
+    loading.bannedIPs = true;
     try {
       const response = await $api.get('/api/colonel/banned-ips');
       const result = gracefulParse(responseSchemas.bannedIPs, response.data, 'BannedIPsResponse');
@@ -283,13 +264,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       currentIP.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.bannedIPs = false;
     }
   }
 
   // Ban an IP address
   async function banIP(ipAddress: string, reason?: string) {
-    isLoading.value = true;
+    loading.bannedIPs = true;
     try {
       await $api.post('/api/colonel/banned-ips', {
         ip_address: ipAddress,
@@ -302,13 +283,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       console.error('Failed to ban IP:', error);
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.bannedIPs = false;
     }
   }
 
   // Unban an IP address
   async function unbanIP(ipAddress: string) {
-    isLoading.value = true;
+    loading.bannedIPs = true;
     try {
       await $api.delete(`/api/colonel/banned-ips/${encodeURIComponent(ipAddress)}`);
 
@@ -318,13 +299,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       console.error('Failed to unban IP:', error);
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.bannedIPs = false;
     }
   }
 
   // Fetch custom domains list with optional pagination
   async function fetchCustomDomains(page = 1, perPage = 50) {
-    isLoading.value = true;
+    loading.customDomains = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -335,9 +316,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       if (!result.ok) {
         customDomains.value = [];
         customDomainsPagination.value = null;
+        customDomainsFetchError.value = 'ColonelCustomDomainsResponse';
         return null;
       }
 
+      customDomainsFetchError.value = null;
       if (result.data.details) {
         customDomains.value = result.data.details.domains;
         customDomainsPagination.value = result.data.details.pagination;
@@ -350,7 +333,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       customDomainsPagination.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.customDomains = false;
     }
   }
 
@@ -361,7 +344,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     statusFilter?: string,
     syncStatusFilter?: string
   ) {
-    isLoading.value = true;
+    loading.organizations = true;
     try {
       const params = new URLSearchParams();
       params.append('page', page.toString());
@@ -379,9 +362,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
         organizations.value = [];
         organizationsPagination.value = null;
         organizationsFilters.value = null;
+        organizationsFetchError.value = 'ColonelOrganizationsResponse';
         return null;
       }
 
+      organizationsFetchError.value = null;
       if (result.data.details) {
         organizations.value = result.data.details.organizations;
         organizationsPagination.value = result.data.details.pagination;
@@ -396,7 +381,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       organizationsFilters.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.organizations = false;
     }
   }
 
@@ -417,7 +402,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
 
   // Fetch usage export data
   async function fetchUsageExport(startDate?: number, endDate?: number) {
-    isLoading.value = true;
+    loading.usageExport = true;
     try {
       const params = new URLSearchParams();
       if (startDate) {
@@ -443,13 +428,13 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       usageExport.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.usageExport = false;
     }
   }
 
   // Fetch queue metrics
   async function fetchQueueMetrics() {
-    isLoading.value = true;
+    loading.queueMetrics = true;
     try {
       const response = await $api.get('/api/colonel/queue');
       const result = gracefulParse(responseSchemas.queueMetrics, response.data, 'QueueMetricsResponse');
@@ -467,7 +452,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
       queueMetrics.value = null;
       throw error;
     } finally {
-      isLoading.value = false;
+      loading.queueMetrics = false;
     }
   }
 
@@ -488,6 +473,10 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     organizationsFilters.value = null;
     usageExport.value = null;
     queueMetrics.value = null;
+    usersFetchError.value = null;
+    secretsFetchError.value = null;
+    customDomainsFetchError.value = null;
+    organizationsFetchError.value = null;
   }
 
   /**
@@ -534,7 +523,11 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     organizationsFilters,
     usageExport,
     queueMetrics,
-    isLoading,
+    loading,
+    usersFetchError,
+    secretsFetchError,
+    customDomainsFetchError,
+    organizationsFetchError,
 
     // Actions
     fetch,

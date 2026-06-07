@@ -68,19 +68,12 @@ module Onetime
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
     feature :external_identifier, format: 'cd%<id>s' # use builtin extid_lookup index
+    feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
     feature :with_migration_fields
     feature :custom_domain_migration_fields
 
-    # NOTE: The dbkey used by older models for values is simply
-    # "onetime:customdomain". We'll want to rename those at some point.
-    #
-    # "values" was Familia v1 convention. In Familia, the same functionality
-    # is provided automatically by ModelName.instances.
-    #   class_sorted_set :values
-
-    class_hashkey :display_domains
     class_hashkey :owners
 
     identifier_field :domainid
@@ -98,6 +91,7 @@ module Onetime
     field :vhost
     field :verified # the txt record matches?
     field :resolving # there's a valid A or CNAME record?
+    field :vhost_fetch_failed_at # epoch seconds; non-nil while last vhost fetch failed
     field :created
     field :updated
     field :_original_value
@@ -105,7 +99,12 @@ module Onetime
     hashkey :brand
     hashkey :logo # image fields need a corresponding v2 route and logic class
     hashkey :icon
-    jsonkey :incoming_secrets  # Per-domain incoming secrets config (JSON blob)
+
+    # Legacy JSON blob. Read-only; consumed by the migrate_incoming_secrets_to_config
+    # chore that copies entries into the IncomingConfig Familia model. The field
+    # declaration is intentionally retained so the chore can read the legacy
+    # value; remove it in a follow-up release once all domains report migrated.
+    jsonkey :incoming_secrets
 
     # Familia v2 relationships
     # Participate in Organization.domains collection (auto-generated sorted_set)
@@ -163,15 +162,10 @@ module Onetime
       super
     end
 
-    # Update the display_domain field while maintaining both index systems.
+    # Update the display_domain field while maintaining the FQDN index.
     #
-    # When display_domain changes, two indexes must be updated:
-    #   1. display_domains (manual class_hashkey) - FQDN -> domain identifier
-    #   2. display_domain_index (auto unique_index) - FQDN -> identifier
-    #
-    # A plain save() only adds the NEW value to display_domain_index via
-    # auto_update_class_indexes, and never touches display_domains. This
-    # method properly cleans up old entries in both indexes.
+    # Familia's unique_index :display_domain auto-updates on save(), but a
+    # rename needs explicit old-entry removal before the field value changes.
     #
     # @param new_domain [String] The new display domain FQDN
     # @return [void]
@@ -183,13 +177,13 @@ module Onetime
       return if new_domain == old_domain
 
       # Verify the new domain is not already taken in either index
-      existing = self.class.display_domains.get(new_domain)
+      existing = self.class.display_domain_index.get(new_domain)
       if existing && existing != identifier
         raise Onetime::Problem, 'Domain already registered'
       end
 
       # Remove old entries from both indexes while field still has old value
-      self.class.display_domains.remove(old_domain)
+      self.class.display_domain_index.remove(old_domain)
       remove_from_class_display_domain_index
 
       # Update field and re-parse derived domain parts (base_domain, trd,
@@ -208,7 +202,7 @@ module Onetime
 
       begin
         save
-        self.class.display_domains.put(new_domain, identifier)
+        self.class.display_domain_index.put(new_domain, identifier)
       rescue StandardError => ex
         # Rollback: restore field, derived parts, and re-add old entries
         self.display_domain = old_domain
@@ -218,7 +212,7 @@ module Onetime
         @trd                = old_ps.trd.to_s
         @tld                = old_ps.tld.to_s
         @sld                = old_ps.sld.to_s
-        self.class.display_domains.put(old_domain, identifier)
+        self.class.display_domain_index.put(old_domain, identifier)
         # Best-effort save to restore old auto-index entry
         begin
           save
@@ -261,7 +255,7 @@ module Onetime
       customer = cust.is_a?(Onetime::Customer) ? cust : Onetime::Customer.load(cust)
       return false unless customer
 
-      org.owner_id == customer.custid || org.member?(customer)
+      org.owner?(customer) || org.member?(customer)
     end
 
     # Check if this domain is owned by the given organization
@@ -335,21 +329,6 @@ module Onetime
       receipts.member?(dummy_receipt)
     end
 
-    # Destroy the custom domain record
-    #
-    # Removes the domain identifier from the CustomDomain values
-    # and then calls the superclass destroy method
-    #
-    # @deprecated Use {#destroy!} instead. This method does not properly clean up
-    #   organization participations. destroy! should be used for complete cleanup.
-    # @param args [Array] Additional arguments to pass to the superclass destroy method
-    # @return [Object] The result of the superclass destroy method
-    def delete!(*args)
-      OT.le '[CustomDomain#delete!] DEPRECATED: Use destroy! instead for proper organization cleanup'
-      Onetime::CustomDomain.rem self
-      super # we may prefer to call self.clear here instead
-    end
-
     # Parses the vhost JSON string into a Ruby hash
     #
     # @return [Hash] The parsed vhost configuration, or empty hash if parsing fails
@@ -395,8 +374,7 @@ module Onetime
     # - The main database key for the custom domain (`self.dbkey`)
     # - database keys of all related objects specified in `self.class.data_types`
     # - Familia v2 participations in organization.domains collections
-    # - Manual class indexes: instances, display_domains, owners
-    # - Auto unique_index: display_domain_index
+    # - Class indexes: instances, display_domain_index, owners (via Familia)
     #
     # @return [void]
     def destroy!
@@ -443,13 +421,15 @@ module Onetime
         remove_from_organization_domains(o)
       end
 
-      # Remove from all class indexes (instances sorted set,
-      # display_domains hash, owners hash, display_domain_index unique_index)
-      self.class.rem(self)
+      # The `owners` HashKey is a plain class_hashkey (domain.to_s -> org_id),
+      # not a Familia-managed index, so destroy! does not auto-purge it. Remove
+      # the entry manually to keep it in sync with the `instances` registry.
+      self.class.owners.remove(to_s)
 
-      # Call Familia's built-in destroy which handles:
+      # Familia 2.9.1's destroy! handles:
       # - Main object key deletion
       # - Related fields cleanup (brand, logo, icon hashkeys)
+      # - Auto-managed class indexes (display_domain_index, instances registry)
       # - Transaction management
       super
     end
@@ -485,78 +465,24 @@ module Onetime
       @brand_settings ||= BrandSettings.from_hash(brand.hgetall)
     end
 
-    # Returns incoming secrets configuration as an IncomingSecretsConfig object.
-    # The JSON blob is parsed from the incoming_secrets jsonkey.
-    #
-    # NOTE: incoming_secrets returns a JsonStringKey object, not a raw string.
-    # We must call .value to get the actual JSON string (or nil if not set).
-    #
-    # @return [IncomingSecretsConfig] Parsed config instance
-    def incoming_secrets_config
-      @incoming_secrets_config ||= IncomingSecretsConfig.from_json(incoming_secrets.value)
-    end
-
-    # Cached lookup table for incoming recipient hash-to-email mapping.
-    # Avoids recomputing SHA256 hashes on every lookup (up to 20 ops/call).
-    #
-    # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
-    # Returns frozen hash for thread safety and to match canonical domain pattern.
-    # Returns empty frozen hash when site_secret is nil/blank (fail closed).
-    #
-    # @param site_secret [String] Site secret used as hash salt
-    # @return [Hash<String, String>] Frozen hash mapping recipient hashes to emails
-    def cached_incoming_recipient_lookup(site_secret)
-      return {}.freeze if site_secret.nil? || site_secret.to_s.strip.empty?
-
-      cache_key                           = Digest::SHA256.hexdigest(site_secret.to_s)
-      (@incoming_recipient_lookup_cache ||= {})[cache_key] ||=
-        incoming_secrets_config.incoming_recipient_lookup(site_secret).freeze
-    end
-
-    # Cached public recipients list for frontend display.
-    # Avoids recomputing SHA256 hashes on every request.
-    #
-    # Keyed by site_secret hash to support multiple secrets (e.g., key rotation).
-    # Returns frozen array for thread safety and to match canonical domain pattern.
-    # Returns empty frozen array when site_secret is nil/blank (fail closed).
-    #
-    # @param site_secret [String] Site secret used as hash salt
-    # @return [Array<Hash>] Frozen array of {hash:, name:} hashes
-    def cached_public_incoming_recipients(site_secret)
-      return [].freeze if site_secret.nil? || site_secret.to_s.strip.empty?
-
-      cache_key                            = Digest::SHA256.hexdigest(site_secret.to_s)
-      (@public_incoming_recipients_cache ||= {})[cache_key] ||=
-        incoming_secrets_config.public_incoming_recipients(site_secret).freeze
-    end
-
-    # Update the incoming secrets config and persist to Redis
-    #
-    # @param config [IncomingSecretsConfig] The config to persist
-    # @return [void]
-    def update_incoming_secrets_config(config)
-      @incoming_secrets_config           = nil # clear config cache
-      @incoming_recipient_lookup_cache   = nil # clear lookup cache
-      @public_incoming_recipients_cache  = nil # clear public recipients cache
-      self.incoming_secrets              = config.to_json
-      self.updated                       = OT.now.to_i
-      save
-    end
-
     def allow_public_homepage?
       homepage_config = HomepageConfig.find_by_domain_id(identifier)
-      return homepage_config.enabled? if homepage_config
+      unless homepage_config
+        OT.le "[CustomDomain] HomepageConfig missing for domain #{identifier}; using safe default (false). Run migration 20260417_01_backfill_homepage_config to repair."
+        return false
+      end
 
-      # Legacy fallback: read from brand_settings (remove in future release)
-      brand_settings.allow_public_homepage?
+      homepage_config.enabled?
     end
 
     def allow_public_api?
       api_config = ApiConfig.find_by_domain_id(identifier)
-      return api_config.enabled? if api_config
+      unless api_config
+        OT.le "[CustomDomain] ApiConfig missing for domain #{identifier}; using safe default (false). Run migration 20260417_01_backfill_homepage_config to repair."
+        return false
+      end
 
-      # Legacy fallback: read from brand_settings (remove in future release)
-      brand_settings.allow_public_api?
+      api_config.enabled?
     end
 
     # Validates the format of TXT record host and value used for domain verification.
@@ -666,25 +592,32 @@ module Onetime
       attr_reader :db, :values, :owners, :txt_validation_prefix
 
       # Load a domain by its display_domain name
+      #
+      # Returns nil on any error (Redis connectivity, record not found, etc.)
+      # to allow callers to fall back gracefully. This is intentional fail-open
+      # behavior for the lookup layer; callers handle nil as "no custom domain".
+      #
       # @param domain_name [String] The domain name to look up
       # @return [CustomDomain, nil] The domain if found, nil otherwise
       def load_by_display_domain(domain_name)
         normalized = domain_name.to_s.downcase
-        domainid   = display_domains.get(normalized)
+        domainid   = display_domain_index.get(normalized)
         return nil if domainid.nil?
 
         # Use Familia's find_by_identifier method
-        begin
-          find_by_identifier(domainid)
-        rescue Onetime::RecordNotFound, Redis::BaseError => ex
-          OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
-          nil
-        end
+        find_by_identifier(domainid)
+      rescue Onetime::RecordNotFound, Redis::BaseError => ex
+        OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
+        nil
+      rescue StandardError => ex
+        # Fail-open: Redis errors during lookup should not block the request
+        OT.le "[CustomDomain.load_by_display_domain] Unexpected error for #{normalized}: #{ex.class} - #{ex.message}"
+        nil
       end
 
       # Resolve an FQDN to its CustomDomain identifier.
       #
-      # Looks up the display_domains hash for the given FQDN. Returns nil
+      # Looks up the display_domain_index hash for the given FQDN. Returns nil
       # when the domain is blank, unregistered, or on any error — callers
       # treat nil as "no custom domain".
       #
@@ -693,7 +626,7 @@ module Onetime
       def resolve_domain_id(fqdn)
         return nil if fqdn.nil? || fqdn.to_s.empty?
 
-        domain_id = display_domains.get(fqdn)
+        domain_id = display_domain_index.get(fqdn)
         OT.ld "[CustomDomain] Resolved #{fqdn} to domain_id=#{domain_id}" if domain_id
         domain_id
       rescue StandardError => ex
@@ -767,8 +700,8 @@ module Onetime
         end
 
         # No existing domain - create new one with atomic uniqueness check
-        # Use HSETNX on display_domains as the atomic gate for uniqueness
-        was_set = display_domains.hsetnx(normalized_domain, obj.identifier)
+        # Use HSETNX on display_domain_index as the atomic gate for uniqueness
+        was_set = display_domain_index.hsetnx(normalized_domain, obj.identifier)
 
         if was_set == 0
           # Another process created this domain between our check and creation attempt
@@ -780,7 +713,7 @@ module Onetime
 
         end
 
-        # We own the display_domains entry - now create the full record
+        # We own the display_domain_index entry - now create the full record
         begin
           obj.generate_txt_validation_record
           obj.save
@@ -792,12 +725,50 @@ module Onetime
           # Add to other global indexes (instances sorted set, owners hash)
           instances.add obj.to_s
           owners.put obj.to_s, obj.org_id
+
+          # Maintain the per-domain config invariant: every CustomDomain has
+          # matching HomepageConfig/ApiConfig records. find_or_create_for_domain
+          # is idempotent + race-safe, so a concurrent PUT that wrote first
+          # keeps its value. Mirrors the destroy! sibling cleanup pattern.
+          bootstrap_per_domain_configs(obj)
         rescue StandardError => ex
-          # Rollback all indexes on failure to prevent stale entries
-          display_domains.remove(normalized_domain)
-          obj.remove_from_class_display_domain_index
-          instances.remove(obj.to_s)
-          owners.remove(obj.to_s)
+          # Explicit per-step rollback. We previously tried obj.destroy! here
+          # as a "symmetric inverse", but destroy! transitively touches helpers
+          # (Organization.load via membership cascade, organization_instances,
+          # Familia super) any of which can themselves raise mid-rollback when
+          # the original failure was a Redis/infrastructure error. A single
+          # secondary raise inside destroy! aborts the cascade and leaves
+          # partial state. Independent rescues per step are uglier but stable:
+          # one step's failure can't block another's cleanup. Original
+          # exception is always re-raised at the end.
+          rollback_steps = [
+            # Pre-save claim (the hsetnx)
+            -> { display_domain_index.remove(normalized_domain) },
+            # Familia auto-index added by obj.save
+            -> { obj.remove_from_class_display_domain_index },
+            # Manual class-index writes inside the begin block
+            -> { instances.remove(obj.to_s) },
+            -> { owners.remove(obj.to_s) },
+            # Sibling configs written by bootstrap_per_domain_configs (idempotent)
+            -> { Onetime::CustomDomain::HomepageConfig.delete_for_domain!(obj.identifier) },
+            -> { Onetime::CustomDomain::ApiConfig.delete_for_domain!(obj.identifier) },
+            # Main domain hash from obj.save (the orphan the original
+            # enumerated-cleanup left behind — #3026 review catch)
+            -> { Familia.dbclient.del(obj.dbkey) if Familia.dbclient.exists?(obj.dbkey) },
+            # Organization participation from add_to_organization_domains.
+            # Uses the in-memory participation set, not Organization.load, so
+            # it's safe even when the original failure was an org-lookup error.
+            -> {
+              obj.organization_instances.each do |o|
+                obj.remove_from_organization_domains(o)
+              end
+            },
+          ]
+          rollback_steps.each do |step|
+            step.call
+          rescue StandardError => step_ex
+            OT.le "[CustomDomain.create!] rollback step failed for #{obj.display_domain}: #{step_ex.message}"
+          end
           raise ex
         end
 
@@ -808,6 +779,18 @@ module Onetime
       rescue Redis::BaseError => ex
         OT.le "[CustomDomain.create!] Redis error: #{ex.message}"
         raise Onetime::Problem, 'Unable to create custom domain'
+      end
+
+      # Create default-disabled HomepageConfig and ApiConfig records for a
+      # freshly created CustomDomain. Idempotent via find_or_create_for_domain
+      # (WATCH+MULTI), so a concurrent PUT that wrote first preserves its value.
+      def bootstrap_per_domain_configs(obj)
+        Onetime::CustomDomain::HomepageConfig.find_or_create_for_domain(
+          domain_id: obj.identifier, enabled: false,
+        )
+        Onetime::CustomDomain::ApiConfig.find_or_create_for_domain(
+          domain_id: obj.identifier, enabled: false,
+        )
       end
 
       # Atomically claim an orphaned domain for an organization.
@@ -1016,15 +999,8 @@ module Onetime
         end
 
         instances.add fobj.to_s # created time, identifier
-        display_domains.put fobj.display_domain, fobj.identifier
+        display_domain_index.put fobj.display_domain, fobj.identifier
         owners.put fobj.to_s, fobj.org_id # domainid => organization id
-      end
-
-      def rem(fobj)
-        instances.remove fobj.to_s
-        display_domains.remove fobj.display_domain
-        owners.remove fobj.to_s
-        fobj.remove_from_all_indexes
       end
 
       def all
@@ -1043,26 +1019,14 @@ module Onetime
         instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      # Implement a load method for CustomDomain to make sure the
-      # correct derived ID is used as the key.
-      def load(display_domain, org_id)
-        custom_domain = parse(display_domain, org_id).tap do |obj|
-          OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.org_id}"
-          raise Onetime::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
-        end
-
-        # Continue with the built-in `load` from Familia.
-        super(custom_domain.identifier)
-      end
-
       # Load a custom domain by display domain only. Used during requests
       # after determining the domain strategy is :custom.
       #
       # @param display_domain [String] The display domain to load
       # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
       def from_display_domain(display_domain)
-        # Get the domain ID from the display_domains hash
-        domain_id = display_domains.get(display_domain)
+        # Get the domain ID from the display_domain_index hash
+        domain_id = display_domain_index.get(display_domain)
         return nil unless domain_id
 
         # Load the record using the domain ID
@@ -1100,8 +1064,7 @@ module Onetime
   end
 end
 
-# Load after class definition to avoid superclass mismatch
-require_relative 'custom_domain/api_config'
-require_relative 'custom_domain/brand_settings'
-require_relative 'custom_domain/homepage_config'
-require_relative 'custom_domain/incoming_secrets_config'
+# CustomDomain sibling configs (api_config, brand_settings, homepage_config,
+# incoming_config, mailer_config, signup_config, sso_config) are required from
+# lib/onetime/models.rb after this file loads. Loading them here would create
+# a circular require since they reopen Onetime::CustomDomain.

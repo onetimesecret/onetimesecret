@@ -4,6 +4,9 @@
  * Features Configuration Schema
  *
  * Maps to the `features:` section in config.defaults.yaml
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults and value constraints belong in `shapes/config/section/features.ts`.
  */
 
 import { z } from 'zod';
@@ -18,9 +21,9 @@ const incomingRecipientSchema = z.tuple([z.string(), z.string().optional()]).nul
  * Incoming secrets feature configuration
  */
 const featuresIncomingSchema = z.object({
-  enabled: z.boolean().default(false),
-  memo_max_length: z.number().int().positive().default(50),
-  default_ttl: z.number().int().positive().default(604800),
+  enabled: z.boolean().optional(),
+  memo_max_length: z.number().optional(),
+  default_ttl: z.number().optional(),
   default_passphrase: z.string().nullable().optional(),
   recipients: z.array(incomingRecipientSchema).optional(),
 });
@@ -45,11 +48,20 @@ const featuresRegionJurisdictionSchema = z.object({
 
 /**
  * Regions feature configuration
+ *
+ * `jurisdictions` is intentionally permissive: the shipped YAML uses
+ * `<%= ENV['JURISDICTIONS'] || '' %>`, which evaluates to a string (CSV when
+ * set, empty/nil when not). Ruby parses that into the array shape elsewhere.
+ * Accepting array | string | null here lets `bin/ots config validate` pass
+ * on the raw post-ERB YAML without weakening the validated array shape when
+ * an operator does provide a structured list.
  */
 const featuresRegionsSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().optional(),
   current_jurisdiction: nullableString,
-  jurisdictions: z.array(featuresRegionJurisdictionSchema).optional(),
+  jurisdictions: z
+    .union([z.array(featuresRegionJurisdictionSchema), z.string(), z.null()])
+    .optional(),
 });
 
 /**
@@ -65,21 +77,33 @@ const featuresDomainsProxySchema = z.object({
 
 /**
  * ACME endpoint configuration (for caddy_on_demand strategy)
+ *
+ * `port` accepts string or number: the shipped YAML uses
+ * `<%= ENV['ACME_PORT'] || '12020' %>`, which renders to the bareword
+ * `12020`, and YAML auto-coerces that to an integer at parse time.
+ * Both representations are semantically the same TCP port.
  */
 const featuresDomainsAcmeSchema = z.object({
-  enabled: z.boolean().default(false),
-  listen_address: z.string().default('127.0.0.1'),
-  port: z.string().default('12020'),
+  enabled: z.boolean().optional(),
+  listen_address: z.string().optional(),
+  port: z.union([z.string(), z.number()]).optional(),
 });
 
 /**
  * Domains feature configuration
+ *
+ * Field names mirror `features.domains` in etc/defaults/config.defaults.yaml.
+ * The bootstrap payload is the raw Ruby hash (see ConfigSerializer), so any
+ * rename here must be applied on the Ruby side as well.
  */
 const featuresDomainsSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().optional(),
+  require_verified: z.boolean().optional(),
   default: nullableString,
-  strategy: z.enum(['passthrough', 'approximated', 'caddy_on_demand']).default('passthrough'),
-  cluster: featuresDomainsProxySchema.optional(),
+  validation_strategy: z
+    .enum(['passthrough', 'approximated', 'caddy_on_demand'])
+    .optional(),
+  approximated: featuresDomainsProxySchema.optional(),
   acme: featuresDomainsAcmeSchema.optional(),
 });
 

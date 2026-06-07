@@ -87,7 +87,7 @@ GEM
     base64 (0.3.0)
     bcrypt (3.1.22)
     benchmark (0.5.0)
-    bigdecimal (4.1.1)
+    bigdecimal (4.1.2)
     bindata (2.5.1)
     bunny (2.24.0)
       amq-protocol (~> 2.3)
@@ -122,23 +122,22 @@ GEM
     dry-inflector (1.3.1)
     email_validator (2.2.4)
       activemodel
-    encryptor (1.1.3)
     erb (6.0.4)
     et-orbi (1.4.0)
       tzinfo
     faker (3.6.1)
       i18n (>= 1.8.11, < 2)
-    familia (2.6.0)
+    familia (2.10.0)
       concurrent-ruby (~> 1.3)
       connection_pool (>= 2.4, < 4.0)
       csv (~> 3.3)
       json_schemer (~> 2.0)
       logger (~> 1.7)
       oj (~> 3.16)
-      redis (>= 4.8.1, < 6.0)
+      redis (>= 5.0, < 6.0)
       stringio (~> 3.1.1)
       uri-valkey (~> 1.4)
-    faraday (2.14.1)
+    faraday (2.14.2)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -182,7 +181,7 @@ GEM
       reline (>= 0.4.2)
     jaro_winkler (1.7.0)
     jmespath (1.6.2)
-    json (2.19.2)
+    json (2.19.6)
     json-jwt (1.17.0)
       activesupport (>= 4.2)
       aes_key_wrap
@@ -235,7 +234,7 @@ GEM
     mustache (1.1.2)
     net-http (0.9.1)
       uri (>= 0.11.1)
-    net-imap (0.6.3)
+    net-imap (0.6.4)
       date
       net-protocol
     net-pop (0.1.2)
@@ -245,24 +244,24 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.5)
-    nokogiri (1.19.2)
+    nokogiri (1.19.3)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.19.2-aarch64-linux-gnu)
+    nokogiri (1.19.3-aarch64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.19.2-aarch64-linux-musl)
+    nokogiri (1.19.3-aarch64-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.19.2-arm-linux-gnu)
+    nokogiri (1.19.3-arm-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.19.2-arm-linux-musl)
+    nokogiri (1.19.3-arm-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.19.2-arm64-darwin)
+    nokogiri (1.19.3-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.19.2-x86_64-darwin)
+    nokogiri (1.19.3-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.19.2-x86_64-linux-gnu)
+    nokogiri (1.19.3-x86_64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.19.2-x86_64-linux-musl)
+    nokogiri (1.19.3-x86_64-linux-musl)
       racc (~> 1.4)
     oauth2 (2.0.18)
       faraday (>= 0.17.3, < 4.0)
@@ -325,7 +324,7 @@ GEM
       rack-parser (~> 0.7)
       rexml (~> 3.4)
     parallel (1.27.0)
-    parser (3.3.10.2)
+    parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
     passforge (1.1.2)
@@ -396,7 +395,7 @@ GEM
       redis-client (>= 0.22.0)
     redis-client (0.28.0)
       connection_pool
-    regexp_parser (2.11.3)
+    regexp_parser (2.12.0)
     reline (0.6.3)
       io-console (~> 0.5)
     rerun (0.14.0)
@@ -404,7 +403,7 @@ GEM
     reverse_markdown (3.0.2)
       nokogiri
     rexml (3.4.4)
-    rhales (0.6.0)
+    rhales (0.6.2)
       json_schemer (~> 2)
       logger
       tilt (~> 2)
@@ -425,11 +424,11 @@ GEM
       chunky_png (~> 1.0)
       rqrcode_core (~> 2.0)
     rqrcode_core (2.1.0)
-    rubocop (1.86.0)
+    rubocop (1.86.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
-      parallel (~> 1.10)
+      parallel (>= 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.9.3, < 3.0)
@@ -539,7 +538,7 @@ GEM
       prettier_print (>= 1.2.0)
     thor (1.5.0)
     tilt (2.7.0)
-    timecop (0.9.10)
+    timecop (0.9.11)
     timeout (0.6.1)
     tpm-key_attestation (0.14.1)
       bindata (~> 2.4)
@@ -620,9 +619,8 @@ DEPENDENCIES
   database_cleaner-sequel (~> 2.0)
   debug
   dry-cli (~> 1.2)
-  encryptor (= 1.1.3)
   faker (~> 3.2)
-  familia (~> 2.6.0)
+  familia (~> 2.10)
   fastimage (~> 2.4)
   htmlbeautifier
   httparty
@@ -657,7 +655,7 @@ DEPENDENCIES
   redis (~> 5.4.0)
   reline
   rerun (~> 0.14)
-  rhales (~> 0.6.0)
+  rhales (~> 0.6.2)
   roda (~> 3.0)
   rodauth (~> 2.0)
   rodauth-omniauth (~> 0.4)
@@ -698,7 +696,7 @@ DEPENDENCIES
   webmock (~> 3.0)
 
 RUBY VERSION
-   ruby 3.4.8p72
+  ruby 3.4.8p72
 
 BUNDLED WITH
-   2.7.2
+  4.0.9

@@ -12,13 +12,12 @@ import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import DomainIncoming from '@/apps/workspace/domains/DomainIncoming.vue';
 import {
   emptyFormState,
-  emptyServerState,
   singleRecipientFormState,
-  multipleRecipientsServerState,
+  multipleRecipientsFormState,
 } from '../../../fixtures/incomingConfig.fixture';
 
 // ---------------------------------------------------------------------------
@@ -33,7 +32,8 @@ const mockAddRecipient = vi.fn();
 const mockRemoveRecipient = vi.fn();
 const mockDiscardChanges = vi.fn();
 
-// Default mock state
+// Default mock state. Mirrors the new useIncomingConfig shape: single
+// formState + savedFormState snapshot (no serverState bucket).
 const createMockIncomingConfigState = (overrides = {}) => ({
   isLoading: ref(false),
   isInitialized: ref(true),
@@ -41,10 +41,10 @@ const createMockIncomingConfigState = (overrides = {}) => ({
   isDeleting: ref(false),
   error: ref(null),
   formState: ref({ ...emptyFormState }),
-  serverState: ref({ ...emptyServerState }),
+  savedFormState: ref({ ...emptyFormState }),
   hasUnsavedChanges: ref(false),
   maxRecipients: ref(20),
-  canManage: ref(true),
+  isConfigured: ref(false),
   initialize: mockInitializeIncomingConfig,
   saveConfig: mockSaveConfig,
   deleteConfig: mockDeleteConfig,
@@ -128,7 +128,7 @@ vi.mock('@/apps/workspace/components/domains/DomainIncomingConfigForm.vue', () =
     template: `
       <div data-testid="incoming-config-form">
         <span data-testid="form-state">{{ JSON.stringify(formState) }}</span>
-        <span data-testid="server-state">{{ JSON.stringify(serverState) }}</span>
+        <span data-testid="saved-form-state">{{ JSON.stringify(savedFormState) }}</span>
         <button data-testid="save-btn" @click="$emit('save')">Save</button>
         <button data-testid="delete-btn" @click="$emit('delete')">Delete</button>
         <button data-testid="discard-btn" @click="$emit('discard')">Discard</button>
@@ -138,7 +138,7 @@ vi.mock('@/apps/workspace/components/domains/DomainIncomingConfigForm.vue', () =
     `,
     props: [
       'formState',
-      'serverState',
+      'savedFormState',
       'isLoading',
       'isSaving',
       'isDeleting',
@@ -222,8 +222,7 @@ describe('DomainIncoming', () => {
   const mountComponent = (props: Partial<{
     orgid: string;
     extid: string;
-  }> = {}) => {
-    return mount(DomainIncoming, {
+  }> = {}) => mount(DomainIncoming, {
       props: {
         orgid: props.orgid ?? 'org-123',
         extid: props.extid ?? 'dm-ext-123',
@@ -238,7 +237,6 @@ describe('DomainIncoming', () => {
         },
       },
     });
-  };
 
   // ---------------------------------------------------------------------------
   // Page Loading
@@ -370,16 +368,16 @@ describe('DomainIncoming', () => {
       expect(formStateSpan.text()).toContain('security@acme.com');
     });
 
-    it('passes serverState to form component', async () => {
+    it('passes savedFormState to form component', async () => {
       mockIncomingConfigState = createMockIncomingConfigState({
-        serverState: ref({ ...multipleRecipientsServerState }),
+        savedFormState: ref({ ...multipleRecipientsFormState }),
       });
 
       wrapper = mountComponent();
       await flushPromises();
 
-      const serverStateSpan = wrapper.find('[data-testid="server-state"]');
-      expect(serverStateSpan.text()).toContain('sha256_abc123');
+      const savedSpan = wrapper.find('[data-testid="saved-form-state"]');
+      expect(savedSpan.text()).toContain('security@acme.com');
     });
 
     it('PG-FORM-002: handles save event by calling saveConfig', async () => {
@@ -443,15 +441,16 @@ describe('DomainIncoming', () => {
   // ---------------------------------------------------------------------------
 
   describe('Navigation', () => {
-    it('back button navigates to domains list', async () => {
-      wrapper = mountComponent({ orgid: 'org-456' });
+    it('back button navigates to domain detail page', async () => {
+      wrapper = mountComponent({ orgid: 'org-456', extid: 'dm-abc123' });
       await flushPromises();
 
       const backButton = wrapper.find('button[type="button"]');
       await backButton.trigger('click');
       await flushPromises();
 
-      expect(mockRouterPush).toHaveBeenCalledWith('/org/org-456/domains');
+      // Should navigate to DomainDetail, not domains list
+      expect(mockRouterPush).toHaveBeenCalledWith('/org/org-456/domains/dm-abc123');
     });
 
     it('displays domain name in header', async () => {
@@ -471,8 +470,8 @@ describe('DomainIncoming', () => {
   describe('Not configured notice', () => {
     it('shows form with empty recipients when not configured', async () => {
       mockIncomingConfigState = createMockIncomingConfigState({
-        serverState: ref({ recipients: [] }),
-        formState: ref({ recipients: [] }),
+        formState: ref({ enabled: false, recipients: [] }),
+        savedFormState: ref({ enabled: false, recipients: [] }),
       });
 
       wrapper = mountComponent();
@@ -485,9 +484,10 @@ describe('DomainIncoming', () => {
       expect(wrapper.find('[data-testid="form-state"]').text()).toContain('"recipients":[]');
     });
 
-    it('hides not configured notice when recipients exist in server state', async () => {
+    it('hides not configured notice when recipients exist in saved state', async () => {
       mockIncomingConfigState = createMockIncomingConfigState({
-        serverState: ref({ ...multipleRecipientsServerState }),
+        savedFormState: ref({ ...multipleRecipientsFormState }),
+        formState: ref({ ...multipleRecipientsFormState }),
       });
 
       wrapper = mountComponent();

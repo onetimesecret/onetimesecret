@@ -7,10 +7,6 @@
  * Page-level component that wires together the incoming config composable
  * and form component. Follows the DomainEmail page structure: header ->
  * entitlement gate -> form.
- *
- * Note: Individual removal of existing recipients is not supported because
- * emails are hashed after save - we cannot reconstruct the list without all
- * original emails. Users should use "Delete All" to clear recipients.
  */
 import { useI18n } from 'vue-i18n';
 import { computed, onMounted, watch } from 'vue';
@@ -20,6 +16,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useDomain } from '@/shared/composables/useDomain';
 
 import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
@@ -70,7 +67,7 @@ const {
   isDeleting,
   error: incomingError,
   formState,
-  serverState,
+  savedFormState,
   hasUnsavedChanges,
   maxRecipients,
   initialize: initializeIncomingConfig,
@@ -91,7 +88,7 @@ const {
 // ---------------------------------------------------------------------------
 
 const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains`);
+  router.push(`/org/${props.orgid}/domains/${props.extid}`);
 };
 
 // Unsaved changes guard
@@ -158,24 +155,14 @@ watch(() => props.extid, async () => {
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="hasUnsavedChanges"
-        :orgid="props.orgid" />
+        :orgid="props.orgid"
+        external-path="/incoming" />
     </div>
 
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State -->
-      <div v-if="domainLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <SettingsSkeleton v-if="domainLoading" />
 
       <!-- Error State -->
       <div v-else-if="domainError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
@@ -232,19 +219,14 @@ watch(() => props.extid, async () => {
 
         <div class="p-6 space-y-6">
           <!-- Incoming config loading -->
-          <div v-if="incomingLoading && !isInitialized" class="flex items-center justify-center py-12">
-            <OIcon
-              collection="heroicons"
-              name="arrow-path"
-              class="size-8 animate-spin text-gray-400"
-              aria-hidden="true" />
-            <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
-          </div>
+          <SettingsSkeleton
+            v-if="incomingLoading && !isInitialized"
+            :heading="false" />
 
           <template v-else>
             <DomainIncomingConfigForm
               :form-state="formState"
-              :server-state="serverState"
+              :saved-form-state="savedFormState"
               :is-loading="incomingLoading"
               :is-saving="isSaving"
               :is-deleting="isDeleting"

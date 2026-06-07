@@ -44,9 +44,17 @@ export {
  * Note: The Entitlement type is derived from entitlementSchema in schemas.
  */
 export const ENTITLEMENTS = {
+  // Core
+  CREATE_SECRETS: 'create_secrets',
+  VIEW_RECEIPT: 'view_receipt',
+  HOMEPAGE_SECRETS: 'homepage_secrets',
+  INCOMING_SECRETS: 'incoming_secrets',
+  NOTIFICATIONS: 'notifications',
+
   // Infrastructure
   API_ACCESS: 'api_access',
   CUSTOM_DOMAINS: 'custom_domains',
+  IP_ACCESS_RULES: 'ip_access_rules',
 
   // Privacy & Defaults
   CUSTOM_PRIVACY_DEFAULTS: 'custom_privacy_defaults',
@@ -56,12 +64,10 @@ export const ENTITLEMENTS = {
 
   // Branding
   CUSTOM_BRANDING: 'custom_branding',
-  HOMEPAGE_SECRETS: 'homepage_secrets',
-
-  // Secret Features
-  INCOMING_SECRETS: 'incoming_secrets',
+  WORKSPACE_BRANDING: 'workspace_branding',
 
   // Organization Management
+  MANAGE_ORG: 'manage_org',
   MANAGE_ORGS: 'manage_orgs',
   MANAGE_TEAMS: 'manage_teams',
   MANAGE_MEMBERS: 'manage_members',
@@ -69,6 +75,7 @@ export const ENTITLEMENTS = {
 
   // Advanced
   AUDIT_LOGS: 'audit_logs',
+  CUSTOM_SIGNUP_VALIDATION: 'custom_signup_validation',
 } as const;
 
 /**

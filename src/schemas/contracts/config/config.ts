@@ -5,10 +5,16 @@
  *
  * Consolidated Zod v4 schemas for config.defaults.yaml
  *
- * This schema supports two use cases:
+ * This module supports two use cases:
  * 1. API Response Parsing - flexible schemas that accept string/boolean unions
  *    for values that may come as strings from environment variables
- * 2. Config File Validation - strict schemas matching YAML structure
+ * 2. Config File Validation - type-only schemas matching YAML structure
+ *
+ * Per contracts convention, the strict YAML-validation schemas
+ * (`staticConfigSchema`, `mutableConfigSchema`, `runtimeConfigSchema`,
+ * `legacyStaticConfigSchema`) carry no defaults or value constraints — those
+ * live in the parallel `shapes/config/config.ts` composition, which is what
+ * `bin/ots config validate` and JSON Schema generation actually consume.
  *
  * The API response schemas use booleanOrString/numberOrString for flexibility
  * when parsing backend responses that may have coerced values.
@@ -27,6 +33,7 @@ import { developmentSchema } from './section/development';
 import { userInterfaceSchema, apiSchema } from './section/ui';
 import { limitsSchema } from './section/limits';
 import { secretOptionsSchema } from './section/secret_options';
+import { jobsSchema } from './section/jobs';
 
 // ============================================================================
 // Flexible Type Helpers (for API response parsing)
@@ -67,6 +74,8 @@ export const apiInterfaceSchema = z.object({
                   alt: z.string().optional(),
                   href: z.string().optional(),
                   link_to: z.string().optional(), // Legacy field
+                  show_name: booleanOrString,
+                  prominent: booleanOrString,
                 })
                 .optional(),
               site_name: z.string().optional(),
@@ -299,8 +308,9 @@ export const apiFeaturesSchema = z.object({
   domains: z
     .object({
       enabled: booleanOrString,
+      require_verified: booleanOrString.optional(),
       default: z.string().nullable().optional(),
-      strategy: z.string().nullable().optional(),
+      validation_strategy: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),
@@ -350,9 +360,12 @@ const mutableMailSchema = z.object({
 
 /**
  * Simple logging schema for static config
+ *
+ * Per contracts convention, the default for `http_requests` lives in
+ * `shapes/config/config.ts`.
  */
 const simpleLoggingSchema = z.object({
-  http_requests: z.boolean().default(true),
+  http_requests: z.boolean().optional(),
 });
 
 /**
@@ -365,6 +378,7 @@ export const staticConfigSchema = z.object({
   redis: redisSchema.optional(),
   emailer: emailerSchema.optional(),
   mail: mailSchema.optional(),
+  jobs: jobsSchema.optional(),
   internationalization: i18nSchema.optional(),
   diagnostics: diagnosticsSchema.optional(),
   development: developmentSchema.optional(),
@@ -439,6 +453,7 @@ export {
   apiSchema,
   limitsSchema,
   secretOptionsSchema,
+  jobsSchema,
 };
 
 // Aliases for backward compatibility

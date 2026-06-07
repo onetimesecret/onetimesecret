@@ -50,6 +50,11 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   subject(:logic) { described_class.new(strategy_result, params) }
 
   before do
+    # Ensure I18n is usable for code paths calling I18n.t — without this,
+    # enforce_available_locales! raises InvalidLocale before default: falls back.
+    I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
+    I18n.default_locale = :en
+
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
@@ -81,12 +86,25 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   end
 
   describe '#raise_concerns' do
+    # Default membership mock for require_entitlement_in! check
+    let(:owner_membership) do
+      instance_double(
+        Onetime::OrganizationMembership,
+        active?: true,
+        admin?: true
+      )
+    end
+
     before do
       allow(Onetime::Organization).to receive(:find_by_extid)
         .with('ext-org-123').and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
+      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
     end
 
     context 'when customer is anonymous' do
@@ -111,23 +129,42 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Organization not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_not_found')
+        end
       end
     end
 
-    context 'when user is not owner or admin' do
+    context 'when user is not a member' do
       before do
         allow(organization).to receive(:owner?).with(customer).and_return(false)
+        # No membership found - user is not a member of the organization
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-          .and_return(nil)
+          .with('org-123', 'cust-owner-123').and_return(nil)
       end
 
       it 'raises authorization error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::Forbidden, /Only organization owners and admins/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_member_required')
+        end
+      end
+    end
+
+    context 'when user lacks manage_members entitlement' do
+      let(:member_without_entitlement) do
+        instance_double(Onetime::OrganizationMembership, active?: true)
+      end
+
+      before do
+        allow(organization).to receive(:owner?).with(customer).and_return(false)
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-123', 'cust-owner-123').and_return(member_without_entitlement)
+        allow(member_without_entitlement).to receive(:can?).with('manage_members').and_return(false)
+        allow(organization).to receive(:planid).and_return('free')
+      end
+
+      it 'raises entitlement required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
       end
     end
 
@@ -135,9 +172,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       let(:params) { { 'extid' => 'ext-org-123', 'email' => '', 'role' => 'member' } }
 
       it 'raises form error for missing email' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Email is required/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.email_required')
+        end
       end
     end
 
@@ -145,9 +182,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       let(:params) { { 'extid' => 'ext-org-123', 'email' => 'not-an-email', 'role' => 'member' } }
 
       it 'raises form error for invalid email' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invalid email format/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_email_format')
+        end
       end
     end
 
@@ -155,9 +192,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       let(:params) { { 'extid' => 'ext-org-123', 'email' => 'test@example.com', 'role' => 'superuser' } }
 
       it 'raises form error for invalid role' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Role must be member or admin/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_role')
+        end
       end
     end
 
@@ -167,9 +204,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       # Note: 'owner' is not in the allowed list ['member', 'admin'],
       # so role validation fires before the explicit "Cannot invite as owner" check
       it 'raises form error for invalid role' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Role must be member or admin/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_role')
+        end
       end
     end
 
@@ -185,9 +222,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       it 'raises form error for existing member' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /already a member/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.user_already_member')
+        end
       end
     end
 
@@ -197,14 +234,14 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
 
       before do
-        allow(Onetime::OrganizationMembership).to receive(:find_by_org_email)
+        allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email)
           .and_return(pending_invite)
       end
 
       it 'raises form error for duplicate invitation' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invitation already pending/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invitation_already_pending')
+        end
       end
     end
 
@@ -224,13 +261,14 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
     context 'with valid params and admin permission' do
       let(:admin_membership) do
-        instance_double(Onetime::OrganizationMembership, admin?: true)
+        instance_double(Onetime::OrganizationMembership, admin?: true, active?: true)
       end
 
       before do
         allow(organization).to receive(:owner?).with(customer).and_return(false)
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
           .with('org-123', 'cust-owner-123').and_return(admin_membership)
+        allow(admin_membership).to receive(:can?).with('manage_members').and_return(true)
       end
 
       it 'allows admin to create invitation' do
@@ -249,14 +287,22 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       )
     end
 
+    let(:owner_membership) do
+      instance_double(Onetime::OrganizationMembership, active?: true)
+    end
+
     before do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(customer).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:create_invitation!)
         .and_return(new_membership)
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email)
+      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
 
       # Call raise_concerns to set up @organization
       logic.raise_concerns
@@ -337,6 +383,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
   describe '#check_member_quota!' do
     let(:entitlements) { double('SortedSet', any?: has_entitlements) }
     let(:has_entitlements) { false }
+    let(:owner_membership) do
+      instance_double(Onetime::OrganizationMembership, active?: true)
+    end
 
     before do
       allow(Onetime::Organization).to receive(:find_by_extid)
@@ -346,8 +395,16 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:entitlements).and_return(entitlements)
       allow(organization).to receive(:member_count).and_return(5)
       allow(organization).to receive(:pending_invitation_count).and_return(2)
+      # Per-role counts default to zero unless a context overrides them.
+      allow(organization).to receive(:member_count_by_role).and_return(0)
+      allow(organization).to receive(:pending_invitation_count_by_role).and_return(0)
+      allow(organization).to receive(:at_limit?).and_return(false)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
-      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
+      # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      allow(owner_membership).to receive(:can?).with('manage_members').and_return(true)
     end
 
     context 'when billing is disabled (no entitlements)' do
@@ -358,20 +415,57 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
     end
 
-    context 'when billing is enabled and at limit', billing: true do
+    context 'when billing is enabled and at aggregate limit', billing: true do
       let(:has_entitlements) { true }
 
       before do
         # Current count: 5 members + 2 pending = 7 total
         allow(organization).to receive(:at_limit?)
-          .with('members_per_team', 7).and_return(true)
+          .with('total_members_per_org', 7).and_return(true)
       end
 
       it 'raises upgrade_required error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Member limit reached/)
+          expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
           expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
           expect(error.instance_variable_get(:@field)).to eq('email')
+        end
+      end
+    end
+
+    context 'when at role-specific limit but under aggregate cap', billing: true do
+      let(:has_entitlements) { true }
+
+      before do
+        # 3 regular members, 1 pending member invite, role-specific cap reached.
+        allow(organization).to receive(:member_count_by_role).with('member').and_return(3)
+        allow(organization).to receive(:pending_invitation_count_by_role).with('member').and_return(1)
+        allow(organization).to receive(:at_limit?)
+          .with('role_members_per_org', 4).and_return(true)
+      end
+
+      it 'raises upgrade_required error from per-role check' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
+          expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
+        end
+      end
+    end
+
+    context 'when inviting an admin and at role_admins_per_org', billing: true do
+      let(:has_entitlements) { true }
+      let(:params) { { 'extid' => 'ext-org-123', 'email' => 'newadmin@example.com', 'role' => 'admin' } }
+
+      before do
+        allow(organization).to receive(:member_count_by_role).with('admin').and_return(2)
+        allow(organization).to receive(:pending_invitation_count_by_role).with('admin').and_return(0)
+        allow(organization).to receive(:at_limit?)
+          .with('role_admins_per_org', 2).and_return(true)
+      end
+
+      it 'raises upgrade_required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
         end
       end
     end
@@ -383,25 +477,25 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
 
       before do
         allow(organization).to receive(:at_limit?)
-          .with('members_per_team', 7).and_return(true)
+          .with('total_members_per_org', 7).and_return(true)
       end
 
       it 'returns email validation error before quota error' do
         # User should see "invalid email" not "upgrade required"
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Invalid email format/)
-          expect(error.message).not_to match(/limit reached/)
+          expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_email_format')
         end
       end
     end
 
-    context 'when billing is enabled and under limit', billing: true do
+    context 'when billing is enabled and under all limits', billing: true do
       let(:has_entitlements) { true }
 
       before do
-        # Current count: 5 members + 2 pending = 7 total
+        # Default mocks already return false from at_limit?, but assert
+        # the aggregate-cap check still fires with the correct total.
         allow(organization).to receive(:at_limit?)
-          .with('members_per_team', 7).and_return(false)
+          .with('total_members_per_org', 7).and_return(false)
       end
 
       it 'allows invitation creation' do

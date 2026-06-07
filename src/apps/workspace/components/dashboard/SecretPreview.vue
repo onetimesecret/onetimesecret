@@ -37,12 +37,12 @@ const logoSrc = computed(() => {
 });
 
 const isRevealed = ref(false);
-const textareaPlaceholder = props.previewI18n.t('web.secrets.sample_secret_content_this_could_be_sensitive_data');
+const textareaPlaceholder = computed(() => props.previewI18n.t('web.secrets.sample_secret_content_this_could_be_sensitive_data'));
 
 const ariaLabelText = computed(() =>
   isRevealed.value
-    ? t('web.secrets.hide_secret_message')
-    : t('web.secrets.view_secret_message')
+    ? props.previewI18n.t('web.secrets.hide_secret_message')
+    : props.previewI18n.t('web.secrets.view_secret_message')
 )
 
 const handleLogoChange = (event: Event) => {
@@ -160,7 +160,7 @@ const fontFamilyClass = computed(() => {
             focus:ring-0 dark:text-gray-300 sm:text-base"
         rows="3"
         :aria-label="t('web.secrets.sample_secret_content')"
-        v-model="textareaPlaceholder"></textarea>
+        :value="textareaPlaceholder"></textarea>
 
       <div
         v-else
@@ -187,7 +187,7 @@ const fontFamilyClass = computed(() => {
         :aria-expanded="isRevealed"
         aria-controls="secretContent"
         :aria-label="ariaLabelText">
-        {{ isRevealed ? t('web.secrets.hide_secret') : previewI18n.t('web.COMMON.click_to_continue') }}
+        {{ isRevealed ? previewI18n.t('web.secrets.hide_secret') : previewI18n.t('web.COMMON.click_to_continue') }}
       </button>
     </template>
   </BaseSecretDisplay>

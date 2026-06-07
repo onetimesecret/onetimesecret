@@ -51,7 +51,17 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       active?: true,
       owner?: false,
       save: true,
+      change_role!: true,
       joined_at: 1700000000.0
+    )
+  end
+
+  # ADR-012 Stage 4: owner's membership with entitlements for authorization
+  let(:owner_membership) do
+    instance_double(
+      Onetime::OrganizationMembership,
+      active?: true,
+      can?: true  # Owner has all entitlements including manage_org
     )
   end
 
@@ -103,6 +113,10 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid)
         .with('ext-cust-target').and_return(target_member)
+      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      # Stub target membership (loaded after auth check passes)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with('org-123', 'cust-target-456').and_return(target_membership)
     end
@@ -129,21 +143,30 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Organization not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_not_found')
+        end
       end
     end
 
-    context 'when user is not owner' do
-      before do
-        allow(organization).to receive(:owner?).with(owner).and_return(false)
+    context 'when user lacks manage_org entitlement' do
+      let(:owner_membership) do
+        instance_double(
+          Onetime::OrganizationMembership,
+          active?: true,
+          can?: false  # Member without manage_org entitlement
+        )
       end
 
-      it 'raises forbidden error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::Forbidden, /Only organization owner/
-        )
+      before do
+        allow(organization).to receive(:owner?).with(owner).and_return(false)
+        allow(organization).to receive(:planid).and_return('basic')
+      end
+
+      it 'raises entitlement required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.entitlement).to eq('manage_org')
+        end
       end
     end
 
@@ -153,22 +176,26 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Member not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_not_found')
+        end
       end
     end
 
-    context 'when membership not found' do
+    context 'when target membership not found' do
       before do
+        # ADR-012 Stage 4: owner's membership must pass auth check
         allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-          .and_return(nil)
+          .with('org-123', 'cust-owner-123').and_return(owner_membership)
+        # Target membership not found
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-123', 'cust-target-456').and_return(nil)
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Member not found in this organization/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_not_in_organization')
+        end
       end
     end
 
@@ -178,9 +205,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /not active/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_not_active')
+        end
       end
     end
 
@@ -194,9 +221,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error for invalid role' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invalid role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.invalid_role_value')
+        end
       end
     end
 
@@ -206,9 +233,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Cannot change owner role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.cannot_change_owner_role')
+        end
       end
     end
 
@@ -218,9 +245,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       end
 
       it 'raises form error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /already has role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.member_already_has_role')
+        end
       end
     end
 
@@ -235,9 +262,9 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
 
       it 'raises form error for invalid role' do
         # 'owner' is not in VALID_ROLES, so it fails validation first
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Invalid role/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.members.errors.invalid_role_value')
+        end
       end
     end
 
@@ -256,26 +283,38 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid).and_return(target_member)
+      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-        .and_return(target_membership)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      # Stub target membership (loaded after auth check)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-target-456').and_return(target_membership)
 
       # Setup mutable role tracking - initially returns 'member'
       role_value = current_role
       allow(target_membership).to receive(:role) { role_value }
-      allow(target_membership).to receive(:role=) { |new_val| role_value = new_val }
+      # change_role! updates the role value (simulating the real behavior)
+      allow(target_membership).to receive(:change_role!) do |new_val|
+        role_value = new_val
+        true
+      end
       allow(target_membership).to receive(:updated_at=)
 
       logic.raise_concerns
     end
 
-    it 'updates membership role' do
-      expect(target_membership).to receive(:role=).with('admin')
-      expect(target_membership).to receive(:save)
+    it 'calls change_role! which handles role update and materialization' do
+      expect(target_membership).to receive(:change_role!).with('admin').and_return(true)
       logic.process
     end
 
     it 'updates membership timestamp' do
       expect(target_membership).to receive(:updated_at=)
+      logic.process
+    end
+
+    it 'saves updated_at after change_role! succeeds' do
+      expect(target_membership).to receive(:save)
       logic.process
     end
 
@@ -318,13 +357,20 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
       allow(organization).to receive(:owner?).with(owner).and_return(true)
       allow(Onetime::Customer).to receive(:find_by_extid).and_return(target_member)
+      # ADR-012 Stage 4: stub owner's membership for require_entitlement_in!
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
-        .and_return(target_membership)
+        .with('org-123', 'cust-owner-123').and_return(owner_membership)
+      # Stub target membership (loaded after auth check)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with('org-123', 'cust-target-456').and_return(target_membership)
 
       # Setup mutable role tracking
       role_value = 'member'
       allow(target_membership).to receive(:role) { role_value }
-      allow(target_membership).to receive(:role=) { |new_val| role_value = new_val }
+      allow(target_membership).to receive(:change_role!) do |new_val|
+        role_value = new_val
+        true
+      end
       allow(target_membership).to receive(:updated_at=)
 
       logic.raise_concerns

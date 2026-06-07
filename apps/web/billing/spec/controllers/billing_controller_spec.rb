@@ -9,6 +9,7 @@ require 'digest'
 
 # Load the billing application for controller testing
 require_relative '../../application'
+require_relative '../../operations/catalog/config_loader'
 
 RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
@@ -68,9 +69,11 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
   end
 
   describe 'GET /billing/api/plans' do
-    it 'returns list of available plans', :vcr do
-      # Ensure plan cache is populated
-      Billing::Plan.refresh_from_stripe
+    it 'returns list of available plans' do
+      # Reset Plan.load stubs so ConfigLoader can create real Plan instances
+      allow(Billing::Plan).to receive(:load).and_call_original
+      # Ensure plan cache is populated from config (not Stripe)
+      Billing::Operations::Catalog::ConfigLoader.load_all_from_config
 
       get '/billing/api/plans'
 
@@ -81,13 +84,14 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data).to have_key('plans')
       expect(data['plans']).to be_an(Array)
 
-      # Verify plan structure
+      # Verify plan structure (flat format with top-level interval/amount)
       unless data['plans'].empty?
         plan = data['plans'].first
         expect(plan).to have_key('id')
         expect(plan).to have_key('name')
         expect(plan).to have_key('tier')
         expect(plan).to have_key('interval')
+        expect(plan).to have_key('stripe_price_id')
         expect(plan).to have_key('amount')
         expect(plan).to have_key('currency')
         expect(plan).to have_key('features')
@@ -272,7 +276,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(Stripe::Checkout::Session).to have_received(:create).with(
         hash_including(
           mode: 'subscription',
-          client_reference_id: organization.objid
+          client_reference_id: organization.objid,
+          allow_promotion_codes: true
         ),
         anything
       )
@@ -298,7 +303,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
     it 'returns 400 when plan is not found' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        product: 'nonexistent_product',
+        product: 'nonexistent_v1',
         interval: 'monthly',
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
@@ -360,7 +365,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
           subscription_data: hash_including(
             metadata: hash_including(
               orgid: organization.objid,
-              tier: 'single_team', # Resolved from identity_plus_v1
+              tier: 'single_account', # Resolved from identity_plus_v1
               customer_extid: customer.extid
             )
           )
@@ -561,7 +566,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Mock the organization having an active subscription
       organization.stripe_subscription_id = 'sub_mock_status'
       organization.stripe_customer_id = 'cus_mock_status'
-      organization.planid = 'identity_plus_v1_monthly'
+      organization.planid = 'identity_plus_v1'
       organization.subscription_status = 'active'
       organization.save
 
@@ -644,7 +649,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         # Mock the organization having an active subscription
         organization.stripe_subscription_id = 'sub_mock_preview'
         organization.stripe_customer_id = 'cus_mock_preview'
-        organization.planid = 'identity_plus_v1_monthly'
+        organization.planid = 'identity_plus_v1'
         organization.subscription_status = 'active'
         organization.save
       end
@@ -850,7 +855,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         # Mock the organization having an active subscription
         organization.stripe_subscription_id = 'sub_mock_change'
         organization.stripe_customer_id = 'cus_mock_change'
-        organization.planid = 'identity_plus_v1_monthly'
+        organization.planid = 'identity_plus_v1'
         organization.subscription_status = 'active'
         organization.save
       end

@@ -101,9 +101,16 @@ module Onetime
     # is useful for testing or when you want to run code without necessary
     # loading all or any of the models.
     #
-    def boot!(mode = nil, connect_to_db = true)
+    # When `force: true` is passed in test mode, the existing boot state is
+    # reset before booting so the suite gets a fresh boot against current
+    # ENV/WebMock state. Ignored outside test mode (the underlying
+    # reset_all_boot_state! raises in non-test modes).
+    #
+    def boot!(mode = nil, connect_to_db = true, force: false) # rubocop:disable Metrics/PerceivedComplexity
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
+
+      reset_all_boot_state! if force && OT.testing?
 
       # boot_guard! returns false if boot should be skipped (already complete in test mode)
       return nil unless boot_guard!
@@ -152,8 +159,11 @@ module Onetime
         ordered = @boot_registry.execution_order
         ordered.each do |init|
           # Skip database-related initializers
-          next if [:configure_familia, :detect_legacy_data_and_warn,
-                   :setup_connection_pool, :check_global_banner].include?(init.name)
+          next if %i[
+            onetime.initializers.configure_familia
+            onetime.initializers.setup_connection_pool
+            onetime.initializers.check_global_banner
+          ].include?(init.name)
 
           # Check if initializer wants to skip itself (e.g., feature disabled)
           if init.should_skip?
@@ -170,7 +180,7 @@ module Onetime
       unless health[:healthy]
         failed       = @boot_registry.initializers.select(&:failed?)
         failed_names = failed.map { |i| "#{i.name} (#{i.error.class}: #{i.error.message})" }
-        raise OT::Problem, "Initializer(s) failed: #{failed_names.join(', ')}"
+        raise OT::ConfigError, "Initializer(s) failed: #{failed_names.join(', ')}"
       end
 
       started!
@@ -208,11 +218,18 @@ module Onetime
       #
       # allow(Onetime).to receive(:connect_databases).and_call_original
       #
+      # Fatal errors (e.g. ConfigError) leave the application in an unusable
+      # state — always re-raise so callers can present the message instead
+      # of hitting nil errors downstream. SAFE_BOOT=1 in CLI mode bypasses
+      # this for interactive debugging.
+      raise ex if ex.is_a?(FatalBootError) && !safe_boot?
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
       failed!(ex)
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
-      raise ex unless mode?(:cli)
+      # Database connection failures leave the app unusable. SAFE_BOOT=1 in
+      # CLI mode bypasses this so the REPL can come up for diagnosis.
+      raise ex unless safe_boot?
     end
 
     # Replaces the global configuration instance with the provided data.
@@ -312,7 +329,10 @@ module Onetime
       # Handles all four states explicitly to prevent ambiguity
       case [boot_state, OT.testing?]
       in [BOOT_STARTED | BOOT_STARTING, true]
-        # Idempotent in test mode - skip re-execution (handles re-entrant calls)
+        # Idempotent in test mode - skip re-execution (handles re-entrant calls).
+        # Warn so silent state-reuse across specs is audible; callers that want a
+        # fresh boot should pass `force: true` to boot!.
+        OT.boot_logger.warn 'boot! re-entered in test mode without force: — reusing existing state'
         return false
       in [BOOT_STARTED, false]
         raise OT::Problem, 'Boot already completed'
@@ -332,6 +352,13 @@ module Onetime
 
     def ssl_enabled?
       conf&.dig('site', 'ssl') || env == 'production'
+    end
+
+    # CLI-only escape hatch: when SAFE_BOOT=1, boot! logs fatal errors but
+    # does not re-raise, letting the REPL come up for inspection. Set via
+    # `bin/ots --safe-boot <cmd>` or `SAFE_BOOT=1 bin/ots <cmd>`.
+    def safe_boot?
+      mode?(:cli) && Onetime::Utils.yes?(ENV.fetch('SAFE_BOOT', nil))
     end
 
     # Replaces the global configuration instance. This method is private to

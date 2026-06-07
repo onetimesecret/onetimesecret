@@ -17,7 +17,6 @@ require_relative '../../support/test_logic'
 
 OT.boot! :test, false
 
-require 'onetime/models/custom_domain/incoming_config'
 
 IncomingConfig = Onetime::CustomDomain::IncomingConfig
 

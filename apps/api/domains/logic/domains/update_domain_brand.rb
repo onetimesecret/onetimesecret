@@ -5,6 +5,7 @@
 require 'onetime/domain_validation/strategy'
 require 'onetime/domain_validation/features'
 require_relative '../base'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
@@ -12,10 +13,21 @@ module DomainsAPI::Logic
     #
     # @api Updates brand settings for a custom domain including name,
     #   tagline, primary color, font family, corner style, homepage URL,
-    #   and default TTL. Requires the custom_branding entitlement.
-    #   Returns the updated brand settings.
+    #   and default TTL. Returns the updated brand settings.
+    #
+    # Authorization model (via DomainConfigAuthorization):
+    #   1. Load CustomDomain by extid
+    #   2. Load Organization via domain.org_id
+    #   3. Verify user has manage_org in the organization
+    #   4. Verify organization has custom_branding entitlement
+    #
+    # Read-only counterpart GetDomainBrand skips manage_org so regular
+    # members can view the brand page (disabled overlay in the UI).
+    #
     class UpdateDomainBrand < DomainsAPI::Logic::Base
-      SCHEMAS = { response: 'customDomain' }.freeze
+      include DomainsAPI::Policies::DomainConfigAuthorization
+
+      SCHEMAS = { response: 'brandSettings' }.freeze
 
       # Free-text fields that may render in HTML contexts (page titles,
       # email templates, alt attributes, meta tags, TOTP URIs). These are
@@ -35,23 +47,24 @@ module DomainsAPI::Logic
         @extid = sanitize_identifier(params['extid'])
 
         # Use BrandSettings.members as the single source of truth for valid keys.
-        # Exclude feature toggles — managed via dedicated config endpoints.
-        valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s) - %w[allow_public_homepage allow_public_api]
+        # Feature toggles (allow_public_homepage, allow_public_api) are no longer
+        # in BrandSettings — they're managed via dedicated HomepageConfig/ApiConfig
+        # endpoints, so being absent from members is the gate.
+        valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s)
 
         # Filter to valid keys and normalize to strings (HTTP params have string keys)
         @brand_settings = params['brand']&.transform_keys(&:to_s)&.slice(*valid_keys) || {}
       end
 
-      # Validate the input parameters
-      # Sets error messages if any parameter is invalid
       def raise_concerns
-        require_entitlement!('custom_branding')
-
         OT.ld "[UpdateDomainBrand] Validating domain: #{@extid} with settings: #{@brand_settings.keys}"
 
-        validate_domain
-        validate_brand_settings
+        raise_form_error 'Please provide a domain ID' if @extid.to_s.empty?
+        raise_form_error 'Invalid domain identifier format' unless valid_extid?(@extid)
 
+        authorize_domain_config!(@extid)
+
+        validate_brand_settings
         validate_brand_values
 
         # Disabled while we figure out whether we want this entitlement at all
@@ -71,17 +84,13 @@ module DomainsAPI::Logic
         @custom_domain.instance_variable_set(:@brand_settings, nil)
         {
           user_id: @cust.objid,
-          record: @custom_domain.safe_dump,
-          details: {
-            cluster: Onetime::DomainValidation::Features.safe_dump,
-          },
+          record: @custom_domain.safe_dump.fetch(:brand, {}),
         }
       end
 
       # Update the brand settings for the custom domain
       # Familia v2 hashkeys auto-serialize via serialize_value, so pass raw values
       def update_brand_settings
-        # Update or remove brand settings - Familia handles JSON serialization automatically
         brand_settings.each do |key, value|
           if value.nil?
             OT.ld "[UpdateDomainBrand] Removing brand setting: #{key}"
@@ -98,35 +107,25 @@ module DomainsAPI::Logic
         success_data
       end
 
-      private
-
-      def validate_domain
-        if @extid.nil? || @extid.empty?
-          OT.ld '[UpdateDomainBrand] Error: Missing domain ID'
-          raise_form_error 'Please provide a domain ID'
-        end
-
-        # Validate extid format (alphanumeric only, no dots/special chars)
-        # This catches cases where domain name is passed instead of extid
-        unless valid_extid?(@extid)
-          OT.ld "[UpdateDomainBrand] Error: Invalid extid format '#{@extid}'"
-          raise_form_error 'Invalid domain identifier format'
-        end
-
-        # Get customer's organization for domain ownership
-        # Organization available via @organization
-        require_organization!
-
-        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
-
-        raise_form_error 'Domain not found' unless @custom_domain&.exists?
-
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
-          OT.ld "[UpdateDomainBrand] Error: Domain #{@extid} not owned by organization #{organization.objid}"
-          raise_form_error 'Domain not found'
-        end
+      # Validate URL format
+      def valid_url?(url)
+        uri = URI.parse(url)
+        uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+      rescue URI::InvalidURIError
+        false
       end
+
+      protected
+
+      def config_entitlement
+        'custom_branding'
+      end
+
+      def config_entitlement_error
+        'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
+      end
+
+      private
 
       def validate_brand_settings
         return if @brand_settings.is_a?(Hash)
@@ -184,18 +183,20 @@ module DomainsAPI::Logic
         raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
       end
 
+      # Currently disabled (see raise_concerns). When re-enabled, uses
+      # org-membership-level check rather than the previous user-level check,
+      # since domain branding is an org-scoped feature.
       def validate_privacy_defaults_entitlement
         privacy_keys = %w[default_ttl passphrase_required notify_enabled]
         return unless privacy_keys.any? { |k| @brand_settings.key?(k) }
 
-        require_entitlement!('custom_privacy_defaults')
+        require_entitlement_in!(@organization, 'custom_privacy_defaults')
       end
 
       def validate_default_ttl
         ttl = @brand_settings['default_ttl']
         return if ttl.nil?
 
-        # Coerce to integer if string with strict validation
         ttl_value = ttl
         if ttl.is_a?(String)
           begin
@@ -211,42 +212,19 @@ module DomainsAPI::Logic
           raise_form_error 'Invalid default TTL - must be a positive integer (seconds)'
         end
 
-        # Gate extended TTL values behind entitlement
+        # Gate extended TTL values behind entitlement.
+        # Intentionally uses org-membership-level check (require_entitlement_in!)
+        # rather than the previous user-level check (require_entitlement!), since
+        # domain branding is an org-scoped feature — the entitlement should flow
+        # from org membership, not personal grants.
         free_ttl = Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
         if ttl_value > free_ttl
-          require_entitlement!('extended_default_expiration')
+          require_entitlement_in!(@organization, 'extended_default_expiration')
         end
 
-        # Update the brand_settings hash with the coerced value
         @brand_settings['default_ttl'] = ttl_value
       end
 
-      def validate_urls
-        %w[logo_url logo_dark_url favicon_url].each do |url_field|
-          url = @brand_settings[url_field]
-          next if url.nil?
-
-          unless Onetime::CustomDomain::BrandSettings.valid_url?(url)
-            OT.ld "[UpdateDomainBrand] Error: Invalid URL format for '#{url_field}': #{url}"
-            raise_form_error "Invalid #{url_field.tr('_', ' ')} - must be https:// URL or relative path starting with /"
-          end
-        end
-      end
-
-      # Strip HTML tags from free-text brand settings to prevent XSS.
-      # Uses sanitize_plain_text from InputSanitizers which strips all
-      # HTML via the Sanitize gem and normalizes whitespace.
-      def sanitize_text_fields
-        TEXT_FIELDS.each do |field|
-          next unless @brand_settings.key?(field) && @brand_settings[field].is_a?(String)
-
-          @brand_settings[field] = sanitize_plain_text(@brand_settings[field], max_length: 500)
-        end
-      end
-
-      # Validate extid format (lowercase alphanumeric only)
-      # extids are generated identifiers like "abc123def456"
-      # Domain names contain dots and are not valid extids
       def valid_extid?(extid)
         extid.match?(/\A[a-z0-9]+\z/)
       end

@@ -24,6 +24,11 @@
 #   ├── disabled/   # AUTHENTICATION_MODE=disabled only
 #   └── all/        # Runs in ALL modes (infrastructure validation)
 #
+#   apps/web/auth/spec/integration/
+#   └── full/           # Full-mode specs (Rodauth, OmniAuth, SSO)
+#       ├── basicauth/  # BasicAuth contract tests
+#       └── migrations/ # DB migration tests
+#
 # The "all/" specs run three times (once per mode). This is intentional: they
 # validate that infrastructure (Puma forking, RabbitMQ, routing) works correctly
 # regardless of which auth layer sits above it. If someone accidentally couples
@@ -42,6 +47,15 @@
 require 'rspec/core/rake_task'
 
 INTEGRATION_MODES = %w[simple full disabled].freeze
+
+PG_TEST_DATABASE_URL   = ENV.fetch(
+  'AUTH_DATABASE_URL_PG',
+  'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test',
+)
+PG_TEST_MIGRATIONS_URL = ENV.fetch(
+  'AUTH_DATABASE_URL_MIGRATIONS_PG',
+  'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test',
+)
 
 # Build RSpec format options based on environment
 # @return [String] RSpec format flags
@@ -117,34 +131,63 @@ namespace :spec do
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => mode,
         }
-        # Full mode uses SQLite, excluding PostgreSQL-specific tests
-        # Respect AUTH_DATABASE_URL if set (e.g., file-based SQLite from CI)
+        # Full mode uses SQLite by default, excluding PostgreSQL-specific
+        # tests. Hardcoded to prevent ambient AUTH_DATABASE_URL (from dev
+        # .env via direnv) from leaking in and wiping a non-test database.
         tag_filter = ''
         if mode == 'full'
-          env['AUTH_DATABASE_URL'] = ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:')
+          env['AUTH_DATABASE_URL'] = 'sqlite::memory:'
+          env['ORGS_SSO_ENABLED']  = 'true'
           tag_filter               = '--tag ~postgres_database'
         end
 
         patterns = [
+          *Dir.glob("apps/*/*/spec/integration/#{mode}"),
           "spec/integration/#{mode}",
           'spec/integration/all',
-        ].join(' ')
+        ]
 
-        sh env, "bundle exec rspec #{patterns} #{tag_filter} #{rspec_format_options}"
+        sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
       end
     end
 
-    desc 'Run full mode with PostgreSQL'
+    desc 'Run full mode with PostgreSQL (PG-only specs)'
     task 'full:postgres' do
+      env      = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+        'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+      }
+      patterns = [
+        *Dir.glob('apps/*/*/spec/integration/full'),
+        'spec/integration/full',
+      ]
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_format_options}"
+    end
+
+    desc 'Run DB-agnostic full mode specs against PostgreSQL'
+    task 'full:agnostic_on_pg' do
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
-        'AUTH_DATABASE_URL' => ENV.fetch(
-          'AUTH_DATABASE_URL',
-          'postgresql://postgres@localhost:5432/onetime_auth_test',
-        ),
+        'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
+        'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        'ORGS_SSO_ENABLED' => 'true',
       }
-      sh env, "bundle exec rspec spec/integration/full --tag postgres_database #{rspec_format_options}"
+
+      # Root-level specs MUST load before app-level specs. The root spec_helper
+      # registers define_derived_metadata for :full_auth_mode (matched by file
+      # path). If app-level specs load first, their RSpec.describe creates
+      # metadata before the derivation rule exists, so :full_auth_mode is never
+      # set and FullModeSuiteDatabase.setup! never fires — leaving the PG
+      # database without tables (seed-dependent "accounts does not exist").
+      patterns = [
+        'spec/integration/full',
+        'spec/integration/all',
+        *Dir.glob('apps/*/*/spec/integration/full'),
+      ]
+      sh env, "bundle exec rspec #{patterns.join(' ')} --exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,**/{postgres,sqlite}*_spec.rb' #{rspec_format_options}"
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
@@ -170,7 +213,9 @@ namespace :try do
     patterns  = %w[try/unit try/system try/security try/features try/jobs]
     patterns += Dir.glob('apps/**/try')
     paths     = patterns.uniq.select { |p| Dir.exist?(p) }.join(' ')
-    sh "bundle exec tryouts --agent #{paths}" unless paths.empty?
+    # In CI: verbose output without agent mode; locally: agent mode for concise output
+    flags     = ENV['CI'] ? '--stack --verbose --debug --fails' : '--agent'
+    sh "bundle exec tryouts #{flags} #{paths}".squeeze(' ') unless paths.empty?
   end
 
   desc 'Run feature tryouts'

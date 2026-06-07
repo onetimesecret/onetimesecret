@@ -301,6 +301,9 @@ describe('AcceptInvite', () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain('Invitation accepted successfully');
+      // Action row must be torn down once accepted — prevents flicker during redirect delay
+      expect(wrapper.find('[data-testid="accept-invitation-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="decline-invitation-btn"]').exists()).toBe(false);
     });
 
     it('shows error when accept fails', async () => {
@@ -348,6 +351,9 @@ describe('AcceptInvite', () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain('Invitation declined');
+      // Action row must be torn down once declined — prevents flicker during redirect delay
+      expect(wrapper.find('[data-testid="accept-invitation-btn"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="decline-invitation-btn"]').exists()).toBe(false);
     });
 
     it('shows error when decline fails', async () => {

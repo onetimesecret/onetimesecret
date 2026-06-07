@@ -29,6 +29,8 @@ ARGV.each_with_index do |arg, _idx|
   when '-D', '--debug'
     debug = true
     OT.instance_variable_set(:@debug, true)
+  when '--safe-boot'
+    ENV['SAFE_BOOT'] = 'true'
   else
     remaining_args << arg
   end
@@ -36,9 +38,17 @@ end
 
 begin
   Dry::CLI.new(Onetime::CLI).call(arguments: remaining_args)
+rescue Onetime::FatalBootError => ex
+  # Boot-fatal errors (e.g. deprecated/invalid config) already include a
+  # user-facing message — surface it directly without a backtrace.
+  warn ex.message
+  warn ''
+  warn 'Use --safe-boot (or SAFE_BOOT=1) to bypass this error and access the debugging console.'
+  exit 1
 rescue RuntimeError => ex
   warn ex.message
-  exit ex.exit_code if ex.respond_to?(:exit_code)
+  warn ex.backtrace if debug
+  exit ex.respond_to?(:exit_code) ? ex.exit_code : 1
 rescue StandardError => ex
   puts ex.message
   puts ex.backtrace if debug

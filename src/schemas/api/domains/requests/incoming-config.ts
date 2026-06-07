@@ -10,20 +10,15 @@
 // Response schemas are in ../responses/incoming-config.ts
 
 import { z } from 'zod';
-import {
-  patchIncomingConfigPayloadSchema,
-  putIncomingConfigPayloadSchema,
-} from '@/schemas/shapes/domains/incoming-config';
+import { putIncomingConfigPayloadSchema } from '@/schemas/shapes/domains/incoming-config';
 
 // Re-export response schemas for convenience
 export {
   getDomainIncomingConfigResponseSchema,
   putDomainIncomingConfigResponseSchema,
-  patchDomainIncomingConfigResponseSchema,
   incomingConfigDetailsSchema,
   type GetDomainIncomingConfigResponse,
   type PutDomainIncomingConfigResponse,
-  type PatchDomainIncomingConfigResponse,
   type IncomingConfigDetails,
 } from '../responses/incoming-config';
 
@@ -47,31 +42,12 @@ export type GetDomainIncomingConfigRequest = z.infer<typeof getDomainIncomingCon
 // ---------------------------------------------------------------------------
 
 /**
- * Request body for PUT (full replacement) of incoming configuration.
+ * Request body for PUT of incoming configuration.
  *
- * PUT semantics: the request body IS the new state.
- * - Required fields: enabled
- *
- * Note: Recipients are managed via separate add/remove endpoints.
+ * Carries the full intended state — enabled flag + the complete
+ * recipients list (plaintext, admin view). PUT semantics: the body
+ * IS the new state.
  */
 export const putDomainIncomingConfigRequestSchema = putIncomingConfigPayloadSchema;
 
 export type PutDomainIncomingConfigRequest = z.infer<typeof putDomainIncomingConfigRequestSchema>;
-
-// ---------------------------------------------------------------------------
-// PATCH /api/domains/:extid/incoming-config (partial update - future)
-// ---------------------------------------------------------------------------
-
-/**
- * Request body for PATCH (partial update) of incoming configuration.
- *
- * PATCH semantics: only provided fields are updated.
- * - All fields are optional (true partial update)
- * - Omitted fields preserve existing values
- *
- * Fields:
- * - enabled: optional boolean
- */
-export const patchDomainIncomingConfigRequestSchema = patchIncomingConfigPayloadSchema;
-
-export type PatchDomainIncomingConfigRequest = z.infer<typeof patchDomainIncomingConfigRequestSchema>;

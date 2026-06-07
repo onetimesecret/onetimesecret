@@ -70,12 +70,18 @@
   </head>
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div id="app">
-      <!-- Fallback: Vue replaces this on mount. If Vue fails to load, this remains visible. -->
-      <div class="app-fallback">
-        <div style="text-align: center;">
-          <div>Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+      <!-- Fallback: Vue replaces this on mount. If Vue fails to load, this remains visible.
+           The two loader pieces can be shown or hidden independently by flipping the
+           data attributes on .app-fallback below. They can appear together, one or
+           the other, or neither:
+             data-show-orb="true|false"   tri-color spinning orb
+             data-show-text="true|false"  "Loading..." text with blinking dots -->
+      <div class="app-fallback" data-show-orb="true" data-show-text="false">
+        <div class="app-fallback-inner">
+          <div class="loader-orb" aria-hidden="true"></div>
+          <div class="loader-text" role="status">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
           <noscript>
-            <p style="margin-top: 0.5rem;">JavaScript is required to use this application.</p>
+            <p>JavaScript is required to use this application.</p>
           </noscript>
         </div>
       </div>
@@ -106,6 +112,41 @@
         color: #6b7280;
       }
       html.dark .app-fallback { color: #9ca3af; }
+      .app-fallback-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+      }
+      /* Independent toggles - the parent's data attributes drive visibility. */
+      .app-fallback[data-show-orb="false"] .loader-orb { display: none; }
+      .app-fallback[data-show-text="false"] .loader-text { display: none; }
+      /* Tri-color gradient orb using the brand + brandcomp palette
+         (brand-500 #dc4a22, brand-400 #e68b5e, brandcomp-500 #23b5dd). */
+      .loader-orb {
+        width: 2.6rem;
+        height: 2.6rem;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg,
+          #dc4a22,
+          #e68b5e 33%,
+          #23b5dd 66%,
+          #dc4a22);
+        animation: orb-spin 1.8s linear infinite;
+        position: relative;
+      }
+      .loader-orb::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        /* --bg-color is set on <html> by the inline script in <head> before
+           first paint, so the inner disc tracks the body background in both
+           themes without a separate dark override. */
+        background: var(--bg-color, #ffffff);
+        border-radius: 50%;
+      }
+      @keyframes orb-spin { to { transform: rotate(360deg); } }
       .dot {
         animation: blink 1.4s infinite;
         opacity: 0;

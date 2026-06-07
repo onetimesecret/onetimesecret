@@ -20,10 +20,6 @@ module Billing
   # - Onetime::Models::Features::WithOrganizationBilling
   #
   module BillingService
-    # Plan IDs that represent free tier
-    # @deprecated Use Billing::Metadata::FREE_PLAN_IDS instead
-    FREE_PLAN_IDS = Metadata::FREE_PLAN_IDS
-
     extend self
 
     # =========================================================================
@@ -97,7 +93,7 @@ module Billing
       return false if plan_id.to_s.empty?
 
       # Check if it's a known free plan
-      return true if FREE_PLAN_IDS.include?(plan_id)
+      return true if Metadata::FREE_PLAN_IDS.include?(plan_id)
 
       # Check catalog cache
       plan = ::Billing::Plan.load(plan_id)
@@ -130,8 +126,8 @@ module Billing
       return 'unknown' if planid.empty? && subscription_id.empty?
 
       has_active_subscription = %w[active trialing].include?(subscription_status)
-      has_paid_plan           = !planid.empty? && !FREE_PLAN_IDS.include?(planid)
-      has_free_plan           = planid.empty? || FREE_PLAN_IDS.include?(planid)
+      has_paid_plan           = !planid.empty? && !Metadata::FREE_PLAN_IDS.include?(planid)
+      has_free_plan           = planid.empty? || Metadata::FREE_PLAN_IDS.include?(planid)
 
       # Consistent states
       return 'synced' if has_active_subscription && has_paid_plan
@@ -161,8 +157,8 @@ module Billing
       subscription_status = org.subscription_status.to_s
 
       has_active_subscription = %w[active trialing].include?(subscription_status)
-      has_paid_plan           = !planid.empty? && !FREE_PLAN_IDS.include?(planid)
-      has_free_plan           = planid.empty? || FREE_PLAN_IDS.include?(planid)
+      has_paid_plan           = !planid.empty? && !Metadata::FREE_PLAN_IDS.include?(planid)
+      has_free_plan           = planid.empty? || Metadata::FREE_PLAN_IDS.include?(planid)
 
       if has_active_subscription && has_free_plan
         return 'Active subscription but planid is free - possible missed webhook'
@@ -201,8 +197,8 @@ module Billing
 
       issues = []
 
-      # Check plan ID match using normalized comparison
-      unless plans_match?(local_planid, stripe_planid)
+      # Check plan ID match (family-keyed IDs, direct string comparison)
+      unless local_planid == stripe_planid
         issues << {
           field: 'planid',
           local: local_planid.empty? ? '(empty)' : local_planid,
@@ -238,46 +234,6 @@ module Billing
       }
     end
 
-    # Check if two plan IDs match, accounting for interval suffix
-    #
-    # Plan IDs may differ only by billing interval suffix:
-    # - "identity_plus_v1" vs "identity_plus_v1_monthly"
-    #
-    # This method normalizes by stripping interval suffix and compares.
-    # Does NOT do prefix matching - "identity_plus" is NOT considered
-    # to match "identity_plus_v1" since they are different plans.
-    #
-    # @param local_planid [String] Plan ID stored locally on organization
-    # @param stripe_planid [String] Plan ID resolved from Stripe subscription
-    # @return [Boolean] True if plans match (same base identity)
-    def plans_match?(local_planid, stripe_planid)
-      return true if local_planid == stripe_planid
-      return false if local_planid.to_s.empty? || stripe_planid.to_s.empty?
-
-      # Normalize both by stripping interval suffix
-      local_base  = normalize_plan_id(local_planid)
-      stripe_base = normalize_plan_id(stripe_planid)
-
-      return true if local_base == stripe_base
-
-      # Try looking up the plan_code from cache for accurate comparison
-      stripe_plan = ::Billing::Plan.load(stripe_planid)
-      if stripe_plan&.plan_code
-        return true if local_planid == stripe_plan.plan_code
-        return true if local_base == stripe_plan.plan_code
-      end
-
-      false
-    end
-
-    # Normalize a plan ID by stripping interval suffix
-    #
-    # @param planid [String] Plan ID to normalize
-    # @return [String] Normalized plan ID without interval suffix
-    def normalize_plan_id(planid)
-      planid.to_s.sub(/_(month|year)ly$/, '')
-    end
-
     # =========================================================================
     # Helper Methods
     # =========================================================================
@@ -287,7 +243,7 @@ module Billing
     # @param planid [String] Plan ID to check
     # @return [Boolean] True if this is a free plan
     def free_plan?(planid)
-      planid.to_s.empty? || FREE_PLAN_IDS.include?(planid.to_s)
+      planid.to_s.empty? || Metadata::FREE_PLAN_IDS.include?(planid.to_s)
     end
 
     # Check if a plan ID represents a paid tier

@@ -37,7 +37,7 @@ vi.mock('@/services/billing.service', () => ({
 const mockOrganization = {
   objid: 'org_123', extid: 'on1abc123', display_name: 'Test Organization',
   description: null, owner_id: 'cust_456', contact_email: 'test@example.com',
-  planid: 'identity_plus_v1_monthly', entitlements: ['api_access'], limits: { teams: 1 }, is_default: true,
+  planid: 'identity_plus_v1', entitlements: ['api_access'], limits: { teams: 1 }, is_default: true,
   created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
 };
 const mockFreeOrganization = {
@@ -76,14 +76,15 @@ vi.mock('@/schemas/errors', () => ({
   classifyError: (err: unknown) => ({ message: err instanceof Error ? err.message : 'Unknown error' }),
 }));
 vi.mock('@/types/billing', () => ({
-  getPlanDisplayName: (id: string) => {
+  getPlanLabel: (id: string) => {
     const names: Record<string, string> = {
-      identity_plus_v1_monthly: 'Identity Plus',
+      identity_plus_v1: 'Identity Plus',
       identity: 'Identity Plus (Early Supporter)',
     };
     return names[id] || id;
   },
   isLegacyPlan: (planId: string) => planId === 'identity',
+  isFreePlan: (planId: string) => !planId || planId === 'free' || planId.startsWith('free_'),
 }));
 
 // Use shared fixture factory for overview response

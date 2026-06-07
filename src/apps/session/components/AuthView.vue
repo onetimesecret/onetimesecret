@@ -3,9 +3,10 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import type { Jurisdiction } from '@/schemas/shapes/config';
-  import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
-  import { storeToRefs } from 'pinia';
+  import {
+    useJurisdictionStore,
+    useJurisdictionDisplayNames,
+  } from '@/shared/stores/jurisdictionStore';
   import { computed } from 'vue';
 
   interface IconConfig {
@@ -45,35 +46,38 @@
 
   // Initialize jurisdiction store
   const jurisdictionStore = useJurisdictionStore();
-  const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
+  const { currentJurisdictionWithDisplayName } = useJurisdictionDisplayNames();
 
   // Compute the current jurisdiction or default to unknown
-  const currentJurisdiction = computed(
-    (): Jurisdiction =>
-      getCurrentJurisdiction.value || {
-        identifier: t('web.regions.unknown_jurisdiction'),
-        display_name: t('web.regions.unknown_jurisdiction'),
-        domain: '',
-        icon: {
-          collection: 'mdi',
-          name: 'help-circle',
-        },
-        enabled: false,
-      }
+  // Uses resolved display_name from i18n
+  const currentJurisdiction = computed(() =>
+    currentJurisdictionWithDisplayName.value || {
+      identifier: t('web.regions.unknown_jurisdiction'),
+      display_name_i18n_key: 'web.regions.unknown_jurisdiction',
+      display_name: t('web.regions.unknown_jurisdiction'),
+      domain: '',
+      icon: {
+        collection: 'mdi',
+        name: 'help-circle',
+      },
+      enabled: false,
+    }
   );
 
-  // Compute the background icon based on jurisdiction status
+  // Compute the background icon based on jurisdiction status.
+  // Uses the resolved icon (jurisdiction.icon ?? identifier mapping ?? globe),
+  // not the raw config icon which is undefined when JURISDICTIONS omits it.
   const backgroundIcon = computed((): IconConfig => {
-    if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
-      return getCurrentJurisdiction.value.icon;
+    if (jurisdictionStore.enabled) {
+      return currentJurisdiction.value.icon;
     }
     return props.featureIcon;
   });
 
   // Compute the icon to show based on jurisdiction status
   const iconToShow = computed((): IconConfig => {
-    if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
-      return getCurrentJurisdiction.value.icon;
+    if (jurisdictionStore.enabled) {
+      return currentJurisdiction.value.icon;
     }
     return props.featureIcon;
   });

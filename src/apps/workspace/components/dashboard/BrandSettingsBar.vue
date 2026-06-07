@@ -78,6 +78,8 @@
                 :model-value="modelValue.primary_color ?? undefined"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
                 name="brand[primary_color]"
+                variant="sketch"
+                :disable-alpha="false"
                 :label="t('web.branding.brand_color')"
                 id="brand-color" />
               <!-- WCAG Contrast Warning -->
@@ -149,7 +151,7 @@
                 v-if="isLoading"
                 collection="mdi"
                 name="loading"
-                class="-ml-1 mr-2 size-4 animate-spin" />
+                class="-ml-1 mr-2 size-4 animate-spin motion-reduce:animate-none" />
               <OIcon
                 v-else
                 collection="mdi"

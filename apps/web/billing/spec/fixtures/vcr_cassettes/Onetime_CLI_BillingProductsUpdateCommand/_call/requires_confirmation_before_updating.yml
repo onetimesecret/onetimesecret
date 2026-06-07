@@ -267,111 +267,6 @@ http_interactions:
         }
   recorded_at: Mon, 29 Dec 2025 05:22:34 GMT
 - request:
-    method: post
-    uri: https://api.stripe.com/v1/products
-    body:
-      encoding: UTF-8
-      string: name=Confirmation+Test&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/18.1.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_pGDz88EasZp6Ct","request_duration_ms":124}}'
-      Idempotency-Key:
-      - 1771243936-6871a36d-46b4-4ad1-8031-30967aa0de9c
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"18.1.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:05 PST
-        2026; root:xnu-12377.81.4~5/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Mon, 16 Feb 2026 12:12:17 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '497'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ulPxLPK6rIRVh8eth2UUxW7GqEs-kOwRDiqDMRsIM2UtnwloTGQorCWxMDf8vBqHEfXEVvDEZI08E_me
-      Idempotency-Key:
-      - 1771243936-6871a36d-46b4-4ad1-8031-30967aa0de9c
-      Original-Request:
-      - req_kOWSaz7vyKtqqS
-      Stripe-Should-Retry:
-      - 'false'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      Vary:
-      - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
-      X-Wc:
-      - ABGHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-    body:
-      encoding: UTF-8
-      string: |-
-        {
-          "id": "prod_TzPTQPsZrvEarx",
-          "object": "product",
-          "active": true,
-          "attributes": [],
-          "created": 1771243937,
-          "default_price": null,
-          "description": null,
-          "images": [],
-          "livemode": false,
-          "marketing_features": [],
-          "metadata": {
-            "app": "onetimesecret"
-          },
-          "name": "Confirmation Test",
-          "package_dimensions": null,
-          "shippable": null,
-          "statement_descriptor": null,
-          "tax_code": null,
-          "type": "service",
-          "unit_label": null,
-          "updated": 1771243937,
-          "url": null
-        }
-  recorded_at: Mon, 16 Feb 2026 12:12:17 GMT
-- request:
     method: get
     uri: https://api.stripe.com/v1/products/prod_TzPTQPsZrvEarx
     body:
@@ -466,4 +361,216 @@ http_interactions:
           "url": null
         }
   recorded_at: Mon, 16 Feb 2026 12:12:17 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/products
+    body:
+      encoding: UTF-8
+      string: name=Confirmation+Test&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=&metadata[tenancy]=&metadata[entitlements]=
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/18.4.2
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_besw1wQKLdGyEj","request_duration_ms":207}}'
+      Idempotency-Key:
+      - 1779242528-f3b2a4b4-7258-4f17-8457-2ec41524221f
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"18.4.2","lang":"ruby","lang_version":"3.4.9 p82 (2026-03-11)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:31:17 PDT
+        2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 20 May 2026 02:02:08 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '520'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=oyiHMdrqeAI0mUSeSuAL7kkWHHjZzXLIPyQyUxcA4gdxgLgSdobQwM8m0BEEPlqcKqCdDIFcPtBGSw4F;
+        report-to csp
+      Idempotency-Key:
+      - 1779242528-f3b2a4b4-7258-4f17-8457-2ec41524221f
+      Original-Request:
+      - req_ZUPKXO7Lakwj1X
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=oyiHMdrqeAI0mUSeSuAL7kkWHHjZzXLIPyQyUxcA4gdxgLgSdobQwM8m0BEEPlqcKqCdDIFcPtBGSw4F&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=oyiHMdrqeAI0mUSeSuAL7kkWHHjZzXLIPyQyUxcA4gdxgLgSdobQwM8m0BEEPlqcKqCdDIFcPtBGSw4F&t=1"
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "prod_UY5dbn81MC7FNt",
+          "object": "product",
+          "active": true,
+          "attributes": [],
+          "created": 1779242528,
+          "default_price": null,
+          "description": null,
+          "images": [],
+          "livemode": false,
+          "marketing_features": [],
+          "metadata": {
+            "app": "onetimesecret"
+          },
+          "name": "Confirmation Test",
+          "package_dimensions": null,
+          "shippable": null,
+          "statement_descriptor": null,
+          "tax_code": null,
+          "tax_details": null,
+          "type": "service",
+          "unit_label": null,
+          "updated": 1779242528,
+          "url": null
+        }
+  recorded_at: Wed, 20 May 2026 02:02:08 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/products/prod_UY5dbn81MC7FNt
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/18.4.2
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_ZUPKXO7Lakwj1X","request_duration_ms":278}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"18.4.2","lang":"ruby","lang_version":"3.4.9 p82 (2026-03-11)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:31:17 PDT
+        2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 20 May 2026 02:02:08 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '520'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=oyiHMdrqeAI0mUSeSuAL7kkWHHjZzXLIPyQyUxcA4gdxgLgSdobQwM8m0BEEPlqcKqCdDIFcPtBGSw4F;
+        report-to csp
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=oyiHMdrqeAI0mUSeSuAL7kkWHHjZzXLIPyQyUxcA4gdxgLgSdobQwM8m0BEEPlqcKqCdDIFcPtBGSw4F&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=oyiHMdrqeAI0mUSeSuAL7kkWHHjZzXLIPyQyUxcA4gdxgLgSdobQwM8m0BEEPlqcKqCdDIFcPtBGSw4F&t=1"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "prod_UY5dbn81MC7FNt",
+          "object": "product",
+          "active": true,
+          "attributes": [],
+          "created": 1779242528,
+          "default_price": null,
+          "description": null,
+          "images": [],
+          "livemode": false,
+          "marketing_features": [],
+          "metadata": {
+            "app": "onetimesecret"
+          },
+          "name": "Confirmation Test",
+          "package_dimensions": null,
+          "shippable": null,
+          "statement_descriptor": null,
+          "tax_code": null,
+          "tax_details": null,
+          "type": "service",
+          "unit_label": null,
+          "updated": 1779242528,
+          "url": null
+        }
+  recorded_at: Wed, 20 May 2026 02:02:08 GMT
 recorded_with: VCR 6.4.0

@@ -10,11 +10,10 @@
 
 import { describe, expect, it } from 'vitest';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
-import { featuresSchema, organizationSchema } from '@/schemas/contracts/bootstrap';
+import { apiInterfaceSchema, featuresSchema, organizationSchema } from '@/schemas/contracts/bootstrap';
 import { bootstrapUiSchema, BOOTSTRAP_UI_DEFAULTS } from './bootstrap-test-schema';
 import {
   ALL_SERIALIZER_FIELDS,
-  ALL_BOOTSTRAP_FIELDS,
   AUTHENTICATION_SERIALIZER_FIELDS,
   CONFIG_SERIALIZER_FIELDS,
   DOMAIN_SERIALIZER_FIELDS,
@@ -22,8 +21,6 @@ import {
   MESSAGES_SERIALIZER_FIELDS,
   ORGANIZATION_SERIALIZER_FIELDS,
   SYSTEM_SERIALIZER_FIELDS,
-  NON_SERIALIZER_FIELDS,
-  TEMPLATE_ONLY_FIELDS,
 } from './bootstrap-serializer-fields';
 
 // ============================================================================
@@ -72,6 +69,10 @@ const FRONTEND_ONLY_FIELDS: Record<string, string> = {
   // Stripe fields are loaded via billing module, not bootstrap serializers
   stripe_customer: 'Loaded via billing module; not from bootstrap serializers.',
   stripe_subscriptions: 'Loaded via billing module; not from bootstrap serializers.',
+
+  // Frontend-only contract awaiting backend support — operators can flip the
+  // variant or override feature toggles via this block. See PR #3219.
+  disabled_homepage: 'Frontend rendering knobs; Ruby serializer wiring TBD.',
 };
 
 // ============================================================================
@@ -93,11 +94,6 @@ describe('Bootstrap schema contract (serializer fields)', () => {
   describe('serializer field coverage', () => {
     // Authentication serializer fields
     describe('AuthenticationSerializer fields', () => {
-      const relevantPayloadKeys = BOOTSTRAP_PAYLOAD_KEYS.filter(
-        (k) =>
-          AUTHENTICATION_SERIALIZER_FIELDS.includes(k as any) || k in INTENTIONAL_EXCLUSIONS
-      );
-
       it.each(
         AUTHENTICATION_SERIALIZER_FIELDS.filter((f) => !(f in INTENTIONAL_EXCLUSIONS))
       )('BootstrapPayload declares authentication field "%s"', (field) => {
@@ -222,6 +218,7 @@ describe('Bootstrap Zod schema validation', () => {
       const defaults = BOOTSTRAP_UI_DEFAULTS;
 
       expect(defaults.ui).toEqual({ enabled: true });
+      expect(defaults.ui.help).toBeUndefined();
       expect(defaults.messages).toEqual([]);
       expect(defaults.features).toEqual({ markdown: false });
       expect(defaults.supported_locales).toEqual([]);
@@ -248,8 +245,83 @@ describe('Bootstrap Zod schema validation', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.ui).toEqual({ enabled: true });
+        expect(result.data.ui.help).toBeUndefined();
         expect(result.data.messages).toEqual([]);
       }
+    });
+  });
+
+  describe('apiInterfaceSchema', () => {
+    it('provides sensible defaults for empty input', () => {
+      const result = apiInterfaceSchema.parse({});
+
+      expect(result.enabled).toBe(true);
+      expect(result.guest_routes).toBeDefined();
+      expect(result.guest_routes.enabled).toBe(true);
+      expect(result.guest_routes.conceal).toBe(true);
+      expect(result.guest_routes.generate).toBe(true);
+      expect(result.guest_routes.reveal).toBe(true);
+      expect(result.guest_routes.burn).toBe(true);
+      expect(result.guest_routes.show).toBe(true);
+      expect(result.guest_routes.receipt).toBe(true);
+    });
+
+    it('accepts api.enabled as false', () => {
+      const api = { enabled: false };
+      const result = apiInterfaceSchema.safeParse(api);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.enabled).toBe(false);
+      }
+    });
+
+    it('accepts full api object with all guest_routes', () => {
+      const api = {
+        enabled: true,
+        guest_routes: {
+          enabled: true,
+          conceal: true,
+          generate: false,
+          reveal: true,
+          burn: false,
+          show: true,
+          receipt: true,
+        },
+      };
+
+      const result = apiInterfaceSchema.safeParse(api);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.guest_routes.generate).toBe(false);
+        expect(result.data.guest_routes.burn).toBe(false);
+      }
+    });
+
+    it('applies defaults for missing guest_routes keys', () => {
+      const api = {
+        enabled: true,
+        guest_routes: { enabled: false },
+      };
+
+      const result = apiInterfaceSchema.safeParse(api);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.guest_routes.enabled).toBe(false);
+        // Other keys default to true
+        expect(result.data.guest_routes.conceal).toBe(true);
+        expect(result.data.guest_routes.reveal).toBe(true);
+      }
+    });
+
+    it('rejects malformed api object gracefully', () => {
+      const malformed = {
+        enabled: 'yes', // should be boolean
+        guest_routes: 'all', // should be object
+      };
+
+      const result = apiInterfaceSchema.safeParse(malformed);
+      expect(result.success).toBe(false);
     });
   });
 
@@ -308,7 +380,7 @@ describe('Bootstrap Zod schema validation', () => {
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: false,
-        planid: 'plan_abc',
+        planid: 'identity_plus_v1',
         current_user_role: 'admin' as const,
       };
 
@@ -389,6 +461,9 @@ describe('Bootstrap realistic payload parsing', () => {
             },
           ],
         },
+        help: {
+          enabled: true,
+        },
       },
       messages: [{ type: 'info' as const, content: 'Welcome back!' }],
       features: {
@@ -404,7 +479,7 @@ describe('Bootstrap realistic payload parsing', () => {
         extid: 'org_ext_123',
         display_name: 'ACME Corp',
         is_default: false,
-        planid: 'plan_pro',
+        planid: 'identity_plus_v1',
         current_user_role: 'owner' as const,
       },
       supported_locales: ['en', 'es', 'fr'],

@@ -21,17 +21,6 @@ export const mockDefaultBranding: BrandSettingsCanonical = {
   font_family: 'sans',
   corner_style: 'rounded',
   button_text_light: true,
-  allow_public_homepage: false,
-  allow_public_api: false,
-  locale: 'en',
-  default_ttl: null,
-  passphrase_required: false,
-  notify_enabled: false,
-  description: undefined,
-  instructions_pre_reveal: null,
-  instructions_reveal: null,
-  instructions_post_reveal: null,
-  colour: undefined,
 };
 
 export const mockCustomBrandingRed: BrandSettingsCanonical = {
@@ -46,17 +35,6 @@ export const mockCustomBrandingRed: BrandSettingsCanonical = {
   font_family: 'sans',
   corner_style: 'square',
   button_text_light: false,
-  allow_public_homepage: false,
-  allow_public_api: false,
-  locale: 'en',
-  default_ttl: null,
-  passphrase_required: false,
-  notify_enabled: false,
-  description: undefined,
-  instructions_pre_reveal: null,
-  instructions_reveal: null,
-  instructions_post_reveal: null,
-  colour: undefined,
 };
 
 export const mockCustomBrandingViolet: BrandSettingsCanonical = {
@@ -71,12 +49,6 @@ export const mockCustomBrandingViolet: BrandSettingsCanonical = {
   font_family: 'mono',
   corner_style: 'pill',
   button_text_light: true,
-  allow_public_homepage: true,
-  allow_public_api: true,
-  locale: 'en',
-  default_ttl: null,
-  passphrase_required: false,
-  notify_enabled: false,
   description: 'Custom purple theme with monospace font',
   instructions_pre_reveal: 'Click below to view your secret',
   instructions_reveal: null,

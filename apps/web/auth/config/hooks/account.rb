@@ -4,6 +4,7 @@
 
 module Auth::Config::Hooks
   module Account
+    # rubocop:disable Metrics/PerceivedComplexity
     def self.configure(auth)
       #
       # Hook: Before Account Creation
@@ -11,15 +12,60 @@ module Auth::Config::Hooks
       # This hook is triggered before a new account is created. It performs
       # several validation checks on the provided email address.
       #
+      # NOTE: Rodauth hooks don't chain — each auth.before_create_account call
+      # overwrites the previous definition. All before_create_account logic must
+      # live here, not split across hook files. billing.rb's capture_plan_selection
+      # was moved here after the hook-collision bug (#3275).
+      #
       auth.before_create_account do
+        # Billing: capture plan selection from query params before validation.
+        # Method defined by Billing.configure via auth_class_eval; no-op if billing disabled.
+        capture_plan_selection if respond_to?(:capture_plan_selection)
+
         # Check if email already exists in either database
         # SECURITY: Two-database consistency check prevents orphaned accounts
         email = param(login_param)
+
+        # Per-domain signup validation (allowlist, MX, SMTP).
+        # Resolves the CustomDomain by display_domain and enforces its
+        # SignupConfig if one is configured and enabled. Falls back to the
+        # global allowed_signup_domains policy when no per-domain config
+        # applies. Identical user-visible error message to the existing
+        # email-conflict paths prevents enumeration of which domains, MX
+        # records, or mailboxes are accepted.
+        display_domain = request.env['onetime.display_domain']
+        unless Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+          Auth::Logging.log_auth_event(
+            :registration_blocked_signup_validation,
+            level: :info,
+            email: OT::Utils.obscure_email(email),
+            display_domain: display_domain,
+          )
+
+          set_error_flash(create_account_error_flash)
+          request.env['rodauth.error_flash'] = create_account_error_flash
+          throw_rodauth_error
+        end
 
         # Check SQLite (auth database)
         existing_account = db[:accounts].where(email: email).first
 
         if existing_account
+          diagnostic_hint = <<~HINT.strip
+            Registration blocked: Account exists in authdb but may be missing from
+            Redis. This can occur after clearing Redis without resetting authdb.
+            Consider: (1) deleting the account from authdb, or (2) resetting both
+            databases together.
+          HINT
+
+          Auth::Logging.log_auth_event(
+            :registration_blocked_auth_db_conflict,
+            level: :error,
+            email: OT::Utils.obscure_email(email),
+            account_id: existing_account[:id],
+            diagnostic_hint: diagnostic_hint,
+          )
+
           set_error_flash(create_account_error_flash)
           request.env['rodauth.error_flash'] = create_account_error_flash
           throw_rodauth_error
@@ -46,8 +92,49 @@ module Auth::Config::Hooks
           request.env['rodauth.error_flash'] = create_account_error_flash
           throw_rodauth_error
         end
+
+        # When an invite_token is supplied, validate the invitation up front:
+        # invitation exists, still pending, not expired, and the signup email
+        # matches the invited email. Failing precondition checks here aborts
+        # before any account/customer row is written, so we never roll back
+        # partial Redis state on email-mismatch or expired tokens.
+        invite_token = param_or_nil('invite_token').to_s.strip
+        unless invite_token.empty?
+          invitation = Onetime::OrganizationMembership.find_by_token(invite_token)
+
+          invalid_reason =
+            if invitation.nil?
+              'token_not_found'
+            elsif !invitation.pending?
+              'not_pending'
+            elsif invitation.expired?
+              'expired'
+            elsif OT::Utils.normalize_email(email) !=
+                  OT::Utils.normalize_email(invitation.invited_email)
+              'email_mismatch'
+            end
+
+          if invalid_reason
+            Auth::Logging.log_auth_event(
+              :registration_blocked_invalid_invite,
+              level: :warn,
+              email: OT::Utils.obscure_email(email),
+              invite_token_prefix: invite_token[0..7],
+              reason: invalid_reason,
+            )
+
+            set_error_flash(create_account_error_flash)
+            request.env['rodauth.error_flash'] = create_account_error_flash
+            throw_rodauth_error
+          end
+        end
       end
 
+      # When this is part of a regular user signup flow, we'll have already
+      # called Truemail.validate on this address in the CreateAccount logic,
+      # but we call it here as a defensive in depth regardless. It's easier
+      # to call it twice than to try to keep track of the state through
+      # multiple codepaths.
       auth.login_valid_email? do |email|
         validator = Truemail.validate(email)
         is_valid  = super(email) && validator.result.valid?
@@ -71,72 +158,112 @@ module Auth::Config::Hooks
       # and creates a default organization and team for the new user.
       #
       auth.after_create_account do
+        # Read via Rodauth's `param_or_nil` so this hook works under both
+        # normal HTTP requests and `internal_request` (which only populates
+        # rodauth.params, not the Rack request body).
+        hook_invite_token = param_or_nil('invite_token').to_s.strip
+
+        # Determine the provisioning origin from request context. This is
+        # metadata only — capabilities are governed by org/team role.
+        provisioning_origin = if hook_invite_token != ''
+                                'invite'
+                              elsif request.env['onetime.display_domain'] &&
+                                    Onetime::CustomDomain.load_by_display_domain(request.env['onetime.display_domain'])
+                                'domain_signup'
+                              else
+                                'canonical_signup'
+                              end
+
         customer = Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
           Auth::Operations::CreateCustomer.new(
             account_id: account_id,
             account: account,
             db: Auth::Database.connection,
+            provisioning_origin: provisioning_origin,
           ).call
         end
 
-        # Create default organization and team for the new customer
-        # Note: These are hidden from individual plan users in the UI
         if customer.is_a?(Onetime::Customer)
-          Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
-            Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
-          end
+          invite_token  = hook_invite_token
+          invite_signup = !invite_token.empty?
 
-          # Accept pending invitation if token provided in signup request
-          invite_token = request.params['invite_token']
-          if invite_token && !invite_token.to_s.strip.empty?
-            Auth::Logging.log_auth_event(
-              :invite_acceptance_started,
-              level: :debug,
-              email: customer.email,
-              account_id: account_id,
-              invite_token_prefix: invite_token.to_s[0..7],
-            )
+          if invite_signup
+            # Invite signup: skip default workspace creation. The user is joining
+            # an existing org via the explicit POST /api/invite/:token/accept
+            # call that follows signup. A personal default workspace would be
+            # dead state they never use.
+            #
+            # Auto-verify at both the Redis (customer) and SQL (account) layers.
+            # The invite link itself proves email ownership — before_create_account
+            # already validated the token and that the signup email matches the
+            # invited email, so we can mark the customer verified here without
+            # a separate email round-trip.
+            Onetime::ErrorHandler.safe_execute('auto_verify_invite_signup', extid: customer.extid) do
+              customer.verified    = true
+              customer.verified_by = 'invite_token'
+              customer.save
 
-            Onetime::ErrorHandler.safe_execute('accept_invitation', token: invite_token) do
-              result = Auth::Operations::AcceptInvitation.new(
-                customer: customer,
-                token: invite_token,
-              ).call
+              update_account(account_status_column => account_open_status_value)
 
-              if result[:accepted]
-                # Auto-verify at SQL level — invite link proves email ownership
-                update_account(account_status_column => account_open_status_value)
-                # Remove verification key — clean up the key row
-                had_verify_key = respond_to?(:remove_verify_account_key)
-                remove_verify_account_key if had_verify_key
+              had_verify_key = respond_to?(:remove_verify_account_key)
+              remove_verify_account_key if had_verify_key
 
-                # Signal to create_account_autologin? that this signup has a verified invite.
-                # Set AFTER DB operations so autologin only fires if verification succeeded.
-                @invite_accepted = true
+              # Signal to create_account_autologin? that this is an invite signup.
+              # The user gets a session immediately so the frontend can POST to
+              # /api/invite/:token/accept with the active cookie. The token is
+              # NOT consumed here — that's the point of the explicit accept step.
+              @invite_accepted = true
 
-                Auth::Logging.log_auth_event(
-                  :invitation_accepted,
-                  level: :info,
-                  email: customer.email,
-                  account_id: account_id,
-                  organization_id: result[:organization_id],
-                  role: result[:role],
-                  account_auto_verified: true,
-                  verify_key_removed: had_verify_key,
-                  autologin_flag_set: true,
-                )
-              else
-                Auth::Logging.log_auth_event(
-                  :invitation_not_accepted,
-                  level: :warn,
-                  email: customer.email,
-                  account_id: account_id,
-                  reason: result[:reason],
-                  invite_token_prefix: invite_token.to_s[0..7],
-                )
-              end
+              Auth::Logging.log_auth_event(
+                :invite_signup_verified,
+                level: :info,
+                email: customer.email,
+                account_id: account_id,
+                invite_token_prefix: invite_token[0..7],
+                verify_key_removed: had_verify_key,
+                autologin_flag_set: true,
+              )
+            end
+          else
+            # Standard signup: provision the default organization and team so
+            # the user has a workspace to land in after email verification.
+            Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
+              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
             end
           end
+
+          # Capture plan intent for email verification flow (issue #3126).
+          # Session-based billing redirect doesn't survive email verification, so we
+          # persist the plan selection on the Customer record with a 24h TTL.
+          product  = request.params['product']
+          interval = request.params['interval']
+
+          if product.to_s.strip != '' && interval.to_s.strip != ''
+            intent = {
+              product: product,
+              interval: interval,
+              captured_at: Time.now.utc.iso8601,
+              source_url: request.fullpath,
+            }.to_json
+
+            customer.pending_plan_intent = intent
+
+            Auth::Logging.log_auth_event(
+              :plan_intent_captured,
+              level: :debug,
+              customer_extid: customer.extid,
+              product: product,
+              interval: interval,
+            )
+          end
+        end
+
+        # Billing redirect: add plan selection to JSON response (issue #3275).
+        # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
+        # so the method is only available when billing is enabled. Check respond_to?
+        # to avoid NoMethodError when billing is disabled (self-hosted).
+        if json_request? && respond_to?(:add_billing_redirect_to_response)
+          add_billing_redirect_to_response
         end
       end
 
@@ -147,10 +274,12 @@ module Auth::Config::Hooks
       # clicking a link in an email). It updates the verification status of
       # the associated Onetime::Customer record.
       #
-      # Note: This hook is disabled in the 'test' environment to simplify
-      # testing scenarios that do not require email verification flows.
+      # This hook is only registered when the verify_account feature is enabled.
+      # When disabled (e.g., in test environments via auth.yaml config), the
+      # Rodauth :verify_account feature isn't loaded, so the after_verify_account
+      # DSL method doesn't exist.
       #
-      unless Onetime.env?('testing')
+      if Onetime.auth_config.verify_account_enabled?
         auth.after_verify_account do
           Auth::Logging.log_auth_event(
             :account_verified,
@@ -160,8 +289,79 @@ module Auth::Config::Hooks
             email: account[:email],
           )
 
-          Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:extid]) do
-            Auth::Operations::VerifyCustomer.new(account: account).call
+          Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:external_id]) do
+            next unless account[:external_id]
+
+            customer = Onetime::Customer.find_by_extid(account[:external_id])
+            next unless customer
+
+            Auth::Operations::SetCustomerVerification.new(
+              customer: customer,
+              verified: true,
+              verified_by: 'email',
+              rodauth_already_synced: true,
+            ).call
+          end
+
+          # Surface pending plan intent for checkout redirect (issue #3126)
+          # If the user had selected a plan before signup, redirect them to checkout
+          # after verification completes.
+          Onetime::ErrorHandler.safe_execute('surface_plan_intent', extid: account[:extid]) do
+            # account[:external_id] (Rodauth/SQL) == customer.extid (Familia/Redis)
+            customer = Onetime::Customer.find_by_extid(account[:external_id])
+
+            if customer&.pending_plan_intent&.value.to_s.strip != ''
+              begin
+                intent   = JSON.parse(customer.pending_plan_intent.value)
+                product  = intent['product']
+                interval = intent['interval']
+
+                # Lazy-load billing dependencies (may not be available on self-hosted)
+                require_relative '../../../billing/lib/plan_resolver'
+
+                # Validate the plan still exists before redirecting
+                result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
+
+                if result.success?
+                  customer.pending_plan_intent.delete!
+
+                  # Store redirect in session for verify_account_redirect
+                  enc_product                       = URI.encode_www_form_component(product)
+                  enc_interval                      = URI.encode_www_form_component(interval)
+                  session['plan_checkout_redirect'] = "/billing/plans/#{enc_product}/#{enc_interval}"
+
+                  Auth::Logging.log_auth_event(
+                    :plan_intent_surfaced,
+                    level: :info,
+                    customer_extid: customer.extid,
+                    product: product,
+                    interval: interval,
+                  )
+                else
+                  customer.pending_plan_intent.delete!
+
+                  Auth::Logging.log_auth_event(
+                    :plan_intent_invalid,
+                    level: :warn,
+                    customer_extid: customer.extid,
+                    product: product,
+                    interval: interval,
+                    error: result.error,
+                  )
+                end
+              rescue JSON::ParserError => ex
+                customer.pending_plan_intent.delete!
+
+                Auth::Logging.log_auth_event(
+                  :plan_intent_parse_error,
+                  level: :warn,
+                  customer_extid: customer.extid,
+                  error: ex.message,
+                )
+              rescue LoadError
+                customer.pending_plan_intent.delete!
+              end
+            end
           end
         end
       end
@@ -235,5 +435,6 @@ module Auth::Config::Hooks
         end
       end
     end
+    # rubocop:enable Metrics/PerceivedComplexity
   end
 end

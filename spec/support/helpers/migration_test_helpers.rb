@@ -36,6 +36,45 @@ module MigrationTestHelpers
     Sequel.connect(url)
   end
 
+  # Build a PostgreSQL connection URL with a different user/password.
+  # Derives host, port, and database from the given base URL.
+  #
+  # @param user [String] PostgreSQL role name
+  # @param password [String] Password for the role
+  # @param base_url [String] URL to derive host/port/database from
+  # @return [String] Connection URL
+  def build_pg_url(user:, password: nil, base_url: ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS'))
+    uri = URI.parse(base_url)
+    uri.user = user
+    uri.password = password
+    uri.to_s
+  end
+
+  # Connect as PostgreSQL superuser, derived from existing database URL.
+  # Falls back to password 'postgres' (CI default) when PGPASSWORD is unset.
+  # Returns nil if the connection fails.
+  #
+  # @return [Sequel::Database, nil]
+  def connect_as_superuser
+    url = build_pg_url(user: 'postgres', password: ENV.fetch('PGPASSWORD', 'postgres'))
+    db = Sequel.connect(url)
+    db.run('SELECT 1')
+    db
+  rescue Sequel::DatabaseConnectionError, Sequel::DatabaseError
+    db&.disconnect
+    nil
+  end
+
+  # Run migrations using the elevated connection.
+  # Default privileges (set by initialize_auth_db.sql / CI setup) auto-grant
+  # the test user DML access to tables created by the migration user.
+  #
+  # @param migration_db [Sequel::Database] Elevated connection for running migrations
+  # @param migrations_dir [String] Path to migrations directory
+  def run_test_migrations(migration_db:, migrations_dir:)
+    Sequel::Migrator.run(migration_db, migrations_dir)
+  end
+
   # Get the current schema version from the database
   #
   # @param db [Sequel::Database] Database connection
@@ -69,10 +108,11 @@ module MigrationTestHelpers
   # Create a database with partial migration state (migrated to specific version)
   #
   # @param db [Sequel::Database] Database connection
-  # @param version [Integer] Target migration version (1-5)
+  # @param version [Integer] Target migration version (1-6, where 6 is the last
+  #   structural migration before data-only migrations like email normalization)
   # @return [Sequel::Database] Database with partial migrations
   def create_partial_migration_state(db:, version:)
-    raise ArgumentError, 'version must be between 1 and 5' unless (1..5).cover?(version)
+    raise ArgumentError, 'version must be between 1 and 6' unless (1..6).cover?(version)
 
     Sequel.extension :migration
     migrations_dir = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
@@ -96,15 +136,15 @@ module MigrationTestHelpers
   # @param db [Sequel::Database] Database connection
   def drop_all_tables(db:)
     if db.database_type == :postgres
-      # For PostgreSQL: drop and recreate public schema (fastest, most thorough)
-      # Removes tables, views, functions, triggers, extensions - everything
-      #
-      # Use elevated connection if available to handle CI permission model
+      # For PostgreSQL: drop tables owned by the migrator role.
+      # Prefer superuser (can drop anything), fall back to migrator, then caller.
+      superuser_url = ENV['AUTH_DATABASE_URL_TEST_SUPERUSER']
       migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
-      use_elevated = migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
 
-      if use_elevated
-        elevated_db = Sequel.connect(migration_url)
+      elevated_url = [superuser_url, migration_url].find { |u| u && !u.to_s.empty? && u != ENV['AUTH_DATABASE_URL'] }
+
+      if elevated_url
+        elevated_db = Sequel.connect(elevated_url)
         begin
           drop_and_recreate_postgres_schema(elevated_db)
         ensure
@@ -157,47 +197,35 @@ module MigrationTestHelpers
 
   private
 
-  # Drop and recreate PostgreSQL public schema with proper grants
+  # Drop all tables in PostgreSQL public schema
+  #
+  # Uses DROP TABLE CASCADE instead of DROP SCHEMA because onetime_migrator
+  # doesn't own the public schema in CI (postgres does). Table owners can
+  # drop their own tables, but only schema owners can drop schemas.
+  #
+  # Drops ALL tables including schema_info so migrations re-run from scratch.
   def drop_and_recreate_postgres_schema(db)
-    db.run 'DROP SCHEMA IF EXISTS public CASCADE'
-    db.run 'CREATE SCHEMA public'
-    db.run 'GRANT ALL ON SCHEMA public TO postgres'
-    db.run 'GRANT ALL ON SCHEMA public TO public'
+    # Get all tables and drop them in a single statement (including schema_info)
+    tables = db.tables
+    if tables.any?
+      table_list = tables.map { |t| db.literal(Sequel.identifier(t)) }.join(', ')
+      db.run "DROP TABLE IF EXISTS #{table_list} CASCADE"
+    end
 
-    # Re-apply grants for CI test users if they exist
-    apply_ci_schema_grants(db)
-  end
+    # Drop functions that migrations will recreate (exclude system/extension functions)
+    our_functions = %w[
+      rodauth_get_salt
+      rodauth_valid_password_hash
+      cleanup_expired_tokens
+      update_last_login_time
+      cleanup_expired_tokens_extended
+      update_accounts_updated_at
+      update_session_last_use
+      cleanup_old_audit_logs
+      get_account_security_summary
+    ]
 
-  # Apply schema grants for CI environment test users
-  def apply_ci_schema_grants(db)
-    # Check if onetime_migrator role exists (CI environment)
-    migrator_exists = db.fetch(
-      "SELECT 1 FROM pg_roles WHERE rolname = 'onetime_migrator'"
-    ).any?
-
-    return unless migrator_exists
-
-    # Re-apply schema grants
-    db.run 'GRANT ALL ON SCHEMA public TO onetime_migrator'
-    db.run 'GRANT ALL ON SCHEMA public TO onetime_user'
-
-    # Re-apply default privileges so tables created by onetime_migrator
-    # are automatically accessible to onetime_user
-    db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO onetime_user
-    SQL
-    db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT USAGE, SELECT ON SEQUENCES TO onetime_user
-    SQL
-    db.run <<~SQL
-      ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
-        GRANT EXECUTE ON FUNCTIONS TO onetime_user
-    SQL
-  rescue Sequel::DatabaseError
-    # Ignore if grants fail - may not have permission or roles don't exist
-    nil
+    db.run "DROP FUNCTION IF EXISTS #{our_functions.join(', ')} CASCADE" if our_functions.any?
   end
 
   # Simulate concurrent process boot by running migrations in parallel threads

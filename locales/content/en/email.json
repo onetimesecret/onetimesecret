@@ -29,10 +29,25 @@
     "renderer": "erb",
     "content_hash": "fecaf0a1"
   },
+  "email.secret_link.passphrase_label": {
+    "text": "Passphrase required:",
+    "renderer": "erb",
+    "content_hash": "1ab9a20f"
+  },
+  "email.secret_link.passphrase_required": {
+    "text": "This secret is protected with a passphrase. The sender should provide it to you separately.",
+    "renderer": "erb",
+    "content_hash": "1e49826b"
+  },
   "email.secret_link.sent_via": {
     "text": "Sent via",
     "renderer": "erb",
     "content_hash": "d01479b3"
+  },
+  "email.secret_link.footer_note": {
+    "text": "You received this because %{sender_email} used %{product_name} to share a secret with you. If you weren't expecting it, you can safely ignore this email.",
+    "renderer": "erb",
+    "content_hash": "2d544dad"
   },
   "email.welcome.subject": {
     "text": "Welcome to %{product_name} - Please verify your email",
@@ -204,6 +219,11 @@
     "renderer": "erb",
     "content_hash": "d01479b3"
   },
+  "email.incoming_secret.footer_note": {
+    "text": "You received this because someone used %{product_name} to send you a secret. If you weren't expecting it, you can safely ignore this email.",
+    "renderer": "erb",
+    "content_hash": "91ee6e8d"
+  },
   "email.secret_revealed.subject": {
     "text": "Your secret was viewed",
     "renderer": "erb",
@@ -284,6 +304,11 @@
     "renderer": "erb",
     "content_hash": "bd0a9bee"
   },
+  "email.expiration_warning.footer_note": {
+    "text": "You received this because a secret you created on %{product_name} is about to expire.",
+    "renderer": "erb",
+    "content_hash": "920779e4"
+  },
   "email.feedback_email.subject": {
     "text": "Feedback on %{date} via %{display_domain} (%{strategy})",
     "renderer": "erb",
@@ -299,6 +324,11 @@
     "renderer": "erb",
     "content_hash": "dc45d36f"
   },
+  "email.feedback_email.user_id_label": {
+    "text": "User:",
+    "renderer": "erb",
+    "content_hash": "93d6b3e9"
+  },
   "email.feedback_email.domain_label": {
     "text": "Domain:",
     "renderer": "erb",
@@ -308,6 +338,16 @@
     "text": "Strategy:",
     "renderer": "erb",
     "content_hash": "8132ec6b"
+  },
+  "email.feedback_email.timezone_label": {
+    "text": "Timezone:",
+    "renderer": "erb",
+    "content_hash": "39651ebf"
+  },
+  "email.feedback_email.version_label": {
+    "text": "Version:",
+    "renderer": "erb",
+    "content_hash": "4c5726ee"
   },
   "email.feedback_email.message_label": {
     "text": "Message:",
@@ -855,8 +895,18 @@
     "content_hash": "be843876"
   },
   "email.common.onetime_secret": {
-    "text": "%{product_name}",
+    "text": "Onetime Secret",
     "renderer": "erb",
-    "content_hash": "7bec5899"
+    "content_hash": "1cd0194a"
+  },
+  "email.common.secret_link_label": {
+    "text": "Secret link",
+    "renderer": "erb",
+    "content_hash": "18ddf44f"
+  },
+  "email.common.automated_notice": {
+    "text": "This is an automated message from %{product_name}.",
+    "renderer": "erb",
+    "content_hash": "8fbabfba"
   }
 }

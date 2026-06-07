@@ -16,9 +16,9 @@ require_relative 'colonel/get_colonel_info'
 require_relative 'colonel/get_colonel_stats'
 require_relative 'colonel/get_system_settings'
 
-# Entitlement test mode
+# Entitlement preview mode
 require_relative 'colonel/get_available_plans'
-require_relative 'colonel/set_entitlement_test'
+require_relative 'colonel/set_entitlement_preview'
 
 # Secret management
 require_relative 'colonel/list_secrets'
@@ -45,6 +45,7 @@ require_relative 'colonel/list_custom_domains'
 # Organizations
 require_relative 'colonel/list_organizations'
 require_relative 'colonel/investigate_organization'
+require_relative 'colonel/manage_entitlement_override'
 
 # Usage export
 require_relative 'colonel/export_usage'

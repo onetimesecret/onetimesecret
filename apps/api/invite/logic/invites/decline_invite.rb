@@ -15,6 +15,8 @@ module InviteAPI::Logic
     # The token itself serves as proof of access.
     #
     class DeclineInvite < InviteAPI::Logic::Base
+      include Onetime::LoggerMethods
+
       attr_reader :invitation
 
       def process_params
@@ -28,21 +30,25 @@ module InviteAPI::Logic
         rate_limiter.check!
         rate_limiter.record_attempt
 
-        raise_form_error('Token is required', field: :token) if @token.nil? || @token.empty?
+        if @token.nil? || @token.empty?
+          raise_form_error(error_key: 'api.invite.errors.token_required', field: :token, error_type: :missing)
+        end
 
         @invitation = load_invitation(@token)
 
         # Check if organization still exists (may have been deleted)
         unless @invitation.organization
-          raise_form_error('Organization no longer exists', field: :token)
+          raise_form_error(error_key: 'api.invite.errors.organization_no_longer_exists', field: :token, error_type: :missing)
         end
 
         # Check if invitation is still pending
         return if @invitation.pending?
 
         raise_form_error(
-          "Invitation has already been #{@invitation.status}",
+          error_key: 'api.invite.errors.invitation_already_processed',
+          args: { status: @invitation.status },
           field: :token,
+          error_type: :invalid,
         )
 
         # NOTE: We allow declining expired invitations since the user
@@ -50,12 +56,13 @@ module InviteAPI::Logic
       end
 
       def process
-        OT.ld "[DeclineInvite] Declining invitation #{@invitation.objid}"
+        auth_logger.debug 'Declining invitation',
+          invitation_id: @invitation.objid
 
         organization = @invitation.organization
         @invitation.decline!
 
-        OT.info '[DeclineInvite] Invitation declined',
+        auth_logger.info 'Invitation declined',
           event: 'invite.declined',
           invitation_id: @invitation.objid,
           organization_id: organization&.extid,

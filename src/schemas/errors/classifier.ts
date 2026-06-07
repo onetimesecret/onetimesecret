@@ -65,11 +65,9 @@ export const errorClassifier = {
   },
 
   extractUserMessage(details: any, error: HttpErrorLike): string {
-    // Prioritize 'message' over 'error' since 'error' is often a generic type identifier
-    // while 'message' contains the user-friendly description
-    // Example API response: { "error": "FormError", "message": "Please enter a domain" }
-    // We want to show "Please enter a domain" not "FormError"
-    return details.message || details.error || error.message || 'HTTP Error';
+    // API responses put the user-facing message in 'error' field
+    // Example: { "error": "Please enter a domain", "error_type": "FormError" }
+    return details.error || error.message || 'HTTP Error';
   },
 
   determineHttpErrorType(status: number | undefined, details: any): ErrorType {
@@ -89,7 +87,7 @@ export const errorClassifier = {
     // - 403 with no message -> security (show generic)
     // - 401 with "Invalid credentials" -> human (show message)
     // - 429 with "Too many requests" -> human (show message)
-    const hasUserMessage = Boolean(details.error || details.message);
+    const hasUserMessage = Boolean(details.error);
     const isClientError = status >= 400 && status < 500;
 
     if (hasUserMessage && isClientError) {

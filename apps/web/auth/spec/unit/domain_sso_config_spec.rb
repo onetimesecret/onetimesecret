@@ -12,7 +12,7 @@
 # - to_omniauth_options generation for different providers
 # - enabled? flag behavior
 # - valid_email_domain? validation against allowed_domains
-# - Domain-to-config lookup via display_domains index
+# - Domain-to-config lookup via display_domain_index index
 # - Domain ownership validation
 #
 # These are unit tests - they don't require Valkey/Redis.
@@ -198,6 +198,13 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   # ==========================================================================
 
   describe '#to_omniauth_options' do
+    let(:fake_domain) { instance_double(Onetime::CustomDomain, extid: 'cd_test_primary_12345') }
+
+    before do
+      allow_any_instance_of(Onetime::CustomDomain::SsoConfig)
+        .to receive(:custom_domain).and_return(fake_domain)
+    end
+
     describe 'for OIDC provider' do
       let(:config) { build_domain_sso_config(:oidc) }
 
@@ -209,8 +216,8 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         expect(config.to_omniauth_options[:strategy]).to eq(:openid_connect)
       end
 
-      it 'uses domain_id as the strategy name' do
-        expect(config.to_omniauth_options[:name]).to eq(config.domain_id)
+      it 'uses domain extid as the strategy name' do
+        expect(config.to_omniauth_options[:name]).to eq('cd_test_primary_12345')
       end
 
       it 'includes issuer' do
@@ -664,7 +671,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is missing' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:oidc)
+        config = build_domain_sso_config(:google)
         config.client_secret = nil
 
         errors = config.validation_errors
@@ -674,7 +681,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when client_secret is empty string' do
       it 'returns an error about client_secret' do
-        config = build_domain_sso_config(:oidc)
+        config = build_domain_sso_config(:google)
         config.client_secret = ''
 
         errors = config.validation_errors

@@ -85,8 +85,6 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
         font_family: 'sans',
         corner_style: 'rounded',
         button_text_light: false,
-        allow_public_homepage: true,
-        allow_public_api: false,
         passphrase_required: false,
         notify_enabled: true,
       },

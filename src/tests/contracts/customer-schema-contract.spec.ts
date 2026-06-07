@@ -99,7 +99,7 @@ describe('Customer schema contract (safe_dump_fields)', () => {
       notify_on_reveal: false,
       // Frontend-only fields (not from safe_dump_fields but in schema)
       contributor: false,
-      feature_flags: { allow_public_homepage: true },
+      feature_flags: { beta_features: true },
     };
 
     it('parses a full backend payload without errors (passthrough mode)', () => {

@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import PlanCardSkeleton from '@/shared/components/billing/PlanCardSkeleton.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -17,7 +18,7 @@ import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
 import { BillingService, extractCurrencyConflict, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
-import { isLegacyPlan, getPlanDisplayName } from '@/types/billing';
+import { isLegacyPlan, getPlanLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref } from 'vue';
@@ -108,7 +109,7 @@ const {
 
 /**
  * Get the current organization's tier by finding the matching plan.
- * The org has planid (e.g., 'identity_plus_v1_monthly') but we need
+ * The org has planid (canonical family ID like 'identity_plus_v1') and we need
  * the tier (e.g., 'single_team') for comparison with available plans.
  */
 const currentTier = computed((): string => {
@@ -123,11 +124,6 @@ const currentTier = computed((): string => {
   // Legacy 'identity' plan has team features equivalent to single_team tier
   if (planid === 'identity') return 'single_team';
 
-  // Fallback: try to infer tier from planid naming convention
-  // e.g., 'identity_plus_v1_monthly' -> look for known tier patterns
-  if (planid.includes('multi_team') || planid.includes('team_plus')) return 'multi_team';
-  if (planid.includes('single_team') || planid.includes('identity_plus')) return 'single_team';
-
   return 'free';
 });
 
@@ -138,7 +134,7 @@ const isLegacyCustomer = computed(() =>
 
 // Get display name for current plan (handles legacy naming)
 const currentPlanDisplayName = computed(() =>
-  selectedOrg.value?.planid ? getPlanDisplayName(selectedOrg.value.planid) : null
+  selectedOrg.value?.planid ? getPlanLabel(selectedOrg.value.planid) : null
 );
 
 // Filter plans by selected billing interval
@@ -382,11 +378,10 @@ const handleCompletePendingMigration = async () => {
 
   try {
     // Create a new checkout session for the pending migration target plan.
-    // target_plan_id is in "product_interval" format (e.g. "identity_plus_v1_monthly"),
-    // which createCheckoutSession can derive product + interval from.
+    // target_plan_id is a family ID (e.g. "identity_plus_v1").
+    // target_interval provides the billing interval.
     const planId = pendingMigration.value.target_plan_id;
-    const isYearly = planId.endsWith('_yearly');
-    const interval = isYearly ? 'year' : 'month';
+    const interval = pendingMigration.value.target_interval ?? 'month';
     const response = await BillingService.createCheckoutSession(
       selectedOrg.value.extid,
       {
@@ -450,14 +445,10 @@ onMounted(async () => {
         billingInterval.value = 'month';
       }
 
-      // Find the matching plan based on product and interval
-      // Product is like 'identity_plus_v1', plan.id is like 'identity_plus_v1_monthly'
-      const intervalSuffix = billingInterval.value === 'year' ? 'yearly' : 'monthly';
-      const expectedPlanId = `${productParam}_${intervalSuffix}`;
-
-      // Find plan by exact match or prefix match
+      // Find the matching plan based on product (family ID like 'identity_plus_v1')
+      // Plan IDs are now family-keyed without interval suffix
       const matchingPlan = plans.value.find(
-        p => p.id === expectedPlanId || p.id.startsWith(productParam)
+        p => p.id === productParam || p.id.startsWith(productParam)
       );
 
       if (matchingPlan) {
@@ -610,22 +601,11 @@ aria-live="polite">
       <BasicFormAlerts v-if="definitionsError" :error="definitionsError" />
 
       <!-- Loading State -->
-      <div v-if="isLoadingContent" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <PlanCardSkeleton v-if="isLoadingContent" />
 
       <!-- Free Tier Section (standalone banner mode) -->
       <div
-        v-if="freePlanStandalone && freePlan && !isLoadingContent"
+        v-else-if="freePlanStandalone && freePlan"
         class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div>
@@ -645,7 +625,7 @@ aria-live="polite">
       </div>
 
       <!-- No Plans Message -->
-      <div v-else-if="!isLoadingContent && filteredPlans.length === 0" class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
+      <div v-else-if="filteredPlans.length === 0" class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <p class="text-gray-600 dark:text-gray-400">
           {{ t('web.billing.plans.no_plans_available', { interval: billingInterval === 'year' ? t('web.billing.plans.yearly').toLowerCase() : t('web.billing.plans.monthly').toLowerCase() }) }}
         </p>

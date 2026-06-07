@@ -9,8 +9,8 @@ require 'onetime/logic/guest_route_gating'
 require 'onetime/logic'
 
 # Load AccountAPI logic classes
-require 'apps/api/account/logic/base'
-require 'apps/api/account/logic/account'
-require 'apps/api/account/logic/authentication'
+require 'api/account/logic/base'
+require 'api/account/logic/account'
+require 'api/account/logic/authentication'
 
 Logic = V2::Logic

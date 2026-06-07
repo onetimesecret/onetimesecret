@@ -28,8 +28,6 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         button_text_light
         font_family
         corner_style
-        allow_public_homepage
-        allow_public_api
         locale
         default_ttl
         passphrase_required
@@ -122,14 +120,14 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
     it 'converts to hash with string keys and JSON-encoded values' do
       settings = described_class.from_hash(
         primary_color: '#FF0000',
-        allow_public_homepage: true
+        passphrase_required: true
       )
 
       storage_hash = settings.to_h_for_storage
 
       # String keys for Redis compatibility
       expect(storage_hash['primary_color']).to eq('"#FF0000"')
-      expect(storage_hash['allow_public_homepage']).to eq('true')
+      expect(storage_hash['passphrase_required']).to eq('true')
     end
 
     it 'excludes nil values' do
@@ -144,63 +142,29 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
     it 'JSON-encodes boolean values' do
       settings = described_class.from_hash(
         button_text_light: false,
-        allow_public_api: true
+        notify_enabled: true
       )
 
       storage_hash = settings.to_h_for_storage
 
       # Booleans are JSON-encoded as literal true/false
       expect(storage_hash['button_text_light']).to eq('false')
-      expect(storage_hash['allow_public_api']).to eq('true')
-    end
-  end
-
-  describe '#allow_public_homepage?' do
-    it 'returns true when value is string "true"' do
-      settings = described_class.from_hash(allow_public_homepage: 'true')
-      expect(settings.allow_public_homepage?).to be true
+      expect(storage_hash['notify_enabled']).to eq('true')
     end
 
-    it 'returns true when value is boolean true' do
-      settings = described_class.from_hash(allow_public_homepage: true)
-      expect(settings.allow_public_homepage?).to be true
-    end
+    it 'drops legacy allow_public_homepage and allow_public_api inputs (#3026)' do
+      # These are no longer members; from_hash slices them out and
+      # to_h_for_storage never emits them.
+      settings = described_class.from_hash(
+        primary_color: '#FF0000',
+        allow_public_homepage: true,
+        allow_public_api: true
+      )
 
-    it 'returns false when value is string "false"' do
-      settings = described_class.from_hash(allow_public_homepage: 'false')
-      expect(settings.allow_public_homepage?).to be false
-    end
+      storage_hash = settings.to_h_for_storage
 
-    it 'returns false when value is boolean false' do
-      settings = described_class.from_hash(allow_public_homepage: false)
-      expect(settings.allow_public_homepage?).to be false
-    end
-
-    it 'returns false when value is nil' do
-      settings = described_class.from_hash({})
-      expect(settings.allow_public_homepage?).to be false
-    end
-  end
-
-  describe '#allow_public_api?' do
-    it 'returns true when value is string "true"' do
-      settings = described_class.from_hash(allow_public_api: 'true')
-      expect(settings.allow_public_api?).to be true
-    end
-
-    it 'returns true when value is boolean true' do
-      settings = described_class.from_hash(allow_public_api: true)
-      expect(settings.allow_public_api?).to be true
-    end
-
-    it 'returns false when value is string "false"' do
-      settings = described_class.from_hash(allow_public_api: 'false')
-      expect(settings.allow_public_api?).to be false
-    end
-
-    it 'returns false when value is nil' do
-      settings = described_class.from_hash({})
-      expect(settings.allow_public_api?).to be false
+      expect(storage_hash).not_to have_key('allow_public_homepage')
+      expect(storage_hash).not_to have_key('allow_public_api')
     end
   end
 

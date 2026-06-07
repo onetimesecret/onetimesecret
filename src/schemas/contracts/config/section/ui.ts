@@ -4,6 +4,9 @@
  * User Interface Configuration Schema
  *
  * Maps to the `site.interface:` section in config.defaults.yaml
+ *
+ * Per contracts convention, this schema describes field names and types only.
+ * Defaults belong in `shapes/config/section/ui.ts`.
  */
 
 import { z } from 'zod';
@@ -17,6 +20,7 @@ const userInterfaceLogoSchema = z.object({
   alt: z.string().optional(),
   href: z.string().optional(),
   show_name: z.boolean().optional(),
+  prominent: z.boolean().optional(),
 });
 
 /**
@@ -35,21 +39,32 @@ const userInterfaceHeaderNavigationSchema = z.object({
 });
 
 /**
+ * Public-facing links surfaced on the homepage when the secret form is
+ * gated by auth (e.g. mode=external). Recipients arriving via a shared
+ * link use these to learn about the service.
+ *
+ * Each field is nullable — when null/empty the corresponding affordance
+ * is hidden rather than rendered with a broken target.
+ */
+const userInterfaceHomepagePublicLinksSchema = z.object({
+  recipient_intro: nullableString,
+});
+
+/**
  * Homepage mode configuration (CIDR-based or header-based)
  */
 const userInterfaceHomepageSchema = z.object({
   mode: z.string().nullable().optional(),
-  matching_cidrs: z.array(z.string()).default([]),
-  mode_header: z.string().default('O-Homepage-Mode'),
-  trusted_proxy_depth: z.number().int().nonnegative().default(1),
-  trusted_ip_header: z.string().default('X-Forwarded-For'),
+  matching_cidrs: z.array(z.string()).optional(),
+  mode_header: z.string().optional(),
+  public_links: userInterfaceHomepagePublicLinksSchema.optional(),
 });
 
 /**
  * Header configuration
  */
 const userInterfaceHeaderSchema = z.object({
-  enabled: z.boolean().default(true),
+  enabled: z.boolean().optional(),
   branding: userInterfaceHeaderBrandingSchema.optional(),
   navigation: userInterfaceHeaderNavigationSchema.optional(),
 });
@@ -76,7 +91,7 @@ const userInterfaceFooterGroupSchema = z.object({
  * Footer links configuration
  */
 const userInterfaceFooterLinksSchema = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().optional(),
   groups: z.array(userInterfaceFooterGroupSchema).optional(),
 });
 
@@ -84,8 +99,8 @@ const userInterfaceFooterLinksSchema = z.object({
  * Workspace links configuration (authenticated users only)
  */
 const userInterfaceWorkspaceLinksSchema = z.object({
-  enabled: z.boolean().default(false),
-  links: z.array(userInterfaceFooterLinkSchema).default([]),
+  enabled: z.boolean().optional(),
+  links: z.array(userInterfaceFooterLinkSchema).optional(),
 });
 
 /**
@@ -98,20 +113,28 @@ const uiCapabilitiesSchema = z.object({
   recipient: z.boolean().optional(),
 });
 
+/**
+ * UI help configuration
+ */
+const uiHelpSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
 const uiSchema = z.object({
-  enabled: z.boolean().default(true),
+  enabled: z.boolean().optional(),
   homepage: userInterfaceHomepageSchema.optional(),
   header: userInterfaceHeaderSchema.optional(),
   footer_links: userInterfaceFooterLinksSchema.optional(),
   workspace_links: userInterfaceWorkspaceLinksSchema.optional(),
   capabilities: uiCapabilitiesSchema.optional(),
+  help: uiHelpSchema.optional(),
 });
 
 /**
  * API configuration schema
  */
 const apiSchema = z.object({
-  enabled: z.boolean().default(true),
+  enabled: z.boolean().optional(),
 });
 
 /**
@@ -131,4 +154,5 @@ export {
   userInterfaceFooterLinksSchema,
   userInterfaceHomepageSchema,
   uiCapabilitiesSchema,
+  uiHelpSchema,
 };

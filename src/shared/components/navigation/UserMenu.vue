@@ -31,15 +31,40 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useTheme } from '@/shared/composables/useTheme';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
-import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
+import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { type Customer } from '@/schemas/shapes/v3';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
+import PlanPreviewModal from '@/shared/components/modals/PlanPreviewModal.vue';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+// Copy to clipboard helper
+const copyToClipboard = async (text: string, fieldName: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    showCopyFeedback(fieldName);
+  } catch {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showCopyFeedback(fieldName);
+  }
+};
+
+const copiedField = ref<string | null>(null);
+const showCopyFeedback = (fieldName: string) => {
+  copiedField.value = fieldName;
+  setTimeout(() => {
+    copiedField.value = null;
+  }, 1500);
+};
 
 const props = defineProps<{
   cust: Customer | null;
@@ -52,10 +77,10 @@ const { t } = useI18n();
 const { logout } = useAuth();
 const { isDarkMode, toggleDarkMode } = useTheme();
 
-const isPlanTestModalOpen = ref(false);
+const isPlanPreviewModalOpen = ref(false);
 
 // Test plan mode composable
-const { isTestModeActive } = useTestPlanMode();
+const { isPreviewModeActive } = usePreviewPlanMode();
 
 const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
@@ -63,19 +88,27 @@ const { billing_enabled } = storeToRefs(bootstrapStore);
 // Custom domain filtering: non-owners on custom domains see limited menu
 const { isCustom } = storeToRefs(useProductIdentity());
 const organizationStore = useOrganizationStore();
+const { currentOrganization } = storeToRefs(organizationStore);
 
 const userRole = computed(() =>
-  organizationStore.currentOrganization?.current_user_role || null
+  currentOrganization.value?.current_user_role || null
 );
+
+// Org extid for display/copy (useful for support and testing)
+const orgExtid = computed(() => currentOrganization.value?.extid || null);
 
 // Only restrict members on custom domains — admins see the full menu like owners.
 // If org hasn't loaded yet (null role), show full menu to avoid blocking navigation.
 const isCustomDomainMember = computed(() => isCustom.value && !!userRole.value && userRole.value === 'member');
 
-// Domain context display in menu header (canonical site only)
+const isElevatedRole = computed(() =>
+  userRole.value === 'owner' || userRole.value === 'admin'
+);
+
+// Domain context display in menu header
 const { currentContext, isContextActive } = useDomainContext();
 const showDomainContext = computed(() =>
-  isContextActive.value && !isCustom.value && !props.awaitingMfa
+  isContextActive.value && !props.awaitingMfa
 );
 
 const isOpen = ref(false);
@@ -96,13 +129,13 @@ interface MenuItem {
   onClick?: () => void | Promise<void>;
 }
 
-const openPlanTestModal = () => {
-  isPlanTestModalOpen.value = true;
+const openPlanPreviewModal = () => {
+  isPlanPreviewModalOpen.value = true;
   closeMenu();
 };
 
-const closePlanTestModal = () => {
-  isPlanTestModalOpen.value = false;
+const closePlanPreviewModal = () => {
+  isPlanPreviewModalOpen.value = false;
 };
 
 const menuItems = computed<MenuItem[]>(() => [
@@ -111,13 +144,13 @@ const menuItems = computed<MenuItem[]>(() => [
     variant: 'caution' as const, condition: () => props.awaitingMfa },
   { id: 'dashboard', to: '/dashboard', label: t('web.TITLES.dashboard'),
     icon: { collection: 'heroicons', name: 'shield-check-solid' },
-    condition: () => !props.awaitingMfa && !isCustomDomainMember.value },
+    condition: () => !props.awaitingMfa },
   { id: 'recent', to: '/recent', label: t('web.TITLES.recent'),
     icon: { collection: 'heroicons', name: 'clock' },
-    condition: () => !props.awaitingMfa && !isCustomDomainMember.value },
+    condition: () => !props.awaitingMfa },
   { id: 'billing', to: '/billing', label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
-    condition: () => !props.awaitingMfa && !!billing_enabled.value && !isCustomDomainMember.value },
+    condition: () => !props.awaitingMfa && !!billing_enabled.value && userRole.value === 'owner' },
   { id: 'account', to: '/account', label: t('web.TITLES.account'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa },
@@ -126,11 +159,11 @@ const menuItems = computed<MenuItem[]>(() => [
     condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value },
   {
     id: 'test-plan',
-    label: t('web.colonel.testPlanMode'),
+    label: t('web.colonel.previewPlanMode'),
     icon: { collection: 'heroicons', name: 'beaker' },
-    variant: isTestModeActive.value ? 'caution' : 'default',
+    variant: isPreviewModeActive.value ? 'caution' : 'default',
     condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
-    onClick: openPlanTestModal,
+    onClick: openPlanPreviewModal,
   },
   {
     id: 'help',
@@ -341,44 +374,57 @@ onUnmounted(() => {
         <div
           class="border-b border-gray-200 px-4 py-3
             dark:border-gray-700">
-          <div class="flex items-center justify-between gap-2">
+          <!-- Email -->
+          <p
+            class="truncate text-sm font-medium text-gray-900 dark:text-white"
+            :title="cust?.email">
+            {{ cust?.email }}
+          </p>
+          <!-- Domain context + Role badge -->
+          <div
+            v-if="showDomainContext || (isElevatedRole && !awaitingMfa)"
+            class="group/domain mt-1 flex items-center gap-2">
             <p
-              class="truncate text-sm font-medium text-gray-900 dark:text-white"
-              :title="cust?.email">
-              {{ cust?.email }}
+              v-if="showDomainContext"
+              class="truncate text-sm text-gray-400/80 dark:text-gray-400">
+              {{ currentContext.displayName }}
             </p>
-            <!-- Theme Toggle -->
             <button
-              @click="toggleDarkMode"
-              data-testid="user-menu-theme-toggle"
-              :aria-label="t('web.layout.toggle_dark_mode')"
-              :aria-pressed="isDarkMode"
-              :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
-              class="flex size-7 shrink-0 items-center justify-center rounded-md
-                text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700
-                dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+              v-if="showDomainContext"
+              @click.stop="copyToClipboard(currentContext.displayName, 'domain')"
+              :title="copiedField === 'domain' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
+              class="shrink-0 rounded p-0.5 text-gray-300 transition-all
+                sm:opacity-0 sm:group-hover/domain:opacity-100 sm:focus:opacity-100
+                hover:bg-gray-100 hover:text-gray-500
+                dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+              :class="{ 'text-green-500 opacity-100': copiedField === 'domain' }">
               <OIcon
-                :collection="isDarkMode ? 'ph' : 'ph'"
-                :name="isDarkMode ? 'moon' : 'sun'"
-                class="size-4"
+                collection="mdi"
+                :name="copiedField === 'domain' ? 'check' : 'clipboard-text-outline'"
+                class="size-3"
                 aria-hidden="true" />
             </button>
+            <!-- Role badge -->
+            <span
+              v-if="isElevatedRole && !awaitingMfa"
+              :class="[
+                'shrink-0 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                'border shadow-xs',
+                userRole === 'owner'
+                  ? 'border-brand-200/60 bg-brand-50 text-brand-600 dark:border-brand-700/40 dark:bg-brand-950/50 dark:text-brand-400'
+                  : 'border-violet-200/60 bg-violet-50 text-violet-600 dark:border-violet-700/40 dark:bg-violet-950/50 dark:text-violet-400'
+              ]">
+              <span
+                :class="[
+                  'size-1.5 rounded-full',
+                  userRole === 'owner'
+                    ? 'bg-brand-500 dark:bg-brand-400'
+                    : 'bg-violet-500 dark:bg-violet-400'
+                ]"
+                aria-hidden="true"></span>
+              {{ t(`web.organizations.members.roles.${userRole}`) }}
+            </span>
           </div>
-          <p
-            v-if="!awaitingMfa && cust?.objid"
-            class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {{ cust?.extid }}
-          </p>
-          <p
-            v-if="showDomainContext"
-            class="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-            <OIcon
-              collection="heroicons"
-              name="globe-alt"
-              class="size-3 shrink-0"
-              aria-hidden="true" />
-            <span class="truncate">{{ currentContext.displayName }}</span>
-          </p>
           <!-- MFA Required Notice -->
           <div
             v-if="awaitingMfa"
@@ -441,10 +487,46 @@ onUnmounted(() => {
                 aria-hidden="true" />
             </a>
 
-            <!-- Button Item (for logout) -->
+            <!-- Button Item (for logout, test-plan, etc.) -->
+            <!-- Logout row with theme toggle -->
+            <div
+              v-if="item.id === 'logout'"
+              class="flex items-center justify-between px-4 py-2">
+              <button
+                data-testid="user-menu-logout"
+                class="group flex items-center gap-3 text-sm text-red-600 transition-colors
+                  hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                @click="item.onClick"
+                role="menuitem">
+                <OIcon
+                  :collection="item.icon.collection"
+                  :name="item.icon.name"
+                  class="size-5 text-red-500 transition-colors group-hover:text-red-600
+                    dark:text-red-400 dark:group-hover:text-red-300"
+                  aria-hidden="true" />
+                {{ item.label }}
+              </button>
+              <!-- Theme Toggle -->
+              <button
+                @click.stop="toggleDarkMode"
+                data-testid="user-menu-theme-toggle"
+                :aria-label="t('web.layout.toggle_dark_mode')"
+                :aria-pressed="isDarkMode"
+                :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
+                class="flex size-7 items-center justify-center rounded-md
+                  text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600
+                  dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                <OIcon
+                  collection="ph"
+                  :name="isDarkMode ? 'moon' : 'sun'"
+                  class="size-4"
+                  aria-hidden="true" />
+              </button>
+            </div>
+            <!-- Other button items -->
             <button
               v-else-if="item.onClick"
-              :data-testid="item.id === 'logout' ? 'user-menu-logout' : undefined"
+              :data-testid="item.id === 'test-plan' ? 'user-menu-test-plan' : undefined"
               :class="[getMenuItemClasses(item.variant), 'w-full']"
               @click="item.onClick"
               role="menuitem">
@@ -457,12 +539,43 @@ onUnmounted(() => {
             </button>
           </template>
         </nav>
+
+        <!-- Menu Footer: Org ID for support/debugging -->
+        <div
+          v-if="!awaitingMfa && orgExtid"
+          class="group/extid flex items-center justify-between gap-2
+            border-t border-gray-100 bg-gray-50 px-4 py-2
+            dark:border-gray-700 dark:bg-gray-900/50">
+          <span
+            class="flex items-center gap-1"
+            :title="t('web.COMMON.org_id_tooltip')">
+            <span class="text-[11px] text-gray-400 dark:text-gray-500">ID:</span>
+            <span
+              class="truncate font-mono text-[11px] text-gray-400 dark:text-gray-500">
+              {{ orgExtid }}
+            </span>
+          </span>
+          <button
+            @click.stop="copyToClipboard(orgExtid, 'orgExtid')"
+            :title="copiedField === 'orgExtid' ? t('web.COMMON.copied') : t('web.COMMON.copy')"
+            class="shrink-0 rounded p-0.5 text-gray-300 transition-all
+              sm:opacity-0 sm:group-hover/extid:opacity-100 sm:focus:opacity-100
+              hover:bg-gray-200 hover:text-gray-500
+              dark:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-400"
+            :class="{ 'text-green-500 opacity-100': copiedField === 'orgExtid' }">
+            <OIcon
+              collection="mdi"
+              :name="copiedField === 'orgExtid' ? 'check' : 'clipboard-text-outline'"
+              class="size-3"
+              aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </Transition>
 
     <!-- Plan Test Modal -->
-    <PlanTestModal
-      :is-open="isPlanTestModalOpen"
-      @close="closePlanTestModal" />
+    <PlanPreviewModal
+      :is-open="isPlanPreviewModalOpen"
+      @close="closePlanPreviewModal" />
   </div>
 </template>

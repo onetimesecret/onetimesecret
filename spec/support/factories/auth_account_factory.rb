@@ -64,7 +64,6 @@ module AuthAccountFactory
       external_id: SecureRandom.uuid
     )
 
-    # Create password hash using BCrypt (matches Rodauth's default)
     password_hash = BCrypt::Password.create(password, cost: BCrypt::Engine::MIN_COST)
     db[:account_password_hashes].insert(
       id: account_id,
@@ -94,7 +93,6 @@ module AuthAccountFactory
       external_id: SecureRandom.uuid
     )
 
-    # Create password hash
     password_hash = BCrypt::Password.create(password, cost: BCrypt::Engine::MIN_COST)
     db[:account_password_hashes].insert(
       id: account_id,

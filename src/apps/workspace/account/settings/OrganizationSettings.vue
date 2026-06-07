@@ -2,16 +2,23 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { useConfirmDialog } from '@vueuse/core';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
+import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
+import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
+import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
@@ -20,9 +27,8 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
-import { getPlanDisplayName, getPlanLabel, getSubscriptionStatusLabel, isLegacyPlan } from '@/types/billing';
-import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in template
+import { getPlanLabel, getSubscriptionStatusLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
+import type { CreateInvitationPayload, Organization, OrganizationInvitation, OrganizationRole } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { isOrgsSsoEnabled } from '@/utils/features';
 import { SsoService } from '@/services/sso.service';
@@ -110,13 +116,22 @@ const setActiveTab = (tab: TabType) => {
   router.replace({ params: { ...route.params, tab: urlTab } });
 };
 
-// Watch for route param changes (e.g., back/forward navigation)
+// Watch for route param changes (e.g., back/forward navigation).
+// Reject navigation to entitlement-gated tabs the user can't access.
 watch(
   () => route.params.tab,
   (newTab) => {
     const urlTab = newTab as string | undefined;
     if (urlTab && URL_TO_TAB[urlTab]) {
-      activeTab.value = URL_TO_TAB[urlTab];
+      const resolved = URL_TO_TAB[urlTab];
+      if (
+        (resolved === 'members' && !canManageMembers.value) ||
+        (resolved === 'sso' && !canManageSso.value)
+      ) {
+        setActiveTab('domains');
+        return;
+      }
+      activeTab.value = resolved;
     } else if (!urlTab) {
       activeTab.value = props.initialTab;
     }
@@ -132,7 +147,9 @@ const {
   refreshRecords: refreshDomains,
 } = useDomainsManager();
 
-const isLoading = ref(false);
+// Best practice: Initialize loading states to `true` to prevent uninitialized
+// content, empty states, or gated upgrade notices from briefly flashing on mount.
+const isLoading = ref(true);
 const isSaving = ref(false);
 const isLoadingBilling = ref(false);
 // Billing email editing has been moved to BillingOverview.vue
@@ -174,6 +191,59 @@ const {
 
 // SSO visibility: feature flag AND entitlement must both pass (dual-control)
 const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
+
+// Role-based gate: only owners and admins can add new domains (mirrors
+// route guard `requireDomainAdminRole` and backend check). Hides the UI
+// affordance so members don't see a dead-end link.
+const { canCreateDomain } = useOrgPermissions(organization);
+
+const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
+
+const assignableRoles = computed<OrganizationRole[]>(() => {
+  const orgPerms = getOrgPermissions(orgId.value);
+  return (orgPerms?.assignable_roles ?? ['member']) as OrganizationRole[];
+});
+
+const isOwner = computed(() => organization.value?.current_user_role === 'owner');
+const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
+
+const currentUserMember = computed(() =>
+  membersStore.members.find(m => m.is_current_user)
+);
+
+const { isRevealed: isDeleteRevealed, reveal: revealDelete, confirm: confirmDelete, cancel: cancelDelete } = useConfirmDialog();
+const { isRevealed: isLeaveRevealed, reveal: revealLeave, confirm: confirmLeave, cancel: cancelLeave } = useConfirmDialog();
+
+const handleDeleteOrganization = async () => {
+  const { isCanceled } = await revealDelete();
+  if (isCanceled) return;
+
+  try {
+    await organizationStore.deleteOrganization(orgId.value);
+    router.push('/dashboard');
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.organizations.delete_error');
+    console.error('[OrganizationSettings] Error deleting organization:', err);
+  }
+};
+
+const handleLeaveOrganization = async () => {
+  const member = currentUserMember.value;
+  if (!member) return;
+
+  const { isCanceled } = await revealLeave();
+  if (isCanceled) return;
+
+  try {
+    await membersStore.removeMember(orgId.value, member.extid);
+    router.push('/dashboard');
+  } catch (err) {
+    const classified = classifyError(err);
+    error.value = classified.message || t('web.organizations.leave_error');
+    console.error('[OrganizationSettings] Error leaving organization:', err);
+  }
+};
 
 // SSO status per domain — populated on-demand when SSO tab is shown
 interface DomainSsoStatus {
@@ -246,8 +316,7 @@ watch(formData, () => {
   }
 }, { deep: true });
 
-// Billing email is only shown for paid plans (organizations with a planid set)
-const hasPaidPlan = computed(() => !!organization.value?.planid);
+const hasPaidPlan = computed(() => !isFreePlan(organization.value?.planid));
 
 // Legacy plan detection for grandfathered Early Supporter customers
 const isLegacyCustomer = computed(() =>
@@ -314,7 +383,7 @@ const loadBilling = async () => {
           status: overview.subscription.status as any,
           teams_limit: overview.plan.limits.teams || 0,
           teams_used: 0, // Teams removed from usage data for 0.24; will be re-added
-          members_per_team_limit: overview.plan.limits.members_per_team || 0,
+          total_members_per_org_limit: overview.plan.limits.total_members_per_org || 0,
           billing_interval: overview.plan.interval as any,
           current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
           current_period_end: new Date(overview.subscription.period_end * 1000),
@@ -468,6 +537,35 @@ const canManageMembers = computed(() => {
   return can(ENTITLEMENTS.MANAGE_MEMBERS);
 });
 
+// Mirror backend check (create_invitation.rb:130): member_count + pending invitations
+// vs total_members_per_org limit. Limit of -1 means unlimited; null/undefined means
+// unknown (e.g. self-hosted) — treat as no limit.
+const pendingInvitationCount = computed(() =>
+  invitations.value.filter((inv) => inv.status === 'pending').length
+);
+
+const memberLimitReached = computed(() => {
+  const limit = organization.value?.limits?.total_members_per_org;
+  if (limit === null || limit === undefined || limit < 0) return false;
+  return membersStore.memberCount + pendingInvitationCount.value >= limit;
+});
+
+// Finite quota cap (positive int) or null when unlimited/unknown. Drives the
+// "X of Y" count format in the title slot.
+const memberQuotaLimit = computed(() => {
+  const limit = organization.value?.limits?.total_members_per_org;
+  if (limit === null || limit === undefined || limit < 0) return null;
+  return limit;
+});
+
+// Active members only — matches what the user sees in the table. Pending is
+// shown as a separate "(N pending)" qualifier rather than folded into the
+// numerator, so the count line maps directly to visible rows. memberLimitReached
+// still uses active + pending to mirror the backend; the two can diverge here
+// without confusing the reader because the pending qualifier explains why the
+// button may be disabled at a count below the limit.
+const memberQuotaUsed = computed(() => membersStore.memberCount);
+
 // Member management event handlers
 const handleMemberUpdated = () => {
   // Member was updated in the store, no additional action needed
@@ -479,14 +577,37 @@ const handleMemberRemoved = () => {
 };
 
 onMounted(async () => {
+  // Point the store at this org immediately so the context bar doesn't
+  // flash the previously-selected org while the full fetch is in flight.
+  const cached = organizationStore.organizations?.find((o) => o.extid === orgId.value);
+  if (cached) {
+    organizationStore.setCurrentOrganization(cached);
+  }
+
   // Initialize entitlement definitions for formatting
   await initDefinitions();
 
+  // Fetch resource-scoped permissions (includes assignable_roles)
+  await fetchAllPermissions();
+
   await loadOrganization();
+
+  // Redirect away from entitlement-gated tabs the user can't access
+  // (e.g. direct URL navigation to /org/.../members without manage_members)
+  if (
+    (activeTab.value === 'members' && !canManageMembers.value) ||
+    (activeTab.value === 'sso' && !canManageSso.value)
+  ) {
+    setActiveTab('domains');
+  }
+
+  // Members are always loaded so the general tab's "Leave" button can
+  // identify the current user's membership record.
+  loadMembers();
 
   // Load data for the initial tab
   if (activeTab.value === 'members') {
-    await Promise.all([loadMembers(), loadInvitations()]);
+    await loadInvitations();
   } else if (activeTab.value === 'domains') {
     await refreshDomains();
   } else if (activeTab.value === 'subscription' && billingEnabled.value) {
@@ -540,8 +661,9 @@ watch(orgId, async (newOrgId, oldOrgId) => {
     if (orgId.value !== newOrgId) return;
     // Only load tab-specific data if the org loaded successfully
     if (!orgNotFound.value && !error.value) {
+      loadMembers();
       if (activeTab.value === 'members') {
-        await Promise.all([loadMembers(), loadInvitations()]);
+        await loadInvitations();
       } else if (activeTab.value === 'domains') {
         await refreshDomains();
       } else if (activeTab.value === 'subscription' && billingEnabled.value) {
@@ -556,11 +678,10 @@ watch(orgId, async (newOrgId, oldOrgId) => {
 
 // Keyboard navigation for tabs (WCAG 2.1 AA)
 const handleTabKeydown = (e: KeyboardEvent) => {
-  // Build visible tabs array dynamically based on entitlements
-  const tabs: TabType[] = ['domains', 'members'];
-  if (canManageSso.value) {
-    tabs.push('sso');
-  }
+  // Build navigable tabs array — only tabs the user can actually reach
+  const tabs: TabType[] = ['domains'];
+  if (canManageMembers.value) tabs.push('members');
+  if (canManageSso.value) tabs.push('sso');
   tabs.push('general');
 
   const currentIndex = tabs.indexOf(activeTab.value);
@@ -623,7 +744,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             name="credit-card"
             class="size-3.5"
             aria-hidden="true" />
-          {{ organization.planid ? getPlanDisplayName(organization.planid) : t('web.billing.plans.free_plan') }}
+          {{ organization.planid ? getPlanLabel(organization.planid) : t('web.billing.plans.free_plan') }}
         </router-link>
       </div>
 
@@ -652,38 +773,44 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             ]">
             {{ t('web.organizations.tabs.domains') }}
           </button>
-          <!-- Members tab -->
+          <!-- Members tab (entitlement-gated) -->
           <button
             id="org-tab-members"
             role="tab"
             :aria-selected="activeTab === 'members'"
+            :aria-disabled="!canManageMembers"
             :tabindex="activeTab === 'members' ? 0 : -1"
             aria-controls="org-panel-members"
             data-testid="org-tab-members"
-            @click="setActiveTab('members')"
+            @click="canManageMembers && setActiveTab('members')"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'members'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+              !canManageMembers
+                ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
+                : activeTab === 'members'
+                  ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
-          <!-- SSO tab - single sign-on configuration (entitlement-gated) -->
+          <!-- SSO tab (feature-flag + entitlement-gated) -->
           <button
-            v-if="canManageSso"
+            v-if="isOrgsSsoEnabled()"
             id="org-tab-sso"
             role="tab"
             :aria-selected="activeTab === 'sso'"
+            :aria-disabled="!canManageSso"
             :tabindex="activeTab === 'sso' ? 0 : -1"
             aria-controls="org-panel-sso"
             data-testid="org-tab-sso"
-            @click="setActiveTab('sso')"
+            @click="canManageSso && setActiveTab('sso')"
             :class="[
-              'inline-flex items-center whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'sso'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              !canManageSso
+                ? 'cursor-not-allowed border-transparent text-gray-400 dark:text-gray-600'
+                : activeTab === 'sso'
+                  ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.sso') }}
           </button>
@@ -708,18 +835,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
-        <div class="text-center">
-          <OIcon
-            collection="heroicons"
-            name="arrow-path"
-            class="mx-auto size-8 animate-spin text-gray-400"
-            aria-hidden="true" />
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.COMMON.loading') }}
-          </p>
-        </div>
-      </div>
+      <SettingsSkeleton v-if="isLoading" />
 
       <!-- Error State: Organization not found or failed to load -->
       <div v-else-if="orgNotFound || (error && !organization)" class="flex items-center justify-center py-12">
@@ -749,7 +865,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
       </div>
 
       <!-- Content -->
-      <div v-else>
+      <div v-else class="space-y-6">
         <!-- General Tab -->
         <section
           v-if="activeTab === 'general'"
@@ -810,7 +926,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </div>
 
               <!-- Billing Email - read-only display for paid plans, editable on Billing Overview -->
-              <div v-if="hasPaidPlan" data-testid="org-billing-email-field">
+              <div v-if="billingEnabled && hasPaidPlan" data-testid="org-billing-email-field">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {{ t('web.organizations.contact_email') }}
                 </label>
@@ -852,6 +968,107 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           </div>
         </section>
 
+        <!-- Default-org delete notice — owner-only (General tab) -->
+        <div
+          v-if="activeTab === 'general' && isOwner && organization?.is_default"
+          data-testid="org-default-delete-notice"
+          class="rounded-lg border border-gray-200/60 bg-white/60 p-6 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          <div class="flex items-start gap-3">
+            <OIcon
+              collection="heroicons"
+              name="information-circle"
+              class="mt-0.5 size-5 flex-shrink-0 text-gray-400 dark:text-gray-500"
+              aria-hidden="true" />
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+              <h3 class="font-medium text-gray-900 dark:text-white">
+                {{ t('web.organizations.default_org_delete_notice_title') }}
+              </h3>
+              <p class="mt-1">
+                {{ t('web.organizations.default_org_delete_notice_before') }}
+                <router-link
+                  to="/feedback"
+                  class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">{{ t('web.organizations.default_org_delete_notice_link') }}</router-link>{{ t('web.organizations.default_org_delete_notice_after') }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caution Zone — owner-only, non-default orgs (General tab) -->
+        <template v-if="activeTab === 'general' && isOwner && !organization?.is_default">
+          <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
+          <div>
+            <h2 class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
+              {{ t('web.COMMON.caution_zone') }}
+            </h2>
+            <div class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
+              <div class="flex items-center justify-between gap-4 px-5 py-4">
+                <div class="flex min-w-0 items-center gap-4">
+                  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                    <OIcon
+                      collection="heroicons"
+                      name="trash"
+                      class="size-5 text-red-600 dark:text-red-400"
+                      aria-hidden="true" />
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                      {{ t('web.organizations.delete_organization') }}
+                    </h3>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('web.organizations.delete_organization_warning') }}
+                    </p>
+                    <p v-if="hasDomains" class="mt-1 text-xs text-red-600 dark:text-red-400">
+                      {{ t('web.organizations.delete_organization_remove_domains_first') }}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  :disabled="hasDomains"
+                  class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white hover:border-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white dark:hover:border-red-600 dark:focus:ring-offset-gray-900"
+                  @click="handleDeleteOrganization">
+                  {{ t('web.COMMON.remove') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Leave Organization — non-owner members (General tab) -->
+        <template v-if="activeTab === 'general' && !isOwner">
+          <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
+          <div>
+            <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+              <div class="flex items-center justify-between gap-4 px-5 py-4">
+                <div class="flex min-w-0 items-center gap-4">
+                  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+                    <OIcon
+                      collection="heroicons"
+                      name="arrow-right-start-on-rectangle"
+                      class="size-5 text-gray-500 dark:text-gray-400"
+                      aria-hidden="true" />
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                      {{ t('web.organizations.leave_organization') }}
+                    </h3>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('web.organizations.leave_organization_warning') }}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  data-testid="org-leave-button"
+                  class="shrink-0 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+                  @click="handleLeaveOrganization">
+                  {{ t('web.organizations.leave_organization_confirm_title') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <!-- Members Tab -->
         <section
           v-if="activeTab === 'members'"
@@ -868,27 +1085,55 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   {{ t('web.organizations.tabs.members') }}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
+                  <template v-if="memberQuotaLimit !== null">{{ t('web.organizations.members.member_quota', { used: memberQuotaUsed, limit: memberQuotaLimit }) }}</template>
+                  <template v-else>{{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}</template>
+                  <span v-if="pendingInvitationCount > 0">&nbsp;{{ t('web.organizations.members.pending_suffix', { count: pendingInvitationCount }) }}</span>
                 </p>
               </div>
-              <button
-                type="button"
-                @click="canManageMembers && (showInviteForm = !showInviteForm)"
-                :disabled="!canManageMembers"
-                :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
-                :class="[
-                  'inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-                  canManageMembers
-                    ? 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400'
-                    : 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400',
-                ]">
-                <OIcon
-                  collection="heroicons"
-                  name="user-plus"
-                  class="-ml-0.5 mr-1.5 size-5"
-                  aria-hidden="true" />
-                {{ t('web.organizations.invitations.invite_member') }}
-              </button>
+              <!--
+                Header CTA hierarchy:
+                - Hidden when form is open (form has its own primary submit; avoids dual-primary).
+                - "Upgrade Plan" link when member quota is reached (path forward, not a dead end).
+                - "Invite Member" button otherwise; disabled when user lacks MANAGE_MEMBERS entitlement.
+              -->
+              <div class="flex flex-col items-end gap-1">
+                <router-link
+                  v-if="!showInviteForm && memberLimitReached && canManageMembers"
+                  :to="`/billing/${orgId}/plans`"
+                  :title="t('api.organizations.invitations.errors.member_limit_reached')"
+                  class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                  <OIcon
+                    collection="heroicons"
+                    name="arrow-up-circle"
+                    class="-ml-0.5 mr-1.5 size-5"
+                    aria-hidden="true" />
+                  {{ t('web.billing.overview.upgrade_plan') }}
+                </router-link>
+                <button
+                  v-else-if="!showInviteForm"
+                  type="button"
+                  @click="canManageMembers && (showInviteForm = true)"
+                  :disabled="!canManageMembers"
+                  :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
+                  :class="[
+                    'inline-flex items-center rounded-md px-3 py-2 font-brand text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                    canManageMembers
+                      ? 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400'
+                      : 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400',
+                  ]">
+                  <OIcon
+                    collection="heroicons"
+                    name="user-plus"
+                    class="-ml-0.5 mr-1.5 size-5"
+                    aria-hidden="true" />
+                  {{ t('web.organizations.invitations.invite_member') }}
+                </button>
+                <p
+                  v-if="!showInviteForm && memberLimitReached && canManageMembers"
+                  class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.members.limit_reached_hint') }}
+                </p>
+              </div>
             </div>
             <div
               v-if="!canManageMembers"
@@ -971,8 +1216,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       id="invite-role"
                       v-model="inviteFormData.role"
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-                      <option value="member">{{ t('web.organizations.invitations.roles.member') }}</option>
-                      <option value="admin">{{ t('web.organizations.invitations.roles.admin') }}</option>
+                      <option v-for="role in assignableRoles"
+:key="role"
+:value="role">
+                        {{ t(`web.organizations.invitations.roles.${role}`) }}
+                      </option>
                     </select>
                   </div>
                   <div class="flex gap-2">
@@ -999,6 +1247,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 :members="membersStore.members"
                 :org-extid="orgId"
                 :is-loading="membersStore.loading"
+                :assignable-roles="assignableRoles"
                 compact
                 @member-updated="handleMemberUpdated"
                 @member-removed="handleMemberRemoved" />
@@ -1015,13 +1264,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </p>
             </div>
 
-            <div v-else class="flex items-center justify-center py-8">
-              <OIcon
-                collection="heroicons"
-                name="arrow-path"
-                class="size-6 animate-spin text-gray-400"
-                aria-hidden="true" />
-            </div>
+            <TableSkeleton v-else />
 
             <div v-if="invitations.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -1087,7 +1330,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </p>
               </div>
               <router-link
+                v-if="canCreateDomain && domainCount > 0"
                 :to="`/org/${orgId}/domains/add`"
+                data-testid="org-domains-add-cta"
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
@@ -1101,13 +1346,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 
           <div class="p-6">
             <!-- Loading State -->
-            <div v-if="isLoadingDomains" class="flex items-center justify-center py-8">
-              <OIcon
-                collection="heroicons"
-                name="arrow-path"
-                class="size-6 animate-spin text-gray-400"
-                aria-hidden="true" />
-            </div>
+            <TableSkeleton v-if="isLoadingDomains" />
 
             <!-- Error State -->
             <BasicFormAlerts
@@ -1122,10 +1361,10 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               :orgid="orgId"
               compact />
 
-            <!-- Empty State -->
+            <!-- Empty State — only owners/admins see the add action -->
             <EmptyState
               v-else
-              :showAction="true"
+              :showAction="canCreateDomain"
               :action-route="`/org/${orgId}/domains/add`"
               :action-text="t('web.domains.add_domain')">
               <template #title>
@@ -1177,13 +1416,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </div>
 
               <div class="p-6">
-                <div v-if="isLoadingBilling" class="flex items-center justify-center py-8">
-                  <OIcon
-                    collection="heroicons"
-                    name="arrow-path"
-                    class="size-6 animate-spin text-gray-400"
-                    aria-hidden="true" />
-                </div>
+                <SettingsSkeleton
+                  v-if="isLoadingBilling"
+                  :heading="false" />
 
                 <div v-else-if="subscription" class="space-y-4">
                   <!-- Plan Info -->
@@ -1268,7 +1503,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       <div
                         v-for="i in 4"
                         :key="i"
-                        class="flex animate-pulse items-center gap-2">
+                        class="flex animate-pulse motion-reduce:animate-none items-center gap-2">
                         <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
                         <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
                       </div>
@@ -1421,39 +1656,24 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 
             <div class="p-6">
               <!-- Loading state -->
-              <div v-if="isLoadingDomains" class="flex items-center justify-center py-8">
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-path"
-                  class="size-6 animate-spin text-gray-400"
-                  aria-hidden="true" />
-                <span class="sr-only">{{ t('web.COMMON.loading') }}</span>
-              </div>
+              <ListSkeleton
+                v-if="isLoadingDomains"
+                icon
+                icon-size="w-5" />
 
               <!-- Empty state -->
-              <div v-else-if="domainCount === 0" class="py-8 text-center">
-                <OIcon
-                  collection="heroicons"
-                  name="globe-alt"
-                  class="mx-auto size-12 text-gray-400"
-                  aria-hidden="true" />
-                <h4 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+              <EmptyState
+                v-else-if="domainCount === 0"
+                :showAction="canCreateDomain"
+                :action-route="`/org/${orgId}/domains/add`"
+                :action-text="t('web.domains.add_domain')">
+                <template #title>
                   {{ t('web.organizations.sso.no_domains') }}
-                </h4>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                </template>
+                <template #description>
                   {{ t('web.organizations.sso.no_domains_description') }}
-                </p>
-                <router-link
-                  :to="`/org/${orgId}/domains/add`"
-                  class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
-                  <OIcon
-                    collection="heroicons"
-                    name="plus"
-                    class="size-4"
-                    aria-hidden="true" />
-                  {{ t('web.domains.add_domain') }}
-                </router-link>
-              </div>
+                </template>
+              </EmptyState>
 
               <!-- Domain list -->
               <div v-else class="space-y-3">
@@ -1513,5 +1733,21 @@ const handleTabKeydown = (e: KeyboardEvent) => {
         </section>
       </div>
     </div>
+
+    <ConfirmDialog
+      v-if="isDeleteRevealed"
+      :title="t('web.organizations.delete_organization_confirm_title')"
+      :message="t('web.organizations.delete_organization_confirm_message', { name: organization?.display_name })"
+      type="danger"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete" />
+
+    <ConfirmDialog
+      v-if="isLeaveRevealed"
+      :title="t('web.organizations.leave_organization_confirm_title')"
+      :message="t('web.organizations.leave_organization_confirm_message', { name: organization?.display_name })"
+      type="danger"
+      @confirm="confirmLeave"
+      @cancel="cancelLeave" />
   </div>
 </template>

@@ -367,7 +367,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
   describe 'GuestRoutesDisabled error structure' do
     before { stub_guest_routes_config(enabled: false) }
 
-    it 'includes message and code in to_h' do
+    it 'includes error and code in to_h' do
       logic = create_logic(V3::Logic::Secrets::ConcealSecret, params: { 'secret' => { 'secret' => 'test' } })
       logic.process_params
 
@@ -376,7 +376,8 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
 
       hash = error.to_h
       expect(hash).to include(
-        message: 'Guest API access is disabled',
+        error: 'Guest API access is disabled',
+        error_type: 'GuestRoutesDisabled',
         code: 'GUEST_ROUTES_DISABLED',
       )
     end

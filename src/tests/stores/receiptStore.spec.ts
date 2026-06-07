@@ -547,7 +547,8 @@ describe('receiptStore', () => {
 
     describe('GUEST_ROUTES_DISABLED errors', () => {
       const guestRoutesDisabledResponse = {
-        message: 'Guest API access is disabled',
+        error: 'Guest API access is disabled',
+        error_type: 'GuestRoutesDisabled',
         code: 'GUEST_ROUTES_DISABLED',
       };
 
@@ -594,7 +595,8 @@ describe('receiptStore', () => {
         const testKey = mockReceiptRecord.key;
         store.setApiMode('public');
         axiosMock?.onGet(`/api/v3/guest/receipt/${testKey}`).reply(403, {
-          message: 'Guest receipt is disabled',
+          error: 'Guest receipt is disabled',
+          error_type: 'GuestRoutesDisabled',
           code: 'GUEST_RECEIPT_DISABLED',
         });
 
@@ -606,7 +608,8 @@ describe('receiptStore', () => {
         store.setApiMode('public');
         store.record = { ...mockReceiptRecord, burned: null, state: 'new' };
         axiosMock?.onPost(`/api/v3/guest/receipt/${testKey}/burn`).reply(403, {
-          message: 'Guest burn is disabled',
+          error: 'Guest burn is disabled',
+          error_type: 'GuestRoutesDisabled',
           code: 'GUEST_BURN_DISABLED',
         });
 

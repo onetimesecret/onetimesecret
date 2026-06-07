@@ -11,6 +11,7 @@
 
 require_relative '../logger_methods'
 require_relative 'request_helpers'
+require_relative 'error_resolver'
 
 module Onetime
   module Application
@@ -35,17 +36,40 @@ module Onetime
         # Register Onetime-specific request helpers
         router.register_request_helpers(Onetime::Application::RequestHelpers)
 
-        # Register expected errors with status codes and log levels
-        router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info)
-        router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info)
+        # Register expected errors with status codes and log levels. Errors
+        # carrying an i18n error_key get resolved by ErrorResolver before
+        # to_h serializes them. Errors without an error_key are left as-is
+        # so legacy callers continue to render their pre-resolved message.
+        #
+        # Otto matches handlers by exact class, so subclasses (MissingSecret
+        # < RecordNotFound, EntitlementRequired < Forbidden, LimitExceeded
+        # < Forbidden) each need their own registration even when the body
+        # block is identical.
+
+        not_found_handler = ->(error, req) {
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          error.respond_to?(:to_h) ? error.to_h : { message: error.message || 'Not Found' }
+        }
+        router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info, &not_found_handler)
+        router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info, &not_found_handler)
+
         # Form errors return 422 with error type and field info
-        router.register_error_handler(Onetime::FormError, status: 422, log_level: :info) do |error, _req|
+        router.register_error_handler(Onetime::FormError, status: 422, log_level: :info) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
           error.to_h
         end
-        router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn)
+
+        # Forbidden errors return 403. Resolver localizes when error_key is
+        # present; pure-legacy callers (no error_key) get the response built
+        # from the pre-resolved message untouched.
+        router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          error.respond_to?(:to_h) ? error.to_h : { message: error.message }
+        end
 
         # Rate limit exceeded errors return 429 with retry info
-        router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, _req|
+        router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
           error.to_h
         end
 
@@ -56,8 +80,18 @@ module Onetime
         end
 
         # Guest routes disabled errors return 403 with error code
-        router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, _req|
+        router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
           error.to_h
+        end
+
+        # Unauthorized errors return 401. Onetime::Unauthorized is a marker
+        # class (no #to_h); messages are caller-supplied and verified
+        # non-sensitive across call sites ('Invalid credentials',
+        # 'Not authorized to update this receipt'). Symmetric with
+        # Auth::ErrorTranslator so the Roda and Otto layers agree.
+        router.register_error_handler(Onetime::Unauthorized, status: 401, log_level: :warn) do |error, _req|
+          { error: error.message, error_type: 'Unauthorized' }
         end
 
         return unless Onetime.debug?

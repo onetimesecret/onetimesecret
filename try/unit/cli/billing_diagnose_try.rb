@@ -11,11 +11,14 @@
 
 require 'open3'
 
-# Shared environment for all CLI invocations. Uses the test Redis port (2121)
-# and suppresses Familia debug output.
+# Arrange: Shared environment for all CLI invocations.
+# Tests should declare the state they need (AAA pattern) rather than
+# depend on config file defaults that can drift.
+# BILLING_ENABLED=false forces standalone mode for these tests.
 @env = {
   'FAMILIA_DEBUG' => '0',
   'RACK_ENV' => 'test',
+  'BILLING_ENABLED' => 'false',
   'VALKEY_URL' => 'valkey://127.0.0.1:2121/0',
   'REDIS_URL' => 'redis://127.0.0.1:2121/0',
   'ONETIME_HOME' => ENV['ONETIME_HOME'] || File.expand_path(File.join(__dir__, '..', '..', '..'))

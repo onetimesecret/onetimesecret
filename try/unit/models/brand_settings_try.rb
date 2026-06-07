@@ -15,8 +15,10 @@ require 'onetime/models/custom_domain'
 #=> true
 
 ## BrandSettings defines expected members
+## (allow_public_homepage and allow_public_api were retired in #3026 — see
+## HomepageConfig / ApiConfig for the canonical per-domain toggles.)
 @bs.members.sort
-#=> [:allow_public_api, :allow_public_homepage, :button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
+#=> [:button_text_light, :corner_style, :default_ttl, :font_family, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :notify_enabled, :passphrase_required, :primary_color]
 
 ## DEFAULTS constant is accessible and frozen
 [@bs::DEFAULTS.frozen?, @bs::DEFAULTS[:font_family]]
@@ -88,19 +90,11 @@ require 'onetime/models/custom_domain'
 [@bs.valid_corner_style?('circular'), @bs.valid_corner_style?(''), @bs.valid_corner_style?(nil)]
 #=> [false, false, false]
 
-## allow_public_homepage? handles various truthy values
-[@bs.from_hash(allow_public_homepage: 'true').allow_public_homepage?,
- @bs.from_hash(allow_public_homepage: true).allow_public_homepage?,
- @bs.from_hash(allow_public_homepage: 'false').allow_public_homepage?,
- @bs.from_hash({}).allow_public_homepage?]
-#=> [true, true, false, false]
-
-## allow_public_api? handles various truthy values
-[@bs.from_hash(allow_public_api: 'true').allow_public_api?,
- @bs.from_hash(allow_public_api: true).allow_public_api?,
- @bs.from_hash(allow_public_api: 'false').allow_public_api?,
- @bs.from_hash({}).allow_public_api?]
-#=> [true, true, false, false]
+## Legacy allow_public_homepage / allow_public_api inputs are dropped (#3026)
+## (from_hash slices to current members; values silently ignored)
+[@bs.from_hash(allow_public_homepage: 'true').respond_to?(:allow_public_homepage),
+ @bs.from_hash(allow_public_api: 'true').respond_to?(:allow_public_api)]
+#=> [false, false]
 
 ## to_h_for_storage returns hash with string keys
 @storage = @bs.from_hash(primary_color: '#FF0000').to_h_for_storage
@@ -112,8 +106,8 @@ require 'onetime/models/custom_domain'
 #=> '"#FF0000"'
 
 ## to_h_for_storage JSON-encodes boolean values
-@bool_storage = @bs.from_hash(allow_public_api: true).to_h_for_storage
-@bool_storage['allow_public_api']
+@bool_storage = @bs.from_hash(notify_enabled: true).to_h_for_storage
+@bool_storage['notify_enabled']
 #=> 'true'
 
 ## to_h_for_storage excludes nil values

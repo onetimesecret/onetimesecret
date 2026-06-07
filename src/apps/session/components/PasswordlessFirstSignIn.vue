@@ -26,11 +26,52 @@ const props = withDefaults(defineProps<Props>(), {
   webauthnEnabled: false,
 });
 
-type AuthMode = 'passkey' | 'passwordless' | 'password';
+const VALID_AUTH_MODES = ['passkey', 'passwordless', 'password'] as const;
+type AuthMode = (typeof VALID_AUTH_MODES)[number];
 
 const emit = defineEmits<{
   (e: 'mode-change', mode: AuthMode): void;
 }>();
+
+const SIGNIN_MODE_KEY = 'onetimeSigninMode';
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const SIGNIN_MODE_TTL_MS = 30 * ONE_DAY_MS;
+
+function isAuthMode(value: unknown): value is AuthMode {
+  return typeof value === 'string' && (VALID_AUTH_MODES as readonly string[]).includes(value);
+}
+
+function loadSigninModePreference(): { mode: AuthMode; expiresAt: number } | null {
+  try {
+    const stored = localStorage.getItem(SIGNIN_MODE_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      isAuthMode(parsed.mode) &&
+      typeof parsed.expiresAt === 'number' &&
+      Date.now() < parsed.expiresAt
+    ) {
+      return { mode: parsed.mode, expiresAt: parsed.expiresAt };
+    }
+    localStorage.removeItem(SIGNIN_MODE_KEY);
+  } catch {
+    try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
+  }
+  return null;
+}
+
+function saveSigninModePreference(mode: AuthMode) {
+  try {
+    localStorage.setItem(SIGNIN_MODE_KEY, JSON.stringify({
+      mode,
+      expiresAt: Date.now() + SIGNIN_MODE_TTL_MS,
+    }));
+  } catch {
+    // localStorage unavailable
+  }
+}
 
 // Build dynamic tabs based on enabled features
 interface TabConfig {
@@ -57,8 +98,21 @@ const tabs = computed<TabConfig[]>(() => {
   return result;
 });
 
-// Tab index management
-const selectedTabIndex = ref(0);
+// Tab index management — restore saved preference if the mode is still available
+const savedPref = loadSigninModePreference();
+const savedIndex = savedPref ? tabs.value.findIndex(tab => tab.id === savedPref.mode) : -1;
+const selectedTabIndex = ref(savedIndex >= 0 ? savedIndex : 0);
+if (savedIndex >= 0 && savedPref) {
+  const refreshThreshold = SIGNIN_MODE_TTL_MS - ONE_DAY_MS;
+  if (savedPref.expiresAt - Date.now() < refreshThreshold) {
+    saveSigninModePreference(savedPref.mode);
+  }
+  if (savedIndex > 0) {
+    emit('mode-change', savedPref.mode);
+  }
+} else if (savedPref) {
+  try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
+}
 
 // Prefill email from query param (e.g., from invitation flow)
 // Single email ref shared across all auth tabs for consistent UX
@@ -109,6 +163,7 @@ const togglePasswordVisibility = () => {
 const handleTabChange = (index: number) => {
   selectedTabIndex.value = index;
   const mode = tabs.value[index]?.id ?? 'password';
+  saveSigninModePreference(mode);
 
   // Clear errors when switching tabs
   if (mode === 'passkey') {
@@ -144,9 +199,6 @@ const handleTryAgain = () => {
   clearMagicLinkState();
   email.value = '';
 };
-
-// Find tab index by mode ID (available for future use)
-const _getTabIndexByMode = (mode: AuthMode): number => tabs.value.findIndex(tab => tab.id === mode);
 
 // Check if a specific tab is the passkey tab
 const isPasskeyTab = (index: number): boolean => tabs.value[index]?.id === 'passkey';
@@ -349,7 +401,7 @@ data-testid="passkey-panel">
                 data-testid="webauthn-submit">
                 <span v-if="isLoading" class="flex items-center">
                   <svg
-                    class="-ml-1 mr-3 size-5 animate-spin text-white"
+                    class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -438,7 +490,7 @@ data-testid="passkey-panel">
               data-testid="magic-link-submit">
               <span v-if="isLoading" class="flex items-center">
                 <svg
-                  class="-ml-1 mr-3 size-5 animate-spin text-white"
+                  class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

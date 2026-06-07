@@ -93,6 +93,29 @@ module Onetime
         @auth_org = org
       end
 
+      # Immutable accessor: returns the membership linking authenticated customer
+      # to auth_org. Memoized per-request via O(1) index lookup.
+      #
+      # ADR-012 Stage 3: This is the single source of truth for "what can this
+      # caller do in this org." require_entitlement! delegates to auth_membership.can?.
+      #
+      # @return [Onetime::OrganizationMembership, nil] The membership, or nil if
+      #   customer is not a member of auth_org (indicates a system issue for
+      #   authenticated requests — membership should always exist).
+      def auth_membership
+        return @auth_membership if defined?(@auth_membership)
+
+        @auth_membership = nil
+
+        org = auth_org
+        return @auth_membership unless org && cust && !cust.anonymous?
+
+        @auth_membership = Onetime::OrganizationMembership.find_by_org_customer(
+          org.objid,
+          cust.objid,
+        )
+      end
+
       # Require organization to be present
       #
       # @raise [Onetime::Problem] if organization is nil

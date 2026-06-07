@@ -17,7 +17,7 @@ OT.boot! :test, true
 # Onetime Logging System Tests
 #
 # Tests for the structured logging system with strategic categories.
-# Categories: Auth, Session, HTTP, Familia, Otto, Rhales, Secret, App
+# Categories: Auth, Ents, Session, HTTP, Familia, Org, Otto, Rhales, Secret, App
 
 ## Configuration Loading - Config file exists
 File.exist?(File.join(Dir.pwd, 'etc', 'logging.yaml'))
@@ -55,8 +55,16 @@ SemanticLogger['Session']
 SemanticLogger['HTTP']
 #=:> SemanticLogger::Logger
 
+## SemanticLogger Integration - Ents logger exists
+SemanticLogger['Ents']
+#=:> SemanticLogger::Logger
+
 ## SemanticLogger Integration - Familia logger exists
 SemanticLogger['Familia']
+#=:> SemanticLogger::Logger
+
+## SemanticLogger Integration - Org logger exists
+SemanticLogger['Org']
 #=:> SemanticLogger::Logger
 
 ## SemanticLogger Integration - Otto logger exists
@@ -108,6 +116,16 @@ test_instance = TestLoggingClass.new
 test_instance.app_logger
 #=:> SemanticLogger::Logger
 
+## Logging Module - Ents logger accessor
+test_instance = TestLoggingClass.new
+test_instance.ents_logger
+#=:> SemanticLogger::Logger
+
+## Logging Module - Org logger accessor
+test_instance = TestLoggingClass.new
+test_instance.org_logger
+#=:> SemanticLogger::Logger
+
 ## Category Inference - Auth pattern detection
 class TestAuthClass
   include Onetime::LoggerMethods
@@ -139,6 +157,30 @@ end
 test_controller = TestController.new
 test_controller.send(:infer_category)
 #=> "HTTP"
+
+## Category Inference - Entitlement pattern detection
+class TestEntitlementClass
+  include Onetime::LoggerMethods
+end
+test_ents = TestEntitlementClass.new
+test_ents.send(:infer_category)
+#=> "Ents"
+
+## Category Inference - Organization pattern detection
+class TestOrganizationClass
+  include Onetime::LoggerMethods
+end
+test_org = TestOrganizationClass.new
+test_org.send(:infer_category)
+#=> "Org"
+
+## Category Inference - Membership pattern detection
+class TestMembershipClass
+  include Onetime::LoggerMethods
+end
+test_membership = TestMembershipClass.new
+test_membership.send(:infer_category)
+#=> "Org"
 
 ## Category Inference - Default fallback
 class TestRandomClass

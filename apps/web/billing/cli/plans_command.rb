@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'helpers'
+require_relative '../operations/catalog/pull'
 
 module Onetime
   module CLI
@@ -24,8 +25,8 @@ module Onetime
 
         if refresh
           puts 'Refreshing plans from Stripe...'
-          count = Billing::Plan.refresh_from_stripe
-          puts "Refreshed #{count} plan entries"
+          result = Billing::Operations::Catalog::Pull.call
+          puts "Refreshed #{result.plans_synced} plan entries"
           puts
         end
 
@@ -36,15 +37,18 @@ module Onetime
         end
 
         puts format(
-          '%-20s %-18s %-10s %-10s %-12s %s',
-          'PLAN ID',
+          '%-20s %-12s %-18s %-10s %-10s %-12s %-6s %-26s %s',
+          'PLAN ID (*)',
+          'APP (*)',
           'TIER',
           'INTERVAL',
           'AMOUNT',
-          'REGION',
+          'REGION (*)',
           'CAPS',
+          'STRIPE PRODUCT',
+          'STRIPE PRICE',
         )
-        puts '-' * 90
+        puts '-' * 165
 
         plans.each do |entry|
           puts format_plan_row(entry)

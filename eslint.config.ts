@@ -485,6 +485,18 @@ export default [
   },
 
   /**
+   * Closet Skeleton Primitive Exception
+   * The `Skeleton` primitive (issue #3269) uses an intentional single-word name;
+   * its siblings (TableSkeleton, SecretSkeleton, ...) compose from it.
+   */
+  {
+    files: ['src/shared/components/closet/Skeleton.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off', // Allow single-word name for the base skeleton primitive
+    },
+  },
+
+  /**
    * Test Files Configuration
    * Relaxes naming conventions and adds specific rules for test files
    */

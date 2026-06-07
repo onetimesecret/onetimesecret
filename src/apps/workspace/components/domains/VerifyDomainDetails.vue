@@ -85,7 +85,7 @@ const verify = async () => {
           collection="mdi"
           :name="isLoading ? 'loading' : 'check-circle'"
           class="size-5"
-          :class="{ 'animate-spin': isLoading }"
+          :class="{ 'animate-spin motion-reduce:animate-none': isLoading }"
           aria-hidden="true" />
       </button>
     </div>

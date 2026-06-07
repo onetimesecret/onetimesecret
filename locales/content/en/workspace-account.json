@@ -136,8 +136,8 @@
     "content_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "🔐 Keep this token secure! It provides full access to your account.",
-    "content_hash": "8839aa4d"
+    "text": "Keep this token secure. It can be used to create and manage secrets via the API.",
+    "content_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
     "text": "Confirm with your password",
@@ -270,6 +270,14 @@
   "web.settings.security_settings_description": {
     "text": "Manage authentication and account security",
     "content_hash": "945109d1"
+  },
+  "web.settings.security.sso_managed_title": {
+    "text": "Security managed by SSO",
+    "content_hash": "1f6c9472"
+  },
+  "web.settings.security.sso_managed_description": {
+    "text": "Your account is authenticated through your organization's single sign-on provider. Password, multi-factor authentication, and recovery codes are managed by your identity provider.",
+    "content_hash": "cd0cf39f"
   },
   "web.settings.profile_settings_description": {
     "text": "Manage your account information",
@@ -526,6 +534,10 @@
   "web.settings.api.regenerating_key_warning": {
     "text": "Regenerating your API key will invalidate the current key. Update all applications using the old key.",
     "content_hash": "ab168f83"
+  },
+  "web.settings.api.api_disabled_notice": {
+    "text": "The API is disabled for this instance.",
+    "content_hash": "66d12d6b"
   },
   "web.settings.privacy.title": {
     "text": "Privacy Settings",

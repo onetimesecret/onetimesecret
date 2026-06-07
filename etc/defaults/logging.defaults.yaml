@@ -6,8 +6,11 @@
 #   App       - Default fallback for application-level logging
 #   Auth      - Authentication/authorization flows
 #   Bunny     - RabbitMQ AMQP client (connection, heartbeats)
+#   Ents      - Plan materialization, grants/revokes, plan→permission application
 #   Familia   - Redis operations via Familia ORM
 #   HTTP      - HTTP requests, responses, and middleware
+#   Jobs      - Job publishing (enqueue_email, fallback handling)
+#   Org       - Organization + membership lifecycle (create/destroy/activate/cascade)
 #   Otto      - Otto framework operations
 #   Rhales    - Rhales template rendering (future)
 #   Scheduler - Scheduled/recurring background jobs (rufus-scheduler)
@@ -20,21 +23,18 @@
 #   LOG_LEVEL=debug                       - Set global log level
 #   DEBUG_LOGGERS=Auth:debug,Secret:trace - Set specific logger levels
 #
-# Application category quick flags:
+# There are quick debug flags for each named logger:
 #   DEBUG_AUTH=1                          - Quick debug flag for Auth
 #   DEBUG_BUNNY=1                         - Quick debug flag for Bunny (RabbitMQ)
 #   DEBUG_HTTP=1                          - Quick debug flag for HTTP
-#   DEBUG_SCHEDULER=1                     - Quick debug flag for Scheduler
-#   DEBUG_SECRET=1                        - Quick debug flag for Secret
-#   DEBUG_SESSION=1                       - Quick debug flag for Session
-#   DEBUG_WORKERS=1                       - Quick debug flag for Workers
+#   ...
+#
+# For ad-hoc loggers that are not defined in the list below, use DEBUG_LOGGERS:
+#   DEBUG_LOGGERS=Sequel:debug,Rhales:trace
 #
 # External library debug flags (use library's own flags):
 #   FAMILIA_DEBUG=1                       - Familia's built-in debug flag
 #   FAMILIA_SAMPLE_RATE=0.01              - Familia command sampling (0.0-1.0)
-#
-# For libraries without built-in flags, use DEBUG_LOGGERS:
-#   DEBUG_LOGGERS=Sequel:debug,Rhales:trace
 
 # Global default log level
 # Options: trace, debug, info, warn, error, fatal
@@ -51,19 +51,23 @@ formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>
 # Each category can be configured independently. Loggers added here are
 # made available by the setup_loggers initializer.
 loggers:
-  App: info       # Default application logger
+  App: warn       # Default application logger
   Auth: info      # Authentication/authorization flows
-  Billing: info   # Only used when billing.enabled=true
-  Boot: info      # During initialization
-  Bunny: info     # RabbitMQ client (heartbeats at debug level)
+  Billing: warn   # Stripe checkout, payment intents, subscription webhooks, invoices, plan catalog sync
+  Boot: warn      # During initialization
+  Bunny: warn     # RabbitMQ client (heartbeats at debug level)
+  Chores: info    # Familia::Horreum models housekeeping chores
+  Ents: info      # Entitlement materialization, grants/revokes, plan→permission application
+  Jobs: info      # Job publishing (Publisher.enqueue_email, fallbacks)
   CLI: info       # Command-line interface operations
   Familia: info   # Redis/Familia main database operations
   HTTP: info      # HTTP requests and middleware operations
+  Org: info       # Organization + membership lifecycle (create/destroy/activate/cascade)
   Otto: info      # Otto framework operations
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
   Scheduler: info # Scheduled/recurring background jobs
   Secret: info    # Secret lifecycle (create, view, burn)
-  Sequel: info    # Database queries and operations (SQL logged at :trace level)
+  Sequel: warn    # Database queries and operations (SQL logged at :trace level)
   Session: info   # Session lifecycle (create, update, destroy)
   Workers: info   # RabbitMQ worker message processing and orchestration
 

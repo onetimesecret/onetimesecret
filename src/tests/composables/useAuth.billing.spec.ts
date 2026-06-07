@@ -61,7 +61,7 @@ function createMockOrganization(overrides: Partial<OrganizationWire> = {}): Orga
     created: now,
     updated: now,
     entitlements: [],
-    limits: { teams: 0, members_per_team: 0, custom_domains: 0 },
+    limits: { teams: 0, total_members_per_org: 0, custom_domains: 0 },
     ...overrides,
   });
 }

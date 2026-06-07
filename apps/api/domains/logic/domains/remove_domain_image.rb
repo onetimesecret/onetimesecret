@@ -4,10 +4,26 @@
 
 require 'onetime/domain_validation/strategy'
 require_relative '../base'
+require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
+    # Remove Domain Image
+    #
+    # @api Removes a stored image (logo or icon) from a custom domain.
+    #
+    # Authorization model (via DomainConfigAuthorization):
+    #   1. Load CustomDomain by extid
+    #   2. Load Organization via domain.org_id
+    #   3. Verify user has manage_org in the organization
+    #   4. Verify organization has custom_branding entitlement
+    #
+    # Read-only counterpart GetDomainImage skips manage_org so regular
+    # members can view the brand page (disabled overlay in the UI).
+    #
     class RemoveDomainImage < DomainsAPI::Logic::Base
+      include DomainsAPI::Policies::DomainConfigAuthorization
+
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       @field = nil
@@ -21,23 +37,12 @@ module DomainsAPI::Logic
       end
 
       def raise_concerns
-        require_entitlement!('custom_branding')
-
         OT.ld "[#{self.class}] Raising concerns for extid: #{@extid}"
 
         raise_form_error 'Domain ID is required' if @extid.empty?
+        raise_form_error 'Invalid domain identifier format' unless @extid.match?(/\A[a-z0-9]+\z/)
 
-        # Get customer's organization for domain ownership
-        # Organization available via @organization
-        require_organization!
-
-        @custom_domain = Onetime::CustomDomain.find_by_extid(@extid)
-        raise_form_error 'Invalid Domain' unless @custom_domain
-
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
-          raise_form_error 'Invalid Domain'
-        end
+        authorize_domain_config!(@extid)
 
         @display_domain = @custom_domain.display_domain
 
@@ -64,16 +69,26 @@ module DomainsAPI::Logic
         }
       end
 
+      protected
+
+      def config_entitlement
+        'custom_branding'
+      end
+
+      def config_entitlement_error
+        'Custom branding requires the custom_branding entitlement. Please upgrade your plan.'
+      end
+
+      private
+
       def image_exists?
         _image_field.key?('encoded')
       end
-      private :image_exists?
 
       # e.g. custom_domain.logo
       def _image_field
         custom_domain.send(self.class.field)
       end
-      private :_image_field
     end
 
     class RemoveDomainLogo < RemoveDomainImage

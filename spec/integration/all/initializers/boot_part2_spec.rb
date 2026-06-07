@@ -42,7 +42,6 @@ RSpec.describe "Onetime global state after boot", type: :integration do
 
     # NOTE: The boot process now uses InitializerRegistry with initializer classes.
     # These methods no longer exist as direct module methods on Onetime:
-    # - detect_legacy_data_and_warn (now in DetectLegacyDataAndWarn initializer)
     # - connect_databases (now in ConfigureFamilia initializer)
     # - print_log_banner (now in PrintLogBanner initializer)
     # Initializers run automatically via InitializerRegistry during boot!
@@ -245,6 +244,101 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         expect {
           Onetime.boot!(:test)
         }.to raise_error(Redis::CannotConnectError, "Test Redis error")
+      end
+
+      it "re-raises ConfigError from deprecated config in :cli mode" do
+        # Real path: load returns a config with a deprecated key, check_deprecations
+        # raises ConfigError (which includes FatalBootError), and boot! must
+        # propagate it instead of swallowing for the CLI REPL.
+        deprecated_conf = loaded_config.dup
+        deprecated_conf['site']['domains'] = { 'enabled' => true }
+        allow(Onetime::Config).to receive(:load).and_return(deprecated_conf)
+
+        expect {
+          Onetime.boot!(:cli)
+        }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
+      end
+
+      it "re-raises ConfigError in non-CLI mode too (parity with prior behavior)" do
+        # FatalBootError must NOT regress the non-CLI path — config errors
+        # have always halted there. Verifies the new marker doesn't change
+        # behavior outside CLI mode.
+        deprecated_conf = loaded_config.dup
+        deprecated_conf['site']['domains'] = { 'enabled' => true }
+        allow(Onetime::Config).to receive(:load).and_return(deprecated_conf)
+
+        expect {
+          Onetime.boot!(:test)
+        }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
+      end
+
+      it "re-raises ConfigError from deprecated env var in :cli mode" do
+        # Env-var deprecations go through a separate branch in check_deprecations
+        # (ENV check vs config-path check). Cover both to prevent silent regressions.
+        ENV['UI_HOMEPAGE_TRUSTED_PROXY_DEPTH'] = '5'
+
+        expect {
+          Onetime.boot!(:cli)
+        }.to raise_error(OT::ConfigError, /trusted_proxy_depth is ignored/)
+      ensure
+        ENV.delete('UI_HOMEPAGE_TRUSTED_PROXY_DEPTH')
+      end
+
+      it "still swallows non-fatal OT::Problem in :cli mode for REPL debugging" do
+        # Bare OT::Problem (without FatalBootError) remains swallowed in CLI mode.
+        # Initializer failures now raise ConfigError instead, so the realistic
+        # set of cases hitting this branch is small — but the swallow remains
+        # for any future non-fatal Problem subclass.
+        non_fatal_error = OT::Problem.new("Some non-fatal problem")
+        allow(Onetime::Config).to receive(:after_load).and_raise(non_fatal_error)
+
+        expect {
+          Onetime.boot!(:cli)
+        }.not_to raise_error
+      end
+
+      it "raises Redis::CannotConnectError in :cli mode (now treated as fatal)" do
+        # Previously swallowed in :cli; reviewer noted that a dead database is
+        # functionally identical to nil config (commands hit nil errors).
+        # SAFE_BOOT=1 is the escape hatch for diagnosing connection issues.
+        redis_error = Redis::CannotConnectError.new("Test Redis error")
+        allow(Familia).to receive(:uri=).and_raise(redis_error)
+
+        expect {
+          Onetime.boot!(:cli)
+        }.to raise_error(Redis::CannotConnectError, "Test Redis error")
+      end
+
+      context "with SAFE_BOOT=1" do
+        before { ENV['SAFE_BOOT'] = 'true' }
+        after  { ENV.delete('SAFE_BOOT') }
+
+        it "swallows ConfigError in :cli mode so the REPL can come up" do
+          deprecated_conf = loaded_config.dup
+          deprecated_conf['site']['domains'] = { 'enabled' => true }
+          allow(Onetime::Config).to receive(:load).and_return(deprecated_conf)
+
+          expect { Onetime.boot!(:cli) }.not_to raise_error
+          expect(Onetime.boot_failed?).to be true
+        end
+
+        it "swallows Redis::CannotConnectError in :cli mode" do
+          redis_error = Redis::CannotConnectError.new("Test Redis error")
+          allow(Familia).to receive(:uri=).and_raise(redis_error)
+
+          expect { Onetime.boot!(:cli) }.not_to raise_error
+          expect(Onetime.boot_failed?).to be true
+        end
+
+        it "has no effect outside :cli mode (errors still raise in :test/:app)" do
+          deprecated_conf = loaded_config.dup
+          deprecated_conf['site']['domains'] = { 'enabled' => true }
+          allow(Onetime::Config).to receive(:load).and_return(deprecated_conf)
+
+          expect {
+            Onetime.boot!(:test)
+          }.to raise_error(OT::ConfigError, /site\.domains is ignored/)
+        end
       end
     end
   end

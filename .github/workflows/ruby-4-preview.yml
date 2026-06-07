@@ -59,7 +59,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: frontend-build
           path: public/web/dist/
@@ -78,7 +78,11 @@ jobs:
         continue-on-error: true
         with:
           ruby-version: '4.0.2'
-          bundler-cache: true
+          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+
+      - name: Install dependencies
+        continue-on-error: true
+        run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
         continue-on-error: true
@@ -91,7 +95,7 @@ jobs:
 
       - name: Upload Rubocop results
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ruby4-rubocop-results
           path: tmp/rubocop_results.json
@@ -140,16 +144,18 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Setup Node.js for locale sync
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version: '22'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Generate locale files
         run: pnpm run locales:sync
+
+      # The billing catalog validate CLI/spec loads
+      # generated/schemas/config/billing.schema.json, which is gitignored
+      # (generated from src/schemas/). spec:fast runs that spec, so the
+      # schema must be generated before the Ruby suite.
+      - name: Generate JSON schemas
+        run: pnpm run schemas:json:generate
 
       - name: Run Ruby tests
         uses: ./.github/actions/run-ruby-tests
@@ -205,12 +211,17 @@ jobs:
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
           results-file: 'ruby4_rspec_simple_results.json'
 
-  ruby-integration-full-sqlite:
-    name: Ruby 4 · Integration (Full Mode - SQLite)
+  ruby-integration-full:
+    name: 'Ruby 4 · Integration (Full, SQLite, billing: ${{ matrix.billing-enabled }})'
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
     if: always()
+
+    strategy:
+      fail-fast: false
+      matrix:
+        billing-enabled: ['false', 'true']
 
     services:
       redis: *valkey-service
@@ -249,7 +260,8 @@ jobs:
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
           rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'ruby4_rspec_full_sqlite_results.json'
+          billing-enabled: ${{ matrix.billing-enabled }}
+          results-file: 'ruby4_rspec_full_sqlite_billing_${{ matrix.billing-enabled }}_results.json'
 
   ruby-integration-disabled:
     name: Ruby 4 · Integration (Disabled Mode)

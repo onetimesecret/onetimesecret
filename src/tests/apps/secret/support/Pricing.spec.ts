@@ -10,14 +10,18 @@ import type { Plan as BillingPlan } from '@/services/billing.service';
 // Hoisted mock functions - must use vi.hoisted for proper hoisting
 const mockListPlans = vi.hoisted(() => vi.fn());
 
-// Route params - using a mutable object instead of ref for hoisting compatibility
+// Route state - using mutable objects instead of refs for hoisting compatibility
 let mockRouteParamsValue: Record<string, string> = {};
+let mockRoutePathValue = '/pricing';
 
-// Mock vue-router
+// Mock vue-router. The mock exposes the same value for `path` and `fullPath`
+// since none of the tests need to distinguish them; tests that exercise
+// query-preserving behavior can set mockRoutePathValue to include a `?...`.
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     get params() { return mockRouteParamsValue; },
-    path: '/pricing',
+    get path() { return mockRoutePathValue; },
+    get fullPath() { return mockRoutePathValue; },
     query: {},
   }),
   RouterLink: {
@@ -118,12 +122,28 @@ const createTestI18n = () => createI18n({
   });
 
 // Test fixtures
+// Plan IDs are now family-keyed without interval suffix
+// Backend returns separate plan objects for monthly/yearly with the same id
 const defaultPlans: BillingPlan[] = [
   mockPlans.free,
-  mockPlans.single_team_monthly,
-  mockPlans.single_team_yearly,
-  mockPlans.multi_team_monthly,
-  mockPlans.multi_team_yearly,
+  mockPlans.single_team,
+  createMockPlan({
+    ...mockPlans.single_team,
+    id: 'identity_plus_v1',
+    interval: 'year',
+    amount: 29000,
+    monthly_equivalent_amount: 2417,
+    stripe_price_id: 'price_single_yearly',
+  }),
+  mockPlans.multi_team,
+  createMockPlan({
+    ...mockPlans.multi_team,
+    id: 'team_plus_v1',
+    interval: 'year',
+    amount: 99000,
+    monthly_equivalent_amount: 8250,
+    stripe_price_id: 'price_multi_yearly',
+  }),
 ];
 
 describe('Pricing.vue', () => {
@@ -133,6 +153,7 @@ describe('Pricing.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRouteParamsValue = {};
+    mockRoutePathValue = '/pricing';
     mockListPlans.mockResolvedValue({ plans: defaultPlans });
     i18n = createTestI18n();
   });
@@ -280,7 +301,7 @@ describe('Pricing.vue', () => {
   // 3. getSignupUrl Function
   // ============================================================
   describe('getSignupUrl function', () => {
-    it('returns /signup for free tier', async () => {
+    it('returns /signup with redirect for free tier', async () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
@@ -288,15 +309,17 @@ describe('Pricing.vue', () => {
       });
 
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
-      await mountComponent();
+      await mountComponent({ freePlanStandalone: false });
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
-      expect(signupLink.attributes('href')).toBe('/signup');
+      expect(signupLink.attributes('href')).toBe(
+        '/signup?redirect=%2Fpricing'
+      );
     });
 
-    it('includes product and interval for paid plans', async () => {
+    it('includes product, interval, and redirect for paid plans', async () => {
       const paidPlan = createMockPlan({
-        id: 'identity_plus_v1_monthly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'month',
       });
@@ -306,13 +329,13 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toBe(
-        '/signup?product=identity_plus_v1&interval=monthly'
+        '/signup?product=identity_plus_v1&interval=monthly&redirect=%2Fpricing'
       );
     });
 
     it('encodes special characters in product name', async () => {
       const planWithSpecialChars = createMockPlan({
-        id: 'plan_with+special&chars_monthly',
+        id: 'plan_with+special&chars_v1',
         tier: 'single_team',
         interval: 'month',
       });
@@ -322,12 +345,12 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       const href = signupLink.attributes('href');
-      expect(href).toContain('product=plan_with%2Bspecial%26chars');
+      expect(href).toContain('product=plan_with%2Bspecial%26chars_v1');
     });
 
     it('uses yearly interval string for year plans', async () => {
       const yearlyPlan = createMockPlan({
-        id: 'identity_plus_v1_yearly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'year',
       });
@@ -339,6 +362,42 @@ describe('Pricing.vue', () => {
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('interval=yearly');
     });
+
+    it('uses current path as the redirect target', async () => {
+      const paidPlan = createMockPlan({
+        id: 'identity_plus_v1',
+        tier: 'single_team',
+        interval: 'year',
+      });
+
+      mockListPlans.mockResolvedValueOnce({ plans: [paidPlan] });
+      mockRoutePathValue = '/pricing/identity_plus/yearly';
+      mockRouteParamsValue = { product: 'identity_plus', interval: 'yearly' };
+      await mountComponent();
+
+      const signupLink = wrapper.find('[data-testid="signup-link"]');
+      expect(signupLink.attributes('href')).toContain(
+        'redirect=%2Fpricing%2Fidentity_plus%2Fyearly'
+      );
+    });
+
+    it('preserves query string on the current URL in the redirect target', async () => {
+      const paidPlan = createMockPlan({
+        id: 'identity_plus_v1',
+        tier: 'single_team',
+        interval: 'month',
+      });
+
+      mockListPlans.mockResolvedValueOnce({ plans: [paidPlan] });
+      // route.fullPath (not route.path) includes the query string
+      mockRoutePathValue = '/pricing?utm_source=blog';
+      await mountComponent();
+
+      const signupLink = wrapper.find('[data-testid="signup-link"]');
+      expect(signupLink.attributes('href')).toContain(
+        'redirect=%2Fpricing%3Futm_source%3Dblog'
+      );
+    });
   });
 
   // ============================================================
@@ -347,10 +406,11 @@ describe('Pricing.vue', () => {
   describe('extractProductFromPlanId utility', () => {
     // Note: Testing through the component's rendered signup URLs
     // since the function is internal to the component
+    // Plan IDs are now family-keyed without interval suffix
 
-    it('removes _monthly suffix', async () => {
+    it('passes through family-keyed plan ID as product', async () => {
       const plan = createMockPlan({
-        id: 'identity_plus_v1_monthly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'month',
       });
@@ -360,12 +420,11 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('product=identity_plus_v1');
-      expect(signupLink.attributes('href')).not.toContain('product=identity_plus_v1_monthly');
     });
 
-    it('removes _yearly suffix', async () => {
+    it('handles year interval with family-keyed plan ID', async () => {
       const plan = createMockPlan({
-        id: 'team_plus_v1_yearly',
+        id: 'team_plus_v1',
         tier: 'single_team',
         interval: 'year',
       });
@@ -376,10 +435,9 @@ describe('Pricing.vue', () => {
 
       const signupLink = wrapper.find('[data-testid="signup-link"]');
       expect(signupLink.attributes('href')).toContain('product=team_plus_v1');
-      expect(signupLink.attributes('href')).not.toContain('product=team_plus_v1_yearly');
     });
 
-    it('handles plans without interval suffix', async () => {
+    it('handles plan ID with version number', async () => {
       const plan = createMockPlan({
         id: 'basic_plan_v2',
         tier: 'single_team',
@@ -427,10 +485,10 @@ describe('Pricing.vue', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
       await wrapper.vm.$nextTick();
 
-      // At this point, loadPlans should be in progress (promise pending)
-      // The loading div contains an OIcon with animate-spin class - but OIcon is mocked
-      // so we check for the loading container and text instead
-      const loadingContainer = wrapper.find('[class*="flex items-center justify-center py-12"]');
+      // At this point, loadPlans should be in progress (promise pending).
+      // The loading state now renders <PlanCardSkeleton>, a role="status"
+      // region with an sr-only loading label (no visible spinner/text).
+      const loadingContainer = wrapper.find('[role="status"][aria-busy="true"]');
       expect(loadingContainer.exists()).toBe(true);
       expect(wrapper.text()).toContain('Loading...');
 
@@ -443,8 +501,8 @@ describe('Pricing.vue', () => {
       mockListPlans.mockResolvedValueOnce({ plans: defaultPlans });
       await mountComponent();
 
-      // After loading completes, spinner should be gone
-      expect(wrapper.find('.animate-spin').exists()).toBe(false);
+      // After loading completes, the loading skeleton should be gone
+      expect(wrapper.find('[role="status"][aria-busy="true"]').exists()).toBe(false);
     });
 
     it('shows empty state when no plans available', async () => {
@@ -456,7 +514,7 @@ describe('Pricing.vue', () => {
 
     it('shows empty state for interval with no matching plans', async () => {
       // Only monthly plans
-      const monthlyOnlyPlans = [mockPlans.single_team_monthly];
+      const monthlyOnlyPlans = [mockPlans.single_team];
       mockListPlans.mockResolvedValueOnce({ plans: monthlyOnlyPlans });
       mockRouteParamsValue = { interval: 'yearly' };
 
@@ -621,7 +679,7 @@ describe('Pricing.vue', () => {
         amount: 0,
       });
       const paidPlanYearly = createMockPlan({
-        id: 'identity_plus_v1_yearly',
+        id: 'identity_plus_v1',
         tier: 'single_team',
         interval: 'year',
         amount: 29000,
@@ -637,7 +695,7 @@ describe('Pricing.vue', () => {
       expect(wrapper.text()).toContain('Free');
     });
 
-    it('free plan CTA links to /signup', async () => {
+    it('free plan CTA links to /signup with redirect', async () => {
       const freePlan = createMockPlan({
         id: 'free_v1',
         tier: 'free',
@@ -647,8 +705,8 @@ describe('Pricing.vue', () => {
       mockListPlans.mockResolvedValueOnce({ plans: [freePlan] });
       await mountComponent();
 
-      // Free tier section has a link to /signup
-      const links = wrapper.findAll('a[href="/signup"]');
+      // Free tier banner has a link to /signup with redirect back to /pricing
+      const links = wrapper.findAll('a[href="/signup?redirect=%2Fpricing"]');
       expect(links.length).toBeGreaterThan(0);
     });
 

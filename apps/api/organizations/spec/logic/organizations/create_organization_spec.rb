@@ -40,10 +40,22 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
   subject(:logic) { described_class.new(strategy_result, params) }
 
+  # Source now uses the category-aware `logger` (Onetime::LoggerMethods) instead
+  # of the OT.ld/OT.lw shims, and passes masked_name/extid as structured kwargs
+  # rather than interpolating them into the message string.
+  let(:org_logger_double) do
+    instance_double(SemanticLogger::Logger, info: nil, debug: nil, warn: nil, error: nil)
+  end
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
+    # Stub at the get_logger level (not allow(logic).to receive(:logger)) so we
+    # don't force eager instantiation of the memoized `subject(:logic)` in the
+    # before hook, which would freeze display_name before per-example params edits.
+    allow(Onetime).to receive(:get_logger).and_call_original
+    allow(Onetime).to receive(:get_logger).with('Org').and_return(org_logger_double)
   end
 
   describe '#process_params' do
@@ -87,9 +99,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       let(:params) { { 'display_name' => '', 'description' => '', 'contact_email' => '' } }
 
       it 'raises form error for missing name' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Organization name is required/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.display_name_required')
+        end
       end
     end
 
@@ -97,9 +109,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       let(:params) { { 'display_name' => 'x' * 101, 'description' => '', 'contact_email' => '' } }
 
       it 'raises form error for name too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /must be less than 100 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.display_name_too_long')
+        end
       end
     end
 
@@ -109,9 +121,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'raises form error for description too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Description must be less than 500 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.description_too_long')
+        end
       end
     end
 
@@ -126,9 +138,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'raises form error for duplicate email' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /organization with this contact email already exists/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.contact_email_exists')
+        end
       end
     end
 
@@ -149,6 +161,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         Onetime::Organization,
         objid: 'org-primary',
         is_default: true,
+        archived?: false,
         entitlements: entitlements
       )
     end
@@ -188,7 +201,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
       it 'raises upgrade_required error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Organization limit reached/)
+          expect(error.error_key).to eq('api.organizations.errors.organization_limit_reached')
         end
       end
     end
@@ -206,8 +219,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       it 'returns validation error before quota error' do
         # User should see "name required" not "upgrade required"
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Organization name is required/)
-          expect(error.message).not_to match(/limit reached/)
+          expect(error.error_key).to eq('api.organizations.errors.display_name_required')
         end
       end
     end
@@ -310,7 +322,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
 
       it 'masks short organization name in debug logs' do
-        expect(OT).to receive(:ld).with(/\[2chars\]/)
+        expect(org_logger_double).to receive(:debug)
+          .with(/Creating organization/, hash_including(masked_name: '[2chars]'))
         logic.process
       end
     end
@@ -318,7 +331,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
     context 'with normal display_name (>3 chars)' do
       it 'masks organization name showing only first 3 chars' do
         # Default params has display_name: 'Organization' which masks to 'Org...'
-        expect(OT).to receive(:ld).with(/Creating organization 'Org\.\.\.'/)
+        expect(org_logger_double).to receive(:debug)
+          .with(/Creating organization/, hash_including(masked_name: 'Org...'))
         logic.process
       end
     end
@@ -406,7 +420,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       it 'raises conflict error without creating organization' do
         expect(Onetime::Organization).not_to receive(:create!)
         expect { logic.process }.to raise_error(Onetime::FormError) do |error|
-          expect(error.message).to match(/Organization creation in progress/)
+          expect(error.error_key).to eq('api.organizations.errors.creation_in_progress')
         end
       end
 
@@ -435,11 +449,10 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         allow(lock).to receive(:acquire).with(ttl: 30).and_return(lock_token)
         allow(lock).to receive(:release).with(lock_token)
           .and_raise(Redis::ConnectionError, 'Connection lost')
-        allow(OT).to receive(:lw)
       end
 
       it 'logs warning but does not raise' do
-        expect(OT).to receive(:lw).with(/Lock release failed/)
+        expect(org_logger_double).to receive(:warn).with(/Lock release failed/, any_args)
         result = logic.process
         expect(result).to have_key(:record)
       end

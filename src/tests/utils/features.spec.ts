@@ -18,6 +18,12 @@ import {
   isOrgsSsoEnabled,
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
+  isOwnerOrAdminOf,
+  isOwnerOrAdmin,
+  hasPasswordOf,
+  hasPassword,
+  isFullAuthModeOf,
+  isFullAuthMode,
 } from '@/utils/features';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
@@ -270,7 +276,9 @@ describe('features utility', () => {
     });
 
     it('returns false when no passwordless methods are enabled', () => {
-      getBootstrapValueMock.mockReturnValue({ webauthn: false, magic_links: false, email_auth: false });
+      getBootstrapValueMock.mockReturnValue({
+        webauthn: false, magic_links: false, email_auth: false,
+      });
 
       const result = hasPasswordlessMethods();
 
@@ -969,21 +977,172 @@ describe('features utility', () => {
     });
   });
 
+  // ── isOwnerOrAdminOf (pure predicate) ─────────────────────────────
+
+  describe('isOwnerOrAdminOf', () => {
+    it('returns true for owner role', () => {
+      expect(isOwnerOrAdminOf({ organization: { current_user_role: 'owner' } })).toBe(true);
+    });
+
+    it('returns true for admin role', () => {
+      expect(isOwnerOrAdminOf({ organization: { current_user_role: 'admin' } })).toBe(true);
+    });
+
+    it('returns false for member role', () => {
+      expect(isOwnerOrAdminOf({ organization: { current_user_role: 'member' } })).toBe(false);
+    });
+
+    it('returns false for null role', () => {
+      expect(isOwnerOrAdminOf({ organization: { current_user_role: null } })).toBe(false);
+    });
+
+    it('returns false for undefined role', () => {
+      expect(isOwnerOrAdminOf({ organization: { current_user_role: undefined } })).toBe(false);
+    });
+
+    it('returns false when organization is null', () => {
+      expect(isOwnerOrAdminOf({ organization: null })).toBe(false);
+    });
+
+    it('returns false when organization is undefined', () => {
+      expect(isOwnerOrAdminOf({})).toBe(false);
+    });
+
+    it('returns false for empty string role', () => {
+      expect(isOwnerOrAdminOf({ organization: { current_user_role: '' } })).toBe(false);
+    });
+
+    it('returns false for unrecognized role', () => {
+      expect(isOwnerOrAdminOf({ organization: { current_user_role: 'superadmin' } })).toBe(false);
+    });
+  });
+
+  // ── isOwnerOrAdmin (snapshot wrapper) ────────────────────────────
+
+  describe('isOwnerOrAdmin', () => {
+    it('returns true when bootstrap organization role is owner', () => {
+      getBootstrapValueMock.mockReturnValue({ current_user_role: 'owner' });
+
+      expect(isOwnerOrAdmin()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('organization');
+    });
+
+    it('returns true when bootstrap organization role is admin', () => {
+      getBootstrapValueMock.mockReturnValue({ current_user_role: 'admin' });
+
+      expect(isOwnerOrAdmin()).toBe(true);
+    });
+
+    it('returns false when bootstrap organization role is member', () => {
+      getBootstrapValueMock.mockReturnValue({ current_user_role: 'member' });
+
+      expect(isOwnerOrAdmin()).toBe(false);
+    });
+
+    it('returns false when bootstrap organization is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isOwnerOrAdmin()).toBe(false);
+    });
+
+    it('returns false when bootstrap organization role is null', () => {
+      getBootstrapValueMock.mockReturnValue({ current_user_role: null });
+
+      expect(isOwnerOrAdmin()).toBe(false);
+    });
+  });
+
+  // ── hasPasswordOf (pure predicate) ──────────────────────────────
+
+  describe('hasPasswordOf', () => {
+    it('returns true when has_password is true', () => {
+      expect(hasPasswordOf({ has_password: true })).toBe(true);
+    });
+
+    it('returns false when has_password is false', () => {
+      expect(hasPasswordOf({ has_password: false })).toBe(false);
+    });
+
+    it('returns false when has_password is undefined', () => {
+      expect(hasPasswordOf({})).toBe(false);
+    });
+  });
+
+  // ── hasPassword (snapshot wrapper) ──────────────────────────────
+
+  describe('hasPassword', () => {
+    it('returns true when bootstrap has_password is true', () => {
+      getBootstrapValueMock.mockReturnValue(true);
+
+      expect(hasPassword()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('has_password');
+    });
+
+    it('returns false when bootstrap has_password is false', () => {
+      getBootstrapValueMock.mockReturnValue(false);
+
+      expect(hasPassword()).toBe(false);
+    });
+
+    it('returns false when bootstrap has_password is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(hasPassword()).toBe(false);
+    });
+  });
+
+  // ── isFullAuthModeOf (pure predicate) ────────────────────────────
+
+  describe('isFullAuthModeOf', () => {
+    it('returns true when authentication mode is full', () => {
+      expect(isFullAuthModeOf({ authentication: { mode: 'full' } })).toBe(true);
+    });
+
+    it('returns false when authentication mode is simple', () => {
+      expect(isFullAuthModeOf({ authentication: { mode: 'simple' } })).toBe(false);
+    });
+
+    it('returns false when authentication is undefined', () => {
+      expect(isFullAuthModeOf({})).toBe(false);
+    });
+  });
+
+  // ── isFullAuthMode (snapshot wrapper) ────────────────────────────
+
+  describe('isFullAuthMode', () => {
+    it('returns true when bootstrap authentication mode is full', () => {
+      getBootstrapValueMock.mockReturnValue({ mode: 'full' });
+
+      expect(isFullAuthMode()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('authentication');
+    });
+
+    it('returns false when bootstrap authentication mode is simple', () => {
+      getBootstrapValueMock.mockReturnValue({ mode: 'simple' });
+
+      expect(isFullAuthMode()).toBe(false);
+    });
+
+    it('returns false when bootstrap authentication is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isFullAuthMode()).toBe(false);
+    });
+  });
+
   // ── SSR safety (window undefined) ─────────────────────────────────
 
   describe('SSR safety (window undefined)', () => {
     // Store original window reference
-    const originalWindow = global.window;
+    const originalWindow = globalThis.window;
 
     beforeEach(() => {
-      // Temporarily remove window to simulate SSR
       // @ts-expect-error - intentionally setting to undefined for SSR simulation
-      delete global.window;
+      delete (globalThis as Record<string, unknown>).window;
     });
 
     afterEach(() => {
-      // Restore window
-      global.window = originalWindow;
+      globalThis.window = originalWindow;
     });
 
     it('isWebAuthnEnabled returns false when window is undefined', () => {
@@ -1068,6 +1227,21 @@ describe('features utility', () => {
 
     it('isOrgsIncomingSecretsEnabled returns false when window is undefined', () => {
       const result = isOrgsIncomingSecretsEnabled();
+      expect(result).toBe(false);
+    });
+
+    it('isOwnerOrAdmin returns false when window is undefined', () => {
+      const result = isOwnerOrAdmin();
+      expect(result).toBe(false);
+    });
+
+    it('hasPassword returns false when window is undefined', () => {
+      const result = hasPassword();
+      expect(result).toBe(false);
+    });
+
+    it('isFullAuthMode returns false when window is undefined', () => {
+      const result = isFullAuthMode();
       expect(result).toBe(false);
     });
   });

@@ -5,13 +5,14 @@
 require 'yaml'
 require 'semantic_logger'
 require_relative '../utils/config_resolver'
+require_relative '../utils/enumerables'
 
 module Onetime
   module Initializers
     # Configures SemanticLogger with strategic categories for debugging.
     #
-    # Categories: App, Auth, Billing, Boot, Bunny, Familia, HTTP, Jobs,
-    # Otto, Rhales, Secret, Sequel, Session.
+    # Categories: App, Auth, Billing, Boot, Bunny, Ents, Familia, HTTP,
+    # Jobs, Org, Otto, Rhales, Secret, Sequel, Session.
     #
     # Configuration loaded from etc/logging.yaml with environment variable
     # overrides. Logger instances are cached because SemanticLogger[]
@@ -37,8 +38,11 @@ module Onetime
         'Billing' => 'DEBUG_BILLING',
         'Boot' => 'DEBUG_BOOT',
         'Bunny' => 'DEBUG_BUNNY',
+        'Ents' => 'DEBUG_ENTS',
         'Familia' => 'DEBUG_FAMILIA',
         'HTTP' => 'DEBUG_HTTP',
+        'Jobs' => 'DEBUG_JOBS',
+        'Org' => 'DEBUG_ORG',
         'Otto' => 'DEBUG_OTTO',
         'Rhales' => 'DEBUG_RHALES',
         'Scheduler' => 'DEBUG_SCHEDULER',
@@ -99,10 +103,25 @@ module Onetime
       private
 
       def load_logging_config
-        path = Onetime::Utils::ConfigResolver.resolve('logging')
-        return {} unless path
+        defaults_file = Onetime::Utils::ConfigResolver.defaults_path('logging')
+        override_file = Onetime::Utils::ConfigResolver.resolve('logging')
 
-        YAML.load(ERB.new(File.read(path)).result)
+        base_config = if defaults_file
+          YAML.load(ERB.new(File.read(defaults_file)).result) || {}
+        else
+          {}
+        end
+
+        env_config = if override_file && override_file != defaults_file
+          YAML.load(ERB.new(File.read(override_file)).result) || {}
+        else
+          {}
+        end
+
+        return base_config if env_config.empty?
+        return env_config if base_config.empty?
+
+        Onetime::Utils::Enumerables.deep_merge(base_config, env_config, preserve_nils: false)
       end
 
       # Precedence: LOG_LEVEL env > ONETIME_DEBUG > config file > :info default

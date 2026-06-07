@@ -65,6 +65,20 @@ module Onetime
         domain
       end
 
+      # Load domain by name, extid, or objid
+      def load_domain(identifier)
+        # Try display_domain first, then extid, then objid
+        domain   = Onetime::CustomDomain.load_by_display_domain(identifier)
+        domain ||= Onetime::CustomDomain.find_by_extid(identifier)
+        domain ||= Onetime::CustomDomain.find_by_identifier(identifier)
+
+        unless domain
+          puts "Error: Domain '#{identifier}' not found"
+          return nil
+        end
+        domain
+      end
+
       def load_organization(org_id, silent: false)
         org = Onetime::Organization.load(org_id)
         unless org
@@ -83,24 +97,11 @@ module Onetime
       end
 
       def get_validation_strategy
-        conf = OT.conf
-        if conf.nil?
-          puts "Warning: OT.conf is nil, can't read features.domains.validation_strategy"
-          puts 'Using passthrough strategy (live checks disabled)'
-          return Onetime::DomainValidation::PassthroughStrategy.new({})
-        end
-        Onetime::DomainValidation::Strategy.for_config(conf)
+        Onetime::DomainValidation::Strategy.for_config(OT.conf)
       end
 
       def format_verification_state(state)
         state.to_s.upcase
-      end
-
-      def format_brand_summary(domain)
-        flags = []
-        flags << 'homepage' if domain.allow_public_homepage?
-        flags << 'api' if domain.allow_public_api?
-        flags.empty? ? 'none' : flags.join(', ')
       end
     end
   end

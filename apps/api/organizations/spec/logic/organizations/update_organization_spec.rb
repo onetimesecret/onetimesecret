@@ -65,6 +65,15 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
     }
   end
 
+  # ADR-012 Stage 4: membership with entitlements for authorization
+  let(:membership) do
+    instance_double(
+      Onetime::OrganizationMembership,
+      active?: true,
+      can?: true  # Default: has all entitlements (owner-level)
+    )
+  end
+
   subject(:logic) { described_class.new(strategy_result, params) }
 
   before do
@@ -103,6 +112,11 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       updated: Time.now.to_i,
       member_count: 1
     })
+
+    # ADR-012 Stage 4: stub membership lookup for entitlement checks
+    allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+      .with('org-123', 'cust-123')
+      .and_return(membership)
   end
 
   # Helper to run full logic flow (raise_concerns sets @organization, then process uses it)
@@ -194,9 +208,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises form error for missing extid' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Organization ID required/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.extid_required')
+        end
       end
     end
 
@@ -208,21 +222,44 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises not found error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::RecordNotFound, /Organization not found/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_not_found')
+        end
       end
     end
 
-    context 'when user is not owner' do
-      before do
-        allow(organization).to receive(:owner?).with(customer).and_return(false)
+    context 'when user lacks manage_org entitlement' do
+      let(:membership) do
+        instance_double(
+          Onetime::OrganizationMembership,
+          active?: true,
+          can?: false  # Member without manage_org entitlement
+        )
       end
 
-      it 'raises authorization error' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::Forbidden, /Only organization owner/
-        )
+      before do
+        # planid is accessed when building upgrade path in EntitlementRequired
+        allow(organization).to receive(:planid).and_return('basic')
+      end
+
+      it 'raises entitlement required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired) do |error|
+          expect(error.entitlement).to eq('manage_org')
+        end
+      end
+    end
+
+    context 'when user is not a member of the organization' do
+      before do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-123', 'cust-123')
+          .and_return(nil)
+      end
+
+      it 'raises membership required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.organization_member_required')
+        end
       end
     end
 
@@ -237,9 +274,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises form error for name too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /must be less than 100 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.display_name_too_long')
+        end
       end
     end
 
@@ -254,9 +291,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       end
 
       it 'raises form error for description too long' do
-        expect { logic.raise_concerns }.to raise_error(
-          Onetime::FormError, /Description must be less than 500 characters/
-        )
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_key).to eq('api.organizations.errors.description_too_long')
+        end
       end
     end
 

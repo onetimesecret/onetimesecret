@@ -17,6 +17,7 @@ module Onetime
     feature :expiration
     feature :relationships
     feature :required_fields
+    feature :housekeeping
     feature :deprecated_fields
 
     # Migration features - REMOVE after v1→v2 migration complete
@@ -52,6 +53,7 @@ module Onetime
     # that based on the `secret_ttl` and the `created` timestamp. See
     # the secret_expired? and expiration methods.
     field :recipients
+    field :recipient_name  # Display name for incoming-secret recipients (preferred over obscured email)
     field :memo  # Optional memo/subject for incoming secrets
 
     # Class-level collections for expiration warning feature

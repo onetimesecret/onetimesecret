@@ -15,7 +15,7 @@ module Auth::Config::Hooks
           Auth::Logging.log_auth_event(
             :around_rodauth,
             level: :debug,
-            session_id: session.id,
+            session_id: session.respond_to?(:id) ? session.id : session[:session_id],
             current_route: current_route,
             request_path: request.path,
           )
@@ -58,7 +58,7 @@ module Auth::Config::Hooks
               level: :error,
               current_route: current_route,
               request_path: request.path,
-              session_id: session.id,
+              session_id: session.respond_to?(:id) ? session.id : session[:session_id],
               error_class: ex.class.name,
               error_message: ex.message,
               backtrace: ex.backtrace&.first(5),
@@ -72,7 +72,7 @@ module Auth::Config::Hooks
             level: :warn,
             current_route: current_route,
             request_path: request.path,
-            session_id: session.id,
+            session_id: session.respond_to?(:id) ? session.id : session[:session_id],
             orphaned_account_id: session_account_id,
             message: 'Session references deleted account - clearing session',
           )
@@ -108,7 +108,7 @@ module Auth::Config::Hooks
             level: :error,
             current_route: current_route,
             request_path: request.path,
-            session_id: session.id,
+            session_id: session.respond_to?(:id) ? session.id : session[:session_id],
             error_class: ex.class.name,
             error_message: ex.message,
             error_backtrace: ex.backtrace&.first(5),

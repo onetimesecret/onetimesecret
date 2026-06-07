@@ -158,5 +158,33 @@
   "web.regions.changing_regions_subscription_note": {
     "text": "サブスクリプション特典は、請求先メールアドレスで作成されたすべてのアカウントに自動的に適用されます。",
     "source_hash": "5b2238b2"
+  },
+  "web.regions.jurisdictions.eu.name": {
+    "text": "European Union",
+    "source_hash": "7fe24f2b"
+  },
+  "web.regions.jurisdictions.us.name": {
+    "text": "United States",
+    "source_hash": "49dca65f"
+  },
+  "web.regions.jurisdictions.ca.name": {
+    "text": "Canada",
+    "source_hash": "be55ef3f"
+  },
+  "web.regions.jurisdictions.uk.name": {
+    "text": "United Kingdom",
+    "source_hash": "8d23a6e3"
+  },
+  "web.regions.jurisdictions.nz.name": {
+    "text": "New Zealand",
+    "source_hash": "2898e16d"
+  },
+  "web.regions.jurisdictions.at.name": {
+    "text": "Austria",
+    "source_hash": "c9cab023"
+  },
+  "web.regions.jurisdictions.apac.name": {
+    "text": "Asia-Pacific",
+    "source_hash": "7a757670"
   }
 }

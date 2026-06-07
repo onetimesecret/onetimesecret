@@ -37,7 +37,7 @@ export function createMockPlan(overrides: Partial<Plan> = {}): Plan {
     region: 'US',
     display_order: 100,
     features: ['Feature 1', 'Feature 2'],
-    limits: { teams: 1, members_per_team: 10 },
+    limits: { teams: 1, total_members_per_org: 10 },
     entitlements: ['create_secrets', 'api_access', 'custom_domains'],
     ...overrides,
   };
@@ -56,7 +56,7 @@ export const mockPlans: Record<string, Plan> = {
     amount: 0,
     display_order: 0,
     features: ['Basic secret sharing'],
-    limits: { teams: 0, members_per_team: 0 },
+    limits: { teams: 0, total_members_per_org: 0 },
     entitlements: [],
   }),
   /**
@@ -74,11 +74,11 @@ export const mockPlans: Record<string, Plan> = {
     display_order: -1, // Not shown in plan selector (legacy)
     plan_code: 'identity',
     features: ['Custom domains', 'API access', 'Branding', 'Early Supporter perks'],
-    limits: { teams: 1, members_per_team: 10 },
+    limits: { teams: 1, total_members_per_org: 10 },
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
-  single_team_monthly: createMockPlan({
-    id: 'identity_plus_v1_monthly',
+  single_team: createMockPlan({
+    id: 'identity_plus_v1',
     stripe_price_id: 'price_single_monthly',
     name: 'Identity Plus',
     tier: 'single_team',
@@ -88,25 +88,11 @@ export const mockPlans: Record<string, Plan> = {
     plan_code: 'identity_plus_v1',
     is_popular: true,
     features: ['Custom domains', 'API access', 'Branding'],
-    limits: { teams: 1, members_per_team: 10 },
+    limits: { teams: 1, total_members_per_org: 10 },
     entitlements: ['api_access', 'custom_domains', 'custom_branding'],
   }),
-  single_team_yearly: createMockPlan({
-    id: 'identity_plus_v1_yearly',
-    stripe_price_id: 'price_single_yearly',
-    name: 'Identity Plus',
-    tier: 'single_team',
-    interval: 'year',
-    amount: 29000,
-    display_order: 11,
-    plan_code: 'identity_plus_v1',
-    monthly_equivalent_amount: 2417,
-    features: ['Custom domains', 'API access', 'Branding'],
-    limits: { teams: 1, members_per_team: 10 },
-    entitlements: ['api_access', 'custom_domains', 'custom_branding'],
-  }),
-  multi_team_monthly: createMockPlan({
-    id: 'team_plus_v1_monthly',
+  multi_team: createMockPlan({
+    id: 'team_plus_v1',
     stripe_price_id: 'price_multi_monthly',
     name: 'Team Plus',
     tier: 'multi_team',
@@ -115,28 +101,7 @@ export const mockPlans: Record<string, Plan> = {
     display_order: 20,
     plan_code: 'team_plus_v1',
     features: ['All Identity Plus features', 'Multiple teams', 'SSO', 'Audit logs'],
-    limits: { teams: 5, members_per_team: 25 },
-    entitlements: [
-      'api_access',
-      'custom_domains',
-      'custom_branding',
-      'manage_teams',
-      'manage_members',
-      'audit_logs',
-    ],
-  }),
-  multi_team_yearly: createMockPlan({
-    id: 'team_plus_v1_yearly',
-    stripe_price_id: 'price_multi_yearly',
-    name: 'Team Plus',
-    tier: 'multi_team',
-    interval: 'year',
-    amount: 99000,
-    display_order: 21,
-    plan_code: 'team_plus_v1',
-    monthly_equivalent_amount: 8250,
-    features: ['All Identity Plus features', 'Multiple teams', 'SSO', 'Audit logs'],
-    limits: { teams: 5, members_per_team: 25 },
+    limits: { teams: 5, total_members_per_org: 25 },
     entitlements: [
       'api_access',
       'custom_domains',
@@ -242,7 +207,7 @@ export function createMockSubscriptionStatus(
 ): SubscriptionStatusResponse {
   return {
     has_active_subscription: true,
-    current_plan: 'identity_plus_v1_monthly',
+    current_plan: 'identity_plus_v1',
     current_price_id: 'price_single_monthly',
     subscription_item_id: 'si_test_123',
     subscription_status: 'active',
@@ -277,7 +242,7 @@ export const mockSubscriptionStatuses = {
   }),
   /**
    * Legacy "identity" plan subscriber - Early Supporter with grandfathered pricing.
-   * Note: current_plan is 'identity' (not 'identity_plus_v1_monthly').
+   * Note: current_plan is 'identity' (not 'identity_plus_v1').
    */
   legacyIdentity: createMockSubscriptionStatus({
     current_plan: 'identity',
@@ -314,7 +279,7 @@ export const mockOrganizations = {
   /**
    * Legacy "identity" plan - grandfathered Early Supporter plan
    * These customers have single_team tier features but their planid is just 'identity'
-   * (not 'identity_plus_v1_monthly'). Display should show "Identity Plus (Early Supporter)".
+   * (not 'identity_plus_v1'). Display should show "Identity Plus (Early Supporter)".
    */
   legacyIdentity: createWireLegacyIdentityOrganization(),
   noOrg: null,
@@ -414,7 +379,7 @@ export function createMockOverviewResponse(
       canceled: false,
     },
     plan: {
-      id: 'identity_plus_v1_monthly',
+      id: 'identity_plus_v1',
       name: 'Identity Plus',
       tier: 'single_team',
       interval: 'month',

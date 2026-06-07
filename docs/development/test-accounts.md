@@ -1,3 +1,6 @@
+# docs/development/test-accounts.md
+---
+
 # Test Accounts and API Credentials
 
 Create customer accounts and generate Basic Auth API tokens from the CLI for development and testing.
@@ -74,7 +77,7 @@ org.save
 org.can?('custom_domains')  # verify entitlements
 ```
 
-Available plan IDs are defined in `etc/billing.yaml` under the `plans:` key (e.g., `free_v1`, `identity_v1`, `identity_plus_v1`). See `etc/examples/billing.example.yaml` for the full catalog structure.
+Available plan IDs are defined in `etc/billing.yaml` under the `plans:` key (e.g., `free_v1`, `identity_plus_v1`, `team_plus_v1`). See `etc/examples/billing.example.yaml` for the full catalog structure.
 
 ## How Basic Auth Works
 

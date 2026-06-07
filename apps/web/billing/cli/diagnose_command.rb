@@ -286,7 +286,7 @@ module Onetime
         puts '-' * 70
 
         unless billing_on
-          ents = Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.dup
+          ents = Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS.dup
           puts '  Source: STANDALONE_ENTITLEMENTS (billing disabled)'
           puts "  Count:  #{ents.size}"
           puts
@@ -294,7 +294,7 @@ module Onetime
         end
 
         if planid.empty?
-          ents = Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
+          ents = Onetime::Models::Features::WithPlanEntitlements::FREE_TIER_ENTITLEMENTS.dup
           puts '  Source: FREE_TIER_ENTITLEMENTS (no plan assigned)'
           puts "  Count:  #{ents.size}"
           puts
@@ -332,12 +332,13 @@ module Onetime
 
         puts "  billing.yaml: MISS for '#{planid}'"
 
-        # Final fallback
-        ents = Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
-        puts '  Source: FREE_TIER_ENTITLEMENTS (final fallback)'
-        puts "  Count:  #{ents.size}"
+        # Fail-closed: runtime raises PlanCacheMissError, no silent fallback.
+        # This diagnostic shows what WOULD have been the final fallback,
+        # but the actual behavior is fail-closed.
+        puts '  WARNING: Runtime will raise PlanCacheMissError (fail-closed)'
+        puts '  Fix: Run `bin/ots billing catalog pull` to populate the plan cache'
         puts
-        ents
+        []
       end
 
       def check_custom_mail_feature_flag

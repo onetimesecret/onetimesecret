@@ -2,12 +2,80 @@
 
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import type { Jurisdiction, RegionsConfig } from '@/schemas/shapes/config';
+import type { Jurisdiction, JurisdictionIcon, RegionsConfig } from '@/schemas/shapes/config';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useApi } from '@/shared/composables/useApi';
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import {
+  JURISDICTION_ICONS,
+  getJurisdictionIcon,
+} from '@/sources/jurisdictions';
+
+// Re-export for backward compatibility
+export { JURISDICTION_ICONS, getJurisdictionIcon };
+
+/**
+ * Resolve the icon for a jurisdiction, preferring the jurisdiction's own icon
+ * if present, otherwise falling back to the identifier mapping.
+ */
+export function resolveJurisdictionIcon(jurisdiction: Jurisdiction): JurisdictionIcon {
+  return jurisdiction.icon ?? getJurisdictionIcon(jurisdiction.identifier);
+}
+
+/**
+ * Jurisdiction with resolved display_name from i18n and resolved icon.
+ */
+export interface JurisdictionWithDisplayName extends Jurisdiction {
+  display_name: string;
+  icon: JurisdictionIcon;
+}
+
+/**
+ * Resolve display_name from i18n key.
+ * Must be called within Vue's setup context.
+ */
+export function resolveJurisdictionDisplayName(
+  jurisdiction: Jurisdiction,
+  t: (key: string) => string
+): string {
+  return t(jurisdiction.display_name_i18n_key);
+}
+
+/**
+ * Composable that provides jurisdictions with resolved display names.
+ * Must be called within Vue's setup context.
+ */
+export function useJurisdictionDisplayNames() {
+  const { t } = useI18n();
+  const jurisdictionStore = useJurisdictionStore();
+
+  const resolveDisplayName = (jurisdiction: Jurisdiction): string => t(jurisdiction.display_name_i18n_key);
+
+  const currentJurisdictionWithDisplayName = computed((): JurisdictionWithDisplayName | null => {
+    const jurisdiction = jurisdictionStore.getCurrentJurisdiction;
+    if (!jurisdiction) return null;
+    return {
+      ...jurisdiction,
+      display_name: resolveDisplayName(jurisdiction),
+      icon: resolveJurisdictionIcon(jurisdiction),
+    };
+  });
+
+  const jurisdictionsWithDisplayName = computed((): JurisdictionWithDisplayName[] => jurisdictionStore.getAllJurisdictions.map((j) => ({
+      ...j,
+      display_name: resolveDisplayName(j),
+      icon: resolveJurisdictionIcon(j),
+    })));
+
+  return {
+    resolveDisplayName,
+    currentJurisdictionWithDisplayName,
+    jurisdictionsWithDisplayName,
+  };
+}
 
 /**
  * N.B.

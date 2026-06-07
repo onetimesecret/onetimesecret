@@ -55,6 +55,18 @@ module Onetime
 
     SCHEMA = 'models/customer'
 
+    # Provisioning origin values for the provisioning_origin field.
+    #
+    # Tracks how the customer came into being. This is metadata for lifecycle,
+    # audit, and occasional copy purposes — not a user class. Capabilities are
+    # always determined by role within an organization, never by this value.
+    #
+    # - canonical_signup: Self-signup on the canonical/main app domain
+    # - domain_signup:    Self-signup on a custom domain (CustomDomain context)
+    # - invite:           Accepted an organization invitation
+    # - sso_jit:          Just-in-time provisioning via OmniAuth/SSO
+    PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit].freeze
+
     require_relative 'customer/features'
 
     using Familia::Refinements::TimeLiterals
@@ -73,9 +85,10 @@ module Onetime
     feature :with_custom_domains
     feature :status
     feature :role_index
+    feature :housekeeping
 
     feature :deprecated_fields
-    feature :legacy_encrypted_fields
+    feature :passphrase_hashing
     feature :legacy_secrets_fields
 
     # Migration features - REMOVE after v1→v2 migration complete
@@ -83,7 +96,7 @@ module Onetime
     feature :customer_migration_fields
 
     sorted_set :receipts
-    hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+    hashkey :feature_flags # Per-customer feature toggles
 
     # Used to track the current and most recently created password reset secret.
     string :reset_secret, default_expiration: 24.hours
@@ -94,6 +107,12 @@ module Onetime
     # Tracks delivery status of the pending email change confirmation email.
     # Values: queued, sent, failed. Expires with the pending change.
     string :pending_email_delivery_status, default_expiration: 24.hours
+
+    # Persists plan selection through email verification flow.
+    # JSON structure: {"product": "identity_plus_v1", "interval": "yearly",
+    #                  "captured_at": "2026-05-14T10:30:00Z", "source_url": "/billing/plans/..."}
+    # Single-use: cleared after successful verification redirect.
+    string :pending_plan_intent, default_expiration: 24.hours
 
     identifier_field :objid
 
@@ -134,6 +153,17 @@ module Onetime
     # without affecting the org's global is_default setting.
     field :default_org_id
 
+    # CustomDomain identifier at signup time.
+    # Captured for re-verification and background job context where
+    # request domain context is not available.
+    field :signup_domain_id
+
+    # How this customer was provisioned. One of PROVISIONING_ORIGINS.
+    # Metadata only — does not affect capabilities. Used for lifecycle,
+    # audit, and occasional UX copy. nil for pre-existing records and
+    # for paths that don't set it (CLI, tests, migrations).
+    field :provisioning_origin
+
     def init
       super
 
@@ -142,7 +172,7 @@ module Onetime
       # uuid_v4, hex, etc.) in @objid_generator_used for provenance tracking.
       # Accessing @objid directly bypasses the lazy generation mechanism and
       # skips provenance tracking, causing ExternalIdentifier derivation to fail.
-      self.custid ||= objid # previously <=0.22, custid was email address.
+      self.custid ||= objid
       self.role   ||= 'customer'
 
       # When an instance is first created, any field that doesn't have a

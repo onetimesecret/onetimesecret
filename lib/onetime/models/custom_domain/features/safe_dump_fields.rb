@@ -29,6 +29,7 @@ module Onetime::CustomDomain::Features
       # that we want to avoid unless we are actually going to use it.
       base.safe_dump_field :status
       base.safe_dump_field :vhost, ->(obj) { obj.parse_vhost }
+      base.safe_dump_field :vhost_fetch_failed_at, ->(obj) { obj.vhost_fetch_failed_at&.to_i }
       base.safe_dump_field :verified, ->(obj) { obj.verified.to_s == 'true' }
       base.safe_dump_field :created
       base.safe_dump_field :updated
@@ -83,6 +84,8 @@ module Onetime::CustomDomain::Features
           {
             domain_id: config.domain_id,
             enabled: config.enabled?,
+            signup_enabled: config.signup_enabled?,
+            signin_enabled: config.signin_enabled?,
             created_at: config.created&.to_i,
             updated_at: config.updated&.to_i,
           }

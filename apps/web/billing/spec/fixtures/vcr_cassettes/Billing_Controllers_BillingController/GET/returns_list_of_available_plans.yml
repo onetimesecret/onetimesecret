@@ -1315,7 +1315,7 @@ http_interactions:
                 "display_order": "0",
                 "entitlements": "create_secrets,view_receipt,api_access",
                 "limit_custom_domains": "0",
-                "limit_members_per_team": "1",
+                "limit_total_members_per_org": "1",
                 "limit_secret_lifetime": "604800",
                 "limit_teams": "0",
                 "plan_id": "free_v1",
@@ -1367,7 +1367,7 @@ http_interactions:
                 "display_order": "10",
                 "entitlements": "create_secrets,view_receipt,api_access,custom_domains,custom_branding",
                 "limit_custom_domains": "-1",
-                "limit_members_per_team": "1",
+                "limit_total_members_per_org": "1",
                 "limit_secret_lifetime": "1209600",
                 "limit_secrets_per_day": "-1",
                 "ots_is_popular": "false",
@@ -1413,7 +1413,7 @@ http_interactions:
                 "created": "2026-02-09T18:45:58Z",
                 "entitlements": "create_secrets,view_receipt,custom_domains,custom_branding,homepage_secrets,api_access",
                 "limit_custom_domains": "-1",
-                "limit_members_per_team": "5",
+                "limit_total_members_per_org": "5",
                 "limit_secret_lifetime": "2592000",
                 "plan_id": "identity",
                 "region": "UK",
@@ -1457,7 +1457,7 @@ http_interactions:
                 "display_order": "0",
                 "entitlements": "create_secrets,custom_domains,view_receipt,api_access",
                 "limit_custom_domains": "1",
-                "limit_members_per_team": "1",
+                "limit_total_members_per_org": "1",
                 "limit_secret_lifetime": "604800",
                 "ots_is_popular": "false",
                 "plan_id": "free_v1",
@@ -4132,7 +4132,7 @@ http_interactions:
                 "created": "2025-12-29T02:31:03Z",
                 "entitlements": "create_secrets,view_receipt,custom_domains,extended_default_expiration,custom_branding,homepage_secrets,api_access",
                 "limit_custom_domains": "25",
-                "limit_members_per_team": "5",
+                "limit_total_members_per_org": "5",
                 "limit_secret_lifetime": "2592000",
                 "limit_teams": "1",
                 "plan_id": "identity",
@@ -4168,7 +4168,7 @@ http_interactions:
                 "display_order": "10",
                 "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,homepage_secrets",
                 "limit_custom_domains": "-1",
-                "limit_members_per_team": "1",
+                "limit_total_members_per_org": "1",
                 "limit_secret_lifetime": "2592000",
                 "limit_secrets_per_day": "-1",
                 "limit_teams": "0",
@@ -4236,7 +4236,7 @@ http_interactions:
                 "created": "2025-12-25T15:02:09Z",
                 "display_order": "y",
                 "entitlements": "y",
-                "limit_members_per_team": "y",
+                "limit_total_members_per_org": "y",
                 "limit_teams": "y",
                 "plan_id": "y",
                 "region": "y",
@@ -15107,7 +15107,7 @@ http_interactions:
                 "display_order": "0",
                 "entitlements": "create_secrets,view_receipt,api_access",
                 "limit_custom_domains": "0",
-                "limit_members_per_team": "1",
+                "limit_total_members_per_org": "1",
                 "limit_secret_lifetime": "604800",
                 "limit_teams": "0",
                 "plan_id": "free_v1",
@@ -15174,7 +15174,7 @@ http_interactions:
                 "display_order": "40",
                 "entitlements": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,homepage_secrets,manage_teams,manage_members,audit_logs,sso,priority_support,sla",
                 "limit_custom_domains": "-1",
-                "limit_members_per_team": "-1",
+                "limit_total_members_per_org": "-1",
                 "limit_secret_lifetime": "-1",
                 "limit_secrets_per_day": "-1",
                 "limit_teams": "-1",
@@ -15211,7 +15211,7 @@ http_interactions:
                 "display_order": "30",
                 "entitlements": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,homepage_secrets,manage_teams,manage_members,audit_logs,sso",
                 "limit_custom_domains": "-1",
-                "limit_members_per_team": "25",
+                "limit_total_members_per_org": "25",
                 "limit_secret_lifetime": "2592000",
                 "limit_secrets_per_day": "-1",
                 "limit_teams": "-1",
@@ -15248,7 +15248,7 @@ http_interactions:
                 "display_order": "20",
                 "entitlements": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,homepage_secrets,manage_teams,manage_members",
                 "limit_custom_domains": "-1",
-                "limit_members_per_team": "10",
+                "limit_total_members_per_org": "10",
                 "limit_secret_lifetime": "2592000",
                 "limit_secrets_per_day": "-1",
                 "limit_teams": "1",
@@ -15285,7 +15285,7 @@ http_interactions:
                 "display_order": "10",
                 "entitlements": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,homepage_secrets",
                 "limit_custom_domains": "-1",
-                "limit_members_per_team": "10",
+                "limit_total_members_per_org": "10",
                 "limit_secret_lifetime": "2592000",
                 "limit_teams": "0",
                 "ots_is_popular": "false",
@@ -16128,4 +16128,78 @@ http_interactions:
           "url": "/v1/prices"
         }
   recorded_at: Mon, 16 Feb 2026 12:13:57 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TzPUnsAuFSbODB
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/18.4.2 AIAgent/claude_code
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"18.4.2","lang":"ruby","lang_version":"3.4.9 p82 (2026-03-11)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:31:17 PDT
+        2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local","ai_agent":"claude_code"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Mon, 18 May 2026 01:36:13 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '114'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        upgrade-insecure-requests
+      Vary:
+      - Origin
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
+      X-Wc:
+      - '383'
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "error": {
+            "message": "Invalid API Key provided: sk_test_mock",
+            "type": "invalid_request_error"
+          }
+        }
+  recorded_at: Mon, 18 May 2026 01:36:12 GMT
 recorded_with: VCR 6.4.0

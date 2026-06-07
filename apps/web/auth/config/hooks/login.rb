@@ -4,14 +4,23 @@
 
 module Auth::Config::Hooks
   module Login
-    def self.configure(auth)
+    def self.configure(auth) # rubocop:disable Metrics/PerceivedComplexity
       #
       # Hook: Before Login Attempt
       #
       # This hook is triggered before processing a login attempt. It generates
       # a correlation ID for tracking the entire authentication flow.
       #
+      # NOTE: Rodauth hooks don't chain — each call overwrites the previous
+      # definition. All before_login_attempt logic must live here, not split
+      # across hook files. billing.rb's capture_plan_selection was moved here
+      # after the hook-collision bug (#3275).
+      #
       auth.before_login_attempt do
+        # Billing: capture plan selection from query params before validation.
+        # Method defined by Billing.configure via auth_class_eval; no-op if billing disabled.
+        capture_plan_selection if respond_to?(:capture_plan_selection)
+
         email = param_or_nil('login') || param_or_nil('email')
 
         # Generate correlation ID for this authentication attempt
@@ -52,6 +61,45 @@ module Auth::Config::Hooks
           correlation_id: correlation_id,
         )
 
+        # Detect SSO callback context. omniauth_provider is defined by
+        # rodauth-omniauth when the omniauth feature is enabled; it returns a
+        # truthy value (e.g. 'oidc') only when this login originated from an
+        # OmniAuth callback. For password logins it is nil or absent.
+        via_omniauth = respond_to?(:omniauth_provider) && !omniauth_provider.to_s.empty?
+
+        # Join domain organization for SSO logins on custom domains.
+        # Runs BEFORE MFA detection so SSO users with OTP configured (e.g.,
+        # legacy password+MFA accounts now using SSO) still get joined. This
+        # is also the single point of cleanup for :validated_omniauth_domain_id:
+        # whether or not the join happens, the key is consumed here.
+        # New accounts have already been joined by after_omniauth_create_account
+        # (which consumed the key); for them, session.delete returns nil and
+        # the guard below short-circuits — no duplicate call.
+        domain_id = session.delete(:validated_omniauth_domain_id)
+        if domain_id
+          customer = Onetime::Customer.find_by_extid(account[:external_id])
+          if customer
+            result = Onetime::ErrorHandler.safe_execute(
+              'join_domain_organization_login',
+              account_id: account_id,
+              domain_id: domain_id,
+            ) do
+              Auth::Operations::JoinDomainOrganization.new(
+                customer: customer,
+                domain_id: domain_id,
+              ).call
+            end
+
+            # Clear org cache so next request picks up the domain org
+            # OrganizationLoader caches in session with key "org_context:#{customer.objid}"
+            if result&.dig(:joined)
+              cache_key = "org_context:#{customer.objid}"
+              session.delete(cache_key)
+              OT.ld "[after_login] Cleared org cache for #{customer.custid} after domain org join"
+            end
+          end
+        end
+
         # MFA detection: only run if the OTP feature is actually loaded.
         # MFA features are conditionally enabled via Onetime.auth_config.mfa_enabled?
         # in config.rb, so otp_auth_route and related methods may not exist.
@@ -69,15 +117,19 @@ module Auth::Config::Hooks
             has_otp: mfa_state.has_otp_secret,
             has_recovery: mfa_state.has_recovery_codes,
             mfa_enabled: mfa_state.mfa_enabled?,
+            via_omniauth: via_omniauth,
             correlation_id: correlation_id,
           )
 
           # Step 2: Make MFA requirement decision (pure function, no side effects)
-          # This accepts only primitive data and returns an immutable decision object
+          # This accepts only primitive data and returns an immutable decision object.
+          # SSO logins (via_omniauth: true) bypass MFA — the IdP is trusted to
+          # handle authentication factors.
           mfa_decision = Auth::Operations::DetectMfaRequirement.call(
             account_id: account_id,
             has_otp_secret: mfa_state.has_otp_secret,
             has_recovery_codes: mfa_state.has_recovery_codes,
+            via_omniauth: via_omniauth,
           )
         end
 
@@ -145,43 +197,18 @@ module Auth::Config::Hooks
             )
           end
 
-          # Join domain organization for SSO logins on custom domains.
-          # This ensures OrganizationLoader returns the domain's org, not personal workspace.
-          # Only runs when session has SSO tenant context (set by omniauth_tenant.rb).
-          domain_id = session[:omniauth_tenant_domain_id]
-          if domain_id
-            # Load customer by external_id (extid) stored in the account record
-            customer = Onetime::Customer.find_by_extid(account[:external_id])
-            if customer
-              result = Onetime::ErrorHandler.safe_execute(
-                'join_domain_organization_login',
-                account_id: account_id,
-                domain_id: domain_id,
-              ) do
-                Auth::Operations::JoinDomainOrganization.new(
-                  customer: customer,
-                  domain_id: domain_id,
-                ).call
-              end
+          # Invitation acceptance is intentionally not performed here. The
+          # frontend issues an explicit POST /api/invite/:token/accept after
+          # login completes, giving a single acceptance code path regardless
+          # of whether the user signed up fresh or already had an account.
+        end
 
-              # Clear org cache so next request picks up the domain org
-              # OrganizationLoader caches in session with key "org_context:#{customer.objid}"
-              if result&.dig(:joined)
-                cache_key = "org_context:#{customer.objid}"
-                session.delete(cache_key)
-                OT.ld "[after_login] Cleared org cache for #{customer.custid} after domain org join"
-              end
-            end
-          end
-
-          # Accept pending invitation if token provided in login request
-          Login.accept_invite_on_login(
-            request: request,
-            account: account,
-            account_id: account_id,
-            session: session,
-            correlation_id: correlation_id,
-          )
+        # Billing redirect: add plan selection to JSON response (issue #3275).
+        # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
+        # so the method is only available when billing is enabled. Check respond_to?
+        # to avoid NoMethodError when billing is disabled (self-hosted).
+        if json_request? && respond_to?(:add_billing_redirect_to_response)
+          add_billing_redirect_to_response
         end
       end
 
@@ -227,46 +254,6 @@ module Auth::Config::Hooks
             level: :warn,
             email: OT::Utils.obscure_email(email),
             ip: request.ip,
-            correlation_id: correlation_id,
-          )
-        end
-      end
-    end
-
-    # Accept pending invitation if token provided in login request
-    # Extracted to reduce complexity in configure method
-    def self.accept_invite_on_login(request:, account:, account_id:, session:, correlation_id:)
-      invite_token = request.params['invite_token']
-      return unless invite_token && !invite_token.to_s.strip.empty?
-
-      customer = Onetime::Customer.find_by_email(account[:email])
-      return unless customer
-
-      Onetime::ErrorHandler.safe_execute('accept_invitation_on_login', token: invite_token) do
-        result = Auth::Operations::AcceptInvitation.new(
-          customer: customer,
-          token: invite_token,
-        ).call
-
-        if result[:accepted]
-          Auth::Logging.log_auth_event(
-            :invitation_accepted_on_login,
-            level: :info,
-            account_id: account_id,
-            organization_id: result[:organization_id],
-            role: result[:role],
-            correlation_id: correlation_id,
-          )
-
-          # Clear org cache so next request picks up the new org
-          cache_key = "org_context:#{customer.objid}"
-          session.delete(cache_key)
-        else
-          Auth::Logging.log_auth_event(
-            :invitation_skipped_on_login,
-            level: :info,
-            account_id: account_id,
-            reason: result[:reason],
             correlation_id: correlation_id,
           )
         end

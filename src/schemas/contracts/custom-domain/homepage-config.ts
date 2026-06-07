@@ -7,6 +7,8 @@
 
 import { z } from 'zod';
 
+import { disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Homepage config canonical schema
 // ─────────────────────────────────────────────────────────────────────────────
@@ -26,6 +28,35 @@ export const homepageConfigCanonical = z.object({
 
   /** Whether homepage secrets is enabled for this domain. */
   enabled: z.boolean().default(false),
+
+  /**
+   * Whether the Sign Up link renders on this domain's homepage.
+   * Defaults to true (link visible). The site-level authentication.signup
+   * flag remains the master switch — the frontend ANDs both layers.
+   */
+  signup_enabled: z.boolean().default(true),
+
+  /**
+   * Whether the Sign In link renders on this domain's homepage.
+   * Defaults to true (link visible). The site-level authentication.signin
+   * flag remains the master switch — the frontend ANDs both layers.
+   */
+  signin_enabled: z.boolean().default(true),
+
+  /**
+   * Which disabled-homepage variant this domain renders when the homepage
+   * secret form is gated by auth. Null means "use the frontend default"
+   * (DEFAULT_DISABLED_HOMEPAGE_VARIANT) — operators only set this when
+   * they want to deviate from the deployment-wide default.
+   *
+   * `.catch(null)` over `.default(null)`: a future backend may emit a
+   * variant id this frontend version doesn't recognise; degrading to
+   * null (and thus to the frontend default) is preferable to crashing
+   * the whole bootstrap payload parse.
+   *
+   * The ?variant URL override still wins for dogfood/preview.
+   */
+  disabled_homepage_variant: disabledHomepageVariantSchema.nullable().catch(null),
 
   /** Configuration creation timestamp (Unix epoch seconds). Null if unconfigured. */
   created_at: z.number().nullable(),

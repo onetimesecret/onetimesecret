@@ -19,7 +19,7 @@ describe('error classifier', () => {
         {
           status: 403,
           statusText: 'Forbidden',
-          data: { message: 'Guest API access is disabled' },
+          data: { error: 'Guest API access is disabled' },
           headers: {},
           config: {} as any,
         }
@@ -70,7 +70,7 @@ describe('error classifier', () => {
         {
           status: 404,
           statusText: 'Not Found',
-          data: { message: 'Not Found' },
+          data: { error: 'Not Found' },
           headers: {},
           config: {} as any,
         }
@@ -95,7 +95,7 @@ describe('error classifier', () => {
         {
           status: 500,
           statusText: 'Internal Server Error',
-          data: { message: 'Internal Server Error' },
+          data: { error: 'Internal Server Error' },
           headers: {},
           config: {} as any,
         }
@@ -119,7 +119,7 @@ describe('error classifier', () => {
         undefined,
         {
           status: 429,
-          data: { message: 'Too Many Requests' },
+          data: { error: 'Too Many Requests' },
         } as any
       ) as AxiosError;
 
@@ -164,8 +164,8 @@ describe('error classifier', () => {
           status: 422,
           ok: false,
           statusText: 'Unprocessable Entity',
-          json: () => Promise.resolve({ message: 'Validation Failed' }),
-          data: { message: 'Validation Failed' },
+          json: () => Promise.resolve({ error: 'Validation Failed' }),
+          data: { error: 'Validation Failed' },
         },
       });
 
@@ -200,7 +200,7 @@ describe('error classifier', () => {
     describe('jsdom checks', () => {
       it.skip('classifies fetch response errors correctly', async () => {
         // Reason: "Response is not a constructor"
-        const response = new Response(JSON.stringify({ message: 'Validation Failed' }), {
+        const response = new Response(JSON.stringify({ error: 'Validation Failed' }), {
           status: 422,
           statusText: 'Unprocessable Entity',
           headers: {

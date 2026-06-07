@@ -120,24 +120,18 @@ module Onetime
           }
         end
 
-        # Validate required metadata
-        validate_product_metadata(product, errors)
-
-        # Check plan_id uniqueness (detect duplicates)
-        validate_plan_id_uniqueness(product, errors)
-      end
-
-      def validate_product_metadata(product, errors)
-        required_fields = %w[app plan_id tier region]
-        missing_fields  = required_fields.reject { |field| product.metadata[field] }
-
-        if missing_fields.any?
+        # Validate required metadata using canonical method
+        result = Billing::Plan.validate_product_metadata(product)
+        if result[:missing].any? || result[:blank].any?
+          problems = []
+          problems << "missing: #{result[:missing].join(', ')}" if result[:missing].any?
+          problems << "blank: #{result[:blank].join(', ')}" if result[:blank].any?
           errors << {
             product_id: product.id,
             plan_id: product.metadata['plan_id'] || 'unknown',
-            type: :missing_metadata,
-            message: 'Missing required metadata',
-            details: "Required metadata fields missing: #{missing_fields.join(', ')}",
+            type: :invalid_metadata,
+            message: 'Invalid product metadata',
+            details: problems.join('; '),
             resolution: [
               "Update product metadata: bin/ots billing products update #{product.id}",
               "See: #{stripe_dashboard_url(:product, product.id)}",
@@ -145,17 +139,8 @@ module Onetime
           }
         end
 
-        # Validate app field value
-        return unless product.metadata['app'] && product.metadata['app'] != 'onetimesecret'
-
-        errors << {
-          product_id: product.id,
-          plan_id: product.metadata['plan_id'] || 'unknown',
-          type: :invalid_app_metadata,
-          message: 'Invalid app metadata',
-          details: "Expected 'onetimesecret', got '#{product.metadata['app']}'",
-          resolution: ['Update app metadata to onetimesecret'],
-        }
+        # Check plan_id uniqueness (detect duplicates)
+        validate_plan_id_uniqueness(product, errors)
       end
 
       def validate_plan_id_uniqueness(product, errors)

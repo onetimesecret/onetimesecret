@@ -20,9 +20,16 @@ module Onetime::Organization::Features
       base.safe_dump_field :display_name
       base.safe_dump_field :description
       base.safe_dump_field :owner_id
+      # Immutable audit field (ADR-012). owner_id is kept for backward-
+      # compatible JSON consumers during the deprecation window; the two
+      # are kept identical via Organization.create! wiring and the
+      # standardize_owner_id housekeeping chore.
+      base.safe_dump_field :created_by
       base.safe_dump_field :contact_email
       base.safe_dump_field :billing_email
       base.safe_dump_field :is_default
+      base.safe_dump_field :archived_at
+      base.safe_dump_field :archived_comment
       base.safe_dump_field :planid
       base.safe_dump_field :member_count, ->(org) { org.member_count }
       base.safe_dump_field :domain_count, ->(org) { org.domain_count }
@@ -38,7 +45,7 @@ module Onetime::Organization::Features
                 normalize = ->(val) { val == Float::INFINITY ? -1 : val.to_i }
                 {
                   teams: normalize.call(org.limit_for(:teams)),
-                  members_per_team: normalize.call(org.limit_for(:members_per_team)),
+                  total_members_per_org: normalize.call(org.limit_for(:total_members_per_org)),
                   custom_domains: normalize.call(org.limit_for(:custom_domains)),
                 }
         }
