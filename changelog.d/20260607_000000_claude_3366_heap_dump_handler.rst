@@ -14,6 +14,15 @@ Added
   ``scripts/analyze-heapdump`` summarizes a dump (object counts by type, bytes
   by type, top STRING allocation sites). (#3366)
 
+Security
+--------
+
+- Heap dumps are written owner-only (``0600``) and created exclusively
+  (``O_EXCL``) so they cannot clobber or follow a pre-planted symlink in a
+  shared ``/tmp``. A dump serializes live String values, so it contains
+  plaintext secrets and key material — treat the file as a credential and
+  delete it after analysis. (#3366)
+
 AI Assistance
 -------------
 

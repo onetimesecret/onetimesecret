@@ -19,6 +19,9 @@
 # Capture a dump first with:
 #   kill -USR2 <pid>          # or: podman exec <container> kill -USR2 <pid>
 #
+# SECURITY: a heap dump contains plaintext secrets and key material that were
+# live in memory. Treat the dump file as a credential and delete it when done.
+#
 # For reference-chain analysis (why is an object still alive), use `sheap`.
 #
 # Requires: jq, awk, sort, uniq

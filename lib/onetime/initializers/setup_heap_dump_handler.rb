@@ -28,6 +28,14 @@ module Onetime
     # heap-<pid>-<epoch>.json. Process.pid in the filename disambiguates master
     # vs. worker dumps in cluster mode.
     #
+    # SECURITY: ObjectSpace.dump_all serializes the `value` of every live
+    # String, so a heap dump captured while secrets are in memory contains
+    # plaintext secrets, session tokens, and derived key material. The dump is
+    # therefore written owner-only (0600) and created exclusively (O_EXCL) so it
+    # cannot clobber or follow a pre-planted symlink in a shared /tmp. Treat the
+    # resulting file as a credential: restrict, transfer securely, and delete it
+    # once analysis is complete.
+    #
     class SetupHeapDumpHandler < Onetime::Boot::Initializer
       @provides = [:heap_dump]
       # Failing to install a diagnostic signal handler (e.g. USR2 unavailable on
@@ -46,7 +54,12 @@ module Onetime
           Thread.new do
             require 'objspace'
             path = File.join(DUMP_DIR, "heap-#{Process.pid}-#{Time.now.to_i}.json")
-            File.open(path, 'w') { |f| ObjectSpace.dump_all(output: f) }
+            # WRONLY|CREAT|EXCL + 0600: the dump contains plaintext secrets, so
+            # create it owner-only and refuse to write through an existing file
+            # or symlink (anti-clobber in a shared /tmp).
+            File.open(path, File::WRONLY | File::CREAT | File::EXCL, 0o600) do |f|
+              ObjectSpace.dump_all(output: f)
+            end
             Onetime.boot_logger.info "[heap] Dump written to #{path}"
           rescue StandardError => ex
             Onetime.boot_logger.error "[heap] Dump failed: #{ex.class}: #{ex.message}"

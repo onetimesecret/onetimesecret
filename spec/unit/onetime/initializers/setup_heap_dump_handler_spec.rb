@@ -76,6 +76,18 @@ RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
         expect { @handler.call }.not_to raise_error
         expect(logger).to have_received(:error).with(/\[heap\] Dump failed: Errno::EACCES/)
       end
+
+      it 'creates the dump owner-only and refuses to follow an existing file' do
+        # The dump contains plaintext secrets; it must be 0600 and must not
+        # clobber/follow a pre-existing path (symlink defense in a shared /tmp).
+        expect(File).to receive(:open)
+          .with(anything, File::WRONLY | File::CREAT | File::EXCL, 0o600)
+          .and_yield(fake_io)
+
+        instance.execute(context)
+        @handler.call
+        expect(ObjectSpace).to have_received(:dump_all).with(output: fake_io)
+      end
     end
   end
 end
