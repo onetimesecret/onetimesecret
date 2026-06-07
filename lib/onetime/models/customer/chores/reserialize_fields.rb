@@ -44,7 +44,7 @@ Onetime::Customer.chore :reserialize_fields do |cust|
 
   logger.info 'Reserializing legacy plain-string fields',
     chore: :reserialize_fields,
-    custid: cust.custid
+    cust_extid: cust.extid
 
   cust.save
   true
