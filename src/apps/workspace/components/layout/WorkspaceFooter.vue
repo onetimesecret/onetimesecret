@@ -29,7 +29,7 @@
   const { t, locale } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled, support_host, ui } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, support_host, ui, brand_product_name } = storeToRefs(bootstrapStore);
   const { showVersionConfig } = useFooterConfig();
 
   // Store instances for counts
