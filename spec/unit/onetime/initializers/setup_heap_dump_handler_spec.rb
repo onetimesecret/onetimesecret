@@ -1,0 +1,81 @@
+# spec/unit/onetime/initializers/setup_heap_dump_handler_spec.rb
+#
+# frozen_string_literal: true
+
+require 'spec_helper'
+require 'onetime/initializers/setup_heap_dump_handler'
+
+RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
+  let(:instance) { described_class.new }
+  let(:context) { double('context') }
+  let(:logger) { instance_double('SemanticLogger::Logger', info: nil, error: nil, debug: nil) }
+
+  before do
+    allow(Onetime).to receive(:boot_logger).and_return(logger)
+  end
+
+  describe 'metadata' do
+    it 'provides the :heap_dump capability' do
+      expect(described_class.provides).to eq([:heap_dump])
+    end
+
+    it 'is optional so a failed handler install never blocks boot' do
+      expect(described_class.optional).to be true
+    end
+
+    it 'is NOT fork-sensitive so forked workers inherit the handler' do
+      # Marking it :fork_sensitive would have cleanup_before_fork tear it down
+      # before Puma/Sneakers workers are spawned, losing the handler.
+      expect(described_class.phase).to eq(:preload)
+    end
+  end
+
+  describe '#execute' do
+    after do
+      # Restore default disposition so the installed trap does not leak into
+      # other examples.
+      Signal.trap('USR2', 'DEFAULT')
+    end
+
+    it 'installs a USR2 signal handler' do
+      expect(Signal).to receive(:trap).with('USR2')
+      instance.execute(context)
+    end
+
+    it 'logs that the handler was installed' do
+      allow(Signal).to receive(:trap)
+      instance.execute(context)
+      expect(logger).to have_received(:debug).with(/heap dump handler installed/)
+    end
+
+    context 'when the trap fires' do
+      let(:fake_io) { StringIO.new }
+
+      before do
+        # Capture the trap block instead of installing it, and run any spawned
+        # thread synchronously for deterministic assertions.
+        @handler = nil
+        allow(Signal).to receive(:trap).with('USR2') { |&block| @handler = block }
+        allow(Thread).to receive(:new).and_yield
+        allow(File).to receive(:open).and_yield(fake_io)
+        allow(ObjectSpace).to receive(:dump_all)
+      end
+
+      it 'writes a heap dump and logs the path' do
+        instance.execute(context)
+        @handler.call
+
+        expect(ObjectSpace).to have_received(:dump_all).with(output: fake_io)
+        expect(logger).to have_received(:info).with(%r{\[heap\] Dump written to .*heap-#{Process.pid}-\d+\.json})
+      end
+
+      it 'logs an error instead of raising when the dump fails' do
+        allow(ObjectSpace).to receive(:dump_all).and_raise(Errno::EACCES, 'no write')
+
+        instance.execute(context)
+        expect { @handler.call }.not_to raise_error
+        expect(logger).to have_received(:error).with(/\[heap\] Dump failed: Errno::EACCES/)
+      end
+    end
+  end
+end
