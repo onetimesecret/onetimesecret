@@ -163,7 +163,14 @@ module Onetime
       # makes the index read as "current" afterward. Index identifiers (UUIDs /
       # prefixed IDs) never contain escaped characters, so a plain slice is
       # exact; it also can't raise the way JSON.parse would on unexpected data.
+      #
+      # Guards on legacy_json_encoded? like the upstream method does, so it
+      # returns non-legacy values untouched and never slices a too-short string
+      # into nil (legacy_json_encoded? already requires length > 2 — this just
+      # makes the invariant self-documenting and the method safe in isolation).
       def strip_legacy(value)
+        return value unless Familia.legacy_json_encoded?(value)
+
         value[1..-2]
       end
     end

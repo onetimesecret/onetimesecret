@@ -7,17 +7,20 @@ module Onetime
     # CheckUniqueIndexFormat initializer
     #
     # Familia 2.10 changed unique_index storage from JSON-encoded strings
-    # (e.g. "\"dom_abc123\"") to raw strings (e.g. "dom_abc123"). An index still
-    # holding the legacy format silently breaks its generated finder: the lookup
-    # returns the quoted id, Model.load finds no record, and nil is returned —
-    # e.g. CustomDomain.from_display_domain, which OrganizationLoader relies on
-    # for domain-based SSO selection. A deploy that skips the rebuild degrades to
-    # personal-workspace fallback for every domain login, with no error.
+    # (e.g. "\"dom_abc123\"") to raw strings (e.g. "dom_abc123").
     #
-    # This boot guard samples raw values across all class-level unique indexes
-    # via Familia.assert_indexes_current! and warns — non-fatally — when any are
-    # still in the legacy format, pointing operators at the remediation
-    # migration. Boot continues so the migration can be run.
+    # On 2.10.0 a stale index broke its finder outright (the lookup returned the
+    # quoted id, Model.load matched nothing, nil came back). On 2.10.1 the read
+    # path self-heals — finders such as CustomDomain.from_display_domain resolve
+    # again — but every read warns and storage stays stale until rewritten,
+    # leaving the app dependent on that shim and OrganizationLoader's domain-SSO
+    # selection one Familia change away from breaking.
+    #
+    # This boot guard delegates to Familia.assert_indexes_current!, which samples
+    # raw values across CLASS-LEVEL unique indexes only. Instance-scoped indexes
+    # (e.g. organization:*:email_index) cannot be sampled without a scope and are
+    # NOT covered here — the migration handles those. It warns non-fatally and
+    # points operators at the migration; boot continues so it can be run.
     #
     # Remediated by:
     #   bin/ots migrate --run 20260606_01_unique_index_json_to_raw
@@ -42,11 +45,13 @@ module Onetime
         # aborting boot. Returns false when any index is stale.
         return if Familia.assert_indexes_current!(on_stale: :warn)
 
+        # Scope note: this only covers class-level indexes. Org-scoped indexes
+        # (organization:*:email_index) aren't sampled here — the migration does.
         familia_logger.warn(
-          '[check_unique_index_format] Stale unique indexes detected ' \
-          '(legacy Familia 2.9 JSON format). Domain-based SSO selection and ' \
-          'other generated finders will silently miss until rebuilt. ' \
-          "Remediate with: #{REMEDIATION}",
+          '[check_unique_index_format] Stale class-level unique indexes detected ' \
+          '(legacy Familia 2.9 JSON format): finders self-heal on read but warn ' \
+          'each time and storage stays stale. Org-scoped indexes are not sampled ' \
+          "here; the migration covers them. Remediate with: #{REMEDIATION}",
         )
       end
     end
