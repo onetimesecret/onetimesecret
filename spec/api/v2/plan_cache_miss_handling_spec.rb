@@ -1,9 +1,9 @@
-# spec/integration/api/v2/plan_cache_miss_handling_spec.rb
+# spec/api/v2/plan_cache_miss_handling_spec.rb
 #
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative '../../../../apps/web/billing/errors'
+require_relative '../../../apps/web/billing/errors'
 
 # Integration tests for API behavior when Billing::PlanCacheMissError is raised.
 #
