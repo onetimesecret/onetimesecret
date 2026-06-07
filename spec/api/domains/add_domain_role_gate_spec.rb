@@ -1,4 +1,4 @@
-# spec/integration/api/domains/add_domain_role_gate_spec.rb
+# spec/api/domains/add_domain_role_gate_spec.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# spec/integration/api/domains/homepage_secrets_entitlement_spec.rb
+# spec/api/domains/homepage_secrets_entitlement_spec.rb
 #
 # frozen_string_literal: true
 

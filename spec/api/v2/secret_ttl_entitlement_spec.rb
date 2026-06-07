@@ -1,4 +1,4 @@
-# spec/integration/api/v2/secret_ttl_entitlement_spec.rb
+# spec/api/v2/secret_ttl_entitlement_spec.rb
 #
 # frozen_string_literal: true
 
@@ -17,7 +17,7 @@ require 'spec_helper'
 # against future divergence.
 #
 # A parallel V3 spec exists at
-# spec/integration/api/v3/secret_ttl_entitlement_spec.rb and exercises
+# spec/api/v3/secret_ttl_entitlement_spec.rb and exercises
 # the same matrix against V3 logic classes. Even when V3 inherits V2,
 # the spec must exist on each version so that overriding `process_ttl`
 # in one version cannot silently lose coverage on the other.

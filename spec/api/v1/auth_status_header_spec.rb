@@ -1,4 +1,4 @@
-# spec/integration/api/v1/auth_status_header_spec.rb
+# spec/api/v1/auth_status_header_spec.rb
 #
 # frozen_string_literal: true
 
@@ -22,7 +22,7 @@ RSpec.describe 'V1 API X-OTS-Intended-Status Header', type: :integration do
   before(:all) do
     require 'onetime'
     OT.boot! :test
-    require_relative '../../../../apps/api/v1/controllers/base'
+    require_relative '../../../apps/api/v1/controllers/base'
   end
 
   # Test class that includes V1::ControllerBase to test error methods

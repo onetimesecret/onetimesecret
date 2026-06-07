@@ -1,4 +1,4 @@
-# spec/integration/api/v3/secret_ttl_entitlement_spec.rb
+# spec/api/v3/secret_ttl_entitlement_spec.rb
 #
 # frozen_string_literal: true
 
@@ -9,7 +9,7 @@ require 'v3/logic/secrets'
 #
 # V3::Logic::Secrets::{ConcealSecret,GenerateSecret} currently inherit
 # `process_ttl` from V2. This spec mirrors the V2 matrix at
-# spec/integration/api/v2/secret_ttl_entitlement_spec.rb so that:
+# spec/api/v2/secret_ttl_entitlement_spec.rb so that:
 #
 #   - the version-boundary contract is enforced independently, and
 #   - any future override of `process_ttl` (or change of base class)
