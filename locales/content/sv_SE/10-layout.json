@@ -148,7 +148,7 @@
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
-    "text": "Du ser ett säkert meddelande som delades med dig via Onetime Secret. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar.",
+    "text": "Du ser ett säkert meddelande som delades med dig via {product_name}. Detta innehåll visas endast en gång och raderas sedan permanent från våra servrar.",
     "source_hash": "e0f1a10c"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
@@ -264,7 +264,7 @@
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
-    "text": "Besök Onetime Secrets startsida",
+    "text": "Besök {product_name}s startsida",
     "source_hash": "625556d2"
   },
   "web.layout.footer_navigation": {

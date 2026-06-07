@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Nếu email liên hệ thanh toán khác với email tài khoản Onetime Secret, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì quyền lợi đăng ký.",
+    "text": "Nếu email liên hệ thanh toán khác với email tài khoản {product_name}, hãy sử dụng email liên hệ thanh toán cho tài khoản khu vực mới để duy trì quyền lợi đăng ký.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

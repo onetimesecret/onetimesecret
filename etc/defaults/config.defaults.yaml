@@ -408,6 +408,17 @@ site:
       # than depth: 0; the master switch falls back to REMOTE_ADDR.
       depth: <%= ENV['TRUSTED_PROXY_DEPTH']&.to_i || 1 %>
 
+brand:
+  primary_color: <%= ENV['BRAND_PRIMARY_COLOR'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRIMARY_COLOR'].gsub("'", "''")}'} %>
+  product_name: <%= ENV['BRAND_PRODUCT_NAME'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_NAME'].gsub("'", "''")}'} %>
+  product_domain: <%= ENV['BRAND_PRODUCT_DOMAIN'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_PRODUCT_DOMAIN'].gsub("'", "''")}'} %>
+  support_email: <%= ENV['BRAND_SUPPORT_EMAIL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_SUPPORT_EMAIL'].gsub("'", "''")}'} %>
+  corner_style: <%= ENV['BRAND_CORNER_STYLE'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_CORNER_STYLE'].gsub("'", "''")}'} %>
+  font_family: <%= ENV['BRAND_FONT_FAMILY'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_FONT_FAMILY'].gsub("'", "''")}'} %>
+  button_text_light: <%= ENV['BRAND_BUTTON_TEXT_LIGHT'].to_s.empty? ? 'null' : ENV['BRAND_BUTTON_TEXT_LIGHT'] != 'false' %>
+  logo_url: <%= ENV['BRAND_LOGO_URL'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_LOGO_URL'].gsub("'", "''")}'} %>
+  totp_issuer: <%= ENV['BRAND_TOTP_ISSUER'].to_s.empty? ? 'null' : %Q{'#{ENV['BRAND_TOTP_ISSUER'].gsub("'", "''")}'} %>
+
 features:
   regions:
     enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>

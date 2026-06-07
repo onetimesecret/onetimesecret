@@ -108,7 +108,7 @@
     "text": "Create Account",
     "content_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "About",
     "content_hash": "4efca0d1"
   },
@@ -443,10 +443,6 @@
   "web.COMMON.example_placeholder": {
     "text": "e.g. {example}",
     "content_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "About",
-    "content_hash": "4efca0d1"
   },
   "web.COMMON.status": {
     "text": "Status",
@@ -1359,8 +1355,8 @@
     "content_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
-    "content_hash": "b588f5b2"
+    "text": "Always verify you're on the official {product_name} website. Fraudsters sometimes create fake websites that look exactly like {product_name} to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
+    "content_hash": "68ec20f8"
   },
   "web.pricing.title": {
     "text": "Simple, Transparent Pricing",

@@ -152,7 +152,7 @@
     "source_hash": "1d97f6bd"
   },
   "web.regions.changing_regions_billing_note": {
-    "text": "Si votre courriel de contact de facturation diffère de votre courriel de compte Onetime Secret, utilisez le courriel de contact de facturation pour le nouveau compte régional afin de conserver vos avantages d'abonnement.",
+    "text": "Si votre courriel de contact de facturation diffère de votre courriel de compte {product_name}, utilisez le courriel de contact de facturation pour le nouveau compte régional afin de conserver vos avantages d'abonnement.",
     "source_hash": "dac1cc28"
   },
   "web.regions.changing_regions_subscription_note": {

@@ -108,7 +108,7 @@
     "text": "Skapa konto",
     "source_hash": "0dffe234"
   },
-  "web.COMMON.header_about": {
+  "web.COMMON.about": {
     "text": "Om",
     "source_hash": "4efca0d1"
   },
@@ -439,10 +439,6 @@
   "web.COMMON.example_placeholder": {
     "text": "t.ex. {example}",
     "source_hash": "cc921aaa"
-  },
-  "web.COMMON.about": {
-    "text": "Om",
-    "source_hash": "d833339d"
   },
   "web.COMMON.status": {
     "text": "Status",
@@ -1303,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Verifiera alltid att du är på den officiella Onetime Secret-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som Onetime Secret för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera regiondomänen innan du skapar nya länkar.",
+    "text": "Verifiera alltid att du är på den officiella {product_name}-webbplatsen. Bedragare skapar ibland falska webbplatser som ser exakt ut som {product_name} för att stjäla dina hemligheter. För att undvika nätfiskeattacker, kontrollera regiondomänen innan du skapar nya länkar.",
     "source_hash": "b588f5b2"
   },
   "web.pricing.title": {

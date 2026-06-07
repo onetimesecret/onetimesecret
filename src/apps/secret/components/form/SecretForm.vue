@@ -13,8 +13,8 @@
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
-    DEFAULT_PRIMARY_COLOR,
   } from '@/shared/stores/identityStore';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { storeToRefs } from 'pinia';
@@ -46,7 +46,7 @@
     withGenerate: false,
     withExpiry: true,
     cornerClass: DEFAULT_CORNER_CLASS,
-    primaryColor: DEFAULT_PRIMARY_COLOR,
+    primaryColor: NEUTRAL_BRAND_DEFAULTS.primary_color,
     buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
     workspaceMode: false,
   });

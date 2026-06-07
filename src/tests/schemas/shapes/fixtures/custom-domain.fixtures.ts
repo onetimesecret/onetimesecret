@@ -141,7 +141,7 @@ export function createCanonicalBrandSettings(
   overrides?: Partial<BrandSettingsCanonical>
 ): BrandSettingsCanonical {
   return {
-    primary_color: '#dc4a22',
+    primary_color: '#3B82F6',
     button_text_light: false,
     font_family: 'sans',
     corner_style: 'rounded',

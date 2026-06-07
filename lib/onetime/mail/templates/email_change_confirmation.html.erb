@@ -9,14 +9,14 @@
   <p><%= h(t('email.email_change_confirmation.request_notice', product_name: product_name, new_email: new_email)) %></p>
 
   <div style="margin: 24px 0;">
-    <a href="<%= confirmation_uri %>" style="display: inline-block; padding: 12px 24px; background-color: #dc4a22; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
+    <a href="<%= confirmation_uri %>" style="display: inline-block; padding: 12px 24px; background-color: <%= brand_color %>; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
       <%= t('email.email_change_confirmation.confirm_button') %>
     </a>
   </div>
 
   <p style="color: #666666; font-size: 12px;">
     <%= t('email.email_change_confirmation.copy_link_prompt') %><br>
-    <a href="<%= confirmation_uri %>" style="color: #dc4a22; word-break: break-all;"><%= confirmation_uri %></a>
+    <a href="<%= confirmation_uri %>" style="color: <%= brand_color %>; word-break: break-all;"><%= confirmation_uri %></a>
   </p>
 
   <p style="color: #666666; font-size: 12px;">

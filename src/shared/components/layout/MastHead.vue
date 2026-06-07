@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
@@ -19,6 +20,7 @@
     cust,
     ui,
     domain_logo,
+    brand_product_name,
   } = storeToRefs(bootstrapStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -46,7 +48,7 @@
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
+  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
 
   // Static-config custom logo: operator set LOGO_URL to anything other than the
@@ -87,7 +89,7 @@
     if (isCustomStaticLogo.value) return false;
     return !!headerConfig.value?.branding?.site_name;
   };
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
+  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name });
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -266,7 +268,7 @@
             <router-link
               v-if="authentication?.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret')"
+              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })"
               data-testid="header-signin-link"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">

@@ -1,4 +1,4 @@
-# spec/integration/api/v2/entitlement_enforcement_spec.rb
+# spec/api/v2/entitlement_enforcement_spec.rb
 #
 # frozen_string_literal: true
 

@@ -4,6 +4,7 @@ import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { BrandSettings, ImageProps } from '@/schemas/shapes/v3/custom-domain';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
+import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
@@ -11,10 +12,7 @@ import { ref } from 'vue';
 // in #3026. Read the canonical values from the HomepageConfig / ApiConfig
 // endpoints (the identity store exposes allowPublicHomepage already).
 const defaultBranding: BrandSettings = {
-  primary_color: '#dc4a22',
-  font_family: 'sans',
-  corner_style: 'rounded',
-  button_text_light: true,
+  ...NEUTRAL_BRAND_DEFAULTS,
   instructions_pre_reveal: '',
   instructions_post_reveal: '',
   instructions_reveal: '',

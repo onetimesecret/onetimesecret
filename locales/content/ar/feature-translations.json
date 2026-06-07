@@ -64,7 +64,7 @@
     "source_hash": "13131e36"
   },
   "web.translations.the_following_people_have_donated_their_time_to_": {
-    "text": "تبرع الأشخاص التالون بوقتهم للمساعدة في توسيع نطاق Onetime Secret:",
+    "text": "تبرع الأشخاص التالون بوقتهم للمساعدة في توسيع نطاق {product_name}:",
     "source_hash": "85a766af"
   },
   "web.translations.translations": {
@@ -84,7 +84,7 @@
     "source_hash": "ba5c4395"
   },
   "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
-    "text": "منذ عام 2012، وفّر Onetime Secret طريقة آمنة لمشاركة المعلومات الحساسة في جميع أنحاء العالم. مع المستخدمين في المناطق التي لا تعتبر فيها الإنجليزية اللغة الأساسية، تعد الترجمات الدقيقة ضرورية لجعل التواصل الآمن متاحاً للجميع.",
+    "text": "منذ عام 2012، وفّر {product_name} طريقة آمنة لمشاركة المعلومات الحساسة في جميع أنحاء العالم. مع المستخدمين في المناطق التي لا تعتبر فيها الإنجليزية اللغة الأساسية، تعد الترجمات الدقيقة ضرورية لجعل التواصل الآمن متاحاً للجميع.",
     "source_hash": "87a6e9af"
   },
   "web.translations.help_secure_communication_go_global": {

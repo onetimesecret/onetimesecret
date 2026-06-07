@@ -77,7 +77,7 @@ const v3TimestampOverrides = {
  *   created: 1609372800,
  *   updated: 1609459200,
  *   vhost: { status: 'active', has_ssl: true },
- *   brand: { primary_color: '#dc4a22' },
+ *   brand: { primary_color: '#3B82F6' },
  * });
  *
  * console.log(domain.created instanceof Date); // true

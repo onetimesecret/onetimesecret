@@ -2,6 +2,9 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import OnetimeSecretIcon from '@/shared/components/icons/OnetimeSecretIcon.vue';
@@ -28,10 +31,11 @@
   });
 
   const { t } = useI18n();
+  const { brand_product_name } = storeToRefs(useBootstrapStore());
 
   // Core logo properties
-  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one_time_secret_literal'));
-  const siteName = computed(() => props.siteName || t('web.homepage.one_time_secret_literal'));
+  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name }));
+  const siteName = computed(() => props.siteName || t('web.homepage.one_time_secret_literal', { product_name: brand_product_name?.value ?? NEUTRAL_BRAND_DEFAULTS.product_name }));
   const showSiteName = computed(() => !props.isUserPresent && !!siteName.value);
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64

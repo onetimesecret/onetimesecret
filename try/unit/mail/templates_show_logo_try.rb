@@ -4,9 +4,11 @@
 
 # Tests for the show_logo? toggle on TemplateContext.
 #
-# When emailer.show_logo is true, HTML emails include the logo <img>.
-# When false/absent, the <img> is omitted to avoid broken images on
-# air-gapped networks.
+# The email <img> is gated on `show_logo? && logo_url` (layout.html.erb).
+# show_logo? defaults to false (EMAILER_SHOW_LOGO unset) — the logo renders
+# only when the operator opts in AND a logo_url is configured. With show_logo
+# false/absent, or with no logo_url, the <img> is omitted to avoid broken
+# images on air-gapped networks.
 
 require_relative '../../support/test_helpers'
 
@@ -15,16 +17,21 @@ OT.boot! :test, false
 require 'onetime/mail'
 
 # Helper: mutate emailer.show_logo, yield, restore.
-def with_show_logo(value)
+# Also clears brand.logo_url so logo-absent tests are config-independent.
+def with_show_logo(value, logo_url: nil)
   conf_before = OT.conf['emailer']&.dup || {}
+  brand_before = OT.conf['brand']&.dup || {}
   OT.conf['emailer'] ||= {}
+  OT.conf['brand'] ||= {}
   if value == :absent
     OT.conf['emailer'].delete('show_logo')
   else
     OT.conf['emailer']['show_logo'] = value
   end
+  OT.conf['brand']['logo_url'] = logo_url
   result = yield
   OT.conf['emailer'] = conf_before
+  OT.conf['brand'] = brand_before
   result
 end
 
@@ -77,16 +84,17 @@ with_show_logo(false) do
 end
 #=> false
 
-## Welcome HTML includes <img when show_logo is true
+## Welcome HTML omits <img when show_logo is true but no logo_url configured
+# Layout guard is `show_logo? && logo_url`, so show_logo alone is insufficient.
 with_show_logo(true) do
   template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
   template.render_html.include?('<img')
 end
-#=> true
+#=> false
 
-## Welcome HTML includes logo SVG path when show_logo is true
+## Welcome HTML omits onetime-logo SVG when no logo_url configured (#3049 neutralization)
 with_show_logo(true) do
   template = Onetime::Mail::Templates::Welcome.new(@welcome_data)
   template.render_html.include?('onetime-logo-v3-xl.svg')
 end
-#=> true
+#=> false

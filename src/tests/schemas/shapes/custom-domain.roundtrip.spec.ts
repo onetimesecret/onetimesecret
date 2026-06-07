@@ -31,7 +31,6 @@ import {
   createV2WireCustomDomain,
   createV3WireCustomDomain,
   compareCanonicalCustomDomain,
-  type CustomDomainCanonical,
 } from './fixtures/custom-domain.fixtures';
 
 // V3 schema import - inline definition for now since V3 shapes may not exist yet
@@ -43,7 +42,7 @@ import { z } from 'zod';
 // Inline V3 schema for testing (mirrors V3 response schema structure)
 const v3BrandSettingsSchema = z
   .object({
-    primary_color: z.string().default('#dc4a22'),
+    primary_color: z.string().default('#3B82F6'),
     colour: z.string().optional(),
     instructions_pre_reveal: z.string().nullish(),
     instructions_reveal: z.string().nullish(),

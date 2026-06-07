@@ -18,7 +18,7 @@ require 'onetime/models/custom_domain'
 ## (allow_public_homepage and allow_public_api were retired in #3026 — see
 ## HomepageConfig / ApiConfig for the canonical per-domain toggles.)
 @bs.members.sort
-#=> [:button_text_light, :corner_style, :default_ttl, :font_family, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :notify_enabled, :passphrase_required, :primary_color]
+#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
 
 ## DEFAULTS constant is accessible and frozen
 [@bs::DEFAULTS.frozen?, @bs::DEFAULTS[:font_family]]
@@ -35,7 +35,7 @@ require 'onetime/models/custom_domain'
 ## from_hash creates instance with defaults
 @settings = @bs.from_hash({})
 [@settings.font_family, @settings.corner_style, @settings.primary_color]
-#=> ['sans', 'rounded', '#dc4a22']
+#=> ['sans', 'rounded', '#3B82F6']
 
 ## from_hash applies custom values
 @custom = @bs.from_hash(primary_color: '#FF0000', font_family: 'serif')
