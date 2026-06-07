@@ -35,7 +35,7 @@
             <!-- Header / wordmark -->
             <tr>
               <td class="container-padding" align="left" style="padding: 28px 36px 0 36px;">
-                <% if show_logo? %>
+                <% if logo_url %>
                 <img alt="<%= h(product_name) %>" src="<%= logo_url %>" <%# herb:disable erb-prefer-image-tag-helper %>
                      style="border: 0; display: block; margin: 0 0 14px 0; height: 40px; width: 40px; background-color: <%= brand_color %>; border-radius: 8px;"
                      width="40" height="40">

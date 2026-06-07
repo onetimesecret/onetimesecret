@@ -56,14 +56,6 @@ require 'onetime/models/custom_domain'
 @constants::DEFAULTS[:button_text_light]
 #=> true
 
-## DEFAULTS[:allow_public_homepage] preserved as false
-@constants::DEFAULTS[:allow_public_homepage]
-#=> false
-
-## DEFAULTS[:allow_public_api] preserved as false
-@constants::DEFAULTS[:allow_public_api]
-#=> false
-
 ## DEFAULTS[:passphrase_required] preserved as false
 @constants::DEFAULTS[:passphrase_required]
 #=> false

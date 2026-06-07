@@ -9,14 +9,14 @@
   <p><%= t('email.magic_link.request_notice', product_name: product_name) %></p>
 
   <div style="margin: 24px 0;">
-    <a href="<%= magic_link_url %>" style="display: inline-block; padding: 12px 24px; background-color: #dc4a22; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
+    <a href="<%= magic_link_url %>" style="display: inline-block; padding: 12px 24px; background-color: <%= brand_color %>; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
       <%= t('email.magic_link.login_button') %>
     </a>
   </div>
 
   <p style="color: #666666; font-size: 12px;">
     <%= t('email.magic_link.copy_link_prompt') %><br />
-    <a href="<%= magic_link_url %>" style="color: #dc4a22; word-break: break-all;"><%= magic_link_url %></a>
+    <a href="<%= magic_link_url %>" style="color: <%= brand_color %>; word-break: break-all;"><%= magic_link_url %></a>
   </p>
 
   <p style="color: #666666; background-color: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 24px;">

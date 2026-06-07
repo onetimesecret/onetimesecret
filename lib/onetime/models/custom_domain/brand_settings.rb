@@ -35,7 +35,7 @@ module Onetime
         corner_style: 'rounded',
         primary_color: '#3B82F6',
         locale: 'en',
-        button_text_light: false,
+        button_text_light: true,
         default_ttl: nil,
         passphrase_required: false,
         notify_enabled: false,
