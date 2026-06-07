@@ -6,6 +6,7 @@ require 'timeout'
 
 require_relative 'helpers'
 require 'onetime/security/input_sanitizers'
+require 'onetime/application/authorization_policies'
 
 module V1
   module Logic
@@ -15,6 +16,7 @@ module V1
       include Onetime::LoggerMethods
       include V1::Logic::UriHelpers
       include Onetime::Security::InputSanitizers
+      include Onetime::Application::AuthorizationPolicies
 
       attr_reader :sess, :cust, :params, :locale, :processed_params
       attr_reader :site, :authentication, :domains_enabled

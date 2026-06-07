@@ -23,6 +23,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
   # Helper to create a mock organization with specific entitlements
   def mock_organization(planid:, entitlements:)
     org = double('Organization', planid: planid, objid: "org_#{SecureRandom.hex(4)}")
+    allow(org).to receive(:entitlements).and_return(entitlements)
     allow(org).to receive(:can?) do |entitlement|
       entitlements.include?(entitlement.to_s)
     end
@@ -60,16 +61,28 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     customer ||= mock_customer
     session = mock_session
 
+    # Create membership mock for entitlement checks
+    membership = double('OrganizationMembership')
+    allow(membership).to receive(:active?).and_return(true)
+    allow(membership).to receive(:can?) do |entitlement|
+      org.respond_to?(:entitlements) && org.entitlements.include?(entitlement.to_s)
+    end
+
+    # StrategyResult metadata uses organization_context nested structure
+    org_context = { organization: org, organization_id: org&.respond_to?(:objid) ? org.objid : 'org_test' }
+    metadata = { organization_context: org_context }
+
     strategy_result = double('StrategyResult')
     allow(strategy_result).to receive(:session).and_return(session)
     allow(strategy_result).to receive(:user).and_return(customer)
-    allow(strategy_result).to receive(:metadata).and_return({ organization: org })
+    allow(strategy_result).to receive(:metadata).and_return(metadata)
     allow(strategy_result).to receive(:auth_method).and_return(auth_method)
 
     logic = logic_class.new(strategy_result, params)
 
-    # Mock the org accessor to return our mock org
-    allow(logic).to receive(:org).and_return(org)
+    # Stub auth_org and auth_membership — these are what require_entitlement! uses
+    allow(logic).to receive(:auth_org).and_return(org)
+    allow(logic).to receive(:auth_membership).and_return(membership)
 
     # Mock cust accessor for logic classes that need it
     allow(logic).to receive(:cust).and_return(customer)

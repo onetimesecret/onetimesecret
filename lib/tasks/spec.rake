@@ -166,9 +166,26 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_format_options}"
     end
 
+    # OAuth/OIDC IdP specs run under full mode but live in integration/oauth/
+    # (not integration/full/) on purpose: the path-keyed MockAuthConfig that
+    # spec/spec_helper.rb installs for /integration/full/ does not expose
+    # oauth_enabled?, which would turn the IdP feature off at boot. They also
+    # write AUTH_OAUTH_ENABLED process-wide, so they get an isolated invocation
+    # to avoid leaking the IdP feature into other full-mode specs.
+    desc 'Run OAuth/OIDC IdP integration specs (full mode, isolated process)'
+    task :oauth do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_OAUTH_ENABLED' => 'true',
+        'AUTH_DATABASE_URL' => ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:'),
+      }
+      sh env, "bundle exec rspec apps/web/auth/spec/integration/oauth --tag ~postgres_database #{rspec_format_options}"
+    end
+
     desc 'Run DB-agnostic full mode specs against PostgreSQL'
     task 'full:agnostic_on_pg' do
-      env = {
+      env                                 = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
@@ -191,7 +208,7 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES
+    task all: INTEGRATION_MODES + ['oauth']
 
     desc 'Run all integration tests including Postgres'
     task 'all:with_postgres': INTEGRATION_MODES + ['full:postgres']

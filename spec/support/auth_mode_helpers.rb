@@ -38,6 +38,7 @@ module AuthModeHelpers
       # the real omniauth route registration. Unset env preserves the old false.
       @sso_enabled = options.fetch(:sso_enabled) { ENV['AUTH_SSO_ENABLED'] == 'true' }
       @orgs_sso_enabled = options.fetch(:orgs_sso_enabled) { ENV['ORGS_SSO_ENABLED'] == 'true' }
+      @oauth_enabled = options.fetch(:oauth_enabled, false)  # OAuth IdP disabled by default in tests
       @restrict_to = options.fetch(:restrict_to, nil)  # nil = show all enabled methods
       @omniauth_provider_name = options.fetch(:omniauth_provider_name, nil)
     end
@@ -100,6 +101,12 @@ module AuthModeHelpers
     # with credentials injected at runtime by OmniAuthTenant hook.
     def orgs_sso_enabled?
       @orgs_sso_enabled
+    end
+
+    # OAuth IdP mode (AUTH_OAUTH_ENABLED)
+    # When true, OTS acts as an OAuth 2.0 Authorization Server.
+    def oauth_enabled?
+      @oauth_enabled
     end
 
     # DEPRECATED: Alias for sso_enabled? — retained for Rodauth integration

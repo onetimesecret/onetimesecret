@@ -36,7 +36,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     allow(customer).to receive(:increment_field)
     allow(customer).to receive(:objid).and_return(anonymous ? nil : 'cust_abc123')
     allow(customer).to receive(:organization_instances).and_return([])
-    allow(customer).to receive(:is_a?).and_call_original
+    allow(customer).to receive(:is_a?) { |klass| klass == String ? false : false }
     customer
   end
 
@@ -52,7 +52,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
 
   # V1 logic constructors take (sess, cust, params, locale) — there is
   # no strategy_result and V1::Logic::Base doesn't include
-  # OrganizationContext. We stub `auth_org` so the gate's
+  # OrganizationContext. We define `auth_org` dynamically so the gate's
   # `respond_to?(:auth_org)` branch is taken.
   def create_logic(logic_class, params:, org:, customer: nil)
     customer ||= mock_customer(anonymous: org.nil?)
@@ -67,7 +67,24 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     logic.instance_variable_set(:@params, params)
     logic.instance_variable_set(:@locale, nil)
     logic.instance_variable_set(:@processed_params, {})
-    allow(logic).to receive(:auth_org).and_return(org)
+
+    # Define auth_org on this instance so the gate's respond_to?(:auth_org) passes
+    captured_org = org
+    logic.define_singleton_method(:auth_org) { captured_org }
+
+    # Define require_entitlement! — V1::Logic::Base doesn't include AuthorizationPolicies,
+    # but the TTL gate calls it. Define the method so the gate can raise EntitlementRequired.
+    logic.define_singleton_method(:require_entitlement!) do |entitlement, error_key: nil|
+      error_key ||= "api.entitlements.errors.#{entitlement}_required"
+      current_plan = captured_org&.planid
+      raise Onetime::EntitlementRequired.new(
+        entitlement,
+        current_plan: current_plan,
+        error_key: error_key,
+        args: { entitlement: entitlement },
+      )
+    end
+
     logic.send(:process_settings)
     logic
   end
@@ -88,6 +105,14 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
   before(:all) do
     require 'onetime'
     Onetime.boot! :test
+
+    # Load V1 API module and logic classes
+    # Use load instead of require to force reload in case they were cached without the AuthorizationPolicies include
+    load File.expand_path('../../../../apps/api/v1/application.rb', __dir__)
+    load File.expand_path('../../../../apps/api/v1/logic/base.rb', __dir__)
+    load File.expand_path('../../../../apps/api/v1/logic/secrets/base_secret_action.rb', __dir__)
+    load File.expand_path('../../../../apps/api/v1/logic/secrets/conceal_secret.rb', __dir__)
+    load File.expand_path('../../../../apps/api/v1/logic/secrets/generate_secret.rb', __dir__)
   end
 
   before { stub_secret_options }

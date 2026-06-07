@@ -91,6 +91,14 @@ full:
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 
+    # OAuth2/OIDC Identity Provider (default: OFF) — issue #3104
+    # When true, this OTS instance acts as an IdP: its own SP and other
+    # registered clients can authenticate against it via the standard
+    # OAuth authorization-code + PKCE flow.
+    # See: apps/web/auth/config/features/oauth.rb for configuration.
+    # Override the issuer with OAUTH_ISSUER (defaults to https://<site.host>/auth).
+    oauth: <%= ENV['AUTH_OAUTH_ENABLED'] == 'true' %>
+
   # ──────────────────────────────────────────────────────────────────────
   # Restrict login page to a single authentication method
   #

@@ -26,6 +26,9 @@
 # ORGS_SSO_ENABLED=true. The OmniAuthTenant hook injects real credentials
 # at request time.
 #
+# AUTHENTICATION_MODE must be 'full' before requiring ../application.
+# Without it, Auth::Database.connection returns nil and Rodauth's post_configure
+# crashes calling db.database_type on nil.
 ENV['AUTHENTICATION_MODE'] ||= 'full'
 
 PLACEHOLDER_OIDC_ISSUER = 'https://placeholder.invalid'
@@ -74,6 +77,38 @@ require_relative 'support/auth_test_constants'
 require_relative 'support/mock_omniauth_strategy'
 require_relative 'support/config_recreator'
 require_relative '../database'
+
+# =============================================================================
+# PRE-LOAD AUTH APPLICATION (#3234)
+# =============================================================================
+# Force-load Auth::Application so the full constant chain
+# (Onetime::Boot::Initializer, Auth::Config, Auth::Config::Features::*,
+# Auth::Config::Hooks::*, the initializer subclasses) is defined before any
+# example runs.
+#
+# Without this, unit specs that mock Onetime/Auth::Database in isolation pass
+# fine on their own but fail when paired with an integration spec that boots
+# the real app: the integration spec's `Onetime.boot!` is memoized
+# process-wide, and the unit spec's stub of `Onetime.auth_config` leaks across
+# example boundaries unless the namespace is stable up front.
+#
+# Safe to load eagerly here because Auth::Config's OAuth feature block only
+# runs when `Onetime.auth_config.oauth_enabled?` returns true (config.rb:149),
+# which requires AUTH_OAUTH_ENABLED=true in the environment. Integration specs
+# that need OAuth set the env var BEFORE `require_relative '../spec_helper'`;
+# unit specs leave it unset and the RSA-key requirement (features/oauth.rb:234)
+# stays dormant.
+#
+# Reload Onetime.auth_config before requiring the application. The
+# AuthConfig singleton was first instantiated during `require 'onetime'`
+# (lib/onetime/initializers.rb:75, called from the root spec_helper) — at
+# which point AUTHENTICATION_MODE was unset, so mode cached as 'simple'.
+# Without a reload here, Auth::Database.connection returns nil (full-mode
+# guard at database.rb:111), and rodauth's post_configure (base.rb:443)
+# crashes calling db.database_type on nil. Mirrors the reload performed
+# by ProductionConfigHelper#boot_onetime_app for integration specs.
+Onetime.auth_config.reload! if Onetime.respond_to?(:auth_config) && Onetime.auth_config.respond_to?(:reload!)
+require_relative '../application'
 
 # =============================================================================
 # TENANT VERIFYING MOCK REGISTRATION
@@ -403,6 +438,19 @@ module ProductionConfigHelper
   def install_tenant_verifying_mock_hook
     # Only install once
     return if defined?(@@tenant_mock_hook_installed) && @@tenant_mock_hook_installed
+
+    # features.rb uses the shorthand `module Auth::Config::Features`, which
+    # requires Auth::Config to already be defined. In normal full-suite runs
+    # an earlier spec (e.g. env_feature_loading_spec.rb) has populated the
+    # namespace before this point. When this hook runs in isolation (a
+    # single-file rspec invocation of an integration spec), Auth::Config is
+    # still undefined — and the original `require_relative '../config/features'`
+    # blew up with NameError. The TenantVerifyingMock is only used by tenant-SSO
+    # specs; if the auth namespace isn't ready, skip cleanly so unrelated
+    # integration specs can boot.
+    unless defined?(Auth::Config)
+      return
+    end
 
     # Load the Auth features module structure
     require_relative '../config/features'

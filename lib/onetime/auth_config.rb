@@ -150,6 +150,19 @@ module Onetime
     # that reference omniauth_enabled? (apps/web/auth/).
     alias omniauth_enabled? sso_enabled?
 
+    # Whether this instance acts as an OAuth2/OIDC Identity Provider.
+    # Default: false
+    #
+    # When true, rodauth-oauth features are enabled and the standard OAuth
+    # endpoints (/authorize, /token, /jwks, /userinfo, /revoke) are mounted.
+    # External clients can authenticate end-users against this instance.
+    #
+    # See: apps/web/auth/config/features/oauth.rb
+    # See: https://github.com/onetimesecret/onetimesecret/issues/3104
+    def oauth_enabled?
+      feature_enabled?('oauth', default: false)
+    end
+
     # Whether organization-level SSO (per-domain SSO) is enabled.
     # Default: false
     #
@@ -272,6 +285,11 @@ module Onetime
       provider_definitions.filter_map do |defn|
         next unless defn[:required_vars].all? { |var| env_present?(var) }
 
+        # Optional gate beyond env-var presence (e.g., the local IdP needs
+        # AUTH_OAUTH_ENABLED=true on top of OAUTH_SP_DEV_CLIENT_SECRET).
+        condition = defn[:condition]
+        next if condition && !condition.call(self)
+
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
         {
           'route_name' => ENV.fetch(defn[:route_var], defn[:route_default]),
@@ -358,6 +376,19 @@ module Onetime
           display_var: 'GITHUB_DISPLAY_NAME',
           display_default: 'GitHub',
         },
+        # Local IdP — see configure_local_idp_provider in features/omniauth.rb.
+        # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
+        # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
+        # actually running). Without the second check, the frontend would
+        # render a "Local IdP" button that posts to a non-existent route.
+        {
+          required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
+          condition: ->(cfg) { cfg.oauth_enabled? },
+          route_var: 'OAUTH_SP_DEV_ROUTE_NAME',
+          route_default: 'local',
+          display_var: 'OAUTH_SP_DEV_DISPLAY_NAME',
+          display_default: 'Local IdP',
+        },
       ]
     end
 
@@ -374,7 +405,7 @@ module Onetime
       end
 
       defaults_file = Onetime::Utils::ConfigResolver.defaults_path('auth')
-      base_config = if defaults_file && defaults_file != @path
+      base_config   = if defaults_file && defaults_file != @path
         load_yaml_from(defaults_file)
       else
         {}
@@ -382,6 +413,9 @@ module Onetime
 
       env_config = load_yaml_from(@path)
 
+      # User file wins on conflict; missing keys inherit from defaults.
+      # preserve_nils: false → explicit nil in user file overrides the
+      # default; absent keys still inherit. Mirrors Onetime::Config#load.
       @config = if base_config.empty?
         env_config
       else

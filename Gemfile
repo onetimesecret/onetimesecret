@@ -22,6 +22,7 @@ gem 'otto', '~> 2.0.0'
 gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
+gem 'rodauth-oauth', '~> 1.6'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.3.1'
 
