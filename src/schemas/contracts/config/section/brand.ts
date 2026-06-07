@@ -41,8 +41,6 @@ const brandSchema = z.object({
   corner_style: z.enum(cornerStyleValues).optional(),
   font_family: z.enum(fontFamilyValues).optional(),
   button_text_light: z.boolean().optional(),
-  allow_public_homepage: z.boolean().optional(),
-  allow_public_api: z.boolean().optional(),
 });
 
 export type BrandConfig = z.infer<typeof brandSchema>;

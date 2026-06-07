@@ -20,8 +20,9 @@ import { z } from 'zod';
 
 // Import canonical schemas from contracts (NOT shapes, which have transforms)
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
+import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
+import { brandSettingsCanonical, cornerStyleValues, fontFamilyValues, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
 import { disabledHomepageConfigSchema } from '@/schemas/contracts/disabled-homepage';
 import { customerCanonical } from '@/schemas/contracts/customer';
 
@@ -510,8 +511,6 @@ export const bootstrapSchema = z.object({
   brand_corner_style: z.enum(cornerStyleValues).nullish(),
   brand_font_family: z.enum(fontFamilyValues).nullish(),
   brand_button_text_light: z.boolean().nullish(),
-  brand_allow_public_homepage: z.boolean().nullish(),
-  brand_allow_public_api: z.boolean().nullish(),
   brand_logo_url: z.string().nullish(),
   brand_totp_issuer: z.string().nullish(),
 

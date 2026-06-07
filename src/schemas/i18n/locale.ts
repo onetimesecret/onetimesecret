@@ -14,7 +14,7 @@ export const localeCodeSchema = z
   .max(5)
   .regex(/^[a-z]{2}(?:[_-][a-z]{2})?$/i, 'Invalid locale format');
 
-export type Locale = z.infer<typeof localeSchema>;
+export type Locale = z.infer<typeof localeCodeSchema>;
 
 /**
  * Source locale entry (e.g., en/00-common.json).

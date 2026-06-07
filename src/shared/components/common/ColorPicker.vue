@@ -11,7 +11,6 @@ import {
 } from 'vue-color';
 import 'vue-color/style.css';
 
-import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import HoverTooltip from './HoverTooltip.vue';
 
 const { t } = useI18n();

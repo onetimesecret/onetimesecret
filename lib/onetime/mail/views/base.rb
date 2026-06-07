@@ -161,10 +161,10 @@ module Onetime
           "#{scheme}#{site_host}"
         end
 
-        # Site product name configuration helper
-        # @return [String]
         def site_product_name
-          OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') || 'One-Time Secret'
+          OT.conf.dig('brand', 'product_name') ||
+            OT.conf.dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
+            Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
         end
 
         # Product name with fallback to site config
@@ -326,10 +326,11 @@ module Onetime
                         Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:logo_url]
           end
 
-          # Get product name from brand config, then deprecated site_name,
-          # then GLOBAL_DEFAULTS[:product_name] (= 'OTS').
           def site_product_name
-            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') || t('email.common.onetime_secret')
+            @site_product_name ||=
+              conf_dig('brand', 'product_name') ||
+              conf_dig('site', 'interface', 'ui', 'header', 'branding', 'site_name') ||
+              Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:product_name]
           end
 
           # Get host from site config

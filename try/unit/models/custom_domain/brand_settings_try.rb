@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# BrandSettings 22-field Data class structure (issue #3048)
+# BrandSettings 20-field Data class structure (issue #3048)
 #
 # Covers the post-port shape: 14 existing fields + 8 new fields
 # (product_name, product_domain, support_email, footer_text, description,
@@ -25,13 +25,13 @@ require 'onetime/models/custom_domain'
 @bs.ancestors.include?(Data)
 #=> true
 
-## [forward] BrandSettings defines all 22 expected members
+## BrandSettings defines all 20 expected members
 @bs.members.sort
-#=> [:allow_public_api, :allow_public_homepage, :button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
+#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
 
-## [forward] BrandSettings has exactly 22 members
+## BrandSettings has exactly 20 members
 @bs.members.size
-#=> 22
+#=> 20
 
 ## [forward] from_hash creates instance with new product_name field
 @settings = @bs.from_hash({})
@@ -96,9 +96,9 @@ require 'onetime/models/custom_domain'
 [@empty.product_domain, @empty.footer_text, @empty.description, @empty.logo_url, @empty.logo_dark_url, @empty.favicon_url]
 #=> [nil, nil, nil, nil, nil, nil]
 
-## [forward] button_text_light default is now true (flipped from false)
+## button_text_light defaults to false
 @bs.from_hash({}).button_text_light
-#=> true
+#=> false
 
 ## from_hash preserves existing 14-field behavior — corner_style default
 @bs.from_hash({}).corner_style

@@ -51,8 +51,6 @@ function fullCanonical(): Record<string, unknown> {
     instructions_post_reveal: 'Post',
     description: 'A description.',
     button_text_light: false,
-    allow_public_homepage: false,
-    allow_public_api: false,
     font_family: 'sans',
     corner_style: 'rounded',
     locale: 'en',
@@ -66,7 +64,7 @@ function fullCanonical(): Record<string, unknown> {
 // Round-trip: serialize -> JSON -> parse -> deep equal
 // -----------------------------------------------------------------------------
 
-describe('brandSettingsCanonical round-trip (22 fields)', () => {
+describe('brandSettingsCanonical round-trip (20 fields)', () => {
   it('serializes a full 22-field object through JSON and re-parses to deep-equal', () => {
     const input = fullCanonical();
     const serialized = JSON.stringify(input);
@@ -443,8 +441,6 @@ describe('edge cases', () => {
     const legacy = {
       primary_color: '#3B82F6',
       button_text_light: false,
-      allow_public_homepage: false,
-      allow_public_api: false,
       font_family: 'sans',
       corner_style: 'rounded',
       locale: 'en',

@@ -225,6 +225,26 @@ module DomainsAPI::Logic
         @brand_settings['default_ttl'] = ttl_value
       end
 
+      def validate_urls
+        %w[logo_url logo_dark_url favicon_url].each do |url_field|
+          url = @brand_settings[url_field]
+          next if url.nil?
+
+          unless Onetime::CustomDomain::BrandSettings.valid_url?(url)
+            OT.ld "[UpdateDomainBrand] Error: Invalid URL format for '#{url_field}': #{url}"
+            raise_form_error "Invalid #{url_field.tr('_', ' ')} - must be https:// URL or relative path starting with /"
+          end
+        end
+      end
+
+      def sanitize_text_fields
+        TEXT_FIELDS.each do |field|
+          next unless @brand_settings.key?(field) && @brand_settings[field].is_a?(String)
+
+          @brand_settings[field] = sanitize_plain_text(@brand_settings[field], max_length: 500)
+        end
+      end
+
       def valid_extid?(extid)
         extid.match?(/\A[a-z0-9]+\z/)
       end

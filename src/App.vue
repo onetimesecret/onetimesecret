@@ -14,6 +14,8 @@
   const { locale } = useI18n();
   const route = useRoute();
 
+  useBrandTheme();
+
   // Cross-layout safety net merged before route.meta.layoutProps. Each
   // layout should own true defaults for every boolean prop it consumes
   // (Vue coerces missing Boolean props to `false`, and an explicit

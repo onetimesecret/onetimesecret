@@ -38,8 +38,6 @@ export const CONFIG_SERIALIZER_FIELDS = [
   'brand_corner_style',
   'brand_font_family',
   'brand_button_text_light',
-  'brand_allow_public_homepage',
-  'brand_allow_public_api',
   'brand_logo_url',
   'brand_totp_issuer',
   'd9s_enabled',

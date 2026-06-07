@@ -36,11 +36,11 @@
             <tr>
               <td class="container-padding" align="left" style="padding: 28px 36px 0 36px;">
                 <% if show_logo? %>
-                <img alt="<%= h(product_name) %>" src="<%= baseuri %>/img/onetime-logo-v3-xl.svg" <%# herb:disable erb-prefer-image-tag-helper %>
-                     style="border: 0; display: block; margin: 0 0 14px 0; height: 40px; width: 40px; background-color: #dc4a22; border-radius: 8px;"
+                <img alt="<%= h(product_name) %>" src="<%= logo_url %>" <%# herb:disable erb-prefer-image-tag-helper %>
+                     style="border: 0; display: block; margin: 0 0 14px 0; height: 40px; width: 40px; background-color: <%= brand_color %>; border-radius: 8px;"
                      width="40" height="40">
                 <% end %>
-                <a href="<%= baseuri %>" style="text-decoration: none;" rel="noopener noreferrer"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; color: #dc4a22;"><%= h(product_name) %></span></a>
+                <a href="<%= baseuri %>" style="text-decoration: none;" rel="noopener noreferrer"><span style="font-family: Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.2px; color: <%= brand_color %>;"><%= h(product_name) %></span></a>
                 <div style="height: 1px; line-height: 1px; font-size: 1px; background-color: #eceff2; margin: 22px 0 0 0;">&nbsp;</div>
               </td>
             </tr>
@@ -57,7 +57,7 @@
           <table role="presentation" border="0" width="600" cellpadding="0" cellspacing="0" class="container" style="width: 600px; max-width: 600px;">
             <tr>
               <td class="container-padding" align="center" style="padding: 18px 36px 8px 36px;">
-                <p style="margin: 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; color: #6b7682;">&nbsp;<a href="<%= baseuri %>" style="color: #dc4a22; text-decoration: none;" rel="noopener noreferrer"><%= h(site_host) %></a>
+                <p style="margin: 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; color: #6b7682;">&nbsp;<a href="<%= baseuri %>" style="color: <%= brand_color %>; text-decoration: none;" rel="noopener noreferrer"><%= h(site_host) %></a>
                 </p>
                 <p style="margin: 6px 0 0 0; font-family: Helvetica, Arial, sans-serif; font-size: 11px; line-height: 16px; color: #97a1ab;">
                   <%= h(t('email.common.automated_notice', product_name: product_name)) %>
