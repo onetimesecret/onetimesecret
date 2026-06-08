@@ -132,7 +132,22 @@ module Onetime
         #   Onetime::Mail::Mailer.provider_credentials('ses')
         #   # => { 'region' => 'us-east-1', 'access_key_id' => '...', 'secret_access_key' => '...' }
         def provider_credentials(provider)
-          build_provider_config(provider)
+          config = build_provider_config(provider)
+
+          # Sender-domain provisioning is decoupled from the install-level
+          # transactional mailer (EMAILER_MODE / EMAILER_REGION). Provider-
+          # specific settings come from email_providers.<provider> so an
+          # operator can run, e.g., SMTP for transactional delivery while
+          # provisioning sender domains through SES — without EMAILER_REGION
+          # leaking into the SES provisioning client. The delivery path
+          # (create_delivery_backend) keeps using emailer config directly.
+          if provider.to_s.downcase == 'ses'
+            ses_conf = provider_config('ses')
+            region   = ses_conf['region'] || ses_conf[:region]
+            config['region'] = region.to_s if region && !region.to_s.empty?
+          end
+
+          config
         end
 
         # Returns the provider for custom mail sender domain provisioning.

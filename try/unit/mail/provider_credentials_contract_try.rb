@@ -247,3 +247,35 @@ creds['region']
 creds = Onetime::Mail::Mailer.provider_credentials('sendgrid')
 creds['api_key']
 #=> 'SG.test-key'
+
+# --- SES provisioning region is decoupled from EMAILER_REGION ---
+# provider_credentials('ses') sources region from email_providers.ses
+# (EMAIL_PROVIDERS_SES_REGION), independent of emailer.region (EMAILER_REGION),
+# so an install can run SMTP transactional mail and SES sender provisioning
+# in different regions.
+
+## SES provisioning region comes from email_providers.ses, overriding emailer.region
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(provider)
+      provider.to_s == 'ses' ? { 'region' => 'eu-west-1' } : {}
+    end
+  end
+end
+Onetime::Mail::Mailer.provider_credentials('ses')['region']
+#=> 'eu-west-1'
+
+## Delivery path (build_provider_config) still uses emailer.region, unaffected
+Onetime::Mail::Mailer.send(:build_provider_config, 'ses')['region']
+#=> 'us-east-1'
+
+## Restore the default provider_config stub for any later cases
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(_provider)
+      {}
+    end
+  end
+end
+Onetime::Mail::Mailer.provider_credentials('ses')['region']
+#=> 'us-east-1'
