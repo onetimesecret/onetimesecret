@@ -99,17 +99,30 @@ CUSTOM_MAIL_SES_REGION=ca-central-1
 
 ## Credentials
 
-The SES API client uses standard AWS credentials, resolved (per
-`Mailer.build_provider_config`) from the emailer config with fallback to the
-AWS SDK environment variables:
+The SES API client uses standard AWS credentials. Two source pairs are accepted
+(resolved per `Mailer.build_provider_config`); the emailer/SMTP fields take
+precedence over the AWS SDK environment variables:
+
+| Credential | First source (emailer config) | Fallback |
+|---|---|---|
+| Access key | `SMTP_USERNAME` (emailer `user`) | `AWS_ACCESS_KEY_ID` |
+| Secret key | `SMTP_PASSWORD` (emailer `pass`) | `AWS_SECRET_ACCESS_KEY` |
+
+So you can supply credentials through the dedicated AWS env vars:
 
 ```bash
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
 ```
 
-(When `SMTP_USERNAME` / `SMTP_PASSWORD` are left empty, the resolver falls back
-to `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`.)
+or, when the emailer already carries them, through `SMTP_USERNAME` /
+`SMTP_PASSWORD` — whichever is set first wins (so if `SMTP_USERNAME` is set, the
+AWS env var is ignored).
+
+> **Caution:** these must be IAM access keys valid for the **SESv2 API**
+> (`CreateEmailIdentity` etc.). SES *SMTP* credentials are a different artifact
+> and will not authenticate the API calls, so if you run SES-over-SMTP for
+> delivery, don't assume the SMTP user/pass double as API keys for provisioning.
 
 The IAM principal needs, at minimum:
 
