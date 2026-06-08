@@ -436,17 +436,20 @@ module Onetime
 
       # Resolve effective provider for this mailer config.
       #
-      # Uses the config's provider field if set, otherwise falls back to
-      # installation-level provider from Mailer.determine_provider.
+      # Uses the config's provider field if set, otherwise falls back to the
+      # installation-level sender provider (Mailer.determine_sender_provider).
+      # The result is normalized (stripped, lowercased) so every consumer —
+      # strategy dispatch, credential lookup, comparisons — sees a canonical
+      # provider name and need not re-normalize.
       #
-      # @return [String, nil] Provider name or nil if not resolvable
+      # @return [String] Lowercased provider name, or '' if not resolvable
       def effective_provider
-        resolved = provider.to_s.strip
+        resolved = provider.to_s.strip.downcase
         return resolved unless resolved.empty?
 
         # Fallback to installation-level sender provider, which itself
         # falls back to the sending transport (EMAILER_MODE).
-        Onetime::Mail::Mailer.send(:determine_sender_provider)
+        Onetime::Mail::Mailer.determine_sender_provider.to_s.strip.downcase
       end
 
       class << self

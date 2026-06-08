@@ -6,8 +6,15 @@ require_relative '../mail/sender_strategies'
 
 module Onetime
   module Operations
-    # Deletes a sender domain from the mail provider (currently Lettermint).
+    # Deletes a sender domain from its mail provider.
     # Extracted from RemoveDomain and DeleteSenderConfig for reuse.
+    #
+    # Dispatches on the mailer config's effective_provider, so each
+    # provider's sender identity is torn down through its own strategy
+    # (SES, SendGrid, Lettermint). SMTP is a no-op — there is no remote
+    # sender identity to delete. Configs that resolve to no provider, or
+    # to a transport without a sender strategy (e.g. 'logger'), are
+    # skipped rather than treated as errors.
     #
     # Never raises — all errors are wrapped in the Result.
     # Callers can fire-and-forget: domain/config removal proceeds regardless.
@@ -30,15 +37,34 @@ module Onetime
 
       def call
         return skipped('no mailer config') unless @mailer_config
-        return skipped('not a lettermint provider') unless @mailer_config.effective_provider == 'lettermint'
 
-        credentials = Onetime::Mail::Mailer.provider_credentials('lettermint')
-        strategy    = Onetime::Mail::SenderStrategies.for_provider('lettermint')
+        # effective_provider is the single source of truth: it returns the
+        # config's provider, or the installation default, already normalized.
+        # Legacy configs predating the provider field resolve correctly here
+        # via that installation-level fallback.
+        provider = @mailer_config.effective_provider.to_s
+        return skipped('no effective provider') if provider.empty?
+        return skipped("unsupported provider '#{provider}'") unless
+          Onetime::Mail::SenderStrategies.supported?(provider)
+
+        credentials = Onetime::Mail::Mailer.provider_credentials(provider)
+        strategy    = Onetime::Mail::SenderStrategies.for_provider(provider)
         result      = strategy.delete_sender_identity(@mailer_config, credentials: credentials)
 
-        logger.info 'Sender domain deleted',
-          domain_id: @mailer_config.domain_id,
-          message: result[:message]
+        # Strategies signal an actual teardown via result[:deleted]. SMTP —
+        # and some error/no-op cases — return deleted:false, so log those
+        # distinctly to keep audit trails free of false "deleted" events.
+        if result[:deleted]
+          logger.info 'Sender domain deleted',
+            domain_id: @mailer_config.domain_id,
+            provider: provider,
+            message: result[:message]
+        else
+          logger.info 'Sender domain deletion skipped (no-op)',
+            domain_id: @mailer_config.domain_id,
+            provider: provider,
+            message: result[:message]
+        end
 
         Result.new(success: true, message: result[:message], error: nil)
       rescue StandardError => ex
