@@ -70,6 +70,11 @@ module Onetime
       # Domain allowlist (JSON array string) - used when strategy is 'domain_allowlist'
       field :allowed_signup_domains_json
 
+      # Nullable override fields — nil means inherit install-level default.
+      # These are tri-state: true, false, or nil.
+      field :signup_enabled  # Override for AUTH_SIGNUP
+      field :autoverify      # Override for AUTH_AUTOVERIFY
+
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
@@ -286,6 +291,10 @@ module Onetime
 
           # Set allowed domains
           config.allowed_signup_domains = attrs[:allowed_signup_domains] if attrs.key?(:allowed_signup_domains)
+
+          # Nullable override fields — only set when explicitly provided
+          config.signup_enabled = attrs[:signup_enabled] if attrs.key?(:signup_enabled)
+          config.autoverify     = attrs[:autoverify] if attrs.key?(:autoverify)
 
           # Initialize timestamps
           now            = Familia.now.to_i
