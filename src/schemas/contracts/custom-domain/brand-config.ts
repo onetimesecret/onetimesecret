@@ -146,7 +146,7 @@ export const brandSettingsCanonical = z
     instructions_post_reveal: z.string().nullish(),
 
     /** Brand description. */
-    description: z.string().optional(),
+    description: z.string().nullish(),
 
     /** Whether button text should be light colored. */
     button_text_light: z.boolean().default(true),
