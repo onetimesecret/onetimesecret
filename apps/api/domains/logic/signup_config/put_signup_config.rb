@@ -33,8 +33,8 @@ module DomainsAPI
           @validation_strategy    = sanitize_plain_text(params['validation_strategy'])
           @allowed_signup_domains = parse_allowed_domains(params['allowed_signup_domains'])
           @enabled                = parse_boolean(params['enabled'])
-          @signup_enabled         = parse_nullable_boolean(params['signup_enabled'])
-          @autoverify             = parse_nullable_boolean(params['autoverify'])
+          @signup_enabled         = params.key?('signup_enabled') ? parse_boolean(params['signup_enabled']) : false
+          @autoverify             = params.key?('autoverify') ? parse_boolean(params['autoverify']) : false
         end
 
         def raise_concerns
@@ -147,8 +147,8 @@ module DomainsAPI
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
             enabled: config.enabled?,
-            signup_enabled: config.signup_enabled,
-            autoverify: config.autoverify,
+            signup_enabled: config.signup_enabled?,
+            autoverify: config.autoverify?,
             requires_allowlist: config.requires_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,

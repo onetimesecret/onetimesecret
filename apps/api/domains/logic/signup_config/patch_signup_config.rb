@@ -39,11 +39,11 @@ module DomainsAPI
           # Track whether enabled was explicitly provided (for PATCH semantics)
           @enabled_provided                = !params['enabled'].nil?
           @enabled                         = parse_boolean(params['enabled'])
-          # Nullable override fields — track explicit provision for PATCH semantics
+          # Non-nullable boolean fields — track explicit provision for PATCH semantics
           @signup_enabled_provided         = params.key?('signup_enabled')
-          @signup_enabled                  = parse_nullable_boolean(params['signup_enabled'])
+          @signup_enabled                  = parse_boolean(params['signup_enabled'])
           @autoverify_provided             = params.key?('autoverify')
-          @autoverify                      = parse_nullable_boolean(params['autoverify'])
+          @autoverify                      = parse_boolean(params['autoverify'])
         end
 
         def raise_concerns
@@ -197,8 +197,8 @@ module DomainsAPI
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
             enabled: config.enabled?,
-            signup_enabled: config.signup_enabled,
-            autoverify: config.autoverify,
+            signup_enabled: config.signup_enabled?,
+            autoverify: config.autoverify?,
             requires_allowlist: config.requires_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,
