@@ -171,7 +171,7 @@ module Onetime
     # @return [void]
     # @raise [Onetime::Problem] if new_domain is already taken
     def update_display_domain(new_domain)
-      new_domain = new_domain.to_s.downcase
+      new_domain = self.class.display_domain(new_domain.to_s.downcase)
       old_domain = display_domain.to_s.downcase
 
       return if new_domain == old_domain
@@ -192,7 +192,7 @@ module Onetime
       self.display_domain = new_domain
       self.updated        = OT.now.to_i
 
-      # Re-parse derived fields from the new display_domain
+      # Re-parse derived fields from the normalized display_domain
       ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
       @base_domain = ps_domain.domain.to_s
       @subdomain   = ps_domain.subdomain.to_s
