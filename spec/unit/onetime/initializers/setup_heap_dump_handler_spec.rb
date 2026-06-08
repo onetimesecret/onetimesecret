@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'objspace' # define ObjectSpace.dump_all so verifying doubles can stub it
 require 'onetime/initializers/setup_heap_dump_handler'
 
 RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
@@ -65,11 +66,8 @@ RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
   end
 
   describe '#execute' do
-    after do
-      # Restore default disposition so the installed trap does not leak into
-      # other examples.
-      Signal.trap('USR2', 'DEFAULT')
-    end
+    # Every example here stubs Signal.trap, so no real USR2 handler is ever
+    # installed in the test process — nothing to restore afterwards.
 
     it 'installs a USR2 signal handler' do
       expect(Signal).to receive(:trap).with('USR2')
@@ -84,12 +82,14 @@ RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
 
     context 'when the trap fires' do
       let(:fake_io) { StringIO.new }
+      # Mutable container holding the USR2 handler block captured from the
+      # stubbed Signal.trap (avoids an example-scoped instance variable).
+      let(:captured) { {} }
 
       before do
         # Capture the trap block instead of installing it, and run any spawned
         # thread synchronously for deterministic assertions.
-        @handler = nil
-        allow(Signal).to receive(:trap).with('USR2') { |&block| @handler = block }
+        allow(Signal).to receive(:trap).with('USR2') { |&block| captured[:handler] = block }
         allow(Thread).to receive(:new).and_yield
         allow(File).to receive(:open).and_yield(fake_io)
         allow(ObjectSpace).to receive(:dump_all)
@@ -97,7 +97,7 @@ RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
 
       it 'writes a heap dump and logs the path' do
         instance.execute(context)
-        @handler.call
+        captured[:handler].call
 
         expect(ObjectSpace).to have_received(:dump_all).with(output: fake_io)
         expect(logger).to have_received(:info).with(%r{\[heap\] Dump written to .*heap-#{Process.pid}-\d+\.json})
@@ -107,19 +107,19 @@ RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
         allow(ObjectSpace).to receive(:dump_all).and_raise(Errno::EACCES, 'no write')
 
         instance.execute(context)
-        expect { @handler.call }.not_to raise_error
+        expect { captured[:handler].call }.not_to raise_error
         expect(logger).to have_received(:error).with(/\[heap\] Dump failed: Errno::EACCES/)
       end
 
       it 'creates the dump owner-only and refuses to follow an existing file' do
         # The dump contains plaintext secrets; it must be 0600 and must not
-        # clobber/follow a pre-existing path (symlink defense in a shared /tmp).
+        # clobber/follow a pre-existing path (symlink defense in a shared dir).
         expect(File).to receive(:open)
           .with(anything, File::WRONLY | File::CREAT | File::EXCL, 0o600)
           .and_yield(fake_io)
 
         instance.execute(context)
-        @handler.call
+        captured[:handler].call
         expect(ObjectSpace).to have_received(:dump_all).with(output: fake_io)
       end
     end
