@@ -125,6 +125,28 @@ The IAM principal needs, at minimum:
 | `ses:DeleteEmailIdentity` | Tear the identity down on sender-config removal |
 | `ses:SendEmail` | Only if SES is also the delivery transport (`EMAILER_MODE=ses`) |
 
+## DMARC alignment (why custom MAIL FROM)
+
+Custom MAIL FROM is what gives SES **SPF alignment**, and it is the direct
+equivalent of Lettermint's Return-Path CNAME — same mechanism, different record
+shape. Lettermint folds it into a single `lm-bounces.<domain>` CNAME (and
+manages the SPF record on its side); SES instead exposes it as an MX + SPF TXT
+that you publish on `mail.<domain>`. Both set the envelope sender (Return-Path)
+to a subdomain of the sender domain, so SPF authenticates against *your* domain.
+
+| | Lettermint | SES *with* MAIL FROM | SES *without* MAIL FROM |
+|---|---|---|---|
+| Records added | one `lm-bounces.<domain>` CNAME | `mail.<domain>` MX + SPF TXT | DKIM CNAMEs only |
+| SPF passes | ✅ your subdomain | ✅ `mail.<domain>` | ✅ but against `amazonses.com` |
+| SPF aligns with `From:` | ✅ relaxed | ✅ relaxed | ❌ |
+| DKIM passes + aligns | ✅ strict | ✅ strict | ✅ strict |
+| DMARC passes via | SPF **and** DKIM | SPF **and** DKIM | DKIM only |
+
+Provisioning configures custom MAIL FROM by default, so DMARC passes via both
+SPF and DKIM rather than DKIM alone — i.e. no single point of failure. (This is
+also why the MAIL FROM MX is region-specific: it points at the regional SES
+feedback endpoint selected by `CUSTOM_MAIL_SES_REGION`.)
+
 ## Domain-level lifecycle
 
 ### 1. Provision
