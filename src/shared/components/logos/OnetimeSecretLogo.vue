@@ -135,7 +135,7 @@
           :size="svgSize"
           :aria-label="ariaLabel"
           :brightness="svgBrightness"
-          class="shrink-0 rounded-lg"
+          class="shrink-0 rounded-lg text-brand-500"
           :style="{ width: `${svgSize}px`, height: `${svgSize}px` }" /></a>
 
       <!-- Jurisdiction selector button -->
