@@ -45,6 +45,7 @@ module DomainsAPI::Logic
         # TODO: Consider returning all applicable errors (plural) at once
         raise_form_error 'Please enter a domain' if @domain_input.empty?
         raise_form_error 'Not a valid public domain' unless Onetime::CustomDomain.valid?(@domain_input)
+        raise_form_error 'This domain overlaps with the default site domain' if Onetime::CustomDomain.overlaps_canonical_domain?(@domain_input)
 
         # Require organization for domain ownership
         require_organization!
