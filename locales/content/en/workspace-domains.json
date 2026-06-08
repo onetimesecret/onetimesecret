@@ -507,6 +507,9 @@
     "text": "Connection test failed",
     "content_hash": "a45a37dd"
   },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here."
+  },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "content_hash": "80d3a144"
@@ -1112,10 +1115,7 @@
     "text": "Sign-in enabled"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "Override whether sign-in is enabled for this domain"
-  },
-  "web.domains.signin.inherit_global": {
-    "text": "Inherit global setting"
+    "text": "Whether users can sign in on this domain"
   },
   "web.domains.signin.restrict_to_label": {
     "text": "Restrict sign-in method"
@@ -1145,25 +1145,25 @@
     "text": "Method overrides"
   },
   "web.domains.signin.method_overrides_hint": {
-    "text": "Override individual authentication method availability for this domain"
+    "text": "Enable or disable individual authentication methods for this domain"
   },
   "web.domains.signin.email_auth_label": {
     "text": "Email authentication"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "Override whether passwordless email authentication is available on this domain"
+    "text": "Allow passwordless email authentication on this domain"
   },
   "web.domains.signin.sso_enabled_label": {
     "text": "Single Sign-On"
   },
   "web.domains.signin.sso_enabled_hint": {
-    "text": "Override whether SSO authentication is available on this domain"
+    "text": "Allow SSO authentication on this domain"
   },
   "web.domains.signin.enabled_label": {
     "text": "Enable sign-in configuration"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "When enabled, this domain uses the overrides above instead of the global sign-in policy"
+    "text": "When enabled, this domain uses the sign-in settings configured above"
   },
   "web.domains.signin.save_config": {
     "text": "Save configuration"
@@ -1173,6 +1173,12 @@
   },
   "web.domains.signin.delete_confirm": {
     "text": "Delete sign-in configuration? This domain will fall back to the global sign-in policy."
+  },
+  "web.domains.signin.update_success": {
+    "text": "Sign-in configuration updated successfully"
+  },
+  "web.domains.signin.delete_success": {
+    "text": "Sign-in configuration removed successfully"
   },
   "web.domains.signup.domain_overrides_label": {
     "text": "Domain overrides"

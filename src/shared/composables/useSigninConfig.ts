@@ -10,61 +10,71 @@
  * - discardChanges: resets form state to last-saved snapshot
  * - hasUnsavedChanges: computed diff between form and saved state
  *
- * NOTE: Backend persistence (Ruby model + API endpoints) is not yet
- * implemented. This composable is wired to a SigninConfigService that
- * will need corresponding backend routes.
- *
  * @param domainExtId - Domain external ID for API calls
  */
 
 import type { ApplicationError } from '@/schemas/errors';
+import type { PutSigninConfigRequest } from '@/schemas/api/domains/requests/signin-config';
 import type {
   CustomDomainSigninConfig,
   SigninRestrictTo,
 } from '@/schemas/shapes/domains/signin-config';
+import { SigninConfigService } from '@/services/signin-config.service';
+import { useNotificationsStore } from '@/shared/stores';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
  * Form state for signin configuration.
  */
 export interface SigninConfigFormState {
   enabled: boolean;
-  signin_enabled: boolean | null;
+  signin_enabled: boolean;
   restrict_to: SigninRestrictTo | null;
-  email_auth_enabled: boolean | null;
-  sso_enabled: boolean | null;
+  email_auth_enabled: boolean;
+  sso_enabled: boolean;
 }
 
 function createDefaultFormState(): SigninConfigFormState {
   return {
     enabled: false,
-    signin_enabled: null,
+    signin_enabled: true,
     restrict_to: null,
-    email_auth_enabled: null,
-    sso_enabled: null,
+    email_auth_enabled: false,
+    sso_enabled: false,
   };
 }
 
-function _configToFormState(config: CustomDomainSigninConfig): SigninConfigFormState {
+/**
+ * Convert API response to form state.
+ *
+ * Nullable API fields are coerced to concrete booleans for the form:
+ * null inherits the global default, which the form represents as the
+ * field's default value.
+ */
+function configToFormState(config: CustomDomainSigninConfig): SigninConfigFormState {
   return {
     enabled: config.enabled,
-    signin_enabled: config.signin_enabled ?? null,
+    signin_enabled: config.signin_enabled ?? true,
     restrict_to: config.restrict_to ?? null,
-    email_auth_enabled: config.email_auth_enabled ?? null,
-    sso_enabled: config.sso_enabled ?? null,
+    email_auth_enabled: config.email_auth_enabled ?? false,
+    sso_enabled: config.sso_enabled ?? false,
   };
 }
 
 /* eslint max-lines-per-function: off */
-export function useSigninConfig(_domainExtId: string) {
-  const { t: _t } = useI18n();
+export function useSigninConfig(domainExtId: string) {
+  const notifications = useNotificationsStore();
+  const { t } = useI18n();
+  const router = useRouter();
 
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
 
-  const isLoading = ref(false);
+  const isLoading = ref(true);
   const isInitialized = ref(false);
   const isSaving = ref(false);
   const isDeleting = ref(false);
@@ -78,6 +88,25 @@ export function useSigninConfig(_domainExtId: string) {
 
   /** Snapshot of form state at last save/load. Used for unsaved-changes detection. */
   const savedFormState = ref<SigninConfigFormState | null>(null);
+
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: (message, severity) => notifications.show(message, severity, 'top'),
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => {
+      if (err.code === 404) {
+        return router.push({ name: 'NotFound' });
+      }
+      error.value = err;
+    },
+  };
+
+  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
+
+  // A second handler for save/delete actions that should NOT toggle isLoading.
+  const { wrap: wrapAction } = useAsyncHandler({
+    ...defaultAsyncHandlerOptions,
+    setLoading: undefined,
+  });
 
   // ---------------------------------------------------------------------------
   // Computed
@@ -101,50 +130,81 @@ export function useSigninConfig(_domainExtId: string) {
   });
 
   // ---------------------------------------------------------------------------
-  // Actions (stubbed — backend API not yet implemented)
+  // Actions
   // ---------------------------------------------------------------------------
 
-  const initialize = async () => {
-    isLoading.value = true;
-    try {
-      // TODO: Replace with SigninConfigService.getConfigForDomain(domainExtId)
-      // For now, start unconfigured (equivalent to a 404 response)
-      signinConfig.value = null;
-      formState.value = createDefaultFormState();
+  /**
+   * Load the current signin config for this domain.
+   * 404 is treated as "unconfigured" (signinConfig = null), not an error.
+   */
+  const initialize = () =>
+    wrap(async () => {
+      const response = await SigninConfigService.getConfigForDomain(domainExtId);
+      signinConfig.value = response.record;
+
+      if (response.record) {
+        formState.value = configToFormState(response.record);
+      } else {
+        formState.value = createDefaultFormState();
+      }
       savedFormState.value = { ...formState.value };
       isInitialized.value = true;
-    } finally {
-      isLoading.value = false;
-    }
-  };
+    });
 
+  /**
+   * Save the current form state (PUT — full replacement).
+   */
   const saveConfig = async () => {
     isSaving.value = true;
     error.value = null;
 
     try {
-      // TODO: Replace with SigninConfigService.putConfigForDomain(domainExtId, payload)
-      // For now, treat formState as the saved state
-      savedFormState.value = { ...formState.value };
+      const result = await wrapAction(async () => {
+        const payload: PutSigninConfigRequest = {
+          enabled: formState.value.enabled,
+          signin_enabled: formState.value.signin_enabled,
+          restrict_to: formState.value.restrict_to,
+          email_auth_enabled: formState.value.email_auth_enabled,
+          sso_enabled: formState.value.sso_enabled,
+        };
+
+        return await SigninConfigService.putConfigForDomain(domainExtId, payload);
+      });
+
+      if (result?.record) {
+        signinConfig.value = result.record;
+        formState.value = configToFormState(result.record);
+        savedFormState.value = { ...formState.value };
+        notifications.show(t('web.domains.signin.update_success'), 'success', 'top');
+      }
     } finally {
       isSaving.value = false;
     }
   };
 
+  /**
+   * Delete the signin config for this domain.
+   */
   const deleteConfig = async () => {
     isDeleting.value = true;
     error.value = null;
 
     try {
-      // TODO: Replace with SigninConfigService.deleteConfigForDomain(domainExtId)
-      signinConfig.value = null;
-      formState.value = createDefaultFormState();
-      savedFormState.value = { ...formState.value };
+      await wrapAction(async () => {
+        await SigninConfigService.deleteConfigForDomain(domainExtId);
+        signinConfig.value = null;
+        formState.value = createDefaultFormState();
+        savedFormState.value = { ...formState.value };
+        notifications.show(t('web.domains.signin.delete_success'), 'success', 'top');
+      });
     } finally {
       isDeleting.value = false;
     }
   };
 
+  /**
+   * Reset form to last-saved state.
+   */
   const discardChanges = () => {
     if (savedFormState.value) {
       formState.value = { ...savedFormState.value };

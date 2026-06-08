@@ -50,7 +50,7 @@ export type CustomDomainSigninConfig = z.infer<typeof customDomainSigninConfigSc
 export const customDomainSigninConfigSummarySchema = z.object({
   domain_id: z.string(),
   enabled: z.boolean(),
-  signin_enabled: z.boolean().nullable(),
+  signin_enabled: z.boolean(),
   restrict_to: signinRestrictToSchema.nullable(),
   created_at: transforms.fromNumber.toDate,
   updated_at: transforms.fromNumber.toDate,

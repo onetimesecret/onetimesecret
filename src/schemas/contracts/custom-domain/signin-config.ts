@@ -18,8 +18,8 @@
  * 1. One-to-One with Domain: Each custom domain has at most one signin
  *    config. The domain_id field is the identifier.
  *
- * 2. Nullable Overrides: Boolean fields use nullable semantics — null means
- *    "inherit the install-level default." Only explicit true/false overrides.
+ * 2. Explicit Booleans: Boolean fields are non-nullable with conservative
+ *    defaults (signin on, optional methods off until explicitly enabled).
  *
  * 3. restrict_to: Mirrors auth.defaults.yaml full.restrict_to. When set,
  *    only that single method is shown on the login page. The underlying
@@ -106,11 +106,10 @@ export const customDomainSigninConfigCanonical = z.object({
   enabled: z.boolean(),
 
   /**
-   * Domain-level override for AUTH_SIGNIN.
-   * When false, the signin page is disabled on this custom domain.
-   * Null inherits the install-level default.
+   * Whether sign-in is enabled on this custom domain.
+   * Defaults to true (conservative: don't lock users out).
    */
-  signin_enabled: z.boolean().nullable(),
+  signin_enabled: z.boolean(),
 
   /**
    * Restrict the login page to a single authentication method.
@@ -122,17 +121,17 @@ export const customDomainSigninConfigCanonical = z.object({
   restrict_to: signinRestrictToSchema.nullable(),
 
   /**
-   * Domain-level override for email auth / magic links.
-   * Null inherits the install-level AUTH_EMAIL_AUTH_ENABLED setting.
+   * Whether email auth / magic links are available on this domain.
+   * Defaults to false (conservative: off until explicitly enabled).
    */
-  email_auth_enabled: z.boolean().nullable(),
+  email_auth_enabled: z.boolean(),
 
   /**
-   * Domain-level override for SSO availability.
-   * Null inherits the install-level AUTH_SSO_ENABLED setting.
+   * Whether SSO is available on this domain.
+   * Defaults to false (conservative: off until explicitly enabled).
    * When true, the domain must also have a valid SsoConfig.
    */
-  sso_enabled: z.boolean().nullable(),
+  sso_enabled: z.boolean(),
 
   /** Configuration creation timestamp (Unix epoch seconds). */
   created_at: z.number(),
@@ -163,17 +162,17 @@ export const putSigninConfigPayloadSchema = z.object({
   /** Whether the per-domain config is active. Defaults to false. */
   enabled: z.boolean().optional(),
 
-  /** Domain-level override for signin availability. Null to inherit global default. */
-  signin_enabled: z.boolean().nullable().optional(),
+  /** Whether sign-in is enabled. Defaults to true. */
+  signin_enabled: z.boolean().optional(),
 
   /** Restrict login page to a single method. Null to show all enabled methods. */
   restrict_to: signinRestrictToSchema.nullable().optional(),
 
-  /** Domain-level override for email auth. Null to inherit global default. */
-  email_auth_enabled: z.boolean().nullable().optional(),
+  /** Whether email auth is enabled. Defaults to false. */
+  email_auth_enabled: z.boolean().optional(),
 
-  /** Domain-level override for SSO. Null to inherit global default. */
-  sso_enabled: z.boolean().nullable().optional(),
+  /** Whether SSO is enabled. Defaults to false. */
+  sso_enabled: z.boolean().optional(),
 });
 
 export type PutSigninConfigPayload = z.infer<typeof putSigninConfigPayloadSchema>;

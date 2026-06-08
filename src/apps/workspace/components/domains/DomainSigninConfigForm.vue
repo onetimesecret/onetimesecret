@@ -125,7 +125,7 @@ const handleDelete = () => {
     <form v-else
 @submit.prevent="handleSave"
 class="space-y-6">
-      <!-- Signin Enabled (domain override) -->
+      <!-- Signin Enabled -->
       <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <div>
           <label
@@ -142,10 +142,9 @@ class="space-y-6">
         <select
           id="signin-domain-enabled"
           aria-describedby="signin-domain-enabled-hint"
-          :value="formState.signin_enabled === null ? 'inherit' : String(formState.signin_enabled)"
-          @change="updateField('signin_enabled', ($event.target as HTMLSelectElement).value === 'inherit' ? null : ($event.target as HTMLSelectElement).value === 'true')"
+          :value="String(formState.signin_enabled)"
+          @change="updateField('signin_enabled', ($event.target as HTMLSelectElement).value === 'true')"
           class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-          <option value="inherit">{{ t('web.domains.signin.inherit_global') }}</option>
           <option value="true">{{ t('web.COMMON.enabled') }}</option>
           <option value="false">{{ t('web.COMMON.disabled') }}</option>
         </select>
@@ -256,7 +255,7 @@ class="space-y-6">
           {{ t('web.domains.signin.method_overrides_hint') }}
         </p>
 
-        <!-- Email Auth override -->
+        <!-- Email Auth -->
         <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
           <div>
             <label
@@ -273,16 +272,15 @@ class="space-y-6">
           <select
             id="signin-email-auth"
             aria-describedby="signin-email-auth-hint"
-            :value="formState.email_auth_enabled === null ? 'inherit' : String(formState.email_auth_enabled)"
-            @change="updateField('email_auth_enabled', ($event.target as HTMLSelectElement).value === 'inherit' ? null : ($event.target as HTMLSelectElement).value === 'true')"
+            :value="String(formState.email_auth_enabled)"
+            @change="updateField('email_auth_enabled', ($event.target as HTMLSelectElement).value === 'true')"
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="inherit">{{ t('web.domains.signin.inherit_global') }}</option>
             <option value="true">{{ t('web.COMMON.enabled') }}</option>
             <option value="false">{{ t('web.COMMON.disabled') }}</option>
           </select>
         </div>
 
-        <!-- SSO override -->
+        <!-- SSO -->
         <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
           <div>
             <label
@@ -299,10 +297,9 @@ class="space-y-6">
           <select
             id="signin-sso"
             aria-describedby="signin-sso-hint"
-            :value="formState.sso_enabled === null ? 'inherit' : String(formState.sso_enabled)"
-            @change="updateField('sso_enabled', ($event.target as HTMLSelectElement).value === 'inherit' ? null : ($event.target as HTMLSelectElement).value === 'true')"
+            :value="String(formState.sso_enabled)"
+            @change="updateField('sso_enabled', ($event.target as HTMLSelectElement).value === 'true')"
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="inherit">{{ t('web.domains.signin.inherit_global') }}</option>
             <option value="true">{{ t('web.COMMON.enabled') }}</option>
             <option value="false">{{ t('web.COMMON.disabled') }}</option>
           </select>
