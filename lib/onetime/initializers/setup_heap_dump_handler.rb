@@ -12,6 +12,12 @@ module Onetime
     # extra instrumentation, which makes diagnosing RSS growth vs. Ruby heap
     # growth in production containers significantly easier.
     #
+    # Opt-in: the handler is only installed when HEAP_DUMP_ENABLED is truthy
+    # (default off). It is a development/diagnostic tool, not an always-armed
+    # production primitive — see SECURITY below. Enabling it on a read-only
+    # podman container requires mounting a writable HEAP_DUMP_DIR and restarting
+    # anyway, so gating at boot time costs nothing operationally.
+    #
     # Because this runs as a boot initializer, the handler is installed once for
     # every OTS process regardless of execution mode (:web, :scheduler, :worker,
     # :cli). In Puma/Sneakers cluster mode the handler is installed in the master
@@ -20,21 +26,24 @@ module Onetime
     # cleanup_before_fork to tear it down before workers are spawned, leaving
     # them without the handler.
     #
-    # Usage (after deploy):
+    # Usage (after enabling and restarting):
     #   podman exec <container> kill -USR2 <pid>
     #   # then analyze the dump with: scripts/analyze-heapdump <file>
     #
-    # The dump is written to HEAP_DUMP_DIR (default /tmp) as
+    # The dump is written to HEAP_DUMP_DIR (default /var/tmp) as
     # heap-<pid>-<epoch>.json. Process.pid in the filename disambiguates master
-    # vs. worker dumps in cluster mode.
+    # vs. worker dumps in cluster mode. /var/tmp (not /tmp) is the default
+    # because Debian 13 mounts /tmp as tmpfs — a large dump there consumes RAM
+    # (counting against the container's MemoryMax) and is lost on restart,
+    # whereas /var/tmp is disk-backed and persists.
     #
     # SECURITY: ObjectSpace.dump_all serializes the `value` of every live
     # String, so a heap dump captured while secrets are in memory contains
     # plaintext secrets, session tokens, and derived key material. The dump is
     # therefore written owner-only (0600) and created exclusively (O_EXCL) so it
-    # cannot clobber or follow a pre-planted symlink in a shared /tmp. Treat the
-    # resulting file as a credential: restrict, transfer securely, and delete it
-    # once analysis is complete.
+    # cannot clobber or follow a pre-planted symlink in a shared directory. Treat
+    # the resulting file as a credential: restrict, transfer securely, and delete
+    # it once analysis is complete.
     #
     class SetupHeapDumpHandler < Onetime::Boot::Initializer
       @provides = [:heap_dump]
@@ -42,9 +51,17 @@ module Onetime
       # the platform) must never block application boot.
       @optional = true
 
-      # Directory where heap dumps are written. Overridable so containers with a
-      # locked-down /tmp can redirect dumps to a writable volume.
-      DUMP_DIR = ENV.fetch('HEAP_DUMP_DIR', '/tmp')
+      # Directory where heap dumps are written. Overridable so deployments can
+      # redirect dumps to a writable, disk-backed volume. Defaults to /var/tmp
+      # (disk-backed and persistent on Debian 13, unlike the tmpfs /tmp).
+      DUMP_DIR = ENV.fetch('HEAP_DUMP_DIR', '/var/tmp')
+
+      # Default-off: only install the handler when HEAP_DUMP_ENABLED is truthy.
+      # Skipping here means the trap is never registered, so a disabled deploy
+      # carries zero runtime surface for this diagnostic primitive.
+      def should_skip?
+        !Onetime::Utils.yes?(ENV.fetch('HEAP_DUMP_ENABLED', nil))
+      end
 
       def execute(_context)
         Signal.trap('USR2') do
@@ -56,7 +73,7 @@ module Onetime
             path = File.join(DUMP_DIR, "heap-#{Process.pid}-#{Time.now.to_i}.json")
             # WRONLY|CREAT|EXCL + 0600: the dump contains plaintext secrets, so
             # create it owner-only and refuse to write through an existing file
-            # or symlink (anti-clobber in a shared /tmp).
+            # or symlink (anti-clobber in a shared directory).
             File.open(path, File::WRONLY | File::CREAT | File::EXCL, 0o600) do |f|
               ObjectSpace.dump_all(output: f)
             end

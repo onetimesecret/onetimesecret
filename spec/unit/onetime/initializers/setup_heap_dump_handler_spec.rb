@@ -28,6 +28,40 @@ RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
       # before Puma/Sneakers workers are spawned, losing the handler.
       expect(described_class.phase).to eq(:preload)
     end
+
+    it 'defaults the dump directory to the disk-backed /var/tmp' do
+      # /tmp is tmpfs on Debian 13; a large dump there consumes RAM and is lost
+      # on restart, so the default must be disk-backed.
+      expect(described_class::DUMP_DIR).to eq('/var/tmp')
+    end
+  end
+
+  describe '#should_skip?' do
+    around do |example|
+      original = ENV.fetch('HEAP_DUMP_ENABLED', nil)
+      example.run
+    ensure
+      if original.nil?
+        ENV.delete('HEAP_DUMP_ENABLED')
+      else
+        ENV['HEAP_DUMP_ENABLED'] = original
+      end
+    end
+
+    it 'skips (handler not installed) when HEAP_DUMP_ENABLED is unset' do
+      ENV.delete('HEAP_DUMP_ENABLED')
+      expect(instance.should_skip?).to be true
+    end
+
+    it 'skips when HEAP_DUMP_ENABLED is a falsey value' do
+      ENV['HEAP_DUMP_ENABLED'] = 'false'
+      expect(instance.should_skip?).to be true
+    end
+
+    it 'runs when HEAP_DUMP_ENABLED is truthy' do
+      ENV['HEAP_DUMP_ENABLED'] = 'true'
+      expect(instance.should_skip?).to be false
+    end
   end
 
   describe '#execute' do
