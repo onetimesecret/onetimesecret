@@ -47,15 +47,17 @@ delivery while still using SES for sender-domain DKIM provisioning. If
 `CUSTOM_MAIL_PROVIDER` is unset, the provisioning provider falls back to
 `EMAILER_MODE`.
 
-## Regions — two knobs that must agree
+## Regions — two knobs
 
-SES configuration has **two** region settings that serve different layers.
-For a coherent setup, **set both to the same region**:
+SES configuration exposes **two** region settings that serve different layers.
+Set the provisioning region (`EMAILER_REGION`) to the intended region; the
+validation knob is **currently inert** (see the #2833 decision below), but
+keeping both aligned is recommended and future-proofs the config:
 
 | Env var | Drives | Used by |
 |---|---|---|
 | `EMAILER_REGION` (falls back to `AWS_REGION`) | The SES API client endpoint | Provisioning (`create/get/delete_email_identity`) and delivery |
-| `CUSTOM_MAIL_SES_REGION` | `email_providers.ses.region` config | The DNS **validation** strategy |
+| `CUSTOM_MAIL_SES_REGION` | `email_providers.ses.region` config | Validation config only — **currently inert** (see the #2833 decision below) |
 
 ```bash
 EMAILER_REGION=ca-central-1
@@ -68,13 +70,32 @@ CUSTOM_MAIL_SES_REGION=ca-central-1
 > provisioning would fail. **You must set `EMAILER_REGION` (or `EMAILER_MODE=ses`
 > with a real `EMAILER_REGION`) to a valid AWS region when using SES.**
 
-> **Note (#2833):** Threading `CUSTOM_MAIL_SES_REGION` all the way through the
-> `ValidateSenderDomain` interface is tracked separately in
-> [#2833](https://github.com/onetimesecret/onetimesecret/issues/2833). Until that
-> lands, keep the two region values identical so provisioning and validation
-> agree. SES DKIM records are token-based CNAMEs and are region-independent, so a
-> mismatch is only consequential for region-specific records (e.g. MX/bounce
-> endpoints) and for hitting the correct regional SES API.
+> **Decision ([#2833](https://github.com/onetimesecret/onetimesecret/issues/2833) — resolved by design):**
+> `CUSTOM_MAIL_SES_REGION` is **not** threaded through `ValidateSenderDomain`,
+> and it does not need to be. The validation strategies (SES, SendGrid,
+> Lettermint) are uniform: each reads the already-provisioned records from
+> `mailer_config.dns_records` and runs live DNS lookups against them. They
+> generate nothing from a region, so there is no validation-time value for a
+> region to influence. Region is purely a **provisioning / SES-API** concern —
+> the client region comes from `EMAILER_REGION` (→ `AWS_REGION`), and whatever
+> records SES assigns for that region are stored on the `MailerConfig` and read
+> back verbatim at verification.
+>
+> Concretely, `email_providers.ses.region` is merged by `ProviderConfig` but then
+> dropped by the strategy factory (the validation strategies declare no
+> `accepted_options`), so the value is currently inert. SES DKIM records are
+> token-based CNAMEs and region-independent; any region-specific records (e.g. the
+> `feedback-smtp.<region>.amazonses.com` MAIL FROM MX + SPF) must be emitted by
+> **provisioning** (`SESSenderStrategy#provision_dns_records`), not by validation —
+> that work belongs to this SES-promotion effort, not #2833. The earlier #2833
+> premise (a region-parameterized validation strategy that *generated* regional
+> records) predates the refactor to reading provisioned records and no longer
+> applies.
+>
+> Practical guidance is unchanged: set `EMAILER_REGION`/`AWS_REGION` to the
+> intended region. This two-knob region surface is transitional and expected to
+> consolidate, so prefer driving region from the provisioning side and treat
+> `CUSTOM_MAIL_SES_REGION` as a no-op for now.
 
 ## Credentials
 
