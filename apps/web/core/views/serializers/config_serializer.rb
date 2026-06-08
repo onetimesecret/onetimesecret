@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/custom_domain/signin_config'
 require 'onetime/models/custom_domain/sso_config'
 require 'onetime/models/custom_domain'
 
@@ -170,7 +171,7 @@ module Core
             'email_auth' => Onetime.auth_config.email_auth_enabled?,
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
-            'restrict_to' => Onetime.auth_config.restrict_to,
+            'restrict_to' => resolve_restrict_to(view_vars),
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
@@ -179,6 +180,18 @@ module Core
                                               features.dig('organizations', 'incoming_secrets_enabled')) || false,
             },
           }
+        end
+
+        # Resolve restrict_to for the current request context.
+        # Domain SigninConfig overrides global when enabled.
+        def resolve_restrict_to(view_vars)
+          domain_id = resolve_domain_id(view_vars)
+          if domain_id
+            signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
+            return signin_config.restrict_to if signin_config&.enabled?
+          end
+
+          Onetime.auth_config.restrict_to
         end
 
         # Build SSO configuration for frontend

@@ -153,6 +153,9 @@ module Core
       protected
 
       def signin_enabled?
+        config = domain_signin_config
+        return config.signin_enabled? if config&.enabled?
+
         auth_settings['enabled'] && auth_settings['signin']
       end
 
@@ -184,6 +187,16 @@ module Core
         return unless custom_domain
 
         Onetime::CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
+      end
+
+      def domain_signin_config
+        display_domain = req.env['onetime.display_domain']
+        return unless display_domain
+
+        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
+        return unless custom_domain
+
+        Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain.identifier)
       end
 
       # Returns the StrategyResult created by Otto's RouteAuthWrapper
