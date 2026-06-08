@@ -92,6 +92,7 @@ module Onetime
       'workspace_branding',
       'custom_mail_sender',
       'flexible_from_domain',
+      'custom_signin_config',
       'custom_signup_validation',
       'manage_sso',
       'manage_org',
