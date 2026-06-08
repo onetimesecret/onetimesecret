@@ -111,6 +111,27 @@ RSpec.describe Onetime::Initializers::SetupHeapDumpHandler do
         expect(logger).to have_received(:error).with(/\[heap\] Dump failed: Errno::EACCES/)
       end
 
+      it 'removes the partial, secret-bearing file when the write fails mid-stream' do
+        allow(ObjectSpace).to receive(:dump_all).and_raise(Errno::ENOSPC, 'disk full')
+        allow(File).to receive(:exist?).and_call_original
+        allow(File).to receive(:exist?).with(a_string_matching(/heap-#{Process.pid}-\d+\.json/)).and_return(true)
+        expect(File).to receive(:delete).with(a_string_matching(/heap-#{Process.pid}-\d+\.json/))
+
+        instance.execute(context)
+        captured[:handler].call
+      end
+
+      it 'does not delete a pre-existing file when exclusive creation is refused' do
+        # An EEXIST from the O_EXCL open means the file is not ours (a leftover
+        # or a symlink-attack target) — deleting it would defeat the guard.
+        allow(File).to receive(:open).and_raise(Errno::EEXIST, 'exists')
+        expect(File).not_to receive(:delete)
+
+        instance.execute(context)
+        expect { captured[:handler].call }.not_to raise_error
+        expect(logger).to have_received(:error).with(/\[heap\] Dump failed: Errno::EEXIST/)
+      end
+
       it 'creates the dump owner-only and refuses to follow an existing file' do
         # The dump contains plaintext secrets; it must be 0600 and must not
         # clobber/follow a pre-existing path (symlink defense in a shared dir).

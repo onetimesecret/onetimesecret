@@ -64,21 +64,32 @@ module Onetime
       end
 
       def execute(_context)
+        # Load objspace once here (execute only runs when the feature is
+        # enabled) rather than acquiring the require-mutex inside the thread
+        # spawned on every signal. require is idempotent.
+        require 'objspace'
+
         Signal.trap('USR2') do
           # ObjectSpace.dump_all is not signal-safe; running it directly in the
           # trap context can deadlock or corrupt VM state. Spawning a thread
           # defers the work to a normal execution context.
           Thread.new do
-            require 'objspace'
-            path = File.join(DUMP_DIR, "heap-#{Process.pid}-#{Time.now.to_i}.json")
+            path    = File.join(DUMP_DIR, "heap-#{Process.pid}-#{Time.now.to_i}.json")
+            created = false
             # WRONLY|CREAT|EXCL + 0600: the dump contains plaintext secrets, so
             # create it owner-only and refuse to write through an existing file
             # or symlink (anti-clobber in a shared directory).
             File.open(path, File::WRONLY | File::CREAT | File::EXCL, 0o600) do |f|
+              created = true
               ObjectSpace.dump_all(output: f)
             end
             Onetime.boot_logger.info "[heap] Dump written to #{path}"
           rescue StandardError => ex
+            # If dump_all raised mid-write we own a partial file that also holds
+            # plaintext secrets: remove it so it neither lingers nor masks the
+            # real cause as Errno::EEXIST on the next dump. Only delete a file we
+            # created — an EEXIST from the open above is not ours to remove.
+            File.delete(path) if created && File.exist?(path)
             Onetime.boot_logger.error "[heap] Dump failed: #{ex.class}: #{ex.message}"
           end
         end

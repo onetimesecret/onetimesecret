@@ -14,7 +14,8 @@
 #   3. Top STRING allocation sites  (where are strings being created?)
 #
 # Usage:
-#   scripts/analyze-heapdump /tmp/heap-<pid>-<epoch>.json
+#   scripts/analyze-heapdump /var/tmp/heap-<pid>-<epoch>.json
+#   (the handler writes to HEAP_DUMP_DIR, default /var/tmp)
 #
 # Capture a dump first with:
 #   kill -USR2 <pid>          # or: podman exec <container> kill -USR2 <pid>
