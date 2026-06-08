@@ -149,7 +149,8 @@ module Core
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
               'custom_mail_enabled' => features.dig('organizations', 'custom_mail_enabled') || false,
-              'incoming_secrets_enabled' => features.dig('organizations', 'incoming_secrets_enabled') || false,
+              'incoming_secrets_enabled' => (features.dig('incoming', 'enabled') &&
+                                              features.dig('organizations', 'incoming_secrets_enabled')) || false,
             },
           }
         end
