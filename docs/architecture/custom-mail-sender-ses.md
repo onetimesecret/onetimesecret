@@ -4,7 +4,7 @@ title: AWS SES Sender Domain Provider
 type: reference
 status: supported
 updated: 2026-06-08
-summary: Configuring AWS SES as the provider for the domain-level custom sender flow (DKIM provisioning, verification, teardown) including region selection and data-residency.
+summary: Configuring AWS SES as the provider for the domain-level custom sender flow (DKIM + custom MAIL FROM provisioning, verification, teardown) including region selection and data-residency.
 ---
 
 AWS SES is a supported provider for the **domain-level custom sender flow**: when an
@@ -84,7 +84,7 @@ teardown via `Mailer.provider_credentials('ses')`.
 > a region through `ValidateSenderDomain` — is not needed: the region belongs on
 > the provisioning side, which is exactly what `CUSTOM_MAIL_SES_REGION`
 > drives.) Any region-specific *records* (e.g. the
-> `feedback-smtp.<region>.amazonses.com` MAIL FROM MX + SPF) must be emitted by
+> `feedback-smtp.<region>.amazonses.com` MAIL FROM MX + SPF) are emitted by
 > provisioning (`SESSenderStrategy#provision_dns_records`) and are then stored on
 > the `MailerConfig` and read back verbatim at verification.
 
@@ -120,7 +120,8 @@ The IAM principal needs, at minimum:
 | Action | Why |
 |---|---|
 | `ses:CreateEmailIdentity` | Register the sender domain identity |
-| `ses:GetEmailIdentity` | Read DKIM tokens and verification status |
+| `ses:PutEmailIdentityMailFromAttributes` | Configure the custom MAIL FROM domain (SPF alignment, bounce handling) |
+| `ses:GetEmailIdentity` | Read DKIM tokens, MAIL FROM status, and verification status |
 | `ses:DeleteEmailIdentity` | Tear the identity down on sender-config removal |
 | `ses:SendEmail` | Only if SES is also the delivery transport (`EMAILER_MODE=ses`) |
 
@@ -128,19 +129,34 @@ The IAM principal needs, at minimum:
 
 ### 1. Provision
 
-`ProvisionSenderDomain` → `SESSenderStrategy#provision_dns_records` calls
-`CreateEmailIdentity` (or `GetEmailIdentity` if the identity already exists) and
-returns three DKIM CNAME records, relative to the sender domain:
+`ProvisionSenderDomain` → `SESSenderStrategy#provision_dns_records`:
+
+1. Calls `CreateEmailIdentity` (or `GetEmailIdentity` if the identity already
+   exists) to register the domain and obtain its DKIM tokens.
+2. Calls `PutEmailIdentityMailFromAttributes` to set a custom MAIL FROM
+   subdomain (`mail.<domain>`, with `behavior_on_mx_failure: USE_DEFAULT_VALUE`),
+   so SPF aligns to the sender domain and bounces are handled on the customer's
+   own domain instead of the shared `amazonses.com` default.
+
+It returns five **fully-qualified** DNS records — three DKIM CNAMEs plus the
+MAIL FROM MX and SPF TXT:
 
 ```
-<token1>._domainkey  CNAME  <token1>.dkim.amazonses.com
-<token2>._domainkey  CNAME  <token2>.dkim.amazonses.com
-<token3>._domainkey  CNAME  <token3>.dkim.amazonses.com
+<token1>._domainkey.<domain>  CNAME  <token1>.dkim.amazonses.com
+<token2>._domainkey.<domain>  CNAME  <token2>.dkim.amazonses.com
+<token3>._domainkey.<domain>  CNAME  <token3>.dkim.amazonses.com
+mail.<domain>                 MX     feedback-smtp.<region>.amazonses.com   (priority 10)
+mail.<domain>                 TXT    v=spf1 include:amazonses.com ~all
 ```
 
-The tokens are SES-assigned per domain and stored on the `MailerConfig`
-(`provider_dns_data` for the raw response, `dns_records` for the normalized
-records shown to the customer).
+The DKIM tokens are SES-assigned per domain; the MAIL FROM MX endpoint is
+region-specific (driven by `CUSTOM_MAIL_SES_REGION`). All records are stored on
+the `MailerConfig` (`provider_dns_data` for the raw response, `dns_records` for
+the normalized records shown to the customer) and read back verbatim at
+verification. If SES rejects the MAIL FROM configuration (e.g. the region does
+not support it), provisioning still succeeds with the DKIM records and the
+MAIL FROM records are omitted, rather than asking the customer to add records
+SES will not honor.
 
 ### 2. Verify
 
