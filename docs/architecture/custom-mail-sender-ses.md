@@ -49,24 +49,24 @@ delivery while still using SES for sender-domain DKIM provisioning. If
 
 ## Region
 
-The SES provisioning region is set with its own provider-namespaced variable,
+The SES provisioning region is set with its own dedicated variable,
 **independent of the install-level transactional mailer**:
 
 ```bash
-EMAIL_PROVIDERS_SES_REGION=ca-central-1   # default: us-east-1
+CUSTOM_MAIL_SES_REGION=ca-central-1   # default: us-east-1
 ```
 
 This is the deliberate point of `CUSTOM_MAIL_PROVIDER`: sender-domain
 provisioning is decoupled from `EMAILER_MODE` / `EMAILER_REGION` (which configure
 the install's own transactional email transport). An operator can run, say, SMTP
 for transactional mail and SES for sender-domain provisioning, each with its own
-region. `EMAIL_PROVIDERS_SES_REGION` maps to `email_providers.ses.region` in
+region. `CUSTOM_MAIL_SES_REGION` maps to `email_providers.ses.region` in
 config and feeds the SESv2 API client used for provisioning, verification, and
 teardown via `Mailer.provider_credentials('ses')`.
 
 | Setting | Configures | Source |
 |---|---|---|
-| `EMAIL_PROVIDERS_SES_REGION` | SES **sender-domain provisioning** API client | `email_providers.ses.region` → `provider_credentials('ses')` |
+| `CUSTOM_MAIL_SES_REGION` | SES **sender-domain provisioning** API client | `email_providers.ses.region` → `provider_credentials('ses')` |
 | `EMAILER_REGION` (falls back to `AWS_REGION`) | The install's **transactional mailer** (only when `EMAILER_MODE=ses`) | `emailer.region` → delivery backend |
 
 > **Why a dedicated var?** Earlier, the SES provisioning client pulled its region
@@ -82,7 +82,7 @@ teardown via `Mailer.provider_credentials('ses')`.
 > a **provisioning / SES-API** concern. (This is why
 > [#2833](https://github.com/onetimesecret/onetimesecret/issues/2833) — threading
 > a region through `ValidateSenderDomain` — is not needed: the region belongs on
-> the provisioning side, which is exactly what `EMAIL_PROVIDERS_SES_REGION`
+> the provisioning side, which is exactly what `CUSTOM_MAIL_SES_REGION`
 > drives.) Any region-specific *records* (e.g. the
 > `feedback-smtp.<region>.amazonses.com` MAIL FROM MX + SPF) must be emitted by
 > provisioning (`SESSenderStrategy#provision_dns_records`) and are then stored on
@@ -176,7 +176,7 @@ data-residency-sensitive deployments:
 Set the provisioning region to the chosen region:
 
 ```bash
-EMAIL_PROVIDERS_SES_REGION=ca-central-1
+CUSTOM_MAIL_SES_REGION=ca-central-1
 ```
 
 Note that SES is not available in every AWS region; confirm SES availability for
@@ -186,13 +186,13 @@ your target region before configuring it.
 
 SMTP transport for the install's transactional email, SES for domain-level
 sender provisioning, pinned to Canada Central for data residency. Note that the
-SES provisioning region (`EMAIL_PROVIDERS_SES_REGION`) is set independently of
+SES provisioning region (`CUSTOM_MAIL_SES_REGION`) is set independently of
 the transactional mailer:
 
 ```bash
 EMAILER_MODE=smtp
 CUSTOM_MAIL_PROVIDER=ses
-EMAIL_PROVIDERS_SES_REGION=ca-central-1
+CUSTOM_MAIL_SES_REGION=ca-central-1
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
 ORGS_CUSTOM_MAIL_ENABLED=true
@@ -203,7 +203,7 @@ ORGS_CUSTOM_MAIL_ENABLED=true
 - DNS verification failures (records not propagating, value mismatches): see
   [`docs/runbooks/dns-validation-failures.md`](../runbooks/dns-validation-failures.md).
 - Provisioning fails immediately with an invalid-region error: confirm
-  `EMAIL_PROVIDERS_SES_REGION` is a valid AWS region where SES is available
+  `CUSTOM_MAIL_SES_REGION` is a valid AWS region where SES is available
   (it defaults to `us-east-1` if unset).
 - `check_provider_verification_status` returns `not_found`: the identity was
   never created (or was deleted) — re-run provisioning.

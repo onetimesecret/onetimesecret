@@ -250,7 +250,7 @@ creds['api_key']
 
 # --- SES provisioning region is decoupled from EMAILER_REGION ---
 # provider_credentials('ses') sources region from email_providers.ses
-# (EMAIL_PROVIDERS_SES_REGION), independent of emailer.region (EMAILER_REGION),
+# (CUSTOM_MAIL_SES_REGION), independent of emailer.region (EMAILER_REGION),
 # so an install can run SMTP transactional mail and SES sender provisioning
 # in different regions.
 

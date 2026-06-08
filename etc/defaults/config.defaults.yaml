@@ -609,8 +609,8 @@ email_providers:
     # EMAILER_REGION, which configures the install-level transactional mailer.
     # For data-residency, use a regional endpoint such as ca-central-1 (Canada)
     # or ap-southeast-2 (Sydney). Confirm SES is available in the region.
-    # Override via EMAIL_PROVIDERS_SES_REGION env var
-    region: <%= ENV['EMAIL_PROVIDERS_SES_REGION'] || 'us-east-1' %>
+    # Override via CUSTOM_MAIL_SES_REGION env var
+    region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>
     # Number of DKIM selectors (SES uses 3 by default)
     dkim_selector_count: 3
     # SPF include domain
