@@ -157,6 +157,9 @@ module Core
       end
 
       def signup_enabled?
+        config = domain_signup_config
+        return config.signup_enabled? if config
+
         auth_settings['enabled'] && auth_settings['signup']
       end
 
@@ -164,6 +167,23 @@ module Core
 
       def auth_settings
         OT.conf.dig('site', 'authentication')
+      end
+
+      def resolve_autoverify
+        config = domain_signup_config
+        return config.autoverify? if config
+
+        auth_settings['autoverify'].to_s == 'true'
+      end
+
+      def domain_signup_config
+        display_domain = req.env['onetime.display_domain']
+        return unless display_domain
+
+        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
+        return unless custom_domain
+
+        Onetime::CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
       end
 
       # Returns the StrategyResult created by Otto's RouteAuthWrapper
