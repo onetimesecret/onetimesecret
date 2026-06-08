@@ -51,6 +51,23 @@ The plumbing underneath -- which provider's API to call, what DNS record shapes 
 
 Different deployments can run different global mailers (e.g. one environment uses SES, another uses Lettermint). Whatever the global mailer is, that same provider is automatically used for customer sender domain provisioning and verification. The sender strategy selection flows from the platform config, not from any per-customer setting.
 
+## Provider Comparison
+
+Every provisioning provider produces the same outcome — DKIM **and** SPF aligned to the customer's domain so DMARC passes via both paths — but each exposes it through different APIs and DNS record shapes. If you already know one provider, this maps it onto the other; if you're starting from scratch, it's the quickest way to see the shape of the problem.
+
+| | AWS SES | Lettermint |
+|---|---|---|
+| Provision API | `CreateEmailIdentity` + `PutEmailIdentityMailFromAttributes` | Team API `POST /domains` |
+| DKIM records | 3 CNAMEs (`<token>._domainkey.<domain>` → `<token>.dkim.amazonses.com`) | CNAME selectors (`<sel>._domainkey.<domain>` → `<sel>.dkim.lettermint.com`) |
+| SPF / envelope sender | custom MAIL FROM on `mail.<domain>`: an **MX + SPF TXT** the customer publishes directly | **one Return-Path CNAME** (`lm-bounces.<domain>`); Lettermint manages the SPF record on its side |
+| Verification status | `GetEmailIdentity` (DKIM + MAIL FROM status) | `GET /domains/:id` (+ `verify` trigger) |
+| Teardown | `DeleteEmailIdentity` | `DELETE /domains/:id` |
+| Strategy class | `SESSenderStrategy` | `LettermintSenderStrategy` |
+
+The one mechanism difference worth internalizing: **SES's custom MAIL FROM and Lettermint's Return-Path CNAME are equivalent** — both set the envelope sender to a subdomain of the sender domain so SPF aligns under DMARC's relaxed rules. Lettermint delegates SPF via a single CNAME (it publishes the SPF record itself); SES has no CNAME-delegated SPF, so the customer publishes an MX (to the regional `feedback-smtp.<region>.amazonses.com` endpoint) plus an SPF TXT directly. SendGrid (`automatic_security`) is CNAME-based like Lettermint. See the [SES guide](./custom-mail-sender-ses.md#dmarc-alignment-why-custom-mail-from) for the full DMARC alignment table.
+
+Validation is identical across providers: each reads the provisioned `dns_records` and runs live DNS lookups — no provider API call (see `ValidateSenderDomain`). Region is purely a provisioning concern (it selects SES's DKIM region and MAIL FROM endpoint); it plays no part in validation.
+
 ## Key Files
 
 | File | Role |

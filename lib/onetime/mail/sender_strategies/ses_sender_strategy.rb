@@ -27,6 +27,16 @@ module Onetime
       #   { type: 'MX',    name: 'mail.example.com',              value: 'feedback-smtp.us-east-1.amazonses.com' }
       #   { type: 'TXT',   name: 'mail.example.com',              value: 'v=spf1 include:amazonses.com ~all' }
       #
+      # Provider comparison (for devs coming from Lettermint): the MAIL FROM
+      # MX + SPF TXT above are SES's equivalent of Lettermint's single
+      # Return-Path CNAME (lm-bounces.<domain>). Both put the envelope sender on
+      # a subdomain of the sender domain so SPF aligns with the From: domain
+      # under DMARC — same outcome, different record shape. SES has no
+      # CNAME-delegated SPF, so the customer publishes the MX (regional feedback
+      # endpoint) and SPF TXT directly, whereas Lettermint manages SPF behind
+      # its CNAME. See LettermintSenderStrategy and
+      # docs/architecture/custom-mail-sender.md (Provider Comparison).
+      #
       # Configuration:
       #   region:            AWS region (default: us-east-1)
       #   access_key_id:     AWS access key
