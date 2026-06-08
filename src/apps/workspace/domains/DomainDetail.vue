@@ -104,6 +104,7 @@ interface Section {
   enabled: boolean;
 }
 
+// eslint-disable-next-line max-lines-per-function
 const sections = computed<Section[]>(() => [
   {
     key: 'brand',
@@ -146,6 +147,17 @@ const sections = computed<Section[]>(() => [
     descriptionKey: 'web.domains.detail.email_description',
     available: isOrgsCustomMailEnabled(),
     locked: !canEmailConfig.value,
+    toggleable: false,
+    enabled: false,
+  },
+  {
+    key: 'signin',
+    route: { name: 'DomainSignin', params: { orgid: props.orgid, extid: props.extid } },
+    icon: { collection: 'heroicons', name: 'arrow-right-on-rectangle' },
+    titleKey: 'web.domains.signin.configure_signin',
+    descriptionKey: 'web.domains.detail.signin_description',
+    available: true,
+    locked: false,
     toggleable: false,
     enabled: false,
   },
@@ -203,7 +215,8 @@ aria-hidden="true" />
       <DomainHeader
         :domain="customDomainRecord"
         :has-unsaved-changes="false"
-        :orgid="props.orgid" />
+        :orgid="props.orgid"
+        external-path="/" />
     </div>
 
     <!-- Features list -->

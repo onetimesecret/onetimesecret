@@ -148,7 +148,8 @@ aria-hidden="true" />
         <DomainHeader
           :domain="customDomainRecord"
           :has-unsaved-changes="hasUnsavedChanges"
-          :orgid="props.orgid" />
+          :orgid="props.orgid"
+          external-path="/" />
 
         <BrandSettingsBar
           v-if="canBrand"

@@ -139,6 +139,9 @@
     "text": "General Settings",
     "content_hash": "de322f87"
   },
+  "web.organizations.entitlements_title": {
+    "text": "Organization Entitlements"
+  },
   "web.organizations.billing_settings": {
     "text": "Billing & Subscription",
     "content_hash": "896913f0"

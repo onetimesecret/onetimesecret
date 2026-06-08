@@ -33,6 +33,8 @@ export interface SignupConfigFormState {
   validation_strategy: SignupValidationStrategy;
   allowed_signup_domains: string[];
   enabled: boolean;
+  signup_enabled: boolean | null;
+  autoverify: boolean | null;
 }
 
 function createDefaultFormState(): SignupConfigFormState {
@@ -40,6 +42,8 @@ function createDefaultFormState(): SignupConfigFormState {
     validation_strategy: 'passthrough',
     allowed_signup_domains: [],
     enabled: false,
+    signup_enabled: null,
+    autoverify: null,
   };
 }
 
@@ -61,6 +65,8 @@ function configToFormState(config: CustomDomainSignupConfig): SignupConfigFormSt
     validation_strategy: config.validation_strategy,
     allowed_signup_domains: config.allowed_signup_domains ?? [],
     enabled: config.enabled,
+    signup_enabled: config.signup_enabled ?? null,
+    autoverify: config.autoverify ?? null,
   };
 }
 
@@ -126,6 +132,8 @@ export function useSignupConfig(domainExtId: string) {
     return (
       current.validation_strategy !== saved.validation_strategy ||
       current.enabled !== saved.enabled ||
+      current.signup_enabled !== saved.signup_enabled ||
+      current.autoverify !== saved.autoverify ||
       !arraysEqual(current.allowed_signup_domains, saved.allowed_signup_domains)
     );
   });
@@ -167,6 +175,8 @@ export function useSignupConfig(domainExtId: string) {
         const payload: PutSignupConfigRequest = {
           validation_strategy: formState.value.validation_strategy,
           enabled: formState.value.enabled,
+          signup_enabled: formState.value.signup_enabled,
+          autoverify: formState.value.autoverify,
         };
 
         // Only include allowed_signup_domains when the strategy actually
