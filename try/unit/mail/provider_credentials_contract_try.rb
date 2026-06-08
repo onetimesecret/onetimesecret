@@ -279,3 +279,42 @@ class Onetime::Mail::Mailer
 end
 Onetime::Mail::Mailer.provider_credentials('ses')['region']
 #=> 'us-east-1'
+
+# --- SES provisioning credentials are decoupled from emailer.user/pass (SMTP_*) ---
+# build_provider_config('ses') resolves access_key_id/secret_access_key from
+# emailer.user/pass (i.e. SMTP_USERNAME/SMTP_PASSWORD when EMAILER_MODE=smtp).
+# email_providers.ses.{access_key_id,secret_access_key} (CUSTOM_MAIL_SES_* /
+# AWS_*) must override them so the SMTP login never leaks into the SES client.
+
+## Delivery-path config exposes the emailer-derived (SMTP) key pair
+@delivery_ses = Onetime::Mail::Mailer.send(:build_provider_config, 'ses')
+[@delivery_ses['access_key_id'], @delivery_ses['secret_access_key']]
+#=> ['smtp_user', 'smtp_pass']
+
+## provider_credentials('ses') overrides the key pair from email_providers.ses
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(provider)
+      if provider.to_s == 'ses'
+        { 'access_key_id' => 'AKIA_SES', 'secret_access_key' => 'ses-secret' }
+      else
+        {}
+      end
+    end
+  end
+end
+@ses_api_creds = Onetime::Mail::Mailer.provider_credentials('ses')
+[@ses_api_creds['access_key_id'], @ses_api_creds['secret_access_key']]
+#=> ['AKIA_SES', 'ses-secret']
+
+## With no email_providers.ses creds, it falls back to emailer.user/pass
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(_provider)
+      {}
+    end
+  end
+end
+@fallback_creds = Onetime::Mail::Mailer.provider_credentials('ses')
+[@fallback_creds['access_key_id'], @fallback_creds['secret_access_key']]
+#=> ['smtp_user', 'smtp_pass']

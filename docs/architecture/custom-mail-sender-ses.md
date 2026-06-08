@@ -90,25 +90,37 @@ teardown via `Mailer.provider_credentials('ses')`.
 
 ## Credentials
 
-The SES API client uses standard AWS credentials. Two source pairs are accepted
-(resolved per `Mailer.build_provider_config`); the emailer/SMTP fields take
-precedence over the AWS SDK environment variables:
+The SES API client uses standard AWS credentials. To keep sender-domain
+provisioning independent of the install's SMTP/transactional mailer, the key
+pair is resolved with this precedence (highest first):
 
-| Credential | First source (emailer config) | Fallback |
-|---|---|---|
-| Access key | `SMTP_USERNAME` (emailer `user`) | `AWS_ACCESS_KEY_ID` |
-| Secret key | `SMTP_PASSWORD` (emailer `pass`) | `AWS_SECRET_ACCESS_KEY` |
+| Credential | 1st — dedicated | 2nd — AWS SDK env | 3rd — emailer config |
+|---|---|---|---|
+| Access key | `CUSTOM_MAIL_SES_ACCESS_KEY_ID` | `AWS_ACCESS_KEY_ID` | `SMTP_USERNAME` (emailer `user`) |
+| Secret key | `CUSTOM_MAIL_SES_SECRET_ACCESS_KEY` | `AWS_SECRET_ACCESS_KEY` | `SMTP_PASSWORD` (emailer `pass`) |
 
-So you can supply credentials through the dedicated AWS env vars:
+The dedicated `CUSTOM_MAIL_SES_*` vars (or the `AWS_*` vars they fall back to)
+flow through `email_providers.ses` and **override** the emailer-derived values in
+`Mailer.provider_credentials('ses')`. The emailer `user`/`pass` are used only as
+a last resort — i.e. when SES is also the delivery backend (`EMAILER_MODE=ses`)
+and neither the dedicated nor the `AWS_*` vars are set.
 
 ```bash
+# Either set works; the first non-empty source wins:
+CUSTOM_MAIL_SES_ACCESS_KEY_ID=AKIA...
+CUSTOM_MAIL_SES_SECRET_ACCESS_KEY=...
+# or the standard AWS SDK vars:
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
 ```
 
-or, when the emailer already carries them, through `SMTP_USERNAME` /
-`SMTP_PASSWORD` — whichever is set first wins (so if `SMTP_USERNAME` is set, the
-AWS env var is ignored).
+> **Why the precedence matters (SMTP collision):** if you run authenticated SMTP
+> for transactional delivery (`EMAILER_MODE=smtp`), `SMTP_USERNAME` /
+> `SMTP_PASSWORD` populate the emailer `user`/`pass`. If those were the first
+> source, the SES API client would silently use your SMTP login as the AWS key
+> pair → opaque `InvalidClientTokenId` failures. Sourcing SES credentials from
+> `CUSTOM_MAIL_SES_*` / `AWS_*` (the two rows above) keeps the SMTP login out of
+> the SES client.
 
 > **Caution:** these must be IAM access keys valid for the **SESv2 API**
 > (`CreateEmailIdentity` etc.). SES *SMTP* credentials are a different artifact
@@ -223,18 +235,25 @@ your target region before configuring it.
 ## Minimal example
 
 SMTP transport for the install's transactional email, SES for domain-level
-sender provisioning, pinned to Canada Central for data residency. Note that the
-SES provisioning region (`CUSTOM_MAIL_SES_REGION`) is set independently of
-the transactional mailer:
+sender provisioning, pinned to Canada Central for data residency. Both the SES
+region **and** credentials are set independently of the transactional mailer, so
+the SES API client is unaffected by the SMTP login used for delivery:
 
 ```bash
 EMAILER_MODE=smtp
+SMTP_USERNAME=smtp-login          # used for SMTP delivery only
+SMTP_PASSWORD=smtp-secret         # NOT used as the SES AWS key
 CUSTOM_MAIL_PROVIDER=ses
 CUSTOM_MAIL_SES_REGION=ca-central-1
-AWS_ACCESS_KEY_ID=AKIA...
-AWS_SECRET_ACCESS_KEY=...
+# SES API credentials (dedicated knob, or set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY):
+CUSTOM_MAIL_SES_ACCESS_KEY_ID=AKIA...
+CUSTOM_MAIL_SES_SECRET_ACCESS_KEY=...
 ORGS_CUSTOM_MAIL_ENABLED=true
 ```
+
+Here `CUSTOM_MAIL_SES_ACCESS_KEY_ID` / `CUSTOM_MAIL_SES_SECRET_ACCESS_KEY` (or
+the `AWS_*` equivalents) take precedence, so the SES provisioning client uses the
+AWS key pair — never the SMTP login — even though delivery runs over SMTP.
 
 ## Troubleshooting
 
