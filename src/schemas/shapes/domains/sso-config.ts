@@ -90,6 +90,7 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
 
     // Boolean with default for resilience during rolling deploys
     enforce_sso_only: z.boolean().default(false),
+    grant_org_scope: z.boolean().default(false),
   });
 
 export type CustomDomainSsoConfig = z.infer<typeof customDomainSsoConfigSchema>;
@@ -109,6 +110,7 @@ export const customDomainSsoConfigSummarySchema = z.object({
   provider_type: ssoProviderTypeSchema,
   enabled: z.boolean(),
   enforce_sso_only: z.boolean(),
+  grant_org_scope: z.boolean(),
   display_name: z.string(),
   created_at: transforms.fromNumber.toDate,
   updated_at: transforms.fromNumber.toDate,

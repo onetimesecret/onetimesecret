@@ -181,6 +181,14 @@ export const customDomainSsoConfigCanonical = z.object({
    */
   enforce_sso_only: z.boolean(),
 
+  /**
+   * Whether SSO users on this domain receive org-wide access.
+   * When true, users who authenticate via this domain's SSO can access
+   * all organization domains. When false (default), access is scoped
+   * to this domain only.
+   */
+  grant_org_scope: z.boolean(),
+
   /** Configuration creation timestamp (Unix epoch seconds). */
   created_at: z.number(),
 
@@ -237,6 +245,9 @@ export const patchSsoConfigPayloadSchema = z.object({
 
   /** Whether to enforce SSO-only authentication for this domain. */
   enforce_sso_only: z.boolean().optional(),
+
+  /** Whether SSO users on this domain receive org-wide access. */
+  grant_org_scope: z.boolean().optional(),
 });
 
 export type PatchSsoConfigPayload = z.infer<typeof patchSsoConfigPayloadSchema>;
@@ -280,6 +291,9 @@ export const putSsoConfigPayloadSchema = z.object({
 
   /** Whether to enforce SSO-only authentication for this domain. Defaults to false. */
   enforce_sso_only: z.boolean().optional(),
+
+  /** Whether SSO users on this domain receive org-wide access. Defaults to false. */
+  grant_org_scope: z.boolean().optional(),
 });
 
 /**

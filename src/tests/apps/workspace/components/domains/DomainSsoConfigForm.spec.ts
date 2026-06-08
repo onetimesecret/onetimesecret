@@ -148,6 +148,7 @@ function createDefaultFormState(): SsoConfigFormState {
     allowed_domains: [],
     enabled: false,
     enforce_sso_only: false,
+    grant_org_scope: false,
   };
 }
 
@@ -156,6 +157,7 @@ const mockExistingConfig: CustomDomainSsoConfig = {
   provider_type: 'entra_id',
   enabled: true,
   enforce_sso_only: false,
+  grant_org_scope: false,
   display_name: 'Test Domain SSO',
   client_id: 'client-id-123',
   client_secret_masked: '****5678',
@@ -178,6 +180,7 @@ const mockExistingFormState: SsoConfigFormState = {
   allowed_domains: ['example.com'],
   enabled: true,
   enforce_sso_only: false,
+  grant_org_scope: false,
 };
 
 const mockEnforceSsoOnlyFormState: SsoConfigFormState = {

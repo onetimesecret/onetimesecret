@@ -93,6 +93,7 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   requires_domain_filter: false,
   idp_controls_access: true,
   enforce_sso_only: false,
+  grant_org_scope: false,
   created_at: new Date('2025-01-01T00:00:00Z'),
   updated_at: new Date('2025-01-15T10:00:00Z'),
 };
@@ -189,6 +190,7 @@ describe('useSsoConfig', () => {
         allowed_domains: ['acme.com', 'acme.org'],
         enabled: true,
         enforce_sso_only: false,
+        grant_org_scope: false,
       });
       expect(composable.isConfigured.value).toBe(true);
     });
@@ -227,6 +229,7 @@ describe('useSsoConfig', () => {
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
+        grant_org_scope: false,
       });
     });
 
@@ -502,6 +505,7 @@ describe('useSsoConfig', () => {
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       await composable.saveConfig();
@@ -528,6 +532,7 @@ describe('useSsoConfig', () => {
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: true,
+        grant_org_scope: false,
       };
 
       await composable.saveConfig();
@@ -597,6 +602,7 @@ describe('useSsoConfig', () => {
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
+        grant_org_scope: false,
       });
     });
 
@@ -906,6 +912,7 @@ describe('useSsoConfig', () => {
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
+        grant_org_scope: false,
       });
     });
 
