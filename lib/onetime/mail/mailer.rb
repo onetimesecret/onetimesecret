@@ -132,7 +132,31 @@ module Onetime
         #   Onetime::Mail::Mailer.provider_credentials('ses')
         #   # => { 'region' => 'us-east-1', 'access_key_id' => '...', 'secret_access_key' => '...' }
         def provider_credentials(provider)
-          build_provider_config(provider)
+          config = build_provider_config(provider)
+
+          # Sender-domain provisioning is decoupled from the install-level
+          # transactional mailer (EMAILER_MODE / EMAILER_REGION / SMTP_*).
+          # Provider-specific settings come from email_providers.<provider> so an
+          # operator can run, e.g., SMTP for transactional delivery while
+          # provisioning sender domains through SES — without EMAILER_REGION or
+          # the SMTP credentials (SMTP_USERNAME/SMTP_PASSWORD, which
+          # build_provider_config resolves as emailer.user/pass) leaking into the
+          # SES provisioning client. email_providers.ses.{region,access_key_id,
+          # secret_access_key} default to the dedicated CUSTOM_MAIL_SES_* vars
+          # (falling back to AWS_REGION / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY),
+          # so these override the emailer-derived values whenever set. When none
+          # are set (e.g. EMAILER_MODE=ses, where emailer.user is the AWS key),
+          # the override is skipped and the emailer-derived value is kept. The
+          # delivery path (create_delivery_backend) uses emailer config directly.
+          if provider.to_s.downcase == 'ses'
+            ses_conf = provider_config('ses')
+            %w[region access_key_id secret_access_key].each do |key|
+              value = ses_conf[key] || ses_conf[key.to_sym]
+              config[key] = value.to_s unless value.to_s.empty?
+            end
+          end
+
+          config
         end
 
         # Returns the provider for custom mail sender domain provisioning.
