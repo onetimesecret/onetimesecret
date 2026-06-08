@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# scripts/analyze-heapdump
+
+##
+# HEAP DUMP ANALYSIS SCRIPT
+#
+# Summarizes an ObjectSpace.dump_all heap dump (JSON lines) produced by the
+# SIGUSR2 heap dump handler (see lib/onetime/initializers/setup_heap_dump_handler.rb).
+#
+# Produces three passes:
+#   1. Object counts by type        (what is there a lot of?)
+#   2. Total bytes by type          (what is using the most memory?)
+#   3. Top STRING allocation sites  (where are strings being created?)
+#
+# Usage:
+#   scripts/analyze-heapdump /var/tmp/heap-<pid>-<epoch>.json
+#   (the handler writes to HEAP_DUMP_DIR, default /var/tmp)
+#
+# Capture a dump first with:
+#   kill -USR2 <pid>          # or: podman exec <container> kill -USR2 <pid>
+#
+# SECURITY: a heap dump contains plaintext secrets and key material that were
+# live in memory. Treat the dump file as a credential and delete it when done.
+#
+# For reference-chain analysis (why is an object still alive), use `sheap`.
+#
+# Requires: jq, awk, sort, uniq
+#
+# Exit codes:
+#   0 - Analysis completed
+#   1 - Missing argument, file not found, or jq unavailable
+
+set -euo pipefail
+
+DUMP="${1:-}"
+
+if [[ -z "$DUMP" ]]; then
+  echo "Usage: $0 <heap-dump.json>" >&2
+  exit 1
+fi
+
+if [[ ! -f "$DUMP" ]]; then
+  echo "Error: file not found: $DUMP" >&2
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: jq is required but not installed" >&2
+  exit 1
+fi
+
+echo "=== Object counts by type (top 20) ==="
+jq -r '.type' "$DUMP" | sort | uniq -c | sort -rn | head -20
+
+echo
+echo "=== Total bytes by type (descending) ==="
+jq -r 'select(.memsize) | "\(.type) \(.memsize)"' "$DUMP" \
+  | awk '{sum[$1]+=$2} END {for (t in sum) print sum[t], t}' | sort -rn
+
+echo
+echo "=== Top STRING allocation sites (file:line, top 20) ==="
+jq -r 'select(.type=="STRING" and .file) | "\(.file):\(.line)"' "$DUMP" \
+  | sort | uniq -c | sort -rn | head -20

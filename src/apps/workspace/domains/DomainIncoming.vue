@@ -23,6 +23,7 @@ import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
+import { isOrgsIncomingSecretsEnabled } from '@/utils/features';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -55,6 +56,7 @@ const organization = computed(() =>
 const { can } = useEntitlements(organization);
 const canManageIncoming = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+const incomingSecretsEnabled = computed(() => isOrgsIncomingSecretsEnabled());
 
 // ---------------------------------------------------------------------------
 // Incoming config composable
@@ -167,6 +169,23 @@ watch(() => props.extid, async () => {
       <!-- Error State -->
       <div v-else-if="domainError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <BasicFormAlerts :error="domainError.message" />
+      </div>
+
+      <!-- Feature Disabled at Install Level -->
+      <div
+        v-else-if="!incomingSecretsEnabled"
+        class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
+        <OIcon
+          collection="heroicons"
+          name="x-circle"
+          class="mx-auto size-12 text-gray-400"
+          aria-hidden="true" />
+        <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {{ t('web.domains.incoming.feature_disabled') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.domains.incoming.feature_disabled_description') }}
+        </p>
       </div>
 
       <!-- Access Denied / Upgrade Banner -->

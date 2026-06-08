@@ -11,6 +11,11 @@
 #   4. Dry-run with existing config -> prints plan with "provision with existing config"
 #   5. Provision success path -> creates MailerConfig, prints "provisioned successfully"
 #   6. Provision failure path -> prints "failed:"
+#   7. Non-lettermint existing config -> reconciles without provider refusal
+#   8. --provider conflicting with existing config -> refuses to switch
+#   9. Unresolvable/invalid provider -> errors, creates no config
+#  10. New config created with explicit non-lettermint --provider
+#  11. Explicit invalid --provider -> errors, creates no config
 #
 # Run:
 #   try try/unit/cli/domains/reconcile_sender_command_try.rb --agent
@@ -112,6 +117,7 @@ end
   build_cmd.call(
     domain_name: @domain_3.display_domain,
     from_address: "noreply@rsc-dry3-#{@timestamp}.example.com",
+    provider: 'lettermint',
     dry_run: true,
   )
 end
@@ -168,6 +174,7 @@ PSDTestData.canned_result = Onetime::Operations::ProvisionSenderDomain::Result.n
   build_cmd.call(
     domain_name: @domain_5.display_domain,
     from_address: "noreply@rsc-ok-#{@timestamp}.example.com",
+    provider: 'lettermint',
   )
 end
 @output_5.include?('provisioned successfully')
@@ -206,6 +213,7 @@ PSDTestData.canned_result = Onetime::Operations::ProvisionSenderDomain::Result.n
   build_cmd.call(
     domain_name: @domain_6.display_domain,
     from_address: "noreply@rsc-fail-#{@timestamp}.example.com",
+    provider: 'lettermint',
   )
 end
 @output_6.include?('failed:')
@@ -214,6 +222,118 @@ end
 ## Failure output includes the error message
 @output_6.include?('Lettermint API rate limit exceeded')
 #=> true
+
+# ===================================================================
+# Case 7: Non-lettermint existing config -> reconciles, no refusal
+# ===================================================================
+
+## Existing ses config reconciles without the provider-mismatch refusal
+@domain_7 = Onetime::CustomDomain.create!("rsc-ses-#{@timestamp}-#{@entropy}.example.com", @org.objid)
+@mc_7 = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @domain_7.identifier,
+  from_address: "noreply@rsc-ses-#{@timestamp}.example.com",
+  provider: 'ses',
+)
+PSDTestData.canned_result = Onetime::Operations::ProvisionSenderDomain::Result.new(
+  success: true,
+  dns_records: [],
+  provider_data: { 'status' => 'pending' },
+  error: nil,
+)
+@output_7 = capture_stdout do
+  build_cmd.call(domain_name: @domain_7.display_domain)
+end
+@output_7.include?('provisioned successfully')
+#=> true
+
+## Reconcile output reflects the ses provider, not lettermint
+@output_7.include?('provider: ses')
+#=> true
+
+## No provider-mismatch refusal for the existing ses config
+@output_7.include?('Delete the existing sender config first')
+#=> false
+
+# ===================================================================
+# Case 8: --provider conflicting with existing config -> refuses switch
+# ===================================================================
+
+## --provider that differs from existing config refuses to switch
+@output_8 = capture_stdout do
+  build_cmd.call(domain_name: @domain_7.display_domain, provider: 'sendgrid')
+end
+@output_8.include?('Delete the existing sender config first')
+#=> true
+
+# ===================================================================
+# Case 9: Unresolvable/invalid provider -> errors, creates no config
+# ===================================================================
+# In the test environment the installation default sender provider is
+# 'logger', which is not a valid MailerConfig provider. With no --provider
+# and no existing config, the command should refuse rather than create an
+# invalid config.
+
+## No valid provider resolvable -> prints error
+@domain_9 = Onetime::CustomDomain.create!("rsc-noprov-#{@timestamp}-#{@entropy}.example.com", @org.objid)
+@output_9 = capture_stdout do
+  build_cmd.call(
+    domain_name: @domain_9.display_domain,
+    from_address: "noreply@rsc-noprov-#{@timestamp}.example.com",
+  )
+end
+@output_9.include?('Could not resolve a valid sender provider')
+#=> true
+
+## No MailerConfig is created when the provider is unresolvable
+Onetime::CustomDomain::MailerConfig.exists_for_domain?(@domain_9.identifier)
+#=> false
+
+# ===================================================================
+# Case 10: New config created with explicit non-lettermint --provider
+# ===================================================================
+
+## New config is created with the provider given via --provider
+@domain_10 = Onetime::CustomDomain.create!("rsc-newses-#{@timestamp}-#{@entropy}.example.com", @org.objid)
+PSDTestData.canned_result = Onetime::Operations::ProvisionSenderDomain::Result.new(
+  success: true,
+  dns_records: [],
+  provider_data: { 'status' => 'pending' },
+  error: nil,
+)
+@output_10 = capture_stdout do
+  build_cmd.call(
+    domain_name: @domain_10.display_domain,
+    from_address: "noreply@rsc-newses-#{@timestamp}.example.com",
+    provider: 'ses',
+  )
+end
+@mc_10 = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@domain_10.identifier)
+@mc_10.provider
+#=> 'ses'
+
+## Reconcile output reflects the ses provider for the new config
+@output_10.include?('provider: ses')
+#=> true
+
+# ===================================================================
+# Case 11: Explicit invalid --provider -> errors, creates no config
+# ===================================================================
+
+## Explicit invalid --provider is rejected
+@domain_11 = Onetime::CustomDomain.create!("rsc-bad-#{@timestamp}-#{@entropy}.example.com", @org.objid)
+@output_11 = capture_stdout do
+  build_cmd.call(
+    domain_name: @domain_11.display_domain,
+    from_address: "noreply@rsc-bad-#{@timestamp}.example.com",
+    provider: 'mailchimp',
+  )
+end
+@output_11.include?('Could not resolve a valid sender provider')
+#=> true
+
+## No MailerConfig is created for an invalid provider
+Onetime::CustomDomain::MailerConfig.exists_for_domain?(@domain_11.identifier)
+#=> false
 
 # --- Cleanup ---
 PSDTestData.canned_result = nil

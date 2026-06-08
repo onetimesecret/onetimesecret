@@ -77,10 +77,11 @@ ensure
 end
 
 # Helper to modify organizations feature flags with all four keys
-def with_orgs_features(orgs_enabled: false, sso_enabled: false, custom_mail_enabled: false, incoming_secrets_enabled: false)
+def with_orgs_features(orgs_enabled: false, sso_enabled: false, custom_mail_enabled: false, incoming_secrets_enabled: false, incoming_enabled: incoming_secrets_enabled)
   config = Onetime.auth_config.instance_variable_get(:@config)
   features = config['full']['features'] ||= {}
   original_orgs = features['organizations']
+  original_incoming = features['incoming']
 
   features['organizations'] = {
     'enabled' => orgs_enabled,
@@ -88,12 +89,18 @@ def with_orgs_features(orgs_enabled: false, sso_enabled: false, custom_mail_enab
     'custom_mail_enabled' => custom_mail_enabled,
     'incoming_secrets_enabled' => incoming_secrets_enabled,
   }
+  features['incoming'] = { 'enabled' => incoming_enabled }
   yield
 ensure
   if original_orgs.nil?
     features.delete('organizations')
   else
     features['organizations'] = original_orgs
+  end
+  if original_incoming.nil?
+    features.delete('incoming')
+  else
+    features['incoming'] = original_incoming
   end
 end
 

@@ -23,6 +23,7 @@ require_relative 'initializers/configure_truemail'
 require_relative 'initializers/configure_rhales'
 require_relative 'initializers/configure_trusted_proxy'
 require_relative 'initializers/load_fortunes'
+require_relative 'initializers/setup_heap_dump_handler'
 
 # Dependent initializers
 require_relative 'initializers/validate_auth_config'    # depends_on: [:logging]

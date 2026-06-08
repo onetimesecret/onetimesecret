@@ -4,13 +4,13 @@
 
 # Tests for RemoveDomain#delete_sender_domain
 #
-# The method loads mailer_config from the custom domain, checks if the
-# effective provider is 'lettermint', calls strategy.delete_sender_identity,
+# The method loads mailer_config from the custom domain, resolves the
+# effective provider, calls that provider's strategy.delete_sender_identity,
 # and swallows any errors so domain removal always proceeds.
 #
 # Covers:
 #   1. No mailer_config -> strategy never called
-#   2. Provider != 'lettermint' -> strategy never called
+#   2. Non-lettermint provider (ses) -> delete_sender_identity dispatched
 #   3. Provider == 'lettermint' -> delete_sender_identity called once
 #   4. Strategy raises StandardError -> error swallowed, no propagation
 #
@@ -113,10 +113,10 @@ restore_stubs(@ofp_1, @opc_1)
 #=> 0
 
 # ===================================================================
-# Case 2: Provider != 'lettermint' -> strategy never called
+# Case 2: Non-lettermint provider (ses) -> delete_sender_identity dispatched
 # ===================================================================
 
-## delete_sender_domain skips non-lettermint providers
+## delete_sender_domain dispatches deletion for non-lettermint providers
 @domain_2 = Onetime::CustomDomain.create!("rd-ses-#{@timestamp}-#{@entropy}.example.com", @org.objid)
 @mc_2 = Onetime::CustomDomain::MailerConfig.create!(
   domain_id: @domain_2.identifier,
@@ -128,7 +128,7 @@ restore_stubs(@ofp_1, @opc_1)
 @logic_2.send(:delete_sender_domain)
 restore_stubs(@ofp_2, @opc_2)
 @spy_2.delete_calls.size
-#=> 0
+#=> 1
 
 # ===================================================================
 # Case 3: Provider == 'lettermint' -> delete_sender_identity called
