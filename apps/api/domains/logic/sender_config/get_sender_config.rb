@@ -17,7 +17,7 @@ module DomainsAPI
       #   with custom_mail_sender entitlement.
       #
       # Response includes:
-      # - provider: smtp, ses, sendgrid, lettermint
+      # - provider: ses, sendgrid, lettermint, smtp
       # - from_name: Display name for sender
       # - from_address: Sender email address
       # - reply_to: Reply-to address

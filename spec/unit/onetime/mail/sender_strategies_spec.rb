@@ -85,10 +85,10 @@ RSpec.describe Onetime::Mail::SenderStrategies do
 
   # ==========================================================================
   # Single source of truth: MailerConfig validates its provider field against
-  # this registry at runtime (MailerConfig#validation_errors delegates to
-  # .supported? / .supported_providers). The set of providers a config may
-  # store therefore IS the set of registered strategies — they are consistent
-  # by construction and cannot drift. These tests lock that delegation in.
+  # this registry at runtime (MailerConfig#validation_errors checks
+  # .supported_providers). The set of providers a config may store therefore IS
+  # the set of registered strategies — they are consistent by construction and
+  # cannot drift. These tests lock that delegation in.
   # ==========================================================================
 
   describe 'as the MailerConfig provider source of truth' do

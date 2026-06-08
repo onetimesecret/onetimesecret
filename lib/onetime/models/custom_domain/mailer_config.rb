@@ -273,12 +273,13 @@ module Onetime
       # @return [Array<String>] List of validation error messages
       def validation_errors
         # The sender-strategy registry is the single source of truth for valid
-        # provider names: a provider is valid here iff a strategy can be
-        # dispatched for it. Validating against it at runtime (rather than
-        # maintaining a parallel constant) makes the model and the dispatch
-        # layer consistent by construction — they cannot drift. Required lazily,
-        # like computed_verification_status' job_lifecycle require, so the model
-        # does not force the mail-strategy tree to load at class-definition time.
+        # provider names: the providers a config may store ARE exactly the
+        # providers a strategy is registered for. Validating against it at
+        # runtime (rather than maintaining a parallel constant) keeps the model
+        # and the dispatch layer consistent by construction — they cannot drift.
+        # Required lazily, like computed_verification_status' job_lifecycle
+        # require, so the model does not force the mail-strategy tree to load at
+        # class-definition time.
         require_relative '../../mail/sender_strategies'
         strategies = Onetime::Mail::SenderStrategies
 
@@ -286,7 +287,9 @@ module Onetime
 
         errors << 'domain_id is required' if domain_id.to_s.empty?
         # Provider is optional - when empty, resolved from installation config.
-        if !provider.to_s.empty? && !strategies.supported?(provider)
+        # Matched case-sensitively against the registry's canonical (lowercase)
+        # names so only canonical values are ever stored.
+        if !provider.to_s.empty? && !strategies.supported_providers.include?(provider)
           errors << "provider must be one of: #{strategies.supported_providers.join(', ')}"
         end
         errors << 'from_address is required' if from_address.to_s.empty?
