@@ -604,10 +604,12 @@ email_providers:
   # AWS SES configuration
   # See docs/architecture/custom-mail-sender-ses.md for the domain-level flow.
   ses:
-    # AWS region for the SES DNS validation strategy.
-    # Keep equal to EMAILER_REGION (which drives the SES API client). For
-    # data-residency, use a regional endpoint such as ca-central-1 (Canada)
-    # or ap-southeast-2 (Sydney). Confirm SES is available in the region.
+    # Region for email_providers.ses. NOTE: currently INERT (#2833, resolved by
+    # design) — the validation strategies read provisioned records and use no
+    # region. Region is driven by EMAILER_REGION (-> AWS_REGION) on the
+    # provisioning/SES-API side; set that to a real region when using SES. For
+    # data-residency, use a regional endpoint such as ca-central-1 (Canada) or
+    # ap-southeast-2 (Sydney). Confirm SES is available in the region.
     # Override via CUSTOM_MAIL_SES_REGION env var
     region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>
     # Number of DKIM selectors (SES uses 3 by default)
