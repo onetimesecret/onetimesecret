@@ -602,8 +602,12 @@ emailer:
 #
 email_providers:
   # AWS SES configuration
+  # See docs/architecture/custom-mail-sender-ses.md for the domain-level flow.
   ses:
-    # AWS region for SES endpoints (affects MX record values)
+    # AWS region for the SES DNS validation strategy.
+    # Keep equal to EMAILER_REGION (which drives the SES API client). For
+    # data-residency, use a regional endpoint such as ca-central-1 (Canada)
+    # or ap-southeast-2 (Sydney). Confirm SES is available in the region.
     # Override via CUSTOM_MAIL_SES_REGION env var
     region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>
     # Number of DKIM selectors (SES uses 3 by default)

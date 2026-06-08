@@ -1,5 +1,7 @@
 # Custom Mail Sender Architecture
 
+> Provider-specific setup guides: [AWS SES](./custom-mail-sender-ses.md).
+
 ## Overview
 
 The custom mail sender system lets customers send secret-link emails from their own domain identity (from-address, reply-to) while the platform handles all provider integration transparently.
