@@ -56,6 +56,7 @@ const organization = computed(() =>
 const { can } = useEntitlements(organization);
 const canManageIncoming = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+const incomingSecretsEnabled = computed(() => isOrgsIncomingSecretsEnabled());
 
 // ---------------------------------------------------------------------------
 // Incoming config composable
@@ -172,7 +173,7 @@ watch(() => props.extid, async () => {
 
       <!-- Feature Disabled at Install Level -->
       <div
-        v-else-if="!isOrgsIncomingSecretsEnabled()"
+        v-else-if="!incomingSecretsEnabled"
         class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
         <OIcon
           collection="heroicons"

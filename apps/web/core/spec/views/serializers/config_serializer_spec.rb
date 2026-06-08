@@ -476,6 +476,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         let(:view_vars_with_incoming) do
           base_view_vars.merge(
             'features' => base_view_vars['features'].merge(
+              'incoming' => { 'enabled' => false },
               'organizations' => { 'enabled' => false, 'incoming_secrets_enabled' => true }
             )
           )
