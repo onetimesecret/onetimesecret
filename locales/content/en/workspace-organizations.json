@@ -759,7 +759,7 @@
     "text": "Grant org-wide access"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "When enabled, users who authenticate via this domain's SSO will have access to all organization domains. When disabled (default), they can only access this domain."
+    "text": "New members who join via this domain's SSO will be granted access to all organization domains. Existing members are unaffected. When disabled (default), new members can only access this domain."
   },
   "web.organizations.sso.save_config": {
     "text": "Save SSO Configuration",
