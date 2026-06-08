@@ -174,6 +174,26 @@ module DomainsAPI
         end
       end
 
+      # Parse a nullable boolean — preserves nil as "inherit global default".
+      #
+      # Tri-state semantics: true, false, or nil.
+      # - nil/absent/empty string -> nil (inherit)
+      # - true/'true'/1 -> true (override)
+      # - false/'false'/0 -> false (override)
+      #
+      # @param value [Boolean, String, Integer, nil] Value to parse
+      # @return [Boolean, nil] true, false, or nil
+      def parse_nullable_boolean(value)
+        case value
+        when nil, ''
+          nil
+        when true, 'true', '1', 1
+          true
+        when false, 'false', '0', 0
+          false
+        end
+      end
+
       private
 
       # Check the feature flag if one is configured.
