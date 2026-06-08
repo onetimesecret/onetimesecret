@@ -18,10 +18,10 @@ module DomainsAPI
       #
       # Request body:
       # - enabled: Optional boolean (default: false) — master switch
-      # - signin_enabled: Optional boolean|null — override AUTH_SIGNIN
+      # - signin_enabled: Optional boolean (default: false) — override AUTH_SIGNIN
       # - restrict_to: Optional string|null — restrict to single auth method
-      # - email_auth_enabled: Optional boolean|null — override email auth
-      # - sso_enabled: Optional boolean|null — override SSO availability
+      # - email_auth_enabled: Optional boolean (default: false) — override email auth
+      # - sso_enabled: Optional boolean (default: false) — override SSO availability
       #
       class PutSigninConfig < Base
         include AuditLogger
@@ -31,10 +31,10 @@ module DomainsAPI
         def process_params
           @domain_id          = sanitize_identifier(params['extid'])
           @enabled            = parse_boolean(params['enabled'])
-          @signin_enabled     = parse_nullable_boolean(params['signin_enabled'])
+          @signin_enabled     = params.key?('signin_enabled') ? parse_boolean(params['signin_enabled']) : false
           @restrict_to        = params['restrict_to'].to_s.strip.then { |v| v.empty? ? nil : v }
-          @email_auth_enabled = parse_nullable_boolean(params['email_auth_enabled'])
-          @sso_enabled        = parse_nullable_boolean(params['sso_enabled'])
+          @email_auth_enabled = params.key?('email_auth_enabled') ? parse_boolean(params['email_auth_enabled']) : false
+          @sso_enabled        = params.key?('sso_enabled') ? parse_boolean(params['sso_enabled']) : false
         end
 
         def raise_concerns
@@ -126,10 +126,10 @@ module DomainsAPI
           {
             domain_id: @custom_domain.extid,
             enabled: config.enabled?,
-            signin_enabled: config.signin_enabled,
+            signin_enabled: config.signin_enabled?,
             restrict_to: config.restrict_to,
-            email_auth_enabled: config.email_auth_enabled,
-            sso_enabled: config.sso_enabled,
+            email_auth_enabled: config.email_auth_enabled?,
+            sso_enabled: config.sso_enabled?,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }

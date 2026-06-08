@@ -1198,9 +1198,6 @@
   "web.domains.signup.autoverify_hint": {
     "text": "Override whether new accounts are automatically verified on this domain"
   },
-  "web.domains.signup.inherit_global": {
-    "text": "Inherit global setting"
-  },
   "web.domains.entitlement_required_owner": {
     "text": "This feature requires a plan upgrade.",
     "content_hash": "6de1f752"

@@ -16,10 +16,10 @@ module DomainsAPI
       #
       # Response includes:
       # - enabled: Whether per-domain signin config is active
-      # - signin_enabled: Nullable override for AUTH_SIGNIN
+      # - signin_enabled: Boolean override for AUTH_SIGNIN
       # - restrict_to: Nullable restriction to a single auth method
-      # - email_auth_enabled: Nullable override for email auth
-      # - sso_enabled: Nullable override for SSO
+      # - email_auth_enabled: Boolean override for email auth
+      # - sso_enabled: Boolean override for SSO
       # - created_at: Unix timestamp
       # - updated_at: Unix timestamp
       #
@@ -59,10 +59,10 @@ module DomainsAPI
           {
             domain_id: @custom_domain.extid,
             enabled: config.enabled?,
-            signin_enabled: config.signin_enabled,
+            signin_enabled: config.signin_enabled?,
             restrict_to: config.restrict_to,
-            email_auth_enabled: config.email_auth_enabled,
-            sso_enabled: config.sso_enabled,
+            email_auth_enabled: config.email_auth_enabled?,
+            sso_enabled: config.sso_enabled?,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }

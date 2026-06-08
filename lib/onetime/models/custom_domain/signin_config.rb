@@ -14,10 +14,10 @@
 #   - Passwordless: secrets.modern.com restricts to email_auth (magic links)
 #   - Method isolation: hide methods that aren't relevant for a domain's users
 #
-# Nullable Override Semantics:
-#   Boolean fields use nullable tri-state: true/false/nil.
-#   nil means "inherit the install-level default from auth.defaults.yaml".
-#   Only explicit true/false overrides the global setting.
+# Non-Nullable Override Semantics:
+#   Boolean fields are non-nullable with conservative defaults (false).
+#   When an admin configures a domain, the config they see is the config
+#   that runs — no invisible inheritance from install-level defaults.
 #
 # Scope Boundary:
 #   Install-wide security posture (MFA, lockout, password_requirements,
@@ -48,8 +48,7 @@ module Onetime
       # Non-nullable boolean, defaults to false.
       field :enabled
 
-      # Nullable override fields — nil means inherit install-level default.
-      # These are tri-state: true, false, or nil.
+      # Non-nullable boolean overrides with conservative defaults (false).
       field :signin_enabled       # Override for AUTH_SIGNIN
       field :restrict_to          # Override for full.restrict_to (string or nil)
       field :email_auth_enabled   # Override for AUTH_EMAIL_AUTH_ENABLED
@@ -60,21 +59,27 @@ module Onetime
       field :updated
 
       def init
-        # Master switch defaults to false when nil (new record).
-        # Uses nil? guard per Familia v2 boolean convention.
-        self.enabled = false if enabled.nil?
+        self.enabled            = false if enabled.nil?
+        self.signin_enabled     = false if signin_enabled.nil?
+        self.email_auth_enabled = false if email_auth_enabled.nil?
+        self.sso_enabled        = false if sso_enabled.nil?
       end
 
-      # Check if this per-domain config is active.
-      #
-      # @return [Boolean] true if per-domain signin config is enabled
       def enabled?
-        enabled != false
+        enabled == true
       end
 
-      # Raw tri-state accessors — no predicate methods for nullable fields.
-      # Consumers must handle nil (inherit) explicitly.
-      # These fields are returned as-is by the serializer.
+      def signin_enabled?
+        signin_enabled == true
+      end
+
+      def email_auth_enabled?
+        email_auth_enabled == true
+      end
+
+      def sso_enabled?
+        sso_enabled == true
+      end
 
       # Validate that all required fields are present.
       #
@@ -153,14 +158,13 @@ module Onetime
 
           config = new(domain_id: domain_id)
 
-          # Master switch (non-nullable, defaults to false)
-          config.enabled = attrs.key?(:enabled) ? attrs[:enabled] : false
-
-          # Nullable override fields — only set when explicitly provided
-          config.signin_enabled     = attrs[:signin_enabled] if attrs.key?(:signin_enabled)
+          config.enabled            = attrs.key?(:enabled) ? attrs[:enabled] : false
           config.restrict_to        = attrs[:restrict_to] if attrs.key?(:restrict_to)
-          config.email_auth_enabled = attrs[:email_auth_enabled] if attrs.key?(:email_auth_enabled)
-          config.sso_enabled        = attrs[:sso_enabled] if attrs.key?(:sso_enabled)
+
+          # Non-nullable boolean fields with conservative defaults
+          config.signin_enabled     = attrs.key?(:signin_enabled) ? attrs[:signin_enabled] : false
+          config.email_auth_enabled = attrs.key?(:email_auth_enabled) ? attrs[:email_auth_enabled] : false
+          config.sso_enabled        = attrs.key?(:sso_enabled) ? attrs[:sso_enabled] : false
 
           # Initialize timestamps
           now            = Familia.now.to_i
