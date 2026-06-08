@@ -24,10 +24,24 @@
 # CONNECT MODE SHORTCUTS (Inside 'overmind connect')
 # -----------------------------------------------------------------------------
 #   Ctrl+b, d                       # Detach (Return to shell, process keeps running)
-#   r                               # Restart the process you are connected to
-#   q                               # Quit connection (Process keeps running)
+#           r                       # Restart the process you are connected to
+#           q                       # Quit connection (Process keeps running)
 #
 #   Usage: Essential for 'binding.pry', 'debugger', or surgical restarts.
+# -----------------------------------------------------------------------------
+# ENVIRONMENT HANDLING
+# -----------------------------------------------------------------------------
+# By default, overmind loads ./.env from the working directory and applies it
+# to all child processes, OVERRIDING inherited shell env vars (including those
+# set by direnv). This causes values like SECRET to be silently blanked when
+# .env is a template (e.g. symlinked to .env.example with SECRET=).
+#
+# OVERMIND_SKIP_ENV=1 disables this: processes inherit the shell environment
+# as-is, exactly what direnv already loaded. Note that .overmind.env files
+# are still loaded and will override the shell env if present.
+#
+# Hivemind has no equivalent flag. With hivemind, ensure your .env file
+# contains the correct values rather than relying on shell inheritance.
 # -----------------------------------------------------------------------------
 
 if command -v overmind >/dev/null 2>&1; then
@@ -85,7 +99,7 @@ fi
 PORT="${PORT_OVERRIDE:-${PORT:-7143}}"
 
 if [[ "$RUNNER" == "overmind" ]]; then
-  exec env PORT="$PORT" overmind start -f "$PROCFILE" "${ARGS[@]}"
+  exec env PORT="$PORT" OVERMIND_SKIP_ENV=1 overmind start -f "$PROCFILE" "${ARGS[@]}"
 else
   exec env PORT="$PORT" hivemind "$PROCFILE" "${ARGS[@]}"
 fi
