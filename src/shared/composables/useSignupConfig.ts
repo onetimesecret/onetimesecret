@@ -33,8 +33,8 @@ export interface SignupConfigFormState {
   validation_strategy: SignupValidationStrategy;
   allowed_signup_domains: string[];
   enabled: boolean;
-  signup_enabled: boolean | null;
-  autoverify: boolean | null;
+  signup_enabled: boolean;
+  autoverify: boolean;
 }
 
 function createDefaultFormState(): SignupConfigFormState {
@@ -42,8 +42,8 @@ function createDefaultFormState(): SignupConfigFormState {
     validation_strategy: 'passthrough',
     allowed_signup_domains: [],
     enabled: false,
-    signup_enabled: null,
-    autoverify: null,
+    signup_enabled: false,
+    autoverify: false,
   };
 }
 
@@ -65,8 +65,8 @@ function configToFormState(config: CustomDomainSignupConfig): SignupConfigFormSt
     validation_strategy: config.validation_strategy,
     allowed_signup_domains: config.allowed_signup_domains ?? [],
     enabled: config.enabled,
-    signup_enabled: config.signup_enabled ?? null,
-    autoverify: config.autoverify ?? null,
+    signup_enabled: config.signup_enabled ?? false,
+    autoverify: config.autoverify ?? false,
   };
 }
 

@@ -350,10 +350,9 @@ class="space-y-6">
           <select
             id="signup-domain-enabled"
             aria-describedby="signup-domain-enabled-hint"
-            :value="formState.signup_enabled === null ? 'inherit' : String(formState.signup_enabled)"
-            @change="updateField('signup_enabled', ($event.target as HTMLSelectElement).value === 'inherit' ? null : ($event.target as HTMLSelectElement).value === 'true')"
+            :value="String(formState.signup_enabled)"
+            @change="updateField('signup_enabled', ($event.target as HTMLSelectElement).value === 'true')"
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="inherit">{{ t('web.domains.signup.inherit_global') }}</option>
             <option value="true">{{ t('web.COMMON.enabled') }}</option>
             <option value="false">{{ t('web.COMMON.disabled') }}</option>
           </select>
@@ -376,10 +375,9 @@ class="space-y-6">
           <select
             id="signup-autoverify"
             aria-describedby="signup-autoverify-hint"
-            :value="formState.autoverify === null ? 'inherit' : String(formState.autoverify)"
-            @change="updateField('autoverify', ($event.target as HTMLSelectElement).value === 'inherit' ? null : ($event.target as HTMLSelectElement).value === 'true')"
+            :value="String(formState.autoverify)"
+            @change="updateField('autoverify', ($event.target as HTMLSelectElement).value === 'true')"
             class="rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="inherit">{{ t('web.domains.signup.inherit_global') }}</option>
             <option value="true">{{ t('web.COMMON.enabled') }}</option>
             <option value="false">{{ t('web.COMMON.disabled') }}</option>
           </select>

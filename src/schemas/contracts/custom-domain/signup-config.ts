@@ -123,18 +123,16 @@ export const customDomainSignupConfigCanonical = z.object({
   enabled: z.boolean(),
 
   /**
-   * Domain-level override for AUTH_SIGNUP.
-   * When false, the signup page is disabled on this custom domain
-   * regardless of the install-level setting. Null inherits the global default.
+   * Whether signup is enabled on this custom domain.
+   * Defaults to false (conservative: off until explicitly enabled).
    */
-  signup_enabled: z.boolean().nullable(),
+  signup_enabled: z.boolean(),
 
   /**
-   * Domain-level override for AUTH_AUTOVERIFY.
-   * When true, new accounts on this domain skip email verification.
-   * Null inherits the global default.
+   * Whether new accounts on this domain skip email verification.
+   * Defaults to false (conservative: require verification).
    */
-  autoverify: z.boolean().nullable(),
+  autoverify: z.boolean(),
 
   /**
    * Whether the current strategy requires an allowlist.
@@ -186,11 +184,11 @@ export const putSignupConfigPayloadSchema = z.object({
   /** Whether the per-domain config is active. Defaults to false. */
   enabled: z.boolean().optional(),
 
-  /** Domain-level override for signup availability. Null to inherit global default. */
-  signup_enabled: z.boolean().nullable().optional(),
+  /** Whether signup is enabled. Defaults to false. */
+  signup_enabled: z.boolean().optional(),
 
-  /** Domain-level override for auto-verification. Null to inherit global default. */
-  autoverify: z.boolean().nullable().optional(),
+  /** Whether new accounts skip email verification. Defaults to false. */
+  autoverify: z.boolean().optional(),
 });
 
 /**
