@@ -1093,6 +1093,108 @@
     "text": "Per-domain signup validation strategy",
     "content_hash": "3c5a511f"
   },
+  "web.domains.detail.signin_description": {
+    "text": "Per-domain sign-in method configuration"
+  },
+  "web.domains.signin.title": {
+    "text": "Sign-In Configuration"
+  },
+  "web.domains.signin.configure_signin": {
+    "text": "Configure Sign-In"
+  },
+  "web.domains.signin.config_description": {
+    "text": "Configure sign-in authentication methods for this domain"
+  },
+  "web.domains.signin.not_configured_notice": {
+    "text": "Sign-in configuration is not yet set for this domain. Configure overrides to control which authentication methods are available on this domain's sign-in page."
+  },
+  "web.domains.signin.signin_enabled_label": {
+    "text": "Sign-in enabled"
+  },
+  "web.domains.signin.signin_enabled_hint": {
+    "text": "Override whether sign-in is enabled for this domain"
+  },
+  "web.domains.signin.inherit_global": {
+    "text": "Inherit global setting"
+  },
+  "web.domains.signin.restrict_to_label": {
+    "text": "Restrict sign-in method"
+  },
+  "web.domains.signin.restrict_to_hint": {
+    "text": "Restrict this domain to a single authentication method. When set, only the chosen method is shown on the sign-in page."
+  },
+  "web.domains.signin.all_methods": {
+    "text": "All methods"
+  },
+  "web.domains.signin.all_methods_description": {
+    "text": "Show all enabled authentication methods on the sign-in page"
+  },
+  "web.domains.signin.method_password": {
+    "text": "Password"
+  },
+  "web.domains.signin.method_email_auth": {
+    "text": "Email authentication"
+  },
+  "web.domains.signin.method_webauthn": {
+    "text": "WebAuthn / Passkeys"
+  },
+  "web.domains.signin.method_sso": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.method_overrides_label": {
+    "text": "Method overrides"
+  },
+  "web.domains.signin.method_overrides_hint": {
+    "text": "Override individual authentication method availability for this domain"
+  },
+  "web.domains.signin.email_auth_label": {
+    "text": "Email authentication"
+  },
+  "web.domains.signin.email_auth_hint": {
+    "text": "Override whether passwordless email authentication is available on this domain"
+  },
+  "web.domains.signin.sso_enabled_label": {
+    "text": "Single Sign-On"
+  },
+  "web.domains.signin.sso_enabled_hint": {
+    "text": "Override whether SSO authentication is available on this domain"
+  },
+  "web.domains.signin.enabled_label": {
+    "text": "Enable sign-in configuration"
+  },
+  "web.domains.signin.enabled_hint": {
+    "text": "When enabled, this domain uses the overrides above instead of the global sign-in policy"
+  },
+  "web.domains.signin.save_config": {
+    "text": "Save configuration"
+  },
+  "web.domains.signin.delete_config": {
+    "text": "Delete configuration"
+  },
+  "web.domains.signin.delete_confirm": {
+    "text": "Delete sign-in configuration? This domain will fall back to the global sign-in policy."
+  },
+  "web.domains.signup.domain_overrides_label": {
+    "text": "Domain overrides"
+  },
+  "web.domains.signup.domain_overrides_hint": {
+    "text": "Override global signup settings for this domain"
+  },
+  "web.domains.signup.signup_enabled_label": {
+    "text": "Signup enabled"
+  },
+  "web.domains.signup.signup_enabled_hint": {
+    "text": "Override whether signup is enabled for this domain"
+  },
+  "web.domains.signup.autoverify_label": {
+    "text": "Auto-verify accounts"
+  },
+  "web.domains.signup.autoverify_hint": {
+    "text": "Override whether new accounts are automatically verified on this domain"
+  },
+  "web.domains.signup.inherit_global": {
+    "text": "Inherit global setting"
+  },
   "web.domains.entitlement_required_owner": {
     "text": "This feature requires a plan upgrade.",
     "content_hash": "6de1f752"
