@@ -30,6 +30,16 @@ module Onetime
       #   lm2._domainkey.example.com CNAME lm2.dkim.lettermint.com
       #   lm-bounces.example.com     CNAME bounces.lmta.net
       #
+      # Provider comparison (for devs coming from SES): the lm-bounces.<domain>
+      # Return-Path CNAME above is Lettermint's equivalent of SES's custom MAIL
+      # FROM. Both put the envelope sender on a subdomain of the sender domain so
+      # SPF aligns with the From: domain under DMARC — same outcome, different
+      # record shape. Lettermint delegates SPF via this one CNAME (it publishes
+      # the SPF record on its side); SES instead emits an MX + SPF TXT on
+      # mail.<domain> that the customer publishes directly. DKIM is CNAME-based
+      # on both. See SESSenderStrategy and
+      # docs/architecture/custom-mail-sender.md (Provider Comparison).
+      #
       # Lettermint has TWO separate APIs:
       #   1. Sending API - uses x-lettermint-token header (project token)
       #   2. Team API    - uses Authorization: Bearer header (team token)

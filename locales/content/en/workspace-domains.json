@@ -875,6 +875,12 @@
     "text": "Allow external users to send secrets directly to designated recipients on this domain",
     "content_hash": "452ab4fe"
   },
+  "web.domains.incoming.feature_disabled": {
+    "text": "Incoming Secrets Unavailable"
+  },
+  "web.domains.incoming.feature_disabled_description": {
+    "text": "Incoming secrets is not enabled on this instance. Contact your administrator."
+  },
   "web.domains.incoming.access_denied": {
     "text": "Access Denied",
     "content_hash": "d134ca02"

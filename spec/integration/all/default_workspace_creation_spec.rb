@@ -10,6 +10,15 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
     # Clear Redis env vars to ensure test config defaults are used (port 2121)
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
+
+    # Standalone materialization happens inside Organization.create!, which
+    # runs here in before(:all) -- BEFORE billing_isolation.rb's before(:each)
+    # disable hook fires. So a prior spec (or env) leaving BILLING_ENABLED=true
+    # would make create! treat the org as SaaS and skip materialization,
+    # failing the standalone assertions below. Disable billing explicitly here
+    # so this spec is self-contained rather than dependent on hook ordering.
+    BillingTestHelpers.disable_billing!
+
     begin
       OT.boot! :test, false unless OT.ready?
     rescue Redis::CannotConnectError, Redis::ConnectionError => e
