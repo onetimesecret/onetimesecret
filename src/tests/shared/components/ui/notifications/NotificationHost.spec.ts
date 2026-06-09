@@ -1,4 +1,4 @@
-// src/tests/shared/components/ui/notifications/SubtleProgress.spec.ts
+// src/tests/shared/components/ui/notifications/NotificationHost.spec.ts
 //
 // Tests for notification auto-dismiss timer behavior.
 //
@@ -11,7 +11,7 @@
 // one is already visible, the auto-dismiss timer must be RESET so the new
 // message gets its full duration before hiding.
 
-import SubtleProgress from '@/shared/components/ui/notifications/SubtleProgress.vue';
+import { NotificationHost } from '@/shared/components/ui/notifications';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -38,7 +38,7 @@ const i18n = createI18n({
   },
 });
 
-describe('SubtleProgress', () => {
+describe('NotificationHost (auto-dismiss)', () => {
   let wrapper: VueWrapper;
   let notifications: ReturnType<typeof useNotificationsStore>;
 
@@ -54,7 +54,7 @@ describe('SubtleProgress', () => {
   });
 
   const mountComponent = (props: Record<string, unknown> = {}) =>
-    mount(SubtleProgress, {
+    mount(NotificationHost, {
       props,
       global: { plugins: [i18n] },
       attachTo: document.body,
