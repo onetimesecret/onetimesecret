@@ -19,18 +19,12 @@ RSpec.describe 'Auth::Config::Features::MFA' do
   let(:db) { create_test_database }
 
   describe 'when AUTH_MFA_ENABLED=true (enabled)' do
-    let(:expected_issuer) do
-      Onetime::CustomDomain::BrandSettingsConstants.global_defaults[:totp_issuer]
-    end
-
     let(:app) do
-      # Capture for use inside the Rodauth config block (different binding)
-      issuer = expected_issuer
       create_rodauth_app(
         db: db,
         features: [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes],
       ) do
-        otp_issuer issuer
+        otp_issuer MFA_OTP_ISSUER
         otp_setup_param 'otp_setup'
         otp_setup_raw_param 'otp_raw_secret'
         otp_auth_param 'otp_code'
@@ -94,7 +88,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
       end
 
       it 'sets otp_issuer from brand config' do
-        expect(rodauth_instance.otp_issuer).to eq(expected_issuer)
+        expect(rodauth_instance.otp_issuer).to eq(MFA_OTP_ISSUER)
       end
 
       it 'sets otp_auth_failures_limit to configured constant' do
