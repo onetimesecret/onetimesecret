@@ -11,7 +11,7 @@
 // one is already visible, the auto-dismiss timer must be RESET so the new
 // message gets its full duration before hiding.
 
-import { NotificationHost } from '@/shared/components/ui/notifications';
+import { NotificationHost, NotificationPill } from '@/shared/components/ui/notifications';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -112,6 +112,36 @@ describe('NotificationHost (auto-dismiss)', () => {
 
       vi.advanceTimersByTime(10_000);
       expect(notifications.isVisible).toBe(true);
+    });
+  });
+
+  // Forwarding: the store owns `duration`; NotificationHost binds it onto the
+  // teleported variant component (`:duration="notifications.duration"`). A
+  // distinctive value (2000, not the 5000 default that every link in the
+  // chain falls back to) is required — a broken binding would let the child's
+  // own `withDefaults` 5000 mask the failure.
+  describe('Duration forwarding to child component', () => {
+    it('forwards the store duration onto the rendered variant', async () => {
+      wrapper = mountComponent();
+
+      notifications.show('first', 'success', undefined, 2000);
+      await nextTick();
+
+      const pill = wrapper.findComponent(NotificationPill);
+      expect(pill.exists()).toBe(true);
+      expect(notifications.duration).toBe(2000);
+      expect(pill.props('duration')).toBe(2000);
+    });
+
+    it('forwards the default duration when none is supplied', async () => {
+      wrapper = mountComponent();
+
+      notifications.show('first', 'success');
+      await nextTick();
+
+      const pill = wrapper.findComponent(NotificationPill);
+      expect(notifications.duration).toBe(5000);
+      expect(pill.props('duration')).toBe(5000);
     });
   });
 });
