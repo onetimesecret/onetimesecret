@@ -27,6 +27,7 @@ import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { ENTITLEMENTS } from '@/types/organization';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -63,6 +64,27 @@ const canManageSso = computed(() => can(ENTITLEMENTS.MANAGE_SSO));
 const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
 // ---------------------------------------------------------------------------
+// Global method availability (install-level config)
+// ---------------------------------------------------------------------------
+
+// The workspace app runs on the dashboard domain, so bootstrap features reflect
+// the install/global auth config — correct for gating which methods a domain
+// may offer. undefined is treated as available (codebase convention). SSO is a
+// union (boolean | config object); an object's `enabled` flag is authoritative.
+const bootstrapStore = useBootstrapStore();
+const globalAvailability = computed(() => {
+  const features = bootstrapStore.features;
+  const sso = features?.sso;
+  const ssoAvailable =
+    typeof sso === 'object' && sso !== null ? sso.enabled : sso !== false;
+  return {
+    email_auth: features?.email_auth !== false,
+    webauthn: features?.webauthn !== false,
+    sso: ssoAvailable,
+  };
+});
+
+// ---------------------------------------------------------------------------
 // Signin config composable
 // ---------------------------------------------------------------------------
 
@@ -78,10 +100,9 @@ const {
   isConfigured,
   hasUnsavedChanges,
   initialize: initializeSigninConfig,
-  saveConfig,
   autoSaveField,
+  autoSaveFields,
   deleteConfig,
-  discardChanges,
 } = useSigninConfig(props.extid);
 
 // ---------------------------------------------------------------------------
@@ -136,9 +157,10 @@ const handleBack = () => {
   router.push(`/org/${props.orgid}/domains/${props.extid}`);
 };
 
-// Unsaved changes guard
+// Unsaved changes guard. The signin form auto-saves, so its hasUnsavedChanges
+// is effectively always false; this now guards the SSO modal's pending edits.
 onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value || ssoHasUnsavedChanges.value) {
+  if (ssoHasUnsavedChanges.value) {
     const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
     if (answer) next();
     else next(false);
@@ -299,19 +321,17 @@ watch(canManageSso, async (entitled) => {
 
           <DomainSigninConfigForm
             :domain-ext-id="props.extid"
-            v-model:form-state="formState"
+            :form-state="formState"
             :is-loading="signinLoading"
             :is-saving="isSaving"
             :is-deleting="isDeleting"
-            :has-unsaved-changes="hasUnsavedChanges"
             :is-configured="isConfigured"
             :sso-configured="ssoIsConfigured"
             :can-manage-sso="canManageSso"
+            :global-availability="globalAvailability"
             :saving-field="savingField"
-            @save="saveConfig"
-            @auto-save="autoSaveField"
+            @auto-save="autoSaveFields"
             @delete="deleteConfig"
-            @discard="discardChanges"
             @configure-sso="handleOpenSsoModal" />
         </div>
       </div>

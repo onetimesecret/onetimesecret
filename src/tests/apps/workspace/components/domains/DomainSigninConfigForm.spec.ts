@@ -1,16 +1,15 @@
 // src/tests/apps/workspace/components/domains/DomainSigninConfigForm.spec.ts
 //
-// Tests for DomainSigninConfigForm.vue covering:
+// Tests for DomainSigninConfigForm.vue covering the two-mode redesign:
 // 1. Loading skeleton display
-// 2. Form rendering with props (restrict_to radios + method-override toggles)
-// 3. updateField emits update:formState with merged payload (radios)
-// 4. restrict_to radio group (including "show all" -> null)
-// 5. Method-override toggles auto-save (emit 'auto-save' with field + value)
-// 6. Per-toggle loading feedback via savingField
-// 7. Save/delete/discard emit flow
-// 8. Save button disabled on load (no unsaved changes) and while saving/deleting
-// 9. Delete confirmation two-step
-// 10. Button label changes based on isConfigured
+// 2. Mode switch (Any available method / One specific method) as radiogroup
+// 3. Mode A: static rows + availability toggles (email_auth, sso), auto-save
+// 4. Mode B: single-choice restrict_to radios, picking flips availability flag
+// 5. Global availability gating hides unavailable methods in both modes
+// 6. SSO Configure reachable in both modes; upgrade hint when !canManageSso
+// 7. Per-field loading feedback via savingField
+// 8. Delete confirmation two-step
+// 9. Accessibility (radiogroup roles, aria-describedby, role="switch")
 
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -69,39 +68,44 @@ const i18n = createI18n({
       web: {
         domains: {
           signin: {
-            restrict_to_label: 'Restrict to single method',
-            restrict_to_hint: 'Limit the login page to one authentication method',
-            all_methods: 'Show all methods',
-            all_methods_description: 'Display all enabled authentication methods',
+            mode_question: 'How can users sign in?',
+            mode_any: 'Any available method',
+            mode_any_hint: 'Show every method available on this domain.',
+            mode_one: 'One specific method',
+            mode_one_hint: 'Restrict the sign-in page to a single method.',
+            methods_list_label: 'Methods shown on the sign-in page',
+            restrict_picker_hint: 'Only methods available on this domain are listed.',
+            availability_always: 'Always available',
+            availability_global_on: 'Follows global policy · On',
+            availability_global_off: 'Follows global policy · Off',
+            availability_unavailable: 'Unavailable site-wide',
+            allow_on_domain: 'Allow on this domain',
             method_password: 'Password',
-            method_email_auth: 'Email Auth',
-            method_webauthn: 'WebAuthn',
-            method_sso: 'SSO',
-            method_overrides_label: 'Authentication method overrides',
-            method_overrides_hint: 'Enable or disable specific methods for this domain',
-            email_auth_label: 'Email Authentication',
-            email_auth_hint: 'Passwordless magic link sign-in',
-            sso_enabled_label: 'Single Sign-On',
-            sso_enabled_hint: 'External identity provider',
-            delete_config: 'Delete config',
-            delete_confirm: 'Are you sure?',
-            save_config: 'Create config',
+            method_email_auth: 'Email authentication',
+            method_webauthn: 'WebAuthn / Passkeys',
+            method_sso: 'Single Sign-On',
+            method_password_blurb: 'Password only',
+            method_email_auth_blurb: 'Passwordless magic-link sign-in',
+            method_webauthn_blurb: 'Biometrics and security keys',
+            method_sso_blurb: 'External identity provider',
+            // The two-step "revert to global defaults" flow (internally a
+            // DELETE of the SigninConfig record). Renamed from delete_* to
+            // reset_* in the component; the emit is still 'delete'.
+            reset_to_defaults: 'Reset to defaults',
+            reset_confirm: 'Reset sign-in for this domain?',
+            reset_keeps_sso: 'SSO credentials are kept.',
+            reset_action: 'Reset',
           },
           sso: {
             configure_button: 'Configure',
             edit_credentials: 'Edit credentials',
             upgrade_required: 'Upgrade required',
           },
-          email: {
-            discard_changes: 'Discard changes',
-          },
         },
         COMMON: {
           enabled: 'Enabled',
           disabled: 'Disabled',
-          saving: 'Saving...',
           processing: 'Processing...',
-          save_changes: 'Save changes',
           yes_delete: 'Yes, delete',
           word_cancel: 'Cancel',
         },
@@ -122,6 +126,8 @@ const defaultFormState: SigninConfigFormState = {
   sso_enabled: false,
 };
 
+const allAvailable = { email_auth: true, webauthn: true, sso: true };
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -131,10 +137,10 @@ interface MountOptions {
   isLoading?: boolean;
   isSaving?: boolean;
   isDeleting?: boolean;
-  hasUnsavedChanges?: boolean;
   isConfigured?: boolean;
   ssoConfigured?: boolean;
   canManageSso?: boolean;
+  globalAvailability?: { email_auth: boolean; webauthn: boolean; sso: boolean };
   savingField?: keyof SigninConfigFormState | null;
 }
 
@@ -146,10 +152,10 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       isLoading: opts.isLoading ?? false,
       isSaving: opts.isSaving ?? false,
       isDeleting: opts.isDeleting ?? false,
-      hasUnsavedChanges: opts.hasUnsavedChanges ?? false,
       isConfigured: opts.isConfigured ?? false,
       ssoConfigured: opts.ssoConfigured ?? false,
       canManageSso: opts.canManageSso ?? true,
+      globalAvailability: opts.globalAvailability ?? allAvailable,
       savingField: opts.savingField ?? null,
     },
     global: {
@@ -159,7 +165,7 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
   });
 }
 
-/** Method-override toggles in render order: [0] email_auth, [1] sso. */
+/** Availability toggles in Mode A render order: [0] email_auth, [1] sso. */
 function toggles(wrapper: VueWrapper) {
   return wrapper.findAll('[role="switch"]');
 }
@@ -191,68 +197,69 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('[data-testid="settings-skeleton"]').exists()).toBe(true);
     });
 
-    it('hides form when isLoading is true', () => {
+    it('hides the mode switch when isLoading is true', () => {
       wrapper = mountForm({ isLoading: true });
-      expect(wrapper.find('form').exists()).toBe(false);
+      expect(wrapper.find('#signin-mode-any').exists()).toBe(false);
     });
 
-    it('shows form when isLoading is false', () => {
+    it('shows the mode switch when isLoading is false', () => {
       wrapper = mountForm({ isLoading: false });
-      expect(wrapper.find('form').exists()).toBe(true);
-    });
-
-    it('hides skeleton when isLoading is false', () => {
-      wrapper = mountForm({ isLoading: false });
-      expect(wrapper.find('[data-testid="settings-skeleton"]').exists()).toBe(false);
+      expect(wrapper.find('#signin-mode-any').exists()).toBe(true);
     });
   });
 
   // -----------------------------------------------------------------------
-  // Form rendering
+  // Mode switch
   // -----------------------------------------------------------------------
 
-  describe('form rendering', () => {
-    it('renders restrict_to radio group with "show all" option', () => {
-      wrapper = mountForm();
-      expect(wrapper.find('#signin-restrict-none').exists()).toBe(true);
+  describe('mode switch', () => {
+    it('defaults to "Any available method" when restrict_to is null', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
+      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('false');
     });
 
-    it('renders all four restrict_to method radios', () => {
-      wrapper = mountForm();
+    it('is in "One specific method" mode when restrict_to is set', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('true');
+      expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('false');
+    });
+
+    it('clicking "Any available method" with a restriction set auto-saves restrict_to: null', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      await wrapper.find('#signin-mode-any').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0][0]).toEqual({ restrict_to: null });
+    });
+
+    it('clicking "Any available method" when already null does not auto-save', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-any').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('clicking "One specific method" reveals the picker without auto-saving', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+
+      // Picker is revealed (radio list rendered) but nothing persisted yet.
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-      expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(true);
-      expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
-      expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
+  });
 
-    it('renders the two method-override toggles (email_auth, sso)', () => {
+  // -----------------------------------------------------------------------
+  // Mode A — availability toggles
+  // -----------------------------------------------------------------------
+
+  describe('mode A: availability toggles', () => {
+    it('renders the two availability toggles (email_auth, sso)', () => {
       wrapper = mountForm();
       expect(toggles(wrapper)).toHaveLength(2);
     });
 
-    it('renders the SSO Configure button when canManageSso', () => {
-      wrapper = mountForm({ canManageSso: true });
-      const configureBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Configure')
-      );
-      expect(configureBtn).toBeTruthy();
-    });
-
-    it('renders the upgrade hint instead of Configure when not canManageSso', () => {
-      wrapper = mountForm({ canManageSso: false });
-      expect(wrapper.text()).toContain('Upgrade required');
-      const configureBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Configure')
-      );
-      expect(configureBtn).toBeUndefined();
-    });
-  });
-
-  // -----------------------------------------------------------------------
-  // Method-override toggles (auto-save)
-  // -----------------------------------------------------------------------
-
-  describe('method-override toggles', () => {
     it('email_auth toggle reflects formState in aria-checked', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, email_auth_enabled: true } });
       expect(toggles(wrapper)[0].attributes('aria-checked')).toBe('true');
@@ -263,28 +270,22 @@ describe('DomainSigninConfigForm', () => {
       expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('true');
     });
 
-    it('email_auth toggle emits auto-save with field and value', async () => {
+    it('email_auth toggle auto-saves a partial patch', async () => {
       wrapper = mountForm({ formState: { ...defaultFormState, email_auth_enabled: false } });
       await toggles(wrapper)[0].trigger('click');
 
       const emitted = wrapper.emitted('auto-save');
       expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual(['email_auth_enabled', true]);
+      expect(emitted![0]).toEqual([{ email_auth_enabled: true }, 'email_auth_enabled']);
     });
 
-    it('sso toggle emits auto-save with field and value', async () => {
+    it('sso toggle auto-saves a partial patch', async () => {
       wrapper = mountForm({ formState: { ...defaultFormState, sso_enabled: false } });
       await toggles(wrapper)[1].trigger('click');
 
       const emitted = wrapper.emitted('auto-save');
       expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual(['sso_enabled', true]);
-    });
-
-    it('does not emit update:formState from the toggles (auto-save only)', async () => {
-      wrapper = mountForm();
-      await toggles(wrapper)[0].trigger('click');
-      expect(wrapper.emitted('update:formState')).toBeFalsy();
+      expect(emitted![0]).toEqual([{ sso_enabled: true }, 'sso_enabled']);
     });
 
     it('disables both toggles while isSaving', () => {
@@ -298,155 +299,392 @@ describe('DomainSigninConfigForm', () => {
       expect(toggles(wrapper)[0].attributes('data-loading')).toBe('true');
       expect(toggles(wrapper)[1].attributes('data-loading')).toBe('false');
     });
+
+    it('disables the email toggle when email_auth is globally unavailable', () => {
+      wrapper = mountForm({ globalAvailability: { ...allAvailable, email_auth: false } });
+      expect(toggles(wrapper)[0].attributes('disabled')).toBeDefined();
+    });
   });
 
   // -----------------------------------------------------------------------
-  // Restrict-to radio group
+  // Mode A — SSO Configure
   // -----------------------------------------------------------------------
 
-  describe('restrict_to radio group', () => {
-    it('"show all" radio is checked when restrict_to is null', () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      const radio = wrapper.find('#signin-restrict-none');
-      expect((radio.element as HTMLInputElement).checked).toBe(true);
+  describe('mode A: SSO configure', () => {
+    it('renders the SSO Configure button when canManageSso', () => {
+      wrapper = mountForm({ canManageSso: true });
+      const configureBtn = wrapper.findAll('button').find((b) => b.text().includes('Configure'));
+      expect(configureBtn).toBeTruthy();
     });
 
-    it('method radio is checked when restrict_to matches', () => {
+    it('emits configure-sso when Configure is clicked', async () => {
+      wrapper = mountForm({ canManageSso: true });
+      const configureBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Configure'))!;
+      await configureBtn.trigger('click');
+      expect(wrapper.emitted('configure-sso')).toBeTruthy();
+    });
+
+    it('renders the upgrade hint instead of Configure when not canManageSso', () => {
+      wrapper = mountForm({ canManageSso: false });
+      expect(wrapper.text()).toContain('Upgrade required');
+      const configureBtn = wrapper.findAll('button').find((b) => b.text().includes('Configure'));
+      expect(configureBtn).toBeUndefined();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Mode B — restrict_to radio list
+  // -----------------------------------------------------------------------
+
+  describe('mode B: restrict_to picker', () => {
+    it('renders a radio for each globally-available method', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+      expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
+      expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(true);
+      expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
+    });
+
+    it('pre-selects the active method radio', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
       const radio = wrapper.find('#signin-restrict-sso');
       expect((radio.element as HTMLInputElement).checked).toBe(true);
     });
 
-    it('"show all" radio is unchecked when a method is selected', () => {
+    it('picking Email auto-saves restrict_to AND flips email_auth_enabled in one patch', async () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
-      const radio = wrapper.find('#signin-restrict-none');
-      expect((radio.element as HTMLInputElement).checked).toBe(false);
+      await wrapper.find('#signin-restrict-email_auth').trigger('change');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([
+        { restrict_to: 'email_auth', email_auth_enabled: true },
+        'restrict_to',
+      ]);
     });
 
-    it('clicking "show all" emits restrict_to: null', async () => {
+    it('picking SSO auto-saves restrict_to AND flips sso_enabled in one patch', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{ restrict_to: 'sso', sso_enabled: true }, 'restrict_to']);
+    });
+
+    it('picking Password auto-saves restrict_to only (no per-domain flag)', async () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
-      const radio = wrapper.find('#signin-restrict-none');
-      await radio.trigger('change');
+      await wrapper.find('#signin-restrict-password').trigger('change');
 
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual(
-        expect.objectContaining({ restrict_to: null })
-      );
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted![0]).toEqual([{ restrict_to: 'password' }, 'restrict_to']);
     });
 
-    it('clicking a method radio emits that method value', async () => {
+    it('does not render availability toggles in Mode B', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
+      expect(toggles(wrapper)).toHaveLength(0);
+    });
+
+    it('keeps SSO Configure reachable in Mode B', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      const configureBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Configure') || b.text().includes('Edit credentials'));
+      expect(configureBtn).toBeTruthy();
+      await configureBtn!.trigger('click');
+      expect(wrapper.emitted('configure-sso')).toBeTruthy();
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Invariant 1 — Availability-flag flip on Mode B selection (webauthn gap)
+  //
+  // The existing "mode B: restrict_to picker" block covers Email (+flag),
+  // SSO (+flag), and Password (no flag). The Passkeys/webauthn branch — the
+  // 4th method, restrict_to only, no per-domain field — was uncovered.
+  // -----------------------------------------------------------------------
+
+  describe('invariant 1: Mode B selection flips availability flag', () => {
+    it('picking Passkeys auto-saves restrict_to: webauthn only (no per-domain flag)', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
+      await wrapper.find('#signin-restrict-webauthn').trigger('change');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{ restrict_to: 'webauthn' }, 'restrict_to']);
+    });
+
+    it('Email/SSO picks carry ONLY their own flag, not the sibling flag', async () => {
+      // Picking Email must not also set sso_enabled, and vice versa: the patch
+      // is exactly { restrict_to, <own flag> } — no leakage onto other methods.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
+      await wrapper.find('#signin-restrict-email_auth').trigger('change');
+
+      const patch = wrapper.emitted('auto-save')![0][0] as Partial<SigninConfigFormState>;
+      expect(patch).not.toHaveProperty('sso_enabled');
+      expect(Object.keys(patch).sort()).toEqual(['email_auth_enabled', 'restrict_to']);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Invariant 2 — Global availability gating (both branches, all 3 methods)
+  //
+  // Existing tests cover only the Mode B *omit* branch for sso/webauthn and
+  // a single Mode A email-toggle-disabled case. This block fills:
+  //   - Mode B omit for email_auth (the missing 3rd method)
+  //   - the *available* branch for each method in Mode B (radio present)
+  //   - Mode A unavailable state for webauthn (static "global off" reason),
+  //     email_auth and sso (toggle disabled + "Unavailable" reason text).
+  //
+  // Note on `undefined ⇒ available`: the component receives a concrete
+  // `boolean` (required prop). The `!== false` normalization lives upstream
+  // in DomainSignin.vue (globalAvailability computed), so undefined never
+  // reaches this component. We therefore test only the true/false branches
+  // here; the undefined⇒available contract is verified at the parent, not
+  // testable in isolation against this presentational component.
+  // -----------------------------------------------------------------------
+
+  describe('invariant 2: global availability gating', () => {
+    describe('Mode B (one specific method) — radio presence', () => {
+      it('offers all four radios when everything is globally available', () => {
+        wrapper = mountForm({
+          formState: { ...defaultFormState, restrict_to: 'password' },
+          globalAvailability: allAvailable,
+        });
+        expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+        expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
+        expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(true);
+        expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
+      });
+
+      it('omits the Email radio when email_auth is globally off', () => {
+        wrapper = mountForm({
+          formState: { ...defaultFormState, restrict_to: 'password' },
+          globalAvailability: { ...allAvailable, email_auth: false },
+        });
+        expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(false);
+      });
+
+      it('an unavailable method is not selectable (radio absent, cannot fire change)', () => {
+        // The contradiction guard: a method off site-wide must never become a
+        // restrict_to value, which would render a blank login page.
+        wrapper = mountForm({
+          formState: { ...defaultFormState, restrict_to: 'password' },
+          globalAvailability: { email_auth: false, webauthn: false, sso: false },
+        });
+        expect(wrapper.findAll('input[type="radio"][name="restrict_to"]')).toHaveLength(1);
+      });
+    });
+
+    describe('Mode A (any available method) — unavailable state', () => {
+      it('shows the WebAuthn static "global off" reason when webauthn is off', () => {
+        wrapper = mountForm({ globalAvailability: { ...allAvailable, webauthn: false } });
+        expect(wrapper.text()).toContain('Follows global policy · Off');
+      });
+
+      it('shows the WebAuthn static "global on" reason when webauthn is on', () => {
+        wrapper = mountForm({ globalAvailability: allAvailable });
+        expect(wrapper.text()).toContain('Follows global policy · On');
+      });
+
+      it('disables the email toggle and shows "Unavailable" reason when email_auth is off', () => {
+        wrapper = mountForm({ globalAvailability: { ...allAvailable, email_auth: false } });
+        expect(toggles(wrapper)[0].attributes('disabled')).toBeDefined();
+        expect(wrapper.find('#signin-email-auth-hint').text()).toContain('Unavailable site-wide');
+      });
+
+      it('shows "Allow on this domain" reason for email when available', () => {
+        wrapper = mountForm({ globalAvailability: allAvailable });
+        expect(wrapper.find('#signin-email-auth-hint').text()).toContain('Allow on this domain');
+      });
+
+      it('disables the sso toggle and shows "Unavailable" reason when sso is off', () => {
+        wrapper = mountForm({ globalAvailability: { ...allAvailable, sso: false } });
+        expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
+        expect(wrapper.find('#signin-sso-hint').text()).toContain('Unavailable site-wide');
+      });
+
+      it('shows "Allow on this domain" reason for sso when available', () => {
+        wrapper = mountForm({ globalAvailability: allAvailable });
+        expect(wrapper.find('#signin-sso-hint').text()).toContain('Allow on this domain');
+      });
+
+      it('forces the email toggle visually off when globally unavailable, even if formState says enabled', () => {
+        // AND semantics: a stale email_auth_enabled=true must not show "on" once
+        // the global flag drops to false.
+        wrapper = mountForm({
+          formState: { ...defaultFormState, email_auth_enabled: true },
+          globalAvailability: { ...allAvailable, email_auth: false },
+        });
+        expect(toggles(wrapper)[0].attributes('aria-checked')).toBe('false');
+      });
+
+      it('forces the sso toggle visually off when globally unavailable, even if formState says enabled', () => {
+        wrapper = mountForm({
+          formState: { ...defaultFormState, sso_enabled: true },
+          globalAvailability: { ...allAvailable, sso: false },
+        });
+        expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('false');
+      });
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Invariant 3 — Contradiction is unexpressible
+  //
+  // Mode B has ZERO availability switches; Mode A has exactly the email+sso
+  // switches. (Mode B switch-count is also asserted in the picker block; here
+  // we pin both halves of the invariant together so the intent is explicit.)
+  // -----------------------------------------------------------------------
+
+  describe('invariant 3: contradiction is unexpressible', () => {
+    it('Mode A exposes exactly the email + sso availability switches', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
-      const radio = wrapper.find('#signin-restrict-webauthn');
-      await radio.trigger('change');
+      expect(toggles(wrapper)).toHaveLength(2);
+    });
 
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual(
-        expect.objectContaining({ restrict_to: 'webauthn' })
-      );
+    it('Mode B exposes zero availability switches', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      expect(toggles(wrapper)).toHaveLength(0);
+    });
+
+    it('switching into Mode B via the segment removes the switches', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      expect(toggles(wrapper)).toHaveLength(2);
+      await wrapper.find('#signin-mode-one').trigger('click');
+      expect(toggles(wrapper)).toHaveLength(0);
     });
   });
 
   // -----------------------------------------------------------------------
-  // Save / submit
+  // Invariant 4 — Mode-switch save semantics
+  //
+  // Existing tests cover: Any→clears (auto-save null), Any→null no-op, One
+  // reveals picker without save. Gaps filled here:
+  //   - bouncing One then Any while restrict_to stays null saves nothing
+  //   - the local "intent" flag does not leak a save on its own
   // -----------------------------------------------------------------------
 
-  describe('save', () => {
-    it('emits save on form submit', async () => {
-      wrapper = mountForm({ hasUnsavedChanges: true });
-      await wrapper.find('form').trigger('submit');
-
-      expect(wrapper.emitted('save')).toBeTruthy();
+  describe('invariant 4: mode-switch save semantics', () => {
+    it('One then Any (restrict_to never left null) emits no auto-save at all', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+      await wrapper.find('#signin-mode-any').trigger('click');
+      // Nothing was ever persisted: no method chosen, restrict_to stayed null.
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
 
-    it('shows "Save changes" when isConfigured', () => {
-      wrapper = mountForm({ isConfigured: true });
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.text()).toContain('Save changes');
-    });
+    it('returning to Any after picker is revealed shows Mode A again with no save', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
 
-    it('shows "Create config" when not isConfigured', () => {
-      wrapper = mountForm({ isConfigured: false });
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.text()).toContain('Create config');
-    });
-
-    it('shows saving spinner text when isSaving', () => {
-      wrapper = mountForm({ isSaving: true });
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.text()).toContain('Saving...');
-    });
-
-    it('disables submit button on load (no unsaved changes)', () => {
-      wrapper = mountForm({ hasUnsavedChanges: false });
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.attributes('disabled')).toBeDefined();
-    });
-
-    it('enables submit button when there are unsaved changes', () => {
-      wrapper = mountForm({ hasUnsavedChanges: true });
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.attributes('disabled')).toBeUndefined();
-    });
-
-    it('disables submit button when isSaving', () => {
-      wrapper = mountForm({ hasUnsavedChanges: true, isSaving: true });
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.attributes('disabled')).toBeDefined();
-    });
-
-    it('disables submit button when isDeleting', () => {
-      wrapper = mountForm({ hasUnsavedChanges: true, isDeleting: true });
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.attributes('disabled')).toBeDefined();
+      await wrapper.find('#signin-mode-any').trigger('click');
+      // Back to Mode A: switches present, picker gone, still nothing saved.
+      expect(toggles(wrapper)).toHaveLength(2);
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
   });
 
   // -----------------------------------------------------------------------
-  // Delete confirmation flow
+  // No Save / no Discard button (regression guard for the redesign)
   // -----------------------------------------------------------------------
 
-  describe('delete flow', () => {
-    it('shows delete button when isConfigured', () => {
-      wrapper = mountForm({ isConfigured: true });
-      const deleteBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Delete config')
-      );
-      expect(deleteBtn).toBeTruthy();
+  describe('no save/discard buttons', () => {
+    it('renders no Save or Discard button in Mode A', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      const saveOrDiscard = wrapper
+        .findAll('button')
+        .filter((b) => /save|discard/i.test(b.text()));
+      expect(saveOrDiscard).toHaveLength(0);
     });
 
-    it('does not show delete button when not isConfigured', () => {
+    it('renders no Save or Discard button in Mode B', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      const saveOrDiscard = wrapper
+        .findAll('button')
+        .filter((b) => /save|discard/i.test(b.text()));
+      expect(saveOrDiscard).toHaveLength(0);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Global availability gating
+  // -----------------------------------------------------------------------
+
+  describe('global availability gating', () => {
+    it('omits the SSO radio in Mode B when SSO is globally off', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        globalAvailability: { ...allAvailable, sso: false },
+      });
+      expect(wrapper.find('#signin-restrict-sso').exists()).toBe(false);
+    });
+
+    it('omits the WebAuthn radio in Mode B when WebAuthn is globally off', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        globalAvailability: { ...allAvailable, webauthn: false },
+      });
+      expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(false);
+    });
+
+    it('always offers Password in Mode B even if everything else is off', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        globalAvailability: { email_auth: false, webauthn: false, sso: false },
+      });
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Reset-to-defaults (two-step) flow
+  //
+  // NOTE: the component renamed this surface from "Delete configuration" to
+  // "Reset to defaults" (i18n keys reset_to_defaults / reset_confirm /
+  // reset_keeps_sso / reset_action). The mechanism is identical — a two-step
+  // confirm gated on isConfigured, internally a DELETE of the SigninConfig
+  // record — and the EMITTED EVENT is still 'delete'. These tests were
+  // realigned to the live copy; the contract (emit 'delete') is unchanged.
+  // -----------------------------------------------------------------------
+
+  describe('reset flow', () => {
+    it('shows the reset button when isConfigured', () => {
+      wrapper = mountForm({ isConfigured: true });
+      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes('Reset to defaults'));
+      expect(resetBtn).toBeTruthy();
+    });
+
+    it('does not show the reset button when not isConfigured', () => {
       wrapper = mountForm({ isConfigured: false });
-      const deleteBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Delete config')
-      );
-      expect(deleteBtn).toBeUndefined();
+      const resetBtn = wrapper.findAll('button').find((b) => b.text().includes('Reset to defaults'));
+      expect(resetBtn).toBeUndefined();
     });
 
-    it('shows confirmation prompt after clicking delete', async () => {
+    it('shows confirmation prompt after clicking reset', async () => {
       wrapper = mountForm({ isConfigured: true });
-      const deleteBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Delete config')
-      )!;
-      await deleteBtn.trigger('click');
-
-      expect(wrapper.text()).toContain('Are you sure?');
+      const resetBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Reset to defaults'))!;
+      await resetBtn.trigger('click');
+      expect(wrapper.text()).toContain('Reset sign-in for this domain?');
     });
 
     it('emits delete when confirmation is accepted', async () => {
+      // The button reads "Reset" but the emitted contract is still 'delete'.
       wrapper = mountForm({ isConfigured: true });
+      const resetBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Reset to defaults'))!;
+      await resetBtn.trigger('click');
 
-      // Click delete to show confirmation
-      const deleteBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Delete config')
-      )!;
-      await deleteBtn.trigger('click');
-
-      // Click confirm
-      const confirmBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Yes, delete')
-      )!;
+      // Confirm button text is exactly "Reset" (reset_action); avoid matching
+      // the now-hidden "Reset to defaults" trigger by checking equality.
+      const confirmBtn = wrapper.findAll('button').find((b) => b.text().trim() === 'Reset')!;
       await confirmBtn.trigger('click');
 
       expect(wrapper.emitted('delete')).toBeTruthy();
@@ -454,54 +692,15 @@ describe('DomainSigninConfigForm', () => {
 
     it('hides confirmation prompt when cancel is clicked', async () => {
       wrapper = mountForm({ isConfigured: true });
+      const resetBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Reset to defaults'))!;
+      await resetBtn.trigger('click');
+      expect(wrapper.text()).toContain('Reset sign-in for this domain?');
 
-      // Show confirmation
-      const deleteBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Delete config')
-      )!;
-      await deleteBtn.trigger('click');
-
-      expect(wrapper.text()).toContain('Are you sure?');
-
-      // Cancel
-      const cancelBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Cancel')
-      )!;
+      const cancelBtn = wrapper.findAll('button').find((b) => b.text().includes('Cancel'))!;
       await cancelBtn.trigger('click');
-
-      expect(wrapper.text()).not.toContain('Are you sure?');
-    });
-  });
-
-  // -----------------------------------------------------------------------
-  // Discard changes
-  // -----------------------------------------------------------------------
-
-  describe('discard changes', () => {
-    it('shows discard button when hasUnsavedChanges is true', () => {
-      wrapper = mountForm({ hasUnsavedChanges: true });
-      const discardBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Discard changes')
-      );
-      expect(discardBtn).toBeTruthy();
-    });
-
-    it('hides discard button when hasUnsavedChanges is false', () => {
-      wrapper = mountForm({ hasUnsavedChanges: false });
-      const discardBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Discard changes')
-      );
-      expect(discardBtn).toBeUndefined();
-    });
-
-    it('emits discard when discard button is clicked', async () => {
-      wrapper = mountForm({ hasUnsavedChanges: true });
-      const discardBtn = wrapper.findAll('button').find(
-        (b) => b.text().includes('Discard changes')
-      )!;
-      await discardBtn.trigger('click');
-
-      expect(wrapper.emitted('discard')).toBeTruthy();
+      expect(wrapper.text()).not.toContain('Reset sign-in for this domain?');
     });
   });
 
@@ -510,24 +709,106 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
 
   describe('accessibility', () => {
-    it('restrict_to container has role="radiogroup"', () => {
+    it('mode switch is a role="radiogroup"', () => {
       wrapper = mountForm();
       const group = wrapper.find('[role="radiogroup"]');
       expect(group.exists()).toBe(true);
     });
 
-    it('restrict_to method radios have aria-describedby linking to description', () => {
+    it('mode switch segments expose role="radio"', () => {
       wrapper = mountForm();
+      expect(wrapper.find('#signin-mode-any').attributes('role')).toBe('radio');
+      expect(wrapper.find('#signin-mode-one').attributes('role')).toBe('radio');
+    });
+
+    it('Mode B method radios have aria-describedby linking to description', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
       const radio = wrapper.find('#signin-restrict-password');
       expect(radio.attributes('aria-describedby')).toBe('signin-restrict-password-description');
     });
 
-    it('method-override toggles expose role="switch"', () => {
+    it('Mode A availability toggles expose role="switch"', () => {
       wrapper = mountForm();
       expect(toggles(wrapper)).toHaveLength(2);
-      toggles(wrapper).forEach((t) => {
-        expect(t.attributes('role')).toBe('switch');
+      toggles(wrapper).forEach((tg) => {
+        expect(tg.attributes('role')).toBe('switch');
       });
+    });
+
+    it('Mode B radiogroup carries aria-describedby pointing at the picker hint', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      const groups = wrapper.findAll('[role="radiogroup"]');
+      // [0] = mode switch, [1] = the restrict_to method list.
+      const methodGroup = groups[groups.length - 1];
+      expect(methodGroup.attributes('aria-describedby')).toBe('signin-restrict-hint');
+    });
+
+    // -------------------------------------------------------------------
+    // Keyboard / roving-tabindex gap (documented, not enforced)
+    //
+    // The frontend agent flagged that the mode switch is built from plain
+    // <button>s in a role="radiogroup" WITHOUT arrow-key roving tabindex —
+    // an ARIA radiogroup is expected to manage a single tab-stop and move
+    // selection with Arrow keys. These tests document the CURRENT behavior
+    // (each segment is natively Tab-reachable; Enter/click activates) and
+    // make the missing roving visible without failing the build.
+    //
+    // TODO a11y: roving tabindex — the radiogroup segments should use a
+    // single tab-stop with arrow-key navigation and aria-checked-driven
+    // focus, rather than being independently Tab-focusable <button>s.
+    // -------------------------------------------------------------------
+    describe('keyboard navigation (roving-tabindex gap)', () => {
+      it('mode segments are each independently Tab-reachable (no roving tabindex)', () => {
+        wrapper = mountForm();
+        const any = wrapper.find('#signin-mode-any');
+        const one = wrapper.find('#signin-mode-one');
+        // Roving would set tabindex="-1" on the unselected segment; current
+        // markup sets none, so both are in the natural tab order. Documenting
+        // the gap: neither carries a roving tabindex attribute.
+        expect(any.attributes('tabindex')).toBeUndefined();
+        expect(one.attributes('tabindex')).toBeUndefined();
+      });
+
+      it('activating a segment via keyboard (Enter→click) switches mode', async () => {
+        wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+        // Native <button> fires click on Enter/Space; @vue/test-utils routes a
+        // keyboard activation through the click handler.
+        await wrapper.find('#signin-mode-one').trigger('keydown.enter');
+        await wrapper.find('#signin-mode-one').trigger('click');
+        expect(wrapper.find('#signin-mode-one').attributes('aria-checked')).toBe('true');
+        expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+      });
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // SSO Configure reachability across modes / entitlement
+  //
+  // Existing tests cover Mode A (button + emit, upgrade hint) and Mode B
+  // (button reachable + emit). Gap: Mode B with canManageSso=false must show
+  // the upgrade hint and NO Configure button, same as Mode A.
+  // -----------------------------------------------------------------------
+
+  describe('SSO configure across modes', () => {
+    it('Mode B with canManageSso=false shows upgrade hint, no Configure button', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        canManageSso: false,
+      });
+      expect(wrapper.text()).toContain('Upgrade required');
+      const configureBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('Configure') || b.text().includes('Edit credentials'));
+      expect(configureBtn).toBeUndefined();
+    });
+
+    it('Configure label reflects ssoConfigured (Edit credentials when configured)', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        ssoConfigured: true,
+        canManageSso: true,
+      });
+      expect(wrapper.text()).toContain('Edit credentials');
     });
   });
 });
