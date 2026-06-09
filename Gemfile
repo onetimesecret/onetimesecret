@@ -36,7 +36,7 @@ gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth_openid_connect', '~> 0.8'
 
 # Web server and middleware
-gem 'puma', '>= 6.0', '< 8.0'
+gem 'puma', '>= 6.0', '< 9.0'
 gem 'rack', '>= 3.2.6', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
 gem 'rack-protection', '~> 4.1'
