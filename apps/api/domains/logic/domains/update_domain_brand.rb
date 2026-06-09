@@ -34,7 +34,6 @@ module DomainsAPI::Logic
       # sanitized at the write boundary to strip HTML tags before storage.
       TEXT_FIELDS = %w[
         product_name
-        signature_name
         footer_text
         instructions_pre_reveal
         instructions_reveal

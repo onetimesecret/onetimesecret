@@ -3,12 +3,12 @@
 # frozen_string_literal: true
 
 #
-# BrandSettings 21-field Data class structure (issue #3048)
+# BrandSettings 20-field Data class structure (issue #3048)
 #
-# Covers the post-port shape: 14 existing fields + 9 identity/contact fields
-# (product_name, product_domain, support_email, signature_name, footer_text,
-# description, logo_url, logo_dark_url, favicon_url) plus default semantics,
-# frozen-data guarantees, and from_hash behavior.
+# Covers the post-port shape: 14 existing fields + 8 new fields
+# (product_name, product_domain, support_email, footer_text, description,
+# logo_url, logo_dark_url, favicon_url) plus default semantics, frozen-data
+# guarantees, and from_hash behavior.
 #
 # Most tests below are FORWARD-LOOKING: they will fail until the backend port
 # in #3048 lands. Tests are marked with [forward] for clarity.
@@ -25,13 +25,13 @@ require 'onetime/models/custom_domain'
 @bs.ancestors.include?(Data)
 #=> true
 
-## BrandSettings defines all 21 expected members
+## BrandSettings defines all 20 expected members
 @bs.members.sort
-#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :signature_name, :support_email]
+#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
 
-## BrandSettings has exactly 21 members
+## BrandSettings has exactly 20 members
 @bs.members.size
-#=> 21
+#=> 20
 
 ## [forward] from_hash creates instance with new product_name field
 @settings = @bs.from_hash({})

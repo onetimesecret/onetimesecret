@@ -306,35 +306,23 @@ module Onetime
                                Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
           end
 
-          # Email sign-off name — configurable independently of product_name so
-          # operators (or per-domain branding) can sign mail with a person or
-          # team without renaming the product everywhere else.
+          # Email sign-off name. Resolves the configurable signature
+          # independently of product_name so operators can sign mail with a
+          # person or team without renaming the product everywhere else.
           #
-          # Two INDEPENDENT tiers, intentionally NOT cascaded into each other:
-          #   - Domain-scoped sends pass :signature_name (the per-domain brand
-          #     value, which may be nil). It stands on its own — an unset
-          #     per-domain value does NOT inherit the install operator's
-          #     BRAND_SIGNATURE_NAME, keeping white-label domains isolated from
-          #     the install identity.
-          #   - Install / account-level sends carry no :signature_name key and
-          #     use the install-wide brand config (BRAND_SIGNATURE_NAME).
+          # Resolution order (highest priority first):
+          #   1. @data[:signature_name] — optional per-message override.
+          #   2. brand.signature_name (BRAND_SIGNATURE_NAME) — install-wide.
           #
-          # Either tier may resolve to nil; templates render
-          # `signature_name || t('email.*.signature')`, so the shared floor is
-          # the neutral i18n default ("Support Team"), never a hardcoded name.
-          # See docs/architecture/branding.md.
+          # Returns nil when unconfigured so templates fall back to the neutral
+          # i18n default (email.*.signature, "Support Team") rather than a
+          # hardcoded person's name. See docs/architecture/branding.md.
           # @return [String, nil]
           def signature_name
             return @signature_name if defined?(@signature_name)
 
-            @signature_name =
-              if @data.key?(:signature_name)
-                @data[:signature_name]
-              elsif @data.key?('signature_name')
-                @data['signature_name']
-              else
-                conf_dig('brand', 'signature_name')
-              end
+            @signature_name = @data[:signature_name] ||
+                              conf_dig('brand', 'signature_name')
           end
 
           # Logo alt text helper - delegates to product_name so the logo's

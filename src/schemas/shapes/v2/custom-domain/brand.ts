@@ -52,7 +52,6 @@ export const brandSettingschema = z
       .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
       .default(NEUTRAL_BRAND_DEFAULTS.primary_color), // Neutral default, not OTS brand
     colour: z.string().optional(),
-    signature_name: z.string().nullish(),
     instructions_pre_reveal: z.string().nullish(),
     instructions_reveal: z.string().nullish(),
     instructions_post_reveal: z.string().nullish(),

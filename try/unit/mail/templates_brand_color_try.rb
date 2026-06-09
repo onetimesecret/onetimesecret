@@ -177,42 +177,29 @@ end
 #=> true
 
 # ============================================================================
-# signature_name — two independent tiers, no cross-cascade (email sign-off)
+# signature_name fallback chain (email sign-off — no longer "Delano")
 # ============================================================================
-#
-# Install tier  (no :signature_name key in data): OT.conf['brand'] -> nil
-# Domain tier   (:signature_name key present):     @data value     -> nil
-# Neither tier inherits the other; both bottom out at the i18n default via
-# `signature_name || t('email.*.signature')` in the templates.
 
-## DOMAIN tier: a present :signature_name key uses the per-domain value
+## signature_name returns @data[:signature_name] when set (domain-level override wins)
 ctx = @ctx_class.new({ signature_name: 'DomainTeam' }, 'en')
 ctx.signature_name
 #=> 'DomainTeam'
 
-## INSTALL tier: with no :signature_name key, falls to OT.conf['brand']['signature_name']
+## signature_name falls through to OT.conf['brand']['signature_name'] when @data unset
 with_brand_conf({ 'signature_name' => 'Jane from Acme' }) do
   ctx = @ctx_class.new({}, 'en')
   ctx.signature_name
 end
 #=> 'Jane from Acme'
 
-## [core] domain-scoped UNSET value does NOT inherit install BRAND_SIGNATURE_NAME
-# Key present but nil => stays nil (=> i18n default), never the install identity.
-with_brand_conf({ 'signature_name' => 'Install Co' }) do
-  ctx = @ctx_class.new({ signature_name: nil }, 'en')
-  ctx.signature_name
-end
-#=> nil
-
-## domain value wins over install config when both are set (no cascade either way)
+## @data[:signature_name] supersedes the install-level brand config
 with_brand_conf({ 'signature_name' => 'Install Co' }) do
   ctx = @ctx_class.new({ signature_name: 'DomainTeam' }, 'en')
   ctx.signature_name
 end
 #=> 'DomainTeam'
 
-## install tier returns nil when unset, so templates fall back to the i18n default
+## signature_name returns nil when unset, so templates fall back to the i18n default
 without_brand_conf do
   ctx = @ctx_class.new({}, 'en')
   ctx.signature_name
@@ -239,14 +226,6 @@ end
 
 ## [regression guard] BrandSettingsConstants::GLOBAL_DEFAULTS[:signature_name] is nil
 @constants::GLOBAL_DEFAULTS[:signature_name]
-#=> nil
-
-## signature_name is a per-domain BrandSettings member (settable per custom domain)
-Onetime::CustomDomain::BrandSettings.members.include?(:signature_name)
-#=> true
-
-## per-domain signature_name defaults to nil (NOT seeded from install env/config)
-Onetime::CustomDomain::BrandSettings.from_hash({}).signature_name
 #=> nil
 
 # ============================================================================

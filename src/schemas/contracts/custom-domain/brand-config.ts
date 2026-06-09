@@ -120,14 +120,6 @@ export const brandSettingsCanonical = z
     /** Support email address. */
     support_email: z.string().email().nullish(),
 
-    /**
-     * Email sign-off name for this domain's transactional mail. Independent of
-     * product_name and of the install-level BRAND_SIGNATURE_NAME — an unset
-     * value falls through to a neutral i18n default, never the install
-     * identity. Sanitized.
-     */
-    signature_name: z.string().transform(stripHtmlTags).nullish(),
-
     /** Footer text shown on public pages. Sanitized. */
     footer_text: z.string().transform(stripHtmlTags).nullish(),
 

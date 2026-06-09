@@ -18,7 +18,7 @@ require 'onetime/models/custom_domain'
 ## (allow_public_homepage and allow_public_api were retired in #3026 — see
 ## HomepageConfig / ApiConfig for the canonical per-domain toggles.)
 @bs.members.sort
-#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :signature_name, :support_email]
+#=> [:button_text_light, :corner_style, :default_ttl, :description, :favicon_url, :font_family, :footer_text, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :logo_dark_url, :logo_url, :notify_enabled, :passphrase_required, :primary_color, :product_domain, :product_name, :support_email]
 
 ## DEFAULTS constant is accessible and frozen
 [@bs::DEFAULTS.frozen?, @bs::DEFAULTS[:font_family]]
