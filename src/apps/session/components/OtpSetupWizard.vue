@@ -33,11 +33,13 @@ const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
 // Auto-load QR code on mount (without password initially)
 onMounted(async () => {
-  // Get site name and user email from bootstrap store
-  const siteName = ui.value?.header?.branding?.site_name || 'Onetime Secret';
+  // Use brand_totp_issuer (the dedicated config field), falling back to site_name
+  const issuer = bootstrapStore.brand_totp_issuer
+    || ui.value?.header?.branding?.site_name
+    || 'Onetime Secret';
   const userEmail = email.value || '';
 
-  await setupMfa(siteName, userEmail);
+  await setupMfa(issuer, userEmail);
 });
 
 // Handle OTP code input
