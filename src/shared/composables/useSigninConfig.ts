@@ -80,6 +80,13 @@ export function useSigninConfig(domainExtId: string) {
   const isDeleting = ref(false);
   const error = ref<ApplicationError | null>(null);
 
+  /**
+   * The form field currently being auto-saved (toggle save-on-change), or
+   * null. Drives per-toggle loading feedback so only the flipped toggle
+   * spins while the others merely disable.
+   */
+  const savingField = ref<keyof SigninConfigFormState | null>(null);
+
   /** The full config object from the API. Null = unconfigured (404). */
   const signinConfig = ref<CustomDomainSigninConfig | null>(null);
 
@@ -183,6 +190,29 @@ export function useSigninConfig(domainExtId: string) {
   };
 
   /**
+   * Update a single field and persist immediately (save-on-change).
+   *
+   * Used by the toggles, which auto-save rather than waiting for the Save
+   * button. The PUT is a full replacement, so this commits any other pending
+   * form edits (e.g. a changed restrict_to radio) along with the toggle —
+   * the Save button remains for the radio-only case where nothing else
+   * triggers a save.
+   */
+  const autoSaveField = async <K extends keyof SigninConfigFormState>(
+    field: K,
+    value: SigninConfigFormState[K]
+  ) => {
+    if (isSaving.value) return;
+    formState.value = { ...formState.value, [field]: value };
+    savingField.value = field;
+    try {
+      await saveConfig();
+    } finally {
+      savingField.value = null;
+    }
+  };
+
+  /**
    * Delete the signin config for this domain.
    */
   const deleteConfig = async () => {
@@ -220,6 +250,7 @@ export function useSigninConfig(domainExtId: string) {
     error,
     signinConfig,
     formState,
+    savingField,
 
     // Computed
     isConfigured,
@@ -228,6 +259,7 @@ export function useSigninConfig(domainExtId: string) {
     // Actions
     initialize,
     saveConfig,
+    autoSaveField,
     deleteConfig,
     discardChanges,
   };

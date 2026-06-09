@@ -33,6 +33,8 @@ const props = defineProps<{
   isConfigured: boolean;
   ssoConfigured: boolean;
   canManageSso: boolean;
+  /** Field currently auto-saving, for per-toggle loading feedback. */
+  savingField: keyof SigninConfigFormState | null;
 }>();
 
 // ---------------------------------------------------------------------------
@@ -45,6 +47,11 @@ const emit = defineEmits<{
   (e: 'discard'): void;
   (e: 'configure-sso'): void;
   (e: 'update:formState', value: SigninConfigFormState): void;
+  (
+    e: 'auto-save',
+    field: keyof SigninConfigFormState,
+    value: SigninConfigFormState[keyof SigninConfigFormState]
+  ): void;
 }>();
 
 const { t } = useI18n();
@@ -251,9 +258,10 @@ class="space-y-6">
           <ToggleWithIcon
             :enabled="Boolean(formState.email_auth_enabled)"
             :disabled="isSaving"
+            :loading="savingField === 'email_auth_enabled'"
             :on-label="t('web.COMMON.enabled')"
             :off-label="t('web.COMMON.disabled')"
-            @update:enabled="updateField('email_auth_enabled', $event)" />
+            @update:enabled="emit('auto-save', 'email_auth_enabled', $event)" />
         </div>
 
         <!-- SSO -->
@@ -296,7 +304,8 @@ class="space-y-6">
             <ToggleWithIcon
               :enabled="Boolean(formState.sso_enabled)"
               :disabled="isSaving"
-              @update:enabled="updateField('sso_enabled', $event)" />
+              :loading="savingField === 'sso_enabled'"
+              @update:enabled="emit('auto-save', 'sso_enabled', $event)" />
           </div>
         </div>
       </fieldset>
@@ -353,7 +362,7 @@ class="space-y-6">
         <!-- Right: Save button -->
         <button
           type="submit"
-          :disabled="isSaving || isDeleting"
+          :disabled="isSaving || isDeleting || !hasUnsavedChanges"
           class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
           <OIcon
             v-if="isSaving"

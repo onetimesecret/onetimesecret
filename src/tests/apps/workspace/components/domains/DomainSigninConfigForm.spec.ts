@@ -2,14 +2,15 @@
 //
 // Tests for DomainSigninConfigForm.vue covering:
 // 1. Loading skeleton display
-// 2. Form rendering with props
-// 3. updateField emits update:formState with merged payload
+// 2. Form rendering with props (restrict_to radios + method-override toggles)
+// 3. updateField emits update:formState with merged payload (radios)
 // 4. restrict_to radio group (including "show all" -> null)
-// 5. Enabled toggle (aria-checked, click emits)
-// 6. Save/delete/discard emit flow
-// 7. Delete confirmation two-step
-// 8. Disabled states during saving/deleting
-// 9. Button label changes based on isConfigured
+// 5. Method-override toggles auto-save (emit 'auto-save' with field + value)
+// 6. Per-toggle loading feedback via savingField
+// 7. Save/delete/discard emit flow
+// 8. Save button disabled on load (no unsaved changes) and while saving/deleting
+// 9. Delete confirmation two-step
+// 10. Button label changes based on isConfigured
 
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -38,6 +39,24 @@ vi.mock('@/shared/components/closet/SettingsSkeleton.vue', () => ({
   },
 }));
 
+// Stub the toggle so we can assert role/state/emit without headlessui internals.
+vi.mock('@/shared/components/common/ToggleWithIcon.vue', () => ({
+  default: {
+    name: 'ToggleWithIcon',
+    props: ['enabled', 'disabled', 'loading', 'onLabel', 'offLabel'],
+    emits: ['update:enabled'],
+    template: `
+      <button
+        type="button"
+        role="switch"
+        :aria-checked="String(enabled)"
+        :data-loading="String(loading)"
+        :disabled="disabled || loading"
+        @click="$emit('update:enabled', !enabled)" />
+    `,
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // i18n
 // ---------------------------------------------------------------------------
@@ -50,8 +69,6 @@ const i18n = createI18n({
       web: {
         domains: {
           signin: {
-            signin_enabled_label: 'Sign-in enabled',
-            signin_enabled_hint: 'Whether sign-in is available on this domain',
             restrict_to_label: 'Restrict to single method',
             restrict_to_hint: 'Limit the login page to one authentication method',
             all_methods: 'Show all methods',
@@ -66,11 +83,14 @@ const i18n = createI18n({
             email_auth_hint: 'Passwordless magic link sign-in',
             sso_enabled_label: 'Single Sign-On',
             sso_enabled_hint: 'External identity provider',
-            enabled_label: 'Per-domain config active',
-            enabled_hint: 'Master switch for this signin configuration',
             delete_config: 'Delete config',
             delete_confirm: 'Are you sure?',
             save_config: 'Create config',
+          },
+          sso: {
+            configure_button: 'Configure',
+            edit_credentials: 'Edit credentials',
+            upgrade_required: 'Upgrade required',
           },
           email: {
             discard_changes: 'Discard changes',
@@ -102,14 +122,6 @@ const defaultFormState: SigninConfigFormState = {
   sso_enabled: false,
 };
 
-const _configuredFormState: SigninConfigFormState = {
-  enabled: true,
-  signin_enabled: true,
-  restrict_to: null,
-  email_auth_enabled: true,
-  sso_enabled: false,
-};
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -121,6 +133,9 @@ interface MountOptions {
   isDeleting?: boolean;
   hasUnsavedChanges?: boolean;
   isConfigured?: boolean;
+  ssoConfigured?: boolean;
+  canManageSso?: boolean;
+  savingField?: keyof SigninConfigFormState | null;
 }
 
 function mountForm(opts: MountOptions = {}): VueWrapper {
@@ -133,12 +148,20 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       isDeleting: opts.isDeleting ?? false,
       hasUnsavedChanges: opts.hasUnsavedChanges ?? false,
       isConfigured: opts.isConfigured ?? false,
+      ssoConfigured: opts.ssoConfigured ?? false,
+      canManageSso: opts.canManageSso ?? true,
+      savingField: opts.savingField ?? null,
     },
     global: {
       plugins: [createTestingPinia({ createSpy: vi.fn }), i18n],
     },
     attachTo: document.body,
   });
+}
+
+/** Method-override toggles in render order: [0] email_auth, [1] sso. */
+function toggles(wrapper: VueWrapper) {
+  return wrapper.findAll('[role="switch"]');
 }
 
 // ---------------------------------------------------------------------------
@@ -189,35 +212,9 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
 
   describe('form rendering', () => {
-    it('renders signin_enabled select', () => {
-      wrapper = mountForm();
-      const select = wrapper.find('#signin-domain-enabled');
-      expect(select.exists()).toBe(true);
-    });
-
-    it('renders email_auth select', () => {
-      wrapper = mountForm();
-      const select = wrapper.find('#signin-email-auth');
-      expect(select.exists()).toBe(true);
-    });
-
-    it('renders sso select', () => {
-      wrapper = mountForm();
-      const select = wrapper.find('#signin-sso');
-      expect(select.exists()).toBe(true);
-    });
-
-    it('renders enabled toggle switch', () => {
-      wrapper = mountForm();
-      const toggle = wrapper.find('#signin-enabled');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('role')).toBe('switch');
-    });
-
     it('renders restrict_to radio group with "show all" option', () => {
       wrapper = mountForm();
-      const showAllRadio = wrapper.find('#signin-restrict-none');
-      expect(showAllRadio.exists()).toBe(true);
+      expect(wrapper.find('#signin-restrict-none').exists()).toBe(true);
     });
 
     it('renders all four restrict_to method radios', () => {
@@ -227,80 +224,79 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
       expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
     });
-  });
 
-  // -----------------------------------------------------------------------
-  // Enabled toggle
-  // -----------------------------------------------------------------------
-
-  describe('enabled toggle', () => {
-    it('reflects formState.enabled in aria-checked', () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, enabled: true } });
-      const toggle = wrapper.find('#signin-enabled');
-      expect(toggle.attributes('aria-checked')).toBe('true');
+    it('renders the two method-override toggles (email_auth, sso)', () => {
+      wrapper = mountForm();
+      expect(toggles(wrapper)).toHaveLength(2);
     });
 
-    it('reflects formState.enabled=false in aria-checked', () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, enabled: false } });
-      const toggle = wrapper.find('#signin-enabled');
-      expect(toggle.attributes('aria-checked')).toBe('false');
-    });
-
-    it('emits update:formState with toggled enabled on click', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, enabled: false } });
-      const toggle = wrapper.find('#signin-enabled');
-      await toggle.trigger('click');
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual(
-        expect.objectContaining({ enabled: true })
+    it('renders the SSO Configure button when canManageSso', () => {
+      wrapper = mountForm({ canManageSso: true });
+      const configureBtn = wrapper.findAll('button').find(
+        (b) => b.text().includes('Configure')
       );
+      expect(configureBtn).toBeTruthy();
+    });
+
+    it('renders the upgrade hint instead of Configure when not canManageSso', () => {
+      wrapper = mountForm({ canManageSso: false });
+      expect(wrapper.text()).toContain('Upgrade required');
+      const configureBtn = wrapper.findAll('button').find(
+        (b) => b.text().includes('Configure')
+      );
+      expect(configureBtn).toBeUndefined();
     });
   });
 
   // -----------------------------------------------------------------------
-  // Select fields (signin_enabled, email_auth, sso)
+  // Method-override toggles (auto-save)
   // -----------------------------------------------------------------------
 
-  describe('select field updates', () => {
-    it('emits update:formState when signin_enabled changes', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, signin_enabled: true } });
-      const select = wrapper.find('#signin-domain-enabled');
-
-      await select.setValue('false');
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual(
-        expect.objectContaining({ signin_enabled: false })
-      );
+  describe('method-override toggles', () => {
+    it('email_auth toggle reflects formState in aria-checked', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, email_auth_enabled: true } });
+      expect(toggles(wrapper)[0].attributes('aria-checked')).toBe('true');
     });
 
-    it('emits update:formState when email_auth_enabled changes', async () => {
+    it('sso toggle reflects formState in aria-checked', () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, sso_enabled: true } });
+      expect(toggles(wrapper)[1].attributes('aria-checked')).toBe('true');
+    });
+
+    it('email_auth toggle emits auto-save with field and value', async () => {
       wrapper = mountForm({ formState: { ...defaultFormState, email_auth_enabled: false } });
-      const select = wrapper.find('#signin-email-auth');
+      await toggles(wrapper)[0].trigger('click');
 
-      await select.setValue('true');
-
-      const emitted = wrapper.emitted('update:formState');
+      const emitted = wrapper.emitted('auto-save');
       expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual(
-        expect.objectContaining({ email_auth_enabled: true })
-      );
+      expect(emitted![0]).toEqual(['email_auth_enabled', true]);
     });
 
-    it('emits update:formState when sso_enabled changes', async () => {
+    it('sso toggle emits auto-save with field and value', async () => {
       wrapper = mountForm({ formState: { ...defaultFormState, sso_enabled: false } });
-      const select = wrapper.find('#signin-sso');
+      await toggles(wrapper)[1].trigger('click');
 
-      await select.setValue('true');
-
-      const emitted = wrapper.emitted('update:formState');
+      const emitted = wrapper.emitted('auto-save');
       expect(emitted).toBeTruthy();
-      expect(emitted![0][0]).toEqual(
-        expect.objectContaining({ sso_enabled: true })
-      );
+      expect(emitted![0]).toEqual(['sso_enabled', true]);
+    });
+
+    it('does not emit update:formState from the toggles (auto-save only)', async () => {
+      wrapper = mountForm();
+      await toggles(wrapper)[0].trigger('click');
+      expect(wrapper.emitted('update:formState')).toBeFalsy();
+    });
+
+    it('disables both toggles while isSaving', () => {
+      wrapper = mountForm({ isSaving: true });
+      expect(toggles(wrapper)[0].attributes('disabled')).toBeDefined();
+      expect(toggles(wrapper)[1].attributes('disabled')).toBeDefined();
+    });
+
+    it('shows loading only on the field being auto-saved', () => {
+      wrapper = mountForm({ isSaving: true, savingField: 'email_auth_enabled' });
+      expect(toggles(wrapper)[0].attributes('data-loading')).toBe('true');
+      expect(toggles(wrapper)[1].attributes('data-loading')).toBe('false');
     });
   });
 
@@ -358,7 +354,7 @@ describe('DomainSigninConfigForm', () => {
 
   describe('save', () => {
     it('emits save on form submit', async () => {
-      wrapper = mountForm();
+      wrapper = mountForm({ hasUnsavedChanges: true });
       await wrapper.find('form').trigger('submit');
 
       expect(wrapper.emitted('save')).toBeTruthy();
@@ -382,14 +378,26 @@ describe('DomainSigninConfigForm', () => {
       expect(submit.text()).toContain('Saving...');
     });
 
+    it('disables submit button on load (no unsaved changes)', () => {
+      wrapper = mountForm({ hasUnsavedChanges: false });
+      const submit = wrapper.find('button[type="submit"]');
+      expect(submit.attributes('disabled')).toBeDefined();
+    });
+
+    it('enables submit button when there are unsaved changes', () => {
+      wrapper = mountForm({ hasUnsavedChanges: true });
+      const submit = wrapper.find('button[type="submit"]');
+      expect(submit.attributes('disabled')).toBeUndefined();
+    });
+
     it('disables submit button when isSaving', () => {
-      wrapper = mountForm({ isSaving: true });
+      wrapper = mountForm({ hasUnsavedChanges: true, isSaving: true });
       const submit = wrapper.find('button[type="submit"]');
       expect(submit.attributes('disabled')).toBeDefined();
     });
 
     it('disables submit button when isDeleting', () => {
-      wrapper = mountForm({ isDeleting: true });
+      wrapper = mountForm({ hasUnsavedChanges: true, isDeleting: true });
       const submit = wrapper.find('button[type="submit"]');
       expect(submit.attributes('disabled')).toBeDefined();
     });
@@ -502,36 +510,6 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
 
   describe('accessibility', () => {
-    it('signin_enabled select has aria-describedby', () => {
-      wrapper = mountForm();
-      const select = wrapper.find('#signin-domain-enabled');
-      expect(select.attributes('aria-describedby')).toBe('signin-domain-enabled-hint');
-    });
-
-    it('email_auth select has aria-describedby', () => {
-      wrapper = mountForm();
-      const select = wrapper.find('#signin-email-auth');
-      expect(select.attributes('aria-describedby')).toBe('signin-email-auth-hint');
-    });
-
-    it('sso select has aria-describedby', () => {
-      wrapper = mountForm();
-      const select = wrapper.find('#signin-sso');
-      expect(select.attributes('aria-describedby')).toBe('signin-sso-hint');
-    });
-
-    it('enabled toggle has role="switch"', () => {
-      wrapper = mountForm();
-      const toggle = wrapper.find('#signin-enabled');
-      expect(toggle.attributes('role')).toBe('switch');
-    });
-
-    it('enabled toggle has aria-describedby', () => {
-      wrapper = mountForm();
-      const toggle = wrapper.find('#signin-enabled');
-      expect(toggle.attributes('aria-describedby')).toBe('signin-enabled-hint');
-    });
-
     it('restrict_to container has role="radiogroup"', () => {
       wrapper = mountForm();
       const group = wrapper.find('[role="radiogroup"]');
@@ -542,6 +520,14 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm();
       const radio = wrapper.find('#signin-restrict-password');
       expect(radio.attributes('aria-describedby')).toBe('signin-restrict-password-description');
+    });
+
+    it('method-override toggles expose role="switch"', () => {
+      wrapper = mountForm();
+      expect(toggles(wrapper)).toHaveLength(2);
+      toggles(wrapper).forEach((t) => {
+        expect(t.attributes('role')).toBe('switch');
+      });
     });
   });
 });

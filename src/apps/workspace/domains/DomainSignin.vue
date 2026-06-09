@@ -73,10 +73,12 @@ const {
   error: signinError,
   signinConfig: _signinConfig,
   formState,
+  savingField,
   isConfigured,
   hasUnsavedChanges,
   initialize: initializeSigninConfig,
   saveConfig,
+  autoSaveField,
   deleteConfig,
   discardChanges,
 } = useSigninConfig(props.extid);
@@ -261,9 +263,10 @@ watch(canManageSso, async (entitled) => {
             <ToggleWithIcon
               :enabled="Boolean(formState.enabled)"
               :disabled="isSaving"
+              :loading="savingField === 'enabled'"
               :on-label="t('web.COMMON.enabled')"
               :off-label="t('web.COMMON.disabled')"
-              @update:enabled="formState.enabled = $event" />
+              @update:enabled="autoSaveField('enabled', $event)" />
           </div>
         </div>
 
@@ -292,7 +295,9 @@ watch(canManageSso, async (entitled) => {
             :is-configured="isConfigured"
             :sso-configured="ssoIsConfigured"
             :can-manage-sso="canManageSso"
+            :saving-field="savingField"
             @save="saveConfig"
+            @auto-save="autoSaveField"
             @delete="deleteConfig"
             @discard="discardChanges"
             @configure-sso="handleOpenSsoModal" />
