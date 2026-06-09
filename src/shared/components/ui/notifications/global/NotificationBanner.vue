@@ -10,6 +10,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { getSeverityMeta, getBannerColors } from '../severityConfig';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
   message: string;
@@ -30,6 +31,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{ dismiss: [] }>();
+
+const { t } = useI18n();
 
 const effectiveSeverity = computed(() => props.loading ? 'loading' : props.severity);
 const meta = computed(() => getSeverityMeta(effectiveSeverity.value));
@@ -84,7 +87,7 @@ const showProgressBar = computed(() =>
           type="button"
           class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
           @click="emit('dismiss')">
-          <span class="sr-only">Dismiss</span>
+          <span class="sr-only">{{ t('web.LABELS.dismiss') }}</span>
           <OIcon
             collection="mdi"
             name="close"

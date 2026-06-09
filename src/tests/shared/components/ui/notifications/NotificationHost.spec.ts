@@ -1,4 +1,4 @@
-// src/tests/shared/components/ui/notifications/SubtleProgress.spec.ts
+// src/tests/shared/components/ui/notifications/NotificationHost.spec.ts
 //
 // Tests for notification auto-dismiss timer behavior.
 //
