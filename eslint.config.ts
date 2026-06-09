@@ -646,11 +646,10 @@ export default [
       'playwright/no-networkidle': 'warn',
       'playwright/no-wait-for-timeout': 'warn',
 
-      // The tailwind flat/recommended spread above is unscoped (no `files`),
-      // so its rules also run here, where class-name linting is meaningless;
-      // executing them crashes resolving the tailwind v4 config from spec
-      // files. lint:e2e runs without --quiet (so warn rules execute) - off
-      // them explicitly.
+      // TODO: dead since #3414 scoped the tailwind flat/recommended spread to
+      // src/**/*.vue - these 'off' entries no longer override anything. Kept
+      // only to avoid churning lines the in-flight e2e sweep branch (#3416)
+      // sits next to; remove in the follow-up.
       'tailwindcss/classnames-order': 'off',
       'tailwindcss/enforces-negative-arbitrary-values': 'off',
       'tailwindcss/enforces-shorthand': 'off',
