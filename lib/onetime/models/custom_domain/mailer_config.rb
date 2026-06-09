@@ -368,9 +368,14 @@ module Onetime
           name  = record['name']
           check = dns_checks.find { |c| c['name'] == name }
 
+          is_optional = record['optional'] == true || record['optional'] == 'true'
+
           # Per-record status from DNS check facts when available;
           # fall back to overall status only when no check data exists yet.
-          per_record_status = if check
+          # Optional records are never DNS-checked, so they stay 'pending'.
+          per_record_status = if is_optional
+                                'pending'
+                              elsif check
                                 check['value_matches'] ? 'verified' : 'failed'
                               else
                                 current_status
