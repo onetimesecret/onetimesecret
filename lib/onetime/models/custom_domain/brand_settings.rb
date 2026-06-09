@@ -50,12 +50,17 @@ module Onetime
       # defaults). Operators set BRAND_SUPPORT_EMAIL / BRAND_LOGO_URL /
       # BRAND_TOTP_ISSUER to populate. 'OTS' is acceptable as a neutral
       # abbreviation per the issue body.
+      # signature_name defaults to nil: when unset, the email sign-off falls
+      # through to the neutral i18n default (email.*.signature, "Support Team")
+      # rather than a hardcoded person's name. Operators set
+      # BRAND_SIGNATURE_NAME to sign mail with their own name or team.
       GLOBAL_DEFAULTS = {
         support_email: nil,
         product_name: 'OTS',
         totp_issuer: 'OTS',
         logo_url: nil,
         favicon_url: nil,
+        signature_name: nil,
       }.freeze
 
       # Returns defaults with primary_color resolved from brand config.
@@ -81,6 +86,7 @@ module Onetime
           totp_issuer: brand_conf['totp_issuer'] || GLOBAL_DEFAULTS[:totp_issuer],
           logo_url: brand_conf['logo_url'] || GLOBAL_DEFAULTS[:logo_url],
           favicon_url: brand_conf['favicon_url'] || GLOBAL_DEFAULTS[:favicon_url],
+          signature_name: brand_conf['signature_name'] || GLOBAL_DEFAULTS[:signature_name],
         }
       end
 

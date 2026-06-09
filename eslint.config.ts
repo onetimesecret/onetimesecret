@@ -59,6 +59,7 @@ import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import parserTs from '@typescript-eslint/parser';
 import * as importPlugin from 'eslint-plugin-import';
+import pluginPlaywright from 'eslint-plugin-playwright';
 import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
@@ -80,7 +81,7 @@ export default [
    * Excludes all files except source and config files
    */
   {
-    ignores: ['**/*', '!src/**', '!*.config.ts', '!*.config.*js'],
+    ignores: ['**/*', '!src/**', '!e2e/**', '!*.config.ts', '!*.config.*js'],
   },
 
   /**
@@ -89,7 +90,13 @@ export default [
    * Handles basic ES features and import ordering
    */
   {
+    // CAUTION: the negated '!src/tests/**' inside `files` is NOT an exclusion
+    // in flat config - it matches every file *outside* that path, silently
+    // widening this block beyond src/ (mostly masked by the global ignores
+    // above). The e2e/ suite has its own block below, so keep it out via
+    // block-level `ignores`. Same applies to the two sibling src/ blocks.
     files: ['src/**/*.{js,mjs,cjs,ts,vue}', '!src/tests/**'],
+    ignores: ['e2e/**'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -174,6 +181,7 @@ export default [
    */
   {
     files: ['src/**/*.{ts,d.ts}', '!src/tests/**'],
+    ignores: ['e2e/**'],
     languageOptions: {
       parserOptions: {
         parser: parserTs,
@@ -310,6 +318,7 @@ export default [
    */
   {
     files: ['src/**/*.vue', '!src/tests/**'],
+    ignores: ['e2e/**'],
     languageOptions: {
       parser: vueEslintParser,
       parserOptions: {
@@ -568,6 +577,52 @@ export default [
       '@typescript-eslint/no-empty-function': 'off', // Allow empty mock functions
       '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions in tests
       'no-console': 'off', // Allow console usage in tests
+    },
+  },
+
+  /**
+   * Playwright E2E Suite
+   * Bans the two primitives behind most E2E flake (see
+   * e2e/docs/e2e-remediation-plan.md, Phase 1):
+   *  - waitForLoadState('networkidle') / { waitUntil: 'networkidle' }
+   *  - page.waitForTimeout(...)
+   * Severity is 'warn' during the Phase 2 directory-by-directory sweep
+   * (~300 networkidle + ~43 waitForTimeout call-sites today); flips to
+   * 'error' once the sweep lands (plan Phase 1 item 2 / PR 4).
+   * Run with: pnpm lint:e2e (no --quiet, so warnings are visible)
+   */
+  {
+    files: ['e2e/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      parser: parserTs,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      playwright: pluginPlaywright,
+    },
+    rules: {
+      'playwright/no-networkidle': 'warn',
+      'playwright/no-wait-for-timeout': 'warn',
+
+      // The tailwind flat/recommended spread above is unscoped (no `files`),
+      // so its rules also run here, where class-name linting is meaningless;
+      // executing them crashes resolving the tailwind v4 config from spec
+      // files. lint:e2e runs without --quiet (so warn rules execute) - off
+      // them explicitly.
+      'tailwindcss/classnames-order': 'off',
+      'tailwindcss/enforces-negative-arbitrary-values': 'off',
+      'tailwindcss/enforces-shorthand': 'off',
+      'tailwindcss/migration-from-tailwind-2': 'off',
+      'tailwindcss/no-arbitrary-value': 'off',
+      'tailwindcss/no-custom-classname': 'off',
+      'tailwindcss/no-contradicting-classname': 'off',
+      'tailwindcss/no-unnecessary-arbitrary-value': 'off',
     },
   },
 

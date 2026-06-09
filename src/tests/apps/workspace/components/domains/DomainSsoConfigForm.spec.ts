@@ -672,112 +672,21 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Enforce SSO Only Toggle
+  // Enforce SSO — moved to signin settings (#3383)
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('Enforce SSO Only Toggle', () => {
-    /**
-     * Tests for the enforce_sso_only toggle (#3057).
-     *
-     * The toggle is implemented as a role="switch" button that:
-     * - Renders with ID "domain-sso-enforce-only"
-     * - Shows regardless of SSO enabled state (admin can configure ahead of time)
-     * - Emits update:formState when clicked
-     * - Uses aria-checked to indicate state
-     */
-
-    it('renders toggle with correct role and ID', async () => {
+  describe('Enforce SSO notice', () => {
+    it('shows a notice linking to signin settings instead of an inline toggle', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, enabled: true },
         isConfigured: true,
       });
 
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('role')).toBe('switch');
-    });
-
-    it('toggle has associated label', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const label = wrapper.find('label[for="domain-sso-enforce-only"]');
-      expect(label.exists()).toBe(true);
-    });
-
-    it('emits update:formState with enforce_sso_only=true when toggle is clicked (was false)', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true, enforce_sso_only: false },
-        isConfigured: true,
-      });
+      const notice = wrapper.find('[aria-hidden="true"]');
+      expect(notice.exists()).toBe(true);
 
       const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-
-      await toggle.trigger('click');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      if (emitted && emitted.length > 0) {
-        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
-        expect(lastEmit.enforce_sso_only).toBe(true);
-      }
-    });
-
-    it('emits update:formState with enforce_sso_only=false when toggle is clicked (was true)', async () => {
-      wrapper = await mountComponent({
-        formState: mockEnforceSsoOnlyFormState,
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-
-      await toggle.trigger('click');
-      await flushPromises();
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      if (emitted && emitted.length > 0) {
-        const lastEmit = emitted[emitted.length - 1][0] as SsoConfigFormState;
-        expect(lastEmit.enforce_sso_only).toBe(false);
-      }
-    });
-
-    it('reflects enforce_sso_only: true via aria-checked attribute', async () => {
-      wrapper = await mountComponent({
-        formState: mockEnforceSsoOnlyFormState,
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-checked')).toBe('true');
-    });
-
-    it('reflects enforce_sso_only: false via aria-checked attribute', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enforce_sso_only: false },
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-checked')).toBe('false');
-    });
-
-    it('toggle has aria-describedby for hint text', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('#domain-sso-enforce-only');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-describedby')).toBe('domain-enforce-sso-only-hint');
+      expect(toggle.exists()).toBe(false);
     });
   });
 
