@@ -206,8 +206,8 @@ identity can have DKIM `SUCCESS` while MAIL FROM is in any of these states:
 
 The provisioning flow always calls `PutEmailIdentityMailFromAttributes`, so after
 a successful provision the MAIL FROM status should be `PENDING` (never
-`NOT_STARTED`). If the API call is rejected (e.g. unsupported region), the
-provisioning result sets `mail_from_configured: false` and the success message
+`NOT_STARTED`). If the API call is rejected (e.g. unsupported region),
+`mail_from_domain` is nil in the provisioning result and the success message
 notes "DKIM only" — the identity still works for sending but without SPF
 alignment.
 
