@@ -64,7 +64,7 @@ module Onetime
     # Core fields
     field :display_name
     field :description
-    field :owner_id       # custid of organization owner (internal objid of Customer)
+    field :owner_id       # DEPRECATED: Use created_by for audit trail, OrganizationMembership role='owner' for authority. Retained until membership migration completes everywhere.
     field :created_by     # Immutable audit field — custid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
@@ -92,7 +92,8 @@ module Onetime
       objid
     end
 
-    # Owner management
+    # DEPRECATED: Loads customer by owner_id. Prefer OrganizationMembership
+    # lookup via find_by_org_customer and checking membership.owner? role.
     def owner
       Onetime::Customer.load(owner_id) if owner_id
     end
@@ -248,6 +249,7 @@ module Onetime
       receipts.member?(dummy_receipt)
     end
 
+    # DEPRECATED: Alias for loading customer via owner_id. See owner_id deprecation note.
     def get_customer
       Onetime::Customer.find_by_objid(owner_id)
     end

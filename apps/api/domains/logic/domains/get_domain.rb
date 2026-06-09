@@ -35,8 +35,8 @@ module DomainsAPI::Logic
 
         raise_form_error 'Domain not found' unless @custom_domain
 
-        # Verify the customer owns this domain through their organization
-        unless @custom_domain.owner?(@cust)
+        # Verify the customer can access this domain through org membership
+        unless @custom_domain.accessible_by?(@cust)
           raise_form_error 'Domain not found'
         end
 

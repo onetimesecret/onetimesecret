@@ -438,7 +438,7 @@ module V1::Logic
             share_domain:   #{@share_domain}
             custom_domain?:  #{custom_domain?}
             allow_public?:   #{domain_record.allow_public_homepage?}
-            owner?:          #{domain_record.owner?(@cust)}
+            accessible?:     #{domain_record.accessible_by?(@cust)}
             verified?:       #{domain_record.verified}
         DEBUG
 
@@ -474,12 +474,12 @@ module V1::Logic
       # - Anonymous on a custom domain: gated by the Homepage Secrets toggle.
       # - Anonymous on canonical with share_domain set: not permitted.
       def validate_domain_permissions(domain_record)
-        # Owner / org member can always use the domain.
-        return if domain_record.owner?(@cust)
+        # Any org member can always use the domain.
+        return if domain_record.accessible_by?(@cust)
 
-        # Authenticated non-owner: permission denied regardless of toggle.
+        # Authenticated non-member: permission denied regardless of toggle.
         unless cust.nil? || cust.anonymous?
-          OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
+          OT.li "[validate_domain_perm]: #{share_domain} non-member [#{cust.custid}]"
           raise_form_error "You do not have permission to use domain: #{share_domain}"
         end
 
