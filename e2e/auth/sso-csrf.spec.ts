@@ -30,7 +30,7 @@ test.describe('SSO Form Submission', () => {
 
   test('signin page loads successfully', async ({ page }) => {
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify we're on the signin page
     await expect(page).toHaveURL(/signin/);
@@ -39,7 +39,7 @@ test.describe('SSO Form Submission', () => {
 
   test('SSO button is visible when OmniAuth is enabled', async ({ page }) => {
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if SSO is enabled via bootstrap state
     const ssoEnabled = await page.evaluate(() => {
@@ -69,7 +69,7 @@ test.describe('SSO Form Submission', () => {
 
   test('SSO form submission includes shrimp field', async ({ page }) => {
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if SSO button exists
     const ssoButton = page.locator('[data-testid="sso-button"]');
@@ -103,13 +103,14 @@ test.describe('SSO Form Submission', () => {
 
     // Reload page to apply the script
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Click the SSO button
     await ssoButton.click();
 
-    // Wait a moment for form creation
-    await page.waitForTimeout(100);
+    // Wait deterministically for the patched form.submit() to record the
+    // submission on window (the click handler builds the form async)
+    await page.waitForFunction(() => '__capturedFormSubmission' in window);
 
     // Retrieve captured form data
     formSubmission = await page.evaluate(() => {
@@ -130,7 +131,7 @@ test.describe('SSO Form Submission', () => {
 
   test('shrimp token originates from bootstrap state', async ({ page }) => {
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Get the shrimp value from bootstrap state before it's consumed
     // Note: Bootstrap state may already be consumed by the app
@@ -166,7 +167,7 @@ test.describe('SSO Form Submission', () => {
 
   test('SSO button shows loading state when clicked', async ({ page }) => {
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
     const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
@@ -184,7 +185,7 @@ test.describe('SSO Form Submission', () => {
     });
 
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Button should not be disabled initially
     await expect(ssoButton).not.toBeDisabled();
@@ -201,7 +202,7 @@ test.describe('SSO Form Submission', () => {
 
   test('SSO divider appears when OmniAuth is enabled', async ({ page }) => {
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
     const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
@@ -220,7 +221,7 @@ test.describe('SSO Form Submission', () => {
 test.describe('SSO Form - Structure Validation', () => {
   test('form action points to correct OmniAuth endpoint', async ({ page }) => {
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
     const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
@@ -240,10 +241,12 @@ test.describe('SSO Form - Structure Validation', () => {
     });
 
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     await ssoButton.click();
-    await page.waitForTimeout(100);
+    // Wait deterministically for the patched form.submit() to record the
+    // form action on window
+    await page.waitForFunction(() => '__formAction' in window);
 
     formAction = await page.evaluate(() => {
       return (window as Window & { __formAction?: string }).__formAction || null;
@@ -260,7 +263,7 @@ test.describe('SSO Form - Structure Validation', () => {
     // for consistency with other forms in the app
 
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const ssoButton = page.locator('[data-testid="sso-button"]');
     const ssoButtonVisible = await ssoButton.isVisible().catch(() => false);
@@ -284,10 +287,12 @@ test.describe('SSO Form - Structure Validation', () => {
     });
 
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     await ssoButton.click();
-    await page.waitForTimeout(100);
+    // Wait deterministically for the patched form.submit() to record the
+    // form inputs on window
+    await page.waitForFunction(() => '__formInputs' in window);
 
     formInputs = await page.evaluate(() => {
       return (window as Window & { __formInputs?: Array<{ name: string; type: string }> }).__formInputs || [];

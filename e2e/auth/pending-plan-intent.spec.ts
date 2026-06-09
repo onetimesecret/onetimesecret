@@ -24,16 +24,14 @@
 import { test, expect, Page } from '@playwright/test';
 
 /**
- * Wait for page to stabilize after navigation
+ * Wait for page to stabilize after navigation.
+ *
+ * The readiness flag is set in src/main.ts after consumeBootstrapData +
+ * mount + router.isReady() - a stronger, deterministic alternative to
+ * networkidle or polling window.__BOOTSTRAP_ME__.
  */
 async function waitForPageLoad(page: Page): Promise<void> {
-  await page.waitForLoadState('networkidle');
-  // Ensure Vue has mounted and consumed bootstrap data
-  await page.waitForFunction(() => {
-    return (window as any).__BOOTSTRAP_ME__ === true;
-  }, { timeout: 10000 }).catch(() => {
-    // Bootstrap may not be consumed in all environments
-  });
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 }
 
 /**
