@@ -81,6 +81,7 @@ const primaryColor =
 - `BRAND_ALLOW_PUBLIC_API` → `brand_allow_public_api`
 - `BRAND_LOGO_URL` → `brand_logo_url`
 - `BRAND_TOTP_ISSUER` → MFA issuer label
+- `BRAND_SIGNATURE_NAME` → email sign-off name (separate from `product_name`; falls back to the neutral i18n default `"Support Team"`)
 
 ### Step 3: Neutral Emergency Fallback
 
@@ -258,7 +259,7 @@ useBrandTheme()
 - `apps/web/core/views/helpers/initialize_view_vars.rb` — View var setup
 - `apps/web/core/views/serializers/config_serializer.rb` — Bootstrap payload
 - `apps/web/core/templates/partials/head-base.rue` — `mask-icon` uses `{{brand_primary_color}}`
-- `lib/onetime/mail/views/base.rb` — `TemplateContext` helpers (`brand_color`, `logo_url`, `logo_alt`, `product_name`, `support_email`)
+- `lib/onetime/mail/views/base.rb` — `TemplateContext` helpers (`brand_color`, `logo_url`, `logo_alt`, `product_name`, `support_email`, `signature_name`)
 - `etc/defaults/config.defaults.yaml` — Ships a `brand:` block with all-nil defaults; operators set `BRAND_*` ENV vars to populate it
 - `etc/config.schema.yaml` — Top-level `brand:` schema (all keys optional, validated by `bin/ots validate`)
 
@@ -319,6 +320,33 @@ def brand_color
     BrandSettingsConstants::DEFAULTS[:primary_color]
 end
 ```
+
+### Email Sign-off Name
+
+Transactional emails close with a sign-off line. Historically this was the
+hardcoded i18n string `"Delano"` baked into every `email.*.signature` key
+across all 30 locales — it sat *below* the brand layer, so the private-label
+neutralization (#3048/#3049) never reached it. The sign-off is now a brand
+value, resolved by the `signature_name` `TemplateContext` helper:
+
+```ruby
+# lib/onetime/mail/views/base.rb (TemplateContext)
+def signature_name
+  @data[:signature_name] ||            # 1. per-message / per-domain override
+    conf_dig('brand', 'signature_name')  # 2. install-wide BRAND_SIGNATURE_NAME
+end
+```
+
+Templates fall back to the neutral i18n default when it resolves to nil:
+
+```erb
+<%= h(signature_name || t('email.welcome.signature')) %>
+```
+
+Resolution order: per-domain/per-message data → `BRAND_SIGNATURE_NAME` →
+`email.*.signature` (`"Support Team"`). It is deliberately decoupled from
+`product_name` so an operator can sign mail with a person or team
+("Jane from Acme") without renaming the product everywhere else.
 
 ### SecretPreview.vue
 

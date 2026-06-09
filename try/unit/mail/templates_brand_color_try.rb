@@ -177,6 +177,58 @@ end
 #=> true
 
 # ============================================================================
+# signature_name fallback chain (email sign-off — no longer "Delano")
+# ============================================================================
+
+## signature_name returns @data[:signature_name] when set (domain-level override wins)
+ctx = @ctx_class.new({ signature_name: 'DomainTeam' }, 'en')
+ctx.signature_name
+#=> 'DomainTeam'
+
+## signature_name falls through to OT.conf['brand']['signature_name'] when @data unset
+with_brand_conf({ 'signature_name' => 'Jane from Acme' }) do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.signature_name
+end
+#=> 'Jane from Acme'
+
+## @data[:signature_name] supersedes the install-level brand config
+with_brand_conf({ 'signature_name' => 'Install Co' }) do
+  ctx = @ctx_class.new({ signature_name: 'DomainTeam' }, 'en')
+  ctx.signature_name
+end
+#=> 'DomainTeam'
+
+## signature_name returns nil when unset, so templates fall back to the i18n default
+without_brand_conf do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.signature_name
+end
+#=> nil
+
+## signature_name is decoupled from product_name (setting product_name does not leak in)
+with_brand_conf({ 'product_name' => 'Acme Secrets' }) do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.signature_name
+end
+#=> nil
+
+## signature_name memoizes nil — mutating conf after first call does not change result
+without_brand_conf do
+  ctx = @ctx_class.new({}, 'en')
+  ctx.signature_name
+  conf_copy = YAML.load(YAML.dump(OT.conf))
+  conf_copy['brand'] = { 'signature_name' => 'LaterName' }
+  OT.send(:conf=, conf_copy)
+  ctx.signature_name
+end
+#=> nil
+
+## [regression guard] BrandSettingsConstants::GLOBAL_DEFAULTS[:signature_name] is nil
+@constants::GLOBAL_DEFAULTS[:signature_name]
+#=> nil
+
+# ============================================================================
 # logo_alt delegates to product_name
 # ============================================================================
 
@@ -330,6 +382,12 @@ offenders.map { |p| File.basename(p) }.sort
 Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.html.erb')).size
 #=> 13
 
+## [regression guard] no shipped email template hardcodes the 'Delano' sign-off
+files = Dir.glob(File.join(ENV.fetch('ONETIME_HOME'), 'lib/onetime/mail/templates/*.erb'))
+offenders = files.select { |path| File.read(path).include?('Delano') }
+offenders.map { |p| File.basename(p) }.sort
+#=> []
+
 # ============================================================================
 # Memoization across config mutation (gap 5 — issue #3048)
 # ============================================================================
@@ -446,6 +504,17 @@ ensure
   OT.instance_variable_set(:@conf, @_saved_for_nil4)
 end
 #=> 'OTS'
+
+## OT.conf=nil — signature_name degrades to nil without raising
+@_saved_for_nil_sig = OT.instance_variable_get(:@conf)
+begin
+  OT.instance_variable_set(:@conf, nil)
+  ctx = @ctx_class.new({}, 'en')
+  ctx.signature_name
+ensure
+  OT.instance_variable_set(:@conf, @_saved_for_nil_sig)
+end
+#=> nil
 
 ## OT.conf=nil — site_host degrades to 'localhost'
 @_saved_for_nil5 = OT.instance_variable_get(:@conf)
