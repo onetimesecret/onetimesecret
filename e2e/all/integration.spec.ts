@@ -139,8 +139,9 @@ test.describe('E2E Integration - Production Build Validation', () => {
     // Check for main content areas
     await expect(page.locator('body')).toBeVisible();
 
-    // Wait for page to fully load
-    await page.waitForLoadState('networkidle');
+    // Wait for the app to finish booting (mount + brand theme +
+    // router.isReady) so late module-evaluation errors are captured.
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify no critical JavaScript errors occurred
     const criticalErrors = jsErrors.filter(
@@ -162,7 +163,7 @@ test.describe('E2E Integration - Production Build Validation', () => {
     });
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check that no critical assets failed to load
     const criticalFailures = failedRequests.filter(
@@ -225,9 +226,9 @@ test.describe('E2E Integration - Production Build Validation', () => {
 
     await expect(page.locator('body')).toBeVisible();
 
-    // Wait for layout to stabilize after viewport change
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500); // Small delay for CSS transitions/layout
+    // Wait for the app to finish booting (incl. brand theme application);
+    // the overflow read below forces a synchronous layout pass itself.
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify page is reasonably responsive at mobile size
     // Allow small overflow tolerance (e.g., 10px) for minor layout issues
@@ -302,11 +303,17 @@ test.describe('E2E Integration - Environment Validation', () => {
 
     await page.goto('/');
 
-    // Wait for bootstrap data to be consumed (Vue must mount and run
-    // consumeBootstrapData which replaces the object with `true`)
-    const bootstrapConsumed = await page.waitForFunction(() => {
-      return (window as any).__BOOTSTRAP_ME__ === true;
-    }, { timeout: 30000 }).then(() => true).catch(() => false);
+    // Wait for the app-readiness flag (set in src/main.ts after
+    // consumeBootstrapData + mount + router.isReady), then verify the
+    // consumption contract: the bootstrap object is replaced with `true`.
+    const appReady = await page
+      .locator('html[data-app-ready="true"]')
+      .waitFor({ state: 'attached', timeout: 30000 })
+      .then(() => true)
+      .catch(() => false);
+    const bootstrapConsumed =
+      appReady &&
+      (await page.evaluate(() => (window as any).__BOOTSTRAP_ME__ === true));
 
     // Build a diagnostic message that surfaces in the GitHub reporter
     // (console.log only appears in raw stdout, not the failure summary)

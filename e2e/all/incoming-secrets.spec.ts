@@ -241,8 +241,8 @@ test.describe('Incoming Secrets - Form Loading', () => {
       await expect(recipientDropdown).toBeVisible();
     }
 
-    // Verify no critical JavaScript errors occurred
-    await page.waitForTimeout(500);
+    // Verify no critical JavaScript errors occurred (listener was registered
+    // before navigation; the assertions above already waited for the UI)
     const criticalErrors = filterCriticalErrors(consoleErrors);
     expect(
       criticalErrors,
@@ -285,13 +285,13 @@ test.describe('Incoming Secrets - Form Loading', () => {
       return;
     }
 
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(2000); // Allow error handling to complete
+    // Wait for the app to finish booting; the mocked 500 means the page
+    // must settle into its error/disabled state without the form.
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Form should not be visible
-    const form = page.locator('form');
-    const formVisible = await form.isVisible().catch(() => false);
-    expect(formVisible).toBe(false);
+    // Form should not be visible (web-first assertion retries while the
+    // error handling completes)
+    await expect(page.locator('form')).not.toBeVisible();
 
     // Page should still render (body element exists)
     const bodyExists = await page.locator('body').count();
@@ -650,8 +650,8 @@ test.describe('Incoming Secrets - Happy Path Flow', () => {
     const createAnotherButton = page.locator('button', { hasText: /send another/i });
     await expect(createAnotherButton).toBeVisible();
 
-    // Verify no critical errors
-    await page.waitForTimeout(500);
+    // Verify no critical errors (listener was registered before navigation;
+    // the assertions above already waited for the UI)
     const criticalErrors = filterCriticalErrors(consoleErrors);
     expect(
       criticalErrors,
@@ -755,13 +755,12 @@ test.describe('Incoming Secrets - Error Handling', () => {
     const secretTextarea = page.locator('textarea').first();
     await secretTextarea.fill('Test secret');
 
-    // Submit
+    // Submit and wait for the mocked 500 response to complete - the
+    // deterministic signal that error handling has been triggered.
+    const failedResponse = page.waitForResponse('**/incoming/secret');
     await page.locator('button[type="submit"]').click();
+    await failedResponse;
 
-    // Wait for error handling
-    await page.waitForTimeout(1000);
-
-    // Should show error notification (notification system)
     // Form should remain visible for retry
     const form = page.locator('form');
     await expect(form).toBeVisible();
