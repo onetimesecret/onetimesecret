@@ -70,7 +70,7 @@ export function hasHmacSetupData(errorData: any): boolean {
  * 4. Returns enriched data ready for user display
  *
  * @param errorData - Response data from HMAC setup (422 status)
- * @param siteName - The site name to display in the authenticator app
+ * @param issuer - The issuer label to display in the authenticator app
  * @param email - The user's email address to associate with the MFA setup
  * @returns Validated and enriched OtpSetupData, or null if validation fails
  *
@@ -84,7 +84,7 @@ export function hasHmacSetupData(errorData: any): boolean {
  */
 export async function enrichSetupResponse(
   errorData: any,
-  siteName: string,
+  issuer: string,
   email: string
 ): Promise<OtpSetupData | null> {
   try {
@@ -97,7 +97,7 @@ export async function enrichSetupResponse(
 
     // Generate QR code for authenticator app scanning
     if (validated.otp_raw_secret) {
-      validated.qr_code = await generateQrCode(siteName, email, validated.otp_raw_secret);
+      validated.qr_code = await generateQrCode(issuer, email, validated.otp_raw_secret);
     }
 
     return validated;

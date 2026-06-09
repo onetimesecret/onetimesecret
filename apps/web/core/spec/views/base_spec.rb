@@ -145,6 +145,52 @@ RSpec.describe Core::Views::BaseView do
     end
   end
 
+  describe 'has_brand_color contract' do
+    # has_brand_color drives the conditional render of the brand-colored
+    # head tags (mask-icon + light theme-color) in head-base.rue. It MUST be
+    # false when no brand primary_color is configured so unbranded
+    # deployments omit those tags (and the frontend falls through to
+    # NEUTRAL_BRAND_DEFAULTS), and true when a color is configured.
+    #
+    # See: apps/web/core/views/helpers/initialize_view_vars.rb
+    #      apps/web/core/templates/partials/head-base.rue
+    #      e2e/all/brand-customization.spec.ts
+
+    context 'when no brand primary_color is configured (unbranded)' do
+      it 'sets has_brand_color to false' do
+        expect(subject.view_vars['has_brand_color']).to be false
+      end
+
+      it 'leaves brand_primary_color nil' do
+        expect(subject.view_vars['brand_primary_color']).to be_nil
+      end
+    end
+
+    context 'when brand primary_color is an empty/whitespace string' do
+      let(:config) do
+        super().merge('brand' => { 'primary_color' => '   ' })
+      end
+
+      it 'sets has_brand_color to false' do
+        expect(subject.view_vars['has_brand_color']).to be false
+      end
+    end
+
+    context 'when a brand primary_color is configured (branded)' do
+      let(:config) do
+        super().merge('brand' => { 'primary_color' => '#112233' })
+      end
+
+      it 'sets has_brand_color to true' do
+        expect(subject.view_vars['has_brand_color']).to be true
+      end
+
+      it 'exposes the configured brand_primary_color' do
+        expect(subject.view_vars['brand_primary_color']).to eq('#112233')
+      end
+    end
+  end
+
   describe '#add_message' do
     it 'adds info message to messages array' do
       subject.add_message('Test message')

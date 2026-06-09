@@ -190,6 +190,7 @@ module Core
 
         brand_defaults              = Onetime::CustomDomain::BrandSettingsConstants::DEFAULTS
         brand_primary_color         = brand_config['primary_color']
+        has_brand_color             = !brand_primary_color.to_s.strip.empty?
         support_email               = brand_config['support_email'] ||
                                       Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:support_email]
         # docs_host: full documentation URL exposed to bootstrap. Sources from
@@ -240,6 +241,7 @@ module Core
           'site' => safe_site,
           'site_host' => site_host,
           'brand_primary_color' => brand_primary_color,
+          'has_brand_color' => has_brand_color,
           'brand_product_name' => brand_product_name,
           'brand_corner_style' => brand_corner_style,
           'brand_font_family' => brand_font_family,
