@@ -183,6 +183,12 @@ export function useSigninConfig(domainExtId: string) {
         formState.value = configToFormState(result.record);
         savedFormState.value = { ...formState.value };
         notifications.show(t('web.domains.signin.update_success'), 'success', 'top');
+      } else if (savedFormState.value) {
+        // PUT failed (wrapAction notified the user and returned undefined).
+        // Every change auto-saves optimistically, so revert formState to the
+        // last-saved snapshot — otherwise a toggle/radio stays visually in the
+        // new position while the server still holds the old value.
+        formState.value = { ...savedFormState.value };
       }
     } finally {
       isSaving.value = false;

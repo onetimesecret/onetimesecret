@@ -476,6 +476,22 @@ describe('useSigninConfig', () => {
       expect(composable.savingField.value).toBeNull();
     });
 
+    it('reverts formState to the saved snapshot when the PUT fails', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockPutConfigForDomain.mockRejectedValue(new Error('Network error'));
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      // Baseline: unconfigured -> default form state (sso_enabled false).
+
+      await composable.autoSaveField('sso_enabled', true);
+
+      // The optimistic flip is rolled back so the toggle matches server state
+      // instead of silently desyncing.
+      expect(composable.formState.value.sso_enabled).toBe(false);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
     it('ignores concurrent calls while a save is already running', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: null });
       let resolveSave: (value: unknown) => void;

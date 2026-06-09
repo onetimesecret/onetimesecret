@@ -77,7 +77,7 @@ const i18n = createI18n({
             restrict_picker_hint: 'Only methods available on this domain are listed.',
             availability_always: 'Always available',
             availability_global_on: 'Follows global policy · On',
-            availability_global_off: 'Follows global policy · Off',
+            availability_global_off: 'Not available',
             availability_unavailable: 'Unavailable site-wide',
             allow_on_domain: 'Allow on this domain',
             method_password: 'Password',
@@ -479,9 +479,9 @@ describe('DomainSigninConfigForm', () => {
     });
 
     describe('Mode A (any available method) — unavailable state', () => {
-      it('shows the WebAuthn static "global off" reason when webauthn is off', () => {
+      it('shows the WebAuthn static "not available" reason when webauthn is off', () => {
         wrapper = mountForm({ globalAvailability: { ...allAvailable, webauthn: false } });
-        expect(wrapper.text()).toContain('Follows global policy · Off');
+        expect(wrapper.text()).toContain('Not available');
       });
 
       it('shows the WebAuthn static "global on" reason when webauthn is on', () => {
