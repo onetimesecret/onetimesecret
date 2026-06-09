@@ -22,10 +22,12 @@ module Onetime
     class BannerCommand < Command
       desc 'Manage the global broadcast banner'
 
+      include Banner::Shared
+
       def call(**)
         boot_application!
 
-        banner_text = Familia.dbclient(0).get('global_banner')
+        banner_text = Familia.dbclient(0).get(BANNER_KEY)
 
         if banner_text && !banner_text.empty?
           puts format('Current banner: %s', banner_text)

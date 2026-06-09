@@ -24,6 +24,8 @@ module Onetime
     class BannerSetCommand < Command
       desc 'Set the global broadcast banner (dry-run by default)'
 
+      include Banner::Shared
+
       # Inner display width of the ASCII preview box (between │ borders).
       INNER_WIDTH = 62
 
@@ -82,6 +84,9 @@ module Onetime
           warn "Error: file not found: #{file}"
           exit 1
         end
+      rescue Errno::EACCES, Errno::EISDIR => ex
+        warn "Error: cannot read file #{file}: #{ex.message}"
+        exit 1
       end
 
       # Renders an ASCII mock of the page with the banner across the
@@ -134,9 +139,9 @@ module Onetime
         puts 'Would run (re-run with --apply to write):'
         puts '  # DB 0'
         if ttl
-          puts "  SET global_banner '#{escaped}' EX #{ttl}"
+          puts "  SET #{BANNER_KEY} '#{escaped}' EX #{ttl}"
         else
-          puts "  SET global_banner '#{escaped}'"
+          puts "  SET #{BANNER_KEY} '#{escaped}'"
         end
         puts '  # then refresh runtime: Onetime::Runtime.update_features(global_banner: ...)'
       end
@@ -145,9 +150,9 @@ module Onetime
         db = Familia.dbclient(0)
 
         if ttl
-          db.setex('global_banner', ttl, banner_text)
+          db.setex(BANNER_KEY, ttl, banner_text)
         else
-          db.set('global_banner', banner_text)
+          db.set(BANNER_KEY, banner_text)
         end
 
         Onetime::Runtime.update_features(global_banner: banner_text)
@@ -180,18 +185,6 @@ module Onetime
 
         pad_left = (INNER_WIDTH - text.length) / 2
         "#{' ' * pad_left}#{text}".ljust(INNER_WIDTH)
-      end
-
-      def humanize_seconds(seconds)
-        if seconds >= 86_400
-          format('%dd %dh', seconds / 86_400, (seconds % 86_400) / 3600)
-        elsif seconds >= 3600
-          format('%dh %dm', seconds / 3600, (seconds % 3600) / 60)
-        elsif seconds >= 60
-          format('%dm %ds', seconds / 60, seconds % 60)
-        else
-          format('%ds', seconds)
-        end
       end
     end
 

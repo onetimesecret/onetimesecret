@@ -18,6 +18,8 @@ module Onetime
     class BannerClearCommand < Command
       desc 'Clear the global broadcast banner (dry-run by default)'
 
+      include Banner::Shared
+
       option :apply,
         type: :boolean,
         default: false,
@@ -27,7 +29,7 @@ module Onetime
         boot_application!
 
         db          = Familia.dbclient(0)
-        banner_text = db.get('global_banner')
+        banner_text = db.get(BANNER_KEY)
 
         if banner_text.nil? || banner_text.empty?
           puts 'No banner is currently set. Nothing to clear.'
@@ -38,7 +40,7 @@ module Onetime
         puts
 
         if apply
-          db.del('global_banner')
+          db.del(BANNER_KEY)
           Onetime::Runtime.update_features(global_banner: nil)
 
           puts 'Banner cleared.'
@@ -48,7 +50,7 @@ module Onetime
         else
           puts 'Would run (re-run with --apply to write):'
           puts '  # DB 0'
-          puts '  DEL global_banner'
+          puts "  DEL #{BANNER_KEY}"
           puts '  # then refresh runtime: Onetime::Runtime.update_features(global_banner: nil)'
         end
       end

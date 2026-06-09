@@ -17,6 +17,8 @@ module Onetime
     class BannerShowCommand < Command
       desc 'Show the current global broadcast banner'
 
+      include Banner::Shared
+
       option :json,
         type: :boolean,
         default: false,
@@ -26,8 +28,8 @@ module Onetime
         boot_application!
 
         db          = Familia.dbclient(0)
-        banner_text = db.get('global_banner')
-        ttl         = db.ttl('global_banner')
+        banner_text = db.get(BANNER_KEY)
+        ttl         = db.ttl(BANNER_KEY)
 
         if json
           display_json(banner_text, ttl)
@@ -40,7 +42,7 @@ module Onetime
 
       def display_json(banner_text, ttl)
         data = {
-          key: 'global_banner',
+          key: BANNER_KEY,
           database: 0,
           value: banner_text,
           ttl: ttl.negative? ? nil : ttl,
@@ -71,18 +73,6 @@ module Onetime
         puts
         puts 'Note: branded surfaces with displayGlobalBroadcast=false'
         puts 'hide the banner regardless of this key.'
-      end
-
-      def humanize_seconds(seconds)
-        if seconds >= 86_400
-          format('%dd %dh', seconds / 86_400, (seconds % 86_400) / 3600)
-        elsif seconds >= 3600
-          format('%dh %dm', seconds / 3600, (seconds % 3600) / 60)
-        elsif seconds >= 60
-          format('%dm %ds', seconds / 60, seconds % 60)
-        else
-          format('%ds', seconds)
-        end
       end
     end
 
