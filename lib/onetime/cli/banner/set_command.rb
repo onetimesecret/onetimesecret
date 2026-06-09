@@ -159,14 +159,12 @@ module Onetime
 
       def strip_html(html)
         html
-          .gsub(/<a\s[^>]*>/, '')
-          .gsub(%r{</a>}, '')
-          .gsub(/<[^>]+>/, '')
           .gsub('&amp;', '&')
           .gsub('&lt;', '<')
           .gsub('&gt;', '>')
           .gsub('&quot;', '"')
           .gsub('&#39;', "'")
+          .gsub(/<[^>]+>/, '')
           .strip
       end
 
