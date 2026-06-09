@@ -4,7 +4,7 @@
 
 <%= verification_url %>
 
-<%= t('email.welcome.signature') %>
+<%= signature_name || t('email.welcome.signature') %>
 
 <%= t('email.welcome.postscript', email_address: email_address) %>
 

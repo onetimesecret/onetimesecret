@@ -27,7 +27,7 @@
 
 <!-- Signature -->
 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
-  <p style="margin: 0;"><%= t('email.email_change_requested.signature') %></p>
+  <p style="margin: 0;"><%= h(signature_name || t('email.email_change_requested.signature')) %></p>
 </div>
 
 <!-- Postscript -->
