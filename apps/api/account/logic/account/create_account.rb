@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/logic/signup_config_resolution'
+
 module AccountAPI::Logic
   module Account
     # Create Account
@@ -11,6 +13,8 @@ module AccountAPI::Logic
     #   exists to prevent email enumeration. Sends a verification email to
     #   new and unverified accounts.
     class CreateAccount < AccountAPI::Logic::Base
+      include Onetime::Logic::SignupConfigResolution
+
       SCHEMAS = { response: 'createAccount' }.freeze
 
       using Familia::Refinements::TimeLiterals
@@ -169,20 +173,12 @@ module AccountAPI::Logic
         Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
       end
 
-      def resolve_autoverify
-        config = domain_signup_config
-        return config.autoverify? if config&.enabled?
-
-        site.dig('authentication', 'autoverify').to_s.eql?('true')
+      def signup_config_display_domain
+        display_domain
       end
 
-      def domain_signup_config
-        return unless display_domain
-
-        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-        return unless custom_domain
-
-        Onetime::CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
+      def signup_config_auth_setting(key)
+        site.dig('authentication', key)
       end
     end
   end

@@ -7,6 +7,7 @@ require 'onetime/helpers/client_ip_helpers'
 require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/homepage_mode_helpers'
 require 'onetime/controllers/organization_context'
+require 'onetime/logic/signup_config_resolution'
 
 module Core
   module Controllers
@@ -15,6 +16,7 @@ module Core
       include Onetime::Helpers::SessionHelpers
       include Onetime::Helpers::HomepageModeHelpers
       include Onetime::Controllers::OrganizationContext
+      include Onetime::Logic::SignupConfigResolution
 
       attr_reader :req, :res, :locale
 
@@ -172,21 +174,12 @@ module Core
         OT.conf.dig('site', 'authentication')
       end
 
-      def resolve_autoverify
-        config = domain_signup_config
-        return config.autoverify? if config&.enabled?
-
-        auth_settings['autoverify'].to_s == 'true'
+      def signup_config_display_domain
+        req.env['onetime.display_domain']
       end
 
-      def domain_signup_config
-        display_domain = req.env['onetime.display_domain']
-        return unless display_domain
-
-        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-        return unless custom_domain
-
-        Onetime::CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
+      def signup_config_auth_setting(key)
+        auth_settings[key]
       end
 
       def domain_signin_config
