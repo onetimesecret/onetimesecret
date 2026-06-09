@@ -304,6 +304,10 @@
     "renderer": "erb",
     "content_hash": "bd0a9bee"
   },
+  "email.expiration_warning.signature": {
+    "text": "Support Team",
+    "renderer": "erb"
+  },
   "email.expiration_warning.footer_note": {
     "text": "You received this because a secret you created on %{product_name} is about to expire.",
     "renderer": "erb",
