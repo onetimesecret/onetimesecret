@@ -44,6 +44,14 @@ module DomainsAPI::Logic
         domain_org = @custom_domain.primary_organization
         raise_form_error 'Domain has no associated organization' unless domain_org
         require_entitlement_in!(domain_org, 'custom_domains')
+
+        # Domain-scope enforcement: deny if member is scoped to a different domain (#3384)
+        membership = Onetime::OrganizationMembership.find_by_org_customer(
+          domain_org.objid, @cust.objid
+        )
+        if membership && !membership.can_access_domain?(@custom_domain)
+          raise_not_found 'Domain not found'
+        end
       end
 
       def process

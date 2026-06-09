@@ -18,7 +18,7 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', '~> 2.0.0'
+gem 'otto', '~> 2.2'
 gem 'rhales', '~> 0.6.2'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
