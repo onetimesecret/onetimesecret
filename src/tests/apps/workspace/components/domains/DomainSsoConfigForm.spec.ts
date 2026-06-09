@@ -793,13 +793,10 @@ describe('DomainSsoConfigForm', () => {
       expect(hint.exists()).toBe(true);
     });
 
-    // Regression: HeadlessUI Switch overrides aria-describedby with its own
-    // SwitchGroup context value (undefined when not wrapped in SwitchGroup),
-    // so the fallthrough attr from the template is lost. The hint <p> element
-    // exists but is not programmatically linked to the toggle button.
-    // This also affects grant_org_scope and any other ToggleWithIcon consumer
-    // that passes aria-describedby. The raw `enabled` toggle still has it.
-    it.fails('aria-describedby is forwarded to the switch button (regression #3384)', async () => {
+    // ToggleWithIcon is a plain role="switch" button, so aria-describedby is
+    // forwarded directly to the toggle. (Previously HeadlessUI's <Switch>
+    // stomped it with its undefined SwitchGroup/Description context value.)
+    it('aria-describedby is forwarded to the switch button (regression #3384)', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, enabled: true },
         isConfigured: true,
@@ -926,8 +923,8 @@ describe('DomainSsoConfigForm', () => {
       expect(hint.exists()).toBe(true);
     });
 
-    // Same aria-describedby regression as enforce_sso_only — see comment there.
-    it.fails('aria-describedby is forwarded to the switch button (regression #3384)', async () => {
+    // Same aria-describedby forwarding as enforce_sso_only — see comment there.
+    it('aria-describedby is forwarded to the switch button (regression #3384)', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, enabled: true },
         isConfigured: true,

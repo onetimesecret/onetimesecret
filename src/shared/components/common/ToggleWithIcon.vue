@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { Switch } from '@headlessui/vue';
 
 const { t } = useI18n();
 
@@ -20,12 +19,21 @@ const { t } = useI18n();
   }>();
 </script>
 
+<!--
+  Plain `role="switch"` button rather than HeadlessUI's <Switch>: HeadlessUI
+  sets aria-describedby from its SwitchGroup/Description context (undefined when
+  unwrapped), which stomps a fallthrough/bound aria-describedby. Consumers here
+  reference a parent-owned hint <p id="...">, so we control the attrs directly.
+  A native button toggles on Space/Enter via click, so no extra key handling.
+-->
 <template>
-  <Switch
-    :model-value="props.enabled"
-    @update:model-value="emit('update:enabled', $event)"
-    :disabled="disabled"
+  <button
+    type="button"
+    role="switch"
+    :aria-checked="props.enabled"
     :aria-describedby="ariaDescribedby"
+    :disabled="disabled"
+    @click="emit('update:enabled', !props.enabled)"
     :class="[
       props.enabled ? 'bg-brand-600' : 'bg-gray-200',
       disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
@@ -70,5 +78,5 @@ const { t } = useI18n();
         </svg>
       </span>
     </span>
-  </Switch>
+  </button>
 </template>
