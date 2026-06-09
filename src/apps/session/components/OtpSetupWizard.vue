@@ -33,6 +33,7 @@ const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
 // Auto-load QR code on mount (without password initially)
 onMounted(async () => {
+  // Fall back to site_name if no dedicated issuer is configured
   const issuer = bootstrapStore.brand_totp_issuer
     || ui.value?.header?.branding?.site_name
     || 'OTS';
