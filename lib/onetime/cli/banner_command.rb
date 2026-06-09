@@ -4,12 +4,17 @@
 
 # CLI command group for managing the global broadcast banner.
 #
+# The global_banner key in Redis DB 0 is read by the
+# CheckGlobalBanner initializer at boot and surfaced by the
+# GlobalBroadcast.vue component. The frontend sanitizes content
+# to <a> tags only (href, target, rel, class attributes).
+#
 # Usage:
-#   bin/ots banner                        # Show usage
-#   bin/ots banner show                   # Show current banner
-#   bin/ots banner set "message"          # Dry-run preview (default)
+#   bin/ots banner                        # Show current banner + usage
+#   bin/ots banner show                   # Show current banner, TTL, status
+#   bin/ots banner set "message"          # Dry-run preview (safe default)
 #   bin/ots banner set "message" --apply  # Write to Redis + refresh runtime
-#   bin/ots banner clear                  # Dry-run (default)
+#   bin/ots banner clear                  # Dry-run (safe default)
 #   bin/ots banner clear --apply          # Remove from Redis + refresh runtime
 
 module Onetime
@@ -20,29 +25,28 @@ module Onetime
       def call(**)
         boot_application!
 
-        banner = Familia.dbclient(0).get('global_banner')
+        banner_text = Familia.dbclient(0).get('global_banner')
 
-        if banner && !banner.empty?
-          puts format('Current banner: %s', banner)
+        if banner_text && !banner_text.empty?
+          puts format('Current banner: %s', banner_text)
         else
           puts 'No banner is currently set.'
         end
 
         puts
         puts 'Usage:'
-        puts '  bin/ots banner show                        # Show current banner and TTL'
-        puts '  bin/ots banner set "message"               # Dry-run preview (safe default)'
-        puts '  bin/ots banner set "message" --apply       # Write to Redis + refresh runtime'
-        puts '  bin/ots banner set --file banner.html      # Read content from file'
-        puts '  bin/ots banner set --file -                # Read content from stdin'
-        puts '  bin/ots banner set "msg" --ttl 3600        # Auto-expire after 1 hour'
-        puts '  bin/ots banner clear                       # Dry-run (safe default)'
-        puts '  bin/ots banner clear --apply               # Remove banner'
+        puts '  bin/ots banner show                       Show current banner and TTL'
+        puts '  bin/ots banner set "message"              Dry-run preview (safe default)'
+        puts '  bin/ots banner set "message" --apply      Write to Redis + refresh runtime'
+        puts '  bin/ots banner set --file banner.html     Read content from file'
+        puts '  bin/ots banner set --file -               Read content from stdin'
+        puts '  bin/ots banner set "msg" --ttl 3600       Auto-expire after 1 hour'
+        puts '  bin/ots banner clear                      Dry-run (safe default)'
+        puts '  bin/ots banner clear --apply              Remove banner'
         puts
-        puts 'Notes:'
-        puts '  Dry-run is the default. Pass --apply to actually write.'
-        puts '  Content is HTML-sanitized by the frontend (<a> tags only).'
-        puts '  Branded surfaces with displayGlobalBroadcast=false hide the banner.'
+        puts 'Dry-run is the default. Pass --apply to actually write.'
+        puts 'Content is HTML — the frontend sanitizes to <a> tags only.'
+        puts 'Branded surfaces with displayGlobalBroadcast=false hide the banner.'
       end
     end
 
