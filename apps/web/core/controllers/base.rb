@@ -7,6 +7,7 @@ require 'onetime/helpers/client_ip_helpers'
 require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/homepage_mode_helpers'
 require 'onetime/controllers/organization_context'
+require 'onetime/logic/signup_config_resolution'
 
 module Core
   module Controllers
@@ -15,6 +16,7 @@ module Core
       include Onetime::Helpers::SessionHelpers
       include Onetime::Helpers::HomepageModeHelpers
       include Onetime::Controllers::OrganizationContext
+      include Onetime::Logic::SignupConfigResolution
 
       attr_reader :req, :res, :locale
 
@@ -153,10 +155,16 @@ module Core
       protected
 
       def signin_enabled?
+        config = domain_signin_config
+        return config.signin_enabled? if config&.enabled?
+
         auth_settings['enabled'] && auth_settings['signin']
       end
 
       def signup_enabled?
+        config = domain_signup_config
+        return config.signup_enabled? if config&.enabled?
+
         auth_settings['enabled'] && auth_settings['signup']
       end
 
@@ -164,6 +172,24 @@ module Core
 
       def auth_settings
         OT.conf.dig('site', 'authentication')
+      end
+
+      def signup_config_display_domain
+        req.env['onetime.display_domain']
+      end
+
+      def signup_config_auth_setting(key)
+        auth_settings[key]
+      end
+
+      def domain_signin_config
+        display_domain = req.env['onetime.display_domain']
+        return unless display_domain
+
+        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
+        return unless custom_domain
+
+        Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain.identifier)
       end
 
       # Returns the StrategyResult created by Otto's RouteAuthWrapper

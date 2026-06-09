@@ -39,6 +39,11 @@ module DomainsAPI
           # Track whether enabled was explicitly provided (for PATCH semantics)
           @enabled_provided                = !params['enabled'].nil?
           @enabled                         = parse_boolean(params['enabled'])
+          # Non-nullable boolean fields — track explicit provision for PATCH semantics
+          @signup_enabled_provided         = params.key?('signup_enabled')
+          @signup_enabled                  = parse_boolean(params['signup_enabled'])
+          @autoverify_provided             = params.key?('autoverify')
+          @autoverify                      = parse_boolean(params['autoverify'])
         end
 
         def raise_concerns
@@ -153,12 +158,16 @@ module DomainsAPI
         end
 
         def create_new_config
-          @signup_config = Onetime::CustomDomain::SignupConfig.create!(
+          attrs                  = {
             domain_id: @custom_domain.identifier,
             validation_strategy: @effective_strategy,
             allowed_signup_domains: @allowed_signup_domains,
             enabled: @enabled,
-          )
+          }
+          attrs[:signup_enabled] = @signup_enabled if @signup_enabled_provided
+          attrs[:autoverify]     = @autoverify if @autoverify_provided
+
+          @signup_config = Onetime::CustomDomain::SignupConfig.create!(**attrs)
         end
 
         # Updates an existing SignupConfig with PATCH semantics.
@@ -175,6 +184,8 @@ module DomainsAPI
           @signup_config.validation_strategy    = @effective_strategy
           @signup_config.allowed_signup_domains = @allowed_signup_domains if @allowed_signup_domains_provided
           @signup_config.enabled                = @enabled.to_s if @enabled_provided
+          @signup_config.signup_enabled         = @signup_enabled if @signup_enabled_provided
+          @signup_config.autoverify             = @autoverify if @autoverify_provided
           @signup_config.updated                = Familia.now.to_i
 
           @signup_config.commit_fields
@@ -186,6 +197,8 @@ module DomainsAPI
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
             enabled: config.enabled?,
+            signup_enabled: config.signup_enabled?,
+            autoverify: config.autoverify?,
             requires_allowlist: config.requires_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,

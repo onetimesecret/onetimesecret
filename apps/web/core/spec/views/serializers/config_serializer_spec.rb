@@ -389,6 +389,62 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
+      context 'when SigninConfig blocks SSO (sso_permitted_for? returns false)' do
+        let(:domain_sso_config) do
+          instance_double(
+            Onetime::CustomDomain::SsoConfig,
+            enabled?: true,
+            provider_type: 'oidc',
+            display_name: 'Corp SSO',
+            platform_route_name: 'oidc',
+            enforce_sso_only?: false
+          )
+        end
+
+        before do
+          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+            .with(custom_display_domain)
+            .and_return(custom_domain_obj)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(domain_sso_config)
+          # SigninConfig gate blocks SSO for this domain
+          allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?)
+            .with(domain_id)
+            .and_return(false)
+        end
+
+        context 'with platform fallback denied (default)' do
+          before do
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+          end
+
+          it 'returns disabled SSO (SigninConfig gate overrides SsoConfig)' do
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['enabled']).to be false
+            expect(result['providers']).to eq([])
+          end
+        end
+
+        context 'with platform fallback allowed' do
+          before do
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+            ])
+          end
+
+          it 'falls back to platform SSO (SigninConfig blocks tenant, not platform)' do
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'][0]['display_name']).to eq('Platform SSO')
+          end
+        end
+      end
+
       context 'when tenant has disabled CustomDomain::SsoConfig' do
         let(:domain_sso_config) do
           instance_double(

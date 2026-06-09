@@ -26,6 +26,7 @@ Loaded from `etc/billing.yaml`.
 - **`ip_access_rules`**: IP-based access restrictions
 - **`audit_logs`**: Access to audit log features
 - **`manage_sso`**: Single sign-on configuration and management
+- **`custom_signin_config`**: Per-domain sign-in configuration (allowed methods, SSO provider settings)
 - **`custom_signup_validation`**: Per-domain signup validation strategy (passthrough, allowlist, MX, SMTP)
 
 ### Branding
@@ -122,6 +123,7 @@ Fully branded secret sharing with expanded limits, reserved for original custome
 - `custom_domains`
 - `custom_mail_sender`
 - `custom_privacy_defaults`
+- `custom_signin_config`
 - `extended_default_expiration`
 - `custom_signup_validation`
 - `homepage_secrets`
@@ -206,6 +208,7 @@ Governed secret sharing with SSO, access controls, and organizational visibility
 - `custom_domains`
 - `custom_mail_sender`
 - `custom_privacy_defaults`
+- `custom_signin_config`
 - `custom_signup_validation`
 - `extended_default_expiration`
 - `flexible_from_domain`

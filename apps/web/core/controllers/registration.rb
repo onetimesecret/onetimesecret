@@ -34,8 +34,7 @@ module Core
         logic = AccountAPI::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
 
         # Same message for new/existing accounts (email enumeration prevention)
-        autoverify      = OT.conf.dig('site', 'authentication', 'autoverify')
-        success_message = if autoverify.to_s == 'true'
+        success_message = if resolve_autoverify
                             'You can now sign in.'
                           else
                             'Check your email for verification.'

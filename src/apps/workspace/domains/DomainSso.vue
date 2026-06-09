@@ -153,7 +153,10 @@ watch(canManageSso, async (entitled) => {
     <!-- Content -->
     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Loading State (domain or SSO config) -->
-      <SettingsSkeleton v-if="domainLoading || ssoLoading" />
+      <!-- ssoLoading defaults to true and only resolves once the config is
+           fetched; for unentitled users we skip that fetch, so it must not gate
+           the skeleton or it would spin forever instead of showing the guard. -->
+      <SettingsSkeleton v-if="domainLoading || (canManageSso && ssoLoading)" />
 
       <!-- Error State -->
       <div v-else-if="domainError || ssoError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
@@ -228,6 +231,7 @@ watch(canManageSso, async (entitled) => {
 
           <DomainSsoConfigForm
             :domain-ext-id="props.extid"
+            :org-id="props.orgid"
             :domain-host="customDomainRecord?.display_domain ?? ''"
             v-model:form-state="formState"
             :sso-config="ssoConfig"

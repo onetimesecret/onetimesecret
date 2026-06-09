@@ -468,6 +468,12 @@
     "text": "Add",
     "content_hash": "9fd728c6"
   },
+  "web.COMMON.enabled": {
+    "text": "Enabled"
+  },
+  "web.COMMON.disabled": {
+    "text": "Disabled"
+  },
   "web.COMMON.yes_delete": {
     "text": "Yes, delete",
     "content_hash": "7b05a8e3"

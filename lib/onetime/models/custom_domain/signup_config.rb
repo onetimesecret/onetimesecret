@@ -70,6 +70,11 @@ module Onetime
       # Domain allowlist (JSON array string) - used when strategy is 'domain_allowlist'
       field :allowed_signup_domains_json
 
+      # Non-nullable boolean overrides with conservative defaults.
+      # signup_enabled: false (off until explicitly enabled), autoverify: false (require verification).
+      field :signup_enabled  # Override for AUTH_SIGNUP
+      field :autoverify      # Override for AUTH_AUTOVERIFY
+
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
@@ -77,6 +82,8 @@ module Onetime
       def init
         self.enabled             ||= 'false'
         self.validation_strategy ||= 'passthrough'
+        self.signup_enabled        = false if signup_enabled.nil?
+        self.autoverify            = false if autoverify.nil?
       end
 
       # Check if this config is enabled.
@@ -84,6 +91,22 @@ module Onetime
       # @return [Boolean] true if per-domain validation is active
       def enabled?
         enabled.to_s == 'true'
+      end
+
+      # Whether signup is enabled on this domain.
+      # Treats legacy nil as false (conservative: off until explicitly enabled).
+      #
+      # @return [Boolean]
+      def signup_enabled?
+        signup_enabled == true
+      end
+
+      # Whether new accounts skip email verification on this domain.
+      # Treats legacy nil as false (conservative: require verification).
+      #
+      # @return [Boolean]
+      def autoverify?
+        autoverify == true
       end
 
       # Returns metadata for the current validation strategy.
@@ -286,6 +309,10 @@ module Onetime
 
           # Set allowed domains
           config.allowed_signup_domains = attrs[:allowed_signup_domains] if attrs.key?(:allowed_signup_domains)
+
+          # Non-nullable boolean fields with conservative defaults
+          config.signup_enabled = attrs.key?(:signup_enabled) ? attrs[:signup_enabled] : false
+          config.autoverify     = attrs.key?(:autoverify) ? attrs[:autoverify] : false
 
           # Initialize timestamps
           now            = Familia.now.to_i

@@ -185,9 +185,14 @@ const {
   entitlements,
   can,
   formatEntitlement,
+  isStandaloneMode,
   initDefinitions,
   ENTITLEMENTS,
 } = useEntitlements(organization);
+
+const sortedEntitlements = computed(() =>
+  [...entitlements.value].sort((a, b) => formatEntitlement(a).localeCompare(formatEntitlement(b)))
+);
 
 // SSO visibility: feature flag AND entitlement must both pass (dual-control)
 const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
@@ -965,6 +970,46 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </button>
               </div>
             </form>
+          </div>
+        </section>
+
+        <!-- Organization Entitlements (General tab) -->
+        <section
+          v-if="activeTab === 'general' && !isStandaloneMode"
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h3 class="flex items-center gap-3 text-base font-semibold text-gray-900 dark:text-white">
+              <OIcon
+                collection="heroicons"
+                name="puzzle-piece"
+                class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
+                aria-hidden="true" />
+              {{ t('web.organizations.entitlements_title') }}
+            </h3>
+          </div>
+
+          <div class="p-6">
+            <div
+              v-if="sortedEntitlements.length > 0"
+              class="columns-1 gap-x-6 gap-y-2 sm:columns-2">
+              <div
+                v-for="ent in sortedEntitlements"
+                :key="ent"
+                class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <OIcon
+                  collection="heroicons"
+                  name="check-circle"
+                  class="size-5 text-green-500 dark:text-green-400"
+                  aria-hidden="true" />
+                {{ formatEntitlement(ent) }}
+              </div>
+            </div>
+
+            <div
+              v-else
+              class="text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.billing.overview.no_entitlements') }}
+            </div>
           </div>
         </section>
 
