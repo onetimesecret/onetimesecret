@@ -88,15 +88,23 @@ module Onetime
           # region. Non-fatal: if SES rejects it we keep the DKIM records and
           # drop the MAIL FROM records (see #configure_mail_from).
           mail_from_domain = "#{MAIL_FROM_SUBDOMAIN}.#{domain}"
-          if configure_mail_from(client, domain, mail_from_domain)
+          mail_from_configured = configure_mail_from(client, domain, mail_from_domain)
+
+          if mail_from_configured
             records += build_mail_from_records(mail_from_domain, region)
           else
             mail_from_domain = nil
           end
 
+          message = if mail_from_configured
+                      "Provisioned sender identity for #{domain} with custom MAIL FROM domain"
+                    else
+                      "Provisioned sender identity for #{domain} (MAIL FROM not configured — DKIM only)"
+                    end
+
           {
             success: true,
-            message: "Provisioned sender identity for #{domain}",
+            message: message,
             dns_records: records,
             provider_data: {
               dkim_tokens: dkim_tokens,

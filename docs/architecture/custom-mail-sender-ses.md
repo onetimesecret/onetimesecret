@@ -192,6 +192,29 @@ not support it), provisioning still succeeds with the DKIM records and the
 MAIL FROM records are omitted, rather than asking the customer to add records
 SES will not honor.
 
+### MAIL FROM status lifecycle
+
+DKIM verification and MAIL FROM configuration are **independent** in SES. An
+identity can have DKIM `SUCCESS` while MAIL FROM is in any of these states:
+
+| MAIL FROM status | Meaning | What happened |
+|---|---|---|
+| `NOT_STARTED` | `PutEmailIdentityMailFromAttributes` was never called | Identity created without MAIL FROM — DKIM works, but SPF authenticates against `amazonses.com` instead of the sender domain |
+| `PENDING` | MAIL FROM configured, DNS propagation pending | `PutEmailIdentityMailFromAttributes` succeeded; SES is waiting for the MX and SPF TXT records on `mail.<domain>` |
+| `SUCCESS` | MAIL FROM fully verified | SES detected the MX and SPF records — SPF now aligns to the sender domain under DMARC |
+| `FAILED` | MX/SPF records missing or incorrect | SES checked and could not verify — re-check DNS records at the registrar |
+
+The provisioning flow always calls `PutEmailIdentityMailFromAttributes`, so after
+a successful provision the MAIL FROM status should be `PENDING` (never
+`NOT_STARTED`). If the API call is rejected (e.g. unsupported region),
+`mail_from_domain` is nil in the provisioning result and the success message
+notes "DKIM only" — the identity still works for sending but without SPF
+alignment.
+
+`check_provider_verification_status` surfaces both DKIM and MAIL FROM status in
+the `:details` hash (`mail_from_domain` and `mail_from_status`), so callers can
+distinguish "DKIM verified, MAIL FROM pending" from "everything verified."
+
 ### 2. Verify
 
 `ValidateSenderDomain` → `SesValidation` reads the **provisioned** records from
