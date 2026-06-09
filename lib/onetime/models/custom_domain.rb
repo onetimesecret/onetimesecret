@@ -246,15 +246,9 @@ module Onetime
     # @param cust [Onetime::Customer, String] The customer object or customer ID
     # @return [Boolean] true if the customer belongs to the domain's organization
     def accessible_by?(cust)
-      return false unless org_id
-
-      org = Onetime::Organization.load(org_id)
-      return false unless org
-
-      customer = cust.is_a?(Onetime::Customer) ? cust : Onetime::Customer.load(cust)
-      return false unless customer
-
-      org.owner?(customer) || org.member?(customer)
+      resolve_org_and_customer(cust) do |org, customer|
+        org.owner?(customer) || org.member?(customer)
+      end
     end
 
     # Strict ownership check: true only if the customer has an owner-role
@@ -264,6 +258,14 @@ module Onetime
     # @param cust [Onetime::Customer, String] The customer object or customer ID
     # @return [Boolean] true only if the customer is an org owner
     def owner?(cust)
+      resolve_org_and_customer(cust) do |org, customer|
+        org.owner?(customer)
+      end
+    end
+
+    private
+
+    def resolve_org_and_customer(cust)
       return false unless org_id
 
       org = Onetime::Organization.load(org_id)
@@ -272,8 +274,10 @@ module Onetime
       customer = cust.is_a?(Onetime::Customer) ? cust : Onetime::Customer.load(cust)
       return false unless customer
 
-      org.owner?(customer)
+      yield org, customer
     end
+
+    public
 
     # Check if this domain is owned by the given organization
     #
