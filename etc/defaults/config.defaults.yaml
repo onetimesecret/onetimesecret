@@ -87,7 +87,7 @@ site:
             # Vue component name or image URL (e.g. DefaultLogo.vue, /img/logo.svg)
             url: <%= ENV['LOGO_URL'] || 'DefaultLogo.vue' %>
             alt: <%= ENV['LOGO_ALT'] || 'Share a Secret One-Time' %>
-            href: <%= ENV['LOGO_LINK'] || '/' %>
+            link_to: <%= ENV['LOGO_LINK'] || '/' %>
             # Show the site name as a text mark next to the logo icon.
             # Set false for icon-only display; SITE_NAME remains active
             # in page titles, MFA labels, and emails regardless.
