@@ -329,7 +329,10 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
 test.describe('Brand Customization - head-base meta tags', () => {
   // head-base.rue partial renders:
   //   <link rel="mask-icon" href="..." color="{{brand_primary_color}}">
-  // The color attribute should carry a hex color value derived from the configured brand color.
+  // The color attribute should carry a hex color value derived from the
+  // configured brand color.
+  //
+  // Note: <meta name="theme-color"> was removed in 5b2e760 (PWA cleanup).
 
   test('link mask-icon color attribute carries a valid hex color', async ({ page }) => {
     await page.goto('/');
