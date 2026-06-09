@@ -176,6 +176,7 @@ jobs:
           echo "✅ Basic health checks passed"
 
       - name: Run Playwright E2E tests
+        id: playwright
         run: |
           echo "🎭 Running Playwright E2E tests against containerized application..."
 
@@ -183,14 +184,44 @@ jobs:
           export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
           export CI=true
 
+          # Reporters come from e2e/playwright.config.ts (CI branch: list,
+          # github, html, json, blob). Do NOT pass --reporter here - a CLI
+          # override replaces the whole array and breaks the report artifacts
+          # and the flaky gate below.
+
           # Run only 'all/' tests - these work without auth or billing configuration
           # Tests in 'full/' require authenticated sessions
           # Tests in 'full-billing/' require auth + billing enabled
           pnpm test:playwright e2e/all/ \
-            --reporter=github \
             --max-failures=5
         env:
           PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
+
+      - name: Fail on flaky tests (passed only on retry)
+        # Run whenever Playwright ran, even if it failed (flake info still useful)
+        if: ${{ !cancelled() && steps.playwright.outcome != 'skipped' }}
+        run: |
+          REPORT=e2e/test-results/results.json
+
+          if [ ! -f "$REPORT" ]; then
+            echo "❌ Playwright JSON report not found at $REPORT."
+            echo "The reporter pipeline is broken (see e2e/playwright.config.ts)."
+            exit 1
+          fi
+
+          FLAKY=$(jq -r '.stats.flaky // 0' "$REPORT")
+          if [ "$FLAKY" -gt 0 ]; then
+            echo "❌ $FLAKY test(s) passed only on retry (flaky outcome)."
+            echo "Flake is blocking, not silent - fix or quarantine via e2e/QUARANTINE.md."
+            echo "See e2e/docs/e2e-remediation-plan.md (guiding principle 3)."
+            echo ""
+            echo "Flaky tests:"
+            jq -r '.. | objects | select(has("tests")) | select(any(.tests[]?; .status == "flaky"))
+                   | "  - \(.file):\(.line) › \(.title)"' "$REPORT"
+            exit 1
+          fi
+
+          echo "✅ No flaky (retry-only) passes detected."
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -199,6 +230,15 @@ jobs:
           name: playwright-report-e2e-integration
           path: e2e/playwright-report/
           retention-days: 7
+
+      - name: Upload Playwright test artifacts (traces, screenshots, videos)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-test-results-e2e-integration
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Debug on failure
         if: failure() && env.DEBUG_ENABLED == 'true'
