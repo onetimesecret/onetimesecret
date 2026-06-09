@@ -15,9 +15,8 @@
     () => (route.query.reason as string) || ''
   );
 
-  const onFeedbackSent = (message: string) => {
-    const preview = message.trim() || t('web.LABELS.feedback_received');
-    notifications.show(preview, 'success', 'top', 5000);
+  const onFeedbackSent = (_message: string) => {
+    notifications.show(t('web.LABELS.feedback_received'), 'success', 'top', 5000);
   };
 </script>
 
