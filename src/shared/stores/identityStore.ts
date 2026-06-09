@@ -50,7 +50,8 @@ const primaryColorValidator = brandSettingsSchema.shape.primary_color;
  * Identity determines how the product is presented and behaves for the current domain
  */
 
-// eslint-disable-next-line max-lines-per-function -- Store setup requires coordinating multiple reactive refs and watchers
+// Store setup requires coordinating multiple reactive refs and watchers.
+// eslint-disable-next-line max-lines-per-function
 export const useProductIdentity = defineStore('productIdentity', () => {
   // Get i18n instance via injection
   const { t } = useI18n();

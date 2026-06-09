@@ -47,7 +47,8 @@ export function useBranding(domainId?: string) {
 
   /**
    * Resolve extid from either an extid or display_domain.
-   * API endpoints require extid (e.g., "cd1234abc") not display_domain (e.g., "custom.example.com").
+   * API endpoints require extid (e.g., "cd1234abc") not display_domain
+   * (e.g., "custom.example.com").
    * This function handles both cases for flexibility.
    * @param domainIdentifier - Either an extid or display_domain to look up
    * @returns The extid for API calls, or undefined if not found
@@ -62,7 +63,9 @@ export function useBranding(domainId?: string) {
     }
 
     // Fall back to looking up by display_domain
-    const byDisplayDomain = domainsStore.domains?.find((d) => d.display_domain === domainIdentifier);
+    const byDisplayDomain = domainsStore.domains?.find(
+      (d) => d.display_domain === domainIdentifier
+    );
     return byDisplayDomain?.extid;
   };
 

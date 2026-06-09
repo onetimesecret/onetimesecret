@@ -111,7 +111,8 @@ export const configSchemas = {
 
 /**
  * All schemas available for JSON Schema generation.
- * Keys are paths relative to the output directory (e.g., 'shapes/customer' -> 'shapes/customer.schema.json')
+ * Keys are paths relative to the output directory
+ * (e.g., 'shapes/customer' -> 'shapes/customer.schema.json')
  */
 export const schemaRegistry = {
   ...shapeSchemas,

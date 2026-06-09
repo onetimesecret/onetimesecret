@@ -228,7 +228,8 @@ export function useDomainsManager() {
    * Uses org identifier from route params (:orgid or :extid) to ensure
    * correct org-scoped fetch, especially after org creation/switch.
    */
-  const refreshRecords = async (force = false) => store.refreshRecords({ orgId: orgIdentifier.value, force });
+  const refreshRecords = async (force = false) =>
+    store.refreshRecords({ orgId: orgIdentifier.value, force });
 
   return {
     // State

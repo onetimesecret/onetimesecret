@@ -194,7 +194,8 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: false,
     },
   },
-  // NOTE: /account/email/confirm/:token uses default sentryScrubParams (scrub all) - token is sensitive
+  // NOTE: /account/email/confirm/:token uses default sentryScrubParams (scrub all)
+  // because the token is sensitive
   {
     path: '/account/email/confirm/:token',
     name: 'Confirm Email Change',
