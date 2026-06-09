@@ -9,9 +9,11 @@ module Onetime
     # TOTP utility for testing and debugging MFA
     class TOTP
       def self.default_issuer
-        if defined?(OT) && OT.respond_to?(:conf) && OT.conf
-          OT.conf.dig('brand', 'totp_issuer')
-        end || Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer]
+        if defined?(Onetime::CustomDomain::BrandSettingsConstants)
+          Onetime::CustomDomain::BrandSettingsConstants.global_defaults[:totp_issuer]
+        else
+          'OTS'
+        end
       end
 
       # Generate a TOTP code from a secret

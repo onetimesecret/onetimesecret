@@ -20,8 +20,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
 
   describe 'when AUTH_MFA_ENABLED=true (enabled)' do
     let(:expected_issuer) do
-      OT.conf.dig('brand', 'totp_issuer') ||
-        Onetime::CustomDomain::BrandSettingsConstants::GLOBAL_DEFAULTS[:totp_issuer]
+      Onetime::CustomDomain::BrandSettingsConstants.global_defaults[:totp_issuer]
     end
 
     let(:app) do
