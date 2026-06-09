@@ -1,6 +1,6 @@
 # E2E Test Suite Remediation Plan
 
-> Status: **In progress** — Phase 0 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409)); Phase 1 / PR 2 in review; **next up: PR 3 / Phase 2.**
+> Status: **In progress** — Phase 0 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409)); Phase 1 / PR 2 in review ([PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411)); Phase 2.1+2.2 / PR 3 in review ([PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412)); **next up: PR 4 / Phase 2.3.**
 > Created: 2026-06-09 · Last updated: 2026-06-09 · Owner: TBD
 >
 > Motivation: The `container-e2e-tests` check has been a chronic source of red
@@ -17,7 +17,8 @@
 |------------|--------|-------|
 | Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
 | Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | 🔄 **In review** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
-| Phase 2 / PRs 3–5 — auth fixture, readiness signal, `networkidle` sweep, skip triage | ⏭️ **Next** | not started |
+| Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (stacked on #3411) |
+| Phase 2.3–2.4 / PRs 4–5 — `networkidle` sweep + lint→error, skip triage | ⏭️ **Next** | not started |
 | Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
 
 > **CI-signal caveat for stacked PRs:** `container-e2e-tests` only triggers on
@@ -30,43 +31,68 @@
 > PR 3 onward: base on `develop` so each phase is exercised by the very
 > workflow it modifies.
 
-### For a fresh contributor picking up PR 3
+### For a fresh contributor picking up PR 4 (Phase 2.3: `networkidle`/sleep sweep, lint → error)
 
-1. **Verify Phases 0–1 already landed — do not redo them.** Phase 0:
-   `git log --oneline | grep -Ei "head-base|brand color"` shows the two
-   conditional-render commits. Phase 1: `pnpm lint:e2e` runs (≈341 warnings, 0
-   errors), `.github/workflows/e2e.yml` has a "Fail on flaky tests" step, and
-   `e2e/playwright.config.ts` has the environment-aware `reporter` array. If
-   any of that is missing, see [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411).
-2. **Where to branch PR 3.** If #3411 has merged, branch off `develop`.
-   Otherwise stack on `claude/affectionate-clarke-4fyakw` — PR 3 edits
-   `e2e/playwright.config.ts` and `e2e.yml`, both touched by PR 2. Either way
-   the PR must **target `develop`** (see the CI-signal caveat above).
-3. **Concrete starting points** (verified against the tree as of Phase 1):
-   - Credential gating in `full/` is `test.skip(!hasTestCredentials, ...)`
-     driven by `TEST_USER_EMAIL` / `TEST_USER_PASSWORD` (79 sites; canonical
-     pattern at `e2e/full/cross-org-domain-isolation.spec.ts:35`). **No auth
-     fixture, `globalSetup`, or `storageState` exists anywhere yet.**
-   - `e2e/playwright.config.ts` defines a single `chromium` project — the
-     `setup` project, `dependencies: ['setup']`, and `storageState` all go
-     there.
-   - The app-readiness signal belongs right after `app.mount('#app')` in
-     `src/main.ts` (~line 25); specs currently poll `window.__BOOTSTRAP_ME__`
-     directly instead.
-   - The workflow's "Run Playwright E2E tests" step runs `e2e/all/` only and
-     seeds no credentials — extend it to `e2e/all e2e/full` and inject
-     `TEST_USER_*` env vars.
-4. **Definition of done for PR 3:** `full/` executes in CI against a seeded
-   session — red is acceptable and *expected* at first (it surfaces real,
-   previously-masked failures; quarantine via `e2e/QUARANTINE.md` rather than
-   re-skipping); the readiness signal exists and the auth/setup path waits on
-   it instead of `networkidle`.
+1. **Verify Phases 0–2.2 already landed — do not redo them.** Phase 1:
+   `pnpm lint:e2e` runs (341 warnings, 0 errors), `.github/workflows/e2e.yml`
+   has a "Fail on flaky tests" step. Phase 2.1+2.2: `e2e/global.setup.ts`
+   exists, `e2e/playwright.config.ts` has `setup`/`chromium`/`full`/
+   `full-billing` projects, and `src/main.ts` sets
+   `html[data-app-ready="true"]`. If any of that is missing, see
+   [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) /
+   [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412).
+2. **Where to branch PR 4.** If #3412 has merged, branch off `develop`.
+   Otherwise stack on `claude/e2e-phase2-auth-readiness` — PR 4 sweeps the
+   spec files and flips the lint rules, and needs PR 3's readiness signal to
+   sweep *to*. Either way the PR must **target `develop`** (see the CI-signal
+   caveat above).
+3. **Concrete starting points** (verified against the tree as of PR 3):
+   - The lint baseline is **341 warnings, 0 errors** from `pnpm lint:e2e`:
+     298 `playwright/no-networkidle` + 43 `playwright/no-wait-for-timeout`.
+     By directory: `all/` 29, `auth/` 16, `full/` 262, `full-billing/` 34.
+     Sweep **per directory** (one reviewable commit each); flip both rules
+     from `'warn'` to `'error'` at `eslint.config.ts:606-607` in the final
+     commit, once the count is 0. Don't use `--quiet` to check progress — it
+     skips *executing* warn-level rules; `pnpm lint:e2e` shows them.
+   - The replacement primitive: wait on the app-readiness flag with a
+     web-first assertion —
+     `await expect(page.locator('html[data-app-ready="true"]')).toBeAttached()`.
+     Canonical usage: `e2e/global.setup.ts:53`. The flag is set in
+     `src/main.ts:47` after mount + brand theme + `router.isReady()`. For
+     waits that aren't "is the app up" (element state, URL changes), use
+     ordinary web-first assertions / `waitForURL` instead.
+   - 9 spec files also read or poll `window.__BOOTSTRAP_ME__` — some via
+     `waitForFunction` (e.g. `e2e/all/integration.spec.ts:307`), some via
+     `page.evaluate` reads (e.g. `e2e/auth/sso-csrf.spec.ts:47`); list them
+     with `grep -rl __BOOTSTRAP_ME__ e2e/all e2e/auth e2e/full`. Replace the
+     *readiness-polling* uses with the readiness flag while you're in each
+     file — that is explicitly Phase 2.2's "tests wait on that" half. (Reads
+     that inspect bootstrap *content*, like the sso-csrf shrimp checks, are
+     fine to keep.)
+   - Known interaction in `full/`: every spec still runs a manual
+     `loginUser(page)` helper (pattern at
+     `e2e/full/cross-org-domain-isolation.spec.ts:55-78`) even though the
+     `full` project now starts authenticated via `storageState`. When
+     sweeping `full/`, expect those helpers to be dead weight or actively
+     broken (an authed user visiting `/signin` gets redirected) — deleting
+     the call sites is in scope where it unblocks the sweep; broader spec
+     triage (the 143 defensive skips) stays PR 5.
+   - Check CI state of #3412 first: the first `full/` runs are *expected* red
+     (previously-masked failures). Quarantine via `e2e/QUARANTINE.md`
+     (`test.fixme` + owner + issue link) rather than re-skipping; the flaky
+     gate stays blocking.
+4. **Definition of done for PR 4:** `pnpm lint:e2e` reports **0 problems**
+   with both rules at `'error'`; no `networkidle` / `waitForTimeout` /
+   `__BOOTSTRAP_ME__`-polling call sites remain in `e2e/`; suite passes (or
+   failures are quarantined with issue links), and no test regresses to
+   pass-only-on-retry (the flaky gate enforces this).
 5. **Hand off before you open the PR.** This doc is the tracker — leave it the
    way you found it: set your row in the Progress table and the PR-sequence
    table (status + PR link), update the status line at the top, and **rewrite
-   this section for PR 4** with verified file/line starting points (don't
-   guess — confirm them against your final tree the way the pointers above
-   were). A stale pickup section costs the next contributor their first hour.
+   this section for PR 5** (defensive-skip triage, Phase 2.4) with verified
+   file/line starting points (don't guess — confirm them against your final
+   tree the way the pointers above were). A stale pickup section costs the
+   next contributor their first hour.
 
 ## Headline finding
 
@@ -205,15 +231,19 @@ CI **red**.
 
 ## Phase 2 — Make coverage real
 
-1. **Auth via global-setup + `storageState`.** `e2e/global.setup.ts` (setup
-   project) registers a test user via `/signup` (fallback: `docker exec`
-   `Onetime::Customer.create!`), logs in, saves `e2e/.auth/user.json`. Config
-   adds `setup` project; `full`/`full-billing` get `dependencies: ['setup']` +
-   `storageState`. Workflow seeds `TEST_USER_*` and runs `e2e/all e2e/full`.
-2. **Deterministic app-readiness signal.** Frontend sets
-   `document.documentElement.dataset.appReady = 'true'` after mount + brand
-   theme applied; tests wait on that, replacing `__BOOTSTRAP_ME__` polling +
-   `networkidle`. *(Highest-leverage flake fix.)*
+1. ✅ **Auth via global-setup + `storageState`** ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)).
+   `e2e/global.setup.ts` (setup project) registers a test user via `/signup`
+   (fallback: `docker exec` `Onetime::Customer.create!` — not needed; the CI
+   container runs with `AUTH_AUTOVERIFY=true`), logs in, saves
+   `e2e/.auth/user.json`. Config adds `setup` project; `full`/`full-billing`
+   get `dependencies: ['setup']` + `storageState`. Workflow seeds ephemeral
+   `TEST_USER_*` and runs `e2e/all/ e2e/full/`.
+2. ✅ **Deterministic app-readiness signal** ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412), signal half).
+   Frontend sets `document.documentElement.dataset.appReady = 'true'` in
+   `src/main.ts` after mount + brand theme application + `router.isReady()`;
+   the setup/auth path waits on it. The other half — migrating *specs* off
+   `__BOOTSTRAP_ME__` polling + `networkidle` onto the flag — lands with the
+   PR 4 sweep. *(Highest-leverage flake fix.)*
 3. **Sweep `networkidle` → web-first assertions** (300 sites), per directory.
 4. **Convert the 143 defensive skips**: (a) guaranteed precondition → run it;
    (b) genuinely optional feature → tagged project, not runtime self-skip;
@@ -241,7 +271,7 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 |----|-------|-------|---------------|
 | 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399 |
 | 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | 🔄 In review ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411)) |
-| 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | Med — surfaces real `full/` failures (intended) |
+| 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | 🔄 In review ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412), stacked on #3411) — surfaces real `full/` failures (intended) |
 | 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | Med — large but mechanical |
 | 5 | 2.4 | defensive-skip triage | Med |
 | 6 | 3 | fixtures.ts, pinned brand, parallel/shard | Low |
