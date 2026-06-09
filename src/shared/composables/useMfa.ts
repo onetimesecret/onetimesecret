@@ -147,7 +147,7 @@ export function useMfa() {
    * step of OTP setup. The backend returns a 422 status with the secrets, which
    * is the EXPECTED behavior in JSON-only mode (not an error).
    *
-   * @param siteName - The site name to display in the authenticator app (e.g., "Onetime Secret")
+   * @param issuer - The TOTP issuer label shown in authenticator apps (from brand_totp_issuer config)
    * @param email - The user's email address to associate with the MFA setup
    * @param password - Optional password for authentication (may be required by backend)
    * @returns OtpSetupData with QR code and secrets, or null on actual errors
@@ -162,7 +162,7 @@ export function useMfa() {
    * setup data. A true error would not include otp_raw_secret.
    */
   async function setupMfa(
-    siteName: string,
+    issuer: string,
     email: string,
     password?: string
   ): Promise<OtpSetupData | null> {
@@ -177,7 +177,7 @@ export function useMfa() {
 
         // Standard response (non-HMAC mode): includes QR code data directly
         if (validated.otp_raw_secret && validated.otp_setup) {
-          validated.qr_code = await generateQrCode(siteName, email, validated.otp_setup);
+          validated.qr_code = await generateQrCode(issuer, email, validated.otp_setup);
         }
 
         setupData.value = validated;
@@ -190,7 +190,7 @@ export function useMfa() {
         const errorData = axiosErr.response?.data;
 
         if (axiosErr.response?.status === 422 && errorData && hasHmacSetupData(errorData)) {
-          const hmacData = await enrichSetupResponse(errorData, siteName, email);
+          const hmacData = await enrichSetupResponse(errorData, issuer, email);
           if (hmacData) {
             setupData.value = hmacData;
             return hmacData; // Success: proceed to QR code display
