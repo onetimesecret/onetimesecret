@@ -1,9 +1,25 @@
 // e2e/playwright.config.ts
 
 import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Default local server URL (Ruby backend with built assets)
 const DEFAULT_LOCAL_URL = 'http://localhost:7143';
+
+// Directory containing this config file. package.json is `"type": "module"`,
+// so the config loads as ESM and `__dirname` is unavailable.
+const CONFIG_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Authenticated session produced by global.setup.ts and consumed by the
+ * `full` / `full-billing` projects via `storageState`. Absolute on purpose
+ * so writer (setup script) and readers (project `use` blocks) agree on one
+ * location regardless of cwd — Playwright path resolution is inconsistent
+ * (e.g. the blob reporter below resolves against cwd, not the config dir).
+ * The .auth/ directory is gitignored.
+ */
+export const STORAGE_STATE = path.join(CONFIG_DIR, '.auth', 'user.json');
 
 /**
  * Playwright configuration for E2E integration testing
@@ -84,14 +100,66 @@ export default defineConfig({
     navigationTimeout: 15000,
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects.
+   *
+   * Auth model (e2e/docs/e2e-remediation-plan.md, Phase 2.1):
+   *  - `setup` registers/signs in the TEST_USER_* account once via the real
+   *    signup + signin UI and saves the session to STORAGE_STATE.
+   *  - `full` and `full-billing` depend on `setup` and start every test
+   *    already authenticated via storageState.
+   *  - `chromium` (all/ + auth/ suites) stays credential-free: no
+   *    dependency on `setup`, no storageState.
+   *
+   * CLI path filters (e.g. `pnpm test:playwright e2e/all e2e/full`) select
+   * which suites run; Playwright always runs dependency projects in full, so
+   * `setup` only executes when a dependent project has matching tests.
+   */
   projects: [
     {
-      name: 'chromium',
+      name: 'setup',
+      // Overrides the top-level testMatch (which only matches *.spec.ts)
+      testMatch: 'global.setup.ts',
       use: {
         ...devices['Desktop Chrome'],
         // Extra time for container responses
         actionTimeout: 30000,
+      },
+    },
+
+    {
+      // Credential-free suites: all/ (runs in CI) and auth/ (unauthenticated
+      // signup/SSO-CSRF flows). Keep the historical project name so existing
+      // `--project=chromium` invocations keep working.
+      name: 'chromium',
+      testIgnore: ['full/**', 'full-billing/**'],
+      use: {
+        ...devices['Desktop Chrome'],
+        // Extra time for container responses
+        actionTimeout: 30000,
+      },
+    },
+
+    {
+      // Authenticated suite; requires TEST_USER_EMAIL / TEST_USER_PASSWORD.
+      name: 'full',
+      testMatch: 'full/**/*.spec.ts',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000,
+        storageState: STORAGE_STATE,
+      },
+    },
+
+    {
+      // Authenticated suite + billing enabled on the target server.
+      name: 'full-billing',
+      testMatch: 'full-billing/**/*.spec.ts',
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000,
+        storageState: STORAGE_STATE,
       },
     },
 

@@ -107,4 +107,6 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+# Saved authenticated session (e2e/global.setup.ts) - never commit
+e2e/.auth/
 *.egg-info/

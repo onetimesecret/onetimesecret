@@ -27,6 +27,13 @@
 
 import { test, expect, Page } from '@playwright/test';
 
+// The `full` project starts every test authenticated as TEST_USER_* via
+// storageState (e2e/playwright.config.ts), but this file exercises the
+// sign-in flow itself with a *different*, MFA-enrolled account
+// (TEST_MFA_USER_*). Opt out of the shared session so /signin renders the
+// form instead of redirecting an already-authenticated visitor away.
+test.use({ storageState: { cookies: [], origins: [] } });
+
 // Check if MFA test credentials are configured
 const hasMfaCredentials = !!(
   process.env.TEST_MFA_USER_EMAIL &&

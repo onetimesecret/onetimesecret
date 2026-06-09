@@ -14,7 +14,10 @@
  * Issue: https://github.com/onetimesecret/onetimesecret/issues/2319
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL, TEST_USER_PASSWORD environment variables for org owner
+ * - Authenticated as the org owner via the project storageState
+ *   (e2e/global.setup.ts consumes TEST_USER_*); the multi-context scenarios
+ *   below additionally sign in manually inside fresh (unauthenticated)
+ *   browser contexts
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  * - Mailpit or similar for email testing (optional for full flow)
  *
@@ -47,7 +50,11 @@ const generateTestEmail = (prefix: string) =>
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form using password tab
+ * Authenticate user via login form using password tab.
+ *
+ * Only valid on pages from a fresh `browser.newContext()` (unauthenticated):
+ * the default `page` fixture already carries the storageState session, and
+ * an authenticated visitor to /signin is redirected away from the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
@@ -182,11 +189,8 @@ async function _createAccount(page: Page, email: string, password: string): Prom
 // -----------------------------------------------------------------------------
 
 test.describe('INV-001: Organization Invitation Sending', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('Organization owner can send invitation to new member with email validation', async ({
@@ -235,14 +239,11 @@ test.describe('INV-001: Organization Invitation Sending', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Unauthenticated user sees inline signup/signin form on invitation page', async ({
     page,
     context,
   }) => {
     // First, create an invitation as org owner
-    await loginUser(page);
     const testEmail = generateTestEmail('inline-auth-test');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -445,11 +446,8 @@ test.describe('INV-005: Matching Email User Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-007a: Authenticated Decline Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Authenticated user can decline invitation and is redirected home', async ({ page }) => {
     // Create invitation
-    await loginUser(page);
     const testEmail = generateTestEmail('decline-auth');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -473,14 +471,11 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 });
 
 test.describe('INV-007b: Unauthenticated Decline Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Unauthenticated user can decline invitation without signing in', async ({
     page,
     context,
   }) => {
     // Create invitation as owner
-    await loginUser(page);
     const testEmail = generateTestEmail('decline-unauth');
     await navigateToOrgTeam(page);
     await createInvitation(page, testEmail);
@@ -533,10 +528,7 @@ test.describe('INV-008: Expired Invitation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-010: Resend Invitation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Organization owner can resend pending invitation', async ({ page }) => {
-    await loginUser(page);
     const testEmail = generateTestEmail('resend');
 
     await navigateToOrgTeam(page);
@@ -560,13 +552,10 @@ test.describe('INV-010: Resend Invitation', () => {
 });
 
 test.describe('INV-011: Revoke Invitation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Organization owner can revoke pending invitation making link invalid', async ({
     page,
     context,
   }) => {
-    await loginUser(page);
     const testEmail = generateTestEmail('revoke');
 
     await navigateToOrgTeam(page);
@@ -632,10 +621,7 @@ test.describe('INV-012: Gmail Alias Normalization', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-014: Duplicate Member Invitation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Inviting existing organization member shows validation error', async ({ page }) => {
-    await loginUser(page);
 
     await navigateToOrgTeam(page);
 
@@ -687,6 +673,11 @@ test.describe('INV-016: Invalid Token', () => {
 
 test.describe('INV-SEC-001: Open Redirect Prevention', () => {
   test('Open redirect attack prevention validates redirect parameter', async ({ page }) => {
+    // This test exercises the *login form's* redirect handling, so drop the
+    // storageState session first - an authenticated visitor to /signin is
+    // redirected away and the form (with its assertions) never renders.
+    await page.context().clearCookies();
+
     // Attempt to use malicious redirect URL
     const maliciousRedirects = [
       'https://evil.com/phishing',

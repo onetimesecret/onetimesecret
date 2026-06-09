@@ -14,7 +14,7 @@
  * - The issue occurs because the domain list doesn't respect the org context from URL
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have access to at least 2 organizations
  * - At least one org should have custom domains, another can be empty
  * - Application running locally or PLAYWRIGHT_BASE_URL set
@@ -31,9 +31,6 @@
 
 import { expect, Page, test } from '@playwright/test';
 
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -48,34 +45,6 @@ interface OrgInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Now fill the form (email input is in the password tab panel)
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get list of organizations the user has access to
@@ -204,11 +173,8 @@ async function verifyEmptyDomainsState(page: Page): Promise<void> {
 // -----------------------------------------------------------------------------
 
 test.describe('Cross-Organization Domain Isolation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   // -------------------------------------------------------------------------
@@ -600,11 +566,8 @@ test.describe('Cross-Organization Domain Isolation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('API-Level Domain Isolation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DOI-008: API requests include correct org context parameter', async ({ page }) => {

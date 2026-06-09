@@ -14,7 +14,7 @@
  * 5. Tests connection -> saves config
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - User must have access to an organization with the manage_sso entitlement
  * - At least one custom domain should exist for testing
  *
@@ -29,9 +29,6 @@
  */
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -51,34 +48,6 @@ interface DomainInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Authenticate user via login form
- */
-async function loginUser(page: Page): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await passwordTab.waitFor({ state: 'visible', timeout: 5000 });
-  await passwordTab.click();
-
-  // Wait for password input to be visible after tab switch
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // Fill the form
-  const emailInput = page.locator('#signin-email-password');
-  await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-  await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-  // Submit
-  const submitButton = page.locator('button[type="submit"]');
-  await submitButton.click();
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
 
 /**
  * Get the first organization the user has access to
@@ -197,11 +166,8 @@ async function navigateToDomainSsoPage(
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Navigation', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSSO-001: navigates from org settings SSO tab to domain SSO page', async ({ page }) => {
@@ -279,11 +245,8 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Domain List', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSSO-004: displays list of domains with SSO status badges', async ({ page }) => {
@@ -380,11 +343,8 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Form', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSSO-008: shows empty form for domain without SSO config', async ({ page }) => {
@@ -540,11 +500,8 @@ test.describe('Domain SSO Configuration - Form', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Test Connection', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSSO-013: test connection button sends test request', async ({ page }) => {
@@ -705,11 +662,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Save and Delete', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSSO-016: save button creates new SSO config', async ({ page }) => {
@@ -834,11 +788,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Multi-Domain', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSSO-018: can configure different SSO providers for two domains in same org', async ({
@@ -959,11 +910,8 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain SSO Configuration - Access Control', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('TC-DSSO-019: shows access denied for users without manage_sso entitlement', async ({

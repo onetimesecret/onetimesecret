@@ -107,7 +107,7 @@ COPY public ./public
 COPY src ./src
 COPY locales ./locales
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json vite.config.ts \
-     tailwind.config.ts eslint.config.ts ./
+     eslint.config.ts ./
 
 # Belt-and-suspenders version patch: if the host-side update-version.sh ran
 # but the Docker build context didn't pick up the modified package.json

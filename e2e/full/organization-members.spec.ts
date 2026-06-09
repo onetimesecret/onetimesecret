@@ -19,7 +19,7 @@
  * - Owner role cannot be assigned via UI
  *
  * Prerequisites:
- * - Set TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables (org owner)
+ * - Authenticated as the org owner via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
  * - Set TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD for admin user tests (optional)
  * - Set TEST_MEMBER_EMAIL and TEST_MEMBER_PASSWORD for member user tests (optional)
  * - Application running locally or PLAYWRIGHT_BASE_URL set
@@ -52,9 +52,17 @@ interface OrgInfo {
 // -----------------------------------------------------------------------------
 
 /**
- * Authenticate user via login form
+ * Sign in as a *different* account than the shared session (e.g. the
+ * TEST_ADMIN_* / TEST_MEMBER_* role accounts in the hierarchy/permission
+ * suites below).
+ *
+ * The `full` project starts every test already authenticated as TEST_USER_*
+ * via storageState (e2e/playwright.config.ts), so the session must be
+ * dropped first — an authenticated visitor to /signin is redirected away
+ * and never sees the form.
  */
 async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
+  await page.context().clearCookies();
   await page.goto('/signin');
 
   // Click Password tab - Magic Link is the default, password input is hidden
@@ -185,11 +193,8 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-LIST: Organization Members List', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-LIST-001: Team tab appears in organization settings navigation', async ({ page }) => {
@@ -273,11 +278,8 @@ test.describe('MBR-LIST: Organization Members List', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-INVITE: Invite Member Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-INVITE-001: Owner can see and click Invite Member button', async ({ page }) => {
@@ -411,11 +413,8 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-ROLE: Change Member Role', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-ROLE-001: Owner sees role selector dropdown for non-owner members', async ({
@@ -554,11 +553,8 @@ test.describe('MBR-ROLE: Change Member Role', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-REMOVE: Remove Member', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-REMOVE-001: Owner sees remove button for non-owner members', async ({ page }) => {
@@ -696,11 +692,8 @@ test.describe('MBR-REMOVE: Remove Member', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-INVMGMT: Invitation Management', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    await loginUser(page);
   });
 
   test('MBR-INVMGMT-001: Owner can resend pending invitation', async ({ page }) => {
@@ -767,15 +760,11 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('MBR-ACCEPT-001: Valid invitation token shows invitation details', async ({
     page,
     context,
   }) => {
-    // Create invitation as owner
-    await loginUser(page);
-
+    // Create invitation as owner (storageState session)
     let orgExtid: string;
     try {
       orgExtid = await navigateToOrgTeam(page);
@@ -808,9 +797,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     page,
     context,
   }) => {
-    // Create invitation as owner
-    await loginUser(page);
-
+    // Create invitation as owner (storageState session)
     try {
       await navigateToOrgTeam(page);
     } catch {
@@ -847,9 +834,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     page,
     context,
   }) => {
-    // Create invitation as owner
-    await loginUser(page);
-
+    // Create invitation as owner (storageState session)
     try {
       await navigateToOrgTeam(page);
     } catch {
