@@ -286,6 +286,196 @@ Core::Views::ConfigSerializer.send(:resolve_restrict_to, @view_vars_with_config)
 Core::Views::ConfigSerializer.send(:resolve_restrict_to, @view_vars_disabled)
 #=> Onetime.auth_config.restrict_to
 
+# ===================================================================
+# 8. ConfigSerializer resolve_email_auth (AND semantics)
+# ===================================================================
+#
+# email_auth uses AND with global: a domain can DISABLE email_auth but
+# cannot ENABLE it when the global Rodauth route was never mounted. We
+# stub Onetime.auth_config.email_auth_enabled? per-case for determinism
+# (the resolver reads the process-global singleton directly — no injection
+# point like the controller stub). Each case forces the global predicate
+# inline, evaluates resolve_email_auth, then removes the singleton method
+# to restore the class implementation — keeping cases independent.
+
+## resolve_email_auth: global true + no domain context => global (true)
+Onetime.auth_config.define_singleton_method(:email_auth_enabled?) { true }
+@result_ea_a = begin
+  Core::Views::ConfigSerializer.send(:resolve_email_auth, {})
+ensure
+  Onetime.auth_config.singleton_class.send(:remove_method, :email_auth_enabled?)
+end
+@result_ea_a
+#=> true
+
+## resolve_email_auth: global true + master ON + email_auth_enabled false => false (domain disables)
+@domain_ea_b = Onetime::CustomDomain.create!("dae-ea-b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_ea_b = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_ea_b.identifier,
+  enabled: true,
+  email_auth_enabled: false,
+)
+Onetime.auth_config.define_singleton_method(:email_auth_enabled?) { true }
+@result_ea_b = begin
+  Core::Views::ConfigSerializer.send(:resolve_email_auth, { 'display_domain' => @domain_ea_b.display_domain })
+ensure
+  Onetime.auth_config.singleton_class.send(:remove_method, :email_auth_enabled?)
+end
+@result_ea_b
+#=> false
+
+## resolve_email_auth: global true + master ON + email_auth_enabled true => true
+@domain_ea_c = Onetime::CustomDomain.create!("dae-ea-c-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_ea_c = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_ea_c.identifier,
+  enabled: true,
+  email_auth_enabled: true,
+)
+Onetime.auth_config.define_singleton_method(:email_auth_enabled?) { true }
+@result_ea_c = begin
+  Core::Views::ConfigSerializer.send(:resolve_email_auth, { 'display_domain' => @domain_ea_c.display_domain })
+ensure
+  Onetime.auth_config.singleton_class.send(:remove_method, :email_auth_enabled?)
+end
+@result_ea_c
+#=> true
+
+## resolve_email_auth: global FALSE + master ON + email_auth_enabled true => false (domain cannot enable)
+@domain_ea_d = Onetime::CustomDomain.create!("dae-ea-d-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_ea_d = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_ea_d.identifier,
+  enabled: true,
+  email_auth_enabled: true,
+)
+Onetime.auth_config.define_singleton_method(:email_auth_enabled?) { false }
+@result_ea_d = begin
+  Core::Views::ConfigSerializer.send(:resolve_email_auth, { 'display_domain' => @domain_ea_d.display_domain })
+ensure
+  Onetime.auth_config.singleton_class.send(:remove_method, :email_auth_enabled?)
+end
+@result_ea_d
+#=> false
+
+## resolve_email_auth: master OFF => equals global (config ignored), global forced true
+@domain_ea_e = Onetime::CustomDomain.create!("dae-ea-e-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_ea_e = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_ea_e.identifier,
+  enabled: false,
+  email_auth_enabled: false,
+)
+Onetime.auth_config.define_singleton_method(:email_auth_enabled?) { true }
+@result_ea_e = begin
+  Core::Views::ConfigSerializer.send(:resolve_email_auth, { 'display_domain' => @domain_ea_e.display_domain })
+ensure
+  Onetime.auth_config.singleton_class.send(:remove_method, :email_auth_enabled?)
+end
+@result_ea_e
+#=> true
+
+# ===================================================================
+# 9. SigninConfig.sso_permitted_for? + resolve_tenant_sso_config gate
+# ===================================================================
+#
+# sso_permitted_for? is the shared activation authority. SsoConfig is the
+# credentials store; resolve_tenant_sso_config returns it only when the
+# credentials are enabled AND sso_permitted_for? is true.
+
+## sso_permitted_for? returns true when no SigninConfig exists (defer to credentials)
+Onetime::CustomDomain::SigninConfig.sso_permitted_for?('nonexistent_domain_id')
+#=> true
+
+## SsoConfig active + no SigninConfig => tenant SSO active (current behavior preserved)
+@domain_sso_a = Onetime::CustomDomain.create!("dae-sso-a-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_a = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_sso_a.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO A',
+  enabled: true,
+  issuer: 'https://idp-a.example.com',
+  client_id: 'client-a',
+)
+Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_a.display_domain })&.domain_id
+#=> @domain_sso_a.identifier
+
+## SsoConfig active + master ON + sso_enabled false => tenant SSO inactive (gate blocks)
+@domain_sso_b = Onetime::CustomDomain.create!("dae-sso-b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_b = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_sso_b.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO B',
+  enabled: true,
+  issuer: 'https://idp-b.example.com',
+  client_id: 'client-b',
+)
+@signin_sso_b = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_sso_b.identifier,
+  enabled: true,
+  sso_enabled: false,
+)
+Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_b.display_domain })
+#=> nil
+
+## SsoConfig active + master ON + sso_enabled true => tenant SSO active
+@domain_sso_c = Onetime::CustomDomain.create!("dae-sso-c-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_c = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_sso_c.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO C',
+  enabled: true,
+  issuer: 'https://idp-c.example.com',
+  client_id: 'client-c',
+)
+@signin_sso_c = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_sso_c.identifier,
+  enabled: true,
+  sso_enabled: true,
+)
+Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_c.display_domain })&.domain_id
+#=> @domain_sso_c.identifier
+
+## SsoConfig active + master OFF => SsoConfig behavior preserved (gate defers)
+@domain_sso_d = Onetime::CustomDomain.create!("dae-sso-d-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@sso_d = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_sso_d.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO D',
+  enabled: true,
+  issuer: 'https://idp-d.example.com',
+  client_id: 'client-d',
+)
+@signin_sso_d = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_sso_d.identifier,
+  enabled: false,
+  sso_enabled: false,
+)
+Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_d.display_domain })&.domain_id
+#=> @domain_sso_d.identifier
+
+# ===================================================================
+# 10. Parity: sso_permitted_for? drives BOTH the display and runtime gates
+# ===================================================================
+#
+# Runtime hook (omniauth_tenant.rb) ANDs the SAME predicate the serializer
+# uses. We cannot boot the Rodauth hook in a tryout, so we assert parity at
+# the predicate-value level: for the disable case, sso_permitted_for? is
+# false AND the serializer (which consumes it) returns nil. Both gates key
+# off the identical value, so they cannot diverge.
+
+## Parity (disable case): sso_permitted_for? is false for the gated domain
+Onetime::CustomDomain::SigninConfig.sso_permitted_for?(@domain_sso_b.identifier)
+#=> false
+
+## Parity (disable case): serializer consumes the false predicate -> nil
+Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_b.display_domain })
+#=> nil
+
+## Parity (enable case): sso_permitted_for? true, serializer returns the config
+[
+  Onetime::CustomDomain::SigninConfig.sso_permitted_for?(@domain_sso_c.identifier),
+  !Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain' => @domain_sso_c.display_domain }).nil?,
+]
+#=> [true, true]
+
 # --- Cleanup ---
 
 Familia.dbclient.flushdb

@@ -140,6 +140,25 @@ module Onetime
           nil
         end
 
+        # Whether the domain's SigninConfig permits SSO as an auth method.
+        #
+        # Shared permission predicate so the display gate (config serializer)
+        # and the runtime gate (omniauth_tenant hook) cannot diverge. Both
+        # call sites consult this so the SSO button is never shown when the
+        # auth route would reject, and never hidden when the route works.
+        #
+        # Master switch off / no config => permitted (defer to SsoConfig
+        # credentials). Master switch on => sso_enabled? is authoritative.
+        #
+        # @param domain_id [String] CustomDomain identifier (objid)
+        # @return [Boolean] true if SSO is permitted for the domain
+        def sso_permitted_for?(domain_id)
+          config = find_by_domain_id(domain_id)
+          return true unless config&.enabled?
+
+          config.sso_enabled?
+        end
+
         # Check if a domain has signin config.
         #
         # @param domain_id [String] CustomDomain identifier
