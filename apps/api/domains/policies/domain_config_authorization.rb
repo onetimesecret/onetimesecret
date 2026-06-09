@@ -158,6 +158,12 @@ module DomainsAPI
         require_entitlement_in!(@organization, 'manage_org')
         verify_config_entitlement(@organization)
 
+        # Domain-scope enforcement: deny cross-domain config access (#3384)
+        membership = Onetime::OrganizationMembership.find_by_org_customer(@organization.objid, cust.objid)
+        if membership && !membership.can_access_domain?(@custom_domain)
+          raise_form_error 'Domain not found'
+        end
+
         OT.ld format('[%s] Authorization granted: domain=%s org=%s actor=%s', config_log_tag, @custom_domain.display_domain, @organization.extid, cust&.custid)
       end
 

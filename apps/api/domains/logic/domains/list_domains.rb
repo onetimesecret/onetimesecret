@@ -50,6 +50,12 @@ module DomainsAPI::Logic
       def process
         domains = target_organization.list_domains
 
+        # Domain-scope enforcement: filter by membership scope (#3384)
+        membership = Onetime::OrganizationMembership.find_by_org_customer(
+          target_organization.objid, @cust.objid
+        )
+        domains    = domains.select { |d| membership.nil? || membership.can_access_domain?(d) }
+
         OT.ld "[ListDomains] Processing #{domains.size} domains for org #{target_organization.objid}"
 
         @custom_domains = domains.map(&:safe_dump)
