@@ -172,8 +172,8 @@ feedback endpoint selected by `CUSTOM_MAIL_SES_REGION`.)
    so SPF aligns to the sender domain and bounces are handled on the customer's
    own domain instead of the shared `amazonses.com` default.
 
-It returns five **fully-qualified** DNS records — three DKIM CNAMEs plus the
-MAIL FROM MX and SPF TXT:
+It returns five **required** DNS records — three DKIM CNAMEs plus the
+MAIL FROM MX and SPF TXT — and one **advisory** DMARC record:
 
 ```
 <token1>._domainkey.<domain>  CNAME  <token1>.dkim.amazonses.com
@@ -181,6 +181,7 @@ MAIL FROM MX and SPF TXT:
 <token3>._domainkey.<domain>  CNAME  <token3>.dkim.amazonses.com
 mail.<domain>                 MX     feedback-smtp.<region>.amazonses.com   (priority 10)
 mail.<domain>                 TXT    v=spf1 include:amazonses.com ~all
+_dmarc.<domain>               TXT    v=DMARC1; p=none;                      (optional — recommended)
 ```
 
 The DKIM tokens are SES-assigned per domain; the MAIL FROM MX endpoint is
@@ -214,6 +215,29 @@ alignment.
 `check_provider_verification_status` surfaces both DKIM and MAIL FROM status in
 the `:details` hash (`mail_from_domain` and `mail_from_status`), so callers can
 distinguish "DKIM verified, MAIL FROM pending" from "everything verified."
+
+### Advisory DMARC record
+
+Provisioning also emits a suggested DMARC TXT record (`_dmarc.<domain>` with
+`v=DMARC1; p=none;`), marked `optional: true` in the record hash. This mirrors
+the AWS SES console's "Info" advisory — SES does not provision or return a DMARC
+record from its API, and DMARC is not required for SES verification or delivery.
+
+**Why `p=none`?** This is a monitor-only policy: receiving mail servers will
+report DMARC alignment results but will not quarantine or reject mail. It is the
+safe default for customers who do not already have a DMARC policy.
+
+**When to skip it:** A DMARC policy published at the organizational domain
+(e.g. `_dmarc.example.com`) already covers subdomains via DMARC's default
+`sp=` inheritance. If the customer's parent domain has a DMARC record, the
+per-subdomain record is redundant.
+
+**Verification pipeline interaction:** Optional records are excluded from the DNS
+check worker (`check_dns_records` filters them out) and do not affect
+`dns_verified` or `computed_verification_status`. In the UI, they are displayed
+with a dashed border, a "Recommended" badge, and a hint explaining they are not
+required. Their per-record status stays `'pending'` regardless of the overall
+verification outcome.
 
 ### 2. Verify
 
