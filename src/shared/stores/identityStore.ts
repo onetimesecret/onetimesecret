@@ -70,6 +70,22 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   } = storeToRefs(bootstrapStore);
 
   /**
+   * Resolves the active primary color through a 3-step fallback chain:
+   *   1. Per-domain branding (Redis custom domain settings)
+   *   2. Install config (BRAND_PRIMARY_COLOR env var via bootstrapStore)
+   *   3. Neutral last resort (NEUTRAL_BRAND_DEFAULTS.primary_color)
+   */
+  function resolvePrimaryColor(brandColor: unknown): string {
+    const parsed = gracefulParse(primaryColorValidator, brandColor, 'PrimaryColor');
+    const validated = parsed.ok ? parsed.data : null;
+    return (
+      validated ??
+      bootstrapStore.brand_primary_color ??
+      NEUTRAL_BRAND_DEFAULTS.primary_color
+    );
+  }
+
+  /**
    * Creates initial identity state from bootstrapStore values
    * Handles validation and default values for branding fields
    */
@@ -77,8 +93,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const brandResult = gracefulParse(brandSettingsSchema, domain_branding.value ?? {}, 'BrandSettings');
     const brand = brandResult.ok ? brandResult.data : null;
 
-    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
-    const primaryColor = colorResult.ok ? (colorResult.data ?? NEUTRAL_BRAND_DEFAULTS.primary_color) : NEUTRAL_BRAND_DEFAULTS.primary_color;
+    const primaryColor = resolvePrimaryColor(brand?.primary_color);
     const buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
     const allowPublicHomepage = homepage_config.value?.enabled ?? false;
 
@@ -104,8 +119,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const brand = brandResult.ok ? brandResult.data : null;
     state.brand = brand;
 
-    const colorResult = gracefulParse(primaryColorValidator, brand?.primary_color, 'PrimaryColor');
-    state.primaryColor = colorResult.ok ? (colorResult.data ?? NEUTRAL_BRAND_DEFAULTS.primary_color) : NEUTRAL_BRAND_DEFAULTS.primary_color;
+    state.primaryColor = resolvePrimaryColor(brand?.primary_color);
     state.buttonTextLight = brand?.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
   });
 
