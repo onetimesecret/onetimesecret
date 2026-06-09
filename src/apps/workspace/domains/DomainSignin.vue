@@ -11,7 +11,7 @@
  */
 import { useI18n } from 'vue-i18n';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRouter, onBeforeRouteLeave } from 'vue-router';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
@@ -29,6 +29,7 @@ import { ENTITLEMENTS } from '@/types/organization';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 
 const { t } = useI18n();
+const route = useRoute();
 const router = useRouter();
 
 const props = defineProps<{
@@ -110,12 +111,21 @@ const {
 
 const showSsoModal = ref(false);
 
+// Deep link support: `?modal=sso` opens the SSO credentials modal on load,
+// e.g. from the org SSO tab's Configure link.
+const wantsSsoModal = computed(() => route.query.modal === 'sso');
+
 const handleOpenSsoModal = () => {
   showSsoModal.value = true;
 };
 
 const handleCloseSsoModal = () => {
   showSsoModal.value = false;
+  // Strip the deep-link param so a refresh doesn't reopen the modal.
+  if (wantsSsoModal.value) {
+    const { modal: _modal, ...query } = route.query;
+    router.replace({ query });
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -153,6 +163,7 @@ onMounted(async () => {
 
   if (canManageSso.value) {
     await initializeSsoConfig();
+    if (wantsSsoModal.value) showSsoModal.value = true;
   }
 });
 
@@ -167,6 +178,7 @@ watch(canCustomSignin, async (entitled) => {
 watch(canManageSso, async (entitled) => {
   if (entitled && !ssoInitialized.value) {
     await initializeSsoConfig();
+    if (wantsSsoModal.value) showSsoModal.value = true;
   }
 });
 </script>
