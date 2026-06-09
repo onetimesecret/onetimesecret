@@ -92,7 +92,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -257,7 +257,7 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
 
     // Visit invitation link
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify invitation details page loads
     await expect(page.getByText(/invitation/i)).toBeVisible();
@@ -317,7 +317,7 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       await loginUser(wrongUserPage); // Logs in as test user (different from invited email)
 
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify wrong_email state is shown
       const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
@@ -371,7 +371,7 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
       // Wrong user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });
@@ -423,7 +423,7 @@ test.describe('INV-005: Matching Email User Flow', () => {
       // Clear cookies and visit as unauthenticated to verify button states
       await ownerContext.clearCookies();
       await ownerPage.goto(`/invite/${token}`);
-      await ownerPage.waitForLoadState('networkidle');
+      await expect(ownerPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Accept button should be visible (even for unauthenticated)
       const acceptButton = ownerPage.getByRole('button', { name: /accept/i });
@@ -456,7 +456,7 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 
     // Visit invitation page (still logged in as owner - simulates matching email)
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Click decline
     const declineButton = page.getByRole('button', { name: /decline/i });
@@ -487,7 +487,7 @@ test.describe('INV-007b: Unauthenticated Decline Flow', () => {
 
     // Visit invitation page
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Decline button should work without auth
     const declineButton = page.getByRole('button', { name: /decline/i });
@@ -508,7 +508,7 @@ test.describe('INV-008: Expired Invitation', () => {
     const fakeToken = 'expired-fake-token-' + Date.now();
 
     await page.goto(`/invite/${fakeToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Error message should be visible
     await expect(page.getByText(/invalid|expired/i)).toBeVisible();
@@ -583,7 +583,7 @@ test.describe('INV-011: Revoke Invitation', () => {
     // Verify invitation link is now invalid
     await context.clearCookies();
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show error
     await expect(page.getByText(/invalid|expired|not found/i)).toBeVisible();
@@ -650,7 +650,7 @@ test.describe('INV-016: Invalid Token', () => {
     const invalidToken = 'invalid-token-format-12345-' + Date.now();
 
     await page.goto(`/invite/${invalidToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Error message should be visible
     await expect(page.getByText(/invalid|expired/i)).toBeVisible();
@@ -738,7 +738,7 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
       // Log in as different user and visit invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.getByRole('button', { name: /continue as/i });

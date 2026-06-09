@@ -214,9 +214,9 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
       await page.goto('/account/settings/profile');
 
-      // Wait for layout to stabilize
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(300);
+      // Wait for the app to finish booting; the overflow read below forces
+      // a synchronous layout pass itself.
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Check for horizontal overflow
       const { hasOverflow, scrollWidth, viewportWidth } = await page.evaluate(() => {

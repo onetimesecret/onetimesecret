@@ -140,7 +140,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
   test.describe('Dashboard (/dashboard)', () => {
     test('TC-SS-001: Organization switcher is visible and interactive', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Organization switcher should be visible
       const orgTrigger = orgSwitcher.trigger(page);
@@ -155,7 +155,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-002: Domain switcher is visible and interactive', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainTrigger = domainSwitcher.trigger(page);
       const isVisible = await domainTrigger.isVisible().catch(() => false);
@@ -179,7 +179,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
       page,
     }) => {
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgTrigger = orgSwitcher.trigger(page);
       const isVisible = await orgTrigger.isVisible().catch(() => false);
@@ -191,7 +191,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-004: Domain switcher is visible on secret creation page', async ({ page }) => {
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainTrigger = domainSwitcher.trigger(page);
       const isVisible = await domainTrigger.isVisible().catch(() => false);
@@ -212,11 +212,11 @@ test.describe('Scope Switcher - Visibility Rules', () => {
     test('TC-SS-005: Organization switcher is locked (visible but disabled)', async ({ page }) => {
       // First get org list to find a valid extid
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Try to get org extid from URL or navigate to org settings
       await page.goto('/orgs');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Look for org link or navigate to first org
       const orgLink = page.locator('a[href*="/org/"]').first();
@@ -224,7 +224,8 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
       if (hasOrgLink) {
         await orgLink.click();
-        await page.waitForLoadState('networkidle');
+        // Wait for the router to land on the org route
+        await page.waitForURL(/\/org\//);
 
         const orgTrigger = orgSwitcher.trigger(page);
         const isVisible = await orgTrigger.isVisible().catch(() => false);
@@ -244,14 +245,15 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-006: Domain switcher is hidden on org settings page', async ({ page }) => {
       await page.goto('/orgs');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgLink = page.locator('a[href*="/org/"]').first();
       const hasOrgLink = await orgLink.isVisible().catch(() => false);
 
       if (hasOrgLink) {
         await orgLink.click();
-        await page.waitForLoadState('networkidle');
+        // Wait for the router to land on the org route
+        await page.waitForURL(/\/org\//);
 
         const domainTrigger = domainSwitcher.trigger(page);
         const isVisible = await domainTrigger.isVisible().catch(() => false);
@@ -267,7 +269,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
   test.describe('Domains List (/domains)', () => {
     test('TC-SS-007: Organization switcher is visible on domains list', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgTrigger = orgSwitcher.trigger(page);
       const isVisible = await orgTrigger.isVisible().catch(() => false);
@@ -277,7 +279,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-008: Domain switcher is visible on domains list', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainTrigger = domainSwitcher.trigger(page);
       // May not be visible if user has no domains - that's expected behavior
@@ -297,7 +299,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
   test.describe('Domain Detail (/domains/:extid)', () => {
     test('TC-SS-009: Organization switcher is visible on domain detail', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Find a domain link
       const domainLink = page
@@ -310,7 +312,8 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
       if (hasDomainLink) {
         await domainLink.click();
-        await page.waitForLoadState('networkidle');
+        // Wait for the router to land on the domain route
+        await page.waitForURL(/\/domains\/./);
 
         const orgTrigger = orgSwitcher.trigger(page);
         const isVisible = await orgTrigger.isVisible().catch(() => false);
@@ -325,7 +328,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-010: Domain switcher is locked on domain detail', async ({ page }) => {
       await page.goto('/domains');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainLink = page
         .locator('a[href*="/domains/"]')
@@ -337,7 +340,8 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
       if (hasDomainLink) {
         await domainLink.click();
-        await page.waitForLoadState('networkidle');
+        // Wait for the router to land on the domain route
+        await page.waitForURL(/\/domains\/./);
 
         const domainTrigger = domainSwitcher.trigger(page);
         const isVisible = await domainTrigger.isVisible().catch(() => false);
@@ -356,7 +360,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
   test.describe('Billing Pages (/billing/*)', () => {
     test('TC-SS-011: Organization switcher is locked on billing pages', async ({ page }) => {
       await page.goto('/billing/overview');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgTrigger = orgSwitcher.trigger(page);
       const isVisible = await orgTrigger.isVisible().catch(() => false);
@@ -369,7 +373,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-012: Domain switcher is hidden on billing pages', async ({ page }) => {
       await page.goto('/billing/overview');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainTrigger = domainSwitcher.trigger(page);
       const isVisible = await domainTrigger.isVisible().catch(() => false);
@@ -379,7 +383,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-013: Visibility rules apply to billing/plans', async ({ page }) => {
       await page.goto('/billing/plans');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Org locked
       const orgTrigger = orgSwitcher.trigger(page);
@@ -396,7 +400,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-014: Visibility rules apply to billing/invoices', async ({ page }) => {
       await page.goto('/billing/invoices');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Domain hidden
       const domainTrigger = domainSwitcher.trigger(page);
@@ -411,7 +415,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
   test.describe('Account Settings (/account/*)', () => {
     test('TC-SS-015: Organization switcher is hidden on account pages', async ({ page }) => {
       await page.goto('/account');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgTrigger = orgSwitcher.trigger(page);
       const isVisible = await orgTrigger.isVisible().catch(() => false);
@@ -421,7 +425,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-016: Domain switcher is hidden on account pages', async ({ page }) => {
       await page.goto('/account');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const domainTrigger = domainSwitcher.trigger(page);
       const isVisible = await domainTrigger.isVisible().catch(() => false);
@@ -431,7 +435,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-017: Both hidden on account/settings/profile', async ({ page }) => {
       await page.goto('/account/settings/profile');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgVisible = await orgSwitcher
         .trigger(page)
@@ -448,7 +452,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
 
     test('TC-SS-018: Both hidden on account/settings/security', async ({ page }) => {
       await page.goto('/account/settings/security');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const orgVisible = await orgSwitcher
         .trigger(page)
@@ -480,7 +484,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
   test.describe('Organization Switching', () => {
     test('TC-SS-020: Clicking org name opens dropdown', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -495,7 +499,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
     test('TC-SS-021: Dropdown shows current org highlighted', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -518,7 +522,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
     test('TC-SS-022: Selecting different org updates current page context', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -541,19 +545,16 @@ test.describe('Scope Switcher - Switching Behavior', () => {
         if (differentOrgName !== currentOrgName) {
           await differentOrg.click();
 
-          // Wait for update
-          await page.waitForTimeout(500);
-
-          // Verify trigger now shows new org
-          const newOrgName = await trigger.textContent();
-          expect(newOrgName).not.toBe(currentOrgName);
+          // Verify trigger now shows new org (web-first assertion waits
+          // for the switcher to update)
+          await expect(trigger).not.toHaveText(currentOrgName ?? '');
         }
       }
     });
 
     test('TC-SS-023: Clicking gear icon navigates to org settings', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -577,7 +578,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
     test('TC-SS-024: Manage Organizations link navigates to /orgs', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = orgSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -601,7 +602,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
   test.describe('Domain Switching', () => {
     test('TC-SS-030: Clicking domain switcher opens dropdown', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -615,7 +616,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
     test('TC-SS-031: Selecting different domain updates scope', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -630,8 +631,9 @@ test.describe('Scope Switcher - Switching Behavior', () => {
         const differentDomain = menuItems.nth(1);
         await differentDomain.click();
 
-        await page.waitForTimeout(500);
-
+        // Selection closes the dropdown; the trigger remains visible with
+        // the (possibly unchanged) current domain
+        await expect(trigger).toBeVisible();
         const newDomain = await trigger.textContent();
         // Domain may have changed
         expect(newDomain).toBeTruthy();
@@ -640,7 +642,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
     test('TC-SS-032: Domain scope persists to sessionStorage', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -659,7 +661,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
     test('TC-SS-033: Add Domain link navigates to /domains', async ({ page }) => {
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const trigger = domainSwitcher.trigger(page);
       const isVisible = await trigger.isVisible().catch(() => false);
@@ -691,7 +693,7 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
     page,
   }) => {
     await page.goto('/billing/overview');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -714,7 +716,7 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
 
   test('TC-SS-041: Locked org switcher has appropriate ARIA attributes', async ({ page }) => {
     await page.goto('/billing/overview');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -733,7 +735,7 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
   test('TC-SS-042: Locked domain switcher shows current domain', async ({ page }) => {
     // Navigate to domain detail if possible
     await page.goto('/domains');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const domainLink = page
       .locator('a[href*="/domains/"]')
@@ -745,7 +747,8 @@ test.describe('Scope Switcher - Locked State Behavior', () => {
     test.skip(!hasDomainLink, 'No domains available');
 
     await domainLink.click();
-    await page.waitForLoadState('networkidle');
+    // Wait for the router to land on the domain route
+    await page.waitForURL(/\/domains\/./);
 
     const trigger = domainSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -771,7 +774,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
 
   test('TC-SS-050: Single org user sees switcher with one option', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -790,7 +793,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
 
   test('TC-SS-051: User without custom domains does not see domain switcher', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check window state for domains
     const hasDomains = await page.evaluate(() => {
@@ -808,7 +811,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
 
   test('TC-SS-052: Canonical domain shows "Personal" label', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -831,7 +834,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
 
   test('TC-SS-053: Keyboard navigation works in dropdown', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -855,7 +858,7 @@ test.describe('Scope Switcher - Edge Cases', () => {
 
   test('TC-SS-054: Switching org resets domain scope if domain not available', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const orgTrigger = orgSwitcher.trigger(page);
     const orgVisible = await orgTrigger.isVisible().catch(() => false);
@@ -872,10 +875,9 @@ test.describe('Scope Switcher - Edge Cases', () => {
 
       if (itemCount > 1) {
         await menuItems.nth(1).click();
-        await page.waitForTimeout(1000);
 
-        // Domain scope may have been reset if new org doesn't have that domain
-        // This is expected behavior
+        // Domain scope may have been reset if new org doesn't have that
+        // domain - expected behavior; nothing further to assert here.
       }
     }
   });
@@ -892,7 +894,7 @@ test.describe('Scope Switcher - State Persistence', () => {
 
   test('TC-SS-060: Org selection persists across page navigation', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -903,10 +905,10 @@ test.describe('Scope Switcher - State Persistence', () => {
 
     // Navigate away and back
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify same org selected
     const newOrgName = await trigger.textContent();
@@ -915,7 +917,7 @@ test.describe('Scope Switcher - State Persistence', () => {
 
   test('TC-SS-061: Domain scope persists across page navigation', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -924,10 +926,10 @@ test.describe('Scope Switcher - State Persistence', () => {
     const domainName = await trigger.textContent();
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const newDomainName = await trigger.textContent();
     expect(newDomainName).toBe(domainName);
@@ -935,7 +937,7 @@ test.describe('Scope Switcher - State Persistence', () => {
 
   test('TC-SS-062: Domain scope stored in sessionStorage', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -961,7 +963,7 @@ test.describe('Scope Switcher - Accessibility', () => {
 
   test('TC-SS-070: Org switcher has proper ARIA labels', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -974,7 +976,7 @@ test.describe('Scope Switcher - Accessibility', () => {
 
   test('TC-SS-071: Domain switcher has proper ARIA labels', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = domainSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -986,7 +988,7 @@ test.describe('Scope Switcher - Accessibility', () => {
 
   test('TC-SS-072: Dropdown menu has role="menu"', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -1000,7 +1002,7 @@ test.describe('Scope Switcher - Accessibility', () => {
 
   test('TC-SS-073: Menu items have role="menuitem"', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);
@@ -1015,7 +1017,7 @@ test.describe('Scope Switcher - Accessibility', () => {
 
   test('TC-SS-074: Focus is trapped within open dropdown', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
     const isVisible = await trigger.isVisible().catch(() => false);

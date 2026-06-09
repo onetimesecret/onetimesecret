@@ -111,7 +111,7 @@ async function navigateToOrgTab(
 
   // Navigate directly to the specific tab (more reliable than clicking through)
   await page.goto(`/org/${extid}/${tab}`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   return extid;
 }
@@ -132,10 +132,14 @@ async function switchOrgViaSwitcher(page: Page, targetOrgName: string): Promise<
   // Find and click the target org
   const targetOrgItem = orgSwitcher.getOrgMenuItem(page, targetOrgName);
   await expect(targetOrgItem).toBeVisible({ timeout: 5000 });
+
+  // Record the pre-switch URL so we can wait for the router to move - every
+  // caller switches to a *different* org, so the URL must change.
+  const urlBefore = page.url();
   await targetOrgItem.click();
 
-  // Wait for navigation to complete
-  await page.waitForLoadState('networkidle');
+  // Wait for the switch navigation to complete
+  await expect(page).not.toHaveURL(urlBefore);
 }
 
 /**
@@ -354,9 +358,8 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     expect(orgAUrl).not.toBe(orgBUrl);
     expect(orgAUrl).toContain(`/org/${initialExtid}/domains`);
 
-    // Verify content is back to Org A's data
-    // The page should not show Org B's data
-    await page.waitForLoadState('networkidle');
+    // Verify content is back to Org A's data; switchOrgViaSwitcher already
+    // waited for the navigation, so the extid read below is settled.
 
     // Content should reflect Org A (no stale Org B data)
     // This is the core assertion - the page should have updated
@@ -470,15 +473,14 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     const extid2 = getCurrentOrgExtid(page);
     expect(extid2).not.toBe(extid1);
 
-    // Go back using browser navigation
+    // Go back using browser navigation; the web-first URL assertion waits
+    // for the history navigation to settle on the original org
     await page.goBack();
-    await page.waitForLoadState('networkidle');
 
     // Should be back on original org's page
     // Note: Behavior may vary based on router.replace vs router.push
+    await expect(page).toHaveURL(new RegExp(extid1));
     const backUrl = page.url();
-    // Verify we're back to the original URL or at least the original org
-    expect(backUrl).toContain(extid1);
     void originalUrl; // Used for comparison context
     const backExtid = getCurrentOrgExtid(page);
 

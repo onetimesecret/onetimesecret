@@ -54,7 +54,7 @@ interface DomainInfo {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -77,7 +77,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function navigateToOrgSsoTab(page: Page, orgExtid: string): Promise<void> {
   await page.goto(`/org/${orgExtid}/sso`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for SSO tab to be active or section to be visible
   const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -149,7 +149,7 @@ async function navigateToDomainSsoPage(
   domainExtid: string
 ): Promise<void> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/sso`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for form or access denied message
   const form = page.locator('form');
@@ -230,7 +230,7 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 
     // Direct navigation to domain SSO page
     await page.goto(`/org/${org!.extid}/domains/${domains[0].extid}/sso`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify page loaded correctly
     await expect(page.locator('form')).toBeVisible();
@@ -553,11 +553,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const testButton = page.locator('button').filter({ hasText: /test/i });
     await testButton.click();
 
-    // Wait for response
-    await page.waitForTimeout(500);
-
-    // Verify request was made
-    expect(testRequestMade).toBe(true);
+    // Poll for the capture flag set by the route handler (no sleep)
+    await expect.poll(() => testRequestMade).toBe(true);
   });
 
   test('TC-DSSO-014: shows success message for valid credentials', async ({ page }) => {
@@ -721,11 +718,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
     const saveButton = page.locator('button[type="submit"]');
     await saveButton.click();
 
-    // Wait for save to complete
-    await page.waitForTimeout(1000);
-
-    // Verify request was made
-    expect(saveRequestMade).toBe(true);
+    // Poll for the capture flag set by the route handler (no sleep)
+    await expect.poll(() => saveRequestMade).toBe(true);
   });
 
   test('TC-DSSO-017: delete button removes SSO config with confirmation', async ({ page }) => {
@@ -771,11 +765,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
         await confirmButton.click();
       }
 
-      // Wait for deletion
-      await page.waitForTimeout(1000);
-
-      // Verify request was made
-      expect(deleteRequestMade).toBe(true);
+      // Poll for the capture flag set by the route handler (no sleep)
+      await expect.poll(() => deleteRequestMade).toBe(true);
     } else {
       // Delete button not visible - pass test but note this
       expect(true).toBe(true);
@@ -874,10 +865,15 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-client-secret').fill('secret-a');
     await page.locator('#domain-sso-tenant-id').fill('tenant-a');
 
-    // Step 3: Save domain A config
+    // Step 3: Save domain A config (anchor on the save round-trip)
+    const saveResponseA = page.waitForResponse(
+      (response) =>
+        /\/api\/domains\/[^/]+\/sso/.test(response.url()) &&
+        response.request().method() !== 'GET'
+    );
     const saveButtonA = page.locator('button[type="submit"]');
     await saveButtonA.click();
-    await page.waitForTimeout(500);
+    await saveResponseA;
 
     // Step 4: Navigate to domain B SSO page
     await navigateToDomainSsoPage(page, org!.extid, domainB.extid);
@@ -891,10 +887,15 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await page.locator('#domain-sso-client-id').fill('client-b');
     await page.locator('#domain-sso-client-secret').fill('secret-b');
 
-    // Step 6: Save domain B config
+    // Step 6: Save domain B config (anchor on the save round-trip)
+    const saveResponseB = page.waitForResponse(
+      (response) =>
+        /\/api\/domains\/[^/]+\/sso/.test(response.url()) &&
+        response.request().method() !== 'GET'
+    );
     const saveButtonB = page.locator('button[type="submit"]');
     await saveButtonB.click();
-    await page.waitForTimeout(500);
+    await saveResponseB;
 
     // Step 7: Return to org settings and verify both show configured status
     // (In real scenario, need to refresh domain list data)
@@ -922,7 +923,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
 
     // Navigate to org settings
     await page.goto(`/org/${org!.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if SSO tab is NOT visible (no entitlement)
     const ssoTab = page.locator('[data-testid="org-tab-sso"]');
@@ -944,7 +945,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     // Navigate directly to a domain SSO page
     // Use a fake domain extid since we're testing access control
     await page.goto(`/org/${org!.extid}/domains/test-domain/sso`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show either:
     // 1. Access denied message (no entitlement)

@@ -67,7 +67,7 @@ interface SsoConfigData {
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgLink = page.locator('a[href*="/org/"]').first();
   if (!(await orgLink.isVisible().catch(() => false))) {
@@ -90,7 +90,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
  */
 async function navigateToOrgSsoTab(page: Page, orgExtid: string): Promise<void> {
   await page.goto(`/org/${orgExtid}/sso`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for SSO tab to be active or section to be visible
   const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -162,7 +162,7 @@ async function navigateToDomainSsoPage(
   domainExtid: string
 ): Promise<void> {
   await page.goto(`/org/${orgExtid}/domains/${domainExtid}/sso`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Wait for form or access denied message
   const form = page.locator('form');
@@ -224,9 +224,16 @@ async function fillSsoConfigForm(page: Page, config: SsoConfigData): Promise<voi
 async function submitSsoForm(page: Page): Promise<void> {
   const saveButton = page.locator('button[type="submit"]');
   await expect(saveButton).toBeEnabled({ timeout: 5000 });
+
+  // Anchor on the save round-trip (mocked in setupDomainSsoMock) instead of
+  // sleeping for an arbitrary interval.
+  const saveResponse = page.waitForResponse(
+    (response) =>
+      /\/api\/domains\/[^/]+\/sso/.test(response.url()) &&
+      response.request().method() !== 'GET'
+  );
   await saveButton.click();
-  // Wait for save operation to complete
-  await page.waitForTimeout(500);
+  await saveResponse;
 }
 
 /**
@@ -846,7 +853,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
     // Navigate directly to domain A SSO page via URL
     await page.goto(`/org/${org!.extid}/domains/${domainA.extid}/sso`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain A's extid
     expect(page.url()).toContain(domainA.extid);
@@ -857,7 +864,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
     // Navigate directly to domain B SSO page via URL
     await page.goto(`/org/${org!.extid}/domains/${domainB.extid}/sso`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain B's extid
     expect(page.url()).toContain(domainB.extid);

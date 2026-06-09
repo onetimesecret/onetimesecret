@@ -92,7 +92,7 @@ async function loginUser(page: Page, email?: string, password?: string): Promise
  */
 async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const orgsList = page.getByTestId('organizations-list');
   const isOrgListVisible = await orgsList.isVisible().catch(() => false);
@@ -125,7 +125,7 @@ async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
 async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
   if (orgExtid) {
     await page.goto(`/org/${orgExtid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
     return orgExtid;
   }
 
@@ -135,7 +135,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
   }
 
   await page.goto(`/org/${org.extid}/team`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
   return org.extid;
 }
 
@@ -205,7 +205,7 @@ test.describe('MBR-LIST: Organization Members List', () => {
     }
 
     await page.goto(`/org/${org.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if team tab is visible (feature may be gated)
     const teamTab = page.getByTestId('org-tab-members');
@@ -229,7 +229,7 @@ test.describe('MBR-LIST: Organization Members List', () => {
 
     // Navigate directly to team tab
     await page.goto(`/org/${org.extid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if we're on team tab or redirected (feature may be gated)
     const url = page.url();
@@ -783,7 +783,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
 
     // Visit invitation link
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Invitation details should be visible
     const invitationDetails = page.getByTestId('invitation-details');
@@ -815,7 +815,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
 
     // Visit invitation as unauthenticated user
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // In signin_required state, the component shows inline sign-in form
     // Sign-in notice should be visible (not accept/decline buttons)
@@ -852,7 +852,7 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
 
     // Visit invitation as unauthenticated user
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // In signin_required state, decline button is NOT shown
     // User must authenticate first to accept or decline

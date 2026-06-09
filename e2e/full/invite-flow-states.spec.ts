@@ -79,13 +79,13 @@ async function loginUser(page: Page, email?: string, password?: string): Promise
 async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
   if (orgExtid) {
     await page.goto(`/org/${orgExtid}/team`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
     return orgExtid;
   }
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -94,7 +94,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
   const extractedOrgExtid = match?.[1] || '';
 
   await page.goto(`/org/${extractedOrgExtid}/team`);
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
   return extractedOrgExtid;
 }
 
@@ -166,7 +166,7 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
 
     // Navigate to invite page
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify signup_required state is shown (account_exists: false)
     const signupState = page.getByTestId('invite-signup-required');
@@ -279,7 +279,7 @@ test.describe('INV-004: Existing User Signin Flow', () => {
 
       // Visit invitation as unauthenticated
       await inviteePage.goto(`/invite/${token}`);
-      await inviteePage.waitForLoadState('networkidle');
+      await expect(inviteePage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Check which state we're in
       const signinState = inviteePage.getByTestId('invite-signin-required');
@@ -375,7 +375,7 @@ test.describe('INV-006: Direct Accept Flow', () => {
 
       // Visit invitation page
       await matchingUserPage.goto(`/invite/${token}`);
-      await matchingUserPage.waitForLoadState('networkidle');
+      await expect(matchingUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should show direct_accept state (authenticated with matching email)
       const directAcceptState = matchingUserPage.getByTestId('invite-direct-accept');
@@ -461,7 +461,7 @@ test.describe('INV-007: Wrong Email State', () => {
 
       // Visit invitation page
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should show wrong_email state
       const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
@@ -543,7 +543,7 @@ test.describe('INV-009: Expired Invitation State', () => {
     const fakeToken = 'expired-fake-token-' + Date.now();
 
     await page.goto(`/invite/${fakeToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show invalid state (expired/revoked/not found)
     const invalidState = page.getByTestId('invite-invalid');
@@ -570,7 +570,7 @@ test.describe('INV-010: Invalid Token State', () => {
     const invalidToken = 'invalid-token-format-12345-' + Date.now();
 
     await page.goto(`/invite/${invalidToken}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show invalid state
     const invalidState = page.getByTestId('invite-invalid');
@@ -607,7 +607,7 @@ test.describe('INV-010: Invalid Token State', () => {
     // Clear cookies and try to use the revoked invitation
     await context.clearCookies();
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Should show invalid state
     const invalidState = page.getByTestId('invite-invalid');
@@ -637,7 +637,7 @@ test.describe('Invite Flow State Transitions', () => {
 
     // The loading state may be too fast to catch in most cases
     // Just verify we eventually reach a valid state
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // One of the valid states should be visible
     const signupState = page.getByTestId('invite-signup-required');
@@ -663,7 +663,7 @@ test.describe('Invite Flow State Transitions', () => {
     // Clear cookies and visit invitation
     await context.clearCookies();
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Invitation context should show:
     // - Invited email

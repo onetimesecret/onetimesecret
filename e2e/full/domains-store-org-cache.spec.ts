@@ -261,7 +261,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       // Step 1: Navigate to Default Workspace dashboard
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Wait for domain switcher to be ready
       const domainSwitcherTrigger = page.locator(
@@ -281,7 +281,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null); // Don't fail if no domains API call (empty org)
 
       await page.goto(`/org/${secondOrg.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await domainsResponsePromise;
 
       // Verify domain switcher now shows only canonical domain (no custom domains)
@@ -312,7 +312,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await returnDomainsPromise;
 
       // Verify domain switcher shows custom domains again
@@ -363,7 +363,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
 
       // Step 1: Navigate to Default Workspace's organization page (domains tab is default)
       await page.goto(`/org/${defaultWorkspace.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify custom domains are listed
       const hasDomainsInDefault = await hasDomainsInTable(page);
@@ -388,7 +388,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto(`/org/${secondOrg.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await domainsResponsePromise;
 
       // Verify URL contains the correct org extid
@@ -478,7 +478,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await dashboardDomainsPromise;
 
       // Log calls made for Default Workspace for debugging
@@ -494,7 +494,7 @@ test.describe('DomainsStore Org Context Cache Fix', () => {
       ).catch(() => null);
 
       await page.goto(`/org/${secondOrg.extid}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
       await secondOrgDomainsPromise;
 
       // Verify a NEW API call was made (not returning cached data)
@@ -559,33 +559,33 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
 
     // Navigate to Default Workspace (domains tab is default)
     await page.goto(`/org/${defaultWorkspace.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const hasDomainsInitially = await hasDomainsInTable(page);
 
     // Click through to orgs list, then to second org (builds proper history stack)
     const backToOrgsLink = page.locator('a[href="/orgs"]').first();
     await backToOrgsLink.click();
-    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/orgs/);
 
-    // Click on the second org card to navigate
+    // Click on the second org card to navigate (click auto-waits for the
+    // card; the URL assertion waits for the router navigation)
     const secondOrgCard = page.getByTestId(`org-card-${secondOrg.extid}`);
     await secondOrgCard.click();
-    await page.waitForLoadState('networkidle');
 
     // Verify we're on second org with empty state
-    expect(page.url()).toContain(secondOrg.extid);
+    await expect(page).toHaveURL(new RegExp(secondOrg.extid));
     const isEmptyAfterNav = await isEmptyDomainsState(page);
     expect(isEmptyAfterNav, 'Second org should show empty state').toBe(true);
 
     // Go back twice: second org -> orgs list -> default workspace
+    // (web-first URL assertions wait for each history navigation to settle)
     await page.goBack();
-    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/orgs/);
     await page.goBack();
-    await page.waitForLoadState('networkidle');
 
     // Verify we're back on Default Workspace and domains are shown
-    expect(page.url()).toContain(defaultWorkspace.extid);
+    await expect(page).toHaveURL(new RegExp(defaultWorkspace.extid));
 
     const hasDomainsAfterBack = await hasDomainsInTable(page);
     expect(
@@ -594,13 +594,13 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
     ).toBe(hasDomainsInitially);
 
     // Go forward twice to get back to Second Org
+    // (web-first URL assertions wait for each history navigation to settle)
     await page.goForward();
-    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/orgs/);
     await page.goForward();
-    await page.waitForLoadState('networkidle');
 
     // Verify we're on Second Org and empty state is shown (not cached Default Workspace domains)
-    expect(page.url()).toContain(secondOrg.extid);
+    await expect(page).toHaveURL(new RegExp(secondOrg.extid));
 
     const isEmptyAfterForward = await isEmptyDomainsState(page);
     expect(
@@ -621,14 +621,14 @@ test.describe('DomainsStore Cache - Edge Cases', () => {
 
     // Navigate to Second Org (domains tab is default, should be empty)
     await page.goto(`/org/${secondOrg.extid}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const isEmptyBefore = await isEmptyDomainsState(page);
     expect(isEmptyBefore, 'Second org should show empty state initially').toBe(true);
 
     // Refresh the page
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify empty state is still shown (no stale cache from another org)
     const isEmptyAfterRefresh = await isEmptyDomainsState(page);

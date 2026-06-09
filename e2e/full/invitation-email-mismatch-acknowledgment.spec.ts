@@ -82,7 +82,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
 
   // Navigate to org list and find first org
   await page.goto('/orgs');
-  await page.waitForLoadState('networkidle');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // Find the first organization link with team tab
   const orgLink = page.locator('a[href*="/org/"]').first();
@@ -170,7 +170,7 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
       // Different user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify email mismatch warning is visible
       const mismatchWarning = wrongUserPage.locator('[data-testid="email-mismatch-warning"]');
@@ -218,7 +218,7 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
       // Wrong user visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Verify wrong_email state is shown
       const wrongEmailState = wrongUserPage.getByTestId('invite-wrong-email');
@@ -267,7 +267,7 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
       // Wrong user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await wrongUserPage.waitForLoadState('networkidle');
+      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Click continue as — logs out and redirects to invite page
       const continueAsBtn = wrongUserPage.locator('[data-testid="continue-as-btn"]');
@@ -313,7 +313,7 @@ test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () =>
 
     // Visit invitation
     await page.goto(`/invite/${token}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // When unauthenticated, no mismatch warning (can't compare emails)
     const mismatchWarning = page.getByTestId('email-mismatch-warning');
