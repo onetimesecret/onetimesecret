@@ -1165,6 +1165,54 @@
   "web.domains.signin.method_overrides_hint": {
     "text": "Enable or disable individual authentication methods for this domain"
   },
+  "web.domains.signin.mode_question": {
+    "text": "How can users sign in?"
+  },
+  "web.domains.signin.mode_any": {
+    "text": "Any available method"
+  },
+  "web.domains.signin.mode_any_hint": {
+    "text": "Show every method available on this domain. Narrow individual methods below."
+  },
+  "web.domains.signin.mode_one": {
+    "text": "One specific method"
+  },
+  "web.domains.signin.mode_one_hint": {
+    "text": "Restrict the sign-in page to a single method. Only methods available on this domain are listed."
+  },
+  "web.domains.signin.methods_list_label": {
+    "text": "Methods shown on the sign-in page"
+  },
+  "web.domains.signin.restrict_picker_hint": {
+    "text": "Only methods available on this domain are listed."
+  },
+  "web.domains.signin.availability_always": {
+    "text": "Always available"
+  },
+  "web.domains.signin.availability_global_on": {
+    "text": "Follows global policy · On"
+  },
+  "web.domains.signin.availability_global_off": {
+    "text": "Not available"
+  },
+  "web.domains.signin.availability_unavailable": {
+    "text": "Unavailable site-wide"
+  },
+  "web.domains.signin.allow_on_domain": {
+    "text": "Allow on this domain"
+  },
+  "web.domains.signin.method_password_blurb": {
+    "text": "Password only"
+  },
+  "web.domains.signin.method_email_auth_blurb": {
+    "text": "Passwordless magic-link sign-in"
+  },
+  "web.domains.signin.method_webauthn_blurb": {
+    "text": "Biometrics and security keys"
+  },
+  "web.domains.signin.method_sso_blurb": {
+    "text": "External identity provider"
+  },
   "web.domains.signin.email_auth_label": {
     "text": "Email authentication"
   },
@@ -1186,17 +1234,23 @@
   "web.domains.signin.save_config": {
     "text": "Save configuration"
   },
-  "web.domains.signin.delete_config": {
-    "text": "Delete configuration"
-  },
-  "web.domains.signin.delete_confirm": {
-    "text": "Delete sign-in configuration? This domain will fall back to the global sign-in policy."
-  },
   "web.domains.signin.update_success": {
     "text": "Sign-in configuration updated successfully"
   },
-  "web.domains.signin.delete_success": {
-    "text": "Sign-in configuration removed successfully"
+  "web.domains.signin.reset_to_defaults": {
+    "text": "Reset to defaults"
+  },
+  "web.domains.signin.reset_confirm": {
+    "text": "Reset sign-in to the global defaults?"
+  },
+  "web.domains.signin.reset_keeps_sso": {
+    "text": "Your SSO credentials are kept. Remove them separately on the SSO configuration screen."
+  },
+  "web.domains.signin.reset_action": {
+    "text": "Yes, reset"
+  },
+  "web.domains.signin.reset_success": {
+    "text": "Sign-in settings reset to the global defaults"
   },
   "web.domains.signup.domain_overrides_label": {
     "text": "Domain overrides"
